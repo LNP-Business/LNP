@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build a key result · proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F4EF;--card:#FFFFFF;--ink:#1B1B18;--ink2:#3D3A33;--mut:#5E5B53;--mut2:#8E8A80;--line:#E3DFD5;--line2:#EFEBE3;--soft:#ECE8DF;
+--gold:#D9B46A;--gold2:#9A6614;--goldsoft:#FBF6EC;--green:#2E7D4F;--greent:#1E5E38;--greens:#E6F2EA;--amber:#B45309;--ambert:#8A3F06;--ambers:#FDF1E3;--red:#B42318;--redt:#9B1C12;--reds:#FDECEA;
+--sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:Fraunces,Georgia,serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+#stage{width:1440px;height:900px;display:flex;transform-origin:0 0;position:absolute;left:0;top:0}
+nav{width:232px;flex-shrink:0;background:#1B1B18;padding:26px 16px 18px;display:flex;flex-direction:column;gap:3px;color:#C9C4B7}
+.logo{font-family:var(--serif);font-size:28px;font-weight:600;color:#F6F4EF;padding:0 12px 16px}.logo span{color:var(--gold)}
+.sys{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#2C2B26;border-radius:12px;margin-bottom:16px}
+.sys span{display:block;padding:8px 6px;border-radius:9px;text-align:center;font-size:12px;line-height:1.3}.sys .on{background:#F6F4EF;color:#1B1B18;font-weight:600}
+.grp{padding:0 14px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8E8A80}.it+.grp{margin-top:12px}
+.it{display:flex;align-items:center;padding:10px 14px;border-radius:10px;font-size:15px}.it.on{font-weight:600;color:var(--gold);background:#34322C;box-shadow:inset 3px 0 0 var(--gold)}
+.it b{margin-left:auto;min-width:22px;padding:1px 7px;border-radius:999px;background:var(--red);color:#fff;font-size:12px;text-align:center}
+.note{position:fixed;left:12px;bottom:12px;z-index:8;background:var(--gold);color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
+main{flex:1;min-width:0;padding:18px 24px 18px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px}
+.top{display:flex;align-items:center;gap:16px}
+.top h1{margin:0;font-family:var(--serif);font-weight:500;font-size:30px}
+.seg{display:flex;gap:3px;padding:4px;background:var(--soft);border-radius:10px}
+.seg button{border:0;background:transparent;font:inherit;font-size:13px;color:var(--ink2);padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--ink);color:#fff;font-weight:600}
+.sp{flex:1}.q{font-size:12px;color:var(--mut)}
+.body{display:grid;grid-template-columns:208px minmax(0,1fr) 372px;gap:14px;min-height:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;min-height:0;min-width:0;display:flex;flex-direction:column}
+/* stepper */
+.steps{padding:14px 10px;gap:2px}
+.stp{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:center;padding:9px 8px;border-radius:10px;border:0;background:transparent;font:inherit;color:var(--ink2);text-align:left;cursor:pointer}
+.stp:hover{background:var(--bg)}
+.stp.on{background:var(--goldsoft);box-shadow:inset 3px 0 0 var(--gold);color:var(--ink);font-weight:600}
+.stp i{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:12px;font-weight:600;border:1.5px solid var(--line);background:#fff;color:var(--mut)}
+.stp.ok i{background:var(--green);border-color:var(--green);color:#fff}
+.stp.warn i{background:#fff;border-color:var(--amber);color:var(--ambert)}
+.stp.on i{border-color:var(--ink);color:var(--ink)}
+.stp .l{font-size:14px;line-height:1.2}.stp .s{font-size:11px;color:var(--mut);font-weight:400;margin-top:2px}
+.stphint{margin-top:auto;padding:12px 10px 4px;font-size:12px;line-height:1.5;color:var(--mut);border-top:1px solid var(--line2)}
+/* form */
+.fh{padding:16px 22px 6px}
+.fh .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.fh h2{margin:4px 0 4px;font-family:var(--serif);font-weight:500;font-size:24px}
+.fh p{margin:0;font-size:13px;line-height:1.5;color:var(--ink2);max-width:640px}
+.fb{flex:1;min-height:0;overflow:auto;padding:10px 22px 14px;display:flex;flex-direction:column;gap:14px}
+.ff{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 22px;border-top:1px solid var(--line2)}
+.f{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);min-width:0}
+.f input,.f select,.f textarea{font:inherit;font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;width:100%;min-width:0}
+.f textarea{resize:vertical;min-height:52px}
+.f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.f small{font-weight:400;letter-spacing:0;text-transform:none;font-size:12px;color:var(--mut2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.btn{border:0;background:var(--ink);color:var(--gold);font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:10px 18px;cursor:pointer;white-space:nowrap}
+.btn:disabled{background:#D8D3C7;color:var(--mut);cursor:default}
+.btnl{border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.btnl:hover{border-color:var(--ink)}
+.add{border:1px dashed var(--line);background:transparent;color:var(--gold2);font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left}
+.x{border:0;background:transparent;color:var(--mut2);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.x:hover{color:var(--red)}
+.chk{display:flex;flex-direction:column;gap:6px}
+.ck{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.4;align-items:start}
+.ck b{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;margin-top:1px}
+.ck.ok b{background:var(--green)}.ck.no b{background:var(--amber)}
+.ck.no{color:var(--ambert)}
+.box{border:1px solid var(--line2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.box.sel{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.objc{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.oc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.oc.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.oc .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.oc .n{font-size:15px;font-weight:600}.oc .s{font-size:12px;color:var(--mut)}
+.pills{display:flex;gap:4px;flex-wrap:wrap}
+.pb{border:1px solid var(--line);background:#fff;font:inherit;font-size:13px;padding:6px 11px;border-radius:999px;cursor:pointer}
+.pb.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+.tbl{display:grid;gap:8px;align-items:center}
+.th{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut2)}
+.tbl input,.tbl select{font:inherit;font-size:13px;color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:#fff;width:100%;min-width:0}
+.lock{font-size:11px;color:var(--mut2)}
+.ig{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold2)}
+.cov{position:relative;height:12px;border-radius:6px;background:var(--soft);overflow:hidden}
+.cov i{position:absolute;left:0;top:0;bottom:0}
+.warn{font-size:12px;color:var(--ambert);background:var(--ambers);padding:6px 10px;border-radius:7px;line-height:1.45}
+.okm{font-size:12px;color:var(--greent);background:var(--greens);padding:6px 10px;border-radius:7px;line-height:1.45}
+/* preview */
+.pv{padding:14px 16px;gap:12px;overflow:auto}
+.pv .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.pvh{display:flex;gap:12px;align-items:center}
+.ring{flex-shrink:0}
+.pvt{font-family:var(--serif);font-size:20px;line-height:1.2}
+.pvs{font-size:12px;color:var(--mut)}
+.sec{border-top:1px solid var(--line2);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.lrow{display:grid;grid-template-columns:82px minmax(0,1fr) 54px;gap:8px;align-items:center;font-size:12px}
+.lbar{position:relative;height:8px;border-radius:4px;background:var(--soft)}
+.lbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.lbar u{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink);left:70%}
+.lbar s{position:absolute;top:0;bottom:0;border-radius:0 4px 4px 0;background:repeating-linear-gradient(45deg,var(--gold),var(--gold) 3px,#F3E3BF 3px,#F3E3BF 6px)}
+.mini{font-size:12px;line-height:1.45;color:var(--ink2)}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:#F6F4EF;font-size:12px;line-height:1.45;padding:8px 10px;border-radius:8px;max-width:280px;opacity:0;transition:opacity .1s;z-index:20}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;z-index:20;max-width:560px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="note">Proposal · not live</div>
+<div id="stage">
+<nav aria-label="Main navigation">
+  <div class="logo">SKL <span>OS</span></div>
+  <div class="sys"><span class="on">Operating<br>System</span><span>Knowledge<br>System</span></div>
+  <div class="grp">Operating System</div>
+  <div class="it">Cockpit</div><div class="it on">Roadmap</div><div class="it">My Day<b>4</b></div><div class="it">Decisions<b>5</b></div><div class="it">Weekly Review<b>3</b></div>
+  <div class="grp">Sales Ops</div><div class="it">CRM</div>
+</nav>
+<main>
+  <header class="top">
+    <h1>Roadmap</h1>
+    <div class="seg" role="group" aria-label="Roadmap mode"><button onclick="location.href='roadmap-review.html'">Review &amp; update</button><button class="on">Build a key result</button></div>
+    <span class="sp"></span>
+    <span class="q">Draft saved · nothing is visible to the team until you publish</span>
+  </header>
+  <section class="body">
+    <div class="card steps" id="steps"></div>
+    <div class="card"><div class="fh" id="fh"></div><div class="fb" id="fb"></div><div class="ff" id="ff"></div></div>
+    <div class="card pv" id="pv"></div>
+  </section>
+</main>
+</div>
+<div id="tip" role="tooltip"></div><div id="toast" role="status"></div>
+<script>
+const el=id=>document.getElementById(id), tip=el("tip");
+const WEEK=3, Q0=new Date("2026-09-28T12:00:00");
+const wkDate=w=>new Date(Q0.getTime()+(w-1)*7*864e5).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const PEOPLE={amin:["Amin",10,6],romain:["Romain",8,5],marketing:["Michael",24,18],contenu:["Ilya",20,17],sales:["Sales Lead",20,14]}; // name, capacity h/7d, already planned h
+const OBJS={O1:["Launch the masterclass series",["3 masterclasses published","60% average completion"]],O2:["Build a qualified audience",["2,000 live sign-ups","Cost per lead ≤ €4"]],O3:["Generate first revenue",["€50k collected"]]};
+const UNITS=[["n","Number"],["pct","Percentage"],["eur","Euros"]];
+const fmt=(v,u)=>u==="pct"?Math.round(v)+"%":u==="eur"?"€"+(v>=1000?(v/1000).toLocaleString("en-GB",{maximumFractionDigits:1})+"k":Math.round(v)):Math.round(v).toLocaleString("en-GB");
+
+// the draft, prefilled with a key result half-way built so every step shows something
+const K={
+  obj:"O3", newObj:"", newWhy:"",
+  name:"120 qualified sales calls booked", metric:"Calls booked in the CRM with a qualified lead", unit:"n", baseline:0, target:120, owner:"sales",
+  source:"CRM · deals at stage “Call booked”", freq:"weekly", lead:"Live attendees offered a discovery call", why:"€50k collected needs ~38 deals; at a 31% close rate that is ~120 calls.",
+  shape:"linear",
+  miles:[{w:2,t:"CRM stage “Call booked” in use",lock:false},{w:4,t:"First 20 calls booked",lock:false},{w:6,t:"Mid-point: keep or pivot the initiatives",lock:true},{w:9,t:"80 calls booked",lock:false},{w:12,t:"Closing and scoring",lock:true}],
+  inits:[{n:"Discovery call offered at every live",h:"If every live ends with a call offer, then 15% of attendees book",c:60},{n:"Follow-up sequence for no-shows",h:"If no-shows get a re-booking sequence within 24 h, then half of them re-book",c:25},{n:"Partner referral calls",h:"If the 3 partners refer their members, then we book 10 calls each",c:30}],
+  acts:[{i:0,t:"Write the call offer script for the lives",o:"sales",w:3,h:3,k:"L"},{i:0,t:"Add the booking link to the live end screen",o:"marketing",w:3,h:2,k:"L"},{i:1,t:"Set up the 24 h no-show sequence",o:"marketing",w:4,h:5,k:"L"},{i:2,t:"Brief the 3 partners on the referral offer",o:"amin",w:4,h:2,k:"L"},{i:2,t:"Test which partner offer converts best",o:"sales",w:4,h:12,k:"E"}],
+  risks:[{t:"Lives draw fewer attendees than planned",p:"medium",i:"high",f:"Partner co-promotion before each live",o:"marketing"}]
+};
+let step=1;
+const STEPS=[["Objective","Where it belongs"],["Key result","What we measure"],["Milestones","The path in 13 weeks"],["Initiatives","Bets that move it"],["Actions","First tasks, owners, dates"],["Risks","What could stop it"],["Review & publish","Check and launch"]];
+
+function checks(){
+  const k=K, verbs=/^(launch|do|write|create|build|make|set up|organi[sz]e|run|send|hold)\b/i;
+  const gap=Math.abs(k.target-k.baseline), cov=k.inits.reduce((a,x)=>a+(Number(x.c)||0),0);
+  const actsByInit=k.inits.map((_,i)=>k.acts.filter(a=>a.i===i));
+  return {
+    1:[[!!(k.obj!=="new"||k.newObj.trim()),"Tied to one objective"]],
+    2:[[/\d/.test(k.name),"The result contains a number"],[!verbs.test(k.name.trim()),"It is an outcome, not a task (no “launch”, “write”, “do”…)"],[k.baseline!==""&&!isNaN(k.baseline),"Baseline set: where we start"],[Number(k.target)!==Number(k.baseline),"Target differs from the baseline"],[!!k.owner,"One owner"],[k.source.trim().length>3,"Data source named: anyone can check the number"],[k.lead.trim().length>3,"Leading indicator that moves before the result"]],
+    3:[[k.miles.length>=4,"At least 4 milestones across the quarter"],[k.miles.some(m=>m.w<=4),"A first milestone within 4 weeks"],[k.miles.every(m=>m.t.trim()),"Every milestone is named"]],
+    4:[[k.inits.length>=2&&k.inits.length<=5,"2 to 5 initiatives"],[k.inits.every(x=>/^if\b.*\bthen\b/i.test(x.h.trim())),"Each one is a bet: “If… then…”"],[cov>=gap,"Expected contributions cover the gap ("+fmt(cov,k.unit==="pct"?"n":k.unit)+" of "+fmt(gap,k.unit==="pct"?"n":k.unit)+")"]],
+    5:[[actsByInit.every(a=>a.length>0),"Every initiative has at least one action"],[actsByInit.every(a=>a.some(x=>x.w<=WEEK+1)),"Every initiative starts within 2 weeks"],[k.acts.every(a=>a.k==="E"||a.h<=8),"Delivery tasks are 8 h or less"],[load().every(l=>l.after<=l.cap),"Nobody goes over capacity"]],
+    6:[[k.risks.length>=1,"At least one risk named"],[k.risks.every(r=>r.f.trim()&&r.o),"Each risk has a mitigation and an owner"]]
+  };
+}
+function stepState(n){ const c=checks()[n]; if(!c) return ""; return c.every(x=>x[0])?"ok":"warn"; }
+function score(){ const c=checks(); let a=0,t=0; Object.values(c).forEach(l=>l.forEach(x=>{t++;if(x[0])a++})); return [a,t]; }
+function load(){ return Object.entries(PEOPLE).map(([id,[n,cap,base]])=>{ const add=K.acts.filter(a=>a.o===id&&a.w<=WEEK+1).reduce((s,a)=>s+Number(a.h||0),0); return {id,n,cap,base,add,after:base+add}; }).filter(l=>l.add>0||l.id===K.owner); }
+function plan(w){ const f=w/13, sh=K.shape==="slow"?f*f:K.shape==="front"?Math.sqrt(f):f; return Number(K.baseline)+(K.target-K.baseline)*sh; }
+
+const opt=(arr,v)=>arr.map(([a,b])=>`<option value="${a}" ${String(a)===String(v)?"selected":""}>${esc(b)}</option>`).join("");
+const weeks=v=>opt(Array.from({length:13},(_,i)=>[i+1,"W"+(i+1)+" · "+wkDate(i+1)]),v);
+const ppl=v=>opt(Object.entries(PEOPLE).map(([a,b])=>[a,b[0]]),v);
+const ckList=n=>`<div class="chk">${(checks()[n]||[]).map(([ok,t])=>`<div class="ck ${ok?"ok":"no"}"><b>${ok?"✓":"!"}</b><span>${esc(t)}</span></div>`).join("")}</div>`;
+
+function steps(){
+  el("steps").innerHTML=STEPS.map(([l,s],i)=>{const n=i+1, st=n<7?stepState(n):""; return `<button class="stp ${n===step?"on":""} ${st}" data-n="${n}"><i>${st==="ok"&&n!==step?"✓":n}</i><span><div class="l">${l}</div><div class="s">${s}</div></span></button>`}).join("")+
+    `<div class="stphint">Build it in one sitting: about 20 minutes. Every step has its rules on the page; you can publish with warnings, but they show on the key result.</div>`;
+  el("steps").querySelectorAll(".stp").forEach(b=>b.onclick=()=>{step=+b.dataset.n;render()});
+}
+function form(){
+  const k=K; let h="", p="";
+  if(step===1){
+    p="A key result only exists to move an objective. Pick the objective it serves, or create one for the quarter.";
+    h=`<div class="objc">${Object.entries(OBJS).map(([o,[n,ks]])=>`<button class="oc ${k.obj===o?"on":""}" data-o="${o}"><span class="k">${o} · ${ks.length} key result${ks.length>1?"s":""}</span><span class="n">${esc(n)}</span><span class="s">${ks.map(esc).join(" · ")}</span></button>`).join("")}
+      <button class="oc ${k.obj==="new"?"on":""}" data-o="new"><span class="k">New objective</span><span class="n">+ Create an objective</span><span class="s">Qualitative, ambitious, one sentence</span></button></div>
+      ${k.obj==="new"?`<div class="box"><label class="f">Objective<input data-k="newObj" value="${esc(k.newObj)}" placeholder="e.g. Make SKL the reference for decision making"></label><label class="f">Why this quarter<textarea data-k="newWhy">${esc(k.newWhy)}</textarea></label></div>`:""}
+      ${ckList(1)}`;
+  }
+  if(step===2){
+    p="One number that proves the objective moved. Write the result, not the work: “120 calls booked”, not “launch a call campaign”.";
+    h=`<label class="f">Key result<input data-k="name" value="${esc(k.name)}" style="font-size:17px;font-weight:600"></label>
+      <label class="f">What exactly is counted<input data-k="metric" value="${esc(k.metric)}"></label>
+      <div class="g4"><label class="f">Unit<select data-k="unit">${opt(UNITS,k.unit)}</select></label><label class="f">Baseline<input data-k="baseline" type="number" value="${k.baseline}"></label><label class="f">Target · W13<input data-k="target" type="number" value="${k.target}"></label><label class="f">Owner<select data-k="owner">${ppl(k.owner)}</select></label></div>
+      <div class="g2"><label class="f">Data source<input data-k="source" value="${esc(k.source)}"></label><label class="f">Check-in<select data-k="freq">${opt([["weekly","Every week, before Friday"],["biweekly","Every 2 weeks"]],k.freq)}</select></label></div>
+      <label class="f">Leading indicator <small>moves before the result, checked in with it</small><input data-k="lead" value="${esc(k.lead)}"></label>
+      <label class="f">Why this number <small>the reasoning behind the target</small><textarea data-k="why">${esc(k.why)}</textarea></label>
+      ${ckList(2)}`;
+  }
+  if(step===3){
+    p="Checkable results on the way to the target. The OS proposes the plan curve; the mid-point (W6) and the closing (W12) are fixed for every key result.";
+    h=`<div style="display:flex;gap:10px;align-items:center"><span class="f" style="flex-direction:row;align-items:center;gap:10px">Plan curve</span><div class="pills">${[["linear","Linear"],["slow","Slow start"],["front","Front-loaded"]].map(([a,b])=>`<button class="pb ${k.shape===a?"on":""}" data-shape="${a}">${b}</button>`).join("")}</div><span class="q">Expected values below follow the curve</span></div>
+      <div class="tbl" style="grid-template-columns:150px minmax(0,1fr) 90px 22px"><span class="th">Week</span><span class="th">Milestone · a result you can check</span><span class="th">Expected</span><span></span>
+      ${k.miles.map((m,i)=>`<select data-m="${i}" data-f="w" ${m.lock?"disabled":""}>${weeks(m.w)}</select><input data-m="${i}" data-f="t" value="${esc(m.t)}" placeholder="e.g. First 20 calls booked"><span class="ig">${fmt(plan(m.w),k.unit)}</span>${m.lock?`<span class="lock" data-tip="Fixed for every key result">🔒</span>`:`<button class="x" data-rmm="${i}" aria-label="Remove">×</button>`}`).join("")}</div>
+      <button class="add" id="addm">+ Add a milestone</button>${ckList(3)}`;
+  }
+  if(step===4){
+    const gap=Math.abs(k.target-k.baseline), cov=k.inits.reduce((a,x)=>a+(Number(x.c)||0),0), u=k.unit==="pct"?"n":k.unit;
+    p="Initiatives are bets. Each one says what you will try and how much of the gap it should close. Together they must cover the gap, with some margin.";
+    h=`<div class="box" style="gap:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><b>Gap to close: ${fmt(gap,u)}</b><span class="${cov>=gap?"":"ig"}" style="${cov>=gap?"color:var(--greent);font-weight:600":""}">Covered ${fmt(cov,u)} · ${Math.round(cov/gap*100)}%</span></div>
+      <div class="cov">${k.inits.map((x,i)=>{const prev=k.inits.slice(0,i).reduce((a,y)=>a+(Number(y.c)||0),0);return `<i style="left:${Math.min(100,prev/gap*100)}%;width:${Math.min(100-Math.min(100,prev/gap*100),(Number(x.c)||0)/gap*100)}%;background:${["#1B1B18","#9A6614","#D9B46A","#5E5B53","#C9C4B7"][i]};border-right:2px solid #fff"></i>`}).join("")}</div></div>
+      ${k.inits.map((x,i)=>`<div class="box"><div style="display:grid;grid-template-columns:34px minmax(0,1fr) 120px 22px;gap:10px;align-items:end"><span class="ig" style="font-size:15px;padding-bottom:8px;color:${["#1B1B18","#9A6614","#D9B46A","#5E5B53","#C9C4B7"][i]}">I${i+1}</span><label class="f">Initiative<input data-n="${i}" data-f="n" value="${esc(x.n)}"></label><label class="f">Contribution<input data-n="${i}" data-f="c" type="number" value="${x.c}"></label><button class="x" data-rmi="${i}" aria-label="Remove" style="padding-bottom:8px">×</button></div>
+        <label class="f" style="padding-left:44px">Hypothesis<input data-n="${i}" data-f="h" value="${esc(x.h)}" placeholder="If we…, then…"></label></div>`).join("")}
+      ${k.inits.length<5?`<button class="add" id="addi">+ Add an initiative</button>`:""}${ckList(4)}`;
+  }
+  if(step===5){
+    p="The first actions of each initiative: owner, week, estimate. Tasks of 8 h max; unknown work becomes a timeboxed exploration. They land in each owner’s My Day when you publish.";
+    h=k.inits.map((x,i)=>`<div class="box"><div style="font-size:14px;font-weight:600"><span class="ig">I${i+1}</span> ${esc(x.n)}</div>
+      <div class="tbl" style="grid-template-columns:minmax(0,1.2fr) minmax(0,1.2fr) 64px minmax(0,1fr) 22px;row-gap:6px"><span class="th">Owner</span><span class="th">Week</span><span class="th">Hours</span><span class="th">Type</span><span></span>
+      ${k.acts.map((a,j)=>a.i!==i?"":`<input data-a="${j}" data-f="t" value="${esc(a.t)}" placeholder="Action, 8 h or less" style="grid-column:1 / span 4;font-weight:600;margin-top:6px"><button class="x" data-rma="${j}" aria-label="Remove" style="margin-top:6px">×</button><select data-a="${j}" data-f="o">${ppl(a.o)}</select><select data-a="${j}" data-f="w">${weeks(a.w)}</select><input data-a="${j}" data-f="h" type="number" min="1" value="${a.h}" style="${a.k==="L"&&a.h>8?"border-color:var(--red);color:var(--redt)":""}"><select data-a="${j}" data-f="k">${opt([["L","Deliver"],["E","Explore"]],a.k)}</select><span></span>`).join("")}</div>
+      ${k.acts.some(a=>a.i===i&&a.k==="L"&&a.h>8)?`<div class="warn">Over 8 h: split it, or make it an exploration with a timebox.</div>`:""}
+      <button class="add" data-adda="${i}">+ Action for I${i+1}</button></div>`).join("")+ckList(5);
+  }
+  if(step===6){
+    p="Name what could stop the result, how likely it is, how bad it would be, and who watches it. High × high risks show on the key result screen.";
+    h=k.risks.map((r,i)=>`<div class="box"><div style="display:grid;grid-template-columns:minmax(0,1fr) 22px;gap:10px;align-items:end"><label class="f">Risk<input data-r="${i}" data-f="t" value="${esc(r.t)}"></label><button class="x" data-rmr="${i}" style="padding-bottom:8px">×</button></div>
+      <div class="g4"><label class="f">Probability<select data-r="${i}" data-f="p">${opt([["low","Low"],["medium","Medium"],["high","High"]],r.p)}</select></label><label class="f">Impact<select data-r="${i}" data-f="i">${opt([["low","Low"],["medium","Medium"],["high","High"]],r.i)}</select></label><label class="f" style="grid-column:span 2">Watched by<select data-r="${i}" data-f="o">${ppl(r.o)}</select></label></div>
+      <label class="f">Mitigation<input data-r="${i}" data-f="f" value="${esc(r.f)}"></label></div>`).join("")+`<button class="add" id="addr">+ Add a risk</button>`+ckList(6);
+  }
+  if(step===7){
+    const [a,t]=score(), bad=[]; Object.entries(checks()).forEach(([n,l])=>l.forEach(x=>{if(!x[0])bad.push([+n,x[1]])}));
+    p="Last look before it goes live. Publishing creates the key result, its milestones, initiatives, actions and risks in one go.";
+    h=`${bad.length?`<div class="warn"><b>${bad.length} rule${bad.length>1?"s":""} not met.</b> You can publish anyway; they stay visible as warnings on the key result.</div>`:`<div class="okm"><b>All ${t} rules met.</b> Ready to publish.</div>`}
+      ${bad.map(([n,txt])=>`<button class="add" data-go="${n}" style="border-style:solid;color:var(--ambert)">Step ${n} · ${STEPS[n-1][0]}: ${esc(txt)} →</button>`).join("")}
+      <div class="box"><div class="g2"><div><div class="th">Objective</div><div style="font-size:14px;font-weight:600">${k.obj==="new"?esc(k.newObj||"New objective"):k.obj+" · "+esc(OBJS[k.obj][0])}</div></div><div><div class="th">Owner · check-in</div><div style="font-size:14px;font-weight:600">${PEOPLE[k.owner][0]} · ${k.freq==="weekly"?"weekly":"every 2 weeks"}</div></div></div>
+      <div><div class="th">Key result</div><div style="font-family:var(--serif);font-size:20px">${esc(k.name)}</div><div class="q">${fmt(k.baseline,k.unit)} → ${fmt(k.target,k.unit)} · ${esc(k.source)} · leading: ${esc(k.lead)}</div></div></div>
+      <div class="g3"><div class="box" style="gap:4px"><div class="th">Will be created</div><div class="mini">1 key result<br>${k.miles.length} milestones<br>${k.inits.length} initiatives<br>${k.acts.length} actions in My Day<br>${k.risks.length} risk${k.risks.length>1?"s":""}</div></div>
+      <div class="box" style="gap:4px"><div class="th">Who is notified</div><div class="mini">${[...new Set([k.owner].concat(k.acts.map(a=>a.o)).concat(k.risks.map(r=>r.o)))].map(o=>PEOPLE[o][0]).join("<br>")}</div></div>
+      <div class="box" style="gap:4px"><div class="th">First check-in</div><div class="mini">Friday W${WEEK} review<br>then every ${k.freq==="weekly"?"week":"2 weeks"}</div></div></div>`;
+  }
+  el("fh").innerHTML=`<div class="k">Step ${step} of 7</div><h2>${STEPS[step-1][0]}</h2><p>${p}</p>`;
+  el("fb").innerHTML=h;
+  el("ff").innerHTML=`<button class="btnl" id="prev" ${step===1?"style='visibility:hidden'":""}>← ${step>1?STEPS[step-2][0]:""}</button><span class="q">${step<7?(stepState(step)==="ok"?"This step meets every rule":"Some rules are not met yet: you can continue"):""}</span>${step<7?`<button class="btn" id="next">${STEPS[step][0]} →</button>`:`<button class="btn" id="pub">Publish to the roadmap</button>`}`;
+  wire();
+}
+function wire(){
+  const fb=el("fb"), re=()=>{steps();preview();el("ff").querySelector(".q").textContent=step<7?(stepState(step)==="ok"?"This step meets every rule":"Some rules are not met yet: you can continue"):"";const c=fb.querySelector(".chk");if(c)c.outerHTML=ckList(step)};
+  fb.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{K.obj=b.dataset.o;form();steps();preview()});
+  fb.querySelectorAll("[data-k]").forEach(n=>n.oninput=n.onchange=()=>{const v=n.type==="number"?Number(n.value):n.value;K[n.dataset.k]=v;re()});
+  fb.querySelectorAll("[data-shape]").forEach(b=>b.onclick=()=>{K.shape=b.dataset.shape;form();preview()});
+  fb.querySelectorAll("[data-m]").forEach(n=>n.oninput=n.onchange=()=>{const m=K.miles[+n.dataset.m];m[n.dataset.f]=n.dataset.f==="w"?+n.value:n.value;if(n.dataset.f==="w"){K.miles.sort((a,b)=>a.w-b.w);form()}re()});
+  fb.querySelectorAll("[data-rmm]").forEach(b=>b.onclick=()=>{K.miles.splice(+b.dataset.rmm,1);form();steps();preview()});
+  if(el("addm")) el("addm").onclick=()=>{K.miles.push({w:8,t:"",lock:false});K.miles.sort((a,b)=>a.w-b.w);form();steps();preview()};
+  fb.querySelectorAll("[data-n]").forEach(n=>n.oninput=()=>{const x=K.inits[+n.dataset.n];x[n.dataset.f]=n.dataset.f==="c"?Number(n.value):n.value;re();if(n.dataset.f==="c"){const p=fb.scrollTop;form();el("fb").scrollTop=p;const f=el("fb").querySelector(`[data-n="${n.dataset.n}"][data-f="c"]`);if(f){f.focus();f.setSelectionRange(99,99)}}});
+  fb.querySelectorAll("[data-rmi]").forEach(b=>b.onclick=()=>{const i=+b.dataset.rmi;K.inits.splice(i,1);K.acts=K.acts.filter(a=>a.i!==i).map(a=>({...a,i:a.i>i?a.i-1:a.i}));form();steps();preview()});
+  if(el("addi")) el("addi").onclick=()=>{K.inits.push({n:"",h:"",c:0});form();steps();preview()};
+  fb.querySelectorAll("[data-a]").forEach(n=>n.onchange=()=>{const a=K.acts[+n.dataset.a];a[n.dataset.f]=["w","h"].includes(n.dataset.f)?Number(n.value):n.value;const p=fb.scrollTop;form();el("fb").scrollTop=p;steps();preview()});
+  fb.querySelectorAll("[data-rma]").forEach(b=>b.onclick=()=>{K.acts.splice(+b.dataset.rma,1);form();steps();preview()});
+  fb.querySelectorAll("[data-adda]").forEach(b=>b.onclick=()=>{K.acts.push({i:+b.dataset.adda,t:"",o:K.owner,w:WEEK+1,h:2,k:"L"});const p=fb.scrollTop;form();el("fb").scrollTop=p;steps();preview()});
+  fb.querySelectorAll("[data-r]").forEach(n=>n.oninput=n.onchange=()=>{K.risks[+n.dataset.r][n.dataset.f]=n.value;re();preview()});
+  fb.querySelectorAll("[data-rmr]").forEach(b=>b.onclick=()=>{K.risks.splice(+b.dataset.rmr,1);form();steps();preview()});
+  if(el("addr")) el("addr").onclick=()=>{K.risks.push({t:"",p:"medium",i:"medium",f:"",o:K.owner});form();steps();preview()};
+  fb.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{step=+b.dataset.go;render()});
+  if(el("prev")) el("prev").onclick=()=>{step=Math.max(1,step-1);render()};
+  if(el("next")) el("next").onclick=()=>{step=Math.min(7,step+1);render()};
+  if(el("pub")) el("pub").onclick=()=>{toast(`Published: “${K.name}” with ${K.miles.length} milestones, ${K.inits.length} initiatives and ${K.acts.length} actions. It now shows in Roadmap › Review, in the Cockpit, and in the My Day of every owner.`);setTimeout(()=>location.href="roadmap-review.html",3200)};
+  tips();
+}
+function chart(){
+  const W=338,H=150,L=34,R=8,T=10,B=22, iw=W-L-R, ih=H-T-B, lo=Math.min(K.baseline,K.target), hi=Math.max(K.baseline,K.target)||1;
+  const X=w=>L+w/13*iw, Y=v=>T+ih-(v-lo)/((hi-lo)||1)*ih;
+  let s=`<svg width="${W}" height="${H}" role="img" aria-label="Planned trajectory with milestones">`;
+  [lo,(lo+hi)/2,hi].forEach(v=>s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#EFEBE3"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#8E8A80">${fmt(v,K.unit)}</text>`);
+  s+=`<rect x="${X(WEEK-1)}" y="${T}" width="${iw/13}" height="${ih}" fill="rgba(217,180,106,.18)"/>`;
+  s+=`<polyline points="${Array.from({length:14},(_,w)=>X(w)+","+Y(plan(w))).join(" ")}" fill="none" stroke="#1B1B18" stroke-width="2" stroke-dasharray="5 4"/>`;
+  K.miles.forEach(m=>s+=`<g data-tip="W${m.w} · ${esc(m.t||"(unnamed)")} · expected ${fmt(plan(m.w),K.unit)}"><rect x="${X(m.w)-6}" y="${Y(plan(m.w))-6}" width="12" height="12" transform="rotate(45 ${X(m.w)} ${Y(plan(m.w))})" fill="${m.lock?"#D9B46A":"#fff"}" stroke="#1B1B18" stroke-width="1.5" rx="2"/></g>`);
+  [1,4,7,10,13].forEach(w=>s+=`<text x="${X(w)}" y="${H-6}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8E8A80">W${w}</text>`);
+  return s+`</svg>`;
+}
+function preview(){
+  const [a,t]=score(), pct=a/t, C=2*Math.PI*24, gap=Math.abs(K.target-K.baseline), cov=K.inits.reduce((s,x)=>s+(Number(x.c)||0),0), L=load();
+  el("pv").innerHTML=`<div class="k">Live preview</div>
+    <div class="pvh"><svg class="ring" width="62" height="62" data-tip="${a} of ${t} rules met"><circle cx="31" cy="31" r="24" fill="none" stroke="#ECE8DF" stroke-width="7"/><circle cx="31" cy="31" r="24" fill="none" stroke="${pct===1?"#2E7D4F":pct>=.75?"#D9B46A":"#B45309"}" stroke-width="7" stroke-dasharray="${C*pct} ${C}" transform="rotate(-90 31 31)" stroke-linecap="round"/><text x="31" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="14" font-weight="600" fill="#1B1B18">${a}/${t}</text></svg>
+      <div style="min-width:0"><div class="pvs">${K.obj==="new"?"New objective":K.obj+" · "+esc(OBJS[K.obj][0])}</div><div class="pvt">${esc(K.name||"Untitled key result")}</div><div class="pvs">${PEOPLE[K.owner][0]} · ${fmt(K.baseline,K.unit)} → ${fmt(K.target,K.unit)}</div></div></div>
+    <div class="sec"><div class="k">Planned trajectory · ${K.miles.length} milestones</div>${chart()}</div>
+    <div class="sec"><div class="k" style="display:flex;justify-content:space-between"><span>Initiatives cover the gap</span><span style="color:${cov>=gap?"var(--greent)":"var(--ambert)"}">${Math.round(cov/(gap||1)*100)}%</span></div>
+      <div class="cov">${K.inits.map((x,i)=>{const prev=K.inits.slice(0,i).reduce((s,y)=>s+(Number(y.c)||0),0);return `<i style="left:${Math.min(100,prev/gap*100)}%;width:${Math.max(0,Math.min(100-prev/gap*100,(Number(x.c)||0)/gap*100))}%;background:${["#1B1B18","#9A6614","#D9B46A","#5E5B53","#C9C4B7"][i]};border-right:2px solid #fff" data-tip="I${i+1} · ${esc(x.n)} · ${x.c}"></i>`}).join("")}</div>
+      <div class="mini">${K.inits.map((x,i)=>`I${i+1} ${esc(x.n)} · <span class="ig">+${x.c}</span>`).join("<br>")}</div></div>
+    <div class="sec"><div class="k">Load next 2 weeks · with these actions</div>
+      ${L.map(l=>`<div class="lrow" data-tip="${l.n}: ${l.base} h already planned + ${l.add} h from this key result, for ${l.cap} h of capacity"><span>${l.n}</span><span class="lbar"><i style="width:${Math.min(100,l.base/l.cap*100)}%;background:#C9C4B7"></i><s style="left:${Math.min(100,l.base/l.cap*100)}%;width:${Math.max(0,Math.min(100-l.base/l.cap*100,l.add/l.cap*100))}%"></s><u></u></span><span style="font-family:var(--mono);text-align:right;color:${l.after>l.cap?"var(--redt)":l.after>l.cap*.7?"var(--ambert)":"var(--greent)"}">${Math.round(l.after/l.cap*100)}%</span></div>`).join("")}
+      <div class="pvs">Grey: already planned · gold: added here · line: 70% target</div></div>
+    <div class="sec"><div class="k">Risks</div><div class="mini">${K.risks.map(r=>`<span style="color:${r.p==="high"&&r.i==="high"?"var(--redt)":"inherit"}">● ${esc(r.t||"(unnamed)")}</span>`).join("<br>")||"None yet"}</div></div>`;
+  tips();
+}
+function tips(){document.querySelectorAll("[data-tip]").forEach(n=>{n.onmousemove=e=>{tip.innerHTML=n.dataset.tip;tip.style.opacity=1;tip.style.left=Math.min(innerWidth-290,e.clientX+14)+"px";tip.style.top=(e.clientY+14)+"px"};n.onmouseleave=()=>tip.style.opacity=0})}
+function toast(m){const t=el("toast");t.textContent=m;t.style.opacity=1;clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity=0,3000)}
+function render(){steps();form();preview()}
+const qo=new URLSearchParams(location.search).get("obj"); if(qo&&OBJS[qo]) K.obj=qo;
+function fit(){const st=el("stage");const z=Math.min(innerWidth/1440,innerHeight/900);st.style.transform=`scale(${z})`;st.style.left=Math.max(0,(innerWidth-1440*z)/2)+"px"}
+addEventListener("resize",fit); fit(); render();
+</script>
+</body>
+</html>

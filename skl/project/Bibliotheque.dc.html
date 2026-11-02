@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>SKL OS — Bibliothèque</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#23408E}a:hover{color:#16295E}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Navigation principale" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 32px 18px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 14px 32px">SKL <span style="color: #D9B46A">OS</span></div>
+<a href="Main.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Cockpit</a>
+<a href="MonJour.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Mon jour</a>
+<a href="Decisions.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Décisions</a>
+<a href="Bibliotheque.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #FFFFFF; background: #34322C">Bibliothèque</a>
+<div style="flex-grow: 1"></div>
+<div style="padding: 14px; border-top: 1px solid #34322C; font-size: 13px; color: #A8A396; line-height: 1.5">T4 2026 · semaine 3/13<br>Weekly review : vendredi</div>
+</nav>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 40px 48px; display: flex; flex-direction: column; gap: 20px">
+
+<header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+<div>
+<div style="font-size: 14px; color: #5E5B53; margin-bottom: 6px">Tous les livrables et la propriété intellectuelle de SKL, par pôle</div>
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 40px; font-weight: 500">Bibliothèque</h1>
+</div>
+<div style="display: flex; gap: 28px; align-items: baseline">
+<div><span style="font-family: Fraunces, Georgia, serif; font-size: 30px">34</span> <span style="font-size: 13px; color: #5E5B53">actifs</span></div>
+<div><span style="font-family: Fraunces, Georgia, serif; font-size: 30px; color: #7A4B00">12</span> <span style="font-size: 13px; color: #5E5B53">actifs de PI</span></div>
+<div><span style="font-family: Fraunces, Georgia, serif; font-size: 30px; color: #8A3F06">1</span> <span style="font-size: 13px; color: #5E5B53">alerte de propriété</span></div>
+</div>
+</header>
+
+<div style="display: flex; gap: 12px; align-items: center">
+<label style="flex-grow: 1; display: flex; align-items: center; gap: 10px; padding: 0 16px; min-height: 48px; background: #FFFFFF; border: 1px solid #D8D3C7; border-radius: 10px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E5B53" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
+<input type="search" aria-label="Rechercher dans la bibliothèque" placeholder="Rechercher un livrable, un playbook, un contrat…" style="flex-grow: 1; border: 0; font: inherit; font-size: 15px; background: transparent; outline: none">
+</label>
+<div role="group" aria-label="Filtre" style="display: flex; gap: 6px; padding: 5px; background: #ECE8DF; border-radius: 12px">
+<button type="button" onClick="{{goAll}}" aria-pressed="{{isAll}}" style="{{tabAll}}">Tout</button>
+<button type="button" onClick="{{goPi}}" aria-pressed="{{isPi}}" style="{{tabPi}}">PI uniquement</button>
+</div>
+<button type="button" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600">Ajouter</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 18px; font-size: 12px; color: #5E5B53">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span>Propriété intellectuelle de SKL</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="padding: 2px 7px; border-radius: 5px; background: #1B1B18; color: #FFFFFF; font-weight: 600">Confidentiel</span>Accès restreint</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border: 2px solid #B45309; border-radius: 3px; box-sizing: border-box"></span>Alerte de propriété</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; flex-grow: 1; min-height: 0">
+
+<!-- ===== MARKETING ===== -->
+<section aria-labelledby="p-mkt" style="background: #EFECE4; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 4px 6px; border-bottom: 2px solid #1B1B18">
+<h2 id="p-mkt" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Marketing</h2>
+<span style="font-size: 13px; color: #5E5B53">6 · 2 PI</span>
+</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Stratégie</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Positionnement &amp; messages clés</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Persona de l'entrepreneur cible</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Campagnes</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Kit de lancement Live #1</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #23408E; font-weight: 600">En cours</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Séquence d'emails d'inscription</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #5E5B53; font-weight: 600">Brouillon</span></div></a>
+</sc-if>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Identité</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Charte graphique SKL</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Visuels publicitaires</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="color: #5E5B53">18 fichiers</span><span style="color: #1E5E38; font-weight: 600">À jour</span></div></a>
+</sc-if>
+</section>
+
+<!-- ===== SALES ===== -->
+<section aria-labelledby="p-sales" style="background: #EFECE4; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 4px 6px; border-bottom: 2px solid #1B1B18">
+<h2 id="p-sales" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Sales</h2>
+<span style="font-size: 13px; color: #5E5B53">5 · 2 PI</span>
+</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Méthode</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Script d'appel de découverte</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v3</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Traitement des objections</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Offres</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Offre de lancement</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #5E5B53; font-weight: 600">Brouillon</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Grille tarifaire</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="color: #8A3F06; font-weight: 600">Attend la décision prix</span></div></a>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Playbooks</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Playbook — cycle de vente</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span><span style="color: #1E5E38; font-weight: 600">Revu il y a 2 sem.</span></div></a>
+</sc-if>
+</section>
+
+<!-- ===== FINANCE ===== -->
+<section aria-labelledby="p-fin" style="background: #EFECE4; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 4px 6px; border-bottom: 2px solid #1B1B18">
+<h2 id="p-fin" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Finance</h2>
+<span style="font-size: 13px; color: #5E5B53">5 · 1 PI</span>
+</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Pilotage</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Modèle financier T4</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="padding: 2px 7px; border-radius: 5px; background: #1B1B18; color: #FFFFFF; font-weight: 600">Confidentiel</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v4</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Budget par pôle</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #1B1B18; color: #FFFFFF; font-weight: 600">Confidentiel</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Suivi de trésorerie et runway</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #1B1B18; color: #FFFFFF; font-weight: 600">Confidentiel</span><span style="color: #1E5E38; font-weight: 600">À jour</span></div></a>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Process</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Playbook — clôture mensuelle</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">À jour</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Procédure de facturation et relances</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+</sc-if>
+</section>
+
+<!-- ===== LEGAL ===== -->
+<section aria-labelledby="p-legal" style="background: #EFECE4; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 4px 6px; border-bottom: 2px solid #1B1B18">
+<h2 id="p-legal" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Legal</h2>
+<span style="font-size: 13px; color: #5E5B53">5 · 1 PI</span>
+</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Propriété</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Registre de propriété intellectuelle</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #1B1B18; color: #FFFFFF; font-weight: 600">Confidentiel</span><span style="color: #8A3F06; font-weight: 600">1 cession manquante</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Dépôt de la marque SKL</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="color: #5E5B53">[STATUT DU DÉPÔT]</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Contrats</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Contrat freelance type avec cession de droits</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Conditions générales de vente</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #23408E; font-weight: 600">En revue</span></div></a>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Conformité</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Politique de confidentialité</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+</sc-if>
+</section>
+
+<!-- ===== DELIVERY ===== -->
+<section aria-labelledby="p-deliv" style="background: #EFECE4; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 4px 6px; border-bottom: 2px solid #1B1B18">
+<h2 id="p-deliv" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Delivery</h2>
+<span style="font-size: 13px; color: #5E5B53">5 · 2 PI</span>
+</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Expérience membre</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Parcours d'onboarding membre</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Charte d'animation des lives</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #1E5E38; font-weight: 600">Validé</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Playbooks</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Playbook — lancer un live</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span><span style="color: #1E5E38; font-weight: 600">Revu il y a 1 sem.</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Playbook — support membres</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #5E5B53; font-weight: 600">Brouillon</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">FAQ membres</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v3</span><span style="color: #1E5E38; font-weight: 600">À jour</span></div></a>
+</sc-if>
+</section>
+
+<!-- ===== CONTENT ===== -->
+<section aria-labelledby="p-content" style="background: #EFECE4; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 2px 4px 6px; border-bottom: 2px solid #1B1B18">
+<h2 id="p-content" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Content</h2>
+<span style="font-size: 13px; color: #5E5B53">8 · 4 PI</span>
+</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Masterclasses</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">#1 Les 5 causes des mauvaises décisions</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v3</span><span style="color: #1E5E38; font-weight: 600">Publiée</span></div></a>
+<a href="#" style="display: block; background: #FFF8F0; border: 2px solid #B45309; border-radius: 10px; padding: 11px 13px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">#2 Identifier la cause principale</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v1</span><span style="color: #23408E; font-weight: 600">En production</span></div><div style="font-size: 12px; color: #8A3F06; font-weight: 600; margin-top: 6px">Cession de droits du monteur manquante</div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">#3 Les 5 règles d'or d'une décision efficiente</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v0</span><span style="color: #23408E; font-weight: 600">Script en revue</span></div></a>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Frameworks</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Méthode de décision SKL</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">PI</span><span style="padding: 2px 7px; border-radius: 5px; background: #1B1B18; color: #FFFFFF; font-weight: 600">Confidentiel</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span></div></a>
+<sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding: 6px 4px 0">Production</div>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Playbook — produire une masterclass</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v4</span><span style="color: #1E5E38; font-weight: 600">Revu il y a 3 sem.</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Template de script et de slides</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5B53">v2</span><span style="color: #1E5E38; font-weight: 600">À jour</span></div></a>
+<a href="#" style="display: block; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 10px; padding: 12px 14px; text-decoration: none; color: #1B1B18"><div style="font-size: 14px; font-weight: 600; line-height: 1.3">Calendrier éditorial</div><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 11px"><span style="color: #1E5E38; font-weight: 600">Mis à jour aujourd'hui</span></div></a>
+</sc-if>
+</section>
+
+</div>
+</main>
+
+<button type="button" onClick="{{openInfo}}" aria-label="Méthodologie de cette page" title="Méthodologie de cette page" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 48px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 32px 36px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Méthodologie de la page</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Bibliothèque</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Fermer" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>À quoi sert cette page</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">C'est la carte de tout ce que SKL produit : livrables, playbooks et propriété intellectuelle, rangés par pôle (Marketing, Sales, Finance, Legal, Delivery, Content). Chaque actif indique sa version, son statut et s'il appartient au capital intellectuel de SKL.</p>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>En quoi elle augmente l'efficience de chacun</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong style="color: #1B1B18">La bonne version en 10 secondes.</strong> Fini le travail refait ou les documents périmés qui circulent.</li>
+<li><strong style="color: #1B1B18">Des process reproductibles.</strong> Les playbooks rendent un nouveau membre opérationnel sans dépendre d'une personne.</li>
+<li><strong style="color: #1B1B18">Une propriété intellectuelle protégée.</strong> Chaque actif a son propriétaire et sa cession de droits : c'est de la valeur pour l'entreprise.</li>
+</ul>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>Comment l'utiliser</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Cherche un actif dans la colonne de son pôle ou avec la barre de recherche.</li>
+<li>Active le filtre « PI uniquement » pour ne voir que le capital intellectuel de SKL.</li>
+<li>Dépose ici tout livrable terminé, avec son pôle, sa version et son statut.</li>
+<li>Marque-le « PI » s'il s'agit d'une méthode, d'un contenu ou d'un outil propre à SKL.</li>
+<li>Une carte encadrée d'orange signale une cession de droits manquante : régularise avant toute publication.</li>
+<li>Revois chaque playbook au moins tous les 6 mois : l'OS signale ceux qui sont périmés.</li>
+</ol>
+</section>
+
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">J'ai compris</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all' };
+  }
+  tab(active) {
+    const base = 'min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; font: inherit; font-size: 14px; cursor: pointer; ';
+    return active
+      ? base + 'background: #1B1B18; color: #FFFFFF; font-weight: 600;'
+      : base + 'background: transparent; color: #3D3A33; font-weight: 500;';
+  }
+  renderVals() {
+    const all = this.state.filter === 'all';
+    return {
+      info: !!this.state.info,
+      openInfo: () => this.setState({ info: true }),
+      closeInfo: () => this.setState({ info: false }),
+      isAll: all,
+      isPi: !all,
+      tabAll: this.tab(all),
+      tabPi: this.tab(!all),
+      goAll: () => this.setState({ filter: 'all' }),
+      goPi: () => this.setState({ filter: 'pi' })
+    };
+  }
+}
+</script>
+</body>
+</html>

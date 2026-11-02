@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SKL AS — Decisions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#9A6614}a:hover{color:#7A4B00}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 2900px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">SKL <span style="color: #D9B46A">AS</span></div>
+<button type="button" data-navgrp="as-pilot" aria-expanded="true" title="Fold or unfold Pilot" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Pilot</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="as-pilot" style="display: flex; flex-direction: column; gap: 4px">
+<a href="AgentsOverview.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Overview</span></a>
+<a href="AgentsDecisions.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><span>Decisions</span><span data-badge="agentdec" title="Agent proposals waiting for your decision" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">4</span></a>
+<a href="AgentsRegistry.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Agents</span></a>
+<a href="AgentsTriggers.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Triggers</span></a>
+<a href="AgentsLog.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Log</span></a>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="padding: 6px 14px 14px; font-size: 13px; color: #A8A396; line-height: 1.5">Q4 2026 · week 3/13<br>Agent cockpit · sample data</div>
+<a href="Settings.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7; border: 1px solid #34322C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Settings</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; display: flex"><div data-agents="decisions" style="flex-grow: 1; min-width: 0"></div></main>
+
+<button type="button" onClick="{{openInfo}}" aria-label="How this page works" title="How this page works" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 32px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Page method</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Agent System · Decisions</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Close" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+<section><h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>What this page is for</h3><p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">The human control of the agents: approve, edit or reject what they propose, and handle the escalations.</p></section>
+<section><h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>How it makes everyone more efficient</h3><ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33"><li><strong style="color: #1B1B18">Agents propose, humans decide.</strong> Every output an agent is not yet trusted to send alone waits here for a person, and every decision teaches the agent.</li><li><strong style="color: #1B1B18">Autonomy is earned.</strong> An agent moves up a level only when its figured criterion is met: tests passed and outputs approved without edits.</li><li><strong style="color: #1B1B18">One owner per agent.</strong> Every agent has a person who answers for it and a person who receives what it must not handle.</li><li><strong style="color: #1B1B18">Everything is traced.</strong> Every run keeps its trigger, result, duration and cost.</li></ul></section>
+<section><h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>How to use it</h3><ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33"><li>Pick an item in the list on the left.</li><li>Read why it needs you, the agent's proposal, its destination and the sources it read.</li><li>Approve to send it, or reject it: the next pending item opens on its own.</li><li>Decided items stay in the list, faded, with the decision recorded.</li></ol></section>
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Got it</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = {}; }
+  renderVals() {
+    return {
+      info: !!this.state.info,
+      openInfo: () => this.setState({ info: true }),
+      closeInfo: () => this.setState({ info: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SKL OS — Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#9A6614}a:hover{color:#7A4B00}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 1900px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">SKL <span style="color: #D9B46A">OS</span></div>
+<button type="button" data-navgrp="settings-settings" aria-expanded="true" title="Fold or unfold Settings" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Settings</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="settings-settings" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Settings.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><span>Alerts</span></a>
+<a href="Account.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Account</span></a>
+<a href="Access.dc.html" data-admin-only style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Access</span></a>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="padding: 6px 14px 14px; font-size: 13px; color: #A8A396; line-height: 1.5">Q4 2026 · week 3/13<br>Weekly review: Saturday</div>
+<a href="Settings.dc.html" aria-current="true" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Settings</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px">
+
+<header data-topbar style="display: flex; align-items: center; gap: 14px; min-height: 54px; padding-right: 72px"><div role="group" aria-label="Views" style="display: flex; gap: 6px; padding: 5px; background: #ECE8DF; border-radius: 12px; align-self: flex-start; flex-shrink: 0"><span style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: #1B1B18; color: #FFFFFF; font-weight: 600" aria-current="page">Alerts &amp; notifications</span><a href="Registers.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: transparent; color: #3D3A33; font-weight: 500">Registers</a><a href="Account.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: transparent; color: #3D3A33; font-weight: 500">Account</a><a href="Access.dc.html" data-admin-only style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: transparent; color: #3D3A33; font-weight: 500">Access</a></div><span style="flex: 1"></span><span style="font-size: 13px; color: {{saveColor}}">{{saveText}}</span><button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 18px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap">Reset to defaults</button><button type="button" onClick="{{save}}" style="{{saveBtn}}">Save changes</button></header>
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1">{{onCount}} / {{total}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">alerts switched on</div></div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1">23</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">notifications sent · last 7 days</div></div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1; color: #9B1C12">4</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">critical · all acknowledged</div></div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1">3.1 h</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">average time to acknowledge</div></div>
+</div>
+
+<section aria-labelledby="delivery" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 22px 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 340px; gap: 18px; align-items: stretch">
+<div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline"><h2 id="delivery" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Delivery rules</h2><span style="font-size: 13px; color: #5E5B53">How and when notifications reach people</span></div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 10px; background: #F6F4EF">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px"><span style="font-size: 14px; font-weight: 600">Quiet hours</span><button type="button" role="switch" aria-checked="{{quiet.on}}" aria-label="Quiet hours" onClick="{{quiet.toggle}}" style="{{quiet.sw}}"><span style="{{quiet.knob}}"></span></button></div>
+<div style="font-size: 13px; line-height: 1.5; color: #3D3A33">No notifications from <strong>20:00</strong> to <strong>08:00</strong>, local time of each person. Critical alerts still go through.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 10px; background: #F6F4EF">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px"><span style="font-size: 14px; font-weight: 600">Daily digest</span><button type="button" role="switch" aria-checked="{{digest.on}}" aria-label="Daily digest" onClick="{{digest.toggle}}" style="{{digest.sw}}"><span style="{{digest.knob}}"></span></button></div>
+<div style="font-size: 13px; line-height: 1.5; color: #3D3A33">Low-severity alerts are grouped into one message at <strong>08:30</strong> instead of being sent one by one.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 10px; background: #F6F4EF">
+<span style="font-size: 14px; font-weight: 600">Escalation</span>
+<div style="font-size: 13px; line-height: 1.5; color: #3D3A33">A critical or high alert not acknowledged within the delay below is sent to Romain.</div>
+<div style="display: flex; align-items: center; gap: 6px">
+<button type="button" onClick="{{esc.minus}}" aria-label="Decrease escalation delay" style="width: 34px; height: 34px; border: 1px solid #D8D3C7; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 16px; cursor: pointer">−</button>
+<span style="min-width: 64px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 14px">{{esc.label}}</span>
+<button type="button" onClick="{{esc.plus}}" aria-label="Increase escalation delay" style="width: 34px; height: 34px; border: 1px solid #D8D3C7; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 16px; cursor: pointer">+</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Example notification</span>
+<div style="flex-grow: 1; display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #1B1B18; color: #F6F4EF">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #E0503F; flex-shrink: 0; margin-top: 5px"></span>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<span style="font-size: 12px; color: #C9C4B7">SKL OS · Task overdue · High</span>
+<span style="font-size: 14px; font-weight: 600; line-height: 1.35">Shooting brief — masterclass #3 is 4 h past its committed date (Thu 15).</span>
+<span style="font-size: 12px; color: #C9C4B7">To: Ilya · Open in Execute</span>
+</div>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="alerts" style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px">
+<h2 id="alerts" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Alerts</h2>
+<span style="font-size: 13px; color: #5E5B53">Click an alert to set its threshold, severity, recipients and channels</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start">
+<sc-for list="{{groups}}" as="grp" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 8px 8px 6px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 12px 8px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">{{grp.label}}</span>
+<span style="font-size: 12px; color: #5E5B53">{{grp.count}}</span>
+</div>
+<sc-for list="{{grp.items}}" as="al" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-top: 1px solid #EFEBE3">
+<button type="button" onClick="{{al.open}}" aria-haspopup="dialog" style="{{al.rowStyle}}">
+<span style="flex-grow: 1; min-width: 0">{{al.name}}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E8A80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
+</button>
+<button type="button" role="switch" aria-checked="{{al.on}}" aria-label="{{al.switchLabel}}" onClick="{{al.toggle}}" style="{{al.sw}}"><span style="{{al.knob}}"></span></button>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</section>
+
+</main>
+
+<sc-if value="{{hasEdit}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 56px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="edit-title" style="width: 620px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Alert · {{ed.group}}</div><h2 id="edit-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 500">{{ed.name}}</h2></div>
+<button type="button" onClick="{{closeEdit}}" aria-label="Close" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 12px; background: #F6F4EF">
+<div><div style="font-size: 15px; font-weight: 600">{{ed.stateLabel}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 2px">{{ed.stateHint}}</div></div>
+<button type="button" role="switch" aria-checked="{{ed.on}}" aria-label="{{ed.switchLabel}}" onClick="{{ed.toggle}}" style="{{ed.sw}}"><span style="{{ed.knob}}"></span></button>
+</div>
+
+<div style="{{ed.dim}}; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Condition</span>
+<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 15px; line-height: 1.5">
+<span>{{ed.before}}</span>
+<sc-if value="{{ed.hasValue}}" hint-placeholder-val="{{true}}">
+<span style="display: inline-flex; align-items: center; gap: 2px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FAF8F3">
+<button type="button" onClick="{{ed.minus}}" aria-label="Lower the threshold" style="width: 40px; height: 40px; border: 0; background: transparent; font: inherit; font-size: 18px; cursor: pointer">−</button>
+<span style="min-width: 76px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500">{{ed.valueLabel}}</span>
+<button type="button" onClick="{{ed.plus}}" aria-label="Raise the threshold" style="width: 40px; height: 40px; border: 0; background: transparent; font: inherit; font-size: 18px; cursor: pointer">+</button>
+</span>
+</sc-if>
+<span>{{ed.after}}</span>
+</div>
+<span style="font-size: 12px; color: #5E5B53">{{ed.defaultHint}}</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Severity</span>
+<div role="group" aria-label="Severity" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{ed.sevs}}" as="sv" hint-placeholder-count="4"><button type="button" onClick="{{sv.pick}}" aria-pressed="{{sv.on}}" style="{{sv.style}}">{{sv.label}}</button></sc-for>
+</div>
+<span style="font-size: 12px; color: #5E5B53">{{ed.sevHint}}</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Notify</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ed.who}}" as="w" hint-placeholder-count="3"><button type="button" onClick="{{w.toggle}}" aria-pressed="{{w.on}}" style="{{w.style}}">{{w.label}}</button></sc-for></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Channels</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ed.ch}}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{c.toggle}}" aria-pressed="{{c.on}}" style="{{c.style}}">{{c.label}}</button></sc-for></div>
+</div>
+</div>
+
+<div style="padding: 14px 16px; border-radius: 12px; background: #1B1B18; color: #F6F4EF; font-size: 14px; line-height: 1.5"><span style="display: block; font-size: 12px; color: #C9C4B7; margin-bottom: 4px">When it fires</span>{{ed.summary}}</div>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+<button type="button" onClick="{{ed.restore}}" style="min-height: 44px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Restore default</button>
+<button type="button" onClick="{{closeEdit}}" style="min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Done</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<button type="button" onClick="{{openInfo}}" aria-label="How this page works" title="How this page works" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 32px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Page method</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Alerts &amp; notifications</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Close" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>What this page is for</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">This is where the OS alert system is set. Each alert watches one condition, such as a task going overdue, a key result turning red or a decision past its deadline. For each alert you choose the threshold, the severity, who gets notified and through which channel. Delivery rules decide when notifications arrive and what happens when nobody reacts.</p>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>How it makes everyone more efficient</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong style="color: #1B1B18">The system pushes, nobody has to check.</strong> A slip reaches the right person as it happens, not at the next meeting.</li>
+<li><strong style="color: #1B1B18">The right person, not everyone.</strong> Each alert goes to the owner first. Romain only gets what needs him, or what nobody handled in time.</li>
+<li><strong style="color: #1B1B18">No noise.</strong> Severity, quiet hours and the daily digest keep low-value alerts from interrupting deep work.</li>
+<li><strong style="color: #1B1B18">Rules that match how you work.</strong> Thresholds follow the OS rules (8 h tasks, 3 tasks in progress, 48 h decisions) and can be tuned as the team matures.</li>
+</ul>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>How to use it</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Switch an alert on or off with the toggle on its line.</li>
+<li>Click the alert's name to open its settings.</li>
+<li>In the popup, adjust the threshold with − and +, for example how many hours after the committed date a task counts as overdue.</li>
+<li>Pick the severity (Low alerts go into the daily digest), who is notified and the channels. The dark box shows exactly what will be sent.</li>
+<li>Set the delivery rules: quiet hours, daily digest and the escalation delay.</li>
+<li>Save. Review the settings at each quarterly planning: an alert that nobody acts on should be tuned or switched off.</li>
+</ol>
+</section>
+
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Got it</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({ info: false, edit: null, dirty: false, saved: false }, this.defaults());
+  }
+  catalog() {
+    // id, group, name, text before the threshold, text after, default value, step, min, max, unit
+    const A = (id, group, name, before, after, value, step, min, max, unit) => ({ id, group, name, before, after, value, step, min, max, unit });
+    return [
+      A('a1', 'Tasks', 'Task overdue', 'A task passes its committed date by more than', '', 0, 2, 0, 48, 'h'),
+      A('a2', 'Tasks', 'Task blocked too long', 'A task stays Blocked for more than', '', 24, 4, 4, 96, 'h'),
+      A('a3', 'Tasks', 'Task too big', 'An estimate goes over', 'and must be split', 8, 1, 4, 16, 'h'),
+      A('a4', 'Tasks', 'Too much work in progress', 'A person has more than', 'tasks in progress', 3, 1, 1, 6, ''),
+      A('a5', 'Key results', 'KR off track (red)', 'At the recent pace, the KR lands below', 'of its target', 0.9, 0.05, 0.5, 1, 'ratio'),
+      A('a6', 'Key results', 'KR at risk or recovering (amber)', 'The KR lands short of its target, or actual ÷ expected falls below', '', 0.9, 0.05, 0.7, 1, 'ratio'),
+      A('a7', 'Key results', 'Missing check-in', 'No KR check-in for', '', 7, 1, 3, 14, 'd'),
+      A('a8', 'Decisions', 'Reversible decision overdue', 'No decision after', '', 48, 12, 12, 120, 'h'),
+      A('a9', 'Decisions', 'Irreversible decision overdue', 'No decision after', '', 7, 1, 2, 21, 'd'),
+      A('a10', 'Decisions', 'Decision review due', 'A 30- or 90-day review is late by', '', 0, 1, 0, 14, 'd'),
+      A('a11', 'Explorations', 'Timebox used up', 'An exploration reaches', 'of its timebox', 100, 5, 50, 100, '%'),
+      A('a12', 'Explorations', 'Timebox warning', 'An exploration reaches', 'of its timebox with no result yet', 75, 5, 25, 95, '%'),
+      A('a15', 'Library & IP', 'Missing rights assignment', 'An asset made by a freelancer has no rights assignment', '', null),
+      A('a16', 'Library & IP', 'Stale playbook', 'A playbook has not been reviewed for', '', 6, 1, 1, 12, 'months'),
+      A('a17', 'Finance', 'Budget overrun', 'A department spends more than', 'over its monthly budget', 10, 5, 0, 50, '%'),
+      A('a18', 'Finance', 'Runway too short', 'Runway falls below', '', 6, 1, 2, 18, 'months')
+    ];
+  }
+  defaults() {
+    // on, severity, who [owner, lead, romain], channels [app, slack, email]
+    const D = (on, sev, who, ch) => ({ on, sev, who, ch });
+    const alerts = {
+      a1: D(true, 'High', [1, 1, 0], [1, 1, 0]),
+      a2: D(true, 'High', [1, 1, 0], [1, 1, 0]),
+      a3: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
+      a4: D(true, 'Low', [1, 0, 0], [1, 0, 0]),
+      a5: D(true, 'Critical', [1, 0, 1], [1, 1, 1]),
+      a6: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
+      a7: D(true, 'High', [1, 0, 1], [1, 1, 0]),
+      a8: D(true, 'High', [1, 0, 0], [1, 1, 0]),
+      a9: D(true, 'High', [1, 0, 1], [1, 1, 0]),
+      a10: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
+      a11: D(true, 'High', [1, 1, 0], [1, 1, 0]),
+      a12: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
+      a15: D(true, 'High', [0, 1, 0], [1, 0, 1]),
+      a16: D(true, 'Low', [1, 0, 0], [0, 0, 1]),
+      a17: D(false, 'High', [0, 1, 1], [1, 0, 1]),
+      a18: D(true, 'Critical', [0, 0, 1], [1, 0, 1])
+    };
+    const values = {};
+    this.catalog().forEach(a => { values[a.id] = a.value; });
+    return { alerts, values, quietOn: true, digestOn: true, escH: 24 };
+  }
+  change(patch) {
+    this.setState(Object.assign({ dirty: true, saved: false }, patch));
+  }
+  updateAlert(id, fn) {
+    const alerts = Object.assign({}, this.state.alerts);
+    alerts[id] = fn(Object.assign({}, alerts[id]));
+    this.change({ alerts });
+  }
+  fmt(v, unit) {
+    if (unit === 'ratio') return v.toFixed(2);
+    if (unit === '%') return Math.round(v) + '%';
+    if (unit === 'months') return v + (v === 1 ? ' month' : ' months');
+    if (unit === '') return String(v);
+    return v + ' ' + unit;
+  }
+  swStyle(on) {
+    return 'position: relative; width: 44px; height: 26px; flex-shrink: 0; border: 0; border-radius: 999px; cursor: pointer; padding: 0; background: ' + (on ? '#2E7D4F' : '#B7B2A6') + ';';
+  }
+  knobStyle(on) {
+    return 'position: absolute; top: 3px; left: ' + (on ? '21px' : '3px') + '; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25);';
+  }
+  chip(on) {
+    return 'min-height: 32px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; ' +
+      (on ? 'border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF;' : 'border: 1px solid #D8D3C7; background: #FFFFFF; color: #8E8A80;');
+  }
+  renderVals() {
+    const S = window.SKL;
+    // The saved rules come from the shared database, unless you are in the middle of editing them
+    if (S && !this.state.dirty) {
+      const c = S.get('config', 'alerts');
+      const d = this.defaults();
+      if (c) Object.assign(this.state, { alerts: Object.assign({}, d.alerts, c.alerts || {}), values: Object.assign({}, d.values, c.values || {}),
+        quietOn: c.quietOn !== undefined ? c.quietOn : d.quietOn, digestOn: c.digestOn !== undefined ? c.digestOn : d.digestOn, escH: c.escH || d.escH });
+    }
+    const s = this.state;
+    const cat = this.catalog();
+    const sevs = ['Low', 'Medium', 'High', 'Critical'];
+    const sevLook = {
+      Low: ['#8E8A80', 'background: #F6F4EF; color: #5E5B53;'],
+      Medium: ['#B45309', 'background: #FDF1E3; color: #8A3F06;'],
+      High: ['#B42318', 'background: #FDECEA; color: #9B1C12;'],
+      Critical: ['#FFFFFF', 'background: #9B1C12; color: #FFFFFF;']
+    };
+    const whoLabels = ['Owner', 'Dept lead', 'Romain'];
+    const chLabels = ['In-app', 'Slack', 'Email'];
+    const order = ['Tasks', 'Key results', 'Decisions', 'Explorations', 'Library & IP', 'Finance'];
+    const round = (x) => Math.round(x * 100) / 100;
+
+    const rows = cat.map(a => {
+      const cfg = s.alerts[a.id];
+      const v = s.values[a.id];
+      const setV = (nv) => { const values = Object.assign({}, s.values); values[a.id] = round(Math.min(a.max, Math.max(a.min, nv))); this.change({ values }); };
+      return {
+        id: a.id, raw: a, cfg,
+        group: a.group, name: a.name, before: a.before, after: a.after,
+        on: cfg.on, switchLabel: 'Alert: ' + a.name,
+        open: () => this.setState({ edit: a.id }),
+        rowStyle: 'display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; min-height: 48px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer; color: ' + (cfg.on ? '#1B1B18' : '#8E8A80') + ';',
+        restore: () => {
+          const d = this.defaults();
+          const alerts = Object.assign({}, s.alerts); alerts[a.id] = d.alerts[a.id];
+          const values = Object.assign({}, s.values); values[a.id] = d.values[a.id];
+          this.change({ alerts, values });
+        },
+        defaultHint: a.value === null || a.value === undefined ? 'This alert has no threshold.' : 'Default: ' + this.fmt(a.value, a.unit),
+        sw: this.swStyle(cfg.on), knob: this.knobStyle(cfg.on),
+        toggle: () => this.updateAlert(a.id, c => { c.on = !c.on; return c; }),
+        dim: cfg.on ? 'opacity: 1' : 'opacity: 0.45',
+        hasValue: a.value !== null && a.value !== undefined,
+        valueLabel: a.value === null || a.value === undefined ? '' : this.fmt(v, a.unit),
+        minus: () => setV(v - a.step), plus: () => setV(v + a.step),
+        minusLabel: 'Lower threshold for ' + a.name, plusLabel: 'Raise threshold for ' + a.name,
+        sev: cfg.sev, sevDot: sevLook[cfg.sev][0], sevLabel: 'Severity ' + cfg.sev + ' for ' + a.name + '. Click to change.',
+        sevStyle: 'justify-self: start; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 0 10px; border: 0; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; ' + (cfg.on ? '' : 'opacity: 0.45; ') + sevLook[cfg.sev][1],
+        cycleSev: () => this.updateAlert(a.id, c => { c.sev = sevs[(sevs.indexOf(c.sev) + 1) % sevs.length]; return c; }),
+        who: whoLabels.map((label, i) => ({
+          label, on: !!cfg.who[i], style: this.chip(!!cfg.who[i]),
+          toggle: () => this.updateAlert(a.id, c => { c.who = c.who.slice(); c.who[i] = c.who[i] ? 0 : 1; return c; })
+        })),
+        ch: chLabels.map((label, i) => ({
+          label, on: !!cfg.ch[i], style: this.chip(!!cfg.ch[i]),
+          toggle: () => this.updateAlert(a.id, c => { c.ch = c.ch.slice(); c.ch[i] = c.ch[i] ? 0 : 1; return c; })
+        }))
+      };
+    });
+    const groups = order.map(g => {
+      const items = rows.filter(r => r.group === g);
+      const on = items.filter(r => r.on).length;
+      return { label: g, items, count: on + ' of ' + items.length + ' on' };
+    });
+    const onCount = rows.filter(r => r.on).length;
+
+    // The alert being edited in the popup
+    const sevHints = {
+      Low: 'Low alerts wait for the daily digest.',
+      Medium: 'Medium alerts are sent right away, outside quiet hours.',
+      High: 'High alerts are sent right away and escalate to Romain if nobody acknowledges them.',
+      Critical: 'Critical alerts ignore quiet hours and escalate to Romain if nobody acknowledges them.'
+    };
+    const list = (arr) => arr.length === 0 ? 'nobody' : arr.length === 1 ? arr[0] : arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+    const cur = rows.find(r => r.id === s.edit);
+    let ed = {};
+    if (cur) {
+      const who = whoLabels.filter((_, i) => cur.cfg.who[i]);
+      const ch = chLabels.filter((_, i) => cur.cfg.ch[i]);
+      ed = Object.assign({}, cur, {
+        stateLabel: cur.on ? 'Alert on' : 'Alert off',
+        stateHint: cur.on ? 'Notifications are sent when the condition is met.' : 'Nothing is sent. The settings below are kept.',
+        sevs: sevs.map(label => ({
+          label, on: label === cur.cfg.sev,
+          style: 'min-height: 44px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; ' +
+            (label === cur.cfg.sev ? 'border: 2px solid #1B1B18; ' + sevLook[label][1] : 'border: 1px solid #D8D3C7; background: #FFFFFF; color: #5E5B53;'),
+          pick: () => this.updateAlert(cur.id, c => { c.sev = label; return c; })
+        })),
+        sevHint: sevHints[cur.cfg.sev],
+        summary: !cur.on ? 'This alert is off: no notification is sent.'
+          : (who.length === 0 || ch.length === 0) ? 'Nobody will be notified: pick at least one person and one channel.'
+          : cur.cfg.sev + ' notification to ' + list(who) + ', by ' + list(ch) + (cur.cfg.sev === 'Low' ? ', grouped in the 08:30 digest.' : '.')
+      });
+    }
+
+    return {
+      hasEdit: !!cur,
+      ed,
+      closeEdit: () => this.setState({ edit: null }),
+      info: !!s.info,
+      openInfo: () => this.setState({ info: true }),
+      closeInfo: () => this.setState({ info: false }),
+      groups, onCount, total: rows.length,
+      quiet: { on: s.quietOn, sw: this.swStyle(s.quietOn), knob: this.knobStyle(s.quietOn), toggle: () => this.change({ quietOn: !s.quietOn }) },
+      digest: { on: s.digestOn, sw: this.swStyle(s.digestOn), knob: this.knobStyle(s.digestOn), toggle: () => this.change({ digestOn: !s.digestOn }) },
+      esc: { label: s.escH + ' h', minus: () => this.change({ escH: Math.max(2, s.escH - 2) }), plus: () => this.change({ escH: Math.min(72, s.escH + 2) }) },
+      saveText: s.dirty ? 'Unsaved changes' : (s.saved ? (S && S.mode === 'shared' ? 'Saved for the whole team' : 'Saved in this browser session only') : 'Up to date'),
+      saveColor: s.dirty ? '#8A3F06' : '#1E5E38',
+      saveBtn: 'min-height: 44px; padding: 0 20px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; ' + (s.dirty ? 'background: #1B1B18; color: #D9B46A;' : 'background: #D8D3C7; color: #5E5B53;'),
+      save: () => {
+        if (!s.dirty) return;
+        if (S) S.save('config', { id: 'alerts', alerts: s.alerts, values: s.values, quietOn: s.quietOn, digestOn: s.digestOn, escH: s.escH });
+        this.setState({ dirty: false, saved: true });
+      },
+      reset: () => this.setState(Object.assign({ dirty: true, saved: false }, this.defaults()))
+    };
+  }
+}
+</script>
+</body>
+</html>

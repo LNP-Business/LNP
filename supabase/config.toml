@@ -1,0 +1,32 @@
+# Supabase CLI workdir for the CRM Edge Functions only (docs/crm/01-architecture.md §2).
+# The database schema is not managed here: the numbered SQL files in web/supabase/ are the source of truth.
+project_id = "skl-os"
+
+# Providers (Zapier, Fathom, Sendblue, Whop) do not send a Supabase JWT: each function checks its own token or signature.
+[functions.iclosed-in]
+verify_jwt = false
+
+[functions.fathom-in]
+verify_jwt = false
+
+[functions.sendblue-in]
+verify_jwt = false
+
+[functions.whop-in]
+verify_jwt = false
+
+# Called every minute by pg_cron; takes no input (moves the queue), so no JWT.
+[functions.process-inbox]
+verify_jwt = false
+
+# Imports existing leads (Close, then iClosed); answers counts only.
+[functions.crm-import]
+verify_jwt = false
+
+# Model gateway of the call analysis worker (GitHub Actions): checks the service role key itself.
+[functions.callqa-llm]
+verify_jwt = false
+
+# Sales cycle SLAs to Slack (028): called every 5 minutes by pg_cron, takes no input, answers counts only.
+[functions.sla-tick]
+verify_jwt = false

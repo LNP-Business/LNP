@@ -1,0 +1,16 @@
+{
+  "_illustrative": true,
+  "_note": "Anonymised shape; values are made up.",
+  "hookType": "Contact updated",
+  "id": 9000001,
+  "email": "test.prospect@example.com",
+  "status": "QUALIFIED",
+  "event": {
+    "id": 1,
+    "name": "Discovery call",
+    "eventType": "DISCOVERY_EVENT"
+  },
+  "updatedAttributes": [
+    "status"
+  ]
+}

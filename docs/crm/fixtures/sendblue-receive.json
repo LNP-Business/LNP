@@ -1,0 +1,20 @@
+{
+  "_illustrative": true,
+  "_note": "Fields from Sendblue webhook docs (07 §1). VERIFY on a captured request.",
+  "accountEmail": "team@example.com",
+  "content": "Yes, let's talk this week",
+  "is_outbound": false,
+  "status": "RECEIVED",
+  "message_handle": "msg_handle_0001",
+  "date_sent": "2026-10-24T10:01:00Z",
+  "date_updated": "2026-10-24T10:01:00Z",
+  "from_number": "+33600000001",
+  "number": "+33600000001",
+  "to_number": "+15550000001",
+  "sendblue_number": "+15550000001",
+  "service": "iMessage",
+  "message_type": "message",
+  "media_url": "",
+  "opted_out": false,
+  "group_id": ""
+}

@@ -1,0 +1,13 @@
+mechapp/node_modules/
+__pycache__/
+*.pyc
+web/node_modules/
+.vercel/
+
+# captured CRM webhook rows (personal data): never commit, export anonymised fixtures instead
+crm-rows*.json
+# call analysis: real prospect transcripts never go in the repository (call-analysis/CLAUDE.md)
+call-analysis/engine/tests/fixtures/transcripts/
+call-analysis/docs/screen/
+__pycache__/
+.pytest_cache/

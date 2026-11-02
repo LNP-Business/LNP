@@ -1,0 +1,23 @@
+{
+  "_illustrative": true,
+  "_note": "Anonymised shape of iClosed's native Contact updated webhook (2026-10-25); values are made up.",
+  "hookType": "Contact updated",
+  "id": 9000001,
+  "accountId": 1,
+  "email": "New.Address@example.com",
+  "secondary_email": "test.prospect@example.com",
+  "firstName": "Test",
+  "lastName": "Prospect",
+  "phoneNumber": "+33600000001",
+  "status": "STRATEGY_CALL_BOOKED",
+  "event": {
+    "id": 1,
+    "name": "Strategy call",
+    "eventType": "STRATEGY_EVENT"
+  },
+  "latestCall": {},
+  "updatedAt": "2026-10-26T16:00:00.000Z",
+  "updatedAttributes": [
+    "Email"
+  ]
+}

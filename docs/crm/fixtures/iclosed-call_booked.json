@@ -1,0 +1,12 @@
+{
+  "_illustrative": true,
+  "_note": "Our own contract posted by the Zap (05 §3). Field availability to VERIFY on a real Zap test.",
+  "contract": "skl.iclosed.v1",
+  "event": "call_booked",
+  "occurred_at": "2026-10-24T09:12:00Z",
+  "call": { "id": "icl_call_0001", "start": "2026-10-27T15:00:00Z", "end": "2026-10-27T15:45:00Z",
+            "event_type": "Strategy call", "host_email": "sales@example.com", "cancel_reason": "", "previous_start": "" },
+  "contact": { "id": "icl_contact_0001", "first_name": "Test", "last_name": "Prospect",
+               "email": "test.prospect@example.com", "phone": "+33600000001" },
+  "zap": { "id": "zap_0001", "task_id": "task_0001" }
+}

@@ -1,0 +1,134 @@
+const estOrganeId = id => /^\d\d$/.test(id||"");
+const uid = () => "s"+Math.random().toString(36).slice(2,9);
+
+/* ================== REGISTER SEED — DERIVED FROM PRE-CALL ================== */
+/* Every line below is read off the Pre-call sheet. Nothing is invented.
+   What one mechanism cannot settle is written as an open question rather than a value. */
+const REG_SEED = {
+ interfaces:[
+  {point:"Appointments booked",de:"VSL & booking",part:"100 %",vers:"Pre-call",
+   mode:"duplication",debit:90,unite:"week",
+   def:"TO ARBITRATE — slot reserved, or reserved with a valid number? 88 % valid on arrival"},
+  {point:"Showed up",de:"Pre-call",part:"100 %",vers:"Sales",
+   mode:"duplication",debit:61,unite:"week",
+   def:"TO ARBITRATE — connected, or stayed 5 minutes? Sales must read 61 here, not 90 from the VSL"},
+  {point:"Manual follow-up workload",de:"Pre-call",part:"100 %",vers:"Setting team",
+   mode:"duplication",debit:255,unite:"week (minutes)",
+   def:"Induced output — nobody counts it today"},
+  {point:"Leads irritated by over-contact",de:"Pre-call",part:"100 %",vers:"Brand reputation",
+   mode:"duplication",debit:4,unite:"week",
+   def:"Induced output — the cost Pre-call imposes on whoever comes next"}],
+
+ ressources:[
+  {nom:"Calendar slots open",nature:"throughput",unite:"slots/week",borne:100,charge:90,seuil:80,
+   puisent:"Pre-call",note:"CONFIRM — does Sales book into the same calendar?"},
+  {nom:"Setting time for personal videos",nature:"throughput",unite:"min/week",borne:300,charge:255,seuil:240,
+   puisent:"Pre-call",note:"Pre-call sends it 255 min/wk — the interface carries the load, this line the capacity. CONFIRM: does the setting team do anything else?"},
+  {nom:"Carrier SMS sending quota",nature:"threshold",unite:"messages/day",borne:500,charge:320,seuil:100,
+   puisent:"Pre-call",note:"CONFIRM — any other sequence sending from the same number?"},
+  {nom:"Prepaid SMS credit",nature:"depleting stock",unite:"€",borne:900,charge:260,seuil:3,
+   puisent:"Pre-call",note:"CONFIRM — if shared, the runway is shorter than it looks"},
+  {nom:"Founder's attention",nature:"presence",unite:"person",borne:1,charge:1,seuil:"",
+   puisent:"No mechanism",note:"Appears in no sheet — which is exactly why it belongs here"}],
+
+ evenements:[
+  {date:"",nom:"Upstream creative change",
+   rompt:"Intent quality of incoming leads — any before/after show comparison is void. Listed as a high-severity observable disturbance in Pre-call",
+   rouages:"Pre-call"},
+  {date:"",nom:"SMS provider or sending number changed",
+   rompt:"Deliverability, therefore the reminder effect",rouages:"Pre-call"},
+  {date:"",nom:"Calendar or booking tool changed",
+   rompt:"Continuity AND definition of the latency measurement",rouages:"Pre-call"},
+  {date:"",nom:"Setting team changed size",
+   rompt:"Video setting capacity, already near its limit",rouages:"Pre-call"}],
+
+ acteurs:[
+  {nom:"Pre-call lead",role:"Owns the mechanism",
+   leviers:"Maximum delay between booking and slot · Number and channel of reminders in the window · Requiring an active confirmation from the lead · Personal video message from the closer · One-click rescheduling offered",
+   rouages:"Pre-call",note:"",refus:"yes"},
+  {nom:"FILL IN — who owns CRM entry?",role:"",
+   leviers:"CRM entry latency · data quality",
+   rouages:"Pre-call",note:"and every other mechanism",refus:""},
+  {nom:"The closer",role:"Confirms attendance in the CRM",
+   leviers:"Calendar and CRM · the sensor behind the show rate — no lever, but the data",
+   rouages:"Pre-call",note:"CHECK — is the closer evaluated on the number they enter?",refus:"no"},
+  {nom:"FILL IN — who opens the calendar slots?",role:"",
+   leviers:"How many slots are opened, and when",rouages:"Pre-call",note:"at least — confirm who else",refus:""},
+  {nom:"FILL IN — you",role:"Founder",
+   leviers:"Price · offer · ad budget · hiring · priorities",
+   rouages:"No mechanism",note:"Appears in no sheet — count how many in total",refus:""}]
+};
+const REG_CLES = ["interfaces","ressources","evenements","acteurs"];
+/* Seeding is per register, not all-or-nothing: one populated register used to leave
+   the other three empty for good. */
+const regSemer = r => {
+  const o={};
+  REG_CLES.forEach(k=>{
+    const l = r && Array.isArray(r[k]) ? r[k] : [];
+    o[k] = l.length ? l : (REG_SEED[k]||[]).map(x=>({...x}));
+  });
+  return o;
+};
+
+/* ================== REGISTERS ================== */
+const REGISTRES = [
+{id:"interfaces",nom:"Interfaces",sous:"what links two mechanisms through a flow",
+ quoi:"An interface point is where what leaves one mechanism enters another. It belongs to neither: described inside each of them, it gets entered twice, and the two copies eventually diverge.",
+ detecte:"Orphan leaks — the ones no team feels responsible for. If one mechanism reports 90 leaving and the next reports 61 arriving, twenty-nine units vanish between them and nobody does the subtraction.",
+ filtre:"This iteration changes what the neighbour receives: warn them, and measure on the slower of the two clocks.",
+ quand:"From the third mechanism onward, once you have two contact points to compare.",
+ mec:["de","vers"],
+ cols:[{k:"point",l:"Interface point",t:"txt",w:"19%"},
+       {k:"de",l:"Sender",t:"mec1",w:"14%"},
+       {k:"part",l:"Share",t:"txt",w:"8%",ph:"100 %"},
+       {k:"vers",l:"Receiver",t:"mec1",w:"14%"},
+       {k:"mode",l:"Mode",t:"sel",o:["duplication","split"],w:"13%"},
+       {k:"debit",l:"Volume",t:"num",w:"8%"},
+       {k:"unite",l:"Per",t:"txt",w:"10%",ph:"week"},
+       {k:"def",l:"Agreed definition",t:"txt",w:"14%"}]},
+
+{id:"ressources",nom:"Resources",sous:"what several mechanisms compete for",
+ quoi:"A resource does not circulate: it is consumed without coming back out, and it bounds what the others can do. Cross-cutting stocks belong here too — cash, context base, audience — because position decides, not dynamics.",
+ detecte:"Contention. Two mechanisms with no flow between them slow down at the same time, and nobody makes the connection since there is no arrow to follow.",
+ filtre:"Do not iterate to raise volume here: the resource is saturated and the gain will be absorbed by the queue.",
+ quand:"From the second mechanism onward. The most useful register, and the most invisible otherwise.",
+ mec:["puisent"],
+ cols:[{k:"nom",l:"Resource",t:"txt",w:"20%"},
+       {k:"nature",l:"Nature",t:"sel",o:["throughput","threshold","depleting stock","stock threshold","presence"],w:"15%"},
+       {k:"unite",l:"Unit",t:"txt",w:"11%"},
+       {k:"borne",l:"Capacity",t:"num",w:"9%"},
+       {k:"charge",l:"Load",t:"num",w:"9%"},
+       {k:"seuil",l:"Alert threshold",t:"num",w:"11%"},
+       {k:"puisent",l:"Mechanisms involved",t:"mecs",w:"18%"},
+       {k:"note",l:"Note",t:"txt",w:"22%"}]},
+
+{id:"evenements",nom:"Events",sous:"what breaks comparability",
+ quoi:"An event does not repeat, so it cannot be steered. It is not modelled: it is logged. Anything that returns every year — seasonality, holidays — is not one: it is an unmodelled input.",
+ detecte:"Nothing, and that is deliberate. It produces no friction, it produces an invalidation: measurements taken before are no longer comparable to those taken after.",
+ filtre:"Do not compare across this date.",
+ quand:"As you go, starting now. A line takes thirty seconds and saves a conclusion.",
+ mec:["rouages"],
+ cols:[{k:"date",l:"Date",t:"txt",w:"12%",ph:"2026-09-05"},
+       {k:"nom",l:"Event",t:"txt",w:"28%"},
+       {k:"rompt",l:"What it breaks",t:"txt",w:"34%"},
+       {k:"rouages",l:"Mechanisms involved",t:"mecs",w:"26%"}]},
+
+{id:"acteurs",nom:"Owners",sous:"who holds authority over which lever",
+ quoi:"Authority cuts across mechanisms: one person often holds levers in three of them. Duplicated inside each sheet, that concentration stays invisible.",
+ detecte:"The real human constraint. It is usually the attention of two or three people, rather than budget or time, that bounds the whole.",
+ filtre:"This iteration has no available owner, whatever its priority.",
+ quand:"As you go. The « can hold a refusal » column is the most discriminating one.",
+ mec:["rouages"],
+ cols:[{k:"nom",l:"Person",t:"txt",w:"18%"},
+       {k:"role",l:"Role",t:"txt",w:"16%"},
+       {k:"leviers",l:"Levers under their authority",t:"txt",w:"32%"},
+       {k:"rouages",l:"Mechanisms involved",t:"mecs",w:"16%"},
+       {k:"note",l:"Note",t:"txt",w:"18%"},
+       {k:"refus",l:"Can hold a refusal",t:"sel",o:["yes","no"],w:"10%"}]}
+];
+const RM = Object.fromEntries(REGISTRES.map(r=>[r.id,r]));
+
+const fix = s => typeof s === "string" ? s.replace(/\bclosers\b/g,"sales reps").replace(/\bClosers\b/g,"Sales reps").replace(/\bcloser\b/g,"sales rep").replace(/\bCloser\b/g,"Sales rep") : s;
+const deep = v => Array.isArray(v) ? v.map(deep) : (v && typeof v === "object") ? Object.fromEntries(Object.entries(v).map(([k,x])=>[k,deep(x)])) : fix(v);
+require('fs').writeFileSync('reg.json', JSON.stringify(deep({seed: REG_SEED, registers: REGISTRES}), null, 1));
+console.log("registers", REGISTRES.map(r=>r.id+":"+REG_SEED[r.id].length).join(" "));

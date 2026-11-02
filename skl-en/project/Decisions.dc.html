@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SKL OS — Decisions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#9A6614}a:hover{color:#7A4B00}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 1180px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">SKL <span style="color: #D9B46A">OS</span></div>
+<button type="button" data-navgrp="os-operating-system" aria-expanded="true" title="Fold or unfold Operating System" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Operating System</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="os-operating-system" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Cockpit</span></a>
+<a href="Build.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Build</span></a>
+<a href="Execute.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Execute</span></a>
+<a href="Decisions.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><span>Decisions</span><span data-badge="decisions" title="Decisions to act on: to decide and to review" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">5</span></a>
+<a href="Review.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Weekly Review</span><span data-badge="review" title="Key results not checked in this week" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">3</span></a>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="padding: 6px 14px 14px; font-size: 13px; color: #A8A396; line-height: 1.5">Q4 2026 · week 3/13<br>Weekly review: Saturday</div>
+<a href="Settings.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7; border: 1px solid #34322C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Settings</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px">
+
+<div style="display: flex; flex-direction: column; gap: 22px; min-width: 0">
+<header data-topbar style="display: flex; align-items: center; gap: 14px; min-height: 54px; padding-right: 72px"><div role="group" aria-label="Views" style="display: flex; gap: 6px; padding: 5px; background: #ECE8DF; border-radius: 12px; align-self: flex-start; flex-shrink: 0"><span style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: #1B1B18; color: #FFFFFF; font-weight: 600" aria-current="page">Board</span><button type="button" onClick="{{openArchive}}" aria-haspopup="dialog" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: transparent; color: #3D3A33; font-weight: 500">Archive<span style="min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #F4ECDD; color: #7A4B00; font-size: 12px; text-align: center">{{archiveCount}}</span></button></div><span style="flex: 1"></span><span style="font-size: 13px; line-height: 1.4; color: #5E5B53; text-align: right; min-width: 0">Target lead time: 48 h if reversible · 7 d if irreversible</span><button type="button" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #1B1B18; color: #D9B46A; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap" onClick="{{newDecision}}">New decision</button></header>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start">
+<sc-for list="{{cols}}" as="col" hint-placeholder-count="3">
+<section style="{{col.style}}">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px 8px; border-bottom: 1px solid #D8D3C7"><h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">{{col.title}}</h2><span style="font-size: 13px; color: #5E5B53">{{col.count}}</span></div>
+<div style="font-size: 12px; line-height: 1.45; color: #5E5B53; padding: 0 4px">{{col.hint}}</div>
+<sc-for list="{{col.items}}" as="d" hint-placeholder-count="2">
+<button type="button" onClick="{{d.select}}" aria-pressed="{{d.selected}}" style="{{d.cardStyle}}">
+<span style="display: block; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 600; line-height: 1.35">{{d.title}}</span><span style="display: block; font-size: 13px; color: #5E5B53; margin-top: 4px">{{d.meta}}</span></span>
+<span style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-start"><sc-for list="{{d.tags}}" as="tg" hint-placeholder-count="2"><span style="{{tg.style}}">{{tg.label}}</span></sc-for></span>
+<span style="grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid #EFEBE3; font-size: 12px; color: #3D3A33">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5E5B53" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+<span>{{d.linkLine}}</span>
+</span>
+</button>
+</sc-for>
+<sc-if value="{{col.empty}}" hint-placeholder-val="{{false}}"><div style="border: 1.5px dashed #D8D3C7; border-radius: 10px; padding: 18px 10px; text-align: center; font-size: 13px; color: #8E8A80">Nothing here</div></sc-if>
+</section>
+</sc-for>
+</div>
+</div>
+
+</main>
+
+<sc-if value="{{drawer}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; z-index: 50; display: flex; justify-content: flex-end">
+<div onClick="{{closeDrawer}}" style="position: absolute; inset: 0; background: rgba(27,27,24,0.45)"></div>
+<aside role="dialog" aria-modal="true" aria-labelledby="rec" style="position: relative; width: 660px; max-width: 100%; height: 100%; overflow-y: auto; box-sizing: border-box; background: #FFFFFF; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 16px; box-shadow: -12px 0 40px rgba(27,27,24,0.18)">
+<button type="button" onClick="{{closeDrawer}}" aria-label="Close" style="position: absolute; top: 18px; right: 18px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 20px; line-height: 1; cursor: pointer">×</button>
+<div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; padding-right: 48px">Decision record · {{sel.colTitle}}</div>
+<h2 id="rec" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 26px; font-weight: 500; line-height: 1.2; padding-right: 40px">{{sel.title}}</h2>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{sel.tags}}" as="tg" hint-placeholder-count="2"><span style="{{tg.style}}">{{tg.label}}</span></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; font-size: 14px; padding: 12px 14px; border-radius: 10px; background: #F6F4EF; align-items: end">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5E5B53">Decision owner<select onChange="{{sel.setOwner}}" style="font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box"><sc-for list="{{sel.ownerOpts}}" as="o" hint-placeholder-count="5"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5E5B53">Type<select onChange="{{sel.setRev}}" style="font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box"><sc-for list="{{sel.revOpts}}" as="o" hint-placeholder-count="2"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select></label>
+<sc-if value="{{sel.isTodo}}" hint-placeholder-val="{{true}}"><label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5E5B53">Deadline<input type="date" value="{{sel.deadlineIso}}" onChange="{{sel.setDeadline}}" style="font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; color-scheme: dark"></label></sc-if>
+<sc-if value="{{sel.isTodo}}" hint-placeholder-val="{{true}}"><span></span></sc-if>
+<div style="grid-column: span 1"><div style="font-size: 12px; color: #5E5B53">Status</div><strong style="color: {{sel.deadlineColor}}">{{sel.deadlineText}}</strong></div>
+<div style="grid-column: 1 / -1; padding-top: 6px; border-top: 1px solid #E3DFD5"><span style="font-size: 12px; color: #5E5B53">Best option · </span><strong>{{best.name}} · {{best.value}}</strong></div>
+</div>
+<sc-if value="{{sel.hasActual}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px; background: #FDF1E3"><span style="font-size: 12px; font-weight: 600; color: #8A3F06; text-transform: uppercase; letter-spacing: 0.06em">Review · expected vs actual</span><span style="font-size: 14px; line-height: 1.5"><strong>Expected:</strong> {{sel.expected}}</span>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600">Actual<textarea rows="2" onChange="{{sel.setActual}}" style="font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; font-weight: 400; resize: vertical">{{sel.actual}}</textarea></label></div>
+</sc-if>
+
+<section style="display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid #EFEBE3">
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #1B1B18; color: #D9B46A; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; align-self: center">1</span><h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">The problem</h3><span style="margin-left: auto; font-size: 12px; color: #5E5B53; text-align: right">Write it as one question with its stakes</span></div>
+<input type="text" aria-label="Decision title" value="{{fr.title}}" onChange="{{fr.setTitle}}" style="font: inherit; font-size: 15px; font-weight: 600; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box">
+<textarea rows="3" aria-label="The problem" placeholder="Write the problem as one question with its stakes" onChange="{{fr.setProblem}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.5">{{fr.problem}}</textarea>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid #EFEBE3">
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #1B1B18; color: #D9B46A; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; align-self: center">2</span><h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">The 3 major variables</h3><span style="margin-left: auto; font-size: 12px; color: #5E5B53; text-align: right">Weights must add up to 100</span></div>
+<div style="display: grid; grid-template-columns: 26px minmax(0, 1fr) 96px; gap: 8px 10px; align-items: center">
+<span></span><span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Variable</span><span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Weight</span>
+<sc-for list="{{fr.vars}}" as="v" hint-placeholder-count="3">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #7A4B00; text-align: center">V{{v.n}}</span>
+<input type="text" value="{{v.name}}" aria-label="{{v.nameLabel}}" onChange="{{v.setName}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box">
+<span style="display: flex; align-items: center; gap: 6px"><input type="number" min="0" max="100" step="5" value="{{v.w}}" aria-label="{{v.wLabel}}" onChange="{{v.setW}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; font-family: 'IBM Plex Mono', monospace; text-align: right"><span style="font-size: 13px; color: #5E5B53">%</span></span>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 10px"><div style="flex-grow: 1; height: 10px; border-radius: 999px; background: #EFECE4; display: flex; overflow: hidden"><sc-for list="{{fr.vars}}" as="v" hint-placeholder-count="3"><span style="{{v.bar}}"></span></sc-for></div><strong style="{{fr.totalStyle}}">{{fr.totalLabel}}</strong></div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid #EFEBE3">
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #1B1B18; color: #D9B46A; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; align-self: center">3</span><h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Context, variable by variable</h3><span style="margin-left: auto; font-size: 12px; color: #5E5B53; text-align: right">Known, assumed, depends on</span></div>
+<sc-for list="{{fr.vars}}" as="v" hint-placeholder-count="3">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600"><span>V{{v.n}} · {{v.name}} <span style="font-weight: 400; color: #5E5B53">· {{v.w}}%</span></span>
+<textarea rows="3" onChange="{{v.setCtx}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; font-weight: 400; resize: vertical; line-height: 1.5">{{v.ctx}}</textarea></label>
+</sc-for>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid #EFEBE3">
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #1B1B18; color: #D9B46A; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; align-self: center">4</span><h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Three options, and their value</h3><span style="margin-left: auto; font-size: 12px; color: #5E5B53; text-align: right">Score each option 0–10 on each variable</span></div>
+<sc-for list="{{fr.opts}}" as="o" hint-placeholder-count="3">
+<div style="{{o.card}}">
+<div style="display: flex; align-items: center; gap: 10px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #7A4B00">{{o.letter}}</span>
+<input type="text" value="{{o.name}}" aria-label="{{o.nameLabel}}" onChange="{{o.setName}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; font-weight: 600">
+<sc-if value="{{o.best}}" hint-placeholder-val="{{false}}"><span style="flex-shrink: 0; padding: 3px 9px; border-radius: 999px; background: #1B1B18; color: #D9B46A; font-size: 12px; font-weight: 600">Highest value</span></sc-if>
+<sc-if value="{{o.chosen}}" hint-placeholder-val="{{false}}"><span style="flex-shrink: 0; padding: 3px 9px; border-radius: 999px; background: #E6F2EA; color: #1E5E38; font-size: 12px; font-weight: 600">Chosen</span></sc-if></div>
+<textarea rows="2" aria-label="{{o.descLabel}}" onChange="{{o.setDesc}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.5">{{o.desc}}</textarea>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 120px; gap: 10px; align-items: end">
+<sc-for list="{{o.scores}}" as="sc" hint-placeholder-count="3"><label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5E5B53; min-width: 0"><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">V{{sc.n}} · {{sc.var}}</span><input type="number" min="0" max="10" value="{{sc.v}}" onChange="{{sc.set}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; font-family: 'IBM Plex Mono', monospace; text-align: right"></label></sc-for>
+<div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end"><span style="font-size: 12px; color: #5E5B53">Value</span><span style="font-family: Fraunces, Georgia, serif; font-size: 28px; line-height: 1">{{o.value}}<span style="font-size: 14px; color: #5E5B53"> / 100</span></span></div>
+</div>
+<div style="height: 6px; border-radius: 999px; background: #EFECE4; overflow: hidden"><span style="{{o.bar}}"></span></div>
+</div>
+</sc-for>
+<div style="font-size: 12px; line-height: 1.5; color: #5E5B53">Value = Σ weight × score ÷ 10. It ranks the options; the owner still decides.</div>
+</section>
+
+<section aria-labelledby="links" style="display: flex; flex-direction: column; gap: 16px; padding-top: 18px; border-top: 1px solid #EFEBE3">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #1B1B18; color: #D9B46A; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; align-self: center">5</span><h3 id="links" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Roadmap</h3></div>
+<span style="font-size: 12px; color: #5E5B53">{{sel.linkLine}}</span>
+</div>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">{{g.label}}</span>
+<button type="button" onClick="{{g.toggle}}" aria-expanded="{{g.open}}" style="min-height: 36px; padding: 0 12px; border: 1px solid #E6D3A8; border-radius: 8px; background: #FFFFFF; color: #9A6614; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{g.btn}}</button>
+</div>
+<sc-if value="{{g.empty}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #8A3F06">{{g.emptyText}}</span></sc-if>
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="1">
+<div style="display: flex; align-items: center; gap: 10px; padding: 8px 6px 8px 12px; border: 1px solid #E3DFD5; border-radius: 10px; background: #FFFFFF">
+<span style="width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: {{it.dot}}"></span>
+<span style="flex-grow: 1; min-width: 0"><span style="display: block; font-size: 14px; font-weight: 500">{{it.name}}</span><span style="display: block; font-size: 12px; color: #5E5B53; margin-top: 2px">{{it.sub}}</span></span>
+<button type="button" onClick="{{it.remove}}" aria-label="{{it.removeLabel}}" title="Unlink" style="width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: 8px; background: transparent; color: #5E5B53; font: inherit; font-size: 18px; cursor: pointer">×</button>
+</div>
+</sc-for>
+<sc-if value="{{g.open}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 10px; background: #F6F4EF">
+<span style="font-size: 12px; color: #5E5B53">{{g.pickTitle}}</span>
+<sc-for list="{{g.options}}" as="op" hint-placeholder-count="2">
+<button type="button" onClick="{{op.add}}" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 8px 10px; border: 1px dashed #B7B2A6; border-radius: 8px; background: #FFFFFF; font: inherit; text-align: left; cursor: pointer">
+<span style="font-size: 16px; font-weight: 600; color: #9A6614">+</span>
+<span style="flex-grow: 1; min-width: 0"><span style="display: block; font-size: 14px">{{op.name}}</span><span style="display: block; font-size: 12px; color: #5E5B53; margin-top: 2px">{{op.sub}}</span></span>
+</button>
+</sc-for>
+<sc-if value="{{g.noOptions}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5E5B53">Everything is already linked.</span></sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+<div style="font-size: 12px; line-height: 1.5; color: #5E5B53">Linked tasks show “Waiting on decision” in Execute. Linked deliverables show this decision in the Library, and the key result shows it in the Cockpit.</div>
+</section>
+
+<sc-if value="{{sel.actionLabel}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{sel.doAction}}" style="min-height: 48px; width: 100%; border: 0; border-radius: 10px; background: #1B1B18; color: #D9B46A; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">{{sel.actionLabel}}</button></sc-if>
+</aside>
+</div>
+</sc-if>
+
+<button type="button" onClick="{{openInfo}}" aria-label="How this page works" title="How this page works" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+
+
+<sc-if value="{{archiveOpen}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding: 40px 0; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="arch-t" style="width: 900px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 30px 36px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Decisions</div><h2 id="arch-t" style="margin: 6px 0 6px; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Archive</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #3D3A33">Every decision taken more than 2 weeks ago leaves the board and lands here automatically. {{archiveCount}} archived.</p></div>
+<button type="button" onClick="{{closeArchive}}" aria-label="Close" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1.6fr) 110px minmax(0, 1.3fr) 110px 90px; gap: 14px; padding: 0 12px 8px; border-bottom: 2px solid #1B1B18; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53"><span>Decision</span><span>Owner</span><span>Option chosen</span><span>Decided</span><span style="text-align: right">Age</span></div>
+<sc-for list="{{archive}}" as="a" hint-placeholder-count="4">
+<button type="button" onClick="{{a.open}}" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 110px minmax(0, 1.3fr) 110px 90px; gap: 14px; align-items: center; width: 100%; padding: 12px; border: 0; border-bottom: 1px solid #EFEBE3; background: #FFFFFF; font: inherit; color: #1B1B18; text-align: left; cursor: pointer">
+<span style="min-width: 0"><span style="display: block; font-size: 15px; font-weight: 600">{{a.title}}</span><span style="display: block; font-size: 12px; color: #5E5B53; margin-top: 2px">{{a.review}}</span></span>
+<span style="font-size: 14px">{{a.owner}}</span>
+<span style="font-size: 14px">{{a.chosenName}}</span>
+<span style="font-size: 14px">{{a.date}}</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5B53; text-align: right">{{a.age}}</span>
+</button>
+</sc-for>
+<button type="button" onClick="{{closeArchive}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #D9B46A; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Close</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 32px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Page method</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Decisions</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Close" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>What this page is for</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">This is the backlog of every SKL decision: pending, made and up for review. Each decision has its record: the question, the cause to address, the options, the assumption, the expected outcome, a single decision owner and a deadline. Each record is linked to the key results it serves, the tasks it blocks or triggers, and the deliverables it produces or changes.</p>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>How it makes everyone more efficient</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong style="color: #1B1B18">No more issues that drag on.</strong> 48 h for a reversible decision, 7 days for an irreversible one. Past that, an alert is raised.</li>
+<li><strong style="color: #1B1B18">One decision owner.</strong> Every decision has a named owner: no more re-debating the same topics every week.</li>
+<li><strong style="color: #1B1B18">Full traceability.</strong> Links show what a decision unblocks, which result it moves and which documents it changed. Nobody works on a task that waits for a decision without knowing it.</li>
+<li><strong style="color: #1B1B18">Decisions that get better.</strong> The 30- and 90-day reviews compare the actual outcome to the expected one and capture the lesson.</li>
+</ul>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>How to use it</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Read the board left to right: To decide, Decided, To review. Click a card to open its full record on the right.</li>
+<li>Every decision follows 5 steps: the problem, 3 weighted variables (weights add up to 100), the context of each variable, 3 options scored on each variable, then the roadmap (tasks, key result, deliverables).</li>
+<li>Decisions taken more than 2 weeks ago move to the Archive, next to “New decision”.</li>
+<li>Any question that blocks at least one task becomes a decision.</li>
+<li>Frame it as a choice, with at least two real options, and state whether it is reversible.</li>
+<li>Link it: the key result it serves, the tasks it blocks, the deliverables it will produce or change.</li>
+<li>The decision owner decides before the deadline and writes down the expected outcome.</li>
+<li>Every exploration that reaches the end of its timebox is closed out here: continue, pivot or stop.</li>
+<li>In “To review”, compare actual to expected, note the lesson and update the linked playbook.</li>
+</ol>
+</section>
+
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Got it</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { info: false, sel: 'd1', open: null };
+  }
+  frameworks() {
+    return [['fw1', 'Iteration system'], ['fw2', 'Mechanisms'], ['fw3', 'Registers'], ['fw4', 'Organs']];
+  }
+  // everything a decision can be linked to comes from the shared data
+  catalog() {
+    const S = window.SKL;
+    const red = '#B42318', amber = '#B45309', green = '#2E7D4F', gold = '#C9A04A', grey = '#B7B2A6', teal = '#0F5E5C';
+    const krDot = { red: red, amber: amber, green: green, stale: grey, new: gold };
+    const SL = { todo: 'To do', progress: 'In progress', blocked: 'Blocked', done: 'Done', split: 'Split needed' };
+    return {
+      kr: S.list('krs').map(k => { const st = S.krStatus(k); return { id: k.id, name: k.name, sub: k.obj + ' · ' + st.label + (st.ratio !== null && st.ratio !== undefined ? ' · ratio ' + st.ratio.toFixed(2) : ''), dot: krDot[st.key] }; }),
+      task: S.list('tasks').map(t => ({ id: t.id, name: t.title, sub: S.member(t.owner).name + ' · ' + (SL[t.status] || 'To do') + ' · ' + t.est + ' h · due ' + S.dayLabel(t.due),
+        dot: t.status === 'blocked' ? red : t.status === 'done' ? green : t.kind === 'E' ? teal : t.status === 'progress' ? gold : grey })),
+      del: this.frameworks().map(([id, name]) => ({ id, name, sub: 'Library · Operations · Framework · IP', dot: green }))
+        .concat(S.list('deliverables').map(x => ({ id: x.id, name: x.title, sub: 'Library · ' + x.domain + ' · ' + x.status, dot: x.status === 'validated' ? green : grey })))
+    };
+  }
+  view(d) {
+    const S = window.SKL;
+    const tag = (label, kind) => {
+      const k = {
+        blue: 'background: #FBF6EC; color: #9A6614;', red: 'background: #FDECEA; color: #9B1C12; font-weight: 600;',
+        gold: 'background: #F4ECDD; color: #7A4B00;', grey: 'background: #F6F4EF; color: #5E5B53;',
+        amber: 'background: #FDF1E3; color: #8A3F06; font-weight: 600;', green: 'background: #E6F2EA; color: #1E5E38;'
+      }[kind];
+      return { label, style: 'font-size: 12px; padding: 3px 8px; border-radius: 6px; ' + k };
+    };
+    const ink = '#1B1B18', red = '#9B1C12', green = '#1E5E38';
+    const tags = [d.reversible ? tag('Reversible', 'blue') : tag('Irreversible', 'gold')];
+    let meta = 'Owner: ' + S.member(d.owner).name, deadline = '—', deadlineColor = ink, action = '';
+    if (d.col === 'todo') {
+      const n = S.daysFromToday(d.deadline);
+      if (n !== null && n < 0) tags.push(tag('+' + (-n) + ' d late', 'red')); else if (n !== null) tags.push(tag(n === 0 ? 'Due today' : 'D-' + n, 'grey'));
+      if (d.source) tags.push(tag(d.source, 'grey'));
+      deadline = (n !== null && n < 0 ? 'overdue · ' : '') + S.shortDate(d.deadline); deadlineColor = n !== null && n < 0 ? red : ink;
+      action = 'decide';
+    } else if (d.col === 'done') {
+      tags.push(tag('Decided', 'green'));
+      meta = 'Decided ' + S.shortDate(d.decided) + (d.review ? ' · review on ' + S.shortDate(d.review) : '');
+      deadline = 'decided ' + S.shortDate(d.decided); deadlineColor = green; action = 'review';
+    } else {
+      tags.push(tag('Review due', 'amber'));
+      meta = 'Review ' + S.dayLabel(d.review) + (d.expected ? ' · expected: ' + d.expected : '');
+      deadline = 'review ' + S.shortDate(d.review); deadlineColor = S.daysFromToday(d.review) < 0 ? red : ink; action = 'close';
+    }
+    return Object.assign({}, d, { tags, meta, deadlineText: deadline, deadlineColor, action, ownerName: S.member(d.owner).name });
+  }
+  linkLine(l) {
+    const p = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+    return p(l.kr.length, 'KR', 'KRs') + ' · ' + p(l.task.length, 'task', 'tasks') + ' · ' + p(l.del.length, 'deliverable', 'deliverables');
+  }
+  renderVals() {
+    const S = window.SKL;
+    const fd = S.takeFocus && S.takeFocus('decisions'); if (fd) { this.state.sel = fd; this.state.edit = 'rec'; this.state.open = null; }
+    const s = this.state;
+    const cat = this.catalog();
+    const raw = S.list('decisions');
+    const save = d => S.save('decisions', d);
+    const ageOf = d => d.decided ? -S.daysFromToday(d.decided) : 0;
+    const isArchived = d => d.col === 'done' && ageOf(d) > 14;
+    const everything = raw.map(d => this.view(d));
+    const all = everything.filter(d => !isArchived(d));
+    const archivedList = everything.filter(isArchived).sort((x, y) => ageOf(x) - ageOf(y));
+    const colDefs = [['todo', 'To decide'], ['done', 'Decided'], ['review', 'To review']];
+    const cardBase = 'display: flex; flex-direction: column; gap: 10px; align-items: stretch; width: 100%; box-sizing: border-box; text-align: left; font: inherit; color: #1B1B18; background: #FFFFFF; border-radius: 12px; cursor: pointer; ';
+    const order = { todo: d => d.deadline || '9', done: d => d.decided || '9', review: d => d.review || '9' };
+    const cols = colDefs.map(([key, title]) => {
+      const items = all.filter(d => d.col === key).sort((a, b) => order[key](a) < order[key](b) ? -1 : 1).map(d => ({
+        title: d.title, tags: d.tags, meta: d.meta,
+        selected: d.id === s.sel,
+        cardStyle: cardBase + (s.edit === 'rec' && d.id === s.sel ? 'border: 2px solid #C9A04A; padding: 15px;' : 'border: 1px solid #E3DFD5; padding: 16px;'),
+        linkLine: this.linkLine(d.links),
+        select: () => this.setState({ sel: d.id, open: null, edit: 'rec' })
+      }));
+      const top = { todo: '#D9B46A', done: '#2E7D4F', review: '#1B1B18' }[key];
+      const hint = { todo: 'Open decisions, oldest deadline first', done: 'Taken and waiting for their review date', review: 'Review date reached: compare expected and actual' }[key];
+      return { title, hint, count: items.length, items, empty: items.length === 0,
+        style: 'background: #EFECE4; border-radius: 14px; border-top: 4px solid ' + top + '; padding: 14px 12px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0' };
+    });
+
+    const empty = { info: !!s.info, openInfo: () => this.setState({ info: true }), closeInfo: () => this.setState({ info: false }),
+      cols, sel: {}, groups: [], fr: { vars: [], opts: [] }, best: {}, archive: [], archiveCount: 0, archiveOpen: false, drawer: false,
+      openArchive: () => this.setState({ edit: 'arch' }), closeArchive: () => this.setState({ edit: null }), closeDrawer: () => this.setState({ edit: null }), newDecision: () => this.newDecision() };
+    if (!everything.length) return empty;
+    const dv = everything.find(x => x.id === s.sel) || all[0] || everything[0];
+    const d = S.get('decisions', dv.id);
+    const l = d.links;
+
+    const gdefs = [
+      ['task', 'Tasks', 'a task', 'No task linked yet. List the tasks that carry out the chosen option.'],
+      ['kr', 'Key result', 'a key result', 'No key result linked. Every decision should serve a key result.'],
+      ['del', 'Deliverables', 'a deliverable', 'No deliverable linked yet.']
+    ];
+    const setLink = (g, ids) => { d.links = Object.assign({}, d.links, { [g]: ids }); save(d); this.setState({}); };
+    const groups = gdefs.map(([g, label, what, emptyText]) => {
+      const ids = (l[g] || []).filter(id => cat[g].some(x => x.id === id));
+      const open = s.open === g;
+      const items = ids.map(id => {
+        const it = cat[g].find(x => x.id === id);
+        return Object.assign({}, it, { removeLabel: 'Unlink ' + it.name, remove: () => S.confirm({ title: 'Unlink this item?', body: '“' + it.name + '” will no longer be linked to this decision. The item itself is not deleted.', ok: 'Unlink', onOk: () => setLink(g, ids.filter(x => x !== id)) }) });
+      });
+      const pool = g === 'task' ? cat[g].filter(x => { const t = S.get('tasks', x.id); return t && t.status !== 'done'; }) : cat[g];
+      const options = pool.filter(x => ids.indexOf(x.id) < 0).map(x => Object.assign({}, x, { add: () => setLink(g, ids.concat([x.id])) }));
+      return {
+        label, open, items, options,
+        empty: ids.length === 0, emptyText,
+        noOptions: options.length === 0,
+        btn: open ? 'Done' : '+ Link ' + what,
+        pickTitle: 'Pick ' + what + ' to link',
+        toggle: () => this.setState({ open: open ? null : g })
+      };
+    });
+
+    // the five-step frame of the selected decision
+    const f = d.frame;
+    const vars = f.vars;
+    const total = vars.reduce((a, v) => a + (Number(v.w) || 0), 0);
+    const valueOf = o => Math.round(vars.reduce((a, v, i) => a + (Number(v.w) || 0) * (Number(o.sc[i]) || 0), 0) / 10);
+    const values = f.opts.map(valueOf);
+    const bestIdx = values.indexOf(Math.max.apply(null, values));
+    const upd = () => { save(d); this.setState({}); };
+    const quiet = () => save(d);
+    const shades = ['#1B1B18', '#C9A04A', '#8E8A80'];
+    const fr = {
+      title: d.title, problem: f.problem,
+      setTitle: (e) => { d.title = e.target.value || d.title; d.question = d.title; upd(); },
+      setProblem: (e) => { f.problem = e.target.value; quiet(); },
+      totalLabel: total === 100 ? 'Total 100 ✓' : 'Total ' + total + ' · must be 100',
+      totalStyle: 'font-size: 13px; white-space: nowrap; color: ' + (total === 100 ? '#1E5E38' : '#B42318'),
+      vars: vars.map((v, i) => ({
+        n: i + 1, name: v.name, w: v.w, ctx: v.ctx,
+        nameLabel: 'Variable ' + (i + 1), wLabel: 'Weight of variable ' + (i + 1),
+        bar: 'display: block; height: 100%; width: ' + Math.max(0, Math.min(100, Number(v.w) || 0)) + '%; background: ' + shades[i] + ';',
+        setName: (e) => { v.name = e.target.value; upd(); },
+        setW: (e) => { v.w = Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0))); upd(); },
+        setCtx: (e) => { v.ctx = e.target.value; quiet(); }
+      })),
+      opts: f.opts.map((o, i) => ({
+        letter: 'ABC'[i], name: o.name, desc: o.desc, value: values[i],
+        nameLabel: 'Option ' + 'ABC'[i], descLabel: 'Option ' + 'ABC'[i] + ' description',
+        best: i === bestIdx, chosen: d.col !== 'todo' && d.chosen === i,
+        card: 'display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; ' + (i === bestIdx ? 'border: 2px solid #C9A04A; background: #FBF6EC;' : 'border: 1px solid #E3DFD5; background: #FFFFFF;'),
+        bar: 'display: block; height: 100%; width: ' + Math.min(100, values[i]) + '%; background: ' + (i === bestIdx ? '#C9A04A' : '#B7B2A6') + ';',
+        setName: (e) => { o.name = e.target.value; upd(); },
+        setDesc: (e) => { o.desc = e.target.value; quiet(); },
+        scores: vars.map((v, j) => ({
+          n: j + 1, var: v.name, v: o.sc[j],
+          set: (e) => { o.sc[j] = Math.max(0, Math.min(10, Math.round(Number(e.target.value) || 0))); upd(); }
+        }))
+      }))
+    };
+    const best = { name: f.opts[bestIdx].name, value: values[bestIdx] + ' / 100' };
+    const plus = n => S.iso(new Date(S.today.getTime() + n * 86400000));
+    const actions = {
+      decide: ['Decide: ' + f.opts[bestIdx].name, () => { d.col = 'done'; d.chosen = bestIdx; d.decided = S.iso(S.today); d.review = plus(d.reversible ? 30 : 90); upd(); }],
+      review: ['Start the review now', () => { d.col = 'review'; d.review = S.iso(S.today); upd(); }],
+      close: ['Close the review and archive it', () => { d.col = 'done'; d.reviewNote = 'Reviewed ' + S.shortDate(S.iso(S.today)) + (d.actual ? ' · ' + d.actual : ''); if (!d.decided || -S.daysFromToday(d.decided) <= 14) d.decided = plus(-15); upd(); this.setState({ edit: null }); }]
+    };
+    const act = actions[dv.action] || ['', () => {}];
+    const sel = Object.assign({}, dv, {
+      colTitle: isArchived(dv) ? 'Archived' : colDefs.find(c => c[0] === dv.col)[1],
+      hasActual: dv.col === 'review' || !!dv.actual,
+      linkLine: this.linkLine(l),
+      actionLabel: act[0], doAction: act[1],
+      ownerOpts: S.members.map(m => ({ v: m.id, l: m.name, sel: m.id === d.owner })),
+      setOwner: (e) => { d.owner = e.target.value; upd(); },
+      isTodo: d.col === 'todo', deadlineIso: d.deadline || '',
+      setDeadline: (e) => { if (e.target.value) { d.deadline = e.target.value; upd(); } },
+      setActual: (e) => { d.actual = e.target.value; quiet(); },
+      revOpts: [{ v: 'r', l: 'Reversible', sel: !!d.reversible }, { v: 'i', l: 'Irreversible', sel: !d.reversible }],
+      setRev: (e) => { d.reversible = e.target.value === 'r'; upd(); }
+    });
+    const archive = archivedList.map(a => ({
+      title: a.title, owner: a.ownerName, review: a.reviewNote || (a.review ? 'Review on ' + S.shortDate(a.review) : ''),
+      chosenName: a.frame.opts[a.chosen] ? a.frame.opts[a.chosen].name : '—',
+      date: S.parse(a.decided).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      age: ageOf(a) + ' d',
+      open: () => this.setState({ sel: a.id, edit: 'rec', open: null })
+    }));
+
+    return {
+      fr, best, archive, archiveCount: archive.length,
+      archiveOpen: s.edit === 'arch',
+      openArchive: () => this.setState({ edit: 'arch', open: null }),
+      closeArchive: () => this.setState({ edit: null }),
+      newDecision: () => this.newDecision(),
+      info: !!s.info,
+      openInfo: () => this.setState({ info: true }),
+      closeInfo: () => this.setState({ info: false }),
+      cols, sel, groups,
+      drawer: s.edit === 'rec',
+      closeDrawer: () => this.setState({ edit: null, open: null })
+    };
+  }
+  newDecision() {
+    const S = window.SKL;
+    const V = (name, w) => ({ name, w, ctx: '' });
+    const O = name => ({ name, desc: '', sc: [5, 5, 5] });
+    const id = S.newId('d');
+    S.save('decisions', { id, col: 'todo', title: 'New decision', question: 'New decision', owner: S.me || 'romain', reversible: true,
+      deadline: S.iso(new Date(S.today.getTime() + 2 * 86400000)), opened: S.iso(S.today), chosen: -1, expected: '', actual: '', decided: '', review: '',
+      frame: { problem: '', vars: [V('Variable 1', 40), V('Variable 2', 35), V('Variable 3', 25)], opts: [O('Option A'), O('Option B'), O('Option C')] },
+      links: { kr: [], task: [], del: [] } });
+    this.setState({ sel: id, edit: 'rec', open: null });
+  }
+}
+</script>
+</body>
+</html>

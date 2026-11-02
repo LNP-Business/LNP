@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sales Cockpit · proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--card:#FFFFFF;--ink:#1B1B18;--ink2:#3D3A33;--mut:#5E5B53;--mut2:#8E8A80;--line:#E3DFD5;--line2:#EFEBE3;--soft:#ECE8DF;
+  --gold:#D9B46A;--gold2:#9A6614;--goldsoft:#FBF6EC;
+  --green:#2E7D4F;--greent:#1E5E38;--greens:#E6F2EA;
+  --amber:#B45309;--ambert:#8A3F06;--ambers:#FDF1E3;
+  --red:#B42318;--redt:#9B1C12;--reds:#FDECEA;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:Fraunces,Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+#stage{width:1440px;height:900px;display:flex;transform-origin:0 0;position:absolute;left:0;top:0}
+/* sidebar replica */
+nav{width:232px;flex-shrink:0;background:#1B1B18;padding:26px 16px 18px;display:flex;flex-direction:column;gap:3px;color:#C9C4B7}
+.logo{font-family:var(--serif);font-size:28px;font-weight:600;color:#F6F4EF;padding:0 12px 16px}.logo span{color:var(--gold)}
+.sys{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#2C2B26;border-radius:12px;margin-bottom:16px}
+.sys span{display:block;padding:8px 6px;border-radius:9px;text-align:center;font-size:12px;line-height:1.3}.sys .on{background:#F6F4EF;color:#1B1B18;font-weight:600}
+.grp{padding:0 14px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8E8A80}.grp+.grp,.it+.grp{margin-top:12px}
+.it{display:flex;align-items:center;padding:10px 14px;border-radius:10px;font-size:15px}.it.on{font-weight:600;color:var(--gold);background:#34322C;box-shadow:inset 3px 0 0 var(--gold)}
+.it b{margin-left:auto;min-width:22px;padding:1px 7px;border-radius:999px;background:var(--red);color:#fff;font-size:12px;text-align:center}
+/* main */
+main{flex:1;min-width:0;padding:18px 24px 20px;display:grid;grid-template-rows:auto 1fr 1fr;gap:14px}
+.top{display:flex;align-items:center;gap:16px;min-width:0}
+.ttl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ttl .ey{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.ttl h1{margin:0;font-family:var(--serif);font-weight:500;font-size:26px;line-height:1.1;white-space:nowrap}
+.seg{display:flex;gap:3px;padding:4px;background:var(--soft);border-radius:10px}
+.seg button{border:0;background:transparent;font:inherit;font-size:13px;color:var(--ink2);padding:6px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--ink);color:#fff;font-weight:600}
+.sp{flex:1}
+.verdict{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.vbadge{font-family:var(--mono);font-weight:600;font-size:13px;padding:6px 10px;border-radius:8px;letter-spacing:.04em}
+.vbadge.fail{background:var(--reds);color:var(--redt)}.vbadge.pass{background:var(--greens);color:var(--greent)}
+.verdict .vt{font-size:12px;line-height:1.35;color:var(--ink2)}.verdict .vt b{color:var(--ink)}
+.kr{display:flex;flex-direction:column;gap:5px;padding:8px 12px;border-radius:10px;background:var(--ink);color:#F6F4EF}
+.kr .v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kr .l{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#C9C4B7}
+.kr .l b{letter-spacing:0;text-transform:none;font-size:12px;color:var(--gold)}
+.kr .v{font-size:13px}.kr .v strong{font-family:var(--mono)}
+.krbar{position:relative;height:6px;border-radius:3px;background:#34322C}.krbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--gold)}.krbar u{position:absolute;top:-3px;width:2px;height:12px;background:#F6F4EF}
+/* rows */
+.row{display:grid;gap:14px;min-height:0}
+.rA{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
+.rB{grid-template-columns:minmax(0,4.6fr) minmax(0,3.5fr) minmax(0,3.9fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;min-height:0;min-width:0;position:relative}
+.ch{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.ch h2{margin:0;font-family:var(--serif);font-weight:500;font-size:19px}
+.ch .q{font-size:12px;color:var(--mut)}
+.ey{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--sans)}
+.num{font-family:var(--mono)}
+/* unit economics */
+.ue{flex:1;min-height:0;display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:10px}
+.uer{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:stretch;min-height:0;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,var(--goldsoft),#fff 70%);border:1px solid var(--line2)}
+.uel{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0}
+.uel .n{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
+.uel .v{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1.1;color:var(--ink)}
+.uel .d{align-self:flex-start;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px}
+.uel .d.g{background:var(--greens)}.uel .d.a{background:var(--ambers)}.uel .d.r{background:var(--reds)}
+.uel small{font-size:11px;color:var(--mut2)}
+.uec{min-width:0;min-height:0;position:relative}
+/* team */
+.team{display:flex;flex-direction:column;flex:1;min-height:0}
+.th,.tr{display:grid;grid-template-columns:150px minmax(0,1fr) 62px 62px;gap:12px;align-items:center}
+.th{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut2);padding:0 0 6px;border-bottom:1px solid var(--line)}
+.th span:nth-child(n+3){text-align:right}
+.tr{flex:0 1 62px;border:0;border-bottom:1px solid var(--line2);background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0;min-height:0;border-radius:6px}
+.tr:hover{background:var(--goldsoft)}
+.who{display:flex;align-items:center;gap:8px;min-width:0}.who i{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.who div{min-width:0}.who b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.who small{display:block;font-size:11px;color:var(--mut)}
+.cbar{position:relative;height:18px}.cbar i{position:absolute;left:0;top:3px;height:12px;border-radius:3px;background:var(--ink)}.cbar span{position:absolute;top:1px;font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap}
+.cbar small{position:absolute;top:19px;left:0;font-size:10px;color:var(--mut);white-space:nowrap}
+.pct{font-family:var(--mono);font-size:12px;font-weight:600;text-align:right;padding:3px 0;border-radius:6px}
+.g{color:var(--greent)}.a{color:var(--ambert)}.r{color:var(--redt)}
+.pg{background:var(--greens)}.pa{background:var(--ambers)}.pr{background:var(--reds)}
+/* pipeline */
+.pipe{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;justify-content:space-between}
+.big{font-family:var(--serif);font-size:28px;line-height:1}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini>div{background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+.mini .k{font-size:11px;color:var(--mut)}.mini .val{font-family:var(--mono);font-size:17px;font-weight:600}
+.gbar{height:6px;border-radius:3px;background:var(--soft);position:relative}.gbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}.gbar u{position:absolute;top:-3px;width:2px;height:12px;background:var(--ink)}
+.mini .s{font-size:10.5px;color:var(--mut);line-height:1.3}
+/* alerts */
+.al{display:flex;flex-direction:column;flex:1;min-height:0}
+.alr{display:grid;grid-template-columns:36px minmax(0,1fr) 110px;gap:10px;align-items:center;flex:0 1 60px;border-top:1px solid var(--line2);min-height:0}
+.code{font-family:var(--mono);font-size:11px;font-weight:600;background:var(--soft);border-radius:6px;padding:3px 0;text-align:center}
+.alr .t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.alr .o{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{position:relative;height:16px}.ib i{position:absolute;right:0;top:3px;height:10px;border-radius:3px;background:var(--red);opacity:.85}.ib span{position:absolute;right:0;top:-12px;font-family:var(--mono);font-size:11px;font-weight:600}
+.more{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.lnk{border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--gold2);cursor:pointer}
+/* tooltip */
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:#F6F4EF;font-size:12px;line-height:1.4;padding:8px 10px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .12s;z-index:9}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:#F6F4EF;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;z-index:9}
+/* proposal note */
+.note{position:fixed;left:12px;bottom:12px;z-index:8;background:var(--gold);color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="note">Proposal · not live</div>
+<div id="stage">
+<nav aria-label="Main navigation">
+  <div class="logo">SKL <span>OS</span></div>
+  <div class="sys"><span class="on">Operating<br>System</span><span>Knowledge<br>System</span></div>
+  <div class="grp">Operating System</div>
+  <div class="it on">Cockpit</div><div class="it">Roadmap</div><div class="it">Inbox<b>4</b></div><div class="it">My Day<b>1</b></div><div class="it">Decisions<b>5</b></div><div class="it">Weekly Review<b>3</b></div>
+  <div class="grp">Sales Ops</div><div class="it">CRM</div>
+</nav>
+<main>
+  <header class="top">
+    <div class="seg" id="tabs" role="group" aria-label="Cockpit view"><button>Overview</button><button>Marketing</button><button class="on">Sales</button><button>Finance</button></div>
+    <div class="seg" id="per" role="group" aria-label="Period"></div>
+    <span class="sp"></span>
+    <div class="verdict" id="verdict"></div>
+  </header>
+
+  <section class="row rA">
+    <div class="card">
+      <div class="ch"><h2>From lead to cash</h2><span class="q" id="flowq"></span></div>
+      <div id="flow" style="flex:1;min-height:0"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Unit economics</h2><span class="q">last 8 weeks · dashed line = baseline</span></div>
+      <div class="ue" id="ue"></div>
+    </div>
+  </section>
+
+  <section class="row rB">
+    <div class="card">
+      <div class="ch"><h2>Sales team</h2><span class="q">sorted by cash · click to open their pipeline</span></div>
+      <div class="team" id="team"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>What's coming</h2><span class="q">next 30 days</span></div>
+      <div class="pipe" id="pipe"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Cash at risk</h2><span class="q" id="alq"></span></div>
+      <div class="al" id="al"></div>
+    </div>
+  </section>
+</main>
+</div>
+<div id="tip" role="tooltip"></div>
+<div id="toast" role="status"></div>
+
+<script>
+/* ---- data: the same figures as the ALKIMIY Lite dashboard in SKL OS ---- */
+const SALES=[
+ {id:"lea",name:"Léa Moreau",ini:"LM",color:"#1B1B18",calls:26,won:8,close:34,cpc:1150,cash:24600,show:76},
+ {id:"karim",name:"Karim Benali",ini:"KB",color:"#7A4B00",calls:24,won:8,close:33,cpc:1300,cash:27800,show:78},
+ {id:"sofia",name:"Sofia Marchetti",ini:"SM",color:"#9A6614",calls:22,won:6,close:30,cpc:1230,cash:16000,show:72},
+ {id:"ines",name:"Inès Fabre",ini:"IF",color:"#3D3A33",calls:20,won:9,close:39,cpc:1020,cash:25400,show:66},
+ {id:"malik",name:"Malik Sy",ini:"MS",color:"#5E5B53",calls:18,won:7,close:31,cpc:1040,cash:18600,show:61}
+];
+const KPI={
+ all:{sales:[38,38],cash:[112400,113000],cpc:[1050,1030],show:[70,71],refund:[4.3,4.4],aov:[3720,3660],funnel:[440,174,122,38],pond:70100,close:31.1,upfront:61,follow:73,velo:7}
+};
+const ALERTS=[
+ {c:"1.5",o:"cro",imp:8400,t:"Signed vs collected gap",obj:"September sales"},
+ {c:"2.4",o:"malik",imp:1450,t:"Stalling deal",obj:"Yassine Diallo · Call booked"},
+ {c:"2.3",o:"lea",imp:1180,t:"Missing follow-up",obj:"M. Ferrand · €3,500 · Call held"},
+ {c:"2.2",o:"karim",imp:900,t:"Missing warming",obj:"Hugo Lemaire · Call booked"},
+ {c:"2.2",o:"lea",imp:820,t:"Missing warming",obj:"Marc Dupont · Call booked"},
+ {c:"2.10",o:"lea",imp:720,t:"Lead with no next action",obj:"Nadia Benz · €6,000 · Call held"},
+ {c:"2.10",o:"ines",imp:640,t:"Lead with no next action",obj:"Théo Laurent · €3,500 · Call held"},
+ {c:"2.8",o:"sofia",imp:600,t:"Loss without a fix",obj:"Hakim Touré · €6,000 · Lost"}
+];
+const KR={name:"€50k collected",cur:12000,exp:15000,target:50000,status:"Amber"}; // SKL key result, from Roadmap
+const PF={7:.24,30:1,56:1.85}, PL={7:"7 d",30:"30 d",56:"8 wk"};
+const S={period:30};
+
+/* ---- helpers ---- */
+const nf=x=>Math.round(x).toLocaleString("en-GB");
+const money=x=>"€"+nf(x);
+const moneyK=x=>x>=1000?"€"+(Math.round(x/100)/10).toLocaleString("en-GB")+"k":"€"+nf(x);
+const pc=(x,d=0)=>(Math.round(x*10**d)/10**d).toLocaleString("en-GB",{minimumFractionDigits:d})+"%";
+const tone=(ratio)=>ratio>=100?"g":ratio>=95?"a":"r";
+const COL={g:"var(--green)",a:"var(--amber)",r:"var(--red)"};
+function series(end,base,seed){const o=[];for(let i=0;i<8;i++){const k=i/7;o.push(base*(1-k)+end*k+base*Math.sin((i+seed)*1.7)*.04)}o[7]=end;return o}
+const el=(id)=>document.getElementById(id);
+const tip=el("tip");
+function bindTips(root){root.querySelectorAll("[data-tip]").forEach(n=>{n.onmousemove=e=>{tip.innerHTML=n.getAttribute("data-tip");tip.style.opacity=1;tip.style.left=Math.min(innerWidth-270,e.clientX+14)+"px";tip.style.top=(e.clientY+14)+"px"};n.onmouseleave=()=>tip.style.opacity=0})}
+function toast(m){const t=el("toast");t.textContent=m;t.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.opacity=0,2200)}
+
+/* ---- controls ---- */
+function controls(){
+  el("per").innerHTML=[7,30,56].map(p=>`<button class="${S.period===p?"on":""}" data-p="${p}">${PL[p]}</button>`).join("");
+  el("per").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.period=+b.dataset.p;render()});
+}
+
+/* ---- the 6 parity criteria, computed once ---- */
+function criteria(K,f){
+  const d=[
+    {k:"sales",l:"Deals won",v:K.sales[0]*f,b:K.sales[1]*f,fmt:nf},
+    {k:"cash",l:"Cash collected",v:K.cash[0]*f,b:K.cash[1]*f,fmt:moneyK},
+    {k:"show",l:"Show rate",v:K.show[0],b:K.show[1],fmt:x=>pc(x)},
+    {k:"cpc",l:"Revenue per call",v:K.cpc[0],b:K.cpc[1],fmt:money},
+    {k:"aov",l:"Average order value",v:K.aov[0],b:K.aov[1],fmt:money},
+    {k:"refund",l:"Refund rate",v:K.refund[0],b:K.refund[1],fmt:x=>pc(x,1),inv:true}
+  ];
+  d.forEach(x=>{x.ratio=x.inv?x.b/x.v*100:x.v/x.b*100;x.tone=tone(x.ratio)});
+  return Object.fromEntries(d.map(x=>[x.k,x]));
+}
+
+/* ---- header: parity verdict + SKL key result ---- */
+function header(C){
+  const below=Object.values(C).filter(x=>x.ratio<100);
+  const fail=below.length>0;
+  el("verdict").innerHTML=`<span class="vbadge ${fail?"fail":"pass"}">${fail?"FAIL":"PASS"}</span><span class="vt"><b>Parity gate</b><br>${fail?below.length+" of 6 below base":"6 of 6 at base"}</span>`;
+  el("verdict").setAttribute("data-tip","Parity gate: the 6 criteria against their baseline. "+(fail?"Below: "+below.map(x=>x.l.toLowerCase()).join(", ")+". ":"")+"Deals won, show rate and cash are marked in the flow, the other three in unit economics.");
+
+}
+
+/* ---- 1. From lead to cash: one flow that carries volumes, conversion rates, deals won and cash ---- */
+function flow(K,f,C){
+  const box=el("flow"), W=box.clientWidth, H=box.clientHeight;
+  const fn=K.funnel.map(x=>x*f), cash=K.cash[0]*f, signed=cash/(K.upfront/100);
+  const st=[
+    {l:"Leads",v:fn[0],fmt:nf(fn[0])},
+    {l:"Calls booked",v:fn[1],fmt:nf(fn[1])},
+    {l:"Calls held",v:fn[2],fmt:nf(fn[2])},
+    {l:"Deals won",v:fn[3],fmt:nf(fn[3]),crit:C.sales},
+    {l:"Revenue",v:fn[3],fmt:moneyK(cash),crit:C.cash,cash:true}
+  ];
+  const rates=[
+    {v:fn[1]/fn[0]*100,l:"booked"},
+    {v:fn[2]/fn[1]*100,l:"show rate",crit:C.show},
+    {v:fn[3]/fn[2]*100,l:"close rate"},
+    {v:K.upfront,l:"paid upfront",up:true}
+  ];
+  const top=34, bot=78, hMax=H-top-bot, colW=Math.min(92,(W-40)/9), pad=22, gap=(W-2*pad-colW*5)/4;
+  const hOf=v=>Math.max(10,hMax*Math.sqrt(v/fn[0]));
+  const mid=top+hMax/2;
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="From lead to cash">`;
+  s+=`<defs><linearGradient id="rib" x1="0" x2="1"><stop offset="0" stop-color="#ECE8DF"/><stop offset="1" stop-color="#F6F4EF"/></linearGradient></defs>`;
+  // ribbons
+  st.forEach((x,i)=>{if(i===4)return;const h1=hOf(x.v),h2=hOf(st[i+1].v),x1=pad+i*(colW+gap)+colW,x2=pad+(i+1)*(colW+gap);
+    s+=`<path d="M${x1},${mid-h1/2} C${x1+gap/2},${mid-h1/2} ${x2-gap/2},${mid-h2/2} ${x2},${mid-h2/2} L${x2},${mid+h2/2} C${x2-gap/2},${mid+h2/2} ${x1+gap/2},${mid+h1/2} ${x1},${mid+h1/2}Z" fill="url(#rib)"/>`;
+    const r=rates[i], rc=r.crit?COL[r.crit.tone]:"var(--ink)";
+    const cx=(x1+x2)/2;
+    const lbl=r.crit?`${pc(r.v)}`:pc(r.v);
+    const tipTxt=r.crit?`${r.l}: ${pc(r.v)} · baseline ${pc(r.crit.b)} (${pc(r.crit.ratio)} of baseline)`:r.up?`Share of signed revenue paid in full: ${pc(r.v)}. The rest is instalments still to collect.`:`${r.l}: ${pc(r.v)}`;
+    s+=`<g data-tip="${tipTxt}"><rect x="${cx-38}" y="${mid-19}" width="76" height="38" rx="9" fill="#fff" stroke="${r.crit?rc:"#E3DFD5"}" stroke-width="${r.crit&&r.crit.tone!=="g"?1.5:1}"/>
+      <text x="${cx}" y="${mid+1}" text-anchor="middle" font-family="IBM Plex Mono" font-size="15" font-weight="600" fill="${rc}">${lbl}</text>
+      <text x="${cx}" y="${mid+13}" text-anchor="middle" font-size="10" fill="#5E5B53">${r.l}</text></g>`;
+  });
+  // columns
+  st.forEach((x,i)=>{
+    const h=hOf(x.v), x0=pad+i*(colW+gap), y0=mid-h/2, c=x.crit?COL[x.crit.tone]:null;
+    if(x.cash){
+      const hc=h*(K.upfront/100);
+      s+=`<g data-tip="Signed revenue ${moneyK(signed)} · collected ${moneyK(cash)} (${pc(K.upfront)} upfront) · baseline ${moneyK(x.crit.b)}"><rect x="${x0}" y="${y0}" width="${colW}" height="${h}" rx="6" fill="#FBF6EC" stroke="#D9B46A" stroke-dasharray="3 3"/>
+        <rect x="${x0}" y="${y0+h-hc}" width="${colW}" height="${hc}" rx="6" fill="#D9B46A"/></g>`;
+    } else s+=`<rect x="${x0}" y="${y0}" width="${colW}" height="${h}" rx="6" fill="${i===3?"#1B1B18":"#3D3A33"}" opacity="${i===3?1:.9-i*.12}"/>`;
+    // labels
+    s+=`<text x="${x0+colW/2}" y="${top-16}" text-anchor="middle" font-size="11" font-weight="600" letter-spacing=".06em" fill="#5E5B53">${x.l.toUpperCase()}</text>`;
+    const vy=H-bot+26;
+    s+=`<text x="${x0+colW/2}" y="${vy}" text-anchor="middle" font-family="Fraunces" font-size="${x.cash?24:22}" fill="#1B1B18">${x.fmt}</text>`;
+    if(x.crit){
+      s+=`<g data-tip="${x.crit.l}: ${x.crit.fmt(x.crit.v)} · baseline ${x.crit.fmt(x.crit.b)}"><rect x="${x0+colW/2-44}" y="${vy+10}" width="88" height="20" rx="10" fill="${x.crit.tone==="g"?"#E6F2EA":x.crit.tone==="a"?"#FDF1E3":"#FDECEA"}"/>
+      <text x="${x0+colW/2}" y="${vy+24}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="${x.crit.tone==="g"?"#1E5E38":x.crit.tone==="a"?"#8A3F06":"#9B1C12"}">${pc(x.crit.ratio)} of base</text></g>`;
+    } else if(x.cash===undefined && i<3){
+      s+=`<text x="${x0+colW/2}" y="${vy+22}" text-anchor="middle" font-size="11" fill="#8E8A80">${i===0?"entered":i===1?"on calendar":"attended"}</text>`;
+    }
+  });
+  s+=`</svg>`;
+  box.innerHTML=s; bindTips(box);
+  el("flowq").textContent=`${PL[S.period]} · baseline marked on deals won, show rate and revenue`;
+}
+
+/* ---- 2. Unit economics: the 3 remaining parity criteria, each as a full-size 8-week area chart against its baseline ---- */
+function smooth(pts){let d="M"+pts[0][0]+","+pts[0][1];for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+  d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`}return d}
+function unit(C){
+  const L=[C.cpc,C.aov,C.refund];
+  el("ue").innerHTML=L.map((x,i)=>{const dv=(x.ratio-100), sg=dv>=0?"+":"−";
+    return `<div class="uer"><div class="uel"><span class="n">${x.l}</span><span class="v">${x.fmt(x.v)}</span>
+      <span class="d ${x.tone}" data-tip="${x.inv?"Lower is better. ":""}${pc(x.ratio)} of the baseline">${sg}${pc(Math.abs(dv))} vs base</span><small>base ${x.fmt(x.b)}${x.inv?" · lower is better":""}</small></div>
+      <div class="uec" id="uec${i}"></div></div>`}).join("");
+  L.forEach((x,i)=>{
+    const box=el("uec"+i), W=box.clientWidth, H=box.clientHeight; if(W<80||H<40) return;
+    const ser=series(x.v,x.b,i+2), mn=Math.min(...ser,x.b), mx=Math.max(...ser,x.b), pad=(mx-mn)*.25||1;
+    const lo=mn-pad, hi=mx+pad, T=8, B=16, R=54;
+    const X=j=>j/7*(W-R), Y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+    const pts=ser.map((v,j)=>[X(j),Y(v)]), line=smooth(pts), last=pts[7], yb=Y(x.b);
+    // worse than baseline = red: under it, or over it when lower is better
+    const G="var(--green)", Rd="var(--red)", cUp=x.inv?Rd:G, cDn=x.inv?G:Rd, cEnd=(x.inv?x.v>x.b:x.v<x.b)?Rd:G;
+    let s=`<svg width="${W}" height="${H}" role="img" aria-label="${x.l}, last 8 weeks"><defs>
+      <clipPath id="uu${i}"><rect x="-10" y="-10" width="${W+20}" height="${yb+10}"/></clipPath>
+      <clipPath id="ud${i}"><rect x="-10" y="${yb}" width="${W+20}" height="${H}"/></clipPath>
+      <linearGradient id="gu${i}" gradientUnits="userSpaceOnUse" x1="0" y1="${T}" x2="0" y2="${yb}"><stop offset="0" style="stop-color:${cUp};stop-opacity:.05"/><stop offset="1" style="stop-color:${cUp};stop-opacity:.3"/></linearGradient>
+      <linearGradient id="gd${i}" gradientUnits="userSpaceOnUse" x1="0" y1="${yb}" x2="0" y2="${H-B}"><stop offset="0" style="stop-color:${cDn};stop-opacity:.3"/><stop offset="1" style="stop-color:${cDn};stop-opacity:.05"/></linearGradient></defs>`;
+    const band=`${line} L${last[0]},${yb} L0,${yb} Z`;
+    s+=`<path d="${band}" fill="url(#gu${i})" clip-path="url(#uu${i})"/><path d="${band}" fill="url(#gd${i})" clip-path="url(#ud${i})"/>`;
+    s+=`<line x1="0" x2="${W-R}" y1="${yb}" y2="${yb}" stroke="var(--mut2)" stroke-dasharray="4 4"/><text x="${W-R+6}" y="${yb+4}" font-size="10" fill="var(--mut2)">base</text>`;
+    s+=`<path d="${line}" fill="none" stroke="${cUp}" stroke-width="2.5" stroke-linecap="round" clip-path="url(#uu${i})"/><path d="${line}" fill="none" stroke="${cDn}" stroke-width="2.5" stroke-linecap="round" clip-path="url(#ud${i})"/>`;
+    s+=`<circle cx="${last[0]}" cy="${last[1]}" r="9" fill="${cEnd}" opacity=".15"/><circle cx="${last[0]}" cy="${last[1]}" r="4.5" fill="#fff" stroke="${cEnd}" stroke-width="2.5"/>`;
+    s+=`<text x="0" y="${H-3}" font-size="10" fill="var(--mut2)">8 wk ago</text><text x="${W-R}" y="${H-3}" font-size="10" text-anchor="end" fill="var(--mut2)">now</text>`;
+    ser.forEach((v,j)=>s+=`<rect x="${X(j)-(W-R)/14}" y="0" width="${(W-R)/7}" height="${H}" fill="transparent" data-tip="${j===7?"This week":(7-j)+" wk ago"}: ${x.fmt(v)}"/>`);
+    box.innerHTML=s+`</svg>`;
+  });
+  bindTips(el("ue"));
+}
+
+/* ---- 3. Team: cash as the bar, close and show rates as the two quality checks ---- */
+function team(f){
+  const t=SALES.slice().sort((a,b)=>b.cash-a.cash);
+  const mx=Math.max(...t.map(s=>s.cash));
+  el("team").innerHTML=`<div class="th"><span>Sales rep</span><span>Cash · won / calls</span><span>Close</span><span>Show</span></div>`+
+   t.map(s=>{const w=s.cash/mx*100, cl=s.close>=32?"g":s.close>=28?"a":"r", sh=s.show>=72?"g":s.show>=65?"a":"r";
+    return `<button class="tr" data-id="${s.id}" data-tip="${s.name}: ${money(s.cash*f)} collected, ${nf(s.won*f)} won from ${nf(s.calls*f)} calls">
+      <span class="who"><i style="background:${s.color}">${s.ini}</i><div><b>${s.name}</b><small>${money(s.cpc)} per call</small></div></span>
+      <span class="cbar"><i style="width:calc((100% - 62px) * ${w/100})"></i><span style="left:calc((100% - 62px) * ${w/100} + 6px)">${moneyK(s.cash*f)}</span><small>${nf(s.won*f)} won / ${nf(s.calls*f)} calls</small></span>
+      <span class="pct ${cl} p${cl}">${pc(s.close)}</span><span class="pct ${sh} p${sh}">${pc(s.show)}</span>
+    </button>`}).join("");
+  el("team").querySelectorAll(".tr").forEach(b=>b.onclick=()=>toast("Opens the CRM filtered on "+SALES.find(s=>s.id===b.dataset.id).name));
+  bindTips(el("team"));
+}
+
+/* ---- 4. What's coming: weighted pipeline turned into a cash forecast, plus the two speed checks ---- */
+function pipe(K){
+  const fc=K.pond*K.upfront/100, w=fc/K.pond*100;
+  el("pipe").innerHTML=`
+    <div data-tip="Weighted pipeline: each open deal × the observed win probability of its stage. Forecast = weighted pipeline × observed upfront rate.">
+      <div class="ey" style="margin-bottom:4px">30-day cash forecast</div>
+      <div style="display:flex;align-items:baseline;gap:8px"><span class="big">${moneyK(fc)}</span><span class="num" style="font-size:12px;color:var(--mut)">of ${moneyK(K.pond)} weighted</span></div>
+      <div style="position:relative;height:16px;border-radius:5px;background:#FBF6EC;border:1px dashed #D9B46A;margin-top:8px"><i style="position:absolute;left:0;top:0;bottom:0;width:${w}%;border-radius:4px;background:var(--gold)"></i></div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);margin-top:4px"><span>expected in cash</span><span>still weighted pipeline</span></div>
+    </div>
+    <div class="mini">
+      <div data-tip="Open deals followed up within 24 h. Target 75%."><span class="k">Follow-up in 24 h</span><span class="val ${K.follow<75?"a":"g"}">${pc(K.follow)}</span><div class="gbar"><i style="width:${K.follow}%;background:${K.follow<75?"var(--amber)":"var(--green)"}"></i><u style="left:75%"></u></div><span class="s">target 75%</span></div>
+      <div data-tip="Median days a deal spends in each stage. Alert above 8 days."><span class="k">Days per stage</span><span class="val ${K.velo>8?"a":"g"}">${K.velo} d</span><div class="gbar"><i style="width:${Math.min(100,K.velo/14*100)}%;background:${K.velo>8?"var(--amber)":"var(--green)"}"></i><u style="left:${8/14*100}%"></u></div><span class="s">alert above 8 d</span></div>
+    </div>
+    <div class="kr" data-tip="SKL key result, from Roadmap: ${moneyK(KR.cur)} collected of ${moneyK(KR.target)}. Expected by now ${moneyK(KR.exp)}. Actual ÷ expected ${(KR.cur/KR.exp).toFixed(2)}."><div class="l"><span>Sales KR</span><b>${KR.status} · ${(KR.cur/KR.exp).toFixed(2)}</b></div><div class="v">${KR.name}: <strong>${moneyK(KR.cur)}</strong> <span style="color:#C9C4B7">· expected ${moneyK(KR.exp)}</span></div><div class="krbar"><i style="width:${KR.cur/KR.target*100}%"></i><u style="left:${KR.exp/KR.target*100}%"></u></div></div>`;
+  bindTips(el("pipe"));
+}
+
+/* ---- 5. Cash at risk: the alerts ranked by money at stake ---- */
+function alerts(){
+  const L=ALERTS.slice().sort((a,b)=>b.imp-a.imp);
+  const tot=L.reduce((x,a)=>x+a.imp,0), mx=Math.max(...L.map(a=>a.imp),1), shown=L.slice(0,5);
+  el("alq").innerHTML=`<b class="num" style="color:var(--redt);font-size:13px">~${moneyK(tot)}</b> · ${L.length} alerts`;
+  el("al").innerHTML=shown.map(a=>{const s=SALES.find(x=>x.id===a.o);
+    return `<div class="alr" data-tip="${a.t} · ${a.obj} · ${s?s.name:"CRO"} · estimated impact ${money(a.imp)}"><span class="code">${a.c}</span><div style="min-width:0"><div class="t">${a.t}</div><div class="o">${a.obj} · ${s?s.name.split(" ")[0]:"CRO"}</div></div>
+    <div class="ib"><i style="width:${Math.max(6,a.imp/mx*100)}%"></i><span>~${moneyK(a.imp)}</span></div></div>`}).join("")+
+    `<div class="more"><span style="color:var(--mut)">${L.length>5?(L.length-5)+" more, ~"+moneyK(L.slice(5).reduce((x,a)=>x+a.imp,0)):""}</span><button class="lnk" onclick="toast('Opens every alert in the CRM')">See all alerts →</button></div>`;
+  bindTips(el("al"));
+}
+
+function render(){
+  const K=KPI.all, f=PF[S.period], C=criteria(K,f);
+  controls(); header(C); flow(K,f,C); unit(C); team(f); pipe(K); alerts(); bindTips(el("verdict").parentNode);
+}
+
+/* fit the 1440 × 900 screen to any window, never scroll */
+function fit(){const st=el("stage");const z=Math.min(innerWidth/1440,innerHeight/900);st.style.transform=`scale(${z})`;st.style.left=Math.max(0,(innerWidth-1440*z)/2)+"px"}
+addEventListener("resize",fit);
+fit(); render();
+document.fonts&&document.fonts.ready.then(render);
+</script>
+</body>
+</html>

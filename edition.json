@@ -1,0 +1,6 @@
+{
+  "name": "LNP",
+  "systems": ["ss"],
+  "home": "salescockpit",
+  "settings": ["Settings.dc.html", "Account.dc.html", "Access.dc.html"]
+}

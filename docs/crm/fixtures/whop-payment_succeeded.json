@@ -1,0 +1,18 @@
+{
+  "_illustrative": true,
+  "_note": "Envelope per Whop webhooks guide; data fields to VERIFY on a sandbox payment (metadata presence = Q3).",
+  "_headers": { "webhook-id": "msg_0001", "webhook-timestamp": "1761300000", "webhook-signature": "v1,<base64>" },
+  "type": "payment.succeeded",
+  "account_id": "biz_xxxx",
+  "data": {
+    "id": "pay_0001",
+    "status": "paid",
+    "total": 3000,
+    "currency": "eur",
+    "paid_at": "2026-10-28T09:00:00Z",
+    "user": { "id": "user_0001", "email": "test.prospect@example.com" },
+    "member": { "id": "mem_0001", "phone": "+33600000001" },
+    "plan": { "id": "plan_0001" },
+    "metadata": { "skl_cycle_id": "00000000-0000-0000-0000-000000000001", "skl_person_id": "00000000-0000-0000-0000-000000000002" }
+  }
+}

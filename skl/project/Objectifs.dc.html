@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>SKL OS — Objectifs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#23408E}a:hover{color:#16295E}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Navigation principale" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 32px 18px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 14px 32px">SKL <span style="color: #D9B46A">OS</span></div>
+<a href="Main.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Cockpit</a>
+<a href="MonJour.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Mon jour</a>
+<a href="Decisions.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Décisions</a>
+<a href="Bibliotheque.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Bibliothèque</a>
+<div style="flex-grow: 1"></div>
+<div style="padding: 14px; border-top: 1px solid #34322C; font-size: 13px; color: #A8A396; line-height: 1.5">T4 2026 · semaine 3/13<br>Weekly review : vendredi</div>
+</nav>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 40px 48px; display: flex; flex-direction: column; gap: 22px">
+<header style="display: flex; justify-content: space-between; align-items: flex-end">
+<div>
+<div style="font-size: 14px; color: #5E5B53; margin-bottom: 6px">T4 2026 · 3 objectifs · 5 résultats clés</div>
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 40px; font-weight: 500">Objectifs</h1>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600">O2 · Audience</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px">O1 · Masterclasses</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px">O3 · Revenus</button>
+</div>
+</header>
+
+<section aria-labelledby="o2" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 26px 28px; display: flex; flex-direction: column; gap: 18px">
+<h2 id="o2" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 500">O2 · Construire une audience qualifiée</h2>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; padding: 20px; border: 1px solid #F3C9C4; background: #FFF8F6; border-radius: 12px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<div style="font-size: 17px; font-weight: 600">KR · 2 000 inscrits aux lives</div>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDECEA; color: #9B1C12; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Rouge · 0,58</span>
+</div>
+<svg viewBox="0 0 640 150" width="100%" height="150" role="img" aria-label="Inscrits réels contre courbe attendue sur 13 semaines">
+<line x1="0" y1="140" x2="640" y2="140" stroke="#E3DFD5" stroke-width="1"></line>
+<line x1="0" y1="140" x2="640" y2="10" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="5 5"></line>
+<polyline points="0,140 49,132 98,120 148,104" fill="none" stroke="#B42318" stroke-width="3"></polyline>
+<circle cx="148" cy="104" r="5" fill="#B42318"></circle>
+<text x="160" y="100" font-size="13" fill="#9B1C12" font-family="IBM Plex Sans, sans-serif">580 réels</text>
+<text x="160" y="72" font-size="13" fill="#1B1B18" font-family="IBM Plex Sans, sans-serif">1 000 attendus</text>
+<text x="560" y="28" font-size="13" fill="#5E5B53" font-family="IBM Plex Sans, sans-serif">2 000</text>
+</svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<div style="display: flex; justify-content: space-between"><span style="color: #5E5B53">Owner</span><strong>Marketing</strong></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #5E5B53">Confiance</span><strong style="font-family: 'IBM Plex Mono', monospace">4/10 ↓</strong></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #5E5B53">Dernier check-in</span><strong>lundi</strong></div>
+<div style="font-size: 13px; color: #5E5B53; line-height: 1.45; padding-top: 8px; border-top: 1px solid #F3C9C4">« Le taux de conversion de la page d'inscription a chuté après le changement d'offre. »</div>
+<button type="button" style="min-height: 44px; margin-top: 4px; border: 0; border-radius: 10px; background: #B42318; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600">Plan de redressement (48 h)</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; padding: 20px; border: 1px solid #E3DFD5; border-radius: 12px; align-items: center">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<div style="font-size: 17px; font-weight: 600">KR · Coût par lead ≤ 4 €</div>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E6F2EA; color: #1E5E38; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7D4F"></span>Vert · 3,60 €</span>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 14px"><span style="color: #5E5B53">Owner · Marketing</span><strong style="font-family: 'IBM Plex Mono', monospace">8/10</strong></div>
+</div>
+</section>
+
+<section aria-labelledby="init" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; overflow: hidden; flex-grow: 1">
+<div style="padding: 20px 28px 12px"><h2 id="init" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Initiatives qui font bouger ces KR</h2></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px 120px 120px 200px 110px; gap: 16px; padding: 10px 28px; background: #FAF8F3; border-top: 1px solid #E3DFD5; border-bottom: 1px solid #E3DFD5; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">
+<span>Initiative</span><span>Owner</span><span>Engagée</span><span>Prévue</span><span>Marge consommée</span><span>Statut</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px 120px 120px 200px 110px; gap: 16px; align-items: center; padding: 16px 28px; border-bottom: 1px solid #EFEBE3; font-size: 14px">
+<span style="font-weight: 600">Refonte de la page d'inscription</span><span>Marketing</span><span>20 oct.</span><strong style="color: #9B1C12">27 oct.</strong>
+<div style="display: flex; align-items: center; gap: 10px"><div style="flex-grow: 1; height: 8px; background: #ECE8DF; border-radius: 4px"><div style="width: 85%; height: 8px; background: #B42318; border-radius: 4px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">85 %</span></div>
+<span style="font-weight: 600; color: #9B1C12">Rouge</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px 120px 120px 200px 110px; gap: 16px; align-items: center; padding: 16px 28px; border-bottom: 1px solid #EFEBE3; font-size: 14px">
+<span style="font-weight: 600">Partenariats avec 3 communautés d'entrepreneurs</span><span>Marketing</span><span>6 nov.</span><span>6 nov.</span>
+<div style="display: flex; align-items: center; gap: 10px"><div style="flex-grow: 1; height: 8px; background: #ECE8DF; border-radius: 4px"><div style="width: 20%; height: 8px; background: #2E7D4F; border-radius: 4px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">20 %</span></div>
+<span style="font-weight: 600; color: #1E5E38">Vert</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 130px 120px 120px 200px 110px; gap: 16px; align-items: center; padding: 16px 28px; font-size: 14px">
+<span style="font-weight: 600">Campagne d'annonce du live #1</span><span>Marketing</span><span>15 oct.</span><strong style="color: #8A3F06">17 oct.</strong>
+<div style="display: flex; align-items: center; gap: 10px"><div style="flex-grow: 1; height: 8px; background: #ECE8DF; border-radius: 4px"><div style="width: 60%; height: 8px; background: #B45309; border-radius: 4px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">60 %</span></div>
+<span style="font-weight: 600; color: #8A3F06">Orange</span>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

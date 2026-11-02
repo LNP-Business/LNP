@@ -1,0 +1,1274 @@
+<title>Cartographie SKL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : plan infini. Axe horizontal = états observables de l'individu, de A à B, reliés par des cellules de transition.
+   Chaque carte est un BESOIN ; les moyens (agent, humain, système) sont un calque. Couloirs : méta · production · vécu · graphe · conversion · support · mémoire · outils.
+   Un seul modèle, éditable et partagé ; quatre vues de plus : Événements, Chantiers, Simulateur, Modèle. */
+:root{
+  --bg:#0C0C0D; --surface:#151517; --surface-2:#1C1C1F; --line:#2B2A27; --line-strong:#3D3A33;
+  --fg:#EEEAE2; --muted:#9A958A; --gold:#C9A75E; --gold-dim:rgba(201,167,94,.16);
+  --ok:#71B58C; --wip:#86A9DB; --missing:#DE6E5E; --loop:#8FC4BB; --esc:#C9A0D6;
+  --es-ev:#F0954B; --es-pol:#B597E6; --es-cmd:#6FA3E6; --es-act:#E2C25A; --es-read:#6CC08D;
+  --dot:rgba(238,234,226,.07); --shadow:0 12px 32px rgba(0,0,0,.5); --scrim:rgba(12,12,13,.88);
+  --f-display:'Bodoni Moda', Didot, 'Bodoni 72', Georgia, serif;
+  --f-body:'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono:'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#F1EFEA; --surface:#FFFFFF; --surface-2:#F8F6F1; --line:#DCD7CC; --line-strong:#C4BDAE;
+  --fg:#131313; --muted:#67625A; --gold:#94742C; --gold-dim:rgba(148,116,44,.12);
+  --ok:#2E7A50; --wip:#2D5C9C; --missing:#B23F2D; --loop:#2F7A72; --esc:#7B4A8C;
+  --es-ev:#C2601A; --es-pol:#7A55B0; --es-cmd:#2F68AE; --es-act:#9A7A10; --es-read:#2E7F50;
+  --dot:rgba(19,19,19,.09); --shadow:0 10px 26px rgba(40,30,10,.13); --scrim:rgba(241,239,234,.92);
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#F1EFEA; --surface:#FFFFFF; --surface-2:#F8F6F1; --line:#DCD7CC; --line-strong:#C4BDAE;
+  --fg:#131313; --muted:#67625A; --gold:#94742C; --gold-dim:rgba(148,116,44,.12);
+  --ok:#2E7A50; --wip:#2D5C9C; --missing:#B23F2D; --loop:#2F7A72; --esc:#7B4A8C;
+  --es-ev:#C2601A; --es-pol:#7A55B0; --es-cmd:#2F68AE; --es-act:#9A7A10; --es-read:#2E7F50;
+  --dot:rgba(19,19,19,.09); --shadow:0 10px 26px rgba(40,30,10,.13); --scrim:rgba(241,239,234,.92);
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#app{position:fixed;inset:0}
+#viewport{position:absolute;inset:0;overflow:hidden;cursor:grab;touch-action:none;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1.2px,transparent 1.3px)}
+#viewport.panning{cursor:grabbing}
+#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+#layer{position:absolute;left:0;top:0}
+body.ro .edit-only{display:none!important}
+
+.topbar{position:absolute;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;background:linear-gradient(var(--scrim),var(--scrim) 70%,transparent);pointer-events:none}
+.topbar>*{pointer-events:auto}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-family:var(--f-display);font-size:26px;letter-spacing:.06em;color:var(--gold);font-weight:700}
+.brand span{font-size:13px;color:var(--muted);white-space:nowrap}
+.stats{display:flex;gap:6px;overflow-x:auto;min-width:0;flex:1 1 0;scrollbar-width:none}
+.fbar{position:absolute;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:17;display:flex;gap:8px}
+.fbtn:disabled{opacity:.45;cursor:default;border-color:var(--line)}
+.fbtn.undo::before{content:"↶";width:auto;height:auto;background:none;color:var(--gold);font-size:17px;line-height:1}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:14px;padding:10px 14px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--fg);box-shadow:var(--shadow);font-size:13.5px;max-width:calc(100% - 32px)}
+.toast button{border:1px solid var(--gold);background:none;color:var(--gold);border-radius:6px;padding:4px 10px;font-size:13px;white-space:nowrap}
+#confirm{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--bg) 72%,transparent);display:flex;align-items:center;justify-content:center;padding:16px}
+.cf-box{background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;box-shadow:var(--shadow);padding:22px;max-width:440px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:12px}
+.cf-box h2{margin:0;font:500 26px/1.15 var(--f-display);text-wrap:balance}
+.cf-box p{margin:0;line-height:1.5;font-size:14px}
+.cf-box .cf-n{color:var(--muted);font-size:12.5px}
+.cf-a{display:flex;justify-content:flex-end;gap:8px;margin-top:6px;flex-wrap:wrap}
+.cf-a .btn{padding:9px 16px;font-size:14px}
+.cf-a .cf-danger{background:var(--missing);color:var(--bg);border-color:var(--missing)}
+.fbtn{position:relative;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--gold);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13.5px;font-weight:500;box-shadow:var(--shadow)}
+.fbtn::before{content:"";width:14px;height:10px;flex:none;background:linear-gradient(var(--gold),var(--gold)) 0 0/100% 2px no-repeat,linear-gradient(var(--gold),var(--gold)) 2px 4px/10px 2px no-repeat,linear-gradient(var(--gold),var(--gold)) 4px 8px/6px 2px no-repeat}
+.fbtn[aria-pressed="true"]{background:var(--gold-dim)}
+.fbtn .cnt{font:12px var(--f-mono);color:var(--gold)}
+.lh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-4px 0 -4px}
+.lh b{font:500 22px var(--f-display)}
+.lh button{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;width:32px;height:30px;font-size:16px;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chip[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-dim)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:2px;flex-wrap:wrap}
+.seg2 button{border:0;background:none;padding:5px 10px;border-radius:6px;font-size:13px;white-space:nowrap;color:var(--muted)}
+.seg2 button[aria-pressed="true"]{background:var(--gold-dim);color:var(--fg)}
+.search input{width:180px;max-width:40vw;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.search input::placeholder{color:var(--muted)}
+.tb-btn{padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:13px;white-space:nowrap}
+.tb-btn[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+body.model-open .map-only{display:none!important}
+
+#layers{position:absolute;left:16px;top:var(--top,84px);bottom:calc(68px + env(safe-area-inset-bottom,0px));width:262px;z-index:15;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:16px}
+#layers h3{margin:0 0 6px;font:500 10.5px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.opt{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:13.5px;cursor:pointer;user-select:none}
+.opt input{accent-color:var(--gold);width:15px;height:15px;margin:0}
+.opt .n{margin-left:auto;color:var(--muted);font:12px var(--f-mono);font-variant-numeric:tabular-nums}
+.sw{width:20px;height:0;border-top:2px solid;flex:none}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;justify-content:space-between;gap:8px;border:0;background:none;padding:5px 8px;margin:0 -8px;border-radius:6px;text-align:left;font-size:13.5px}
+.nav button:hover{background:var(--surface-2)}
+.nav small{color:var(--muted);font:11px var(--f-mono)}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:12px;margin-top:auto}
+.hint kbd{font:11px var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:1px 4px}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 10px;font-size:12.5px;white-space:nowrap}
+.btn:hover{border-color:var(--gold)}
+.btn.add{border-style:dashed;border-color:color-mix(in srgb,var(--gold) 60%,var(--line));color:var(--gold)}
+.btn.danger,.btn.del{color:var(--missing);border-color:color-mix(in srgb,var(--missing) 50%,var(--line))}
+
+.lane{position:absolute;border-top:1px solid var(--line)}
+.lane-label{position:absolute;width:300px;font:500 13px var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);line-height:1.5}
+.lane-label b{display:block;font:500 34px/1.05 var(--f-display);letter-spacing:-.005em;text-transform:none;color:var(--fg);margin-top:6px}
+.lane-label span{display:block;font:14px/1.4 var(--f-body);letter-spacing:0;text-transform:none;margin-top:6px}
+.world-title{position:absolute;white-space:nowrap}
+.world-title .k{font:500 14px var(--f-mono);letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.world-title h1{margin:8px 0 0;font:500 92px/1 var(--f-display);letter-spacing:-.015em}
+.world-title p{margin:10px 0 0;font-size:20px;color:var(--muted)}
+.zone{position:absolute;border:1px solid var(--line);border-radius:20px;background:color-mix(in srgb,var(--surface) 50%,transparent)}
+.zone h2{position:absolute;left:24px;top:18px;margin:0;font:500 36px/1 var(--f-display)}
+.zone p{position:absolute;left:24px;top:62px;margin:0;color:var(--muted);font-size:14px}
+.chain-label{position:absolute;width:270px;box-sizing:border-box}
+.chain-label .k{font:500 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.chain-label b{display:block;font:500 26px/1.1 var(--f-display);margin-top:4px}
+.chain-label span{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.4}
+.chain-label.dom{cursor:pointer;border:1px solid transparent;border-radius:12px;padding:8px 10px;margin:-8px -10px}
+.chain-label.dom:hover,.chain-label.dom.sel{border-color:var(--gold)}
+.act{position:absolute;border-top:2px solid var(--gold);padding-top:10px}
+.act .k{font:500 12px var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.act b{display:block;font:500 40px/1.05 var(--f-display);margin-top:4px}
+.act span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+
+.card{position:absolute;box-sizing:border-box;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);cursor:pointer;transition:opacity .2s,box-shadow .2s,border-color .2s;overflow:hidden}
+.card:hover{border-color:var(--gold)}
+.card.sel{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim),var(--shadow)}
+.card.match{box-shadow:0 0 0 3px var(--gold)}
+#world.focus .dim{opacity:.13}
+.code{font:500 11px var(--f-mono);color:var(--muted);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.krb{color:var(--gold);font-weight:500}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.d-ok{background:var(--ok)} .d-wip{background:var(--wip)} .d-missing{background:var(--missing)}
+.s-missing .pill{color:var(--missing);border-color:color-mix(in srgb,var(--missing) 45%,transparent)}
+
+.state{padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-color:var(--gold);border-radius:18px}
+.state .nm{font:500 26px/1.05 var(--f-display)}
+.state .sb{font-size:12.5px;color:var(--muted);line-height:1.35}
+.state .sg{margin-top:auto;font-size:12px;line-height:1.4;border-top:1px solid var(--line);padding-top:8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.state .sg em{display:block;font-style:normal;color:var(--gold);font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.state .sg em.ko{color:var(--missing)}
+.state.pole-end{background:var(--gold-dim)}
+.state.pole-end .nm{font-size:32px}
+
+.head{padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+.head .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.head .tag{font:500 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.head .ms{font:500 20px/1.15 var(--f-display);text-wrap:balance;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.head .cons{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meas{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.meas div{border:1px solid var(--line);border-radius:6px;padding:3px 7px;min-width:0}
+.meas small{display:block;font:500 9.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.meas b{display:block;font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meas b.none{color:var(--missing);font-weight:400}
+.checks{display:flex;gap:10px;margin-top:auto;font-size:11.5px;color:var(--muted)}
+.checks span{display:inline-flex;align-items:center;gap:5px}
+.checks .ko{color:var(--missing)} .checks .ok{color:var(--ok)}
+.head.incomplete{border-color:color-mix(in srgb,var(--missing) 50%,var(--line-strong))}
+.exp{position:absolute;box-sizing:border-box;height:34px;padding:0 12px;display:flex;align-items:center;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.need{padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.need .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.need .ti{font-size:15.5px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance}
+.need .why{font-size:12px;line-height:1.38;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.need .ft,.tool .ft{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+.ko-t{color:var(--missing)}
+.need.ghost{border-style:dashed;border-color:color-mix(in srgb,var(--missing) 60%,var(--line));background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.means{display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:5px}
+.mline{display:flex;align-items:center;gap:7px;font-size:12px;min-width:0}
+.mline .k{font:500 9.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold);flex:none;width:44px}
+.mline .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mline.m-missing .nm{color:var(--missing)}
+.meter{display:inline-flex;gap:2px;align-items:center;flex:none}
+.meter i{width:10px;height:6px;border-radius:2px;border:1px solid var(--gold);box-sizing:border-box}
+.meter i.f{background:var(--gold)} .meter i.t{border-style:dashed} .meter i.n{border-color:var(--line-strong)}
+.asset{padding:12px 14px;display:flex;flex-direction:column;gap:5px;border:1.5px dashed var(--gold);background:var(--gold-dim)}
+.asset .k{font:500 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.asset .ti{font:500 20px/1.15 var(--f-display)}
+.asset .fd{margin-top:auto;font-size:12px;color:var(--muted)}
+.tool{padding:10px 12px;display:flex;flex-direction:column;gap:5px;border-radius:4px}
+.tool .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tool .ti{font:500 19px/1.15 var(--f-display)}
+.tool .rl{font-size:12px;color:var(--muted);line-height:1.38;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.also{position:absolute;font-size:12px;color:var(--muted);line-height:1.5}
+.also button,.chips button{border:1px solid var(--line);background:none;border-radius:6px;padding:1px 6px;margin:2px 3px 0 0;font:11px var(--f-mono);color:var(--muted)}
+.also button:hover,.chips button:hover{border-color:var(--gold);color:var(--fg)}
+.exit{padding:10px 12px;display:flex;flex-direction:column;gap:4px;border-style:dashed;border-color:color-mix(in srgb,var(--missing) 65%,var(--line));border-radius:18px;background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.exit .k{font:500 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--missing)}
+.exit .ti{font:500 21px/1.1 var(--f-display)}
+.exit .ds{font-size:12px;color:var(--muted);line-height:1.38;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.exit .rc{margin-top:auto;font-size:11.5px}
+.strip{position:absolute;box-sizing:border-box;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);cursor:pointer}
+.strip.s-missing{border-style:dashed;border-color:color-mix(in srgb,var(--missing) 55%,var(--line))}
+.strip:hover{border-color:var(--gold)}
+.strip.sel{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.strip-name{position:absolute;left:14px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:10px;white-space:nowrap}
+.strip-name b{font:500 22px var(--f-display)}
+.strip-name .host{font-size:12px;color:var(--muted)}
+.strip-name .host.ko-t{color:var(--missing)}
+.mark{position:absolute;top:50%;transform:translateY(-50%);font:500 11.5px var(--f-mono);padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+.mark.w{border-color:var(--gold);color:var(--gold)}
+
+.edge{fill:none;transition:opacity .2s}
+.e-spine{stroke:var(--gold);stroke-width:3}
+.e-hand{stroke:var(--gold);stroke-width:2}
+.e-loop{stroke:var(--loop);stroke-width:2.6;stroke-dasharray:10 8}
+.e-short{stroke:var(--gold);stroke-width:2.2;stroke-dasharray:3 6}
+.e-exit{stroke:var(--missing);stroke-width:2;stroke-dasharray:7 6}
+.e-ret{stroke:var(--ok);stroke-width:2;stroke-dasharray:7 6}
+.e-esc{stroke:var(--esc);stroke-width:1.8;stroke-dasharray:2 5}
+.e-feed{stroke:var(--gold);stroke-width:1.4;stroke-dasharray:4 6;opacity:.75}
+.elabel{font:500 13px var(--f-mono);paint-order:stroke;stroke:var(--bg);stroke-width:6px;stroke-linejoin:round}
+.l-gold{fill:var(--gold)} .l-loop{fill:var(--loop)} .l-ret{fill:var(--ok)} .l-esc{fill:var(--esc)}
+#world.far .need .why,#world.far .need .ft,#world.far .means,#world.far .head .cons,#world.far .meas,#world.far .exit .ds,#world.far .state .sb,#world.far .code,#world.far .elabel,#world.far .tool .rl,#world.far .tool .ft{display:none}
+#world.far .need .ti{font-size:24px;-webkit-line-clamp:4}
+#world.far .head .ms{font-size:28px;-webkit-line-clamp:4}
+#world.far .exp{font-size:17px}
+
+#panel{position:absolute;right:16px;top:var(--top,84px);bottom:16px;width:400px;z-index:16;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:15px}
+#panel .meta{display:flex;justify-content:space-between;align-items:center;font:12px var(--f-mono);color:var(--muted)}
+#panel h2{margin:0;font:500 30px/1.1 var(--f-display);text-wrap:balance}
+#panel h3{margin:6px 0 0;font:500 22px/1.1 var(--f-display);border-top:1px solid var(--line);padding-top:14px}
+#panel .ctx{color:var(--gold);font-size:13px;margin-bottom:4px}
+#panel p{margin:0;line-height:1.55;font-size:14px}
+#panel .muted{color:var(--muted);font-size:13px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;font-size:13.5px;line-height:1.45}
+.kv dt{color:var(--muted);font-size:12px;padding-top:1px}
+.kv dd{margin:0;min-width:0}
+.flabel,.field label{display:block;font:500 10.5px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field label.req::after{content:" · requis";color:var(--missing);letter-spacing:.06em}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font-size:12.5px;white-space:nowrap}
+.seg button[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-dim)}
+.seg.lv button{flex:0 0 auto;min-width:34px;padding:5px 8px;font:12px var(--f-mono)}
+.field input[type=text],.field textarea,.field select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.field input.big{font:500 24px/1.15 var(--f-display);padding:8px 10px}
+.field input.empty,.field textarea.empty{border-color:color-mix(in srgb,var(--missing) 60%,var(--line))}
+.field textarea{min-height:64px;resize:vertical}
+.contract{display:flex;flex-direction:column;gap:10px}
+.mblock{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface-2)}
+.mblock .mh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mblock .mh span{font:500 10.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.mblock .field input[type=text],.mblock .field textarea,.mblock .field select{background:var(--surface)}
+.mblock .seg button{background:var(--surface)}
+.spec{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px}
+.toggles{display:flex;flex-wrap:wrap;gap:4px}
+.toggles button{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 8px;font-size:12px}
+.toggles button[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-dim)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mgrid .field{min-width:0}
+.mgrid small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px;line-height:1.35}
+.tick{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.tick input{accent-color:var(--gold);width:15px;height:15px;margin:0}
+.links{display:flex;flex-direction:column;gap:4px}
+.links button,.lrow>button:first-child{display:flex;gap:10px;align-items:baseline;text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 10px;font-size:13px;min-width:0}
+.links button:hover{border-color:var(--gold)}
+.links em{font-style:normal;color:var(--muted);font-size:11.5px;margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.lrow{display:flex;gap:4px}
+.lrow>button:first-child{flex:1}
+.lrow .x{flex:none;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;width:34px;color:var(--missing)}
+.addform{border:1px dashed var(--line-strong);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.close{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:4px 10px;font-size:13px}
+.auto{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
+.p-foot{margin-top:auto;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ro .field input,.ro .field textarea,.ro .field select,.ro .seg,.ro .toggles,.ro .tick input{pointer-events:none;opacity:.7}
+
+.page{position:absolute;inset:0;z-index:12;overflow:auto;background:var(--bg);padding-block:96px 40px;padding-inline:16px}
+.page .wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+.page h2{margin:0 0 4px;font:500 40px/1.05 var(--f-display)}
+.page .lead{margin:0 0 16px;color:var(--muted);max-width:70ch;line-height:1.55}
+.page .muted{color:var(--muted)}
+.es-h{margin:0 0 4px;font:500 28px/1.1 var(--f-display)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.tbl table{border-collapse:collapse;width:100%;min-width:900px;font-size:13.5px}
+.tbl th{text-align:left;font:500 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr[data-go]{cursor:pointer}
+.tbl tr[data-go]:hover td{background:var(--surface-2)}
+.tbl .mono{font:12px var(--f-mono);color:var(--muted)}
+.tbl .ko{color:var(--missing)}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.principles div{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface)}
+.principles b{display:block;font:500 20px/1.15 var(--f-display);margin-bottom:6px}
+.principles span{font-size:13.5px;color:var(--muted);line-height:1.5}
+/* Event Storming */
+.sticky{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:8px;cursor:pointer;min-width:0;font-size:12.5px;line-height:1.38;color:var(--fg)}
+.sticky:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.sticky small{font:500 10px var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.sticky b{font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.sticky span{color:var(--muted);overflow-wrap:anywhere}
+.s-ev{background:color-mix(in srgb,var(--es-ev) 15%,var(--surface));border:1px solid color-mix(in srgb,var(--es-ev) 45%,transparent)} .s-ev small{color:var(--es-ev)}
+.s-pol{background:color-mix(in srgb,var(--es-pol) 15%,var(--surface));border:1px solid color-mix(in srgb,var(--es-pol) 45%,transparent)} .s-pol small{color:var(--es-pol)}
+.s-cmd{background:color-mix(in srgb,var(--es-cmd) 15%,var(--surface));border:1px solid color-mix(in srgb,var(--es-cmd) 45%,transparent)} .s-cmd small{color:var(--es-cmd)}
+.s-act{background:color-mix(in srgb,var(--es-act) 15%,var(--surface));border:1px solid color-mix(in srgb,var(--es-act) 45%,transparent)} .s-act small{color:var(--es-act)}
+.s-read{background:color-mix(in srgb,var(--es-read) 15%,var(--surface));border:1px solid color-mix(in srgb,var(--es-read) 45%,transparent)} .s-read small{color:var(--es-read)}
+.s-hot{background:color-mix(in srgb,var(--missing) 13%,var(--surface));border:1px dashed color-mix(in srgb,var(--missing) 60%,transparent)} .s-hot small{color:var(--missing)} .s-hot span{color:var(--fg)}
+.s-ready{background:var(--surface);border:1px solid color-mix(in srgb,var(--ok) 50%,transparent)} .s-ready small{color:var(--ok)}
+.sticky:hover{box-shadow:0 0 0 2px var(--gold-dim)}
+.es-m{display:block;color:var(--fg)!important}
+.es-m em{font:500 9.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;font-style:normal;color:var(--muted);margin-right:6px}
+.es-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.es-legend .lg{padding:4px 10px;border-radius:6px;font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.es-stats{display:flex;flex-wrap:wrap;gap:6px}
+.es-alert{margin-top:14px;border:1px dashed color-mix(in srgb,var(--missing) 60%,var(--line));border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.5;max-width:90ch}
+.es-alert b{color:var(--missing)}
+.es-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.es-scroll{overflow-x:auto;padding-bottom:6px}
+.es-board{min-width:1080px;display:flex;flex-direction:column;gap:22px}
+.es-group{display:flex;flex-direction:column;gap:8px}
+.es-gl{font:500 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border-top:1px solid var(--line);padding-top:10px}
+.es-row{display:grid;grid-template-columns:1fr 1.15fr 1.15fr 1fr 1fr 1.1fr;gap:8px;align-items:stretch}
+.es-orph{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+/* Chantiers */
+.wv-scroll{overflow-x:auto;padding-bottom:8px}
+.wv-board{display:grid;gap:14px;align-items:start}
+.wv-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.wv-h{border-top:2px solid var(--gold);padding-top:10px}
+.wv-h .k{font:500 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.wv-h b{display:block;font:500 24px/1.1 var(--f-display);margin-top:4px}
+.wv-h span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.wk{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);cursor:pointer}
+.wk:hover,.wk:focus-visible{border-color:var(--gold)}
+.wk.s-missing{border-style:dashed}
+.wk .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wk .tp{font:500 10px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.wk b{font-size:14.5px;line-height:1.3}
+.wk .meta2{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.wk .meta2 strong{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+.wk .wait{font-size:12px;color:var(--muted)}
+.wk .wait code{font:11px var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-right:3px}
+.kr{display:inline-block;font:500 10px var(--f-mono);letter-spacing:.06em;padding:1px 6px;border-radius:4px;border:1px solid var(--gold);color:var(--gold)}
+.top3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+/* Simulateur */
+.sim-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:13px}
+.sim-actions .danger{border-color:var(--missing);color:var(--missing)}
+.sim-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi small{font:500 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.kpi b{font:500 34px/1.05 var(--f-display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:12.5px;color:var(--muted);line-height:1.4}
+.kpi.hero{grid-column:span 2;border-color:var(--gold)}
+.kpi.hero b{font-size:52px}
+.prog{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;background:var(--gold);border-radius:4px}
+.sim-lev{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.lev{border:1px solid var(--line-strong);border-radius:12px;padding:14px 16px;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.lev .rk{font:500 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.lev b{font:500 21px/1.15 var(--f-display)}
+.lev .g{font:500 22px var(--f-mono);font-variant-numeric:tabular-nums}
+.lev .chips{font-size:12px;color:var(--muted)}
+.simt td{vertical-align:middle}
+.sin{display:flex;align-items:center;gap:8px}
+.sin input{width:96px;box-sizing:border-box;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);font:13px var(--f-mono);font-variant-numeric:tabular-nums}
+.src{font:500 9.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid var(--line);white-space:nowrap}
+.src-mesure{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,transparent)}
+.src-scenario{color:var(--gold);border-color:var(--gold)}
+.src-hypothese{color:var(--muted)}
+.flow{display:flex;align-items:center;gap:10px;min-width:220px}
+.flow .bar{flex:1;height:10px;position:relative}
+.flow .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--gold);border-radius:0 4px 4px 0}
+.flow b{font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;min-width:72px;text-align:right}
+.sim-params{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.sim-params .field label{display:block;font:500 10.5px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+.zoombar{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:14;display:flex;gap:4px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:var(--shadow)}
+.zoombar button{border:0;background:none;width:32px;height:30px;border-radius:6px;font-size:16px}
+.zoombar button:hover{background:var(--surface-2)}
+.zoombar .pct{font:12px var(--f-mono);width:48px;text-align:center;font-variant-numeric:tabular-nums;color:var(--muted)}
+.zoombar .fit{width:auto;padding:0 10px;font-size:12.5px}
+#minimap{position:absolute;right:16px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:14;width:240px;height:140px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--shadow);cursor:pointer}
+body.panel-open .zoombar,body.panel-open #minimap{right:432px}
+body.model-open .zoombar,body.model-open #minimap,body.model-open #layers{display:none}
+@media (max-width:760px){
+  .brand span{display:none}
+  .search input{width:130px}
+  #layers{top:auto;bottom:calc(68px + env(safe-area-inset-bottom,0px));left:16px;right:16px;width:auto;max-height:60vh}
+  #panel{left:16px;right:16px;width:auto;top:auto;max-height:66vh;bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+  #minimap{display:none}
+  body.panel-open .zoombar{right:16px}
+  .kpi.hero{grid-column:auto}.kpi.hero b{font-size:40px}
+}
+@media (prefers-reduced-motion: reduce){.card,.edge{transition:none}}
+</style>
+
+<div id="app">
+  <div id="viewport" aria-label="Cartographie navigable des besoins de SKL">
+    <div id="world">
+      <svg id="edges" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="m-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--gold)"/></marker>
+          <marker id="m-loop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--loop)"/></marker>
+          <marker id="m-exit" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--missing)"/></marker>
+          <marker id="m-ret" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ok)"/></marker>
+          <marker id="m-esc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--esc)"/></marker>
+        </defs>
+        <g id="edge-layer"></g>
+      </svg>
+      <div id="layer"></div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand"><b>SKL</b><span>De A à B · v5</span></div>
+    <div class="seg2" role="group" aria-label="Vue"><button data-view="map" aria-pressed="true">Parcours</button><button data-view="events" aria-pressed="false">Événements</button><button data-view="works" aria-pressed="false">Chantiers</button><button data-view="sim" aria-pressed="false">Simulateur</button><button data-view="model" aria-pressed="false">Modèle</button></div>
+    <div class="seg2 map-only" role="group" aria-label="Lecture"><button data-lens="need" aria-pressed="true">Besoins</button><button data-lens="means" aria-pressed="false">Moyens</button><button data-lens="target" aria-pressed="false">Cible fully AI</button></div>
+    <div class="stats map-only" id="stats"></div>
+    <div class="search map-only"><input id="q" type="search" placeholder="Rechercher (touche /)" aria-label="Rechercher"></div>
+  </header>
+
+  <aside id="layers" aria-label="Filtres"></aside>
+  <div class="fbar"><button class="fbtn map-only" id="btn-layers" aria-pressed="true" aria-controls="layers" title="Ouvrir ou fermer les filtres (touche F)">Filtres<span class="cnt" id="f-cnt"></span></button><button class="fbtn undo edit-only" id="btn-undo" disabled title="Rien à annuler">Annuler</button></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div id="confirm" hidden></div>
+  <aside id="panel" hidden aria-label="Détail"></aside>
+  <div id="model" class="page" hidden></div>
+  <div id="events" class="page" hidden></div>
+  <div id="works" class="page" hidden></div>
+  <div id="sim" class="page" hidden></div>
+
+  <canvas id="minimap" width="480" height="280" aria-label="Minicarte"></canvas>
+  <div class="zoombar">
+    <button id="z-out" aria-label="Dézoomer">−</button>
+    <span class="pct" id="z-pct">100%</span>
+    <button id="z-in" aria-label="Zoomer">+</button>
+    <button class="fit" id="z-fit">Tout voir</button>
+  </div>
+</div>
+
+<script>
+/* =================== MODÈLE DE BASE (v5) =================== */
+const STATES_B=[
+ ["E0","Point A","Vit le problème, ne connaît pas le guru","Fait partie du marché ciblé par la Factory","marche_cible"],
+ ["E1","Exposé","A vu le guru une première fois","Première vue d'un contenu (au moins 3 s)","contenu_vu"],
+ ["E2","Revenu","Revient voir le guru","Au moins 3 contenus vus en 30 jours, ou abonnement","abonne"],
+ ["E3","Engagé","Entre en relation","Commentaire, DM, partage ou clic vers le funnel","interaction"],
+ ["E4","Lead","A confié son contact","Opt-in enregistré (email ou WhatsApp)","opt_in"],
+ ["E5","Preuve vue","A vu que c'est possible pour lui","Masterclass ou VSL vue à au moins 70 %","preuve_vue"],
+ ["E6","Qualifié","A demandé à en parler","Formulaire qualifié et appel réservé","rdv_reserve"],
+ ["E7","Présent","S'est présenté à l'appel","Appel tenu","appel_tenu"],
+ ["E8","Client","A pris sa décision","Paiement reçu","paiement"],
+ ["E9","Démarré","Est en mouvement","Onboarding terminé et kick-off fait sous 7 jours","onboarding_ok"],
+ ["E10","Premier résultat","A une première preuve pour lui-même","Premier résultat concret validé sous 30 jours (KR 1.3)","jalon_30j"],
+ ["E11","En progression","Avance semaine après semaine","Jalon hebdomadaire validé","jalon_hebdo"],
+ ["E12","Point B","Transformation atteinte","Objectif B validé selon les critères de la Factory","objectif_b"],
+ ["E13","Ambassadeur","Devient la preuve","Témoignage publié ou filleul inscrit","temoignage"]
+].map((a,i)=>({id:a[0],name:a[1],sub:a[2],signal:a[3],event:a[4],tid:i?"T"+String(i).padStart(2,"0"):""}));
+const TRANS_B=[
+ ["T01","Exposition","Faire découvrir que le guru existe",["Vidéo courte dans le feed","Publicité du guru","Passage chez un autre créateur"],"Exposés / marché ciblé",["P1","P2"]],
+ ["T02","Exposition","Donner envie de revenir",["Série de contenus piliers","Format récurrent reconnaissable","Live"],"% d'exposés qui reviennent",["P1","P2"]],
+ ["T03","Exposition","Créer une relation",["Réponse personnelle à son commentaire","Conversation en DM","Question posée en story"],"Taux d'engagement",["P1","P4"]],
+ ["T04","Marketing","Obtenir son contact",["Lead magnet","Inscription à la masterclass","Proposition en DM"],"Taux d'opt-in",["P2","P3"]],
+ ["T05","Marketing","Prouver que c'est possible pour lui",["Masterclass","VSL","Messages de preuve","Cas d'élèves qui lui ressemblent"],"% de preuve vue à 70 %",["P3","P4"]],
+ ["T06","Marketing","Le faire demander à en parler",["Formulaire de qualification","Page de réservation","Message de prise de RDV"],"% de leads qui réservent",[]],
+ ["T07","Sales","Le faire venir à l'appel",["Confirmation et rappels","Vidéo de préparation","Questions avant l'appel"],"Taux de présence",[]],
+ ["T08","Sales","Clarifier sa décision",["Appel de vente SPIN","Pitch aligné sur son gap","Page perso : solution et roadmap"],"Taux de transformation",["P4","P6"]],
+ ["T09","Delivery","Le mettre en mouvement en 7 jours",["Message de bienvenue","Kick-off","Plan d'action personnel"],"% démarrés sous 7 jours",["P5"]],
+ ["T10","Delivery","Premier résultat concret en 30 jours",["Modules du parcours","Coaching de groupe","Défi de 30 jours"],"% de 1er résultat sous 30 j",["P5"]],
+ ["T11","Delivery","Maintenir l'élan",["Jalons hebdomadaires","Communauté","Suivi individuel"],"% d'actifs chaque semaine",["P5"]],
+ ["T12","Delivery","Atteindre le point B",["Validation finale","Bilan de transformation"],"Taux de réussite élève",[]],
+ ["T13","Rayonner","Transformer le résultat en preuve",["Demande de témoignage","Programme de parrainage","Mise en avant dans le contenu"],"% qui témoignent",[]]
+].map(a=>({id:a[0],pole:a[1],mission:a[2],inter:a[3],rate:a[4],cons:a[5]}));
+const ACTMAP={Exposition:["Acte 1","Découvrir","Exposition puis Marketing"],Marketing:["Acte 1","Découvrir","Exposition puis Marketing"],Sales:["Acte 2","Décider","Sales : clarifier la décision"],Delivery:["Acte 3","Se transformer","Delivery"],Rayonner:["Acte 4","Rayonner","La preuve repart en amont"]};
+const POLES=Object.keys(ACTMAP);
+const MEAS=[["taux","Taux"],["delai","Délai"],["volume","Volume"],["cout","Coût"]];
+
+const TOOLS_B=[
+ ["TL01","skl.live","Plateforme","Funnel, masterclasses et parcours des élèves","wip","","Opt-in, progression des élèves"],
+ ["TL02","Comptes réseaux sociaux","Diffusion","Comptes du guru sur TikTok, Instagram, YouTube, LinkedIn","ok","","Commentaires, DM, statistiques des contenus"],
+ ["TL03","Stack avatar & voix IA","Production","Clone vocal et vidéo du guru. Choix définitif à figer","wip","","Modèles de voix et de visage du guru"],
+ ["TL04","Planificateur de publication","Diffusion","Calendrier de publication multi-réseaux","missing","",""],
+ ["TL05","Régies publicitaires","Acquisition","Meta, TikTok, Google : à confirmer","missing","","Audiences, performance des campagnes"],
+ ["TL06","CRM","Données","Source unique de vérité de l'individu","missing","","Dossier unique de l'individu (choix à faire)"],
+ ["TL07","Emailing & WhatsApp","Messagerie","Envoi des séquences et des relances","missing","","Historique des messages"],
+ ["TL08","Agenda de réservation","Sales","Créneaux des sales, confirmations","wip","","Rendez-vous"],
+ ["TL09","Recall.ai","Sales","Capture audio et transcript des appels","wip","Romain","Transcripts d'appels"],
+ ["TL10","App pitch live","Sales","Construite avec Claude Code, hébergée sur Vercel","wip","Romain","Gaps, pitchs, pages personnalisées"],
+ ["TL11","Solution de paiement","Finance","Paiement comptant et en plusieurs fois","missing","","Paiements, échéanciers"],
+ ["TL12","Base de connaissances du guru","IA","Savoir, méthode et voix du guru, servis aux agents","wip","","Cerveau du guru, offre, transformation A→B"],
+ ["TL13","Bus d'événements","Orchestration","Outil qui émet et route les événements entre besoins","missing","","Journal des événements"],
+ ["TL14","Communauté élèves","Delivery","Espace d'échange entre élèves","missing","","Échanges et questions des élèves"],
+ ["TL15","Tableau de bord","Pilotage","Mesures des cellules en direct","missing","","Mesures, historiques"],
+ ["TL16","Cockpit OS","Pilotage","Priorités, deadlines, responsables","wip","Romain","Tâches et décisions"],
+ ["TL17","Outil comptable","Finance","Factures, coûts, rapprochements","missing","","Écritures comptables"],
+ ["TL18","Support & tickets","Support","Demandes des élèves et leur suivi","missing","","Tickets"]
+].map(a=>({id:a[0],name:a[1],cat:a[2],role:a[3],status:a[4],owner:a[5],holds:a[6]}));
+
+const NEEDS_B=[];
+const SP=(actions,guard,tests,promo,cost)=>({actions,guard,tests,promo,cost:cost||""});
+function B(id,title,why,o){const means=(o.means||[]).map(m=>({kind:m[0],name:m[1],status:m[2],now:m[3],target:m[4],owner:m[5]||"",tools:(m[6]||"").split(/\s+/).filter(Boolean),esc:m[7]||"",note:m[8]||"",spec:m[9]||{}}));
+  NEEDS_B.push({id,title,why,t:o.t||[],chain:o.chain||"",meta:o.meta||"",dom:o.dom||"",r:o.r||[],w:o.w||[],kr:o.kr||[],rel:o.rel||[],deps:[],c:Object.assign({trig:"",inp:"",out:"",metric:"",evalc:""},o.c||{}),means})}
+/* --- Production --- */
+B("B01","Repérer ce qui performe dans la niche","Nourrir la stratégie avec des faits, pas des intuitions.",{chain:"P1",w:["M4"],c:{trig:"Chaque lundi",inp:"Comptes et hashtags de la niche",out:"Top contenus, angles et hooks",metric:"Part des idées reprises qui performent",evalc:"Pertinence jugée par le Content Lead"},means:[["agent","Agent veille virale","missing",0,4,"","TL02","B04"]]});
+B("B02","Planifier les contenus de la semaine","Équilibrer découverte, confiance et appel à l'action.",{chain:"P1",r:["M1","M3","M4"],w:["M4"],c:{trig:"Rapport de veille reçu",inp:"Veille, performance, preuves",out:"Calendrier et briefs de la semaine",metric:"Vues moyennes par contenu",evalc:"Équilibre TOFU / MOFU / BOFU respecté"},means:[["agent","Agent stratège éditorial","missing",0,3,"","","B04"]]});
+B("B03","Écrire chaque script dans la voix du guru","Le guru doit sonner juste à chaque contenu.",{chain:"P1",r:["M1","M4"],c:{trig:"Brief reçu",inp:"Brief, cerveau du guru",out:"Script prêt à valider",metric:"Rétention à 3 secondes",evalc:"Fidélité à la voix du guru"},means:[["agent","Agent scriptwriter","wip",2,3,"","TL12","B04","",SP("Lire le brief et le cerveau du guru · écrire hooks, scripts et carrousels","Aucune allégation de résultat non prouvée · respect strict de la charte du guru","30 scripts validés par Ilya comme référence","Niveau 3 si 90 % des scripts sont validés sans retouche sur 4 semaines")]]});
+B("B04","Garantir la ligne éditoriale","Rien ne sort sans validation de la qualité.",{chain:"P1",c:{trig:"Script à valider",inp:"Script",out:"Script validé ou corrigé",metric:"Délai de validation",evalc:"Cohérence de la ligne éditoriale"},means:[["human","Ilya · Content Lead","ok",null,null,"Ilya","","B48"]]});
+B("B05","Transformer un script en vidéo du guru","La vidéo porte la voix et le visage du guru IA.",{chain:"P1",r:["M1"],c:{trig:"Script validé",inp:"Script",out:"Vidéo montée et sous-titrée",metric:"Coût et délai par vidéo",evalc:"Réalisme du clone, zéro erreur"},means:[["agent","Agent vidéo du clone","wip",1,4,"","TL03","B04"]]});
+B("B06","Publier au bon moment, au bon format","Chaque réseau a ses codes et ses horaires.",{chain:"P1",w:["M4"],c:{trig:"Vidéo prête",inp:"Vidéo, calendrier",out:"Contenu publié sur chaque réseau",metric:"Publications à l'heure",evalc:"Format natif respecté"},means:[["agent","Agent publication","missing",0,4,"","TL04 TL02","B04"]]});
+B("B07","Amplifier les gagnants, recibler les exposés","Donner plus de portée à ce qui marche déjà.",{chain:"P2",r:["M4"],w:["M4"],c:{trig:"Contenu au-dessus du seuil",inp:"Contenus, performance",out:"Campagnes actives, reciblage",metric:"Coût par lead",evalc:"Budget et seuils respectés"},means:[["agent","Agent ads","missing",0,3,"","TL05","B15"]]});
+B("B08","Concevoir masterclasses et VSL","La preuve doit répondre aux vraies objections.",{chain:"P3",r:["M1","M5"],c:{trig:"Nouvelle objection récurrente ou nouvelle offre",inp:"Offre, objections, cerveau du guru",out:"Script de masterclass ou de VSL",metric:"% de vue à 70 %",evalc:"Validation par Romain"},means:[["agent","Agent conception masterclass","missing",0,2,"Romain","TL12","B48"]]});
+B("B09","Produire et mettre en ligne la preuve","Dont la série de masterclasses sur la prise de décision.",{chain:"P3",r:["M1","M3"],c:{trig:"Script validé",inp:"Script de masterclass",out:"Masterclass en ligne",metric:"% de vue à 70 %",evalc:"Qualité de production"},means:[["system","Masterclasses sur skl.live","wip",1,3,"Romain","TL01","B15"]]});
+B("B10","Transformer chaque témoignage en preuve réutilisable","Une réussite ne sert que si elle est classée et retrouvable.",{chain:"P4",r:["M2"],w:["M3"],c:{trig:"Témoignage brut reçu",inp:"Témoignage, dossier de l'élève",out:"Étude de cas classée par profil",metric:"Études publiées par mois",evalc:"Fidélité au témoignage, profil juste"},means:[["agent","Agent études de cas","missing",0,3,"","TL12","B15"]]});
+B("B11","Concevoir les modules et exercices du parcours","Le parcours doit mener au premier résultat en 30 jours.",{chain:"P5",r:["M1","M5"],kr:["KR 1.3"],c:{trig:"Offre validée ou jalon raté récurrent",inp:"Offre, jalons, questions des élèves",out:"Modules et exercices",metric:"% de 1er résultat sous 30 j",evalc:"Revue par les coachs"},means:[["agent","Agent conception du parcours","missing",0,2,"","TL12","B26"]]});
+/* --- Conversion --- */
+B("B12","Répondre à chaque commentaire et DM dans la voix du guru","La relation commence par une réponse personnelle.",{t:["T03"],r:["M1","M2"],w:["M2"],c:{trig:"Nouveau commentaire ou DM",inp:"Message, cerveau du guru",out:"Réponse, dossier individu créé",metric:"% de DM devenus conversation",evalc:"Ton du guru, zéro promesse non tenue"},means:[["agent","Agent communauté","missing",0,3,"","TL02 TL06","B04","",SP("Répondre aux commentaires et DM · taguer l'intention · créer le dossier de l'individu","Aucun sujet médical, juridique ou financier personnel · aucune polémique · aucune promesse de résultat","100 commentaires réels avec une réponse de référence","Niveau 4 si moins de 2 % de réponses corrigées sur 1 mois")]]});
+B("B13","Transformer une conversation en contact, puis en rendez-vous","Quand l'intention apparaît, il faut la saisir.",{t:["T04","T06"],r:["M1","M2"],w:["M2"],c:{trig:"Intention détectée",inp:"Conversation, dossier",out:"Opt-in, puis demande de rendez-vous",metric:"% de conversations devenues RDV",evalc:"Qualification juste, ton du guru"},means:[["agent","Agent setter IA","missing",0,3,"","TL02 TL06","B23","",SP("Lire et répondre aux DM du guru · mettre à jour le dossier · envoyer un lien d'opt-in ou de réservation","Jamais de résultat chiffré promis · jamais de prix avant l'appel · stop immédiat après un refus explicite","50 conversations réelles annotées (intention, réponse attendue)","Niveau 3 si 95 % des réponses sont validées sans retouche sur 2 semaines","Coût LLM par conversation, à mesurer")]]});
+B("B14","Capter le contact et diffuser la preuve","Un clic doit devenir un contact, puis une preuve vue.",{t:["T04","T05"],w:["M2"],c:{trig:"Clic depuis un contenu",inp:"Visite",out:"Opt-in et preuve vue",metric:"Taux d'opt-in",evalc:"Tests A/B"},means:[["system","Funnel skl.live","wip",1,4,"Michael","TL01","B15"]]});
+B("B15","Arbitrer budgets et messages d'acquisition","Quelqu'un décide où va l'argent et quel message gagne.",{t:["T05","T04","T06"],c:{trig:"Revue hebdomadaire des campagnes",inp:"Mesures des cellules T04 à T06",out:"Arbitrages de budget et de messages",metric:"Coût par appel réservé",evalc:"Weekly review"},means:[["human","Michael · CMO","ok",null,null,"Michael","","B46"]]});
+B("B16","Envoyer la bonne preuve au bon moment","Chaque profil a besoin de sa preuve.",{t:["T05","T06"],r:["M1","M2","M3"],w:["M2"],c:{trig:"Opt-in, puis chaque comportement",inp:"Dossier, preuves",out:"Message personnalisé",metric:"% de preuve vue à 70 %",evalc:"Pertinence du message par profil"},means:[["agent","Agent nurturing","missing",0,4,"","TL07 TL06","B15","",SP("Choisir et envoyer emails et WhatsApp · lire le dossier et la bibliothèque de preuves","Consentement respecté · 1 message par jour maximum · aucune fausse urgence","Test A/B contre la séquence actuelle","Niveau 4 si le taux de preuve vue dépasse la séquence humaine 4 semaines de suite")]]});
+B("B17","Orienter chaque lead vers la bonne suite","Appel, nurturing long ou produit d'entrée.",{t:["T06"],r:["M2","M5"],w:["M2"],c:{trig:"Formulaire soumis",inp:"Réponses, comportement",out:"Score et orientation",metric:"% de qualifiés qui achètent",evalc:"Écart entre score et issue réelle"},means:[["agent","Agent qualification","missing",0,4,"","TL06","B23","",SP("Lire formulaire et comportement · écrire score et orientation dans le dossier","Aucun critère discriminatoire · tout score limite passe à un humain","200 leads passés avec leur issue réelle","Niveau 4 si l'écart entre score et issue réelle reste sous 10 % pendant 1 mois")]]});
+B("B18","Réserver, confirmer et rappeler l'appel","Un appel réservé doit devenir un appel tenu.",{t:["T07","T06"],r:["M2"],w:["M2"],c:{trig:"Lead qualifié",inp:"Score, disponibilités",out:"Appel réservé, rappels envoyés",metric:"Taux de présence",evalc:"Zéro double réservation"},means:[["agent","Agent RDV & rappels","wip",1,4,"","TL08 TL07","B23","",SP("Lire et écrire dans l'agenda · envoyer confirmations, rappels et reprogrammations","Jamais de double réservation · jamais d'appel hors des créneaux des sales","Scénarios : annulation, fuseau horaire, no-show, reprogrammation","Niveau 4 après 4 semaines sans erreur de planning")]]});
+B("B19","Préparer l'appel en 2 minutes","Arriver à l'appel en connaissant déjà la personne.",{t:["T07","T08"],r:["M2"],c:{trig:"2 h avant l'appel",inp:"Dossier individu complet",out:"Contexte, gap probable, objections",metric:"Note du brief par le sales",evalc:"Exactitude des faits"},means:[["agent","Agent brief pré-appel","missing",0,4,"","TL06","B23"]]});
+B("B23","Clarifier la décision pendant l'appel","Faire émerger le gap avec ses mots, et la solution qui y répond.",{t:["T08"],r:["M1","M2","M5"],w:["M2"],c:{trig:"Début de l'appel",inp:"Brief, audio en direct, offre",out:"Décision : oui, indécis ou non",metric:"Taux de transformation",evalc:"Score d'appel, verbatims exacts"},means:[["human","Sales","wip",null,null,"Valentino","TL08","B48","Place de l'humain dans la cible à trancher."],["agent","Agent pitch dynamique","wip",1,3,"Romain","TL09 TL10","B23","",SP("Écouter l'appel en direct · proposer gap et pitch au sales · générer la page personnalisée","Ne parle jamais au prospect directement · n'invente aucun verbatim","20 appels enregistrés avec le gap rédigé par Romain","Niveau 3 si les sales adoptent 80 % des pitchs proposés","Recall.ai et LLM par appel, à mesurer")]]});
+B("B20","Encaisser et faire signer","Un oui doit devenir un paiement sans friction.",{t:["T08"],w:["M2"],c:{trig:"Décision : oui",inp:"Offre choisie",out:"Paiement reçu, contrat signé",metric:"% de oui encaissés",evalc:"Zéro erreur de facturation"},means:[["system","Paiement & contrat","missing",0,4,"","TL11","B48"]]});
+B("B21","Faire revenir l'indécis vers une décision","« Je réfléchis » n'est pas un non.",{t:["T08"],r:["M2","M3"],w:["M2"],c:{trig:"Décision : indécis",inp:"Verbatims, gap",out:"Second appel ou décision",metric:"% d'indécis récupérés",evalc:"Zéro pression abusive"},means:[["agent","Agent relance","missing",0,3,"","TL07 TL06","B23","",SP("Envoyer des relances personnalisées · proposer un second appel","3 relances maximum · aucune pression ni fausse rareté","30 appels « je réfléchis » avec la relance humaine de référence","Niveau 3 si le taux de récupération égale celui des sales")]]});
+B("B22","Apprendre de chaque appel","Chaque objection doit améliorer l'offre et le pitch.",{t:["T08"],r:["M5"],w:["M2","M5"],c:{trig:"Appel terminé",inp:"Transcript",out:"Score d'appel, objections",metric:"Objections remontées par semaine",evalc:"Accord avec la revue humaine"},means:[["agent","Agent analyse d'appel","missing",0,4,"","TL09","B23"]]});
+B("B24","Mettre l'élève en mouvement sous 7 jours","Le plan perso part du gap vendu en appel.",{t:["T09"],r:["M2","M5"],w:["M2"],kr:["KR 1.3"],c:{trig:"Événement paiement",inp:"Dossier, promesse faite en appel",out:"Accès, plan perso, kick-off planifié",metric:"% démarrés sous 7 jours",evalc:"Plan aligné sur le gap vendu"},means:[["agent","Agent onboarding","missing",0,3,"","TL01 TL07","B26","",SP("Ouvrir les accès · rédiger le plan perso · planifier le kick-off","Le plan reprend exactement la promesse faite en appel · validation du coach avant envoi","20 dossiers clients avec un plan rédigé par un coach","Niveau 3 si 90 % des plans sont validés sans modification")]]});
+B("B25","Traiter les remboursements et en apprendre","KR 3.3 : moins de 3 % à 30 jours.",{t:["T09"],r:["M2"],w:["M2","M5"],kr:["KR 3.3"],c:{trig:"Demande de remboursement",inp:"Dossier, motif",out:"Décision, motif enregistré",metric:"Remboursements à 30 j",evalc:"Motif classé"},means:[["system","Process de remboursement","missing",0,2,"Romain","TL11","B48"]]});
+B("B26","Répondre à l'élève et le débloquer","Personne ne doit rester bloqué seul.",{t:["T10","T11","T12"],r:["M1","M2"],w:["M2","M1"],kr:["KR 1.3"],c:{trig:"Question, blocage ou alerte",inp:"Plan, progression, question",out:"Réponse, séance, déblocage",metric:"% de 1er résultat sous 30 j",evalc:"Satisfaction élève"},means:[["human","Coachs delivery","wip",null,null,"","TL14","B48","Décision Q4 : delivery humain, sans guru IA."],["agent","Copilote élève","missing",0,3,"","TL12 TL14","B26","À trancher : va contre la décision Q4."]]});
+B("B27","Diffuser le parcours et suivre la progression","L'élève suit les modules, la progression s'enregistre.",{t:["T10","T11"],r:["M1"],w:["M2"],c:{trig:"Accès ouverts",inp:"Modules du parcours",out:"Progression enregistrée",metric:"Taux de complétion",evalc:"Modules à jour"},means:[["system","Parcours skl.live","wip",1,3,"","TL01","B26"]]});
+B("B28","Repérer l'élève qui décroche","Agir avant qu'il abandonne.",{t:["T11","T10"],r:["M2"],w:["M2"],c:{trig:"5 jours sans activité",inp:"Activité, jalons",out:"Relance, alerte au coach",metric:"% d'élèves réactivés",evalc:"Taux de fausses alertes"},means:[["agent","Agent suivi & décrochage","missing",0,4,"","TL01 TL07","B26","",SP("Lire l'activité · envoyer une relance · alerter le coach","Jamais de message culpabilisant · alerte humaine obligatoire après 2 relances sans réponse","Historique de 3 mois des élèves qui ont décroché","Niveau 4 si moins de 10 % de fausses alertes")]]});
+B("B29","Valider les jalons et l'atteinte de B","Le résultat doit être prouvé, pas déclaré.",{t:["T12","T10"],r:["M2","M5"],w:["M2"],kr:["KR 1.3"],c:{trig:"Jalon déclaré",inp:"Preuves de l'élève, critères A→B",out:"Jalon validé ou plan correctif",metric:"Taux de réussite élève",evalc:"Accord avec le coach"},means:[["agent","Agent validation des jalons","missing",0,3,"Romain","TL01","B26","",SP("Lire les preuves de l'élève · valider ou demander une correction","Aucune validation sans preuve · tout cas ambigu passe au coach","50 jalons déjà validés par les coachs","Niveau 3 si 95 % d'accord avec les coachs")]]});
+B("B30","Recueillir le témoignage au bon moment","Juste après la victoire, pas trois mois plus tard.",{t:["T13"],r:["M2"],c:{trig:"Jalon ou objectif B validé",inp:"Dossier",out:"Témoignage brut",metric:"% qui témoignent",evalc:"Consentement recueilli"},means:[["agent","Agent témoignages","missing",0,3,"","TL07","B26"]]});
+B("B32","Faire de l'ambassadeur une source de leads","Le meilleur lead est recommandé par quelqu'un qui a réussi.",{t:["T13"],w:["M2"],c:{trig:"Objectif B validé",inp:"Dossier",out:"Filleuls inscrits",metric:"Filleuls par ambassadeur",evalc:"Règles du parrainage respectées"},means:[["agent","Agent parrainage","missing",0,4,"","TL06 TL07","B15"]]});
+/* --- Sales : besoins issus de la grille des six angles (cellule « Clarifier sa décision ») --- */
+B("B80","Attribuer chaque appel au bon sales","Le bon profil de sales pour le bon prospect, au bon moment.",{t:["T07"],r:["M2"],w:["M2"],c:{trig:"Appel réservé",inp:"Dossier, score, disponibilités et compétences des sales",out:"Sales attribué à l'appel",metric:"Taux de transformation par attribution",evalc:"Respect des règles d'attribution"},means:[["agent","Agent d'attribution","missing",0,4,"","TL08 TL06","B23"]]});
+B("B81","Enregistrer et transcrire l'appel, avec le consentement du prospect","Sans transcript, ni pitch dynamique ni analyse ; sans consentement, pas d'enregistrement.",{t:["T08"],w:["M2"],rel:["B66"],c:{trig:"Début de l'appel",inp:"Audio de l'appel, consentement",out:"Transcript horodaté rattaché au dossier",metric:"Appels transcrits avec consentement",evalc:"Zéro enregistrement sans consentement"},means:[["system","Enregistrement Recall.ai","wip",1,4,"Romain","TL09","B23"]]});
+B("B82","Vérifier l'éligibilité avant de vendre","Ne pas vendre à quelqu'un pour qui la transformation ne marchera pas.",{t:["T08"],r:["M2","M5"],kr:["KR 3.3"],c:{trig:"Pendant l'appel, avant la présentation de l'offre",inp:"Dossier, critères d'éligibilité de la fiche A→B",out:"Éligible ou non, avec le motif",metric:"Remboursements des ventes jugées éligibles",evalc:"Accord avec la revue humaine"},means:[["agent","Contrôle d'éligibilité en direct","missing",0,2,"","TL10","B23"]]});
+B("B83","Proposer la modalité de paiement adaptée","Le prix ne doit pas bloquer quelqu'un d'éligible et décidé.",{t:["T08"],r:["M2"],w:["M2"],c:{trig:"Décision : oui",inp:"Offre, capacité de paiement exprimée",out:"Modalité choisie (comptant, plusieurs fois)",metric:"Part des oui encaissés",evalc:"Modalité conforme aux CGV"},means:[["system","Options de paiement","missing",0,3,"","TL11","B23"]]});
+B("B84","Impliquer les co-décideurs","« Je dois en parler à mon conjoint » appelle un second appel à deux.",{t:["T08"],r:["M2"],w:["M2"],c:{trig:"Co-décideur identifié pendant l'appel",inp:"Dossier, verbatims",out:"Second appel réservé avec le co-décideur",metric:"Part des seconds appels qui concluent",evalc:"Second appel réservé sous 72 h"},means:[["agent","Agent second appel","missing",0,3,"","TL08 TL07","B23"]]});
+B("B85","Valider les exceptions commerciales","Aucun agent n'accorde une remise ou une exception seul.",{t:["T08"],c:{trig:"Demande de remise ou cas limite",inp:"Dossier, demande, règles commerciales",out:"Exception accordée ou refusée, motivée",metric:"Exceptions accordées par mois",evalc:"Respect des règles commerciales"},means:[["human","Responsable sales","missing",null,null,"","","B46"]]});
+B("B86","Récupérer un paiement échoué ou incomplet","Un oui sans paiement n'est pas un client.",{t:["T08"],r:["M2"],w:["M2"],c:{trig:"Paiement échoué ou non finalisé sous 24 h",inp:"Dossier, offre choisie",out:"Paiement finalisé ou motif enregistré",metric:"Part des paiements récupérés",evalc:"Zéro relance après un refus explicite"},means:[["agent","Agent récupération de paiement","missing",0,3,"","TL11 TL07","B23"]]});
+B("B87","Sécuriser la décision dans les 48 h","Récapitulatif écrit et prochaine étape, contre le regret après l'achat.",{t:["T09"],r:["M2","M5"],w:["M2"],kr:["KR 3.3"],c:{trig:"Événement paiement",inp:"Dossier, promesse faite en appel",out:"Récapitulatif envoyé, prochaine étape fixée",metric:"Remboursements dans les 7 premiers jours",evalc:"Récapitulatif fidèle à la promesse"},means:[["agent","Agent confirmation post-achat","missing",0,4,"","TL07","B26"]]});
+B("B88","Traiter le « non »","Comprendre le motif, orienter vers un nurturing long ou une sortie propre.",{t:["T08"],r:["M2"],w:["M2"],c:{trig:"Décision : non",inp:"Verbatims, motif",out:"Motif classé, orientation choisie",metric:"Part des refus réactivés sous 6 mois",evalc:"Motif classé pour chaque refus"},means:[["agent","Agent suivi des refus","missing",0,3,"","TL07 TL06","B15"]]});
+B("B89","Coacher les sales à partir des appels analysés","Chaque appel analysé doit faire progresser un sales.",{dom:"SU4",rel:["B23","B22"],c:{trig:"Analyse d'appel disponible",inp:"Score d'appel, objections, transcript",out:"Point de coaching et plan d'entraînement",metric:"Évolution du taux de transformation par sales",evalc:"Revue mensuelle des progrès"},means:[["human","Coach sales","missing",null,null,"","TL09","B46"]]});
+B("B90","Tenir à jour la trame d'appel","SPIN et pitch en 4 étapes, alignés sur l'offre en vigueur.",{chain:"P6",r:["M5"],w:["M5"],c:{trig:"Nouvelle version de l'offre ou objection récurrente",inp:"Offre, objections, meilleurs appels",out:"Trame d'appel à jour",metric:"Taux de transformation après mise à jour",evalc:"Validation par le propriétaire sales"},means:[["human","Romain avec Valentino","wip",null,null,"Romain","","B46"]]});
+B("B91","Tenir à jour la bibliothèque d'objections et de réponses","Chaque objection rencontrée doit avoir une réponse honnête et testée.",{chain:"P6",r:["M5"],w:["M5","M1"],c:{trig:"Objections extraites d'un appel",inp:"Objections, réponses des meilleurs appels",out:"Bibliothèque d'objections à jour",metric:"Part des objections couvertes",evalc:"Réponses validées par le propriétaire sales"},means:[["agent","Agent bibliothèque d'objections","missing",0,3,"","TL12","B90"]]});
+B("B92","Planifier la capacité des sales","Assez de créneaux pour le volume d'appels attendu.",{meta:"CK",c:{trig:"Chaque semaine",inp:"Volume prévu d'appels, disponibilités",out:"Créneaux ouverts, besoin de recrutement signalé",metric:"Délai entre réservation et appel",evalc:"Aucun créneau saturé"},means:[["system","Planification des créneaux","missing",0,3,"","TL08","B46"]]});
+/* --- Méta : Factory --- */
+B("B40","Choisir les niches à fort potentiel","Avant le guru, le marché.",{meta:"FX",c:{trig:"Chaque mois",inp:"Marchés, tendances",out:"Niches classées",metric:"Niches retenues",evalc:"Validation par Amin"},means:[["agent","Agent veille de niches","missing",0,3,"","","B46"]]});
+B("B41","Définir A, B, les jalons et les signaux","Toute la ligne dépend de cette définition.",{meta:"FX",w:["M5"],c:{trig:"Niche retenue",inp:"Niche, persona",out:"A, B, jalons et signaux",metric:"Taux de réussite élève",evalc:"Signaux tous observables"},means:[["agent","Architecte de transformation","missing",0,2,"","TL12","B46"]]});
+B("B42","Donner au guru une identité, une voix, un visage","Le guru IA doit être crédible et reconnaissable.",{meta:"FX",w:["M1"],c:{trig:"Persona validé",inp:"Persona",out:"Voix et visage du guru",metric:"Réalisme perçu",evalc:"Test d'audience"},means:[["agent","Persona & clone du guru","wip",1,3,"","TL03","B46"]]});
+B("B43","Tenir à jour le savoir du guru","Chaque question d'élève l'enrichit.",{meta:"FX",w:["M1"],c:{trig:"Nouvelles questions d'élèves",inp:"Méthode, questions",out:"Cerveau du guru à jour",metric:"Couverture des questions",evalc:"Revue experte"},means:[["agent","Constructeur du cerveau","wip",1,3,"","TL12","B48"]]});
+B("B44","Faire évoluer l'offre","Objections et remboursements disent ce qui manque.",{meta:"FX",r:["M5"],w:["M5"],c:{trig:"Objections ou motifs de remboursement",inp:"Objections, motifs, modèle A→B",out:"Offre à jour",metric:"Taux de transformation",evalc:"Weekly review"},means:[["agent","Agent offre","wip",1,2,"Romain","TL12","B46"]]});
+B("B45","Prouver que le guru fonctionne (PMF)","Priorité Q4 : rien d'autre avant.",{meta:"FX",kr:["PMF"],c:{trig:"Fin de cycle",inp:"Mesures des cellules",out:"PMF validé ou non",metric:"Critères PMF",evalc:""},means:[["system","Validation du PMF","missing",0,2,"Amin","","B46"]]});
+B("B49","Sécuriser les droits sur l'image et la voix","Le clone doit être juridiquement solide.",{meta:"FX",c:{trig:"Nouveau clone",inp:"Persona, contrats",out:"Droits sécurisés",metric:"Clones couverts",evalc:"Revue juridique"},means:[["system","Droits image & voix IA","missing",0,2,"","","B46"]]});
+B("B46","Choisir les gurus et arbitrer","Le dernier mot sur les priorités.",{meta:"FX",c:{trig:"Weekly review",inp:"Cockpit",out:"Arbitrages",metric:"Revenus",evalc:"OKR"},means:[["human","Amin · CEO","ok",null,null,"Amin","","Aucune, sommet de l'escalade"]]});
+/* --- Méta : Cockpit --- */
+B("B50","Tenir priorités, deadlines et responsables","Les deadlines non tenues sont le premier problème.",{meta:"CK",c:{trig:"Chaque jour",inp:"Tâches, deadlines",out:"Priorités du jour",metric:"Deadlines tenues",evalc:"Weekly review"},means:[["system","Cockpit OS","wip",1,3,"Romain","TL16","B48"]]});
+B("B51","Voir les cellules en direct","Piloter sur des mesures, pas des impressions.",{meta:"CK",r:["M2"],c:{trig:"Chaque événement",inp:"Événements de l'orchestrateur",out:"Les 4 mesures de chaque cellule",metric:"Fraîcheur des données",evalc:"Écart avec le CRM"},means:[["system","Tableau des cellules","missing",0,4,"","TL15","B48"]]});
+B("B52","Détecter la cellule qui dérive","Voir le problème avant qu'il coûte.",{meta:"CK",r:["M2","M4"],c:{trig:"Chaque jour",inp:"Tableau des cellules",out:"Alerte et action proposée",metric:"Alertes jugées utiles",evalc:"Validation en weekly review"},means:[["agent","Agent analyste","missing",0,3,"","TL15","B48"]]});
+B("B53","Tester, mesurer, apprendre","Une organisation R&D vit de ses itérations.",{meta:"CK",c:{trig:"Hypothèse lancée",inp:"Hypothèse, mesures",out:"Décision : garder ou jeter",metric:"Tests par semaine",evalc:"Rigueur du protocole"},means:[["system","Iteration system","wip",1,3,"Romain","","B48"]]});
+B("B54","Décider chaque semaine sur les mesures","Le rendez-vous où l'on tranche.",{meta:"CK",c:{trig:"Chaque samedi",inp:"Key results",out:"Décisions de la semaine",metric:"KR atteints",evalc:"Assiduité"},means:[["system","OKR & weekly review","ok",0,1,"","","B46"]]});
+B("B48","Construire et corriger les systèmes SKL","Chaque besoin non couvert devient un chantier.",{meta:"CK",c:{trig:"Besoin non couvert ou mal mesuré",inp:"Contrat du besoin",out:"Moyen construit ou corrigé",metric:"Besoins couverts",evalc:"OKR"},means:[["human","Romain · CPO","ok",null,null,"Romain","","B46"],["agent","OS IA de Romain","wip",1,3,"Romain","","B48"]]});
+B("B55","Connaître la marge","Revenus, coût de chaque cellule, marge.",{meta:"CK",c:{trig:"Chaque mois",inp:"Coût par cellule, revenus",out:"P&L",metric:"Marge",evalc:"Rapprochement comptable"},means:[["system","P&L","missing",0,3,"","TL17 TL15","B46"]]});
+/* --- Fonctions support --- */
+B("B60","Répondre aux demandes pratiques des élèves","Accès, facturation, logistique : sans attente.",{dom:"SU1",r:["M2"],rel:["T10","T11"],c:{trig:"Demande reçue",inp:"Message de l'élève, dossier",out:"Demande résolue",metric:"Délai de première réponse",evalc:"Résolution au premier contact"},means:[["agent","Agent support niveau 1","missing",0,4,"","TL18 TL06","B61"]]});
+B("B61","Traiter les réclamations et les cas sensibles","Un client mécontent mal traité devient un remboursement.",{dom:"SU1",r:["M2"],rel:["T09","B25"],c:{trig:"Réclamation ou escalade du support",inp:"Dossier, historique",out:"Cas résolu, motif enregistré",metric:"Réclamations résolues sous 72 h",evalc:"Satisfaction après résolution"},means:[["human","Responsable support","missing",null,null,"","TL18","B46"]]});
+B("B62","Encaisser les échéances et relancer les impayés","Un paiement en plusieurs fois n'est du CA qu'une fois encaissé.",{dom:"SU2",r:["M2"],rel:["B20"],c:{trig:"Échéance due ou paiement échoué",inp:"Échéancier, dossier",out:"Échéance encaissée ou relance envoyée",metric:"Taux d'impayés",evalc:"Zéro relance erronée"},means:[["agent","Agent recouvrement","missing",0,3,"","TL11 TL07","B63"]]});
+B("B63","Tenir la comptabilité et suivre les coûts","Ads, outils, équipe : savoir ce que coûte chaque cellule.",{dom:"SU2",rel:["B55"],c:{trig:"Chaque mois",inp:"Factures, dépenses",out:"Comptes clôturés, coûts par cellule",metric:"Clôture mensuelle à temps",evalc:"Rapprochement bancaire"},means:[["system","Comptabilité","missing",0,2,"","TL17","B46"]]});
+B("B64","Tenir à jour CGV et contrats élèves","Garanties et remboursement doivent être clairs avant l'achat.",{dom:"SU3",rel:["B20","B25"],c:{trig:"Nouvelle offre ou changement de garantie",inp:"Offre, garanties",out:"CGV et contrat validés",metric:"Litiges liés aux conditions",evalc:"Revue juridique"},means:[["human","Juriste ou avocat externe","missing",null,null,"","","B46"]]});
+B("B65","Valider la conformité des contenus et des publicités","Les allégations de résultats sont encadrées.",{dom:"SU3",rel:["B04","B07"],c:{trig:"Contenu ou publicité avant diffusion",inp:"Contenu",out:"Validé ou corrigé",metric:"Contenus refusés par les régies",evalc:"Zéro allégation non prouvée"},means:[["agent","Agent conformité","missing",0,3,"","","B64"]]});
+B("B66","Protéger les données personnelles","Le dossier unique concentre des données sensibles.",{dom:"SU3",r:["M2"],rel:["M2"],c:{trig:"Nouvel outil ou nouveau traitement",inp:"Inventaire des outils et données",out:"Registre et accès à jour",metric:"Demandes RGPD traitées sous 30 jours",evalc:"Audit annuel"},means:[["system","Registre RGPD","missing",0,2,"","","B46"]]});
+B("B67","Recruter et former les sales","Le volume d'appels dépend du nombre de sales prêts.",{dom:"SU4",rel:["B23"],c:{trig:"Charge d'appels au-dessus du seuil",inp:"Charge, profils",out:"Sales opérationnel",metric:"Délai de recrutement",evalc:"Taux de transformation à 60 jours"},means:[["human","Responsable recrutement","missing",null,null,"","","B46"]]});
+B("B68","Recruter et former les coachs","Le premier résultat à 30 jours dépend des coachs.",{dom:"SU4",rel:["B26"],kr:["KR 1.3"],c:{trig:"Élèves par coach au-dessus du seuil",inp:"Charge, profils",out:"Coach opérationnel",metric:"Élèves par coach",evalc:"% de 1er résultat sous 30 j par coach"},means:[["human","Responsable recrutement","missing",null,null,"","","B46"]]});
+B("B69","Recruter un CTPO","Conditions évoquées en atelier OKR, décision à officialiser.",{dom:"SU4",rel:["B48"],c:{trig:"Décision officialisée",inp:"Conditions d'embauche",out:"CTPO en poste",metric:"Date d'arrivée",evalc:"Validation par Amin"},means:[["human","Amin et Romain","wip",null,null,"Amin","","B46"]]});
+B("B70","Accompagner le produit en attendant le CTPO","Un coach en product management fait le pont.",{dom:"SU4",rel:["B48"],c:{trig:"Tant que le CTPO n'est pas en poste",inp:"Roadmap produit",out:"Décisions produit accompagnées",metric:"Chantiers livrés à temps",evalc:"Revue par Romain"},means:[["human","Coach product management","missing",null,null,"","","B48"]]});
+B("B71","Faire vivre les Spartan Principles","Une culture écrite et pratiquée au quotidien.",{dom:"SU4",c:{trig:"Chaque weekly review",inp:"Décisions de la semaine",out:"Principes appliqués et revus",metric:"Principes cités dans les décisions",evalc:"Revue d'équipe"},means:[["human","Romain","wip",null,null,"Romain","","B46"]]});
+B("B72","Tenir la stack d'outils et les accès","Chaque outil a un responsable, un coût et des accès maîtrisés.",{dom:"SU5",rel:["TL06","TL13"],c:{trig:"Nouvel outil, arrivée ou départ",inp:"Inventaire des outils",out:"Inventaire et accès à jour",metric:"Outils sans responsable",evalc:"Revue mensuelle"},means:[["human","Responsable tech","missing",null,null,"","","B48"]]});
+B("B73","Garantir la qualité des données","Un dossier faux trompe tous les agents.",{dom:"SU5",r:["M2"],w:["M2"],rel:["M2","OR"],c:{trig:"Chaque jour",inp:"Dossiers, événements",out:"Anomalies corrigées",metric:"% de dossiers complets",evalc:"Contrôle par échantillon"},means:[["agent","Agent qualité des données","missing",0,4,"","TL06","B72"]]});
+
+const CHAINS_B=[
+ {id:"P1",name:"Chaîne contenu",asset:"Contenus du guru",desc:"Fabrique chaque semaine les contenus qui exposent le guru.",feeds:["T01","T02","T03"],status:"wip"},
+ {id:"P2",name:"Chaîne amplification",asset:"Campagnes publicitaires",desc:"Amplifie les gagnants, recible les exposés.",feeds:["T01","T02","T04"],status:"missing"},
+ {id:"P3",name:"Chaîne masterclass & VSL",asset:"Masterclasses et VSL",desc:"Fabrique la preuve que c'est possible.",feeds:["T04","T05"],status:"wip"},
+ {id:"P4",name:"Chaîne preuves",asset:"Études de cas par profil",desc:"Transforme les réussites en preuves réutilisables.",feeds:["T03","T05","T08"],status:"missing"},
+ {id:"P5",name:"Chaîne parcours",asset:"Modules et exercices",desc:"Fabrique ce que l'élève suit pour aller de A à B.",feeds:["T09","T10","T11"],status:"missing"},
+ {id:"P6",name:"Chaîne sales",asset:"Trame d'appel et objections",desc:"Fabrique la trame d'appel et les réponses aux objections utilisées pendant les appels.",feeds:["T08"],status:"wip"}
+];
+const DOMAINS_B=[
+ {id:"SU1",name:"Support élève",desc:"Répondre vite et bien aux demandes et aux réclamations."},
+ {id:"SU2",name:"Finance",desc:"Encaisser, relancer, compter, connaître la marge."},
+ {id:"SU3",name:"Legal & conformité",desc:"Conditions de vente, publicités, données personnelles."},
+ {id:"SU4",name:"Équipe & recrutement",desc:"Recruter, former, faire vivre la culture Spartan."},
+ {id:"SU5",name:"Tech & données",desc:"Outils, accès, qualité des données."}
+];
+const HAND_B=[
+ ["B01","B02","veille_prete","Top contenus et angles",""],["B02","B03","brief_emis","Brief du contenu",""],["B03","B04","script_a_valider","Script",""],
+ ["B04","B05","script_valide","Script validé",""],["B05","B06","video_prete","Vidéo finale",""],["B06","B07","contenu_publie","Contenu et premières mesures","Performance au-dessus du seuil"],
+ ["B08","B09","script_masterclass","Script validé",""],["B30","B10","temoignage_brut","Témoignage, dossier","Consentement recueilli"],["B44","B11","offre_validee","Offre, jalons",""],["B11","B27","module_publie","Module",""],
+ ["B12","B13","intention_detectee","Conversation, dossier","Intention d'achat ou question sur l'offre"],["B13","B14","lien_envoye","Lien personnalisé",""],["B14","B16","opt_in","Dossier créé",""],
+ ["B16","B17","formulaire_soumis","Réponses de qualification",""],["B13","B17","demande_rdv","Réponses recueillies en DM","Raccourci DM chaud"],
+ ["B17","B18","lead_qualifie","Score, dossier","Score au-dessus du seuil"],["B17","B16","non_qualifie","Score, motif","Score sous le seuil"],
+ ["B18","B80","rdv_reserve","Créneau, dossier",""],["B80","B19","sales_attribue","Sales, créneau, dossier","2 h avant l'appel"],["B19","B23","brief_pret","Brief",""],
+ ["B23","B21","decision_indecis","Verbatims, gap",""],["B23","B22","appel_termine","Transcript",""],["B21","B18","second_appel","Créneau","L'indécis accepte un second appel"],
+ ["B20","B24","paiement","Dossier, promesse faite",""],["B24","B27","acces_ouverts","Plan perso",""],["B24","B26","onboarding_ok","Plan perso, objectifs",""],
+ ["B27","B28","activite","Progression",""],["B28","B26","alerte_decrochage","Élève à risque","5 jours sans activité"],["B26","B29","jalon_declare","Preuves de l'élève",""],
+ ["B29","B30","objectif_valide","Dossier","Jalon 30 j ou B validé"],["B29","B32","objectif_b","Dossier","B validé"],["B32","B16","filleul_inscrit","Contact du filleul",""],
+ ["B19","B81","brief_pret","Brief, consentement à recueillir",""],["B81","B22","transcript_pret","Transcript horodaté",""],["B23","B88","decision_non","Verbatims, motif",""],["B23","B84","co_decideur_requis","Verbatims, co-décideur",""],["B84","B18","second_appel_demande","Créneaux, co-décideur",""],["B23","B85","exception_demandee","Demande, dossier",""],["B23","B83","decision_oui","Offre choisie",""],["B83","B20","modalite_choisie","Modalité de paiement",""],["B20","B86","paiement_echoue","Offre, dossier","Paiement non finalisé sous 24 h"],["B20","B87","paiement","Dossier, promesse faite",""],["B22","B91","objections_extraites","Objections, verbatims",""],["B22","B89","appel_analyse","Score, points d'amélioration",""],["B91","B90","objection_recurrente","Objection, fréquence","Seuil de récurrence atteint"]
+].map((a,i)=>({id:"R"+String(i+1).padStart(2,"0"),from:a[0],to:a[1],ev:a[2],data:a[3],cond:a[4]}));
+const EXITS_B=[
+ {id:"XS1",name:"Spectateur perdu",anchor:"T03",from:["T02","T03","T04"],signal:"Aucune interaction depuis 30 jours, pas de contact laissé",ret:"E1",via:["B07"],desc:"N'a jamais laissé son contact. Reciblage publicitaire."},
+ {id:"XS2",name:"Lead dormant",anchor:"T05",from:["T05"],signal:"Opt-in sans preuve consommée sous 14 jours",ret:"E4",via:["B16"],desc:"A laissé son contact, ne consomme pas la preuve. Nurturing long."},
+ {id:"XS3",name:"Non qualifié",anchor:"T06",from:["T06"],signal:"Score de qualification sous le seuil",ret:"E4",via:["B16"],desc:"Pas prêt ou pas la cible. Nurturing long ou produit d'entrée (à définir)."},
+ {id:"XS4",name:"No-show",anchor:"T07",from:["T07"],signal:"Appel réservé non tenu",ret:"E6",via:["B18"],desc:"Reprogrammation automatique sous 24 h."},
+ {id:"XS5",name:"Indécis",anchor:"T08",from:["T08"],signal:"Appel tenu sans décision",ret:"E7",via:["B21"],desc:"« Je réfléchis ». Relance avec ses propres verbatims, second appel."},
+ {id:"XS6",name:"Remboursé",anchor:"T09",from:["T09","T10"],signal:"Remboursement accordé (KR 3.3 : moins de 3 % à 30 jours)",ret:"",via:["B25"],desc:"Sortie définitive. Le motif remonte vers l'offre."},
+ {id:"XS8",name:"Refus",anchor:"T08",from:["T08"],signal:"Appel tenu avec décision : non",ret:"E4",via:["B88"],desc:"Motif classé. Nurturing long ou sortie propre."},
+ {id:"XS9",name:"Paiement échoué",anchor:"T08",from:["T08"],signal:"Oui sans paiement finalisé sous 24 h",ret:"E7",via:["B86"],desc:"Relance de paiement, puis retour vers la décision."},
+ {id:"XS7",name:"Décroché",anchor:"T11",from:["T10","T11","T12"],signal:"5 jours sans activité ni jalon",ret:"E9",via:["B28","B26"],desc:"Bloqué ou démotivé. Alerte au coach et plan de reprise."}
+];
+const SHORTS_B=[{id:"SC1",from:"E1",to:"E4",label:"Pub → opt-in direct",via:"B07"},{id:"SC2",from:"E3",to:"E6",label:"DM chaud → appel direct",via:"B13"},{id:"SC3",from:"E13",to:"E4",label:"Filleul → lead",via:"B32"}];
+const M2_FIELDS="identifiant et coordonnées\nsource d'arrivée (contenu, pub, parrainage)\nétat actuel et historique des états\nconversations et verbatims\nréponses de qualification et score\ncontenus et preuves consommés\nappel : gap SPIN, objections, décision\noffre achetée, paiement, échéancier\npromesse faite en appel\nplan perso, jalons, progression\ntémoignage, filleuls\nconsentements";
+const MEM_B=[
+ {id:"M1",name:"Cerveau du guru",status:"wip",host:"TL12",fields:"",desc:"Voix, savoir, méthode, ton. Écrit par la Factory, enrichi par les questions des élèves."},
+ {id:"M2",name:"Dossier unique de l'individu",status:"missing",host:"TL06",fields:M2_FIELDS,desc:"Tout ce que SKL sait de la personne, du premier commentaire à B. La pièce qui donne sa continuité au système. Schéma proposé ci-dessous, à valider."},
+ {id:"M3",name:"Bibliothèque de preuves",status:"missing",host:"",fields:"",desc:"Témoignages et études de cas, classés par profil d'individu."},
+ {id:"M4",name:"Contenus & performance",status:"missing",host:"TL15",fields:"",desc:"Chaque contenu publié et ses résultats."},
+ {id:"M5",name:"Transformation & offre",status:"wip",host:"TL12",fields:"",desc:"Définition de A et B, jalons, signaux, offre, objections connues."}
+];
+const ORCH_B={id:"OR",name:"Orchestrateur",status:"missing",host:"TL13",desc:"Bus d'événements : chaque signal d'état et chaque passage de relais émet un événement qui réveille le bon besoin."};
+const LOOPS_B=[{from:"T13",to:"T01",label:"Preuves → contenu"},{from:"T13",to:"T05",label:"Preuves → nurturing"},{from:"T13",to:"T08",label:"Preuves → pitch"},{from:"T08",to:"B44",label:"Objections → offre"},{from:"T09",to:"B44",label:"Motifs de remboursement → offre"},{from:"T10",to:"B43",label:"Questions élèves → savoir du guru"},{from:"T12",to:"B45",label:"Taux de réussite → PMF"}];
+
+const STATUS={ok:"Existant",wip:"En construction",missing:"Manquant"};
+const COVER={ok:"Couvert",wip:"En construction",missing:"Non couvert"};
+const KIND={agent:"Agent IA",human:"Humain",system:"Système"};
+const KSHORT={agent:"Agent",human:"Humain",system:"Système"};
+const AUTO=["Humain seul","L'IA assiste","L'IA fait, l'humain valide","L'IA fait, l'humain supervise","Autonome"];
+const NFIELDS=[["trig","Déclencheur"],["inp","Entrée"],["out","Sortie attendue"],["metric","Métrique de réussite"],["evalc","Critère d'évaluation"]];
+const SPEC=[["actions","Actions et accès autorisés"],["guard","Garde-fous : ne doit jamais"],["tests","Jeu de tests"],["promo","Critère pour passer au niveau suivant"],["cost","Coût par exécution"]];
+
+/* =================== MODÈLE EFFECTIF (base + modifications partagées) =================== */
+const KEY="skl-transformation-v3";
+let over={};try{over=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){over={}}
+const O=id=>over[id]||{};
+const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
+const pick=(o,keys)=>{const r={};keys.forEach(k=>{if(o[k]!==undefined)r[k]=clone(o[k])});return r};
+const alive=id=>!O(id).deleted;
+const added=kind=>Object.keys(over).filter(k=>over[k]&&over[k].added===kind&&!over[k].deleted).map(k=>Object.assign(clone(over[k]),{id:k}));
+let STATES,TRANS,NEEDS,HAND,EXITS,SHORTS,MEM,ORCH,TOOLS,CHAINS,DOMAINS,LOOPS,ACTS,byId,depth;
+function normMeans(m){const h=m.kind==="human";return{kind:m.kind||"agent",name:m.name||"",status:m.status||"missing",now:h?null:(m.now==null?0:m.now),target:h?null:(m.target==null?3:m.target),owner:m.owner||"",tools:Array.isArray(m.tools)?m.tools.slice():[],esc:m.esc||"",note:m.note||"",spec:Object.assign({},m.spec||{})}}
+function effMeans(base,om){let a=clone(base||[]);if(Array.isArray(om))a=clone(om);else if(om&&typeof om==="object")Object.keys(om).forEach(i=>{if(a[i])Object.assign(a[i],om[i])});return a.map(normMeans)}
+const NKEYS=["title","why","t","chain","meta","dom","r","w","kr","rel","deps"];
+function applyNeed(n,o){Object.assign(n,pick(o,NKEYS));n.c=Object.assign({trig:"",inp:"",out:"",metric:"",evalc:""},n.c||{},o.c||{});n.means=effMeans(n.means,o.means);["t","r","w","kr","rel","deps"].forEach(k=>{if(!Array.isArray(n[k]))n[k]=[]});n._k="need";return n}
+function rebuild(){
+  const sAll=[...STATES_B.filter(s=>alive(s.id)).map(s=>Object.assign(clone(s),pick(O(s.id),["name","sub","signal","event"]))),
+    ...added("state").map(s=>({id:s.id,name:s.name||"Nouvel état",sub:s.sub||"",signal:s.signal||"",event:s.event||"",tid:s.tid,trans:s.trans||{}}))];
+  const has=id=>sAll.some(s=>s.id===id);
+  const ord=(over.__order&&Array.isArray(over.__order.states))?over.__order.states.filter(has):STATES_B.map(s=>s.id).filter(has);
+  sAll.forEach(s=>{if(!ord.includes(s.id))ord.push(s.id)});
+  STATES=ord.map(id=>Object.assign(sAll.find(s=>s.id===id),{_k:"state"}));
+  TRANS=STATES.slice(1).map((s,i)=>{const base=TRANS_B.find(t=>t.id===s.tid);const tr=s.trans||{};
+    const t=base?clone(base):{id:s.tid||("T"+s.id),pole:tr.pole||"Delivery",mission:tr.mission||"Nouvelle transition",inter:tr.inter||[],rate:tr.rate||"",cons:[]};
+    if(!s.tid)s.tid=t.id;Object.assign(t,pick(O(t.id),["pole","mission","inter","rate"]));if(!Array.isArray(t.inter))t.inter=[];t.n=i+1;t._k="trans";return t});
+  const tIds=new Set(TRANS.map(t=>t.id));
+  CHAINS=CHAINS_B.map(c=>Object.assign(clone(c),pick(O(c.id),["status"]),{feeds:c.feeds.filter(f=>tIds.has(f)),_k:"chain"}));
+  TRANS.forEach(t=>{t.cons=(t.cons||[]).filter(c=>CHAINS.some(x=>x.id===c))});
+  DOMAINS=DOMAINS_B.map(d=>Object.assign(clone(d),{_k:"dom"}));
+  TOOLS=[...TOOLS_B.filter(t=>alive(t.id)).map(t=>Object.assign(clone(t),pick(O(t.id),["name","cat","role","status","owner","holds"]))),...added("tool").map(t=>Object.assign({name:"Nouvel outil",cat:"",role:"",status:"missing",owner:"",holds:""},t))].map(t=>Object.assign(t,{_k:"tool"}));
+  const toolIds=new Set(TOOLS.map(t=>t.id));
+  MEM=MEM_B.map(m=>Object.assign(clone(m),pick(O(m.id),["status","host","fields","desc"]),{_k:"mem"}));
+  ORCH=Object.assign(clone(ORCH_B),pick(O("OR"),["status","host","desc"]),{_k:"orch"});
+  [...MEM,ORCH].forEach(m=>{if(m.host&&!toolIds.has(m.host))m.host=""});
+  NEEDS=[...NEEDS_B.filter(n=>alive(n.id)).map(n=>applyNeed(clone(n),O(n.id))),...added("need").map(n=>applyNeed({id:n.id,title:"",why:"",t:[],chain:"",meta:"",dom:"",r:[],w:[],kr:[],rel:[],deps:[],c:{},means:[]},n))];
+  const chainIds=new Set(CHAINS.map(c=>c.id)),domIds=new Set(DOMAINS.map(d=>d.id));
+  NEEDS.forEach(n=>{n.t=n.t.filter(x=>tIds.has(x));if(n.chain&&!chainIds.has(n.chain))n.chain="";if(n.dom&&!domIds.has(n.dom))n.dom="";if(n.meta&&!["FX","CK"].includes(n.meta))n.meta="";
+    n.misplaced=!n.t.length&&!n.chain&&!n.meta&&!n.dom;if(n.misplaced){if(TRANS.length)n.t=[TRANS[0].id];else n.meta="CK"}
+    n.r=n.r.filter(m=>MEM.some(x=>x.id===m));n.w=n.w.filter(m=>MEM.some(x=>x.id===m));n.means.forEach(m=>m.tools=m.tools.filter(x=>toolIds.has(x)))});
+  const nIds=new Set(NEEDS.map(n=>n.id)),sIds=new Set(STATES.map(s=>s.id));
+  HAND=[...HAND_B.filter(h=>alive(h.id)).map(h=>Object.assign(clone(h),pick(O(h.id),["from","to","ev","data","cond"]))),...added("relais").map(h=>Object.assign({from:"",to:"",ev:"",data:"",cond:""},h))].filter(h=>nIds.has(h.from)&&nIds.has(h.to));
+  EXITS=EXITS_B.map(x=>{const e=Object.assign(clone(x),pick(O(x.id),["signal"]),{_k:"exit"});e.from=e.from.filter(f=>tIds.has(f));if(!tIds.has(e.anchor))e.anchor=e.from[0]||"";if(e.ret&&!sIds.has(e.ret))e.ret="";e.via=e.via.filter(v=>nIds.has(v));return e}).filter(e=>e.anchor);
+  SHORTS=SHORTS_B.filter(c=>sIds.has(c.from)&&sIds.has(c.to)&&nIds.has(c.via));
+  LOOPS=LOOPS_B.filter(l=>(tIds.has(l.from)||nIds.has(l.from))&&(tIds.has(l.to)||nIds.has(l.to)));
+  ACTS=[];TRANS.forEach(t=>{const a=ACTMAP[t.pole]||["Acte","Autre",t.pole];const L=ACTS[ACTS.length-1];if(L&&L.k===a[0]&&L.to===t.n-1)L.to=t.n;else ACTS.push({k:a[0],name:a[1],poles:a[2],from:t.n,to:t.n})});
+  byId={};[STATES,TRANS,NEEDS,MEM,EXITS,CHAINS,DOMAINS,TOOLS].forEach(L=>L.forEach(x=>byId[x.id]=x));byId.OR=ORCH;
+  depth={};NEEDS.forEach(x=>depth[x.id]=0);const skip=["filleul_inscrit","non_qualifie","second_appel","alerte_decrochage"];
+  for(let k=0;k<16;k++)HAND.forEach(h=>{if(skip.includes(h.ev))return;if(depth[h.to]<depth[h.from]+1&&depth[h.from]<40)depth[h.to]=depth[h.from]+1});
+}
+
+/* =================== PERSISTANCE PARTAGÉE =================== */
+let DB=null,SHARED=false,CANW=true;const timers={};
+const panel=document.getElementById("panel");
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(over))}catch(e){}}
+function persist(id){if(SHARED&&DB&&CANW){clearTimeout(timers[id]);timers[id]=setTimeout(async()=>{try{if(over[id]===undefined)await DB.doc("needs/"+id).delete();else await DB.doc("needs/"+id).set(over[id])}catch(e){if(e&&e.code==="invalid_argument"){CANW=false;document.body.classList.add("ro");if(V.sel)openPanel(V.sel,true)}}},500)}else saveLocal()}
+async function connect(){try{if(!window.claude||!window.claude.use)return;const db=await window.claude.use("db");if(!db)return;DB=db;
+  try{const u=await window.claude.use("user");if(u){const c=await u.can("data.write");if(c===false)CANW=false}}catch(e){}
+  SHARED=true;document.body.classList.toggle("ro",!CANW);
+  db.collection("needs").onSnapshot(snap=>{const n={};snap.docs.forEach(d=>{n[d.id]=JSON.parse(JSON.stringify(d.data()||{}))});over=n;refresh();
+    if(V.sel){if(!byId[V.sel])closePanel();else if(!panel.contains(document.activeElement))openPanel(V.sel,true)}},()=>{SHARED=false})}catch(e){}}
+/* ---- historique : annuler la dernière action ---- */
+const UNDO=[];let grp=null;
+function beginGroup(label,key){grp={label,key:key||Math.random(),prev:{},t:Date.now()};UNDO.push(grp);if(UNDO.length>80)UNDO.shift()}
+function groupFor(key,label){if(grp&&grp.key===key&&Date.now()-grp.t<1500){grp.t=Date.now();return}beginGroup(label,key)}
+function record(id){if(!grp)beginGroup("Modification");if(!(id in grp.prev))grp.prev[id]=over[id]===undefined?undefined:clone(over[id]);updUndo()}
+function put(id,val){record(id);if(val===undefined)delete over[id];else over[id]=val;persist(id)}
+function setO(path,v,id){id=id||V.sel;record(id);const o=clone(over[id]||{});let cur=o;for(let i=0;i<path.length-1;i++){cur[path[i]]=cur[path[i]]||{};cur=cur[path[i]]}cur[path[path.length-1]]=v;over[id]=o;persist(id)}
+function setMany(id,obj){put(id,Object.assign(clone(over[id]||{}),clone(obj)))}
+function dropO(id){put(id,undefined)}
+const undoable=()=>UNDO.filter(g=>Object.keys(g.prev).length);
+function undo(){if(SHARED&&!CANW)return;while(UNDO.length&&!Object.keys(UNDO[UNDO.length-1].prev).length)UNDO.pop();const g=UNDO.pop();grp=null;if(!g){updUndo();return}
+  Object.entries(g.prev).forEach(([id,v])=>{if(v===undefined)delete over[id];else over[id]=clone(v);persist(id)});
+  refresh();if(V.sel){if(byId[V.sel])openPanel(V.sel,true);else closePanel()}toast("Annulé : "+g.label);updUndo()}
+function updUndo(){const b=document.getElementById("btn-undo");if(!b)return;const u=undoable();b.disabled=!u.length;b.title=u.length?"Annuler : "+u[u.length-1].label+" (Ctrl+Z)":"Rien à annuler";b.setAttribute("aria-label",b.title)}
+function toast(msg,canUndo){const t=document.getElementById("toast");t.innerHTML=`<span>${esc(msg)}</span>${canUndo?'<button data-undo="1">Annuler</button>':""}`;t.hidden=false;clearTimeout(toast.tm);toast.tm=setTimeout(()=>{t.hidden=true},canUndo?7000:3500)}
+function askConfirm(o){return new Promise(res=>{const m=document.getElementById("confirm");const prev=document.activeElement;
+  m.innerHTML=`<div class="cf-box" role="alertdialog" aria-modal="true" aria-labelledby="cf-t" aria-describedby="cf-b"><h2 id="cf-t">${esc(o.title)}</h2><p id="cf-b">${esc(o.body)}</p><p class="cf-n">${o.final?"Cette action ne peut pas être annulée.":"Vous pourrez revenir en arrière avec le bouton Annuler ou Ctrl+Z."}</p><div class="cf-a"><button class="btn" data-cf="0">Garder</button><button class="btn cf-danger" data-cf="1">${esc(o.ok||"Supprimer")}</button></div></div>`;m.hidden=false;
+  const kd=e=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();done(false)}else if(e.key==="Tab"){const bs=[...m.querySelectorAll("button")];const i=bs.indexOf(document.activeElement);e.preventDefault();bs[(i+(e.shiftKey?-1:1)+bs.length)%bs.length].focus()}};
+  const done=v=>{m.hidden=true;m.onclick=null;document.removeEventListener("keydown",kd,true);try{if(prev&&prev.focus&&document.body.contains(prev))prev.focus()}catch(e){}res(v)};
+  m.onclick=e=>{const b=e.target.closest("[data-cf]");if(b)return done(b.dataset.cf==="1");if(e.target===m)done(false)};
+  document.addEventListener("keydown",kd,true);m.querySelector('[data-cf="0"]').focus()})}
+const pl=(n,s1,s2)=>n+" "+(n>1?s2:s1);
+const V={lanes:{meta:1,prod:1,exp:1,graph:1,mach:1,sup:1,found:1,tools:1},edges:{hand:1,loops:1,short:1,esc:0},kinds:{agent:1,human:1,system:1},cov:{ok:1,wip:1,missing:1},lens:"need",sel:null,model:false,view:"map",gaps:false,ill:false};
+let tx=0,ty=0,s=1;
+
+/* =================== RÈGLES =================== */
+const RANK={ok:2,wip:1,missing:0};
+function cover(n){let best=-1;n.means.forEach(m=>{const r=RANK[m.status];if(r>best)best=r});return best<0?"missing":Object.keys(RANK).find(k=>RANK[k]===best)}
+const serves=t=>NEEDS.filter(x=>x.t.includes(t.id));
+const chainNeeds=c=>NEEDS.filter(x=>x.chain===c.id);
+const contractN=x=>NFIELDS.filter(([k])=>String(x.c[k]||"").trim()).length;
+const illDefined=x=>contractN(x)<NFIELDS.length;
+const meansOwnerless=x=>x.means.filter(m=>!String(m.owner||"").trim()).length;
+const specN=m=>SPEC.filter(([k])=>String((m.spec||{})[k]||"").trim()).length;
+const agentMeans=()=>{const a=[];NEEDS.forEach(n=>n.means.forEach((m,i)=>{if(m.kind==="agent")a.push({n,m,i})}));return a};
+const mv=(t,k)=>(O(t.id).m||{})[k]||"";
+function checks(t){const sy=serves(t).some(x=>cover(x)!=="missing")||t.cons.some(c=>chainNeeds(byId[c]).some(x=>cover(x)!=="missing"));const to=STATES[t.n];
+  const sg=!!(to&&O(to.id).signalOk);const mn=MEAS.filter(([k])=>mv(t,k)).length;return{sy,sg,mn,ok:sy&&sg&&mn===4}}
+const escTarget=(n,m)=>{const e=m.esc;return byId[e]&&byId[e]._k==="need"&&e!==n.id?e:null};
+const toolUsers=t=>NEEDS.filter(n=>n.means.some(m=>m.tools.includes(t.id)));
+const placeOf=n=>n.chain?"prod":n.dom?"sup":n.meta?"meta":"mach";
+
+/* =================== GÉOMÉTRIE =================== */
+const SW=220,CW=330,CARD=300,SH=140,LX=-380,HG=58;
+const sx=i=>i*(SW+CW),cx=n=>sx(n-1)+SW;let WTOT=0;
+let G={},bounds={};
+function visNeed(x){const kindOk=!x.means.length||x.means.some(m=>V.kinds[m.kind]);return kindOk&&V.cov[cover(x)]&&(!V.gaps||cover(x)==="missing")&&(!V.ill||illDefined(x))}
+function layout(){
+  G={pos:{},lanes:[],marks:[],chainY:{},also:{}};const P=G.pos;let y=0;WTOT=sx(Math.max(1,STATES.length-1))+SW;
+  if(V.lanes.meta){const split=Math.min(sx(5),WTOT/2);const zf={x:0,w:split-40},zc={x:split+40,w:WTOT-split-40};
+    const place=(list,z)=>{const cols=Math.max(1,Math.floor((z.w-48+20)/(CARD+20)));list.forEach((x,i)=>{P[x.id]={x:z.x+24+(i%cols)*(CARD+20),y:y+100+Math.floor(i/cols)*(SH+16),w:CARD,h:SH}});return Math.ceil(list.length/cols)};
+    const rows=Math.max(1,place(NEEDS.filter(x=>x.meta==="FX"&&visNeed(x)),zf),place(NEEDS.filter(x=>x.meta==="CK"&&visNeed(x)),zc));const h=100+rows*(SH+16)+16;
+    G.zf={...zf,y,h};G.zc={...zc,y,h};G.lanes.push({id:"meta",y,h,k:"Niveau méta",b:"Fabriquer et piloter",d:"Besoins qui ne touchent pas l'individu : créer la transformation, ajuster la machine."});y+=h+120}
+  if(V.lanes.prod){const y0=y;CHAINS.forEach((c,ci)=>{const ry=y0+40+ci*(SH+70);G.chainY[c.id]=ry;
+      const list=chainNeeds(c).filter(visNeed).sort((a,b)=>depth[a.id]-depth[b.id]);list.forEach((x,i)=>P[x.id]={x:320+i*(CARD+90),y:ry,w:CARD,h:SH});
+      P[c.id]={x:320+Math.max(list.length,1)*(CARD+90),y:ry,w:CARD,h:SH}});
+    const h=40+CHAINS.length*(SH+70);G.lanes.push({id:"prod",y:y0,h,k:"Couloir 1",b:"Besoins de production",d:"Fabriquer les actifs que l'individu rencontrera."});y+=h+60}
+  G.actY=y;y+=130;
+  if(V.lanes.exp){const mx=Math.max(1,...TRANS.map(t=>t.inter.length));const h=40+mx*44;
+    TRANS.forEach(t=>t.inter.forEach((s2,i)=>G.marks.push({x:cx(t.n)+15,y:y+20+i*44,text:s2,t:t.id})));
+    G.lanes.push({id:"exp",y,h,k:"Couloir 2",b:"Ce que vit l'individu",d:"Les interactions : la seule partie de SKL qu'il voit."});y+=h}
+  const sh=V.lanes.graph&&V.edges.short&&SHORTS.length;y+=sh?190:50;
+  const spineY=y,SPH=246;
+  STATES.forEach((e,i)=>P[e.id]={x:sx(i)+10,y:spineY,w:SW-20,h:SPH});
+  TRANS.forEach(t=>P[t.id]={x:cx(t.n)+15,y:spineY,w:CARD,h:SPH});
+  G.lanes.push({id:"spine",y:spineY-(sh?170:30),h:SPH+60,k:"Le graphe de l'individu",b:"De A à B",d:"États observables, reliés par des cellules de transition. Les raccourcis passent au-dessus."});
+  y=spineY+SPH+50;
+  if(V.lanes.graph&&EXITS.length){const cnt={};let mx=1;EXITS.forEach(x=>{const t=byId[x.anchor];const k=cnt[x.anchor]=(cnt[x.anchor]||0)+1;mx=Math.max(mx,k);P[x.id]={x:cx(t.n)+15,y:y+20+(k-1)*156,w:CARD,h:142}});
+    const h=40+mx*156;G.lanes.push({id:"graph",y,h,k:"Sorties & retours",b:"Hors de la ligne",d:"L'individu sorti reste un état, avec un chemin de retour."});y+=h+50}
+  if(V.lanes.mach){let mx=0;
+    TRANS.forEach(t=>{const prim=NEEDS.filter(x=>!x.chain&&!x.dom&&!x.meta&&x.t[0]===t.id&&visNeed(x)).sort((a,b)=>depth[a.id]-depth[b.id]);prim.forEach((x,i)=>P[x.id]={x:cx(t.n)+15,y:y+20+i*(SH+HG),w:CARD,h:SH});
+      const sec=NEEDS.filter(x=>x.t.indexOf(t.id)>0&&visNeed(x));G.also[t.id]={list:sec,y:y+20+prim.length*(SH+HG)-(prim.length?HG:0)+16};mx=Math.max(mx,prim.length)});
+    const h=40+Math.max(1,mx)*(SH+HG)+30;G.lanes.push({id:"mach",y,h,k:"Couloir 3",b:"Besoins de conversion",d:"Ce qui doit se passer pour qu'un individu avance, relié par des passages de relais."});y+=h+40}
+  if(V.lanes.sup){const y0=y;DOMAINS.forEach((d,di)=>{const ry=y0+40+di*(SH+50);P[d.id]={x:0,y:ry,w:280,h:SH};
+      NEEDS.filter(n=>n.dom===d.id&&visNeed(n)).forEach((n,i)=>P[n.id]={x:320+i*(CARD+40),y:ry,w:CARD,h:SH})});
+    const h=40+DOMAINS.length*(SH+50);G.lanes.push({id:"sup",y:y0,h,k:"Couloir 4",b:"Fonctions support",d:"Besoins qui ne font pas avancer l'individu, mais font tenir le business."});y+=h+40}
+  if(V.lanes.found){[...MEM,ORCH].forEach((m,i)=>P[m.id]={x:0,y:y+20+i*84,w:WTOT,h:68});
+    const h=20+6*84+10;G.lanes.push({id:"found",y,h,k:"Fondations",b:"Mémoire & orchestration",d:"Ce que tous les besoins partagent. L = lit, É = écrit."});y+=h+30}
+  if(V.lanes.tools){const cols=Math.max(1,Math.floor((WTOT+30)/(CARD+30)));TOOLS.forEach((t,i)=>P[t.id]={x:(i%cols)*(CARD+30),y:y+40+Math.floor(i/cols)*174,w:CARD,h:150});
+    const rows=Math.max(1,Math.ceil(TOOLS.length/cols));const h=40+rows*174+20;G.lanes.push({id:"tools",y,h,k:"Fondations",b:"Outils & données",d:"Chaque outil, ce qu'il détient, qui l'utilise."});y+=h}
+  const nl=LOOPS.filter(l=>byId[l.to]&&byId[l.to]._k==="trans").length;G.loopsTop=-80-nl*56;
+  bounds={x:LX-40,y:G.loopsTop-260,w:WTOT-LX+80,h:y-(G.loopsTop-260)+60};
+}
+
+/* =================== RENDU DE LA CARTE =================== */
+const layer=document.getElementById("layer"),edgeLayer=document.getElementById("edge-layer"),world=document.getElementById("world"),vp=document.getElementById("viewport");
+function esc(t){return String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+const box=(p,cls,inner,id)=>`<div class="${cls}" data-sel="${id}" tabindex="0" role="button" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">${inner}</div>`;
+function meter(m){if(m.kind==="human")return "";const n=V.lens==="target"?m.target:m.now;let h="";for(let i=1;i<=4;i++)h+=`<i class="${i<=n?"f":(i<=m.target?"t":"n")}"></i>`;return `<span class="meter" title="Autonomie ${n}/4 : ${AUTO[n]}">${h}</span>`}
+function needCard(x){const p=G.pos[x.id];const cs=cover(x);const n=contractN(x);const lens=V.lens;
+  const ghost=lens==="means"&&cs==="missing";const pill=x.misplaced?"À replacer":(lens==="target"&&cs==="missing"?"À couvrir":COVER[cs]);
+  let body;
+  if(lens==="need")body=`<div class="why">${esc(x.why)}</div><div class="ft"><span class="${n<5?"ko-t":""}">Contrat ${n}/5</span><span>${x.means.length} moyen${x.means.length>1?"s":""}</span></div>`;
+  else{const ag=x.means.filter(m=>m.kind==="agent");body=`<div class="means">${x.means.map(m=>`<div class="mline m-${lens==="target"?"ok":m.status}"><span class="k">${KSHORT[m.kind]}</span><span class="nm">${esc(m.name||"Sans nom")}</span>${meter(m)}</div>`).join("")||`<div class="mline m-missing"><span class="nm">Aucun moyen</span></div>`}</div>${ag.length?`<div class="ft"><span class="${ag.some(m=>specN(m)<5)?"ko-t":""}">Fiche agent ${ag.map(specN).join(" · ")} / 5</span></div>`:""}`}
+  return box(p,`card need s-${cs}${ghost?" ghost":""}`,`<div class="row"><span class="code">${x.id}${x.kr.length?` · <b class="krb">${esc(x.kr.join(" · "))}</b>`:""}</span><span class="pill"><span class="dot d-${cs}"></span>${pill}</span></div><div class="ti">${esc(x.title||"Besoin sans titre")}</div>${body}`,x.id)}
+function render(){
+  let h="";const P=G.pos;
+  h+=`<div class="world-title" style="left:0;top:${G.loopsTop-250}px"><div class="k">SKL · modèle v5 · les besoins d'abord</div><h1>La transformation, de A à B</h1><p>Chaque carte est un besoin. Agents, humains et systèmes ne sont que les moyens d'y répondre.</p></div>`;
+  G.lanes.forEach(l=>{h+=`<div class="lane" style="left:${LX}px;top:${l.y}px;width:${WTOT-LX}px;height:0"></div><div class="lane-label" style="left:${LX}px;top:${l.y+18}px">${l.k}<b>${l.b}</b><span>${l.d}</span></div>`});
+  if(V.lanes.meta)h+=`<div class="zone" style="left:${G.zf.x}px;top:${G.zf.y}px;width:${G.zf.w}px;height:${G.zf.h}px"><h2>Factory</h2><p>Définir A, B et le guru. Écrire le savoir et l'offre.</p></div><div class="zone" style="left:${G.zc.x}px;top:${G.zc.y}px;width:${G.zc.w}px;height:${G.zc.h}px"><h2>Cockpit</h2><p>Lire les mesures des cellules, décider, corriger.</p></div>`;
+  if(V.lanes.prod)CHAINS.forEach(c=>{const ry=G.chainY[c.id];
+    h+=`<div class="chain-label" style="left:0;top:${ry+4}px"><div class="k">${c.id} · chaîne de production</div><b>${esc(c.name)}</b><span>${esc(c.desc)}</span></div>`;
+    h+=box(P[c.id],`card asset s-${c.status}`,`<div class="k">Actif produit</div><div class="ti">${esc(c.asset)}</div><span class="pill"><span class="dot d-${c.status}"></span>${STATUS[c.status]}</span><div class="fd chips">Alimente ${c.feeds.map(f=>`<button data-jump="${f}">${f}</button>`).join("")}</div>`,c.id)});
+  ACTS.forEach(a=>{h+=`<div class="act" style="left:${sx(a.from-1)+10}px;top:${G.actY}px;width:${Math.max(200,sx(a.to)+SW-10-(sx(a.from-1)+10))}px"><div class="k">${a.k}</div><b>${a.name}</b><span>${a.poles}</span></div>`});
+  G.marks.forEach(m=>{h+=`<div class="exp" data-sel="${m.t}" style="left:${m.x}px;top:${m.y}px;max-width:${CARD}px">${esc(m.text)}</div>`});
+  STATES.forEach((e,i)=>{const ok=!!O(e.id).signalOk;h+=box(P[e.id],`card state${i===0||e.event==="objectif_b"?" pole-end":""}`,`<span class="code">${e.id}</span><div class="nm">${esc(e.name)}</div><div class="sb">${esc(e.sub)}</div><div class="sg"><em class="${ok?"":"ko"}">${ok?"Signal validé":"Signal à valider"}</em>${esc(e.signal||"Signal à définir")}</div>`,e.id)});
+  TRANS.forEach(t=>{const c=checks(t);const ck=(ok,l)=>`<span class="${ok?"ok":"ko"}"><span class="dot ${ok?"d-ok":"d-missing"}"></span>${l}</span>`;
+    const meas=MEAS.map(([k,l])=>{const v=mv(t,k);return `<div title="${esc(measDef(t,k))}"><small>${l}</small><b class="${v?"":"none"}">${v?esc(v):"non mesuré"}</b></div>`}).join("");
+    h+=box(P[t.id],`card head${c.ok?"":" incomplete"}`,`<div class="row"><span class="code">${t.id}</span><span class="tag">${esc(t.pole)}</span></div><div class="ms">${esc(t.mission)}</div><div class="cons">${t.cons.length?"Consomme : "+t.cons.map(x=>byId[x].asset).join(" · "):"Aucun actif consommé"}</div><div class="meas">${meas}</div><div class="checks">${ck(c.sy,"Besoin couvert")}${ck(c.sg,"Signal")}${ck(c.mn===4,"Mesures "+c.mn+"/4")}</div>`,t.id)});
+  if(V.lanes.graph)EXITS.forEach(x=>{const p=P[x.id];if(!p)return;const rt=x.ret?byId[x.ret]:null;h+=box(p,"card exit",`<div class="k">${x.id} · état de sortie</div><div class="ti">${esc(x.name)}</div><div class="ds">${esc(x.desc)}</div><div class="rc">${rt?`Retour vers <b>${esc(rt.name)}</b> via ${x.via.join(", ")}`:`Sortie définitive · ${x.via.join(", ")}`}</div>`,x.id)});
+  NEEDS.forEach(x=>{if(!P[x.id]||!visNeed(x))return;if(V.lanes[placeOf(x)])h+=needCard(x)});
+  if(V.lanes.mach)TRANS.forEach(t=>{const a=G.also[t.id];if(a&&a.list.length)h+=`<div class="also chips" style="left:${cx(t.n)+15}px;top:${a.y}px;width:${CARD}px">Sert aussi cette cellule : ${a.list.map(x=>`<button data-jump="${x.id}">${x.id}</button>`).join("")}</div>`});
+  if(V.lanes.sup)DOMAINS.forEach(d=>{const p=P[d.id];h+=`<div class="chain-label dom" data-sel="${d.id}" tabindex="0" role="button" style="left:${p.x}px;top:${p.y}px;width:${p.w}px"><div class="k">${d.id} · fonction support</div><b>${esc(d.name)}</b><span>${esc(d.desc)}</span></div>`});
+  if(V.lanes.found)[...MEM,ORCH].forEach(m=>{const p=P[m.id];const host=m.host?byId[m.host]:null;
+    let inner=`<div class="strip-name"><span class="pill"><span class="dot d-${m.status}"></span>${STATUS[m.status]}</span><b>${esc(m.name)}</b><span class="host${host?"":" ko-t"}">${host?"dans "+esc(host.name):"outil à décider"}</span></div>`;
+    if(m.id==="OR")STATES.forEach((e,i)=>{if(i)inner+=`<span class="mark" style="left:${sx(i)+14}px">${esc(e.event||"—")}</span>`});
+    else{const pw=NEEDS.filter(x=>(x.chain||x.meta||x.dom)&&(x.w.includes(m.id)||x.r.includes(m.id)));if(pw.length){const w=pw.some(x=>x.w.includes(m.id));inner+=`<span class="mark${w?" w":""}" style="left:${sx(0)+560}px">Production, méta, support ${w?"É":"L"}</span>`}
+      TRANS.forEach(t=>{const list=serves(t);const r=list.some(x=>x.r.includes(m.id)),w=list.some(x=>x.w.includes(m.id));if(r||w)inner+=`<span class="mark${w?" w":""}" style="left:${cx(t.n)+15+CARD/2-24}px">${r&&w?"L · É":(w?"É":"L")}</span>`})}
+    h+=`<div class="strip s-${m.status}" data-sel="${m.id}" tabindex="0" role="button" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">${inner}</div>`});
+  if(V.lanes.tools)TOOLS.forEach(t=>{const p=P[t.id];const u=toolUsers(t).length;
+    h+=box(p,`card tool s-${t.status}`,`<div class="row"><span class="code">${t.id} · ${esc(t.cat||"Outil")}</span><span class="pill"><span class="dot d-${t.status}"></span>${STATUS[t.status]}</span></div><div class="ti">${esc(t.name)}</div><div class="rl">${esc(t.holds?"Détient : "+t.holds:t.role)}</div><div class="ft"><span>${u} besoin${u>1?"s":""}</span><span class="${t.owner?"":"ko-t"}">${t.owner?esc(t.owner):"Sans responsable"}</span></div>`,t.id)});
+  layer.innerHTML=h;renderEdges();markSel();renderStats();drawMini();
+}
+const measDef=(t,k)=>({taux:t.rate,delai:"Temps médian de "+(STATES[t.n-1]||{}).name+" à "+(STATES[t.n]||{}).name,volume:"Individus entrés par semaine",cout:"Coût par passage réussi"}[k]);
+function bez(t,a,b,c,d){const u=1-t;return[u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]]}
+function link2(a,b){const ac=[a.x+a.w/2,a.y+a.h/2],bc=[b.x+b.w/2,b.y+b.h/2];const dx=bc[0]-ac[0],dy=bc[1]-ac[1];let s0,e0,c1,c2;
+  if(Math.abs(dx)>Math.abs(dy)*.8){s0=[dx>0?a.x+a.w:a.x,ac[1]];e0=[dx>0?b.x:b.x+b.w,bc[1]];const k=Math.max(40,Math.abs(e0[0]-s0[0])*.45)*(dx>0?1:-1);c1=[s0[0]+k,s0[1]];c2=[e0[0]-k,e0[1]]}
+  else{s0=[ac[0],dy>0?a.y+a.h:a.y];e0=[bc[0],dy>0?b.y:b.y+b.h];const k=Math.max(30,Math.abs(e0[1]-s0[1])*.45)*(dy>0?1:-1);c1=[s0[0],s0[1]+k];c2=[e0[0],e0[1]-k]}
+  return{d:`M${s0[0]},${s0[1]} C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${e0[0]},${e0[1]}`,mid:bez(.5,s0,c1,c2,e0)}}
+const colOf=id=>{const x=byId[id];return x&&x._k==="need"&&placeOf(x)==="mach"?byId[x.t[0]].n:null};
+function edge(cls,m,d,mid,label,lc,rel){return `<path class="edge ${cls}" data-rel="${rel}" d="${d}" marker-end="url(#m-${m})"/>`+(label&&mid?`<text class="elabel ${lc}" data-rel="${rel}" x="${mid[0]}" y="${mid[1]-8}" text-anchor="middle">${esc(label)}</text>`:"")}
+function renderEdges(){let h="";const P=G.pos;const sel=V.sel;
+  STATES.forEach((e,i)=>{if(i===STATES.length-1)return;const a=P[e.id],t=P[TRANS[i].id],b=P[STATES[i+1].id];const my=a.y+a.h/2;h+=`<path class="edge e-spine" data-rel="${e.id} ${TRANS[i].id}" d="M${a.x+a.w},${my} L${t.x},${my}"/><path class="edge e-spine" data-rel="${TRANS[i].id} ${STATES[i+1].id}" d="M${t.x+t.w},${my} L${b.x},${my}" marker-end="url(#m-gold)"/>`});
+  if(V.lanes.graph&&V.edges.short)SHORTS.forEach((c,i)=>{const a=P[c.from],b=P[c.to];const x1=a.x+a.w/2,x2=b.x+b.w/2,top=a.y-150+i*14;h+=edge("e-short","gold",`M${x1},${a.y} C${x1},${top} ${x2},${top} ${x2},${b.y}`,bez(.5,[x1,a.y],[x1,top],[x2,top],[x2,b.y]),c.label+" · à valider","l-gold",`${c.from} ${c.to} ${c.via}`)});
+  if(V.lanes.graph)EXITS.forEach(x=>{const b=P[x.id];if(!b)return;x.from.forEach(f=>{const a=P[f];if(!a)return;const side=f===x.anchor?0:(byId[f].n<byId[x.anchor].n?1:-1);const x1=a.x+a.w/2+side*60,x2=b.x+b.w/2-side*60;h+=edge("e-exit","exit",`M${x1},${a.y+a.h} C${x1},${a.y+a.h+40} ${x2},${b.y-40} ${x2},${b.y}`,null,"","",`${f} ${x.id}`)});
+    if(x.ret&&P[x.ret]){const r=P[x.ret];const x1=b.x,y1=b.y+b.h/2,x2=r.x+r.w/2,y2=r.y+r.h;h+=edge("e-ret","ret",`M${x1},${y1} C${x1-120},${y1} ${x2},${y2+80} ${x2},${y2}`,bez(.5,[x1,y1],[x1-120,y1],[x2,y2+80],[x2,y2]),"retour","l-ret",`${x.id} ${x.ret} ${x.via.join(" ")}`)}});
+  if(V.edges.hand)HAND.forEach(e=>{const a=P[e.from],b=P[e.to];if(!a||!b||!visNeed(byId[e.from])||!visNeed(byId[e.to]))return;
+    const la=placeOf(byId[e.from]),lb=placeOf(byId[e.to]);const near=la===lb&&(la==="prod"||(la==="mach"&&Math.abs((colOf(e.from)||0)-(colOf(e.to)||0))<=1));
+    if(!near&&!(sel&&(sel===e.from||sel===e.to)))return;const L=link2(a,b);h+=edge("e-hand","gold",L.d,L.mid,e.ev,"l-gold",`${e.from} ${e.to}`)});
+  if(V.lanes.meta&&V.edges.loops){let k=0;const tl=LOOPS.filter(l=>byId[l.to]._k==="trans");LOOPS.forEach(l=>{const A=P[l.from],B2=P[l.to];if(!A||!B2)return;let d,mid;
+    if(byId[l.to]._k==="trans"){k++;const top=G.loopsTop+(tl.length-k)*56;const off=((k%3)-1)*40;const x1=A.x+A.w/2+off,x2=B2.x+B2.w/2+off;d=`M${x1},${A.y} C${x1},${top} ${x2},${top} ${x2},${B2.y}`;mid=bez(.5,[x1,A.y],[x1,top],[x2,top],[x2,B2.y])}
+    else{const x1=A.x+A.w/2,x2=B2.x+B2.w/2,y2=B2.y+B2.h;d=`M${x1},${A.y} C${x1},${A.y-300} ${x2},${y2+300} ${x2},${y2}`;mid=bez(.5,[x1,A.y],[x1,A.y-300],[x2,y2+300],[x2,y2])}
+    h+=edge("e-loop","loop",d,mid,l.label,"l-loop",`${l.from} ${l.to}`)})}
+  const showEsc=V.lens!=="need"&&V.edges.esc;
+  NEEDS.forEach(x=>x.means.forEach(m=>{const to=escTarget(x,m);if(!to||m.kind==="human")return;if(!(showEsc||sel===x.id||sel===to))return;const a=P[x.id],b=P[to];if(!a||!b||!visNeed(x))return;const L=link2(a,b);h+=edge("e-esc","esc",L.d,L.mid,sel===x.id?"escalade":"","l-esc",`${x.id} ${to}`)}));
+  const feed=(fromId,toId)=>{const a=P[fromId],b=P[toId];if(a&&b){const L=link2(a,b);h+=edge("e-feed","gold",L.d,null,"","",`${fromId} ${toId}`)}};
+  const sx2=sel&&byId[sel];
+  if(sx2){if(sx2._k==="chain")sx2.feeds.forEach(f=>feed(sx2.id,f));
+    if(sx2._k==="tool"){toolUsers(sx2).forEach(n=>feed(sx2.id,n.id));[...MEM,ORCH].forEach(m=>{if(m.host===sx2.id)feed(sx2.id,m.id)})}
+    if((sx2._k==="mem"||sx2._k==="orch")&&sx2.host)feed(sx2.host,sx2.id);
+    if(sx2._k==="need"){sx2.rel.forEach(r=>feed(sx2.id,r));sx2.means.forEach(m=>m.tools.forEach(t=>feed(t,sx2.id)))}}
+  edgeLayer.innerHTML=h}
+function related(id){const R=new Set([id]);const x=byId[id];if(!x)return R;
+  const addN=s2=>{R.add(s2.id);s2.r.concat(s2.w).forEach(m=>R.add(m))};
+  if(x._k==="need"){x.t.forEach(t=>R.add(t));if(x.chain)R.add(x.chain);if(x.dom)R.add(x.dom);x.r.concat(x.w,x.rel,x.deps).forEach(m=>R.add(m));HAND.forEach(h=>{if(h.from===id)R.add(h.to);if(h.to===id)R.add(h.from)});
+    x.means.forEach(m=>{const e=escTarget(x,m);if(e)R.add(e);m.tools.forEach(t=>R.add(t))});NEEDS.forEach(s2=>{if(s2.means.some(m=>escTarget(s2,m)===id)||s2.rel.includes(id))R.add(s2.id)});LOOPS.forEach(l=>{if(l.to===id)R.add(l.from)});EXITS.forEach(z=>{if(z.via.includes(id))R.add(z.id)})}
+  else if(x._k==="trans"){R.add(STATES[x.n-1].id);if(STATES[x.n])R.add(STATES[x.n].id);serves(x).forEach(addN);x.cons.forEach(c=>{R.add(c);chainNeeds(byId[c]).forEach(s2=>R.add(s2.id))});EXITS.forEach(z=>{if(z.from.includes(id)){R.add(z.id);z.via.forEach(v=>R.add(v))}});LOOPS.forEach(l=>{if(l.from===id)R.add(l.to);if(l.to===id)R.add(l.from)});NEEDS.forEach(n=>{if(n.rel.includes(id))R.add(n.id)})}
+  else if(x._k==="state"){const i=STATES.indexOf(x);if(TRANS[i-1])R.add(TRANS[i-1].id);if(TRANS[i])R.add(TRANS[i].id);R.add("OR");SHORTS.forEach(c=>{if(c.from===id||c.to===id){R.add(c.from);R.add(c.to);R.add(c.via)}});EXITS.forEach(z=>{if(z.ret===id)R.add(z.id)})}
+  else if(x._k==="chain"){chainNeeds(x).forEach(addN);x.feeds.forEach(f=>R.add(f))}
+  else if(x._k==="dom"){NEEDS.filter(n=>n.dom===id).forEach(n=>{addN(n);n.rel.forEach(r=>R.add(r))})}
+  else if(x._k==="exit"){x.from.forEach(f=>R.add(f));if(x.ret)R.add(x.ret);x.via.forEach(v=>R.add(v))}
+  else if(x._k==="tool"){toolUsers(x).forEach(n=>R.add(n.id));[...MEM,ORCH].forEach(m=>{if(m.host===id)R.add(m.id)});NEEDS.forEach(n=>{if(n.rel.includes(id))R.add(n.id)})}
+  else{if(x.host)R.add(x.host);NEEDS.forEach(s2=>{if(s2.r.includes(id)||s2.w.includes(id)||s2.rel.includes(id)){R.add(s2.id);s2.t.forEach(t=>R.add(t))}})}
+  return R}
+function markSel(){const R=V.sel?related(V.sel):null;world.classList.toggle("focus",!!V.sel);
+  layer.querySelectorAll("[data-sel]").forEach(el=>{const id=el.dataset.sel;el.classList.toggle("sel",id===V.sel&&!el.classList.contains("exp"));el.classList.toggle("dim",!!R&&!R.has(id))});
+  edgeLayer.querySelectorAll("[data-rel]").forEach(el=>{const ids=el.dataset.rel.split(" ");el.classList.toggle("dim",!!R&&!(ids.includes(V.sel)||(ids.every(i=>R.has(i))&&byId[V.sel]&&byId[V.sel]._k==="trans")))})}
+
+/* =================== STATS & CALQUES =================== */
+function renderStats(){const c={ok:0,wip:0,missing:0};NEEDS.forEach(x=>c[cover(x)]++);
+  const ai=[];NEEDS.forEach(x=>{if(placeOf(x)==="mach"||placeOf(x)==="prod")x.means.forEach(m=>{if(m.kind!=="human")ai.push(m)})});
+  const now=ai.length?Math.round(ai.reduce((a,m)=>a+m.now,0)/(ai.length*4)*100):0,tg=ai.length?Math.round(ai.reduce((a,m)=>a+m.target,0)/(ai.length*4)*100):0;
+  const full=TRANS.filter(t=>checks(t).ok).length,def=NEEDS.filter(x=>!illDefined(x)).length,own=NEEDS.reduce((a,x)=>a+meansOwnerless(x),0),nm=NEEDS.reduce((a,x)=>a+x.means.length,0);
+  const ag=agentMeans(),agOk=ag.filter(a=>specN(a.m)===5).length;
+  let h=`<span class="chip"><strong>${NEEDS.length}</strong> besoins · <strong>${HAND.length}</strong> relais · <strong>${TOOLS.length}</strong> outils</span>`+["ok","wip","missing"].map(k=>`<span class="chip"><i class="d-${k}"></i><strong>${c[k]}</strong> ${COVER[k].toLowerCase()}${c[k]>1&&k!=="wip"?"s":""}</span>`).join("")+
+   `<button class="chip" id="chip-ill" aria-pressed="${V.ill}" title="Afficher seulement les besoins au contrat incomplet"><strong>${def}/${NEEDS.length}</strong> besoins bien définis</button><button class="chip" id="chip-gaps" aria-pressed="${V.gaps}" title="Afficher seulement les besoins non couverts"><strong>${full}/${TRANS.length}</strong> cellules complètes</button>`;
+  if(V.lens!=="need")h+=`<span class="chip"><strong>${nm}</strong> moyens · <strong>${own}</strong> sans responsable</span><span class="chip"><strong>${agOk}/${ag.length}</strong> fiches agents complètes</span><span class="chip">Autonomie <strong>${now} %</strong> → <strong>${tg} %</strong></span>`;
+  h+=`<span class="chip" title="${SHARED?"Les modifications sont visibles par toute l'équipe":"Les modifications restent dans ce navigateur"}">${SHARED?(CANW?"Partagé avec l'équipe":"Lecture seule"):"Local"}</span>`;
+  document.getElementById("stats").innerHTML=h;syncTop()}
+function renderLayers(){const L=V.lanes,E=V.edges;const cb=(id,on,label,n)=>`<label class="opt"><input type="checkbox" id="${id}" ${on?"checked":""}>${label}${n!=null?`<span class="n">${n}</span>`:""}</label>`;
+  const kc=k=>NEEDS.filter(x=>x.means.some(m=>m.kind===k)).length,cc=k=>NEEDS.filter(x=>cover(x)===k).length;
+  document.getElementById("layers").innerHTML=`<div class="lh"><b>Filtres</b><button data-close-layers="1" aria-label="Fermer les filtres" title="Fermer">×</button></div><div><h3>Couloirs</h3>${cb("l-meta",L.meta,"Niveau méta (Factory, Cockpit)")}${cb("l-prod",L.prod,"Besoins de production",CHAINS.length+" chaînes")}${cb("l-exp",L.exp,"Ce que vit l'individu")}${cb("l-graph",L.graph,"Sorties & retours",EXITS.length)}${cb("l-mach",L.mach,"Besoins de conversion")}${cb("l-sup",L.sup,"Fonctions support",DOMAINS.length+" domaines")}${cb("l-found",L.found,"Mémoire & orchestration")}${cb("l-tools",L.tools,"Outils & données",TOOLS.length)}</div>
+  <div><h3>Liens</h3>${cb("e-hand",E.hand,`<span class="sw" style="border-color:var(--gold)"></span>Passages de relais`,HAND.length)}${cb("e-short",E.short,`<span class="sw" style="border-color:var(--gold);border-top-style:dotted"></span>Raccourcis`,SHORTS.length)}${cb("e-loops",E.loops,`<span class="sw" style="border-color:var(--loop);border-top-style:dashed"></span>Boucles de feedback`,LOOPS.length)}${V.lens!=="need"?cb("e-esc",E.esc,`<span class="sw" style="border-color:var(--esc);border-top-style:dotted"></span>Escalades vers un humain`):""}</div>
+  <div><h3>Couverture du besoin</h3>${Object.keys(COVER).map(k=>cb("c-"+k,V.cov[k],`<span class="dot d-${k}"></span>${COVER[k]}`,cc(k))).join("")}</div>
+  <div><h3>Besoins servis par</h3>${["agent","human","system"].map(k=>cb("k-"+k,V.kinds[k],KIND[k],kc(k))).join("")}</div>
+  <div class="edit-only"><h3>Ajouter</h3><div class="btnrow"><button class="btn add" data-lact="add-need">Un besoin</button><button class="btn add" data-lact="add-tool">Un outil</button></div></div>
+  <div><h3>Aller à</h3><div class="nav">${ACTS.map(a=>`<button data-act="${a.from}-${a.to}"><span>${a.name}</span><small>${a.k}</small></button>`).join("")}<button data-lane="prod"><span>Production</span><small>Couloir 1</small></button><button data-lane="sup"><span>Fonctions support</span><small>Couloir 4</small></button><button data-lane="meta"><span>Factory & Cockpit</span><small>Méta</small></button><button data-lane="tools"><span>Outils & données</span><small>Fondations</small></button></div></div>
+  <div class="hint">Cliquer un élément pour le modifier : tout le modèle s'édite depuis le panneau, y compris ajouter ou supprimer besoins, états, relais, moyens et outils. Glisser pour se déplacer, <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + molette ou pincer pour zoomer. <kbd>F</kbd> ouvre ou ferme cette fenêtre.</div>`;updFilterBtn()}
+function updFilterBtn(){const el=document.getElementById("f-cnt");if(!el)return;const n=[...Object.values(V.lanes),...Object.entries(V.edges).filter(([k])=>k!=="esc").map(([,v])=>v),...Object.values(V.kinds),...Object.values(V.cov)].filter(v=>!v).length+(V.gaps?1:0)+(V.ill?1:0);el.textContent=n?` · ${n} actif${n>1?"s":""}`:""}
+function syncTop(){const tb=document.querySelector(".topbar");if(tb)document.documentElement.style.setProperty("--top",(tb.offsetHeight+4)+"px")}
+
+/* =================== PANNEAU D'ÉDITION =================== */
+const link=(id,em)=>{const x=byId[id];if(!x)return"";return `<button data-jump="${id}"><span class="code">${id}</span><span>${esc(x.title||x.name||x.mission||x.asset||id)}</span>${em?`<em>${esc(em)}</em>`:""}</button>`};
+const statusSeg=cur=>`<div class="seg">${Object.keys(STATUS).map(k=>`<button data-act="status" data-v="${k}" aria-pressed="${cur===k}"><span class="dot d-${k}"></span>${STATUS[k]}</button>`).join("")}</div>`;
+const notes=id=>`<div class="field"><label for="p-note">Notes</label><textarea id="p-note" data-note="1" placeholder="Ce qui manque, décision, prochaine étape…">${esc(O(id).note||"")}</textarea></div>`;
+const tf=(f,label,v,opt)=>{opt=opt||{};const empty=!String(v||"").trim();return `<div class="field"><label class="${opt.req&&empty?"req":""}" for="f-${f}">${label}</label>${opt.area?`<textarea id="f-${f}" data-${opt.attr||"f"}="${f}" class="${opt.req&&empty?"empty":""}" placeholder="${esc(opt.ph||"À définir")}">${esc(v)}</textarea>`:`<input type="text" id="f-${f}" data-${opt.attr||"f"}="${f}" class="${opt.big?"big ":""}${opt.req&&empty?"empty":""}" value="${esc(v)}" placeholder="${esc(opt.ph||"À définir")}">`}</div>`};
+const delBtn=(act,label,arg)=>`<button class="btn del edit-only" data-act="${act}"${arg!=null?` data-arg="${esc(arg)}"`:""}>${label}</button>`;
+function placeOptions(n){const cur=n.chain?"c:"+n.chain:n.dom?"d:"+n.dom:n.meta?"m:"+n.meta:"t:"+(n.t[0]||"");
+  const o=(v,l)=>`<option value="${v}"${v===cur?" selected":""}>${esc(l)}</option>`;
+  return `<optgroup label="Cellules de conversion">${TRANS.map(t=>o("t:"+t.id,t.id+" · "+t.mission)).join("")}</optgroup><optgroup label="Chaînes de production">${CHAINS.map(c=>o("c:"+c.id,c.id+" · "+c.name)).join("")}</optgroup><optgroup label="Niveau méta">${o("m:FX","Factory")}${o("m:CK","Cockpit")}</optgroup><optgroup label="Fonctions support">${DOMAINS.map(d=>o("d:"+d.id,d.id+" · "+d.name)).join("")}</optgroup>`}
+function meansBlock(n,m,i){const et=escTarget(n,m);const lvl=(which,cur)=>`<div class="seg lv">${[0,1,2,3,4].map(v=>`<button data-act="mauto" data-i="${i}" data-w="${which}" data-v="${v}" aria-pressed="${cur===v}" title="${AUTO[v]}">${v}</button>`).join("")}</div>`;
+  return `<div class="mblock"><div class="mh"><span>Moyen ${i+1} · ${KIND[m.kind]}</span>${delBtn("del-means","Retirer",i)}</div>
+  <div class="field"><label for="mn-${i}">Nom</label><input type="text" id="mn-${i}" data-mi="${i}" data-mk="name" value="${esc(m.name)}" placeholder="Nom du moyen"></div>
+  <div class="field"><label for="mk-${i}">Type</label><select id="mk-${i}" data-mi="${i}" data-mk="kind">${Object.keys(KIND).map(k=>`<option value="${k}"${k===m.kind?" selected":""}>${KIND[k]}</option>`).join("")}</select></div>
+  ${m.note?`<p class="muted">${esc(m.note)}</p>`:""}
+  <div class="field"><span class="flabel">Statut</span><div class="seg">${Object.keys(STATUS).map(k=>`<button data-act="mstatus" data-i="${i}" data-v="${k}" aria-pressed="${m.status===k}"><span class="dot d-${k}"></span>${STATUS[k]}</button>`).join("")}</div></div>
+  ${m.kind!=="human"?`<div class="auto"><span class="flabel">Autonomie aujourd'hui · ${AUTO[m.now]}</span>${lvl("now",m.now)}<span class="flabel">Autonomie cible · ${AUTO[m.target]}</span>${lvl("target",m.target)}</div>`:""}
+  <div class="field"><label class="${m.owner?"":"req"}" for="mo-${i}">Responsable</label><input type="text" id="mo-${i}" data-mi="${i}" data-mk="owner" class="${m.owner?"":"empty"}" value="${esc(m.owner)}" placeholder="À attribuer"></div>
+  <div class="field"><label class="${m.esc?"":"req"}" for="me-${i}">Escalade vers</label><input type="text" id="me-${i}" data-mi="${i}" data-mk="esc" class="${m.esc?"":"empty"}" value="${esc(m.esc)}" placeholder="Id d'un besoin, ex. B23"></div>
+  ${et?`<div class="links">${link(et,"escalade")}</div>`:""}
+  <div class="field"><span class="flabel">Outils utilisés</span><div class="toggles">${TOOLS.map(t=>`<button data-act="mtool" data-i="${i}" data-v="${t.id}" aria-pressed="${m.tools.includes(t.id)}" title="${esc(t.role)}">${esc(t.name)}</button>`).join("")}</div></div>
+  ${m.kind==="agent"?`<div class="spec"><span class="flabel">Fiche agent · ${specN(m)}/5${specN(m)<5?" · incomplète":""}</span>${SPEC.map(([k,l])=>{const v=m.spec[k]||"";return `<div class="field"><label class="${v?"":"req"}" for="ms-${i}-${k}">${l}</label><textarea id="ms-${i}-${k}" data-mi="${i}" data-sk="${k}" class="${v?"":"empty"}" placeholder="À définir">${esc(v)}</textarea></div>`}).join("")}</div>`:""}
+  </div>`}
+function relList(list,dir){return list.map(e=>{const other=dir==="in"?e.from:e.to;return `<div class="lrow">${link(other,e.ev+(e.cond?" · si "+e.cond.toLowerCase():""))}<button class="x edit-only" data-act="del-relais" data-arg="${e.id}" title="Supprimer ce relais" aria-label="Supprimer ce relais">×</button></div>`}).join("")}
+function openPanel(id,quiet){const x=byId[id];if(!x)return;V.sel=id;let h="";
+  const foot=`<div class="p-foot"><span>${SHARED?(CANW?"Modifications partagées avec l'équipe.":"Lecture seule : vos droits ne permettent pas de modifier."):"Modifications enregistrées dans ce navigateur."}</span>${over[id]&&!over[id].added&&CANW?'<button class="btn edit-only" data-act="reset">Rétablir le modèle d\'origine</button>':""}</div>`;
+  const head=(k,ctx)=>`<div class="meta"><span>${id} · ${k}</span><button class="close" data-act="close">Fermer</button></div>${ctx?`<div class="ctx">${esc(ctx)}</div>`:""}`;
+  if(x._k==="need"){const n=x,cs=cover(n),ins=HAND.filter(e=>e.to===id),outs=HAND.filter(e=>e.from===id);
+    h=head("Besoin",n.misplaced?"À replacer : sa cellule a été supprimée":"")+tf("title","Besoin",n.title,{big:1,ph:"Verbe + résultat"})+tf("why","Pourquoi",n.why,{area:1,ph:"Ce que ce besoin rend possible"})+
+    `<div><span class="pill"><span class="dot d-${cs}"></span>${COVER[cs]}</span></div>
+    <div class="field"><label for="f-place">Où se situe ce besoin</label><select id="f-place" data-place="1">${placeOptions(n)}</select></div>
+    ${placeOf(n)==="mach"?tf("t2","Sert aussi les cellules",n.t.slice(1).join(", "),{attr:"fl",ph:"ex. T05, T06"}):""}
+    ${tf("kr","Objectifs liés",n.kr.join(", "),{attr:"fl",ph:"ex. KR 1.3, PMF"})}
+    <div class="contract"><span class="flabel">Contrat du besoin · ${contractN(n)}/5${contractN(n)<5?" · mal défini":""}</span>${NFIELDS.map(([k,l])=>tf(k,l,n.c[k],{attr:"c",req:1})).join("")}</div>
+    <div class="field"><span class="flabel">Mémoire lue</span><div class="toggles">${MEM.map(m=>`<button data-act="mem" data-w="r" data-v="${m.id}" aria-pressed="${n.r.includes(m.id)}">${esc(m.name)}</button>`).join("")}</div></div>
+    <div class="field"><span class="flabel">Mémoire écrite</span><div class="toggles">${MEM.map(m=>`<button data-act="mem" data-w="w" data-v="${m.id}" aria-pressed="${n.w.includes(m.id)}">${esc(m.name)}</button>`).join("")}</div></div>
+    ${tf("rel","Soutient",n.rel.join(", "),{attr:"fl",ph:"Ids de besoins, cellules ou outils"})}
+    ${tf("deps","Dépend aussi de",n.deps.join(", "),{attr:"fl",ph:"Ids à construire avant celui-ci"})}
+    <div><span class="flabel">Reçoit le relais de</span><div class="links">${relList(ins,"in")||'<p class="muted">Aucun relais entrant.</p>'}</div></div>
+    <div><span class="flabel">Passe le relais à</span><div class="links">${relList(outs,"out")||'<p class="muted">Aucun relais sortant.</p>'}</div></div>
+    <div class="addform edit-only"><span class="flabel">Ajouter un relais sortant</span><div class="field"><label for="nr-to">Vers le besoin</label><select id="nr-to">${NEEDS.filter(m=>m.id!==id).map(m=>`<option value="${m.id}">${m.id} · ${esc(m.title)}</option>`).join("")}</select></div>
+      <div class="field"><label for="nr-ev">Événement</label><input type="text" id="nr-ev" placeholder="ex. lead_qualifie"></div><div class="field"><label for="nr-data">Donnée transmise</label><input type="text" id="nr-data" placeholder="ex. Score, dossier"></div><div class="field"><label for="nr-cond">Condition (facultatif)</label><input type="text" id="nr-cond" placeholder="ex. Score au-dessus du seuil"></div><button class="btn add" data-act="add-relais">Ajouter le relais</button></div>
+    ${n.t.length&&placeOf(n)==="mach"?`<div><span class="flabel">Cellules servies</span><div class="links">${n.t.map((t,i)=>link(t,i?"":"principale")).join("")}</div></div>`:""}
+    <h3>Moyens · ${n.means.length}</h3>${n.means.map((m,i)=>meansBlock(n,m,i)).join("")||'<p class="muted">Aucun moyen : ce besoin n\'est pas couvert.</p>'}
+    <div class="btnrow edit-only"><button class="btn add" data-act="add-means" data-arg="agent">+ Agent IA</button><button class="btn add" data-act="add-means" data-arg="human">+ Humain</button><button class="btn add" data-act="add-means" data-arg="system">+ Système</button></div>
+    ${notes(id)}<div class="btnrow edit-only">${delBtn("del-need","Supprimer ce besoin")}</div>`}
+  else if(x._k==="trans"){const t=x,c=checks(t),sy=serves(t),from=STATES[t.n-1],to=STATES[t.n];
+    h=head("Cellule de transition",`${from.name} → ${to.name}`)+tf("mission","Mission",t.mission,{big:1})+
+    `<div class="field"><label for="f-pole">Pôle</label><select id="f-pole" data-sf="pole">${POLES.map(p=>`<option${p===t.pole?" selected":""}>${p}</option>`).join("")}</select></div>`+
+    tf("inter","Ce que vit l'individu (une interaction par ligne)",t.inter.join("\n"),{area:1,attr:"fa"})+tf("rate","Définition du taux",t.rate)+
+    `<dl class="kv"><dt>Entrée</dt><dd>${esc(from.name)} : ${esc(from.signal)}</dd><dt>Sortie</dt><dd>${esc(to.name)} : ${esc(to.signal)}</dd></dl>
+    <div><span class="flabel">Les 4 mesures · ${c.mn}/4</span><div class="mgrid">${MEAS.map(([k,l])=>`<div class="field"><label for="m-${k}">${l}</label><input type="text" id="m-${k}" data-m="${k}" class="${mv(t,k)?"":"empty"}" value="${esc(mv(t,k))}" placeholder="Valeur"><small>${esc(measDef(t,k))}</small></div>`).join("")}</div></div>
+    <div class="field"><span class="flabel">Complétude</span><label class="tick"><input type="checkbox" disabled ${c.sy?"checked":""}>Au moins un besoin couvert</label><label class="tick"><input type="checkbox" id="p-sigok" ${c.sg?"checked":""}>Signal de sortie validé</label><label class="tick"><input type="checkbox" disabled ${c.mn===4?"checked":""}>4 mesures renseignées</label></div>
+    <div><span class="flabel">Besoins de conversion · ${sy.length}</span><div class="links">${sy.map(s2=>link(s2.id,COVER[cover(s2)])).join("")||'<p class="muted">Aucun : la cellule repose sur ses actifs.</p>'}</div></div>
+    <div class="btnrow edit-only"><button class="btn add" data-act="add-need-here">Ajouter un besoin à cette cellule</button></div>
+    ${t.cons.length?`<div><span class="flabel">Actifs consommés</span><div class="links">${t.cons.map(c2=>link(c2,STATUS[byId[c2].status])).join("")}</div></div>`:""}
+    ${EXITS.filter(z=>z.from.includes(t.id)).length?`<div><span class="flabel">Sorties possibles</span><div class="links">${EXITS.filter(z=>z.from.includes(t.id)).map(z=>link(z.id,z.ret?"retour vers "+byId[z.ret].name:"définitive")).join("")}</div></div>`:""}
+    ${LOOPS.filter(l=>l.from===id||l.to===id).length?`<div><span class="flabel">Boucles</span><div class="links">${LOOPS.filter(l=>l.from===id||l.to===id).map(l=>link(l.from===id?l.to:l.from,l.label)).join("")}</div></div>`:""}${notes(id)}`}
+  else if(x._k==="state"){const i=STATES.indexOf(x);
+    h=head("État de l'individu","")+tf("name","Nom de l'état",x.name,{big:1})+tf("sub","Ce qu'il vit",x.sub)+tf("signal","Signal observable",x.signal,{req:1})+
+    `<label class="tick"><input type="checkbox" id="p-stsig" ${O(x.id).signalOk?"checked":""}>Signal validé par l'équipe</label>`+tf("event","Événement émis",x.event,{ph:"ex. opt_in"})+
+    `<div><span class="flabel">Chemins</span><div class="links">${TRANS[i-1]?link(TRANS[i-1].id,"pour y arriver"):""}${TRANS[i]?link(TRANS[i].id,"pour en sortir"):""}${SHORTS.filter(c=>c.from===id||c.to===id).map(c=>link(c.from===id?c.to:c.from,c.label)).join("")}${EXITS.filter(z=>z.ret===id).map(z=>link(z.id,"retour depuis cette sortie")).join("")}</div></div>
+    <div class="btnrow edit-only"><button class="btn add" data-act="add-state">Ajouter un état après celui-ci</button>${i>0&&STATES.length>2?delBtn("del-state","Supprimer cet état"):""}</div>
+    ${i>0?'<p class="muted edit-only">Supprimer un état supprime aussi sa cellule d\'entrée. Ses besoins passent à la cellule suivante.</p>':""}${notes(id)}`}
+  else if(x._k==="chain"){const list=chainNeeds(x).sort((a,b)=>depth[a.id]-depth[b.id]);
+    h=head("Chaîne de production",x.name)+`<h2>${esc(x.asset)}</h2><p>${esc(x.desc)}</p><div class="field"><span class="flabel">Statut de l'actif</span>${statusSeg(x.status)}</div>
+    <div><span class="flabel">Besoins de la chaîne</span><div class="links">${list.map(s2=>link(s2.id,COVER[cover(s2)])).join("")}</div></div><div class="btnrow edit-only"><button class="btn add" data-act="add-need-here">Ajouter une étape à cette chaîne</button></div><div><span class="flabel">Alimente</span><div class="links">${x.feeds.map(f=>link(f)).join("")}</div></div>${notes(id)}`}
+  else if(x._k==="dom"){const list=NEEDS.filter(n=>n.dom===id);
+    h=head("Fonction support","")+`<h2>${esc(x.name)}</h2><p>${esc(x.desc)}</p><div><span class="flabel">Besoins · ${list.length}</span><div class="links">${list.map(s2=>link(s2.id,COVER[cover(s2)])).join("")}</div></div><div class="btnrow edit-only"><button class="btn add" data-act="add-need-here">Ajouter un besoin à ce domaine</button></div>${notes(id)}`}
+  else if(x._k==="exit"){h=head("État de sortie","Hors de la ligne")+`<h2>${esc(x.name)}</h2><p>${esc(x.desc)}</p>`+tf("signal","Signal observable",x.signal)+
+    `<div><span class="flabel">Arrive depuis</span><div class="links">${x.from.map(f=>link(f)).join("")}</div></div><div><span class="flabel">${x.ret?"Retour vers "+esc(byId[x.ret].name)+" grâce à":"Traité par"}</span><div class="links">${x.via.map(v=>link(v,COVER[cover(byId[v])])).join("")}${x.ret?link(x.ret,"état de retour"):""}</div></div>${notes(id)}`}
+  else if(x._k==="tool"){const users=toolUsers(x),hosted=[...MEM,ORCH].filter(m=>m.host===id);
+    h=head("Outil",x.cat)+tf("name","Nom",x.name,{big:1})+tf("cat","Catégorie",x.cat)+tf("role","Rôle",x.role,{area:1})+`<div class="field"><span class="flabel">Statut</span>${statusSeg(x.status)}</div>`+tf("owner","Responsable",x.owner,{req:1,ph:"À attribuer"})+tf("holds","Données qu'il détient",x.holds,{area:1})+
+    `${hosted.length?`<div><span class="flabel">Héberge</span><div class="links">${hosted.map(m=>link(m.id,STATUS[m.status])).join("")}</div></div>`:""}
+    <div><span class="flabel">Utilisé par · ${users.length}</span><div class="links">${users.map(n=>link(n.id,COVER[cover(n)])).join("")||'<p class="muted">Aucun besoin ne l\'utilise.</p>'}</div></div>${notes(id)}<div class="btnrow edit-only">${delBtn("del-tool","Supprimer cet outil")}</div>`}
+  else{const users=NEEDS.filter(s2=>s2.r.includes(id)||s2.w.includes(id));
+    h=head("Fondation","Mémoire & orchestration")+`<h2>${esc(x.name)}</h2>`+tf("desc","Rôle",x.desc,{area:1})+`<div class="field"><span class="flabel">Statut</span>${statusSeg(x.status)}</div>
+    <div class="field"><label for="f-host">Outil qui l'héberge</label><select id="f-host" data-sf="host"><option value="">À décider</option>${TOOLS.map(t=>`<option value="${t.id}"${t.id===x.host?" selected":""}>${esc(t.name)}</option>`).join("")}</select></div>
+    ${x._k==="mem"?tf("fields","Schéma : champs (un par ligne)",x.fields,{area:1,ph:"Un champ par ligne"}):""}
+    ${users.length?`<div><span class="flabel">Besoins branchés · ${users.length}</span><div class="links">${users.map(s2=>link(s2.id,(s2.r.includes(id)?"L":"")+(s2.w.includes(id)?(s2.r.includes(id)?" · É":"É"):""))).join("")}</div></div>`:x._k==="orch"?`<div><span class="flabel">Événements à router</span><p style="font:12px/1.7 var(--f-mono);color:var(--muted)">${STATES.map(e=>e.event).concat(HAND.map(e=>e.ev)).filter((v,i,a)=>v&&a.indexOf(v)===i).join(" · ")}</p></div>`:""}${notes(id)}`}
+  h+=foot;const keep=quiet?panel.scrollTop:0;panel.innerHTML=h;panel.classList.toggle("ro",SHARED&&!CANW);panel.hidden=false;panel.scrollTop=keep;document.body.classList.add("panel-open");renderEdges();markSel()}
+function closePanel(){V.sel=null;panel.hidden=true;document.body.classList.remove("panel-open");renderEdges();markSel()}
+
+/* ---- actions structurelles ---- */
+const nextNum=(prefix,list)=>{let n=0;list.forEach(x=>{const m=String(x).match(new RegExp("^"+prefix+"(\\d+)$"));if(m)n=Math.max(n,+m[1])});return n+1};
+function newNeedId(){const ids=[...NEEDS_B.map(n=>n.id),...Object.keys(over)];return "B"+nextNum("B",ids)}
+function addNeed(place){beginGroup("Ajouter un besoin");const id=newNeedId();put(id,Object.assign({added:"need",title:"Nouveau besoin",why:"",t:[],chain:"",meta:"",dom:"",r:[],w:[],kr:[],rel:[],deps:[],c:{},means:[]},place));refresh();jump(id)}
+function setMeans(n,fn){rebuild();const cur=byId[n.id]||n;const arr=clone(cur.means);fn(arr);setO(["means"],arr,n.id)}
+function deleteState(st0){st0=byId[st0.id]||st0;const i=STATES.indexOf(st0);if(i<=0)return;const tid=st0.tid;const rep=(TRANS[i]&&TRANS[i].id)||(TRANS[i-2]&&TRANS[i-2].id)||"";
+  NEEDS.forEach(n=>{if(n.t.includes(tid)){const t=n.t.map(x=>x===tid?rep:x).filter((v,k,a)=>v&&a.indexOf(v)===k);setO(["t"],t,n.id)}});
+  if(over[st0.id]&&over[st0.id].added==="state")dropO(st0.id);else put(st0.id,{deleted:true});
+  put("__order",{states:STATES.map(s=>s.id).filter(x=>x!==st0.id)})}
+function addStateAfter(st0){st0=byId[st0.id]||st0;const i=STATES.indexOf(st0);const sfx=Date.now().toString(36).slice(-5);const sid="E"+sfx,tid="T"+sfx;const next=TRANS[i]||TRANS[i-1];
+  put(sid,{added:"state",name:"Nouvel état",sub:"",signal:"",event:"",tid,trans:{mission:"Nouvelle transition",pole:next?next.pole:"Delivery",inter:[],rate:""}});
+  const ord=STATES.map(s=>s.id);ord.splice(i+1,0,sid);put("__order",{states:ord});return sid}
+const LABELS={status:"Changer le statut",mstatus:"Changer le statut d'un moyen",mauto:"Changer l'autonomie",mtool:"Changer les outils d'un moyen",mem:"Changer la mémoire","add-means":"Ajouter un moyen","add-relais":"Ajouter un relais","add-state":"Ajouter un état"};
+const nmOf=x=>x?(x.title||x.name||x.mission||x.id):"";
+function confirmDel(o,label,msg,fn){askConfirm(o).then(ok=>{if(!ok)return;rebuild();beginGroup(label);fn();toast(msg,true)})}
+panel.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;rebuild();const id=V.sel,x=byId[id];
+  if(b.dataset.jump)return jump(b.dataset.jump);
+  const a=b.dataset.act;if(!a)return;if(a==="close")return closePanel();if(!CANW&&SHARED)return;
+  if(a==="reset")return confirmDel({title:`Rétablir « ${nmOf(x)} » ?`,body:"Cet élément revient tel qu'il était dans le modèle d'origine. Les modifications faites dessus seront perdues.",ok:"Rétablir"},"Rétablir "+id,"Élément rétabli.",()=>{dropO(id);refresh();openPanel(id)});
+  if(a==="del-means"&&x){const m=x.means[+b.dataset.arg];return confirmDel({title:"Retirer ce moyen ?",body:`« ${(m&&m.name)||"Sans nom"} » ne répondra plus au besoin « ${x.title} ».`,ok:"Retirer"},"Retirer un moyen de "+id,"Moyen retiré.",()=>{setMeans(x,arr=>arr.splice(+b.dataset.arg,1));refresh();openPanel(id,true)})}
+  if(a==="del-relais"){const r=HAND.find(h=>h.id===b.dataset.arg);if(!r)return;return confirmDel({title:"Supprimer ce relais ?",body:`Le relais « ${r.ev} » de ${r.from} vers ${r.to} sera supprimé.`},"Supprimer un relais","Relais supprimé.",()=>{if(over[r.id]&&over[r.id].added)dropO(r.id);else put(r.id,{deleted:true});refresh();openPanel(id,true)})}
+  if(a==="del-need"&&x){const nr=HAND.filter(h=>h.from===id||h.to===id).length;return confirmDel({title:"Supprimer ce besoin ?",body:`« ${x.title} » sera supprimé, avec ${pl(x.means.length,"moyen","moyens")} et ${pl(nr,"relais","relais")}.`},"Supprimer le besoin "+id,"Besoin supprimé.",()=>{if(over[id]&&over[id].added)dropO(id);else put(id,{deleted:true});closePanel();refresh()})}
+  if(a==="del-state"&&x){const i=STATES.indexOf(x),k=NEEDS.filter(n=>n.t.includes(x.tid)).length;return confirmDel({title:`Supprimer l'état « ${x.name} » ?`,body:`Sa cellule d'entrée ${x.tid} disparaît aussi.${k?` ${k>1?"Ses "+k+" besoins passent":"Son besoin passe"} à la cellule ${STATES[i+1]?"suivante":"précédente"}.`:""}`},"Supprimer l'état « "+x.name+" »","État supprimé.",()=>{deleteState(x);closePanel();refresh()})}
+  if(a==="del-tool"&&x){const k=toolUsers(x).length;return confirmDel({title:`Supprimer l'outil « ${x.name} » ?`,body:k?`Il sera retiré des ${pl(k,"besoin qui l'utilise","besoins qui l'utilisent")}.`:"Aucun besoin ne l'utilise."},"Supprimer l'outil « "+x.name+" »","Outil supprimé.",()=>{if(over[id]&&over[id].added)dropO(id);else put(id,{deleted:true});closePanel();refresh()})}
+  beginGroup((LABELS[a]||"Modifier")+(x?" · "+id:""));
+  if(a==="status"){setO(["status"],b.dataset.v);refresh();return openPanel(id,true)}
+  if(x&&x._k==="need"){
+    if(a==="mstatus")setMeans(x,arr=>arr[+b.dataset.i].status=b.dataset.v);
+    else if(a==="mauto")setMeans(x,arr=>arr[+b.dataset.i][b.dataset.w]=+b.dataset.v);
+    else if(a==="mtool")setMeans(x,arr=>{const m=arr[+b.dataset.i];const t=b.dataset.v;m.tools=m.tools.includes(t)?m.tools.filter(z=>z!==t):[...m.tools,t]});
+    else if(a==="mem"){const w=b.dataset.w,v=b.dataset.v;setO([w],x[w].includes(v)?x[w].filter(z=>z!==v):[...x[w],v])}
+    else if(a==="add-means")setMeans(x,arr=>arr.push({kind:b.dataset.arg,name:b.dataset.arg==="agent"?"Nouvel agent":b.dataset.arg==="human"?"Nouveau rôle":"Nouveau système",status:"missing",now:0,target:3,owner:"",tools:[],esc:"",note:"",spec:{}}));
+    else if(a==="add-relais"){const to=panel.querySelector("#nr-to").value,ev=panel.querySelector("#nr-ev").value.trim()||"nouvel_evenement";const rid="R"+Date.now().toString(36);
+      put(rid,{added:"relais",from:id,to,ev,data:panel.querySelector("#nr-data").value.trim(),cond:panel.querySelector("#nr-cond").value.trim()})}
+    refresh();return openPanel(id,true)}
+  if(a==="add-need-here"&&x){const p=x._k==="trans"?{t:[x.id]}:x._k==="chain"?{chain:x.id}:x._k==="dom"?{dom:x.id}:{meta:"CK"};return addNeed(p)}
+  if(a==="add-state"&&x){const sid=addStateAfter(x);refresh();return jump(sid)}
+});
+let rt=null;const soft=()=>{clearTimeout(rt);rt=setTimeout(()=>{rebuild();layout();render();markSel()},450)};
+const parseList=v=>String(v||"").split(/[,;\n]/).map(z=>z.trim()).filter(Boolean);
+panel.addEventListener("input",e=>{rebuild();const t=e.target,id=V.sel,x=byId[id];if(!x||(SHARED&&!CANW))return;
+  const fk=t.dataset.f||t.dataset.fa||t.dataset.fl||t.dataset.c||t.dataset.m||(t.dataset.mi!==undefined?"m"+t.dataset.mi+(t.dataset.mk||t.dataset.sk):"")||(t.dataset.note?"note":"");groupFor(id+":"+fk,"Modifier "+nmOf(x));
+  if(t.dataset.note){setO(["note"],t.value);return}
+  if(t.dataset.f){setO([t.dataset.f],t.value);t.classList.toggle("empty",!t.value);return soft()}
+  if(t.dataset.fa){setO([t.dataset.fa],t.value.split("\n").map(z=>z.trim()).filter(Boolean));return soft()}
+  if(t.dataset.fl){const f=t.dataset.fl,l=parseList(t.value);if(f==="t2")setO(["t"],[x.t[0],...l.filter(z=>byId[z]&&byId[z]._k==="trans"&&z!==x.t[0])]);else setO([f],l);return soft()}
+  if(t.dataset.c){setO(["c",t.dataset.c],t.value);t.classList.toggle("empty",!t.value);return soft()}
+  if(t.dataset.m){setO(["m",t.dataset.m],t.value.trim());t.classList.toggle("empty",!t.value);return soft()}
+  if(t.dataset.mi!==undefined&&t.tagName!=="SELECT"){const i=+t.dataset.mi;if(t.dataset.mk)setMeans(x,arr=>arr[i][t.dataset.mk]=t.dataset.mk==="esc"?t.value.trim():t.value);if(t.dataset.sk)setMeans(x,arr=>{arr[i].spec=arr[i].spec||{};arr[i].spec[t.dataset.sk]=t.value});t.classList.toggle("empty",!t.value);return soft()}});
+panel.addEventListener("change",e=>{rebuild();const t=e.target,id=V.sel,x=byId[id];if(!x||(SHARED&&!CANW))return;
+  if(t.type==="text"||t.tagName==="TEXTAREA")return;beginGroup("Modifier "+nmOf(x));
+  if(t.id==="p-sigok"){setO(["signalOk"],t.checked,STATES[x.n].id);refresh();return}
+  if(t.id==="p-stsig"){setO(["signalOk"],t.checked);refresh();return}
+  if(t.dataset.sf){setO([t.dataset.sf],t.value);refresh();return openPanel(id,true)}
+  if(t.dataset.place){const [k,v]=t.value.split(":");const o={t:[],chain:"",meta:"",dom:""};if(k==="t")o.t=[v,...x.t.slice(1).filter(z=>z!==v)];if(k==="c")o.chain=v;if(k==="m")o.meta=v;if(k==="d")o.dom=v;setMany(id,o);refresh();openPanel(id,true);return jump(id)}
+  if(t.dataset.mi!==undefined&&t.dataset.mk==="kind"){setMeans(x,arr=>{const m=arr[+t.dataset.mi];m.kind=t.value;if(t.value==="human"){m.now=null;m.target=null}else{if(m.now==null)m.now=0;if(m.target==null)m.target=3}});refresh();return openPanel(id,true)}});
+function jump(id){if(!byId[id])return;openPanel(id);const p=G.pos[id];if(p)flyTo(p.x+Math.min(p.w,600)/2,p.y+p.h/2,Math.max(s,.75))}
+
+/* =================== VUE MODÈLE =================== */
+const model=document.getElementById("model");
+function renderModel(){const nm=id=>byId[id]?esc(byId[id].title||byId[id].name||byId[id].mission):esc(id);
+  const where=x=>x.chain?byId[x.chain].name:x.meta==="FX"?"Factory":x.meta==="CK"?"Cockpit":x.dom?byId[x.dom].name:x.t.join(" ");
+  const ag=agentMeans();const deleted=Object.keys(over).filter(k=>over[k]&&over[k].deleted);
+  model.innerHTML=`<div class="wrap">
+  <div><h2>Modèle v5</h2><p class="lead">La source de vérité derrière toutes les vues. Chaque élément de la machine est un besoin ; les moyens (agent IA, humain, système) y sont rattachés. Tout s'édite depuis le panneau du parcours, et chaque modification est partagée. Cliquer une ligne l'ouvre sur la carte.</p>
+  <div class="principles"><div><b>Le besoin est stable</b><span>« Relancer l'indécis » reste vrai, que ce soit un humain, un agent ou les deux qui le fassent.</span></div><div><b>Un besoin sans moyen est un trou</b><span>Un moyen sans besoin est un système à supprimer.</span></div><div><b>Trois contrats</b><span>Le besoin : déclencheur, entrée, sortie, métrique, évaluation. Le moyen : statut, autonomie, responsable, escalade, outils. L'agent : actions, garde-fous, tests, passage de niveau, coût.</span></div><div><b>Le manque est mécanique</b><span>Une cellule sans besoin couvert, sans signal validé ou sans ses 4 mesures est incomplète.</span></div></div>
+  ${Object.keys(over).length?`<div class="btnrow edit-only" style="margin-top:16px"><button class="btn del" data-resetall="1">Réinitialiser toute la carte · ${pl(Object.keys(over).length,"modification","modifications")}</button></div>`:""}</div>
+  <div><h2>Besoins</h2><div class="tbl"><table><thead><tr><th>Besoin</th><th>Où</th>${NFIELDS.map(([,l])=>`<th>${l}</th>`).join("")}<th>Couverture</th><th>Moyens</th></tr></thead><tbody>${NEEDS.map(x=>`<tr data-go="${x.id}"><td><span class="mono">${x.id}</span> <b>${esc(x.title)}</b>${x.kr.length?` <span class="kr">${esc(x.kr.join(" · "))}</span>`:""}</td><td class="mono">${esc(where(x))}</td>${NFIELDS.map(([k])=>{const v=x.c[k];return `<td class="${v?"":"ko"}">${v?esc(v):"À définir"}</td>`}).join("")}<td><span class="dot d-${cover(x)}"></span> ${COVER[cover(x)]}</td><td>${x.means.map(m=>esc(m.name)).join("<br>")}</td></tr>`).join("")}</tbody></table></div></div>
+  <div><h2>Moyens</h2><div class="tbl"><table><thead><tr><th>Besoin</th><th>Moyen</th><th>Type</th><th>Statut</th><th>Autonomie</th><th>Responsable</th><th>Escalade</th><th>Outils</th></tr></thead><tbody>${NEEDS.map(x=>x.means.map(m=>`<tr data-go="${x.id}"><td><span class="mono">${x.id}</span> ${esc(x.title)}</td><td><b>${esc(m.name)}</b></td><td>${KIND[m.kind]}</td><td><span class="dot d-${m.status}"></span> ${STATUS[m.status]}</td><td class="mono">${m.kind==="human"?"—":m.now+" → "+m.target}</td><td class="${m.owner?"":"ko"}">${m.owner?esc(m.owner):"À attribuer"}</td><td class="${m.esc?"":"ko"}">${m.esc?(byId[m.esc]?nm(m.esc):esc(m.esc)):"À définir"}</td><td>${m.tools.map(t=>esc(byId[t].name)).join(", ")||"—"}</td></tr>`).join("")).join("")}</tbody></table></div></div>
+  <div><h2>Fiches agents</h2><p class="lead">Ce qu'il faut pour construire chaque agent : ce qu'il a le droit de faire, ce qu'il ne doit jamais faire, comment on le teste, quand il gagne en autonomie, ce qu'il coûte. Les fiches pré-remplies sont des propositions à valider.</p><div class="tbl"><table><thead><tr><th>Agent</th><th>Autonomie</th>${SPEC.map(([,l])=>`<th>${l}</th>`).join("")}</tr></thead><tbody>${ag.map(({n,m})=>`<tr data-go="${n.id}"><td><b>${esc(m.name)}</b><br><span class="mono">${n.id} · ${esc(n.title)}</span></td><td class="mono">${m.now} → ${m.target}</td>${SPEC.map(([k])=>{const v=m.spec[k];return `<td class="${v?"":"ko"}">${v?esc(v):"À définir"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div></div>
+  <div><h2>Outils & données</h2><div class="tbl"><table><thead><tr><th>Outil</th><th>Catégorie</th><th>Rôle</th><th>Statut</th><th>Responsable</th><th>Détient</th><th>Utilisé par</th></tr></thead><tbody>${TOOLS.map(t=>`<tr data-go="${t.id}"><td><span class="mono">${t.id}</span> <b>${esc(t.name)}</b></td><td>${esc(t.cat)}</td><td>${esc(t.role)}</td><td><span class="dot d-${t.status}"></span> ${STATUS[t.status]}</td><td class="${t.owner?"":"ko"}">${t.owner?esc(t.owner):"À attribuer"}</td><td>${esc([t.holds,...[...MEM,ORCH].filter(m=>m.host===t.id).map(m=>m.name)].filter(Boolean).join(" · "))||"—"}</td><td class="mono">${toolUsers(t).map(n=>n.id).join(" ")||"—"}</td></tr>`).join("")}</tbody></table></div></div>
+  <div><h2>Fondations</h2><div class="tbl"><table><thead><tr><th>Fondation</th><th>Rôle</th><th>Hébergée dans</th><th>Schéma</th><th>Statut</th></tr></thead><tbody>${[...MEM,ORCH].map(m=>`<tr data-go="${m.id}"><td><span class="mono">${m.id}</span> <b>${esc(m.name)}</b></td><td>${esc(m.desc)}</td><td class="${m.host?"":"ko"}">${m.host?esc(byId[m.host].name):"À décider"}</td><td>${m.fields?esc(m.fields).replace(/\n/g,"<br>"):'<span class="ko">À définir</span>'}</td><td><span class="dot d-${m.status}"></span> ${STATUS[m.status]}</td></tr>`).join("")}</tbody></table></div></div>
+  <div><h2>États de l'individu</h2><div class="tbl"><table><thead><tr><th>État</th><th>Ce qu'il vit</th><th>Signal observable</th><th>Événement</th><th>Validé</th></tr></thead><tbody>${STATES.map(e=>`<tr data-go="${e.id}"><td><span class="mono">${e.id}</span> <b>${esc(e.name)}</b></td><td>${esc(e.sub)}</td><td>${esc(e.signal)}</td><td class="mono">${esc(e.event)}</td><td class="${O(e.id).signalOk?"":"ko"}">${O(e.id).signalOk?"Oui":"Non"}</td></tr>`).join("")}</tbody></table></div></div>
+  <div><h2>Cellules de transition</h2><div class="tbl"><table><thead><tr><th>Cellule</th><th>Mission</th><th>Besoins</th><th>Actifs</th>${MEAS.map(([,l])=>`<th>${l}</th>`).join("")}<th>Complète</th></tr></thead><tbody>${TRANS.map(t=>{const c=checks(t);return `<tr data-go="${t.id}"><td><span class="mono">${t.id}</span><br>${esc(t.pole)}</td><td><b>${esc(t.mission)}</b><br><span class="muted">${esc(STATES[t.n-1].name)} → ${esc(STATES[t.n].name)}</span></td><td class="mono">${serves(t).map(x=>x.id).join(" ")||"—"}</td><td class="mono">${t.cons.join(" ")||"—"}</td>${MEAS.map(([k])=>`<td class="${mv(t,k)?"":"ko"}">${esc(mv(t,k))||"—"}</td>`).join("")}<td class="${c.ok?"":"ko"}">${c.ok?"Oui":"Non"}</td></tr>`}).join("")}</tbody></table></div></div>
+  <div><h2>Passages de relais</h2><div class="tbl"><table><thead><tr><th>De</th><th>Événement</th><th>Vers</th><th>Donnée transmise</th><th>Condition</th></tr></thead><tbody>${HAND.map(e=>`<tr data-go="${e.from}"><td><span class="mono">${e.from}</span> ${nm(e.from)}</td><td class="mono">${esc(e.ev)}</td><td><span class="mono">${e.to}</span> ${nm(e.to)}</td><td>${esc(e.data)}</td><td>${esc(e.cond)||"—"}</td></tr>`).join("")}</tbody></table></div></div>
+  ${deleted.length?`<div><h2>Éléments supprimés</h2><p class="lead">Les éléments du modèle d'origine supprimés par l'équipe. Les restaurer les remet à leur place.</p><div class="tbl"><table><thead><tr><th>Élément</th><th></th></tr></thead><tbody>${deleted.map(k=>{const b=[...NEEDS_B,...STATES_B,...TOOLS_B,...HAND_B].find(z=>z.id===k);return `<tr><td><span class="mono">${k}</span> ${esc(b?(b.title||b.name||b.ev):"")}</td><td><button class="btn edit-only" data-restore="${k}">Restaurer</button></td></tr>`}).join("")}</tbody></table></div></div>`:""}
+  </div>`}
+model.addEventListener("click",e=>{
+  if(e.target.closest("[data-resetall]")){if(SHARED&&!CANW)return;const keys=Object.keys(over);return confirmDel({title:"Réinitialiser toute la carte ?",body:`${pl(keys.length,"modification de l'équipe sera effacée","modifications de l'équipe seront effacées")}. La carte reviendra au modèle d'origine.`,ok:"Réinitialiser"},"Réinitialiser la carte","Carte réinitialisée.",()=>{keys.forEach(k=>dropO(k));closePanel();refresh()})}
+  const rb=e.target.closest("[data-restore]");if(rb){if(SHARED&&!CANW)return;const k=rb.dataset.restore;beginGroup("Restaurer "+k);dropO(k);if(STATES_B.some(z=>z.id===k)&&over.__order){const ord=over.__order.states.slice();const bi=STATES_B.findIndex(z=>z.id===k);const prev=STATES_B.slice(0,bi).reverse().find(z=>ord.includes(z.id));ord.splice(prev?ord.indexOf(prev.id)+1:0,0,k);put("__order",{states:ord})}refresh();toast(k+" restauré.",true);return}
+  const r=e.target.closest("[data-go]");if(!r)return;setView("map");requestAnimationFrame(()=>jump(r.dataset.go))});
+
+/* =================== VUE ÉVÉNEMENTS (construction) =================== */
+const evPage=document.getElementById("events");
+const CLOCK=/chaque|hebdo|mensuel|mois|jour|samedi|lundi|semaine|fin de cycle|tant que/i;
+const actOf=n=>ACTS.find(q=>n>=q.from&&n<=q.to)||ACTS[0];
+function evGroup(n){if(n.chain){const i=CHAINS.findIndex(c=>c.id===n.chain);return[i,"Production · "+byId[n.chain].name]}
+  if(n.dom){const i=DOMAINS.findIndex(d=>d.id===n.dom);return[200+i,"Support · "+byId[n.dom].name]}
+  if(n.meta)return[100+(n.meta==="FX"?0:1),n.meta==="FX"?"Méta · Factory":"Méta · Cockpit"];
+  const a=actOf(byId[n.t[0]].n);return[10+ACTS.indexOf(a),a.k+" · "+a.name]}
+function hotspots(n){const h=[];if(cover(n)==="missing")h.push("Besoin non couvert");const o=meansOwnerless(n);if(o)h.push(o>1?o+" moyens sans responsable":"Moyen sans responsable");
+  n.r.concat(n.w).filter((v,i,a)=>a.indexOf(v)===i).forEach(m=>{if(byId[m].status==="missing")h.push("Dépend de « "+byId[m].name+" » (manquant)")});
+  n.means.forEach(m=>m.tools.forEach(t=>{if(byId[t].status==="missing")h.push("Outil manquant : "+byId[t].name)}));
+  if(n.means.some(m=>m.kind==="agent"&&specN(m)<5))h.push("Fiche agent incomplète");if(illDefined(n))h.push("Contrat du besoin incomplet");return h.filter((v,i,a)=>a.indexOf(v)===i)}
+const meansHTML=n=>n.means.map(m=>`<span class="es-m"><em>${KSHORT[m.kind]}</em>${esc(m.name)}${m.owner?" · "+esc(m.owner):""}</span>`).join("")||`<span>Aucun moyen</span>`;
+function renderEvents(){
+  const consumed=new Set(HAND.map(h=>h.to));
+  const rows=HAND.map(h=>({h,from:byId[h.from],to:byId[h.to],g:evGroup(byId[h.from]),hot:hotspots(byId[h.to])})).sort((a,b)=>a.g[0]-b.g[0]||depth[a.h.from]-depth[b.h.from]);
+  const groups=[];rows.forEach(r=>{let g=groups[groups.length-1];if(!g||g.label!==r.g[1]){g={label:r.g[1],rows:[]};groups.push(g)}g.rows.push(r)});
+  const evs=new Set(HAND.map(h=>h.ev)),hotN=rows.filter(r=>r.hot.length).length;
+  const orphan=NEEDS.filter(n=>!consumed.has(n.id)),clock=orphan.filter(n=>CLOCK.test(n.c.trig||"")),ext=orphan.filter(n=>!CLOCK.test(n.c.trig||""));
+  const lc=s=>s.charAt(0).toLowerCase()+s.slice(1);
+  const row=r=>{const h=r.h;return `<div class="es-row">
+   <button class="sticky s-ev" data-go="${h.from}"><small>Événement</small><b>${esc(h.ev)}</b><span>Émis par ${esc(r.from.title)}</span></button>
+   <button class="sticky s-pol" data-go="${h.to}"><small>Règle</small><b>Quand ${esc(h.ev)}${h.cond?", si "+esc(lc(h.cond)):""}</b><span>alors déclencher ${h.to}</span></button>
+   <button class="sticky s-cmd" data-go="${h.to}"><small>Besoin déclenché · ${h.to}</small><b>${esc(r.to.title)}</b><span>Sortie : ${esc(r.to.c.out||"à définir")}</span></button>
+   <button class="sticky s-act" data-go="${h.to}"><small>Moyen</small>${meansHTML(r.to)}</button>
+   <button class="sticky s-read" data-go="${h.to}"><small>Lit</small><b>${esc(h.data||"Donnée à définir")}</b><span>${r.to.r.map(m=>esc(byId[m].name)).join(" · ")||"Aucune mémoire"}</span></button>
+   ${r.hot.length?`<button class="sticky s-hot" data-go="${h.to}"><small>Point chaud · ${r.hot.length}</small>${r.hot.map(x=>`<span>${esc(x)}</span>`).join("")}</button>`:`<button class="sticky s-ready" data-go="${h.to}"><small>Prêt à construire</small><span>Besoin couvert, contrat et fiche complets, responsables nommés.</span></button>`}
+  </div>`};
+  evPage.innerHTML=`<div class="wrap">
+  <div><h2>Événements</h2><p class="lead">La vue de construction, au format Event Storming. Chaque ligne est une règle du système : quel événement se produit, quel besoin il déclenche, qui y répond, ce qu'il lit et ce qui bloque encore. Générée à partir du modèle. Cliquer une étiquette l'ouvre sur le parcours.</p>
+  <div class="es-legend"><span class="lg s-ev">Événement</span><span class="lg s-pol">Règle</span><span class="lg s-cmd">Besoin déclenché</span><span class="lg s-act">Moyen</span><span class="lg s-read">Donnée lue</span><span class="lg s-hot">Point chaud</span></div>
+  <div class="es-stats"><span class="chip"><strong>${evs.size}</strong> événements de relais</span><span class="chip"><strong>${HAND.length}</strong> règles</span><span class="chip"><strong>${hotN}</strong> règles avec point chaud</span><span class="chip"><strong>${orphan.length}</strong> besoins sans événement déclencheur</span></div>
+  ${ORCH.status==="missing"?`<div class="es-alert"><b>L'orchestrateur n'existe pas encore.</b> Aucun de ces événements n'est émis automatiquement aujourd'hui : chaque relais repose sur une action manuelle. C'est le chantier qui rend toutes ces règles réelles.</div>`:""}</div>
+  <div><h3 class="es-h">La ligne des événements d'état</h3><p class="lead">Chaque état atteint par l'individu émet un événement. Ce sont eux que le Cockpit et le simulateur mesurent.</p>
+   <div class="es-timeline">${STATES.map(e=>`<button class="sticky s-ev" data-go="${e.id}"><small>${e.id} · ${esc(e.name)}</small><b>${esc(e.event||"à définir")}</b><span>${esc(e.signal)}</span></button>`).join("")}</div></div>
+  <div><h3 class="es-h">Les règles, dans l'ordre du parcours</h3><div class="es-scroll"><div class="es-board">${groups.map(g=>`<div class="es-group"><div class="es-gl">${esc(g.label)}</div>${g.rows.map(row).join("")}</div>`).join("")}</div></div></div>
+  <div><h3 class="es-h">Besoins sans événement déclencheur</h3><p class="lead">Aucun relais ne les réveille. Soit ils tournent sur une horloge, soit ils attendent un signal extérieur, ou une règle reste à écrire.</p>
+   <div class="es-orph"><div><span class="flabel">Sur une horloge · ${clock.length}</span><div class="links">${clock.map(n=>link(n.id,n.c.trig)).join("")}</div></div><div><span class="flabel">Signal extérieur ou règle à écrire · ${ext.length}</span><div class="links">${ext.map(n=>link(n.id,n.c.trig||"déclencheur à définir")).join("")}</div></div></div></div>
+  </div>`}
+evPage.addEventListener("click",e=>{const b=e.target.closest("[data-go],[data-jump]");if(!b)return;const id=b.dataset.go||b.dataset.jump;setView("map");requestAnimationFrame(()=>jump(id))});
+
+/* =================== SIMULATEUR (pilotage) =================== */
+const simPage=document.getElementById("sim");
+const SIMKEY="skl-sim-v1";
+const SDEF={rate:{T02:8,T03:10,T04:25,T05:30,T06:15,T07:65,T08:25,T09:90,T10:70,T11:80,T12:60,T13:30},
+  delay:{T02:14,T03:7,T04:7,T05:3,T06:5,T07:4,T08:1,T09:7,T10:30,T11:60,T12:30,T13:14},
+  p:{expo:200000,price:2500,refund:5,recNS:20,recInd:15,fil:0.3,target:300000}};
+const PLAB={price:["Panier moyen","€"],refund:["Remboursements à 30 jours","%"],recNS:["No-shows récupérés (XS4)","%"],recInd:["Indécis récupérés (XS5)","%"],fil:["Filleuls par ambassadeur","nombre"],target:["Objectif de CA net mensuel","€"]};
+let SIM={rate:{},delay:{},p:{}};try{const x=JSON.parse(localStorage.getItem(SIMKEY)||"null");if(x&&x.rate&&x.delay&&x.p)SIM=x}catch(e){}
+const saveSim=()=>{try{localStorage.setItem(SIMKEY,JSON.stringify(SIM))}catch(e){}};
+const num=v=>{const m=String(v==null?"":v).replace(/\s/g,"").replace(",",".").match(/-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null};
+function measured(kind,k){if(kind==="rate"&&byId[k])return num(mv(byId[k],"taux"));if(kind==="delay"&&byId[k])return num(mv(byId[k],"delai"));if(kind==="p"&&k==="expo"&&TRANS[1])return num(mv(TRANS[1],"volume"));return null}
+const src=(kind,k)=>SIM[kind][k]!=null?"scenario":(measured(kind,k)!=null?"mesure":"hypothese");
+function val(kind,k){const o=SIM[kind][k];if(o!=null)return o;const m=measured(kind,k);if(m!=null)return m;const d=SDEF[kind][k];return d!=null?d:(kind==="rate"?50:7)}
+const SRC_L={scenario:"Scénario",mesure:"Mesuré",hypothese:"Hypothèse"};
+function simCtx(){const idx=ev=>STATES.findIndex(e=>e.event===ev);const x4=EXITS.find(x=>x.id==="XS4"),x5=EXITS.find(x=>x.id==="XS5"),sc=SHORTS.find(c=>c.id==="SC3");
+  return{iOpt:idx("opt_in"),iPay:idx("paiement"),iB:idx("objectif_b"),tNS:x4&&x4.anchor,tInd:x5&&x5.anchor,lf:sc?STATES.findIndex(e=>e.id===sc.from):-1,lt:sc?STATES.findIndex(e=>e.id===sc.to):-1}}
+function simulate(ov){const C=simCtx();const pick2=(kind,k)=>ov&&ov[kind]&&ov[kind][k]!=null?ov[kind][k]:val(kind,k);
+  const R=k=>Math.min(100,Math.max(0,pick2("rate",k)))/100,P=k=>Math.max(0,pick2("p",k));const W=52/12;const f={};
+  if(STATES.length<2)return{f,W,clientsM:0,netM:0,ref:0,C};
+  f[STATES[1].id]=P("expo");
+  for(let i=2;i<STATES.length;i++){const t=TRANS[i-1];let r=R(t.id);if(t.id===C.tNS)r=r+(1-r)*Math.min(100,P("recNS"))/100;if(t.id===C.tInd)r=r+(1-r)*Math.min(100,P("recInd"))/100;f[STATES[i].id]=f[STATES[i-1].id]*r}
+  let ref=0;if(C.lf>C.lt&&C.lt>=1){const to=STATES[C.lt].id,fr0=STATES[C.lf].id;if(f[to]>0){const loop=Math.min(.9,f[fr0]/f[to]*P("fil"));const mult=1/(1-loop);const base=f[to];for(let i=C.lt;i<STATES.length;i++)f[STATES[i].id]*=mult;ref=f[to]-base}}
+  const clientsM=C.iPay>0?f[STATES[C.iPay].id]*W:0,netM=clientsM*P("price")*(1-Math.min(100,P("refund"))/100);
+  return{f,W,clientsM,netM,ref,C}}
+function cellGains(){const b=simulate().netM,g={};TRANS.slice(1).forEach(t=>{g[t.id]=simulate({rate:{[t.id]:Math.min(100,val("rate",t.id)+5)}}).netM-b});return g}
+const fr=(n,d)=>Number.isFinite(n)?n.toLocaleString("fr-FR",{maximumFractionDigits:d==null?(Math.abs(n)<10?1:0):d}):"—";
+const eur=n=>!Number.isFinite(n)?"—":Math.abs(n)>=1e6?fr(n/1e6,2)+" M€":Math.abs(n)>=1000?fr(n/1000,0)+" k€":fr(n,0)+" €";
+const sInput=(kind,k,step)=>{const s2=src(kind,k);return `<div class="sin"><input type="number" inputmode="decimal" step="${step}" min="0" id="sim-${kind}-${k}" data-kind="${kind}" data-k="${k}" value="${val(kind,k)}" aria-label="${kind==="rate"?"Taux "+k:kind==="delay"?"Délai "+k:(PLAB[k]||["Exposés par semaine"])[0]}"><span class="src src-${s2}" id="src-${kind}-${k}">${SRC_L[s2]}</span></div>`};
+function renderSim(){const rows=TRANS.slice(1);
+  simPage.innerHTML=`<div class="wrap">
+  <div><h2>Simulateur</h2><p class="lead">La vue de pilotage : le parcours en stocks et flux. Chaque cellule fait passer une part des individus à l'état suivant. Les taux viennent des mesures saisies sur le parcours quand elles existent, sinon d'hypothèses à remplacer. Ce que vous changez ici forme un scénario, gardé dans ce navigateur, qui ne touche pas aux mesures.</p>
+  <div class="sim-actions"><button class="tb-btn" id="sim-clear">Effacer le scénario</button><span class="muted" id="sim-srcsum"></span></div></div>
+  <div class="sim-kpis" id="sim-kpis"></div>
+  <div><h3 class="es-h">Où 5 points de taux rapportent le plus</h3><p class="lead">Gain de CA net mensuel si le taux progresse de 5 points, tout le reste égal, avec les besoins qui portent ce levier. Cinq points pèsent plus lourd sur un taux bas : à croiser avec la difficulté réelle de chaque levier.</p><div class="sim-lev" id="sim-lev"></div></div>
+  <div><h3 class="es-h">Le parcours en flux hebdomadaires</h3><p class="lead">Barres en échelle logarithmique : chaque graduation divise le volume par dix.</p><div class="tbl"><table class="simt"><thead><tr><th>Cellule</th><th>Mission</th><th>Taux (%)</th><th>Délai (jours)</th><th>Atteignent l'état chaque semaine</th><th>Gain si +5 pts</th></tr></thead><tbody>
+   ${STATES[1]?`<tr><td class="mono">${STATES[1].id}</td><td><b>${esc(STATES[1].name)}</b><br><span class="muted">Point d'entrée du modèle</span></td><td colspan="2">${sInput("p","expo",1000)}</td><td id="sim-f-${STATES[1].id}"></td><td class="mono">—</td></tr>`:""}
+   ${rows.map(t=>`<tr><td class="mono">${t.id}</td><td><b>${esc(t.mission)}</b><br><span class="muted">${esc(STATES[t.n-1].name)} → ${esc(STATES[t.n].name)}</span></td><td>${sInput("rate",t.id,.5)}</td><td>${sInput("delay",t.id,1)}</td><td id="sim-f-${STATES[t.n].id}"></td><td class="mono" id="sim-g-${t.id}"></td></tr>`).join("")}
+  </tbody></table></div></div>
+  <div><h3 class="es-h">Hypothèses économiques</h3><div class="sim-params">${Object.keys(PLAB).map(k=>`<div class="field"><label for="sim-p-${k}">${PLAB[k][0]} <span class="muted">(${PLAB[k][1]})</span></label>${sInput("p",k,k==="fil"?.05:(k==="price"||k==="target"?100:.5))}</div>`).join("")}</div></div>
+  </div>`;updateSim()}
+function updateSim(){if(V.view!=="sim")return;const b=simulate(),C=b.C,tg=val("p","target"),$=id=>document.getElementById(id);const rows=TRANS.slice(1);
+  const mx=Math.max(STATES[1]?b.f[STATES[1].id]:1,1);const bar=v=>`<div class="flow" title="${fr(v)} par semaine"><span class="bar"><i style="width:${Math.max(.6,Math.log10(v+1)/Math.log10(mx+1)*100)}%"></i></span><b>${fr(v)}</b></div>`;
+  STATES.slice(1).forEach(e=>{const el=$("sim-f-"+e.id);if(el)el.innerHTML=bar(b.f[e.id]||0)});
+  const gains=[];rows.forEach(t=>{const g=simulate({rate:{[t.id]:Math.min(100,val("rate",t.id)+5)}}).netM-b.netM;gains.push({kind:"t",k:t.id,g});const el=$("sim-g-"+t.id);if(el)el.textContent=g>.5?"+"+eur(g)+" / mois":"—"});
+  [["recNS","XS4","Récupérer les no-shows"],["recInd","XS5","Récupérer les indécis"]].forEach(([k,x,l])=>{if(byId[x])gains.push({kind:"x",k:x,l,g:simulate({p:{[k]:Math.min(100,val("p",k)+5)}}).netM-b.netM})});
+  gains.sort((a,c)=>c.g-a.g);
+  $("sim-lev").innerHTML=gains.slice(0,3).map((g,i)=>{const t=byId[g.k];const needs=g.kind==="t"?serves(t).map(n=>n.id):t.via;const title=g.kind==="t"?t.mission:g.l;
+    return `<div class="lev"><span class="rk">Levier ${i+1} · ${g.k}</span><b>${esc(title)}</b><span class="g">+${eur(g.g)} / mois</span><div class="chips">${needs.length?"Porté par "+needs.map(n=>`<button data-jump="${n}">${n}</button>`).join(""):"Repose sur les actifs : "+(t.cons||[]).map(c=>`<button data-jump="${c}">${c}</button>`).join("")}</div></div>`}).join("");
+  const sumD=(a,z)=>{let s2=0;for(let j=a+1;j<=z;j++){const t=TRANS[j-1];if(t)s2+=+val("delay",t.id)||0}return s2};
+  const tLead=C.iOpt>0&&C.iPay>C.iOpt?sumD(C.iOpt,C.iPay):0,tB=C.iPay>0&&C.iB>C.iPay?sumD(C.iPay,C.iB):0;
+  const pctT=tg>0?b.netM/tg*100:0,mult=b.netM>0?tg/b.netM:Infinity;const fx=i=>i>=0&&STATES[i]?b.f[STATES[i].id]||0:0;
+  $("sim-kpis").innerHTML=`<div class="kpi hero"><small>CA net mensuel</small><b>${eur(b.netM)}</b><div class="prog" title="${fr(pctT,0)} % de l'objectif"><i style="width:${Math.min(100,pctT)}%"></i></div><span>${fr(pctT,0)} % de l'objectif de ${eur(tg)}.${pctT<100&&Number.isFinite(mult)?` À taux constants, il faudrait ${fr(mult,1)} fois plus d'exposés, soit ${fr(fx(1)*mult,0)} par semaine.`:""}</span></div>
+   <div class="kpi"><small>Clients par mois</small><b>${fr(b.clientsM)}</b><span>${fr(fx(C.iPay))} par semaine</span></div>
+   <div class="kpi"><small>Leads par semaine</small><b>${fr(fx(C.iOpt))}</b><span>dont ${fr(b.ref)} venus du parrainage</span></div>
+   <div class="kpi"><small>Élèves au point B par mois</small><b>${fr(fx(C.iB)*b.W)}</b><span>${fr(fx(C.lf)*b.W)} deviennent ambassadeurs</span></div>
+   <div class="kpi"><small>Délais</small><b>${fr(tLead,0)} j</b><span>du lead au client, puis ${fr(tB,0)} jours du client au point B</span></div>`;
+  const all=rows.map(t=>src("rate",t.id));$("sim-srcsum").textContent=`Taux : ${all.filter(x=>x==="mesure").length} mesurés, ${all.filter(x=>x==="hypothese").length} hypothèses, ${all.filter(x=>x==="scenario").length} modifiés dans ce scénario.`}
+simPage.addEventListener("input",e=>{const t=e.target;if(!t.dataset.kind)return;const v=num(t.value);if(v==null)return;SIM[t.dataset.kind][t.dataset.k]=v;saveSim();const s2=document.getElementById(`src-${t.dataset.kind}-${t.dataset.k}`);if(s2){s2.className="src src-scenario";s2.textContent=SRC_L.scenario}updateSim()});
+simPage.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.id==="sim-clear"){askConfirm({title:"Effacer le scénario ?",body:"Les valeurs que vous avez modifiées dans le simulateur reviennent aux mesures et aux hypothèses.",ok:"Effacer",final:true}).then(ok=>{if(ok){SIM={rate:{},delay:{},p:{}};saveSim();renderSim()}});return}
+  if(b.dataset.jump){setView("map");requestAnimationFrame(()=>jump(b.dataset.jump))}});
+
+/* =================== VUE CHANTIERS (ordre de construction) =================== */
+const worksPage=document.getElementById("works");
+function computeWorks(){const items={};const add=(id,kind,title,status,deps,extra)=>{items[id]=Object.assign({id,kind,title,status,deps:deps.filter((d,i,a)=>d&&d!==id&&a.indexOf(d)===i)},extra||{})};
+  TOOLS.forEach(t=>{if(t.status!=="ok")add(t.id,"Outil",t.name,t.status,[],{build:[t.role]})});
+  MEM.forEach(m=>{if(m.status!=="ok")add(m.id,"Mémoire",m.name,m.status,m.host?[m.host]:[],{build:[m.host?"Dans "+byId[m.host].name:"Choisir l'outil qui l'héberge"]})});
+  if(ORCH.status!=="ok")add("OR","Orchestration",ORCH.name,ORCH.status,ORCH.host?[ORCH.host]:[],{build:["Router les "+new Set(HAND.map(h=>h.ev)).size+" événements de relais"]});
+  const linked=new Set();HAND.forEach(h=>{linked.add(h.from);linked.add(h.to)});
+  NEEDS.forEach(n=>{const cs=cover(n);const todo=n.means.filter(m=>m.status!=="ok"&&(m.kind!=="human"||cs!=="ok"));if(cs==="ok"&&!todo.length)return;
+    const deps=[...n.r,...n.w,...n.means.flatMap(m=>m.tools),...(linked.has(n.id)?["OR"]:[]),...n.deps];
+    add(n.id,"Besoin",n.title,cs,deps,{build:(todo.length?todo:n.means).map(m=>KSHORT[m.kind]+" : "+(m.name||"sans nom")),kr:n.kr,need:n})});
+  Object.values(items).forEach(it=>it.wait=it.deps.filter(d=>items[d]));
+  const lvl={};const L=(id,seen)=>{if(lvl[id]!=null)return lvl[id];if(seen.has(id))return 0;seen.add(id);const it=items[id];const v=it.wait.length?1+Math.max(...it.wait.map(d=>L(d,seen))):0;seen.delete(id);lvl[id]=v;return v};
+  Object.keys(items).forEach(id=>L(id,new Set()));
+  const rev={};Object.values(items).forEach(it=>it.wait.forEach(d=>(rev[d]=rev[d]||[]).push(it.id)));
+  const down=id=>{const s2=new Set(),stk=[id];while(stk.length){const x=stk.pop();(rev[x]||[]).forEach(y=>{if(!s2.has(y)){s2.add(y);stk.push(y)}})}return s2.size};
+  const gains=cellGains();
+  Object.values(items).forEach(it=>{it.level=lvl[it.id];it.unblocks=down(it.id);it.value=it.need&&placeOf(it.need)==="mach"?Math.max(0,...it.need.t.map(t=>gains[t]||0)):0;it.kr=it.kr||[]});
+  return items}
+function wkCard(it,rank){return `<button class="wk s-${it.status}" data-go="${it.id}"><div class="row"><span class="tp">${rank?rank+" · ":""}${it.kind} · ${it.id}</span><span class="pill"><span class="dot d-${it.status}"></span>${(it.kind==="Besoin"?COVER:STATUS)[it.status]}</span></div>
+  <b>${esc(it.title)}</b>${it.kr.length?`<div>${it.kr.map(k=>`<span class="kr">${esc(k)}</span>`).join(" ")}</div>`:""}
+  <div class="meta2">${it.unblocks?`<span>Débloque <strong>${it.unblocks}</strong></span>`:""}${it.value>.5?`<span>Levier <strong>+${eur(it.value)}</strong>/mois</span>`:""}</div>
+  <div class="wait">${esc(it.build.join(" · "))}</div>
+  ${it.wait.length?`<div class="wait">Attend ${it.wait.map(d=>`<code>${d}</code>`).join("")}</div>`:""}</button>`}
+function renderWorks(){const items=computeWorks();const list=Object.values(items);
+  const sortK=(a,b)=>(b.kr.length>0)-(a.kr.length>0)||b.unblocks-a.unblocks||b.value-a.value||a.id.localeCompare(b.id);
+  const maxL=list.length?Math.max(...list.map(i=>i.level)):0;const waves=[];for(let l=0;l<=maxL;l++)waves.push(list.filter(i=>i.level===l).sort(sortK));
+  const top=list.slice().sort((a,b)=>b.unblocks-a.unblocks||b.value-a.value).filter(i=>i.unblocks>0).slice(0,3);
+  const ready=waves[0]?waves[0].filter(i=>i.kind==="Besoin"&&i.kr.length).concat(waves[0].filter(i=>!(i.kind==="Besoin"&&i.kr.length))).slice(0,3):[];
+  worksPage.innerHTML=`<div class="wrap">
+  <div><h2>Chantiers</h2><p class="lead">L'ordre de construction, calculé à partir des dépendances du modèle : un besoin attend les mémoires qu'il lit ou écrit, les outils de ses moyens et l'orchestrateur s'il reçoit ou passe un relais. Une vague ne peut démarrer qu'une fois ses prérequis existants. Dans chaque vague, les chantiers liés aux objectifs Q4 passent d'abord, puis ceux qui débloquent le plus.</p>
+  <div class="es-stats"><span class="chip"><strong>${list.length}</strong> chantiers</span><span class="chip"><strong>${waves.length}</strong> vagues</span><span class="chip"><strong>${waves[0]?waves[0].length:0}</strong> peuvent démarrer maintenant</span><span class="chip"><strong>${list.filter(i=>i.kr.length).length}</strong> liés aux objectifs Q4</span></div></div>
+  ${top.length?`<div><h3 class="es-h">Ce qui débloque le plus</h3><p class="lead">Les fondations dont dépendent le plus de chantiers. Tant qu'elles n'existent pas, les agents qui s'y branchent ne peuvent pas tourner en vrai.</p><div class="top3">${top.map((it,i)=>wkCard(it,"#"+(i+1))).join("")}</div></div>`:""}
+  ${ready.length?`<div><h3 class="es-h">À lancer en premier</h3><p class="lead">Les chantiers de la première vague, priorité aux objectifs Q4.</p><div class="top3">${ready.map(it=>wkCard(it)).join("")}</div></div>`:""}
+  <div><h3 class="es-h">Toutes les vagues</h3><div class="wv-scroll"><div class="wv-board" style="grid-template-columns:repeat(${Math.max(1,waves.length)},minmax(280px,1fr));min-width:${Math.max(1,waves.length)*294}px">${waves.map((w,i)=>`<div class="wv-col"><div class="wv-h"><div class="k">Vague ${i+1}</div><b>${i===0?"Sans prérequis":"Après la vague "+i}</b><span>${w.length} chantier${w.length>1?"s":""}</span></div>${w.map(it=>wkCard(it)).join("")}</div>`).join("")}</div></div></div>
+  </div>`}
+worksPage.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(!b)return;setView("map");requestAnimationFrame(()=>jump(b.dataset.go))});
+
+/* =================== NAVIGATION ENTRE VUES =================== */
+const PAGES={model,events:evPage,works:worksPage,sim:simPage};
+function renderPage(v){if(v==="model")renderModel();if(v==="events")renderEvents();if(v==="works")renderWorks();if(v==="sim")renderSim()}
+function setView(v){V.view=v;V.model=v!=="map";Object.entries(PAGES).forEach(([k,el])=>el.hidden=k!==v);document.body.classList.toggle("model-open",v!=="map");
+  document.querySelectorAll("[data-view]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===v));renderPage(v);if(PAGES[v])PAGES[v].scrollTop=0}
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>setView(b.dataset.view));
+
+/* =================== CAMÉRA =================== */
+const pct=document.getElementById("z-pct");
+function apply(){world.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;const g=26*s;vp.style.backgroundSize=`${g}px ${g}px`;vp.style.backgroundPosition=`${tx}px ${ty}px`;world.classList.toggle("far",s<.4);pct.textContent=Math.round(s*100)+"%";drawMini()}
+function zoomAt(f,X,Y){const ns=Math.min(2.2,Math.max(.03,s*f));const k=ns/s;tx=X-(X-tx)*k;ty=Y-(Y-ty)*k;s=ns;apply()}
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function flyTo(wx,wy,ns){const W=vp.clientWidth,H=vp.clientHeight;const off=document.body.classList.contains("panel-open")&&W>760?-210:0;const T={s:ns,x:W/2+off-wx*ns,y:H/2+30-wy*ns};
+  if(reduce){s=T.s;tx=T.x;ty=T.y;return apply()}const S0={s,x:tx,y:ty},t0=performance.now();
+  (function step(t){const p=Math.min(1,(t-t0)/520),e=1-Math.pow(1-p,3);s=S0.s+(T.s-S0.s)*e;tx=S0.x+(T.x-S0.x)*e;ty=S0.y+(T.y-S0.y)*e;apply();if(p<1)requestAnimationFrame(step)})(t0)}
+function fitRect(r){const W=vp.clientWidth,H=vp.clientHeight-90;const ns=Math.min(W/r.w,H/r.h)*.95;flyTo(r.x+r.w/2,r.y+r.h/2-30/ns,ns)}
+const fit=()=>fitRect(bounds);
+const ptrs=new Map();let drag=null,pinch=null;
+vp.addEventListener("pointerdown",e=>{if(e.button!==0&&e.pointerType==="mouse")return;vp.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1)drag={x:e.clientX,y:e.clientY,tx,ty,moved:false,el:e.target.closest("[data-jump],[data-sel]")};
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),s};drag=null}});
+vp.addEventListener("pointermove",e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);zoomAt((pinch.s*d/pinch.d)/s,(a.x+b.x)/2,(a.y+b.y)/2);return}
+  if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)>4){drag.moved=true;vp.classList.add("panning")}if(drag.moved){tx=drag.tx+dx;ty=drag.ty+dy;apply()}}});
+function up(e){ptrs.delete(e.pointerId);vp.classList.remove("panning");
+  if(drag&&!drag.moved){const el=drag.el;if(el&&el.dataset.jump)jump(el.dataset.jump);else if(el)openPanel(el.dataset.sel);else if(V.sel)closePanel()}
+  if(ptrs.size<2)pinch=null;drag=null}
+vp.addEventListener("pointerup",up);vp.addEventListener("pointercancel",up);
+vp.addEventListener("wheel",e=>{e.preventDefault();const r=vp.getBoundingClientRect();const mouse=!e.deltaX&&Math.abs(e.deltaY)>=50&&Number.isInteger(e.deltaY);
+  if(e.ctrlKey||e.metaKey||mouse||e.deltaMode===1)zoomAt(Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)),e.clientX-r.left,e.clientY-r.top);else{tx-=e.deltaX;ty-=e.deltaY;apply()}},{passive:false});
+layer.addEventListener("keydown",e=>{const c=e.target.closest("[data-sel]");if(c&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPanel(c.dataset.sel)}});
+document.getElementById("z-in").onclick=()=>zoomAt(1.25,vp.clientWidth/2,vp.clientHeight/2);
+document.getElementById("z-out").onclick=()=>zoomAt(.8,vp.clientWidth/2,vp.clientHeight/2);
+document.getElementById("z-fit").onclick=fit;
+addEventListener("keydown",e=>{if(e.target.matches&&e.target.matches("input,textarea,select"))return;
+  if(e.key==="/"){e.preventDefault();q.focus()}else if(e.key==="+"||e.key==="=")zoomAt(1.2,vp.clientWidth/2,vp.clientHeight/2);else if(e.key==="-")zoomAt(.83,vp.clientWidth/2,vp.clientHeight/2);
+  else if(e.key==="0")fit();else if(e.key==="Escape"){if(V.model)setView("map");else if(V.sel)closePanel()}
+  else if(e.key.startsWith("Arrow")){const k=60;if(e.key==="ArrowLeft")tx+=k;if(e.key==="ArrowRight")tx-=k;if(e.key==="ArrowUp")ty+=k;if(e.key==="ArrowDown")ty-=k;apply()}});
+
+const mm=document.getElementById("minimap"),mc=mm.getContext("2d");
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const mmk=()=>Math.min(mm.width/bounds.w,mm.height/bounds.h)*.92;
+function drawMini(){if(!bounds.w)return;const k=mmk(),ox=(mm.width-bounds.w*k)/2,oy=(mm.height-bounds.h*k)/2;mc.clearRect(0,0,mm.width,mm.height);const X=x=>ox+(x-bounds.x)*k,Y=y=>oy+(y-bounds.y)*k;
+  mc.fillStyle=css("--surface-2");G.lanes.forEach(l=>mc.fillRect(X(0),Y(l.y),WTOT*k,Math.max(2,l.h*k)));
+  const col={ok:css("--ok"),wip:css("--wip"),missing:css("--missing")};
+  NEEDS.forEach(x=>{const p=G.pos[x.id];if(!p||!visNeed(x))return;mc.fillStyle=col[cover(x)];mc.fillRect(X(p.x),Y(p.y),Math.max(2,p.w*k),Math.max(2,p.h*k))});
+  TOOLS.forEach(x=>{const p=G.pos[x.id];if(!p)return;mc.fillStyle=col[x.status];mc.fillRect(X(p.x),Y(p.y),Math.max(2,p.w*k),Math.max(2,p.h*k))});
+  mc.fillStyle=css("--gold");STATES.forEach(e=>{const p=G.pos[e.id];if(p)mc.fillRect(X(p.x),Y(p.y),Math.max(2,p.w*k),Math.max(2,p.h*k))});
+  mc.strokeStyle=css("--gold");mc.lineWidth=2;mc.strokeRect(X(-tx/s),Y(-ty/s),vp.clientWidth/s*k,vp.clientHeight/s*k)}
+mm.addEventListener("click",e=>{const r=mm.getBoundingClientRect();const k=mmk()*r.width/mm.width;const ox=(r.width-bounds.w*k)/2,oy=(r.height-bounds.h*k)/2;flyTo(bounds.x+(e.clientX-r.left-ox)/k,bounds.y+(e.clientY-r.top-oy)/k,s)});
+
+/* =================== CONTRÔLES =================== */
+function refresh(){rebuild();layout();render();renderLayers();if(V.view!=="map"&&!(V.view==="sim"&&simPage.contains(document.activeElement)))renderPage(V.view)}
+const layersEl=document.getElementById("layers");
+layersEl.addEventListener("change",e=>{const id=e.target.id,on=e.target.checked;const [p,k]=id.split("-");
+  if(p==="l")V.lanes[k]=on;if(p==="e")V.edges[k]=on;if(p==="k")V.kinds[k]=on;if(p==="c")V.cov[k]=on;
+  if(V.sel&&byId[V.sel]&&byId[V.sel]._k==="need"&&!visNeed(byId[V.sel]))closePanel();refresh()});
+layersEl.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.closeLayers)return setLayers(false);
+  if(b.dataset.lact==="add-need"){if(SHARED&&!CANW)return;const sel=byId[V.sel];const p=sel&&sel._k==="trans"?{t:[sel.id]}:sel&&sel._k==="chain"?{chain:sel.id}:sel&&sel._k==="dom"?{dom:sel.id}:{t:[(TRANS[0]||{}).id].filter(Boolean)};return addNeed(p)}
+  if(b.dataset.lact==="add-tool"){if(SHARED&&!CANW)return;const id="TL"+String(nextNum("TL",[...TOOLS_B.map(t=>t.id),...Object.keys(over)])).padStart(2,"0");beginGroup("Ajouter un outil");put(id,{added:"tool",name:"Nouvel outil",cat:"",role:"",status:"missing",owner:"",holds:""});refresh();return jump(id)}
+  if(b.dataset.act){const [a,c]=b.dataset.act.split("-").map(Number);const x0=sx(a-1),x1=sx(c)+SW;const y0=G.actY;const last=G.lanes.find(q=>q.id==="mach")||G.lanes.find(q=>q.id==="spine");fitRect({x:x0,y:y0,w:x1-x0,h:last.y+last.h-y0})}
+  if(b.dataset.lane){const l=G.lanes.find(q=>q.id===b.dataset.lane);if(l)fitRect({x:0,y:l.y,w:["prod","sup"].includes(b.dataset.lane)?3200:WTOT,h:l.h})}});
+document.getElementById("stats").addEventListener("click",e=>{if(e.target.closest("#chip-gaps")){V.gaps=!V.gaps;refresh()}if(e.target.closest("#chip-ill")){V.ill=!V.ill;refresh()}});
+document.querySelectorAll("[data-lens]").forEach(b=>b.onclick=()=>{V.lens=b.dataset.lens;document.querySelectorAll("[data-lens]").forEach(x=>x.setAttribute("aria-pressed",x===b));render();renderLayers();if(V.sel)openPanel(V.sel,true)});
+const btnL=document.getElementById("btn-layers");
+function setLayers(open){layersEl.hidden=!open;btnL.setAttribute("aria-pressed",open);try{localStorage.setItem("skl-filters-open",open?"1":"0")}catch(e){}if(!open)btnL.focus()}
+btnL.onclick=()=>setLayers(layersEl.hidden);
+document.getElementById("btn-undo").onclick=()=>undo();
+document.getElementById("toast").addEventListener("click",e=>{if(e.target.closest("[data-undo]")){document.getElementById("toast").hidden=true;undo()}});
+addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey)||e.shiftKey||e.key.toLowerCase()!=="z")return;if(e.target.matches&&e.target.matches("input,textarea,select"))return;if(!document.getElementById("confirm").hidden)return;e.preventDefault();undo()});
+addEventListener("keydown",e=>{if(e.target.matches&&e.target.matches("input,textarea,select")||V.view!=="map")return;if(e.key==="f"||e.key==="F"){e.preventDefault();setLayers(layersEl.hidden)}});
+addEventListener("resize",syncTop);
+const q=document.getElementById("q");
+q.addEventListener("input",()=>{const v=q.value.trim().toLowerCase();let first=null;layer.querySelectorAll(".match").forEach(el=>el.classList.remove("match"));if(v.length<2)return;
+  Object.values(byId).forEach(x=>{const txt=[x.id,x.title,x.why,x.name,x.mission,x.sub,x.signal,x.desc,x.asset,x.role,x.holds,x.owner,x.c&&Object.values(x.c).join(" "),x.means&&x.means.map(m=>m.name+" "+m.owner).join(" ")].join(" ").toLowerCase();if(txt.includes(v)){const el=layer.querySelector(`.card[data-sel="${x.id}"],.strip[data-sel="${x.id}"]`);if(el){el.classList.add("match");if(!first)first=x.id}}});
+  if(first){const p=G.pos[first];if(p)flyTo(p.x+Math.min(p.w,600)/2,p.y+p.h/2,Math.max(s,.6))}});
+q.addEventListener("keydown",e=>{if(e.key==="Enter"){const m=layer.querySelector(".match");if(m)openPanel(m.dataset.sel)}});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",drawMini);
+new MutationObserver(drawMini).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+addEventListener("resize",drawMini);
+
+(function(){let pref=null;try{pref=localStorage.getItem("skl-filters-open")}catch(e){}const open=pref!=null?pref==="1":innerWidth>=760;layersEl.hidden=!open;btnL.setAttribute("aria-pressed",open)})();
+refresh();
+(function(){const W=vp.clientWidth,H=vp.clientHeight-90;s=Math.min(W/bounds.w,H/bounds.h)*.95;tx=(W-bounds.w*s)/2-bounds.x*s;ty=90+(H-bounds.h*s)/2-bounds.y*s;apply()})();
+connect();
+</script>

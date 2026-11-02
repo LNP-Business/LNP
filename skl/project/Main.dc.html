@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>SKL OS — Cockpit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#23408E}a:hover{color:#16295E}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 2240px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Navigation principale" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 32px 18px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 14px 32px">SKL <span style="color: #D9B46A">OS</span></div>
+<a href="Main.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #FFFFFF; background: #34322C">Cockpit</a>
+<a href="MonJour.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Mon jour</a>
+<a href="Decisions.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Décisions</a>
+<a href="Bibliotheque.dc.html" style="display: block; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7">Bibliothèque</a>
+<div style="flex-grow: 1"></div>
+<div style="padding: 14px; border-top: 1px solid #34322C; font-size: 13px; color: #A8A396; line-height: 1.5">T4 2026 · semaine 3/13<br>Weekly review : vendredi</div>
+</nav>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px">
+
+<header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+<div>
+<div style="font-size: 14px; color: #5E5B53; margin-bottom: 6px">Mardi 13 octobre</div>
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 40px; font-weight: 500">Bonjour Romain</h1>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+<div style="font-size: 15px; color: #5E5B53">5 KR : <strong style="color: #1E5E38">1 vert</strong> · <strong style="color: #8A3F06">2 orange</strong> · <strong style="color: #9B1C12">1 rouge</strong> · <strong style="color: #5E5B53">1 non suivi</strong></div>
+</div>
+</header>
+
+<div role="group" aria-label="Vue du cockpit" style="display: flex; gap: 6px; padding: 5px; background: #ECE8DF; border-radius: 12px; align-self: flex-start">
+<button type="button" onClick="{{goGlobal}}" aria-pressed="{{isGlobal}}" style="{{tabGlobal}}">Global</button>
+<button type="button" onClick="{{goMarketing}}" aria-pressed="{{isMarketing}}" style="{{tabMarketing}}">Marketing</button>
+<button type="button" onClick="{{goSales}}" aria-pressed="{{isSales}}" style="{{tabSales}}">Sales</button>
+<button type="button" onClick="{{goFinance}}" aria-pressed="{{isFinance}}" style="{{tabFinance}}">Finance</button>
+</div>
+
+<sc-if value="{{isGlobal}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 28px">
+
+<section aria-label="Indicateurs de vélocité" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+
+<div style="background: #1B1B18; color: #F6F4EF; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #C9C4B7">Fiabilité des promesses</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: Fraunces, Georgia, serif; font-size: 38px; font-weight: 500; line-height: 1">72 %</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #8FD1A8">↑ 68 %</span></div>
+<div style="font-size: 12px; color: #C9C4B7; line-height: 1.45">Livrés à la date engagée · cible ≥ 90 %</div>
+<div style="font-size: 12px; color: #F2A99F; line-height: 1.45">Retard moyen +2,1 j · Contenu 64 % ↓</div>
+</div>
+
+<div style="background: #1B1B18; color: #F6F4EF; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #C9C4B7">Temps de cycle</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: Fraunces, Georgia, serif; font-size: 38px; font-weight: 500; line-height: 1">3,4 j</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #8FD1A8">↓ 4,1 j</span></div>
+<div style="font-size: 12px; color: #C9C4B7; line-height: 1.45">Démarrage → livraison · cible ≤ 3 j</div>
+<div style="font-size: 12px; color: #8FD1A8; line-height: 1.45">38 tâches livrées cette semaine ↑ 31</div>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Blocages</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: Fraunces, Georgia, serif; font-size: 38px; font-weight: 500; line-height: 1">4</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↑ 2</span></div>
+<div style="font-size: 12px; color: #5E5B53; line-height: 1.45">Tâches bloquées · durée moyenne 31 h</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #9B1C12"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Cible : aucun blocage &gt; 24 h</span>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Charge de l'équipe</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: Fraunces, Georgia, serif; font-size: 38px; font-weight: 500; line-height: 1">96 %</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↑ 88 %</span></div>
+<div style="font-size: 12px; color: #5E5B53; line-height: 1.45">Charge planifiée · cible ≤ 70 %, 30 % pour l'imprévu</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>1 personne &gt; 110 %</span>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Vitesse de décision</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: Fraunces, Georgia, serif; font-size: 38px; font-weight: 500; line-height: 1">2,4 j</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↑ 1,6 j</span></div>
+<div style="font-size: 12px; color: #5E5B53; line-height: 1.45">Délai moyen de décision · cible ≤ 2 j</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>1 décision hors délai</span>
+</div>
+
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; background: #EFECE4; font-size: 13px; color: #3D3A33">
+<span style="font-weight: 600">Hygiène du système</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #8A3F06; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>1 KR sans check-in depuis 9 j (complétion · Contenu)</span>
+<span style="color: #5E5B53">Les autres indicateurs d'hygiène sont au vert et masqués.</span>
+<a href="#" style="margin-left: auto; font-weight: 600; text-decoration: none">Relancer</a>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+
+<section aria-labelledby="toi" style="background: #1B1B18; color: #F6F4EF; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px">
+<h2 id="toi" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Ce qui attend de toi · 3</h2>
+<span style="font-size: 13px; color: #C9C4B7">Attente moyenne sur toi : <strong style="color: #F2C38B; font-family: 'IBM Plex Mono', monospace">1,8 j</strong></span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #34322C">
+<div><div style="font-size: 15px; font-weight: 600">Valider le script de la masterclass #3</div><div style="font-size: 13px; color: #F2A99F; margin-top: 4px">Bloque le pôle Contenu depuis 52 h</div></div>
+<a href="MonJour.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: #F6F4EF; color: #1B1B18; font-size: 14px; font-weight: 600; text-decoration: none">Valider</a>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #34322C">
+<div><div style="font-size: 15px; font-weight: 600">Conflit Live #1 : décaler le live ou réduire la refonte</div><div style="font-size: 13px; color: #F2A99F; margin-top: 4px">Le live du 22 oct. dépend d'une page prévue le 27 oct.</div></div>
+<a href="Decisions.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: #F6F4EF; color: #1B1B18; font-size: 14px; font-weight: 600; text-decoration: none">Décider</a>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #34322C">
+<div><div style="font-size: 15px; font-weight: 600">Prix de lancement de la série</div><div style="font-size: 13px; color: #C9C4B7; margin-top: 4px">Décision irréversible · échéance dans 3 jours</div></div>
+<a href="Decisions.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #5E5B53; color: #F6F4EF; font-size: 14px; font-weight: 600; text-decoration: none">Ouvrir</a>
+</div>
+</section>
+
+<section aria-labelledby="menace" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px">
+<h2 id="menace" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Ce qui ralentit l'exécution · 3</h2>
+<span style="font-size: 13px; color: #5E5B53">Triés par impact × urgence</span>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<div><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318; flex-shrink: 0"></span>Décision emailing : 4 j de retard</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Bloque 3 tâches Marketing · décideur : Marketing</div></div>
+<a href="Decisions.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #D8D3C7; font-size: 14px; font-weight: 600; text-decoration: none">Relancer</a>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<div><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>Monteur à 125 % de charge, 2e semaine</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Masterclasses #2 et #3 exposées · Contenu</div></div>
+<a href="MonJour.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #D8D3C7; font-size: 14px; font-weight: 600; text-decoration: none">Réallouer</a>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<div><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>55 % des leads dépendent de la publicité</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Seuil d'alerte 50 % · une coupure de compte stoppe l'acquisition</div></div>
+<a href="Decisions.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #D8D3C7; font-size: 14px; font-weight: 600; text-decoration: none">Exiger un plan</a>
+</div>
+</section>
+</div>
+
+<section aria-labelledby="okr" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 26px 28px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 14px">
+<div>
+<h2 id="okr" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Objectifs du trimestre</h2>
+<div style="font-size: 13px; color: #5E5B53; margin-top: 4px">Une ligne par KR. La projection montre où on atterrit au rythme actuel. Clique sur une ligne pour le détail.</div>
+</div>
+<div style="display: flex; gap: 16px; align-items: center; font-size: 12px; color: #5E5B53; flex-shrink: 0">
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" stroke="#1B1B18" stroke-width="2.5"></line></svg>Réel</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></line></svg>Attendu</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="#1B1B18" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line></svg>Projection</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="14" height="8" aria-hidden="true"><line x1="0" y1="4" x2="14" y2="4" stroke="#1B1B18" stroke-width="2"></line></svg>Cible</span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; padding: 0 8px 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">
+<span>Résultat clé</span><span>Trajectoire du trimestre</span><span>Ratio</span><span>Atterrissage · rythme · prochain jalon</span><span>Statut</span>
+</div>
+
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 8px 6px; border-top: 1px solid #E3DFD5">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">O1 · Lancer la série de masterclasses</span>
+</div>
+
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">3 masterclasses publiées</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Contenu · màj il y a 1 j</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Réel sous l'attendu, projection à 2 sur 3">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<line x1="8" y1="54" x2="252" y2="6" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></line>
+<polyline points="8,54 24,54 30,38 40,38" fill="none" stroke="#B45309" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="38" x2="252" y2="22" stroke="#B45309" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="22" r="3.5" fill="#B45309"></circle>
+<line x1="242" y1="6" x2="258" y2="6" stroke="#1B1B18" stroke-width="2"></line>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">0,83 <span style="color: #1E5E38">↑</span></div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">1 / 3 · attendu 1,2</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong>2 / 3</strong></div><div>Rythme : <strong style="color: #8A3F06">#2 et #3 à publier avant le 14 nov.</strong></div><div style="color: #8A3F06">Masterclass #2 · 22 → 26 oct. · partiellement connu</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDF1E3; color: #8A3F06; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">60 % de complétion moyenne</div><div style="font-size: 12px; color: #8A3F06; font-weight: 600; margin-top: 3px">Contenu · aucun check-in depuis 9 j</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Données périmées, trajectoire inconnue">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<line x1="8" y1="18" x2="252" y2="18" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></line>
+<polyline points="8,21 18,17 24,16" fill="none" stroke="#8E8A80" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<text x="30" y="40" font-size="14" font-weight="600" fill="#8A3F06" font-family="IBM Plex Sans, sans-serif">?</text>
+<text x="52" y="40" font-size="11" fill="#5E5B53" font-family="IBM Plex Sans, sans-serif">pas de donnée récente</text>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #5E5B53">1,07 ?</div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">64 % il y a 9 j</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong>inconnu</strong></div><div style="color: #5E5B53">Rythme : inconnu faute de donnée</div><div style="color: #5E5B53">Mesure de la complétion · 16 oct.</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #EFECE4; color: #3D3A33; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; border: 2px solid #5E5B53; box-sizing: border-box"></span>Non suivi</span>
+</a>
+
+<div style="display: flex; align-items: center; gap: 10px; padding: 18px 8px 6px; border-top: 1px solid #E3DFD5">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">O2 · Construire une audience qualifiée</span>
+</div>
+
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; background: #FFF8F6; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">2 000 inscrits aux lives</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Marketing · màj il y a 1 j · confiance 4/10</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Réel nettement sous l'attendu, projection à 1 250 sur 2 000">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<polyline points="8,54 40,30 80,23 252,6" fill="none" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></polyline>
+<polyline points="8,54 24,47 40,40" fill="none" stroke="#B42318" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="40" x2="252" y2="24" stroke="#B42318" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="24" r="3.5" fill="#B42318"></circle>
+<line x1="242" y1="6" x2="258" y2="6" stroke="#1B1B18" stroke-width="2"></line>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">0,58 <span style="color: #9B1C12">↓</span></div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">580 · attendu 1 000</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong style="color: #9B1C12">1 250 / 2 000</strong></div><div>Rythme 7 j : <strong style="color: #9B1C12">10 / jour</strong> · requis <strong>22 / jour</strong></div><div style="color: #9B1C12">Page d'inscription · inconnu : exploration jusqu'au 16 oct. · conflit Live #1</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDECEA; color: #9B1C12; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Rouge</span>
+</a>
+
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">Coût par lead ≤ 4 €</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Marketing · màj aujourd'hui</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Coût passé sous le seuil, projection à 3,50 euros">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<line x1="8" y1="30" x2="252" y2="30" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></line>
+<polyline points="8,35 24,29 40,25" fill="none" stroke="#2E7D4F" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="25" x2="252" y2="24" stroke="#2E7D4F" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="24" r="3.5" fill="#2E7D4F"></circle>
+<text x="150" y="46" font-size="10" fill="#5E5B53" font-family="IBM Plex Sans, sans-serif">au-dessus du seuil = moins cher</text>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">3,60 € <span style="color: #1E5E38">↑</span></div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">seuil 4 €</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong>3,50 €</strong></div><div>Marge : <strong style="color: #1E5E38">0,40 € sous le seuil</strong></div><div style="color: #5E5B53">CPL &lt; 4 € quatre semaines de suite · 31 oct.</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E6F2EA; color: #1E5E38; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7D4F"></span>Vert</span>
+</a>
+
+<div style="display: flex; align-items: center; gap: 10px; padding: 18px 8px 6px; border-top: 1px solid #E3DFD5">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">O3 · Générer les premiers revenus</span>
+</div>
+
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; border-bottom: 1px solid #EFEBE3; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">50 k€ encaissés</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Sales · màj il y a 2 j</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Réel légèrement sous l'attendu, projection à 41 k€ sur 50">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<polyline points="8,54 40,40 252,6" fill="none" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></polyline>
+<polyline points="8,54 24,48 40,43" fill="none" stroke="#B45309" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="43" x2="252" y2="15" stroke="#B45309" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="15" r="3.5" fill="#B45309"></circle>
+<line x1="242" y1="6" x2="258" y2="6" stroke="#1B1B18" stroke-width="2"></line>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">0,80 →</div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">12 k€ · attendu 15 k€</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong style="color: #8A3F06">41 k€ / 50 k€</strong></div><div>Rythme 7 j : <strong style="color: #8A3F06">3,1 k€ / sem.</strong> · requis <strong>4,0 k€ / sem.</strong></div><div style="color: #8A3F06">Prix de lancement · 16 oct. · attend ta décision</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDF1E3; color: #8A3F06; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</a>
+</section>
+
+<section aria-labelledby="rd" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 26px 28px; display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 28px">
+<div style="display: flex; flex-direction: column">
+<h2 id="rd" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Explorations en cours</h2>
+<div style="font-size: 13px; color: #5E5B53; margin: 4px 0 14px">On s'engage sur une durée, pas sur un résultat. Décision obligatoire en fin d'enveloppe, sans prolongation automatique.</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 120px; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3; background: #FFF8F6">
+<div style="padding-left: 10px"><div style="font-size: 14px; font-weight: 600">Format live de 60 min ou de 30 min ?</div><div style="font-size: 12px; color: #9B1C12; margin-top: 3px">Delivery · enveloppe de 3 j épuisée hier · critère : présence ≥ 50 %</div></div>
+<div><div style="position: relative; height: 8px; background: #ECE8DF; border-radius: 4px"><div style="width: 100%; height: 8px; background: #B42318; border-radius: 4px"></div></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9B1C12; margin-top: 4px">100 % consommé</div></div>
+<a href="Decisions.dc.html" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 10px; background: #B42318; color: #FFFFFF; font-size: 13px; font-weight: 600; text-decoration: none">Décider</a>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 120px; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<div style="padding-left: 10px"><div style="font-size: 14px; font-weight: 600">Pourquoi la conversion de la page chute ?</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Marketing · 2 j · hypothèse : le prix affiché fait fuir · décision ven. 16</div></div>
+<div><div style="position: relative; height: 8px; background: #ECE8DF; border-radius: 4px"><div style="width: 40%; height: 8px; background: #0F5E5C; border-radius: 4px"></div></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">40 % consommé</div></div>
+<span style="font-size: 13px; font-weight: 600; color: #0F5E5C">Dans l'enveloppe</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 120px; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<div style="padding-left: 10px"><div style="font-size: 14px; font-weight: 600">Cause de la baisse de conversion en appel</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Sales · 1 j · critère : cause identifiée sur 10 appels · décision jeu. 15</div></div>
+<div><div style="position: relative; height: 8px; background: #ECE8DF; border-radius: 4px"><div style="width: 10%; height: 8px; background: #0F5E5C; border-radius: 4px"></div></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">10 % consommé</div></div>
+<span style="font-size: 13px; font-weight: 600; color: #0F5E5C">Dans l'enveloppe</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 120px; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3; border-bottom: 1px solid #EFEBE3">
+<div style="padding-left: 10px"><div style="font-size: 14px; font-weight: 600">Tester 2 formats d'introduction</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Contenu · 1 j · critère : +10 pts de complétion · décision ven. 16</div></div>
+<div><div style="position: relative; height: 8px; background: #ECE8DF; border-radius: 4px"></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">pas commencée</div></div>
+<span style="font-size: 13px; color: #5E5B53">À lancer</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 18px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<div style="background: #F6F4EF; border-radius: 10px; padding: 12px 14px"><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; line-height: 1">26 %</div><div style="font-size: 12px; color: #5E5B53; margin-top: 6px">du temps en exploration</div></div>
+<div style="background: #F6F4EF; border-radius: 10px; padding: 12px 14px"><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; line-height: 1">67 %</div><div style="font-size: 12px; color: #5E5B53; margin-top: 6px">tenues dans l'enveloppe</div></div>
+<div style="background: #F6F4EF; border-radius: 10px; padding: 12px 14px"><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; line-height: 1">25 %</div><div style="font-size: 12px; color: #5E5B53; margin-top: 6px">arrêtées · sain 20–40 %</div></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 13px; font-weight: 600">Précision d'estimation selon l'incertitude</div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 56px; gap: 10px; align-items: center; font-size: 13px"><span>Connu</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 32%; height: 10px; background: #2E7D4F; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">× 1,05</span></div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 56px; gap: 10px; align-items: center; font-size: 13px"><span>Partiellement connu</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 45%; height: 10px; background: #B45309; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">× 1,4</span></div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 56px; gap: 10px; align-items: center; font-size: 13px"><span>Inconnu</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 84%; height: 10px; background: #B42318; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">× 2,6</span></div>
+<div style="font-size: 12px; color: #5E5B53; line-height: 1.45">Réel ÷ estimé. Les retards viennent de ce qu'on promet sur l'inconnu, pas de l'exécution.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600">Imprévus du mois par cause</div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 24px; gap: 10px; align-items: center; font-size: 13px"><span>Dépendance</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 100%; height: 10px; background: #5E5B53; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">5</span></div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 24px; gap: 10px; align-items: center; font-size: 13px"><span>Découverte technique</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 80%; height: 10px; background: #5E5B53; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">4</span></div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 24px; gap: 10px; align-items: center; font-size: 13px"><span>Sous-estimation</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 60%; height: 10px; background: #5E5B53; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">3</span></div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 24px; gap: 10px; align-items: center; font-size: 13px"><span>Perfectionnisme</span><div style="height: 10px; background: #ECE8DF; border-radius: 5px"><div style="width: 40%; height: 10px; background: #5E5B53; border-radius: 5px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">2</span></div>
+</div>
+</div>
+</section>
+
+</div>
+</sc-if>
+
+<!-- ============ MARKETING ============ -->
+<sc-if value="{{isMarketing}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Inscrits aux lives</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">580</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↓ ratio 0,58</span></div>
+<div style="font-size: 13px; color: #5E5B53">1 000 attendus à date · atterrissage 1 250</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #9B1C12"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Rouge</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Conversion page d'inscription</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">18 %</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↓ 26 %</span></div>
+<div style="font-size: 13px; color: #5E5B53">Cible : 25 %</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #9B1C12"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Rouge</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Leads qualifiés · semaine</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">142</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↓ 168</span></div>
+<div style="font-size: 13px; color: #5E5B53">Cible : 180 / semaine</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Coût par lead</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">3,60 €</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #1E5E38">↑ 3,90 €</span></div>
+<div style="font-size: 13px; color: #5E5B53">Cible : ≤ 4 €</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #1E5E38"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7D4F"></span>Vert</span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px">
+<section aria-labelledby="funnel" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 id="funnel" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Entonnoir d'acquisition</h2>
+<span style="font-size: 13px; color: #5E5B53">L'étape qui fuit est encadrée</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<div style="padding: 16px; border-radius: 12px; background: #F6F4EF"><div style="font-size: 12px; color: #5E5B53">Audience atteinte</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">24 000</div></div>
+<div style="padding: 16px; border-radius: 12px; background: #F6F4EF"><div style="font-size: 12px; color: #5E5B53">Visites page</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">3 200</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">13 % →</div></div>
+<div style="padding: 14px; border-radius: 12px; background: #FFF8F6; border: 2px solid #B42318"><div style="font-size: 12px; color: #9B1C12; font-weight: 600">Inscrits</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">580</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9B1C12; margin-top: 4px">18 % ↓ (26 %)</div></div>
+<div style="padding: 16px; border-radius: 12px; background: #F6F4EF"><div style="font-size: 12px; color: #5E5B53">Leads qualifiés</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">142</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">24 % →</div></div>
+</div>
+<div style="display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px 90px; gap: 12px; padding: 8px 0; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53; border-bottom: 1px solid #E3DFD5"><span>Canal</span><span>Leads</span><span>CPL</span><span>Part</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px 90px; gap: 12px; padding: 10px 0; font-size: 14px; border-bottom: 1px solid #EFEBE3"><span>Publicité</span><span style="font-family: 'IBM Plex Mono', monospace">78</span><span style="font-family: 'IBM Plex Mono', monospace">3,90 €</span><span style="font-family: 'IBM Plex Mono', monospace">55 %</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px 90px; gap: 12px; padding: 10px 0; font-size: 14px; border-bottom: 1px solid #EFEBE3"><span>Partenariats</span><span style="font-family: 'IBM Plex Mono', monospace">31</span><span style="font-family: 'IBM Plex Mono', monospace">2,10 €</span><span style="font-family: 'IBM Plex Mono', monospace">22 %</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px 90px; gap: 12px; padding: 10px 0; font-size: 14px; border-bottom: 1px solid #EFEBE3"><span>Organique</span><span style="font-family: 'IBM Plex Mono', monospace">24</span><span style="font-family: 'IBM Plex Mono', monospace">—</span><span style="font-family: 'IBM Plex Mono', monospace">17 %</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px 90px; gap: 12px; padding: 10px 0; font-size: 14px"><span>Emailing</span><span style="font-family: 'IBM Plex Mono', monospace">9</span><span style="font-family: 'IBM Plex Mono', monospace">—</span><span style="font-family: 'IBM Plex Mono', monospace">6 %</span></div>
+</div>
+</section>
+
+<section aria-labelledby="mrisk" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="mrisk" style="margin: 0 0 10px; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Risques du pôle · 3</h2>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318; flex-shrink: 0"></span>Conversion de la page en chute</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">De 26 % à 18 % depuis le changement d'offre. Cause principale de l'écart sur les inscrits.</div><a href="#" style="display: inline-block; margin: 8px 0 0 16px; font-size: 14px; font-weight: 600; text-decoration: none">Exiger un plan</a></div>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318; flex-shrink: 0"></span>Conflit Live #1 / page d'inscription</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Live le 22 oct., page prévue le 27 oct.</div><a href="Decisions.dc.html" style="display: inline-block; margin: 8px 0 0 16px; font-size: 14px; font-weight: 600; text-decoration: none">Décider</a></div>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>Dépendance à un canal</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">55 % des leads viennent de la publicité (seuil d'alerte : 50 %).</div></div>
+</section>
+</div>
+
+<section aria-labelledby="minit" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 28px; display: flex; flex-direction: column">
+<h2 id="minit" style="margin: 0 0 14px; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">KR du pôle Marketing</h2>
+<div style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; padding: 0 8px 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">
+<span>Résultat clé</span><span>Trajectoire du trimestre</span><span>Ratio</span><span>Atterrissage · rythme · prochain jalon</span><span>Statut</span>
+</div>
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; background: #FFF8F6; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">2 000 inscrits aux lives</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Màj il y a 1 j · confiance 4/10</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Réel nettement sous l'attendu, projection à 1 250 sur 2 000">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<polyline points="8,54 40,30 80,23 252,6" fill="none" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></polyline>
+<polyline points="8,54 24,47 40,40" fill="none" stroke="#B42318" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="40" x2="252" y2="24" stroke="#B42318" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="24" r="3.5" fill="#B42318"></circle>
+<line x1="242" y1="6" x2="258" y2="6" stroke="#1B1B18" stroke-width="2"></line>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">0,58 <span style="color: #9B1C12">↓</span></div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">580 · attendu 1 000</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong style="color: #9B1C12">1 250 / 2 000</strong></div><div>Rythme 7 j : <strong style="color: #9B1C12">10 / jour</strong> · requis <strong>22 / jour</strong></div><div style="color: #9B1C12">Page d'inscription · inconnu : exploration jusqu'au 16 oct. · conflit Live #1</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDECEA; color: #9B1C12; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Rouge</span>
+</a>
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; border-bottom: 1px solid #EFEBE3; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">Coût par lead ≤ 4 €</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Màj aujourd'hui</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Coût passé sous le seuil, projection à 3,50 euros">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<line x1="8" y1="30" x2="252" y2="30" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></line>
+<polyline points="8,35 24,29 40,25" fill="none" stroke="#2E7D4F" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="25" x2="252" y2="24" stroke="#2E7D4F" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="24" r="3.5" fill="#2E7D4F"></circle>
+<text x="150" y="46" font-size="10" fill="#5E5B53" font-family="IBM Plex Sans, sans-serif">au-dessus du seuil = moins cher</text>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">3,60 € <span style="color: #1E5E38">↑</span></div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">seuil 4 €</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong>3,50 €</strong></div><div>Marge : <strong style="color: #1E5E38">0,40 € sous le seuil</strong></div><div style="color: #5E5B53">CPL &lt; 4 € quatre semaines de suite · 31 oct.</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E6F2EA; color: #1E5E38; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7D4F"></span>Vert</span>
+</a>
+</section>
+</div>
+</sc-if>
+
+<!-- ============ SALES ============ -->
+<sc-if value="{{isSales}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">CA encaissé</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">12 k€</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5B53">→ ratio 0,80</span></div>
+<div style="font-size: 13px; color: #5E5B53">15 k€ attendus à date</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Pipeline pondéré</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">38 k€</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #1E5E38">↑ 31 k€</span></div>
+<div style="font-size: 13px; color: #5E5B53">Couverture : 1,0× le reste à faire</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Conversion RDV → vente</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">22 %</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↓ 27 %</span></div>
+<div style="font-size: 13px; color: #5E5B53">Cible : 25 %</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Panier moyen</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">1 490 €</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5B53">→</span></div>
+<div style="font-size: 13px; color: #5E5B53">Cible : 1 500 €</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #1E5E38"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7D4F"></span>Vert</span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px">
+<section aria-labelledby="pipe" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 id="pipe" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Pipeline commercial · ce mois</h2>
+<span style="font-size: 13px; color: #5E5B53">L'étape qui fuit est encadrée</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<div style="padding: 16px; border-radius: 12px; background: #F6F4EF"><div style="font-size: 12px; color: #5E5B53">Leads qualifiés</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">142</div></div>
+<div style="padding: 16px; border-radius: 12px; background: #F6F4EF"><div style="font-size: 12px; color: #5E5B53">RDV fixés</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">64</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">45 % →</div></div>
+<div style="padding: 16px; border-radius: 12px; background: #F6F4EF"><div style="font-size: 12px; color: #5E5B53">RDV réalisés</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">51</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53; margin-top: 4px">80 % →</div></div>
+<div style="padding: 14px; border-radius: 12px; background: #FFF8F6; border: 2px solid #B45309"><div style="font-size: 12px; color: #8A3F06; font-weight: 600">Ventes</div><div style="font-family: Fraunces, Georgia, serif; font-size: 26px; margin-top: 6px">11</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8A3F06; margin-top: 4px">22 % ↓ (27 %)</div></div>
+</div>
+<div style="padding: 18px 20px; border-radius: 12px; background: #1B1B18; color: #F6F4EF; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #C9C4B7">Atterrissage au rythme actuel</div>
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px">41 k€ sur 50 k€</div>
+<div style="font-size: 14px; color: #C9C4B7">Il manque 9 k€, soit environ <strong style="color: #F6F4EF">6 ventes</strong> au panier moyen actuel d'ici fin décembre.</div>
+</div>
+</section>
+
+<section aria-labelledby="srisk" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="srisk" style="margin: 0 0 10px; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Risques du pôle · 3</h2>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>Écart de 9 k€ à l'atterrissage</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Le pipeline pondéré couvre tout juste le reste à faire, sans marge.</div><a href="#" style="display: inline-block; margin: 8px 0 0 16px; font-size: 14px; font-weight: 600; text-decoration: none">Exiger un plan</a></div>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>Conversion RDV → vente en baisse</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">De 27 % à 22 % en 2 semaines : revoir les appels enregistrés.</div></div>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318; flex-shrink: 0"></span>Offre de lancement bloquée</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Elle attend ta décision sur le prix, échéance dans 3 jours.</div><a href="Decisions.dc.html" style="display: inline-block; margin: 8px 0 0 16px; font-size: 14px; font-weight: 600; text-decoration: none">Décider</a></div>
+</section>
+</div>
+
+<section aria-labelledby="sinit" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 28px; display: flex; flex-direction: column">
+<h2 id="sinit" style="margin: 0 0 14px; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">KR du pôle Sales</h2>
+<div style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; padding: 0 8px 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">
+<span>Résultat clé</span><span>Trajectoire du trimestre</span><span>Ratio</span><span>Atterrissage · rythme · prochain jalon</span><span>Statut</span>
+</div>
+<a href="#" style="display: grid; grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px; align-items: center; padding: 10px 8px; border-top: 1px solid #EFEBE3; border-bottom: 1px solid #EFEBE3; text-decoration: none; color: #1B1B18">
+<div><div style="font-size: 14px; font-weight: 600">50 k€ encaissés</div><div style="font-size: 12px; color: #5E5B53; margin-top: 3px">Màj il y a 2 j</div></div>
+<svg viewBox="0 0 260 60" width="260" height="60" role="img" aria-label="Réel légèrement sous l'attendu, projection à 41 k€ sur 50">
+<line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line>
+<line x1="40" y1="2" x2="40" y2="58" stroke="#D8D3C7" stroke-width="1"></line>
+<polyline points="8,54 40,40 252,6" fill="none" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></polyline>
+<polyline points="8,54 24,48 40,43" fill="none" stroke="#B45309" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<line x1="40" y1="43" x2="252" y2="15" stroke="#B45309" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line>
+<circle cx="252" cy="15" r="3.5" fill="#B45309"></circle>
+<line x1="242" y1="6" x2="258" y2="6" stroke="#1B1B18" stroke-width="2"></line>
+</svg>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">0,80 →</div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">12 k€ · attendu 15 k€</div></div>
+<div style="font-size: 13px; line-height: 1.55"><div>Atterrissage : <strong style="color: #8A3F06">41 k€ / 50 k€</strong></div><div>Rythme 7 j : <strong style="color: #8A3F06">3,1 k€ / sem.</strong> · requis <strong>4,0 k€ / sem.</strong></div><div style="color: #8A3F06">Prix de lancement · 16 oct. · attend ta décision</div></div>
+<span style="justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDF1E3; color: #8A3F06; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</a>
+</section>
+</div>
+</sc-if>
+
+<!-- ============ FINANCE ============ -->
+<sc-if value="{{isFinance}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Trésorerie</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">86 k€</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↓ 92 k€</span></div>
+<div style="font-size: 13px; color: #5E5B53">Au 13 octobre</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #1E5E38"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E7D4F"></span>Vert</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Runway</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">7,2 mois</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↓ 8,1</span></div>
+<div style="font-size: 13px; color: #5E5B53">Seuil d'alerte : 6 mois</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Dépenses du mois</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">24,3 k€</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">+10 %</span></div>
+<div style="font-size: 13px; color: #5E5B53">Budget : 22 k€</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #9B1C12"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>Rouge</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #5E5B53">Encaissements en retard</div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500; line-height: 1">4,5 k€</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9B1C12">↑ 3 factures</span></div>
+<div style="font-size: 13px; color: #5E5B53">Dont 1 à plus de 30 jours</div>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #8A3F06"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309"></span>Orange</span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px">
+<section aria-labelledby="budget" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 id="budget" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Budget vs réel · octobre</h2>
+<span style="font-size: 13px; color: #5E5B53">Barre = réel · trait = budget</span>
+</div>
+<div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 150px; gap: 16px; align-items: center; font-size: 14px">
+<span>Contenu</span>
+<div style="position: relative; height: 12px; background: #ECE8DF; border-radius: 6px"><div style="width: 81.7%; height: 12px; background: #B42318; border-radius: 6px"></div><div style="position: absolute; left: 66.7%; top: -4px; width: 2px; height: 20px; background: #1B1B18"></div></div>
+<span style="font-family: 'IBM Plex Mono', monospace">9,8 / 8 k€ <strong style="color: #9B1C12">+22 %</strong></span>
+</div>
+<div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 150px; gap: 16px; align-items: center; font-size: 14px">
+<span>Marketing</span>
+<div style="position: relative; height: 12px; background: #ECE8DF; border-radius: 6px"><div style="width: 75.8%; height: 12px; background: #2E7D4F; border-radius: 6px"></div><div style="position: absolute; left: 75%; top: -4px; width: 2px; height: 20px; background: #1B1B18"></div></div>
+<span style="font-family: 'IBM Plex Mono', monospace">9,1 / 9 k€ <span style="color: #1E5E38">+1 %</span></span>
+</div>
+<div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 150px; gap: 16px; align-items: center; font-size: 14px">
+<span>Sales</span>
+<div style="position: relative; height: 12px; background: #ECE8DF; border-radius: 6px"><div style="width: 28.3%; height: 12px; background: #2E7D4F; border-radius: 6px"></div><div style="position: absolute; left: 29.2%; top: -4px; width: 2px; height: 20px; background: #1B1B18"></div></div>
+<span style="font-family: 'IBM Plex Mono', monospace">3,4 / 3,5 k€ <span style="color: #1E5E38">−3 %</span></span>
+</div>
+<div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 150px; gap: 16px; align-items: center; font-size: 14px">
+<span>Structure</span>
+<div style="position: relative; height: 12px; background: #ECE8DF; border-radius: 6px"><div style="width: 16.7%; height: 12px; background: #B45309; border-radius: 6px"></div><div style="position: absolute; left: 12.5%; top: -4px; width: 2px; height: 20px; background: #1B1B18"></div></div>
+<span style="font-family: 'IBM Plex Mono', monospace">2,0 / 1,5 k€ <strong style="color: #8A3F06">+33 %</strong></span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 14px; border-top: 1px solid #EFEBE3">
+<div><div style="font-size: 12px; color: #5E5B53">Coût d'acquisition client</div><div style="font-family: Fraunces, Georgia, serif; font-size: 24px; margin-top: 4px">290 €</div></div>
+<div><div style="font-size: 12px; color: #5E5B53">Panier moyen</div><div style="font-family: Fraunces, Georgia, serif; font-size: 24px; margin-top: 4px">1 490 €</div></div>
+<div><div style="font-size: 12px; color: #5E5B53">Panier / coût d'acquisition</div><div style="font-family: Fraunces, Georgia, serif; font-size: 24px; margin-top: 4px; color: #1E5E38">5,1×</div></div>
+</div>
+</section>
+
+<section aria-labelledby="frisk" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 26px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="frisk" style="margin: 0 0 10px; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Risques du pôle · 3</h2>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B42318; flex-shrink: 0"></span>Contenu à +22 % du budget</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">Heures de montage supplémentaires sur la masterclass #2.</div><a href="Decisions.dc.html" style="display: inline-block; margin: 8px 0 0 16px; font-size: 14px; font-weight: 600; text-decoration: none">Arbitrer</a></div>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>Runway en baisse</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">7,2 mois, −0,9 en un mois. Seuil d'alerte à 6 mois.</div></div>
+<div style="padding: 14px 0; border-top: 1px solid #EFEBE3"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 50%; background: #B45309; flex-shrink: 0"></span>3 encaissements en retard</div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; padding-left: 16px">4,5 k€ au total, dont une facture à plus de 30 jours.</div><a href="#" style="display: inline-block; margin: 8px 0 0 16px; font-size: 14px; font-weight: 600; text-decoration: none">Relancer</a></div>
+</section>
+</div>
+
+<section aria-labelledby="fech" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 28px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="fech" style="margin: 0 0 10px; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Échéances à venir</h2>
+<div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) 160px; gap: 16px; padding: 12px 0; border-top: 1px solid #EFEBE3; font-size: 14px"><strong>31 oct.</strong><span>Clôture mensuelle et mise à jour du runway</span><span style="color: #5E5B53">Owner : Finance</span></div>
+<div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) 160px; gap: 16px; padding: 12px 0; border-top: 1px solid #EFEBE3; font-size: 14px"><strong>5 nov.</strong><span>Paiement des freelances d'octobre</span><span style="color: #5E5B53">Owner : Finance</span></div>
+<div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) 160px; gap: 16px; padding: 12px 0; border-top: 1px solid #EFEBE3; font-size: 14px"><strong>[DATE]</strong><span>[ÉCHÉANCE FISCALE DE L'ENTITÉ]</span><span style="color: #5E5B53">Owner : Finance</span></div>
+</section>
+</div>
+</sc-if>
+
+</main>
+
+<button type="button" onClick="{{openInfo}}" aria-label="Méthodologie de cette page" title="Méthodologie de cette page" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 48px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 32px 36px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Méthodologie de la page</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Cockpit</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Fermer" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>À quoi sert cette page</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">Le Cockpit est la tour de contrôle de SKL. Il répond en moins de 60 secondes à trois questions : allons-nous atteindre nos objectifs du trimestre ? Qu'est-ce qui ralentit l'exécution ? Qu'est-ce qui attend une action de ma part ? Le sélecteur en haut ouvre la vue d'un pôle : Marketing, Sales ou Finance.</p>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>En quoi elle augmente l'efficience de chacun</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong style="color: #1B1B18">Pilotage par exception.</strong> Ce qui va bien reste discret, seuls les écarts prennent de la place. L'attention va là où elle change le résultat.</li>
+<li><strong style="color: #1B1B18">Projeter plutôt que constater.</strong> Chaque KR affiche son atterrissage prévu et le rythme requis. On corrige en semaine 4, pas en semaine 13.</li>
+<li><strong style="color: #1B1B18">Un signal, une action.</strong> Chaque alerte a son bouton : décider, relancer, réallouer. Rien ne reste en suspens.</li>
+<li><strong style="color: #1B1B18">Des goulots visibles.</strong> Blocages, charge de l'équipe et décisions en attente, y compris celles du fondateur, sont mesurés.</li>
+<li><strong style="color: #1B1B18">Zéro préparation.</strong> Le Cockpit du vendredi est l'ordre du jour de la weekly review.</li>
+</ul>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>Comment l'utiliser</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Chaque matin, lis la rangée de KPI : temps de cycle, fiabilité des promesses, blocages, charge, vitesse de décision.</li>
+<li>Traite d'abord <strong style="color: #1B1B18">« Ce qui attend de toi »</strong> : ce sont les blocages que toi seul peux lever.</li>
+<li>Passe sur <strong style="color: #1B1B18">« Ce qui ralentit l'exécution »</strong> et déclenche l'action proposée.</li>
+<li>Parcours les KR : un KR rouge exige un plan de redressement sous 48 h, un KR sans check-in depuis 7 jours est relancé.</li>
+<li>Vérifie les explorations : une enveloppe épuisée impose une décision (continuer, pivoter ou arrêter).</li>
+<li>Le vendredi, déroule le Cockpit comme ordre du jour de la weekly review.</li>
+</ol>
+</section>
+
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">J'ai compris</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kr: 'kr3', view: 'global', info: false };
+  }
+  pick(id) {
+    this.setState({ kr: this.state.kr === id ? null : id });
+  }
+  tab(active) {
+    const base = 'min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; ';
+    return active
+      ? base + 'background: #1B1B18; color: #FFFFFF; font-weight: 600;'
+      : base + 'background: transparent; color: #3D3A33; font-weight: 500;';
+  }
+  renderVals() {
+    const s = this.state;
+    const chev = (id) => s.kr === id ? 'rotate(90deg)' : 'rotate(0deg)';
+    const bg = (id) => s.kr === id ? '#F6F4EF' : 'transparent';
+    return {
+      info: !!s.info,
+      openInfo: () => this.setState({ info: true }),
+      closeInfo: () => this.setState({ info: false }),
+      isGlobal: s.view === 'global',
+      isMarketing: s.view === 'marketing',
+      isSales: s.view === 'sales',
+      isFinance: s.view === 'finance',
+      tabGlobal: this.tab(s.view === 'global'),
+      tabMarketing: this.tab(s.view === 'marketing'),
+      tabSales: this.tab(s.view === 'sales'),
+      tabFinance: this.tab(s.view === 'finance'),
+      goGlobal: () => this.setState({ view: 'global' }),
+      goMarketing: () => this.setState({ view: 'marketing' }),
+      goSales: () => this.setState({ view: 'sales' }),
+      goFinance: () => this.setState({ view: 'finance' }),
+      open1: s.kr === 'kr1', open2: s.kr === 'kr2', open3: s.kr === 'kr3', open4: s.kr === 'kr4', open5: s.kr === 'kr5',
+      c1: chev('kr1'), c2: chev('kr2'), c3: chev('kr3'), c4: chev('kr4'), c5: chev('kr5'),
+      bg1: bg('kr1'), bg2: bg('kr2'), bg3: bg('kr3'), bg4: bg('kr4'), bg5: bg('kr5'),
+      k1: () => this.pick('kr1'),
+      k2: () => this.pick('kr2'),
+      k3: () => this.pick('kr3'),
+      k4: () => this.pick('kr4'),
+      k5: () => this.pick('kr5')
+    };
+  }
+}
+</script>
+</body>
+</html>

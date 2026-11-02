@@ -1,0 +1,6243 @@
+{
+  "meta": {
+    "name": "Cartographie SKL",
+    "version": "modèle v5",
+    "exportedAt": "2026-10-14T11:25:22.815Z",
+    "note": "Export exact de la carte en ligne (aucune modification non enregistrée). Contenu en grande partie hypothétique, à valider avec l'équipe."
+  },
+  "enums": {
+    "status": {
+      "ok": "Existant",
+      "wip": "En construction",
+      "missing": "Manquant"
+    },
+    "coverage": {
+      "ok": "Couvert",
+      "wip": "En construction",
+      "missing": "Non couvert"
+    },
+    "meansKind": {
+      "agent": "Agent IA",
+      "human": "Humain",
+      "system": "Système"
+    },
+    "autonomy": [
+      "Humain seul",
+      "L'IA assiste",
+      "L'IA fait, l'humain valide",
+      "L'IA fait, l'humain supervise",
+      "Autonome"
+    ],
+    "contractFields": [
+      [
+        "trig",
+        "Déclencheur"
+      ],
+      [
+        "inp",
+        "Entrée"
+      ],
+      [
+        "out",
+        "Sortie attendue"
+      ],
+      [
+        "metric",
+        "Métrique de réussite"
+      ],
+      [
+        "evalc",
+        "Critère d'évaluation"
+      ]
+    ],
+    "agentSheetFields": [
+      [
+        "actions",
+        "Actions et accès autorisés"
+      ],
+      [
+        "guard",
+        "Garde-fous : ne doit jamais"
+      ],
+      [
+        "tests",
+        "Jeu de tests"
+      ],
+      [
+        "promo",
+        "Critère pour passer au niveau suivant"
+      ],
+      [
+        "cost",
+        "Coût par exécution"
+      ]
+    ],
+    "measures": [
+      [
+        "taux",
+        "Taux"
+      ],
+      [
+        "delai",
+        "Délai"
+      ],
+      [
+        "volume",
+        "Volume"
+      ],
+      [
+        "cout",
+        "Coût"
+      ]
+    ],
+    "acts": {
+      "Exposition": [
+        "Acte 1",
+        "Découvrir",
+        "Exposition puis Marketing"
+      ],
+      "Marketing": [
+        "Acte 1",
+        "Découvrir",
+        "Exposition puis Marketing"
+      ],
+      "Sales": [
+        "Acte 2",
+        "Décider",
+        "Sales : clarifier la décision"
+      ],
+      "Delivery": [
+        "Acte 3",
+        "Se transformer",
+        "Delivery"
+      ],
+      "Rayonner": [
+        "Acte 4",
+        "Rayonner",
+        "La preuve repart en amont"
+      ]
+    }
+  },
+  "states": [
+    {
+      "id": "E0",
+      "name": "Point A",
+      "sub": "Vit le problème, ne connaît pas le guru",
+      "signal": "Fait partie du marché ciblé par la Factory",
+      "event": "marche_cible",
+      "incomingTransition": null,
+      "signalValidated": false
+    },
+    {
+      "id": "E1",
+      "name": "Exposé",
+      "sub": "A vu le guru une première fois",
+      "signal": "Première vue d'un contenu (au moins 3 s)",
+      "event": "contenu_vu",
+      "incomingTransition": "T01",
+      "signalValidated": false
+    },
+    {
+      "id": "E2",
+      "name": "Revenu",
+      "sub": "Revient voir le guru",
+      "signal": "Au moins 3 contenus vus en 30 jours, ou abonnement",
+      "event": "abonne",
+      "incomingTransition": "T02",
+      "signalValidated": false
+    },
+    {
+      "id": "E3",
+      "name": "Engagé",
+      "sub": "Entre en relation",
+      "signal": "Commentaire, DM, partage ou clic vers le funnel",
+      "event": "interaction",
+      "incomingTransition": "T03",
+      "signalValidated": false
+    },
+    {
+      "id": "E4",
+      "name": "Lead",
+      "sub": "A confié son contact",
+      "signal": "Opt-in enregistré (email ou WhatsApp)",
+      "event": "opt_in",
+      "incomingTransition": "T04",
+      "signalValidated": false
+    },
+    {
+      "id": "E5",
+      "name": "Preuve vue",
+      "sub": "A vu que c'est possible pour lui",
+      "signal": "Masterclass ou VSL vue à au moins 70 %",
+      "event": "preuve_vue",
+      "incomingTransition": "T05",
+      "signalValidated": false
+    },
+    {
+      "id": "E6",
+      "name": "Qualifié",
+      "sub": "A demandé à en parler",
+      "signal": "Formulaire qualifié et appel réservé",
+      "event": "rdv_reserve",
+      "incomingTransition": "T06",
+      "signalValidated": false
+    },
+    {
+      "id": "E7",
+      "name": "Présent",
+      "sub": "S'est présenté à l'appel",
+      "signal": "Appel tenu",
+      "event": "appel_tenu",
+      "incomingTransition": "T07",
+      "signalValidated": false
+    },
+    {
+      "id": "E8",
+      "name": "Client",
+      "sub": "A pris sa décision",
+      "signal": "Paiement reçu",
+      "event": "paiement",
+      "incomingTransition": "T08",
+      "signalValidated": false
+    },
+    {
+      "id": "E9",
+      "name": "Démarré",
+      "sub": "Est en mouvement",
+      "signal": "Onboarding terminé et kick-off fait sous 7 jours",
+      "event": "onboarding_ok",
+      "incomingTransition": "T09",
+      "signalValidated": false
+    },
+    {
+      "id": "E10",
+      "name": "Premier résultat",
+      "sub": "A une première preuve pour lui-même",
+      "signal": "Premier résultat concret validé sous 30 jours (KR 1.3)",
+      "event": "jalon_30j",
+      "incomingTransition": "T10",
+      "signalValidated": false
+    },
+    {
+      "id": "E11",
+      "name": "En progression",
+      "sub": "Avance semaine après semaine",
+      "signal": "Jalon hebdomadaire validé",
+      "event": "jalon_hebdo",
+      "incomingTransition": "T11",
+      "signalValidated": false
+    },
+    {
+      "id": "E12",
+      "name": "Point B",
+      "sub": "Transformation atteinte",
+      "signal": "Objectif B validé selon les critères de la Factory",
+      "event": "objectif_b",
+      "incomingTransition": "T12",
+      "signalValidated": false
+    },
+    {
+      "id": "E13",
+      "name": "Ambassadeur",
+      "sub": "Devient la preuve",
+      "signal": "Témoignage publié ou filleul inscrit",
+      "event": "temoignage",
+      "incomingTransition": "T13",
+      "signalValidated": false
+    }
+  ],
+  "transitions": [
+    {
+      "id": "T01",
+      "from": "E0",
+      "to": "E1",
+      "order": 1,
+      "pole": "Exposition",
+      "mission": "Faire découvrir que le guru existe",
+      "interactions": [
+        "Vidéo courte dans le feed",
+        "Publicité du guru",
+        "Passage chez un autre créateur"
+      ],
+      "rateDefinition": "Exposés / marché ciblé",
+      "consumesAssets": [
+        "P1",
+        "P2"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T02",
+      "from": "E1",
+      "to": "E2",
+      "order": 2,
+      "pole": "Exposition",
+      "mission": "Donner envie de revenir",
+      "interactions": [
+        "Série de contenus piliers",
+        "Format récurrent reconnaissable",
+        "Live"
+      ],
+      "rateDefinition": "% d'exposés qui reviennent",
+      "consumesAssets": [
+        "P1",
+        "P2"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T03",
+      "from": "E2",
+      "to": "E3",
+      "order": 3,
+      "pole": "Exposition",
+      "mission": "Créer une relation",
+      "interactions": [
+        "Réponse personnelle à son commentaire",
+        "Conversation en DM",
+        "Question posée en story"
+      ],
+      "rateDefinition": "Taux d'engagement",
+      "consumesAssets": [
+        "P1",
+        "P4"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T04",
+      "from": "E3",
+      "to": "E4",
+      "order": 4,
+      "pole": "Marketing",
+      "mission": "Obtenir son contact",
+      "interactions": [
+        "Lead magnet",
+        "Inscription à la masterclass",
+        "Proposition en DM"
+      ],
+      "rateDefinition": "Taux d'opt-in",
+      "consumesAssets": [
+        "P2",
+        "P3"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T05",
+      "from": "E4",
+      "to": "E5",
+      "order": 5,
+      "pole": "Marketing",
+      "mission": "Prouver que c'est possible pour lui",
+      "interactions": [
+        "Masterclass",
+        "VSL",
+        "Messages de preuve",
+        "Cas d'élèves qui lui ressemblent"
+      ],
+      "rateDefinition": "% de preuve vue à 70 %",
+      "consumesAssets": [
+        "P3",
+        "P4"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T06",
+      "from": "E5",
+      "to": "E6",
+      "order": 6,
+      "pole": "Marketing",
+      "mission": "Le faire demander à en parler",
+      "interactions": [
+        "Formulaire de qualification",
+        "Page de réservation",
+        "Message de prise de RDV"
+      ],
+      "rateDefinition": "% de leads qui réservent",
+      "consumesAssets": [],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T07",
+      "from": "E6",
+      "to": "E7",
+      "order": 7,
+      "pole": "Sales",
+      "mission": "Le faire venir à l'appel",
+      "interactions": [
+        "Confirmation et rappels",
+        "Vidéo de préparation",
+        "Questions avant l'appel"
+      ],
+      "rateDefinition": "Taux de présence",
+      "consumesAssets": [],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T08",
+      "from": "E7",
+      "to": "E8",
+      "order": 8,
+      "pole": "Sales",
+      "mission": "Clarifier sa décision",
+      "interactions": [
+        "Appel de vente SPIN",
+        "Pitch aligné sur son gap",
+        "Page perso : solution et roadmap"
+      ],
+      "rateDefinition": "Taux de transformation",
+      "consumesAssets": [
+        "P4",
+        "P6"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T09",
+      "from": "E8",
+      "to": "E9",
+      "order": 9,
+      "pole": "Delivery",
+      "mission": "Le mettre en mouvement en 7 jours",
+      "interactions": [
+        "Message de bienvenue",
+        "Kick-off",
+        "Plan d'action personnel"
+      ],
+      "rateDefinition": "% démarrés sous 7 jours",
+      "consumesAssets": [
+        "P5"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": false,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T10",
+      "from": "E9",
+      "to": "E10",
+      "order": 10,
+      "pole": "Delivery",
+      "mission": "Premier résultat concret en 30 jours",
+      "interactions": [
+        "Modules du parcours",
+        "Coaching de groupe",
+        "Défi de 30 jours"
+      ],
+      "rateDefinition": "% de 1er résultat sous 30 j",
+      "consumesAssets": [
+        "P5"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T11",
+      "from": "E10",
+      "to": "E11",
+      "order": 11,
+      "pole": "Delivery",
+      "mission": "Maintenir l'élan",
+      "interactions": [
+        "Jalons hebdomadaires",
+        "Communauté",
+        "Suivi individuel"
+      ],
+      "rateDefinition": "% d'actifs chaque semaine",
+      "consumesAssets": [
+        "P5"
+      ],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T12",
+      "from": "E11",
+      "to": "E12",
+      "order": 12,
+      "pole": "Delivery",
+      "mission": "Atteindre le point B",
+      "interactions": [
+        "Validation finale",
+        "Bilan de transformation"
+      ],
+      "rateDefinition": "Taux de réussite élève",
+      "consumesAssets": [],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": true,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    },
+    {
+      "id": "T13",
+      "from": "E12",
+      "to": "E13",
+      "order": 13,
+      "pole": "Rayonner",
+      "mission": "Transformer le résultat en preuve",
+      "interactions": [
+        "Demande de témoignage",
+        "Programme de parrainage",
+        "Mise en avant dans le contenu"
+      ],
+      "rateDefinition": "% qui témoignent",
+      "consumesAssets": [],
+      "measures": {
+        "taux": "",
+        "delai": "",
+        "volume": "",
+        "cout": ""
+      },
+      "checks": {
+        "sy": false,
+        "sg": false,
+        "mn": 0,
+        "ok": false
+      }
+    }
+  ],
+  "acts": [
+    {
+      "k": "Acte 1",
+      "name": "Découvrir",
+      "poles": "Exposition puis Marketing",
+      "from": 1,
+      "to": 6
+    },
+    {
+      "k": "Acte 2",
+      "name": "Décider",
+      "poles": "Sales : clarifier la décision",
+      "from": 7,
+      "to": 8
+    },
+    {
+      "k": "Acte 3",
+      "name": "Se transformer",
+      "poles": "Delivery",
+      "from": 9,
+      "to": 12
+    },
+    {
+      "k": "Acte 4",
+      "name": "Rayonner",
+      "poles": "La preuve repart en amont",
+      "from": 13,
+      "to": 13
+    }
+  ],
+  "exits": [
+    {
+      "id": "XS1",
+      "name": "Spectateur perdu",
+      "anchor": "T03",
+      "from": [
+        "T02",
+        "T03",
+        "T04"
+      ],
+      "signal": "Aucune interaction depuis 30 jours, pas de contact laissé",
+      "ret": "E1",
+      "via": [
+        "B07"
+      ],
+      "desc": "N'a jamais laissé son contact. Reciblage publicitaire."
+    },
+    {
+      "id": "XS2",
+      "name": "Lead dormant",
+      "anchor": "T05",
+      "from": [
+        "T05"
+      ],
+      "signal": "Opt-in sans preuve consommée sous 14 jours",
+      "ret": "E4",
+      "via": [
+        "B16"
+      ],
+      "desc": "A laissé son contact, ne consomme pas la preuve. Nurturing long."
+    },
+    {
+      "id": "XS3",
+      "name": "Non qualifié",
+      "anchor": "T06",
+      "from": [
+        "T06"
+      ],
+      "signal": "Score de qualification sous le seuil",
+      "ret": "E4",
+      "via": [
+        "B16"
+      ],
+      "desc": "Pas prêt ou pas la cible. Nurturing long ou produit d'entrée (à définir)."
+    },
+    {
+      "id": "XS4",
+      "name": "No-show",
+      "anchor": "T07",
+      "from": [
+        "T07"
+      ],
+      "signal": "Appel réservé non tenu",
+      "ret": "E6",
+      "via": [
+        "B18"
+      ],
+      "desc": "Reprogrammation automatique sous 24 h."
+    },
+    {
+      "id": "XS5",
+      "name": "Indécis",
+      "anchor": "T08",
+      "from": [
+        "T08"
+      ],
+      "signal": "Appel tenu sans décision",
+      "ret": "E7",
+      "via": [
+        "B21"
+      ],
+      "desc": "« Je réfléchis ». Relance avec ses propres verbatims, second appel."
+    },
+    {
+      "id": "XS6",
+      "name": "Remboursé",
+      "anchor": "T09",
+      "from": [
+        "T09",
+        "T10"
+      ],
+      "signal": "Remboursement accordé (KR 3.3 : moins de 3 % à 30 jours)",
+      "ret": "",
+      "via": [
+        "B25"
+      ],
+      "desc": "Sortie définitive. Le motif remonte vers l'offre."
+    },
+    {
+      "id": "XS8",
+      "name": "Refus",
+      "anchor": "T08",
+      "from": [
+        "T08"
+      ],
+      "signal": "Appel tenu avec décision : non",
+      "ret": "E4",
+      "via": [
+        "B88"
+      ],
+      "desc": "Motif classé. Nurturing long ou sortie propre."
+    },
+    {
+      "id": "XS9",
+      "name": "Paiement échoué",
+      "anchor": "T08",
+      "from": [
+        "T08"
+      ],
+      "signal": "Oui sans paiement finalisé sous 24 h",
+      "ret": "E7",
+      "via": [
+        "B86"
+      ],
+      "desc": "Relance de paiement, puis retour vers la décision."
+    },
+    {
+      "id": "XS7",
+      "name": "Décroché",
+      "anchor": "T11",
+      "from": [
+        "T10",
+        "T11",
+        "T12"
+      ],
+      "signal": "5 jours sans activité ni jalon",
+      "ret": "E9",
+      "via": [
+        "B28",
+        "B26"
+      ],
+      "desc": "Bloqué ou démotivé. Alerte au coach et plan de reprise."
+    }
+  ],
+  "shortcuts": [
+    {
+      "id": "SC1",
+      "from": "E1",
+      "to": "E4",
+      "label": "Pub → opt-in direct",
+      "via": "B07"
+    },
+    {
+      "id": "SC2",
+      "from": "E3",
+      "to": "E6",
+      "label": "DM chaud → appel direct",
+      "via": "B13"
+    },
+    {
+      "id": "SC3",
+      "from": "E13",
+      "to": "E4",
+      "label": "Filleul → lead",
+      "via": "B32"
+    }
+  ],
+  "chains": [
+    {
+      "id": "P1",
+      "name": "Chaîne contenu",
+      "asset": "Contenus du guru",
+      "desc": "Fabrique chaque semaine les contenus qui exposent le guru.",
+      "feeds": [
+        "T01",
+        "T02",
+        "T03"
+      ],
+      "status": "wip"
+    },
+    {
+      "id": "P2",
+      "name": "Chaîne amplification",
+      "asset": "Campagnes publicitaires",
+      "desc": "Amplifie les gagnants, recible les exposés.",
+      "feeds": [
+        "T01",
+        "T02",
+        "T04"
+      ],
+      "status": "missing"
+    },
+    {
+      "id": "P3",
+      "name": "Chaîne masterclass & VSL",
+      "asset": "Masterclasses et VSL",
+      "desc": "Fabrique la preuve que c'est possible.",
+      "feeds": [
+        "T04",
+        "T05"
+      ],
+      "status": "wip"
+    },
+    {
+      "id": "P4",
+      "name": "Chaîne preuves",
+      "asset": "Études de cas par profil",
+      "desc": "Transforme les réussites en preuves réutilisables.",
+      "feeds": [
+        "T03",
+        "T05",
+        "T08"
+      ],
+      "status": "missing"
+    },
+    {
+      "id": "P5",
+      "name": "Chaîne parcours",
+      "asset": "Modules et exercices",
+      "desc": "Fabrique ce que l'élève suit pour aller de A à B.",
+      "feeds": [
+        "T09",
+        "T10",
+        "T11"
+      ],
+      "status": "missing"
+    },
+    {
+      "id": "P6",
+      "name": "Chaîne sales",
+      "asset": "Trame d'appel et objections",
+      "desc": "Fabrique la trame d'appel et les réponses aux objections utilisées pendant les appels.",
+      "feeds": [
+        "T08"
+      ],
+      "status": "wip"
+    }
+  ],
+  "supportDomains": [
+    {
+      "id": "SU1",
+      "name": "Support élève",
+      "desc": "Répondre vite et bien aux demandes et aux réclamations."
+    },
+    {
+      "id": "SU2",
+      "name": "Finance",
+      "desc": "Encaisser, relancer, compter, connaître la marge."
+    },
+    {
+      "id": "SU3",
+      "name": "Legal & conformité",
+      "desc": "Conditions de vente, publicités, données personnelles."
+    },
+    {
+      "id": "SU4",
+      "name": "Équipe & recrutement",
+      "desc": "Recruter, former, faire vivre la culture Spartan."
+    },
+    {
+      "id": "SU5",
+      "name": "Tech & données",
+      "desc": "Outils, accès, qualité des données."
+    }
+  ],
+  "metaZones": [
+    {
+      "id": "FX",
+      "name": "Factory",
+      "desc": "Définir A, B et le guru. Écrire le savoir et l'offre."
+    },
+    {
+      "id": "CK",
+      "name": "Cockpit",
+      "desc": "Lire les mesures des cellules, décider, corriger."
+    }
+  ],
+  "needs": [
+    {
+      "id": "B01",
+      "title": "Repérer ce qui performe dans la niche",
+      "why": "Nourrir la stratégie avec des faits, pas des intuitions.",
+      "placement": {
+        "type": "production",
+        "chain": "P1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque lundi",
+        "inp": "Comptes et hashtags de la niche",
+        "out": "Top contenus, angles et hooks",
+        "metric": "Part des idées reprises qui performent",
+        "evalc": "Pertinence jugée par le Content Lead"
+      },
+      "reads": [],
+      "writes": [
+        "M4"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent veille virale",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B04",
+          "tools": [
+            "TL02"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B02",
+      "title": "Planifier les contenus de la semaine",
+      "why": "Équilibrer découverte, confiance et appel à l'action.",
+      "placement": {
+        "type": "production",
+        "chain": "P1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Rapport de veille reçu",
+        "inp": "Veille, performance, preuves",
+        "out": "Calendrier et briefs de la semaine",
+        "metric": "Vues moyennes par contenu",
+        "evalc": "Équilibre TOFU / MOFU / BOFU respecté"
+      },
+      "reads": [
+        "M1",
+        "M3",
+        "M4"
+      ],
+      "writes": [
+        "M4"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent stratège éditorial",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B04",
+          "tools": [],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B03",
+      "title": "Écrire chaque script dans la voix du guru",
+      "why": "Le guru doit sonner juste à chaque contenu.",
+      "placement": {
+        "type": "production",
+        "chain": "P1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Brief reçu",
+        "inp": "Brief, cerveau du guru",
+        "out": "Script prêt à valider",
+        "metric": "Rétention à 3 secondes",
+        "evalc": "Fidélité à la voix du guru"
+      },
+      "reads": [
+        "M1",
+        "M4"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent scriptwriter",
+          "status": "wip",
+          "autonomyNow": 2,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B04",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Lire le brief et le cerveau du guru · écrire hooks, scripts et carrousels",
+            "guard": "Aucune allégation de résultat non prouvée · respect strict de la charte du guru",
+            "tests": "30 scripts validés par Ilya comme référence",
+            "promo": "Niveau 3 si 90 % des scripts sont validés sans retouche sur 4 semaines",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B04",
+      "title": "Garantir la ligne éditoriale",
+      "why": "Rien ne sort sans validation de la qualité.",
+      "placement": {
+        "type": "production",
+        "chain": "P1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Script à valider",
+        "inp": "Script",
+        "out": "Script validé ou corrigé",
+        "metric": "Délai de validation",
+        "evalc": "Cohérence de la ligne éditoriale"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "ok",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Ilya · Content Lead",
+          "status": "ok",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Ilya",
+          "escalation": "B48",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B05",
+      "title": "Transformer un script en vidéo du guru",
+      "why": "La vidéo porte la voix et le visage du guru IA.",
+      "placement": {
+        "type": "production",
+        "chain": "P1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Script validé",
+        "inp": "Script",
+        "out": "Vidéo montée et sous-titrée",
+        "metric": "Coût et délai par vidéo",
+        "evalc": "Réalisme du clone, zéro erreur"
+      },
+      "reads": [
+        "M1"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent vidéo du clone",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B04",
+          "tools": [
+            "TL03"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B06",
+      "title": "Publier au bon moment, au bon format",
+      "why": "Chaque réseau a ses codes et ses horaires.",
+      "placement": {
+        "type": "production",
+        "chain": "P1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Vidéo prête",
+        "inp": "Vidéo, calendrier",
+        "out": "Contenu publié sur chaque réseau",
+        "metric": "Publications à l'heure",
+        "evalc": "Format natif respecté"
+      },
+      "reads": [],
+      "writes": [
+        "M4"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent publication",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B04",
+          "tools": [
+            "TL04",
+            "TL02"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B07",
+      "title": "Amplifier les gagnants, recibler les exposés",
+      "why": "Donner plus de portée à ce qui marche déjà.",
+      "placement": {
+        "type": "production",
+        "chain": "P2"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Contenu au-dessus du seuil",
+        "inp": "Contenus, performance",
+        "out": "Campagnes actives, reciblage",
+        "metric": "Coût par lead",
+        "evalc": "Budget et seuils respectés"
+      },
+      "reads": [
+        "M4"
+      ],
+      "writes": [
+        "M4"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent ads",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B15",
+          "tools": [
+            "TL05"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B08",
+      "title": "Concevoir masterclasses et VSL",
+      "why": "La preuve doit répondre aux vraies objections.",
+      "placement": {
+        "type": "production",
+        "chain": "P3"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouvelle objection récurrente ou nouvelle offre",
+        "inp": "Offre, objections, cerveau du guru",
+        "out": "Script de masterclass ou de VSL",
+        "metric": "% de vue à 70 %",
+        "evalc": "Validation par Romain"
+      },
+      "reads": [
+        "M1",
+        "M5"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent conception masterclass",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "Romain",
+          "escalation": "B48",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B09",
+      "title": "Produire et mettre en ligne la preuve",
+      "why": "Dont la série de masterclasses sur la prise de décision.",
+      "placement": {
+        "type": "production",
+        "chain": "P3"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Script validé",
+        "inp": "Script de masterclass",
+        "out": "Masterclass en ligne",
+        "metric": "% de vue à 70 %",
+        "evalc": "Qualité de production"
+      },
+      "reads": [
+        "M1",
+        "M3"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Masterclasses sur skl.live",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "Romain",
+          "escalation": "B15",
+          "tools": [
+            "TL01"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B10",
+      "title": "Transformer chaque témoignage en preuve réutilisable",
+      "why": "Une réussite ne sert que si elle est classée et retrouvable.",
+      "placement": {
+        "type": "production",
+        "chain": "P4"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Témoignage brut reçu",
+        "inp": "Témoignage, dossier de l'élève",
+        "out": "Étude de cas classée par profil",
+        "metric": "Études publiées par mois",
+        "evalc": "Fidélité au témoignage, profil juste"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M3"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent études de cas",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B15",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B11",
+      "title": "Concevoir les modules et exercices du parcours",
+      "why": "Le parcours doit mener au premier résultat en 30 jours.",
+      "placement": {
+        "type": "production",
+        "chain": "P5"
+      },
+      "kr": [
+        "KR 1.3"
+      ],
+      "contract": {
+        "trig": "Offre validée ou jalon raté récurrent",
+        "inp": "Offre, jalons, questions des élèves",
+        "out": "Modules et exercices",
+        "metric": "% de 1er résultat sous 30 j",
+        "evalc": "Revue par les coachs"
+      },
+      "reads": [
+        "M1",
+        "M5"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent conception du parcours",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B12",
+      "title": "Répondre à chaque commentaire et DM dans la voix du guru",
+      "why": "La relation commence par une réponse personnelle.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T03"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouveau commentaire ou DM",
+        "inp": "Message, cerveau du guru",
+        "out": "Réponse, dossier individu créé",
+        "metric": "% de DM devenus conversation",
+        "evalc": "Ton du guru, zéro promesse non tenue"
+      },
+      "reads": [
+        "M1",
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent communauté",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B04",
+          "tools": [
+            "TL02",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Répondre aux commentaires et DM · taguer l'intention · créer le dossier de l'individu",
+            "guard": "Aucun sujet médical, juridique ou financier personnel · aucune polémique · aucune promesse de résultat",
+            "tests": "100 commentaires réels avec une réponse de référence",
+            "promo": "Niveau 4 si moins de 2 % de réponses corrigées sur 1 mois",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B13",
+      "title": "Transformer une conversation en contact, puis en rendez-vous",
+      "why": "Quand l'intention apparaît, il faut la saisir.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T04",
+          "T06"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Intention détectée",
+        "inp": "Conversation, dossier",
+        "out": "Opt-in, puis demande de rendez-vous",
+        "metric": "% de conversations devenues RDV",
+        "evalc": "Qualification juste, ton du guru"
+      },
+      "reads": [
+        "M1",
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent setter IA",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL02",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Lire et répondre aux DM du guru · mettre à jour le dossier · envoyer un lien d'opt-in ou de réservation",
+            "guard": "Jamais de résultat chiffré promis · jamais de prix avant l'appel · stop immédiat après un refus explicite",
+            "tests": "50 conversations réelles annotées (intention, réponse attendue)",
+            "promo": "Niveau 3 si 95 % des réponses sont validées sans retouche sur 2 semaines",
+            "cost": "Coût LLM par conversation, à mesurer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B14",
+      "title": "Capter le contact et diffuser la preuve",
+      "why": "Un clic doit devenir un contact, puis une preuve vue.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T04",
+          "T05"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Clic depuis un contenu",
+        "inp": "Visite",
+        "out": "Opt-in et preuve vue",
+        "metric": "Taux d'opt-in",
+        "evalc": "Tests A/B"
+      },
+      "reads": [],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Funnel skl.live",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 4,
+          "owner": "Michael",
+          "escalation": "B15",
+          "tools": [
+            "TL01"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B15",
+      "title": "Arbitrer budgets et messages d'acquisition",
+      "why": "Quelqu'un décide où va l'argent et quel message gagne.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T05",
+          "T04",
+          "T06"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Revue hebdomadaire des campagnes",
+        "inp": "Mesures des cellules T04 à T06",
+        "out": "Arbitrages de budget et de messages",
+        "metric": "Coût par appel réservé",
+        "evalc": "Weekly review"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "ok",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Michael · CMO",
+          "status": "ok",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Michael",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B16",
+      "title": "Envoyer la bonne preuve au bon moment",
+      "why": "Chaque profil a besoin de sa preuve.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T05",
+          "T06"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Opt-in, puis chaque comportement",
+        "inp": "Dossier, preuves",
+        "out": "Message personnalisé",
+        "metric": "% de preuve vue à 70 %",
+        "evalc": "Pertinence du message par profil"
+      },
+      "reads": [
+        "M1",
+        "M2",
+        "M3"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent nurturing",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B15",
+          "tools": [
+            "TL07",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Choisir et envoyer emails et WhatsApp · lire le dossier et la bibliothèque de preuves",
+            "guard": "Consentement respecté · 1 message par jour maximum · aucune fausse urgence",
+            "tests": "Test A/B contre la séquence actuelle",
+            "promo": "Niveau 4 si le taux de preuve vue dépasse la séquence humaine 4 semaines de suite",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B17",
+      "title": "Orienter chaque lead vers la bonne suite",
+      "why": "Appel, nurturing long ou produit d'entrée.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T06"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Formulaire soumis",
+        "inp": "Réponses, comportement",
+        "out": "Score et orientation",
+        "metric": "% de qualifiés qui achètent",
+        "evalc": "Écart entre score et issue réelle"
+      },
+      "reads": [
+        "M2",
+        "M5"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent qualification",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Lire formulaire et comportement · écrire score et orientation dans le dossier",
+            "guard": "Aucun critère discriminatoire · tout score limite passe à un humain",
+            "tests": "200 leads passés avec leur issue réelle",
+            "promo": "Niveau 4 si l'écart entre score et issue réelle reste sous 10 % pendant 1 mois",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B18",
+      "title": "Réserver, confirmer et rappeler l'appel",
+      "why": "Un appel réservé doit devenir un appel tenu.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T07",
+          "T06"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Lead qualifié",
+        "inp": "Score, disponibilités",
+        "out": "Appel réservé, rappels envoyés",
+        "metric": "Taux de présence",
+        "evalc": "Zéro double réservation"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent RDV & rappels",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL08",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Lire et écrire dans l'agenda · envoyer confirmations, rappels et reprogrammations",
+            "guard": "Jamais de double réservation · jamais d'appel hors des créneaux des sales",
+            "tests": "Scénarios : annulation, fuseau horaire, no-show, reprogrammation",
+            "promo": "Niveau 4 après 4 semaines sans erreur de planning",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B19",
+      "title": "Préparer l'appel en 2 minutes",
+      "why": "Arriver à l'appel en connaissant déjà la personne.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T07",
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "2 h avant l'appel",
+        "inp": "Dossier individu complet",
+        "out": "Contexte, gap probable, objections",
+        "metric": "Note du brief par le sales",
+        "evalc": "Exactitude des faits"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent brief pré-appel",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B23",
+      "title": "Clarifier la décision pendant l'appel",
+      "why": "Faire émerger le gap avec ses mots, et la solution qui y répond.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Début de l'appel",
+        "inp": "Brief, audio en direct, offre",
+        "out": "Décision : oui, indécis ou non",
+        "metric": "Taux de transformation",
+        "evalc": "Score d'appel, verbatims exacts"
+      },
+      "reads": [
+        "M1",
+        "M2",
+        "M5"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Sales",
+          "status": "wip",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Valentino",
+          "escalation": "B48",
+          "tools": [
+            "TL08"
+          ],
+          "note": "Place de l'humain dans la cible à trancher."
+        },
+        {
+          "kind": "agent",
+          "name": "Agent pitch dynamique",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "Romain",
+          "escalation": "B23",
+          "tools": [
+            "TL09",
+            "TL10"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Écouter l'appel en direct · proposer gap et pitch au sales · générer la page personnalisée",
+            "guard": "Ne parle jamais au prospect directement · n'invente aucun verbatim",
+            "tests": "20 appels enregistrés avec le gap rédigé par Romain",
+            "promo": "Niveau 3 si les sales adoptent 80 % des pitchs proposés",
+            "cost": "Recall.ai et LLM par appel, à mesurer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B20",
+      "title": "Encaisser et faire signer",
+      "why": "Un oui doit devenir un paiement sans friction.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Décision : oui",
+        "inp": "Offre choisie",
+        "out": "Paiement reçu, contrat signé",
+        "metric": "% de oui encaissés",
+        "evalc": "Zéro erreur de facturation"
+      },
+      "reads": [],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Paiement & contrat",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [
+            "TL11"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B21",
+      "title": "Faire revenir l'indécis vers une décision",
+      "why": "« Je réfléchis » n'est pas un non.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Décision : indécis",
+        "inp": "Verbatims, gap",
+        "out": "Second appel ou décision",
+        "metric": "% d'indécis récupérés",
+        "evalc": "Zéro pression abusive"
+      },
+      "reads": [
+        "M2",
+        "M3"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent relance",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL07",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Envoyer des relances personnalisées · proposer un second appel",
+            "guard": "3 relances maximum · aucune pression ni fausse rareté",
+            "tests": "30 appels « je réfléchis » avec la relance humaine de référence",
+            "promo": "Niveau 3 si le taux de récupération égale celui des sales",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B22",
+      "title": "Apprendre de chaque appel",
+      "why": "Chaque objection doit améliorer l'offre et le pitch.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Appel terminé",
+        "inp": "Transcript",
+        "out": "Score d'appel, objections",
+        "metric": "Objections remontées par semaine",
+        "evalc": "Accord avec la revue humaine"
+      },
+      "reads": [
+        "M5"
+      ],
+      "writes": [
+        "M2",
+        "M5"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent analyse d'appel",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL09"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B24",
+      "title": "Mettre l'élève en mouvement sous 7 jours",
+      "why": "Le plan perso part du gap vendu en appel.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T09"
+        ]
+      },
+      "kr": [
+        "KR 1.3"
+      ],
+      "contract": {
+        "trig": "Événement paiement",
+        "inp": "Dossier, promesse faite en appel",
+        "out": "Accès, plan perso, kick-off planifié",
+        "metric": "% démarrés sous 7 jours",
+        "evalc": "Plan aligné sur le gap vendu"
+      },
+      "reads": [
+        "M2",
+        "M5"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent onboarding",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL01",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Ouvrir les accès · rédiger le plan perso · planifier le kick-off",
+            "guard": "Le plan reprend exactement la promesse faite en appel · validation du coach avant envoi",
+            "tests": "20 dossiers clients avec un plan rédigé par un coach",
+            "promo": "Niveau 3 si 90 % des plans sont validés sans modification",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B25",
+      "title": "Traiter les remboursements et en apprendre",
+      "why": "KR 3.3 : moins de 3 % à 30 jours.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T09"
+        ]
+      },
+      "kr": [
+        "KR 3.3"
+      ],
+      "contract": {
+        "trig": "Demande de remboursement",
+        "inp": "Dossier, motif",
+        "out": "Décision, motif enregistré",
+        "metric": "Remboursements à 30 j",
+        "evalc": "Motif classé"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2",
+        "M5"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Process de remboursement",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "Romain",
+          "escalation": "B48",
+          "tools": [
+            "TL11"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B26",
+      "title": "Répondre à l'élève et le débloquer",
+      "why": "Personne ne doit rester bloqué seul.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T10",
+          "T11",
+          "T12"
+        ]
+      },
+      "kr": [
+        "KR 1.3"
+      ],
+      "contract": {
+        "trig": "Question, blocage ou alerte",
+        "inp": "Plan, progression, question",
+        "out": "Réponse, séance, déblocage",
+        "metric": "% de 1er résultat sous 30 j",
+        "evalc": "Satisfaction élève"
+      },
+      "reads": [
+        "M1",
+        "M2"
+      ],
+      "writes": [
+        "M2",
+        "M1"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Coachs delivery",
+          "status": "wip",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [
+            "TL14"
+          ],
+          "note": "Décision Q4 : delivery humain, sans guru IA."
+        },
+        {
+          "kind": "agent",
+          "name": "Copilote élève",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL12",
+            "TL14"
+          ],
+          "note": "À trancher : va contre la décision Q4.",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B27",
+      "title": "Diffuser le parcours et suivre la progression",
+      "why": "L'élève suit les modules, la progression s'enregistre.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T10",
+          "T11"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Accès ouverts",
+        "inp": "Modules du parcours",
+        "out": "Progression enregistrée",
+        "metric": "Taux de complétion",
+        "evalc": "Modules à jour"
+      },
+      "reads": [
+        "M1"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Parcours skl.live",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL01"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B28",
+      "title": "Repérer l'élève qui décroche",
+      "why": "Agir avant qu'il abandonne.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T11",
+          "T10"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "5 jours sans activité",
+        "inp": "Activité, jalons",
+        "out": "Relance, alerte au coach",
+        "metric": "% d'élèves réactivés",
+        "evalc": "Taux de fausses alertes"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent suivi & décrochage",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL01",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Lire l'activité · envoyer une relance · alerter le coach",
+            "guard": "Jamais de message culpabilisant · alerte humaine obligatoire après 2 relances sans réponse",
+            "tests": "Historique de 3 mois des élèves qui ont décroché",
+            "promo": "Niveau 4 si moins de 10 % de fausses alertes",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B29",
+      "title": "Valider les jalons et l'atteinte de B",
+      "why": "Le résultat doit être prouvé, pas déclaré.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T12",
+          "T10"
+        ]
+      },
+      "kr": [
+        "KR 1.3"
+      ],
+      "contract": {
+        "trig": "Jalon déclaré",
+        "inp": "Preuves de l'élève, critères A→B",
+        "out": "Jalon validé ou plan correctif",
+        "metric": "Taux de réussite élève",
+        "evalc": "Accord avec le coach"
+      },
+      "reads": [
+        "M2",
+        "M5"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent validation des jalons",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "Romain",
+          "escalation": "B26",
+          "tools": [
+            "TL01"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "Lire les preuves de l'élève · valider ou demander une correction",
+            "guard": "Aucune validation sans preuve · tout cas ambigu passe au coach",
+            "tests": "50 jalons déjà validés par les coachs",
+            "promo": "Niveau 3 si 95 % d'accord avec les coachs",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B30",
+      "title": "Recueillir le témoignage au bon moment",
+      "why": "Juste après la victoire, pas trois mois plus tard.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T13"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Jalon ou objectif B validé",
+        "inp": "Dossier",
+        "out": "Témoignage brut",
+        "metric": "% qui témoignent",
+        "evalc": "Consentement recueilli"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent témoignages",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B32",
+      "title": "Faire de l'ambassadeur une source de leads",
+      "why": "Le meilleur lead est recommandé par quelqu'un qui a réussi.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T13"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Objectif B validé",
+        "inp": "Dossier",
+        "out": "Filleuls inscrits",
+        "metric": "Filleuls par ambassadeur",
+        "evalc": "Règles du parrainage respectées"
+      },
+      "reads": [],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent parrainage",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B15",
+          "tools": [
+            "TL06",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B80",
+      "title": "Attribuer chaque appel au bon sales",
+      "why": "Le bon profil de sales pour le bon prospect, au bon moment.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T07"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Appel réservé",
+        "inp": "Dossier, score, disponibilités et compétences des sales",
+        "out": "Sales attribué à l'appel",
+        "metric": "Taux de transformation par attribution",
+        "evalc": "Respect des règles d'attribution"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent d'attribution",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL08",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B81",
+      "title": "Enregistrer et transcrire l'appel, avec le consentement du prospect",
+      "why": "Sans transcript, ni pitch dynamique ni analyse ; sans consentement, pas d'enregistrement.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Début de l'appel",
+        "inp": "Audio de l'appel, consentement",
+        "out": "Transcript horodaté rattaché au dossier",
+        "metric": "Appels transcrits avec consentement",
+        "evalc": "Zéro enregistrement sans consentement"
+      },
+      "reads": [],
+      "writes": [
+        "M2"
+      ],
+      "supports": [
+        "B66"
+      ],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Enregistrement Recall.ai",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 4,
+          "owner": "Romain",
+          "escalation": "B23",
+          "tools": [
+            "TL09"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B82",
+      "title": "Vérifier l'éligibilité avant de vendre",
+      "why": "Ne pas vendre à quelqu'un pour qui la transformation ne marchera pas.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [
+        "KR 3.3"
+      ],
+      "contract": {
+        "trig": "Pendant l'appel, avant la présentation de l'offre",
+        "inp": "Dossier, critères d'éligibilité de la fiche A→B",
+        "out": "Éligible ou non, avec le motif",
+        "metric": "Remboursements des ventes jugées éligibles",
+        "evalc": "Accord avec la revue humaine"
+      },
+      "reads": [
+        "M2",
+        "M5"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Contrôle d'éligibilité en direct",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL10"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B83",
+      "title": "Proposer la modalité de paiement adaptée",
+      "why": "Le prix ne doit pas bloquer quelqu'un d'éligible et décidé.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Décision : oui",
+        "inp": "Offre, capacité de paiement exprimée",
+        "out": "Modalité choisie (comptant, plusieurs fois)",
+        "metric": "Part des oui encaissés",
+        "evalc": "Modalité conforme aux CGV"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Options de paiement",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL11"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B84",
+      "title": "Impliquer les co-décideurs",
+      "why": "« Je dois en parler à mon conjoint » appelle un second appel à deux.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Co-décideur identifié pendant l'appel",
+        "inp": "Dossier, verbatims",
+        "out": "Second appel réservé avec le co-décideur",
+        "metric": "Part des seconds appels qui concluent",
+        "evalc": "Second appel réservé sous 72 h"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent second appel",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL08",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B85",
+      "title": "Valider les exceptions commerciales",
+      "why": "Aucun agent n'accorde une remise ou une exception seul.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Demande de remise ou cas limite",
+        "inp": "Dossier, demande, règles commerciales",
+        "out": "Exception accordée ou refusée, motivée",
+        "metric": "Exceptions accordées par mois",
+        "evalc": "Respect des règles commerciales"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Responsable sales",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B86",
+      "title": "Récupérer un paiement échoué ou incomplet",
+      "why": "Un oui sans paiement n'est pas un client.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Paiement échoué ou non finalisé sous 24 h",
+        "inp": "Dossier, offre choisie",
+        "out": "Paiement finalisé ou motif enregistré",
+        "metric": "Part des paiements récupérés",
+        "evalc": "Zéro relance après un refus explicite"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent récupération de paiement",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B23",
+          "tools": [
+            "TL11",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B87",
+      "title": "Sécuriser la décision dans les 48 h",
+      "why": "Récapitulatif écrit et prochaine étape, contre le regret après l'achat.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T09"
+        ]
+      },
+      "kr": [
+        "KR 3.3"
+      ],
+      "contract": {
+        "trig": "Événement paiement",
+        "inp": "Dossier, promesse faite en appel",
+        "out": "Récapitulatif envoyé, prochaine étape fixée",
+        "metric": "Remboursements dans les 7 premiers jours",
+        "evalc": "Récapitulatif fidèle à la promesse"
+      },
+      "reads": [
+        "M2",
+        "M5"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent confirmation post-achat",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B26",
+          "tools": [
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B88",
+      "title": "Traiter le « non »",
+      "why": "Comprendre le motif, orienter vers un nurturing long ou une sortie propre.",
+      "placement": {
+        "type": "conversion",
+        "cells": [
+          "T08"
+        ]
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Décision : non",
+        "inp": "Verbatims, motif",
+        "out": "Motif classé, orientation choisie",
+        "metric": "Part des refus réactivés sous 6 mois",
+        "evalc": "Motif classé pour chaque refus"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent suivi des refus",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B15",
+          "tools": [
+            "TL07",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B89",
+      "title": "Coacher les sales à partir des appels analysés",
+      "why": "Chaque appel analysé doit faire progresser un sales.",
+      "placement": {
+        "type": "support",
+        "domain": "SU4"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Analyse d'appel disponible",
+        "inp": "Score d'appel, objections, transcript",
+        "out": "Point de coaching et plan d'entraînement",
+        "metric": "Évolution du taux de transformation par sales",
+        "evalc": "Revue mensuelle des progrès"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B23",
+        "B22"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Coach sales",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL09"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B90",
+      "title": "Tenir à jour la trame d'appel",
+      "why": "SPIN et pitch en 4 étapes, alignés sur l'offre en vigueur.",
+      "placement": {
+        "type": "production",
+        "chain": "P6"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouvelle version de l'offre ou objection récurrente",
+        "inp": "Offre, objections, meilleurs appels",
+        "out": "Trame d'appel à jour",
+        "metric": "Taux de transformation après mise à jour",
+        "evalc": "Validation par le propriétaire sales"
+      },
+      "reads": [
+        "M5"
+      ],
+      "writes": [
+        "M5"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Romain avec Valentino",
+          "status": "wip",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Romain",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B91",
+      "title": "Tenir à jour la bibliothèque d'objections et de réponses",
+      "why": "Chaque objection rencontrée doit avoir une réponse honnête et testée.",
+      "placement": {
+        "type": "production",
+        "chain": "P6"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Objections extraites d'un appel",
+        "inp": "Objections, réponses des meilleurs appels",
+        "out": "Bibliothèque d'objections à jour",
+        "metric": "Part des objections couvertes",
+        "evalc": "Réponses validées par le propriétaire sales"
+      },
+      "reads": [
+        "M5"
+      ],
+      "writes": [
+        "M5",
+        "M1"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent bibliothèque d'objections",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B90",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B92",
+      "title": "Planifier la capacité des sales",
+      "why": "Assez de créneaux pour le volume d'appels attendu.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque semaine",
+        "inp": "Volume prévu d'appels, disponibilités",
+        "out": "Créneaux ouverts, besoin de recrutement signalé",
+        "metric": "Délai entre réservation et appel",
+        "evalc": "Aucun créneau saturé"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Planification des créneaux",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL08"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B40",
+      "title": "Choisir les niches à fort potentiel",
+      "why": "Avant le guru, le marché.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque mois",
+        "inp": "Marchés, tendances",
+        "out": "Niches classées",
+        "metric": "Niches retenues",
+        "evalc": "Validation par Amin"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent veille de niches",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B41",
+      "title": "Définir A, B, les jalons et les signaux",
+      "why": "Toute la ligne dépend de cette définition.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Niche retenue",
+        "inp": "Niche, persona",
+        "out": "A, B, jalons et signaux",
+        "metric": "Taux de réussite élève",
+        "evalc": "Signaux tous observables"
+      },
+      "reads": [],
+      "writes": [
+        "M5"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Architecte de transformation",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B42",
+      "title": "Donner au guru une identité, une voix, un visage",
+      "why": "Le guru IA doit être crédible et reconnaissable.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Persona validé",
+        "inp": "Persona",
+        "out": "Voix et visage du guru",
+        "metric": "Réalisme perçu",
+        "evalc": "Test d'audience"
+      },
+      "reads": [],
+      "writes": [
+        "M1"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Persona & clone du guru",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL03"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B43",
+      "title": "Tenir à jour le savoir du guru",
+      "why": "Chaque question d'élève l'enrichit.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouvelles questions d'élèves",
+        "inp": "Méthode, questions",
+        "out": "Cerveau du guru à jour",
+        "metric": "Couverture des questions",
+        "evalc": "Revue experte"
+      },
+      "reads": [],
+      "writes": [
+        "M1"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Constructeur du cerveau",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B44",
+      "title": "Faire évoluer l'offre",
+      "why": "Objections et remboursements disent ce qui manque.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Objections ou motifs de remboursement",
+        "inp": "Objections, motifs, modèle A→B",
+        "out": "Offre à jour",
+        "metric": "Taux de transformation",
+        "evalc": "Weekly review"
+      },
+      "reads": [
+        "M5"
+      ],
+      "writes": [
+        "M5"
+      ],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent offre",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 2,
+          "owner": "Romain",
+          "escalation": "B46",
+          "tools": [
+            "TL12"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B45",
+      "title": "Prouver que le guru fonctionne (PMF)",
+      "why": "Priorité Q4 : rien d'autre avant.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [
+        "PMF"
+      ],
+      "contract": {
+        "trig": "Fin de cycle",
+        "inp": "Mesures des cellules",
+        "out": "PMF validé ou non",
+        "metric": "Critères PMF",
+        "evalc": ""
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 4,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Validation du PMF",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "Amin",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B49",
+      "title": "Sécuriser les droits sur l'image et la voix",
+      "why": "Le clone doit être juridiquement solide.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouveau clone",
+        "inp": "Persona, contrats",
+        "out": "Droits sécurisés",
+        "metric": "Clones couverts",
+        "evalc": "Revue juridique"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Droits image & voix IA",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B46",
+      "title": "Choisir les gurus et arbitrer",
+      "why": "Le dernier mot sur les priorités.",
+      "placement": {
+        "type": "meta",
+        "zone": "FX"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Weekly review",
+        "inp": "Cockpit",
+        "out": "Arbitrages",
+        "metric": "Revenus",
+        "evalc": "OKR"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "ok",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Amin · CEO",
+          "status": "ok",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Amin",
+          "escalation": "Aucune, sommet de l'escalade",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B50",
+      "title": "Tenir priorités, deadlines et responsables",
+      "why": "Les deadlines non tenues sont le premier problème.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque jour",
+        "inp": "Tâches, deadlines",
+        "out": "Priorités du jour",
+        "metric": "Deadlines tenues",
+        "evalc": "Weekly review"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Cockpit OS",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "Romain",
+          "escalation": "B48",
+          "tools": [
+            "TL16"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B51",
+      "title": "Voir les cellules en direct",
+      "why": "Piloter sur des mesures, pas des impressions.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque événement",
+        "inp": "Événements de l'orchestrateur",
+        "out": "Les 4 mesures de chaque cellule",
+        "metric": "Fraîcheur des données",
+        "evalc": "Écart avec le CRM"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Tableau des cellules",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [
+            "TL15"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B52",
+      "title": "Détecter la cellule qui dérive",
+      "why": "Voir le problème avant qu'il coûte.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque jour",
+        "inp": "Tableau des cellules",
+        "out": "Alerte et action proposée",
+        "metric": "Alertes jugées utiles",
+        "evalc": "Validation en weekly review"
+      },
+      "reads": [
+        "M2",
+        "M4"
+      ],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent analyste",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [
+            "TL15"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B53",
+      "title": "Tester, mesurer, apprendre",
+      "why": "Une organisation R&D vit de ses itérations.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Hypothèse lancée",
+        "inp": "Hypothèse, mesures",
+        "out": "Décision : garder ou jeter",
+        "metric": "Tests par semaine",
+        "evalc": "Rigueur du protocole"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Iteration system",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "Romain",
+          "escalation": "B48",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B54",
+      "title": "Décider chaque semaine sur les mesures",
+      "why": "Le rendez-vous où l'on tranche.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque samedi",
+        "inp": "Key results",
+        "out": "Décisions de la semaine",
+        "metric": "KR atteints",
+        "evalc": "Assiduité"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "ok",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "OKR & weekly review",
+          "status": "ok",
+          "autonomyNow": 0,
+          "autonomyTarget": 1,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B48",
+      "title": "Construire et corriger les systèmes SKL",
+      "why": "Chaque besoin non couvert devient un chantier.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Besoin non couvert ou mal mesuré",
+        "inp": "Contrat du besoin",
+        "out": "Moyen construit ou corrigé",
+        "metric": "Besoins couverts",
+        "evalc": "OKR"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "ok",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Romain · CPO",
+          "status": "ok",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Romain",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        },
+        {
+          "kind": "agent",
+          "name": "OS IA de Romain",
+          "status": "wip",
+          "autonomyNow": 1,
+          "autonomyTarget": 3,
+          "owner": "Romain",
+          "escalation": "B48",
+          "tools": [],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B55",
+      "title": "Connaître la marge",
+      "why": "Revenus, coût de chaque cellule, marge.",
+      "placement": {
+        "type": "meta",
+        "zone": "CK"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque mois",
+        "inp": "Coût par cellule, revenus",
+        "out": "P&L",
+        "metric": "Marge",
+        "evalc": "Rapprochement comptable"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "P&L",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL17",
+            "TL15"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B60",
+      "title": "Répondre aux demandes pratiques des élèves",
+      "why": "Accès, facturation, logistique : sans attente.",
+      "placement": {
+        "type": "support",
+        "domain": "SU1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Demande reçue",
+        "inp": "Message de l'élève, dossier",
+        "out": "Demande résolue",
+        "metric": "Délai de première réponse",
+        "evalc": "Résolution au premier contact"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [
+        "T10",
+        "T11"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent support niveau 1",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B61",
+          "tools": [
+            "TL18",
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B61",
+      "title": "Traiter les réclamations et les cas sensibles",
+      "why": "Un client mécontent mal traité devient un remboursement.",
+      "placement": {
+        "type": "support",
+        "domain": "SU1"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Réclamation ou escalade du support",
+        "inp": "Dossier, historique",
+        "out": "Cas résolu, motif enregistré",
+        "metric": "Réclamations résolues sous 72 h",
+        "evalc": "Satisfaction après résolution"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [
+        "T09",
+        "B25"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Responsable support",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL18"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B62",
+      "title": "Encaisser les échéances et relancer les impayés",
+      "why": "Un paiement en plusieurs fois n'est du CA qu'une fois encaissé.",
+      "placement": {
+        "type": "support",
+        "domain": "SU2"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Échéance due ou paiement échoué",
+        "inp": "Échéancier, dossier",
+        "out": "Échéance encaissée ou relance envoyée",
+        "metric": "Taux d'impayés",
+        "evalc": "Zéro relance erronée"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [
+        "B20"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent recouvrement",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B63",
+          "tools": [
+            "TL11",
+            "TL07"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B63",
+      "title": "Tenir la comptabilité et suivre les coûts",
+      "why": "Ads, outils, équipe : savoir ce que coûte chaque cellule.",
+      "placement": {
+        "type": "support",
+        "domain": "SU2"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque mois",
+        "inp": "Factures, dépenses",
+        "out": "Comptes clôturés, coûts par cellule",
+        "metric": "Clôture mensuelle à temps",
+        "evalc": "Rapprochement bancaire"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B55"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Comptabilité",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [
+            "TL17"
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B64",
+      "title": "Tenir à jour CGV et contrats élèves",
+      "why": "Garanties et remboursement doivent être clairs avant l'achat.",
+      "placement": {
+        "type": "support",
+        "domain": "SU3"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouvelle offre ou changement de garantie",
+        "inp": "Offre, garanties",
+        "out": "CGV et contrat validés",
+        "metric": "Litiges liés aux conditions",
+        "evalc": "Revue juridique"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B20",
+        "B25"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Juriste ou avocat externe",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B65",
+      "title": "Valider la conformité des contenus et des publicités",
+      "why": "Les allégations de résultats sont encadrées.",
+      "placement": {
+        "type": "support",
+        "domain": "SU3"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Contenu ou publicité avant diffusion",
+        "inp": "Contenu",
+        "out": "Validé ou corrigé",
+        "metric": "Contenus refusés par les régies",
+        "evalc": "Zéro allégation non prouvée"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B04",
+        "B07"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent conformité",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 3,
+          "owner": "",
+          "escalation": "B64",
+          "tools": [],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "B66",
+      "title": "Protéger les données personnelles",
+      "why": "Le dossier unique concentre des données sensibles.",
+      "placement": {
+        "type": "support",
+        "domain": "SU3"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouvel outil ou nouveau traitement",
+        "inp": "Inventaire des outils et données",
+        "out": "Registre et accès à jour",
+        "metric": "Demandes RGPD traitées sous 30 jours",
+        "evalc": "Audit annuel"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [],
+      "supports": [
+        "M2"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "system",
+          "name": "Registre RGPD",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 2,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B67",
+      "title": "Recruter et former les sales",
+      "why": "Le volume d'appels dépend du nombre de sales prêts.",
+      "placement": {
+        "type": "support",
+        "domain": "SU4"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Charge d'appels au-dessus du seuil",
+        "inp": "Charge, profils",
+        "out": "Sales opérationnel",
+        "metric": "Délai de recrutement",
+        "evalc": "Taux de transformation à 60 jours"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B23"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Responsable recrutement",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B68",
+      "title": "Recruter et former les coachs",
+      "why": "Le premier résultat à 30 jours dépend des coachs.",
+      "placement": {
+        "type": "support",
+        "domain": "SU4"
+      },
+      "kr": [
+        "KR 1.3"
+      ],
+      "contract": {
+        "trig": "Élèves par coach au-dessus du seuil",
+        "inp": "Charge, profils",
+        "out": "Coach opérationnel",
+        "metric": "Élèves par coach",
+        "evalc": "% de 1er résultat sous 30 j par coach"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B26"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Responsable recrutement",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B69",
+      "title": "Recruter un CTPO",
+      "why": "Conditions évoquées en atelier OKR, décision à officialiser.",
+      "placement": {
+        "type": "support",
+        "domain": "SU4"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Décision officialisée",
+        "inp": "Conditions d'embauche",
+        "out": "CTPO en poste",
+        "metric": "Date d'arrivée",
+        "evalc": "Validation par Amin"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B48"
+      ],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Amin et Romain",
+          "status": "wip",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Amin",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B70",
+      "title": "Accompagner le produit en attendant le CTPO",
+      "why": "Un coach en product management fait le pont.",
+      "placement": {
+        "type": "support",
+        "domain": "SU4"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Tant que le CTPO n'est pas en poste",
+        "inp": "Roadmap produit",
+        "out": "Décisions produit accompagnées",
+        "metric": "Chantiers livrés à temps",
+        "evalc": "Revue par Romain"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "B48"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Coach product management",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B71",
+      "title": "Faire vivre les Spartan Principles",
+      "why": "Une culture écrite et pratiquée au quotidien.",
+      "placement": {
+        "type": "support",
+        "domain": "SU4"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque weekly review",
+        "inp": "Décisions de la semaine",
+        "out": "Principes appliqués et revus",
+        "metric": "Principes cités dans les décisions",
+        "evalc": "Revue d'équipe"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [],
+      "deps": [],
+      "coverage": "wip",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Romain",
+          "status": "wip",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "Romain",
+          "escalation": "B46",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B72",
+      "title": "Tenir la stack d'outils et les accès",
+      "why": "Chaque outil a un responsable, un coût et des accès maîtrisés.",
+      "placement": {
+        "type": "support",
+        "domain": "SU5"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Nouvel outil, arrivée ou départ",
+        "inp": "Inventaire des outils",
+        "out": "Inventaire et accès à jour",
+        "metric": "Outils sans responsable",
+        "evalc": "Revue mensuelle"
+      },
+      "reads": [],
+      "writes": [],
+      "supports": [
+        "TL06",
+        "TL13"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "human",
+          "name": "Responsable tech",
+          "status": "missing",
+          "autonomyNow": null,
+          "autonomyTarget": null,
+          "owner": "",
+          "escalation": "B48",
+          "tools": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "B73",
+      "title": "Garantir la qualité des données",
+      "why": "Un dossier faux trompe tous les agents.",
+      "placement": {
+        "type": "support",
+        "domain": "SU5"
+      },
+      "kr": [],
+      "contract": {
+        "trig": "Chaque jour",
+        "inp": "Dossiers, événements",
+        "out": "Anomalies corrigées",
+        "metric": "% de dossiers complets",
+        "evalc": "Contrôle par échantillon"
+      },
+      "reads": [
+        "M2"
+      ],
+      "writes": [
+        "M2"
+      ],
+      "supports": [
+        "M2",
+        "OR"
+      ],
+      "deps": [],
+      "coverage": "missing",
+      "contractScore": 5,
+      "means": [
+        {
+          "kind": "agent",
+          "name": "Agent qualité des données",
+          "status": "missing",
+          "autonomyNow": 0,
+          "autonomyTarget": 4,
+          "owner": "",
+          "escalation": "B72",
+          "tools": [
+            "TL06"
+          ],
+          "note": "",
+          "agentSheet": {
+            "actions": "",
+            "guard": "",
+            "tests": "",
+            "promo": "",
+            "cost": ""
+          }
+        }
+      ]
+    }
+  ],
+  "handoffs": [
+    {
+      "id": "R01",
+      "from": "B01",
+      "to": "B02",
+      "ev": "veille_prete",
+      "data": "Top contenus et angles",
+      "cond": ""
+    },
+    {
+      "id": "R02",
+      "from": "B02",
+      "to": "B03",
+      "ev": "brief_emis",
+      "data": "Brief du contenu",
+      "cond": ""
+    },
+    {
+      "id": "R03",
+      "from": "B03",
+      "to": "B04",
+      "ev": "script_a_valider",
+      "data": "Script",
+      "cond": ""
+    },
+    {
+      "id": "R04",
+      "from": "B04",
+      "to": "B05",
+      "ev": "script_valide",
+      "data": "Script validé",
+      "cond": ""
+    },
+    {
+      "id": "R05",
+      "from": "B05",
+      "to": "B06",
+      "ev": "video_prete",
+      "data": "Vidéo finale",
+      "cond": ""
+    },
+    {
+      "id": "R06",
+      "from": "B06",
+      "to": "B07",
+      "ev": "contenu_publie",
+      "data": "Contenu et premières mesures",
+      "cond": "Performance au-dessus du seuil"
+    },
+    {
+      "id": "R07",
+      "from": "B08",
+      "to": "B09",
+      "ev": "script_masterclass",
+      "data": "Script validé",
+      "cond": ""
+    },
+    {
+      "id": "R08",
+      "from": "B30",
+      "to": "B10",
+      "ev": "temoignage_brut",
+      "data": "Témoignage, dossier",
+      "cond": "Consentement recueilli"
+    },
+    {
+      "id": "R09",
+      "from": "B44",
+      "to": "B11",
+      "ev": "offre_validee",
+      "data": "Offre, jalons",
+      "cond": ""
+    },
+    {
+      "id": "R10",
+      "from": "B11",
+      "to": "B27",
+      "ev": "module_publie",
+      "data": "Module",
+      "cond": ""
+    },
+    {
+      "id": "R11",
+      "from": "B12",
+      "to": "B13",
+      "ev": "intention_detectee",
+      "data": "Conversation, dossier",
+      "cond": "Intention d'achat ou question sur l'offre"
+    },
+    {
+      "id": "R12",
+      "from": "B13",
+      "to": "B14",
+      "ev": "lien_envoye",
+      "data": "Lien personnalisé",
+      "cond": ""
+    },
+    {
+      "id": "R13",
+      "from": "B14",
+      "to": "B16",
+      "ev": "opt_in",
+      "data": "Dossier créé",
+      "cond": ""
+    },
+    {
+      "id": "R14",
+      "from": "B16",
+      "to": "B17",
+      "ev": "formulaire_soumis",
+      "data": "Réponses de qualification",
+      "cond": ""
+    },
+    {
+      "id": "R15",
+      "from": "B13",
+      "to": "B17",
+      "ev": "demande_rdv",
+      "data": "Réponses recueillies en DM",
+      "cond": "Raccourci DM chaud"
+    },
+    {
+      "id": "R16",
+      "from": "B17",
+      "to": "B18",
+      "ev": "lead_qualifie",
+      "data": "Score, dossier",
+      "cond": "Score au-dessus du seuil"
+    },
+    {
+      "id": "R17",
+      "from": "B17",
+      "to": "B16",
+      "ev": "non_qualifie",
+      "data": "Score, motif",
+      "cond": "Score sous le seuil"
+    },
+    {
+      "id": "R18",
+      "from": "B18",
+      "to": "B80",
+      "ev": "rdv_reserve",
+      "data": "Créneau, dossier",
+      "cond": ""
+    },
+    {
+      "id": "R19",
+      "from": "B80",
+      "to": "B19",
+      "ev": "sales_attribue",
+      "data": "Sales, créneau, dossier",
+      "cond": "2 h avant l'appel"
+    },
+    {
+      "id": "R20",
+      "from": "B19",
+      "to": "B23",
+      "ev": "brief_pret",
+      "data": "Brief",
+      "cond": ""
+    },
+    {
+      "id": "R21",
+      "from": "B23",
+      "to": "B21",
+      "ev": "decision_indecis",
+      "data": "Verbatims, gap",
+      "cond": ""
+    },
+    {
+      "id": "R22",
+      "from": "B23",
+      "to": "B22",
+      "ev": "appel_termine",
+      "data": "Transcript",
+      "cond": ""
+    },
+    {
+      "id": "R23",
+      "from": "B21",
+      "to": "B18",
+      "ev": "second_appel",
+      "data": "Créneau",
+      "cond": "L'indécis accepte un second appel"
+    },
+    {
+      "id": "R24",
+      "from": "B20",
+      "to": "B24",
+      "ev": "paiement",
+      "data": "Dossier, promesse faite",
+      "cond": ""
+    },
+    {
+      "id": "R25",
+      "from": "B24",
+      "to": "B27",
+      "ev": "acces_ouverts",
+      "data": "Plan perso",
+      "cond": ""
+    },
+    {
+      "id": "R26",
+      "from": "B24",
+      "to": "B26",
+      "ev": "onboarding_ok",
+      "data": "Plan perso, objectifs",
+      "cond": ""
+    },
+    {
+      "id": "R27",
+      "from": "B27",
+      "to": "B28",
+      "ev": "activite",
+      "data": "Progression",
+      "cond": ""
+    },
+    {
+      "id": "R28",
+      "from": "B28",
+      "to": "B26",
+      "ev": "alerte_decrochage",
+      "data": "Élève à risque",
+      "cond": "5 jours sans activité"
+    },
+    {
+      "id": "R29",
+      "from": "B26",
+      "to": "B29",
+      "ev": "jalon_declare",
+      "data": "Preuves de l'élève",
+      "cond": ""
+    },
+    {
+      "id": "R30",
+      "from": "B29",
+      "to": "B30",
+      "ev": "objectif_valide",
+      "data": "Dossier",
+      "cond": "Jalon 30 j ou B validé"
+    },
+    {
+      "id": "R31",
+      "from": "B29",
+      "to": "B32",
+      "ev": "objectif_b",
+      "data": "Dossier",
+      "cond": "B validé"
+    },
+    {
+      "id": "R32",
+      "from": "B32",
+      "to": "B16",
+      "ev": "filleul_inscrit",
+      "data": "Contact du filleul",
+      "cond": ""
+    },
+    {
+      "id": "R33",
+      "from": "B19",
+      "to": "B81",
+      "ev": "brief_pret",
+      "data": "Brief, consentement à recueillir",
+      "cond": ""
+    },
+    {
+      "id": "R34",
+      "from": "B81",
+      "to": "B22",
+      "ev": "transcript_pret",
+      "data": "Transcript horodaté",
+      "cond": ""
+    },
+    {
+      "id": "R35",
+      "from": "B23",
+      "to": "B88",
+      "ev": "decision_non",
+      "data": "Verbatims, motif",
+      "cond": ""
+    },
+    {
+      "id": "R36",
+      "from": "B23",
+      "to": "B84",
+      "ev": "co_decideur_requis",
+      "data": "Verbatims, co-décideur",
+      "cond": ""
+    },
+    {
+      "id": "R37",
+      "from": "B84",
+      "to": "B18",
+      "ev": "second_appel_demande",
+      "data": "Créneaux, co-décideur",
+      "cond": ""
+    },
+    {
+      "id": "R38",
+      "from": "B23",
+      "to": "B85",
+      "ev": "exception_demandee",
+      "data": "Demande, dossier",
+      "cond": ""
+    },
+    {
+      "id": "R39",
+      "from": "B23",
+      "to": "B83",
+      "ev": "decision_oui",
+      "data": "Offre choisie",
+      "cond": ""
+    },
+    {
+      "id": "R40",
+      "from": "B83",
+      "to": "B20",
+      "ev": "modalite_choisie",
+      "data": "Modalité de paiement",
+      "cond": ""
+    },
+    {
+      "id": "R41",
+      "from": "B20",
+      "to": "B86",
+      "ev": "paiement_echoue",
+      "data": "Offre, dossier",
+      "cond": "Paiement non finalisé sous 24 h"
+    },
+    {
+      "id": "R42",
+      "from": "B20",
+      "to": "B87",
+      "ev": "paiement",
+      "data": "Dossier, promesse faite",
+      "cond": ""
+    },
+    {
+      "id": "R43",
+      "from": "B22",
+      "to": "B91",
+      "ev": "objections_extraites",
+      "data": "Objections, verbatims",
+      "cond": ""
+    },
+    {
+      "id": "R44",
+      "from": "B22",
+      "to": "B89",
+      "ev": "appel_analyse",
+      "data": "Score, points d'amélioration",
+      "cond": ""
+    },
+    {
+      "id": "R45",
+      "from": "B91",
+      "to": "B90",
+      "ev": "objection_recurrente",
+      "data": "Objection, fréquence",
+      "cond": "Seuil de récurrence atteint"
+    }
+  ],
+  "feedbackLoops": [
+    {
+      "from": "T13",
+      "to": "T01",
+      "label": "Preuves → contenu"
+    },
+    {
+      "from": "T13",
+      "to": "T05",
+      "label": "Preuves → nurturing"
+    },
+    {
+      "from": "T13",
+      "to": "T08",
+      "label": "Preuves → pitch"
+    },
+    {
+      "from": "T08",
+      "to": "B44",
+      "label": "Objections → offre"
+    },
+    {
+      "from": "T09",
+      "to": "B44",
+      "label": "Motifs de remboursement → offre"
+    },
+    {
+      "from": "T10",
+      "to": "B43",
+      "label": "Questions élèves → savoir du guru"
+    },
+    {
+      "from": "T12",
+      "to": "B45",
+      "label": "Taux de réussite → PMF"
+    }
+  ],
+  "memories": [
+    {
+      "id": "M1",
+      "name": "Cerveau du guru",
+      "status": "wip",
+      "host": "TL12",
+      "fields": "",
+      "desc": "Voix, savoir, méthode, ton. Écrit par la Factory, enrichi par les questions des élèves."
+    },
+    {
+      "id": "M2",
+      "name": "Dossier unique de l'individu",
+      "status": "missing",
+      "host": "TL06",
+      "fields": "identifiant et coordonnées\nsource d'arrivée (contenu, pub, parrainage)\nétat actuel et historique des états\nconversations et verbatims\nréponses de qualification et score\ncontenus et preuves consommés\nappel : gap SPIN, objections, décision\noffre achetée, paiement, échéancier\npromesse faite en appel\nplan perso, jalons, progression\ntémoignage, filleuls\nconsentements",
+      "desc": "Tout ce que SKL sait de la personne, du premier commentaire à B. La pièce qui donne sa continuité au système. Schéma proposé ci-dessous, à valider."
+    },
+    {
+      "id": "M3",
+      "name": "Bibliothèque de preuves",
+      "status": "missing",
+      "host": "",
+      "fields": "",
+      "desc": "Témoignages et études de cas, classés par profil d'individu."
+    },
+    {
+      "id": "M4",
+      "name": "Contenus & performance",
+      "status": "missing",
+      "host": "TL15",
+      "fields": "",
+      "desc": "Chaque contenu publié et ses résultats."
+    },
+    {
+      "id": "M5",
+      "name": "Transformation & offre",
+      "status": "wip",
+      "host": "TL12",
+      "fields": "",
+      "desc": "Définition de A et B, jalons, signaux, offre, objections connues."
+    }
+  ],
+  "orchestrator": {
+    "id": "OR",
+    "name": "Orchestrateur",
+    "status": "missing",
+    "host": "TL13",
+    "desc": "Bus d'événements : chaque signal d'état et chaque passage de relais émet un événement qui réveille le bon besoin."
+  },
+  "tools": [
+    {
+      "id": "TL01",
+      "name": "skl.live",
+      "cat": "Plateforme",
+      "role": "Funnel, masterclasses et parcours des élèves",
+      "status": "wip",
+      "owner": "",
+      "holds": "Opt-in, progression des élèves",
+      "usedBy": [
+        "B09",
+        "B14",
+        "B24",
+        "B27",
+        "B28",
+        "B29"
+      ]
+    },
+    {
+      "id": "TL02",
+      "name": "Comptes réseaux sociaux",
+      "cat": "Diffusion",
+      "role": "Comptes du guru sur TikTok, Instagram, YouTube, LinkedIn",
+      "status": "ok",
+      "owner": "",
+      "holds": "Commentaires, DM, statistiques des contenus",
+      "usedBy": [
+        "B01",
+        "B06",
+        "B12",
+        "B13"
+      ]
+    },
+    {
+      "id": "TL03",
+      "name": "Stack avatar & voix IA",
+      "cat": "Production",
+      "role": "Clone vocal et vidéo du guru. Choix définitif à figer",
+      "status": "wip",
+      "owner": "",
+      "holds": "Modèles de voix et de visage du guru",
+      "usedBy": [
+        "B05",
+        "B42"
+      ]
+    },
+    {
+      "id": "TL04",
+      "name": "Planificateur de publication",
+      "cat": "Diffusion",
+      "role": "Calendrier de publication multi-réseaux",
+      "status": "missing",
+      "owner": "",
+      "holds": "",
+      "usedBy": [
+        "B06"
+      ]
+    },
+    {
+      "id": "TL05",
+      "name": "Régies publicitaires",
+      "cat": "Acquisition",
+      "role": "Meta, TikTok, Google : à confirmer",
+      "status": "missing",
+      "owner": "",
+      "holds": "Audiences, performance des campagnes",
+      "usedBy": [
+        "B07"
+      ]
+    },
+    {
+      "id": "TL06",
+      "name": "CRM",
+      "cat": "Données",
+      "role": "Source unique de vérité de l'individu",
+      "status": "missing",
+      "owner": "",
+      "holds": "Dossier unique de l'individu (choix à faire)",
+      "usedBy": [
+        "B12",
+        "B13",
+        "B16",
+        "B17",
+        "B19",
+        "B21",
+        "B32",
+        "B80",
+        "B88",
+        "B60",
+        "B73"
+      ]
+    },
+    {
+      "id": "TL07",
+      "name": "Emailing & WhatsApp",
+      "cat": "Messagerie",
+      "role": "Envoi des séquences et des relances",
+      "status": "missing",
+      "owner": "",
+      "holds": "Historique des messages",
+      "usedBy": [
+        "B16",
+        "B18",
+        "B21",
+        "B24",
+        "B28",
+        "B30",
+        "B32",
+        "B84",
+        "B86",
+        "B87",
+        "B88",
+        "B62"
+      ]
+    },
+    {
+      "id": "TL08",
+      "name": "Agenda de réservation",
+      "cat": "Sales",
+      "role": "Créneaux des sales, confirmations",
+      "status": "wip",
+      "owner": "",
+      "holds": "Rendez-vous",
+      "usedBy": [
+        "B18",
+        "B23",
+        "B80",
+        "B84",
+        "B92"
+      ]
+    },
+    {
+      "id": "TL09",
+      "name": "Recall.ai",
+      "cat": "Sales",
+      "role": "Capture audio et transcript des appels",
+      "status": "wip",
+      "owner": "Romain",
+      "holds": "Transcripts d'appels",
+      "usedBy": [
+        "B23",
+        "B22",
+        "B81",
+        "B89"
+      ]
+    },
+    {
+      "id": "TL10",
+      "name": "App pitch live",
+      "cat": "Sales",
+      "role": "Construite avec Claude Code, hébergée sur Vercel",
+      "status": "wip",
+      "owner": "Romain",
+      "holds": "Gaps, pitchs, pages personnalisées",
+      "usedBy": [
+        "B23",
+        "B82"
+      ]
+    },
+    {
+      "id": "TL11",
+      "name": "Solution de paiement",
+      "cat": "Finance",
+      "role": "Paiement comptant et en plusieurs fois",
+      "status": "missing",
+      "owner": "",
+      "holds": "Paiements, échéanciers",
+      "usedBy": [
+        "B20",
+        "B25",
+        "B83",
+        "B86",
+        "B62"
+      ]
+    },
+    {
+      "id": "TL12",
+      "name": "Base de connaissances du guru",
+      "cat": "IA",
+      "role": "Savoir, méthode et voix du guru, servis aux agents",
+      "status": "wip",
+      "owner": "",
+      "holds": "Cerveau du guru, offre, transformation A→B",
+      "usedBy": [
+        "B03",
+        "B08",
+        "B10",
+        "B11",
+        "B26",
+        "B91",
+        "B41",
+        "B43",
+        "B44"
+      ]
+    },
+    {
+      "id": "TL13",
+      "name": "Bus d'événements",
+      "cat": "Orchestration",
+      "role": "Outil qui émet et route les événements entre besoins",
+      "status": "missing",
+      "owner": "",
+      "holds": "Journal des événements",
+      "usedBy": []
+    },
+    {
+      "id": "TL14",
+      "name": "Communauté élèves",
+      "cat": "Delivery",
+      "role": "Espace d'échange entre élèves",
+      "status": "missing",
+      "owner": "",
+      "holds": "Échanges et questions des élèves",
+      "usedBy": [
+        "B26"
+      ]
+    },
+    {
+      "id": "TL15",
+      "name": "Tableau de bord",
+      "cat": "Pilotage",
+      "role": "Mesures des cellules en direct",
+      "status": "missing",
+      "owner": "",
+      "holds": "Mesures, historiques",
+      "usedBy": [
+        "B51",
+        "B52",
+        "B55"
+      ]
+    },
+    {
+      "id": "TL16",
+      "name": "Cockpit OS",
+      "cat": "Pilotage",
+      "role": "Priorités, deadlines, responsables",
+      "status": "wip",
+      "owner": "Romain",
+      "holds": "Tâches et décisions",
+      "usedBy": [
+        "B50"
+      ]
+    },
+    {
+      "id": "TL17",
+      "name": "Outil comptable",
+      "cat": "Finance",
+      "role": "Factures, coûts, rapprochements",
+      "status": "missing",
+      "owner": "",
+      "holds": "Écritures comptables",
+      "usedBy": [
+        "B55",
+        "B63"
+      ]
+    },
+    {
+      "id": "TL18",
+      "name": "Support & tickets",
+      "cat": "Support",
+      "role": "Demandes des élèves et leur suivi",
+      "status": "missing",
+      "owner": "",
+      "holds": "Tickets",
+      "usedBy": [
+        "B60",
+        "B61"
+      ]
+    }
+  ],
+  "layout": {
+    "constants": {
+      "SW": 220,
+      "CW": 330,
+      "CARD": 300,
+      "SH": 140,
+      "LX": -380,
+      "HG": 58,
+      "stateCardHeight": 246
+    },
+    "worldWidth": 7370,
+    "lanes": [
+      {
+        "id": "meta",
+        "y": 0,
+        "h": 272,
+        "k": "Niveau méta",
+        "b": "Fabriquer et piloter",
+        "d": "Besoins qui ne touchent pas l'individu : créer la transformation, ajuster la machine."
+      },
+      {
+        "id": "prod",
+        "y": 392,
+        "h": 1300,
+        "k": "Couloir 1",
+        "b": "Besoins de production",
+        "d": "Fabriquer les actifs que l'individu rencontrera."
+      },
+      {
+        "id": "exp",
+        "y": 1882,
+        "h": 216,
+        "k": "Couloir 2",
+        "b": "Ce que vit l'individu",
+        "d": "Les interactions : la seule partie de SKL qu'il voit."
+      },
+      {
+        "id": "spine",
+        "y": 2118,
+        "h": 306,
+        "k": "Le graphe de l'individu",
+        "b": "De A à B",
+        "d": "États observables, reliés par des cellules de transition. Les raccourcis passent au-dessus."
+      },
+      {
+        "id": "graph",
+        "y": 2584,
+        "h": 508,
+        "k": "Sorties & retours",
+        "b": "Hors de la ligne",
+        "d": "L'individu sorti reste un état, avec un chemin de retour."
+      },
+      {
+        "id": "mach",
+        "y": 3142,
+        "h": 2248,
+        "k": "Couloir 3",
+        "b": "Besoins de conversion",
+        "d": "Ce qui doit se passer pour qu'un individu avance, relié par des passages de relais."
+      },
+      {
+        "id": "sup",
+        "y": 5430,
+        "h": 990,
+        "k": "Couloir 4",
+        "b": "Fonctions support",
+        "d": "Besoins qui ne font pas avancer l'individu, mais font tenir le business."
+      },
+      {
+        "id": "found",
+        "y": 6460,
+        "h": 534,
+        "k": "Fondations",
+        "b": "Mémoire & orchestration",
+        "d": "Ce que tous les besoins partagent. L = lit, É = écrit."
+      },
+      {
+        "id": "tools",
+        "y": 7024,
+        "h": 234,
+        "k": "Fondations",
+        "b": "Outils & données",
+        "d": "Chaque outil, ce qu'il détient, qui l'utilise."
+      }
+    ],
+    "actsY": 1752,
+    "loopsTop": -248,
+    "factoryZone": {
+      "x": 0,
+      "w": 2710,
+      "y": 0,
+      "h": 272
+    },
+    "cockpitZone": {
+      "x": 2790,
+      "w": 4580,
+      "y": 0,
+      "h": 272
+    },
+    "chainRowsY": {
+      "P1": 432,
+      "P2": 642,
+      "P3": 852,
+      "P4": 1062,
+      "P5": 1272,
+      "P6": 1482
+    },
+    "positions": {
+      "B40": {
+        "x": 24,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B41": {
+        "x": 344,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B42": {
+        "x": 664,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B43": {
+        "x": 984,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B44": {
+        "x": 1304,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B45": {
+        "x": 1624,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B49": {
+        "x": 1944,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B46": {
+        "x": 2264,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B92": {
+        "x": 2814,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B50": {
+        "x": 3134,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B51": {
+        "x": 3454,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B52": {
+        "x": 3774,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B53": {
+        "x": 4094,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B54": {
+        "x": 4414,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B48": {
+        "x": 4734,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B55": {
+        "x": 5054,
+        "y": 100,
+        "w": 300,
+        "h": 140
+      },
+      "B01": {
+        "x": 320,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "B02": {
+        "x": 710,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "B03": {
+        "x": 1100,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "B04": {
+        "x": 1490,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "B05": {
+        "x": 1880,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "B06": {
+        "x": 2270,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "P1": {
+        "x": 2660,
+        "y": 432,
+        "w": 300,
+        "h": 140
+      },
+      "B07": {
+        "x": 320,
+        "y": 642,
+        "w": 300,
+        "h": 140
+      },
+      "P2": {
+        "x": 710,
+        "y": 642,
+        "w": 300,
+        "h": 140
+      },
+      "B08": {
+        "x": 320,
+        "y": 852,
+        "w": 300,
+        "h": 140
+      },
+      "B09": {
+        "x": 710,
+        "y": 852,
+        "w": 300,
+        "h": 140
+      },
+      "P3": {
+        "x": 1100,
+        "y": 852,
+        "w": 300,
+        "h": 140
+      },
+      "B10": {
+        "x": 320,
+        "y": 1062,
+        "w": 300,
+        "h": 140
+      },
+      "P4": {
+        "x": 710,
+        "y": 1062,
+        "w": 300,
+        "h": 140
+      },
+      "B11": {
+        "x": 320,
+        "y": 1272,
+        "w": 300,
+        "h": 140
+      },
+      "P5": {
+        "x": 710,
+        "y": 1272,
+        "w": 300,
+        "h": 140
+      },
+      "B90": {
+        "x": 320,
+        "y": 1482,
+        "w": 300,
+        "h": 140
+      },
+      "B91": {
+        "x": 710,
+        "y": 1482,
+        "w": 300,
+        "h": 140
+      },
+      "P6": {
+        "x": 1100,
+        "y": 1482,
+        "w": 300,
+        "h": 140
+      },
+      "E0": {
+        "x": 10,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E1": {
+        "x": 560,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E2": {
+        "x": 1110,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E3": {
+        "x": 1660,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E4": {
+        "x": 2210,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E5": {
+        "x": 2760,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E6": {
+        "x": 3310,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E7": {
+        "x": 3860,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E8": {
+        "x": 4410,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E9": {
+        "x": 4960,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E10": {
+        "x": 5510,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E11": {
+        "x": 6060,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E12": {
+        "x": 6610,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "E13": {
+        "x": 7160,
+        "y": 2288,
+        "w": 200,
+        "h": 246
+      },
+      "T01": {
+        "x": 235,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T02": {
+        "x": 785,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T03": {
+        "x": 1335,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T04": {
+        "x": 1885,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T05": {
+        "x": 2435,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T06": {
+        "x": 2985,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T07": {
+        "x": 3535,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T08": {
+        "x": 4085,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T09": {
+        "x": 4635,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T10": {
+        "x": 5185,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T11": {
+        "x": 5735,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T12": {
+        "x": 6285,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "T13": {
+        "x": 6835,
+        "y": 2288,
+        "w": 300,
+        "h": 246
+      },
+      "XS1": {
+        "x": 1335,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "XS2": {
+        "x": 2435,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "XS3": {
+        "x": 2985,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "XS4": {
+        "x": 3535,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "XS5": {
+        "x": 4085,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "XS6": {
+        "x": 4635,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "XS8": {
+        "x": 4085,
+        "y": 2760,
+        "w": 300,
+        "h": 142
+      },
+      "XS9": {
+        "x": 4085,
+        "y": 2916,
+        "w": 300,
+        "h": 142
+      },
+      "XS7": {
+        "x": 5735,
+        "y": 2604,
+        "w": 300,
+        "h": 142
+      },
+      "B12": {
+        "x": 1335,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B13": {
+        "x": 1885,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B14": {
+        "x": 1885,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "B15": {
+        "x": 2435,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B16": {
+        "x": 2435,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "B17": {
+        "x": 2985,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B80": {
+        "x": 3535,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B19": {
+        "x": 3535,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "B18": {
+        "x": 3535,
+        "y": 3558,
+        "w": 300,
+        "h": 140
+      },
+      "B82": {
+        "x": 4085,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B86": {
+        "x": 4085,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "B23": {
+        "x": 4085,
+        "y": 3558,
+        "w": 300,
+        "h": 140
+      },
+      "B81": {
+        "x": 4085,
+        "y": 3756,
+        "w": 300,
+        "h": 140
+      },
+      "B21": {
+        "x": 4085,
+        "y": 3954,
+        "w": 300,
+        "h": 140
+      },
+      "B22": {
+        "x": 4085,
+        "y": 4152,
+        "w": 300,
+        "h": 140
+      },
+      "B83": {
+        "x": 4085,
+        "y": 4350,
+        "w": 300,
+        "h": 140
+      },
+      "B84": {
+        "x": 4085,
+        "y": 4548,
+        "w": 300,
+        "h": 140
+      },
+      "B85": {
+        "x": 4085,
+        "y": 4746,
+        "w": 300,
+        "h": 140
+      },
+      "B88": {
+        "x": 4085,
+        "y": 4944,
+        "w": 300,
+        "h": 140
+      },
+      "B20": {
+        "x": 4085,
+        "y": 5142,
+        "w": 300,
+        "h": 140
+      },
+      "B25": {
+        "x": 4635,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B24": {
+        "x": 4635,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "B87": {
+        "x": 4635,
+        "y": 3558,
+        "w": 300,
+        "h": 140
+      },
+      "B26": {
+        "x": 5185,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B27": {
+        "x": 5185,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "B28": {
+        "x": 5735,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B29": {
+        "x": 6285,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B30": {
+        "x": 6835,
+        "y": 3162,
+        "w": 300,
+        "h": 140
+      },
+      "B32": {
+        "x": 6835,
+        "y": 3360,
+        "w": 300,
+        "h": 140
+      },
+      "SU1": {
+        "x": 0,
+        "y": 5470,
+        "w": 280,
+        "h": 140
+      },
+      "B60": {
+        "x": 320,
+        "y": 5470,
+        "w": 300,
+        "h": 140
+      },
+      "B61": {
+        "x": 660,
+        "y": 5470,
+        "w": 300,
+        "h": 140
+      },
+      "SU2": {
+        "x": 0,
+        "y": 5660,
+        "w": 280,
+        "h": 140
+      },
+      "B62": {
+        "x": 320,
+        "y": 5660,
+        "w": 300,
+        "h": 140
+      },
+      "B63": {
+        "x": 660,
+        "y": 5660,
+        "w": 300,
+        "h": 140
+      },
+      "SU3": {
+        "x": 0,
+        "y": 5850,
+        "w": 280,
+        "h": 140
+      },
+      "B64": {
+        "x": 320,
+        "y": 5850,
+        "w": 300,
+        "h": 140
+      },
+      "B65": {
+        "x": 660,
+        "y": 5850,
+        "w": 300,
+        "h": 140
+      },
+      "B66": {
+        "x": 1000,
+        "y": 5850,
+        "w": 300,
+        "h": 140
+      },
+      "SU4": {
+        "x": 0,
+        "y": 6040,
+        "w": 280,
+        "h": 140
+      },
+      "B89": {
+        "x": 320,
+        "y": 6040,
+        "w": 300,
+        "h": 140
+      },
+      "B67": {
+        "x": 660,
+        "y": 6040,
+        "w": 300,
+        "h": 140
+      },
+      "B68": {
+        "x": 1000,
+        "y": 6040,
+        "w": 300,
+        "h": 140
+      },
+      "B69": {
+        "x": 1340,
+        "y": 6040,
+        "w": 300,
+        "h": 140
+      },
+      "B70": {
+        "x": 1680,
+        "y": 6040,
+        "w": 300,
+        "h": 140
+      },
+      "B71": {
+        "x": 2020,
+        "y": 6040,
+        "w": 300,
+        "h": 140
+      },
+      "SU5": {
+        "x": 0,
+        "y": 6230,
+        "w": 280,
+        "h": 140
+      },
+      "B72": {
+        "x": 320,
+        "y": 6230,
+        "w": 300,
+        "h": 140
+      },
+      "B73": {
+        "x": 660,
+        "y": 6230,
+        "w": 300,
+        "h": 140
+      },
+      "M1": {
+        "x": 0,
+        "y": 6480,
+        "w": 7370,
+        "h": 68
+      },
+      "M2": {
+        "x": 0,
+        "y": 6564,
+        "w": 7370,
+        "h": 68
+      },
+      "M3": {
+        "x": 0,
+        "y": 6648,
+        "w": 7370,
+        "h": 68
+      },
+      "M4": {
+        "x": 0,
+        "y": 6732,
+        "w": 7370,
+        "h": 68
+      },
+      "M5": {
+        "x": 0,
+        "y": 6816,
+        "w": 7370,
+        "h": 68
+      },
+      "OR": {
+        "x": 0,
+        "y": 6900,
+        "w": 7370,
+        "h": 68
+      },
+      "TL01": {
+        "x": 0,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL02": {
+        "x": 330,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL03": {
+        "x": 660,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL04": {
+        "x": 990,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL05": {
+        "x": 1320,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL06": {
+        "x": 1650,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL07": {
+        "x": 1980,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL08": {
+        "x": 2310,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL09": {
+        "x": 2640,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL10": {
+        "x": 2970,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL11": {
+        "x": 3300,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL12": {
+        "x": 3630,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL13": {
+        "x": 3960,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL14": {
+        "x": 4290,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL15": {
+        "x": 4620,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL16": {
+        "x": 4950,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL17": {
+        "x": 5280,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      },
+      "TL18": {
+        "x": 5610,
+        "y": 7064,
+        "w": 300,
+        "h": 150
+      }
+    },
+    "interactionLabels": [
+      {
+        "x": 235,
+        "y": 1902,
+        "text": "Vidéo courte dans le feed",
+        "t": "T01"
+      },
+      {
+        "x": 235,
+        "y": 1946,
+        "text": "Publicité du guru",
+        "t": "T01"
+      },
+      {
+        "x": 235,
+        "y": 1990,
+        "text": "Passage chez un autre créateur",
+        "t": "T01"
+      },
+      {
+        "x": 785,
+        "y": 1902,
+        "text": "Série de contenus piliers",
+        "t": "T02"
+      },
+      {
+        "x": 785,
+        "y": 1946,
+        "text": "Format récurrent reconnaissable",
+        "t": "T02"
+      },
+      {
+        "x": 785,
+        "y": 1990,
+        "text": "Live",
+        "t": "T02"
+      },
+      {
+        "x": 1335,
+        "y": 1902,
+        "text": "Réponse personnelle à son commentaire",
+        "t": "T03"
+      },
+      {
+        "x": 1335,
+        "y": 1946,
+        "text": "Conversation en DM",
+        "t": "T03"
+      },
+      {
+        "x": 1335,
+        "y": 1990,
+        "text": "Question posée en story",
+        "t": "T03"
+      },
+      {
+        "x": 1885,
+        "y": 1902,
+        "text": "Lead magnet",
+        "t": "T04"
+      },
+      {
+        "x": 1885,
+        "y": 1946,
+        "text": "Inscription à la masterclass",
+        "t": "T04"
+      },
+      {
+        "x": 1885,
+        "y": 1990,
+        "text": "Proposition en DM",
+        "t": "T04"
+      },
+      {
+        "x": 2435,
+        "y": 1902,
+        "text": "Masterclass",
+        "t": "T05"
+      },
+      {
+        "x": 2435,
+        "y": 1946,
+        "text": "VSL",
+        "t": "T05"
+      },
+      {
+        "x": 2435,
+        "y": 1990,
+        "text": "Messages de preuve",
+        "t": "T05"
+      },
+      {
+        "x": 2435,
+        "y": 2034,
+        "text": "Cas d'élèves qui lui ressemblent",
+        "t": "T05"
+      },
+      {
+        "x": 2985,
+        "y": 1902,
+        "text": "Formulaire de qualification",
+        "t": "T06"
+      },
+      {
+        "x": 2985,
+        "y": 1946,
+        "text": "Page de réservation",
+        "t": "T06"
+      },
+      {
+        "x": 2985,
+        "y": 1990,
+        "text": "Message de prise de RDV",
+        "t": "T06"
+      },
+      {
+        "x": 3535,
+        "y": 1902,
+        "text": "Confirmation et rappels",
+        "t": "T07"
+      },
+      {
+        "x": 3535,
+        "y": 1946,
+        "text": "Vidéo de préparation",
+        "t": "T07"
+      },
+      {
+        "x": 3535,
+        "y": 1990,
+        "text": "Questions avant l'appel",
+        "t": "T07"
+      },
+      {
+        "x": 4085,
+        "y": 1902,
+        "text": "Appel de vente SPIN",
+        "t": "T08"
+      },
+      {
+        "x": 4085,
+        "y": 1946,
+        "text": "Pitch aligné sur son gap",
+        "t": "T08"
+      },
+      {
+        "x": 4085,
+        "y": 1990,
+        "text": "Page perso : solution et roadmap",
+        "t": "T08"
+      },
+      {
+        "x": 4635,
+        "y": 1902,
+        "text": "Message de bienvenue",
+        "t": "T09"
+      },
+      {
+        "x": 4635,
+        "y": 1946,
+        "text": "Kick-off",
+        "t": "T09"
+      },
+      {
+        "x": 4635,
+        "y": 1990,
+        "text": "Plan d'action personnel",
+        "t": "T09"
+      },
+      {
+        "x": 5185,
+        "y": 1902,
+        "text": "Modules du parcours",
+        "t": "T10"
+      },
+      {
+        "x": 5185,
+        "y": 1946,
+        "text": "Coaching de groupe",
+        "t": "T10"
+      },
+      {
+        "x": 5185,
+        "y": 1990,
+        "text": "Défi de 30 jours",
+        "t": "T10"
+      },
+      {
+        "x": 5735,
+        "y": 1902,
+        "text": "Jalons hebdomadaires",
+        "t": "T11"
+      },
+      {
+        "x": 5735,
+        "y": 1946,
+        "text": "Communauté",
+        "t": "T11"
+      },
+      {
+        "x": 5735,
+        "y": 1990,
+        "text": "Suivi individuel",
+        "t": "T11"
+      },
+      {
+        "x": 6285,
+        "y": 1902,
+        "text": "Validation finale",
+        "t": "T12"
+      },
+      {
+        "x": 6285,
+        "y": 1946,
+        "text": "Bilan de transformation",
+        "t": "T12"
+      },
+      {
+        "x": 6835,
+        "y": 1902,
+        "text": "Demande de témoignage",
+        "t": "T13"
+      },
+      {
+        "x": 6835,
+        "y": 1946,
+        "text": "Programme de parrainage",
+        "t": "T13"
+      },
+      {
+        "x": 6835,
+        "y": 1990,
+        "text": "Mise en avant dans le contenu",
+        "t": "T13"
+      }
+    ],
+    "bounds": {
+      "x": -420,
+      "y": -508,
+      "w": 7830,
+      "h": 7826
+    }
+  }
+}

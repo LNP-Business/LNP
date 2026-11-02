@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SKL OS — Weekly Review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#9A6614}a:hover{color:#7A4B00}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 1180px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">SKL <span style="color: #D9B46A">OS</span></div>
+<div role="group" aria-label="Switch system" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #2C2B26; border-radius: 12px; margin-bottom: 18px">
+<a href="Main.dc.html" aria-current="true" style="display: block; padding: 9px 6px; border-radius: 9px; text-decoration: none; text-align: center; font-size: 12px; line-height: 1.3; background: #F6F4EF; color: #1B1B18; font-weight: 600;">Operating<br>System</a>
+<a href="Bibliotheque.dc.html" style="display: block; padding: 9px 6px; border-radius: 9px; text-decoration: none; text-align: center; font-size: 12px; line-height: 1.3; background: transparent; color: #C9C4B7; font-weight: 500;">Knowledge<br>System</a>
+</div>
+<div style="padding: 0 14px 6px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80">Operating System</div>
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Cockpit</span></a>
+<a href="Roadmap.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Roadmap</span></a>
+<a href="MonJour.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>My Day</span><span data-badge="myday" title="Alerts that need you, plus your tasks due today or late" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">3</span></a>
+<a href="Decisions.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Decisions</span><span data-badge="decisions" title="Decisions to act on: to decide and to review" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">5</span></a>
+<a href="Review.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><span>Weekly Review</span><span data-badge="review" title="Key results not checked in this week" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">3</span></a>
+<div style="margin-top: 14px; padding: 0 14px 6px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80">Sales Ops</div>
+<a href="CRM.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>CRM</span></a>
+<div style="flex-grow: 1"></div>
+<div data-me style="padding: 12px 14px 4px; border-top: 1px solid #34322C; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C9C4B7"></div>
+<div style="padding: 6px 14px 14px; font-size: 13px; color: #A8A396; line-height: 1.5">Q4 2026 · week 3/13<br>Weekly review: Friday</div>
+<a href="Settings.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7; border: 1px solid #34322C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Settings</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 96px 48px 48px; display: flex; flex-direction: column; gap: 20px">
+<header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap">
+<div style="min-width: 0">
+<div style="font-size: 14px; color: #5E5B53; margin-bottom: 6px">{{eyebrow}}</div>
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 40px; font-weight: 500">{{title}}</h1>
+<div style="display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap"><span style="{{statusPill.style}}">{{statusPill.label}}</span><span style="font-size: 14px; color: #5E5B53">{{facilitator}}</span></div>
+</div>
+<div role="tablist" aria-label="Review views" style="display: flex; gap: 4px; padding: 5px; background: #ECE8DF; border-radius: 12px">
+<button type="button" role="tab" aria-selected="{{isWeek}}" onClick="{{goWeek}}" style="{{tabWeek}}">This week</button>
+<button type="button" role="tab" aria-selected="{{isHist}}" onClick="{{goHist}}" style="{{tabHist}}">History</button>
+</div>
+</header>
+<sc-if value="{{isWeek}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 20px; align-items: start">
+<aside aria-label="Steps" style="position: sticky; top: 24px; background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 4px">
+<div style="padding: 6px 8px 10px"><div style="font-size: 13px; color: #5E5B53; margin-bottom: 6px">{{progress}}</div><div style="height: 6px; border-radius: 3px; background: #ECE8DF"><div style="{{progressW}}"></div></div></div>
+<sc-for list="{{steps}}" as="st" hint-placeholder-count="6"><button type="button" onClick="{{st.go}}" aria-current="{{st.on}}" style="{{st.style}}"><span style="{{st.numStyle}}">{{st.num}}</span><span style="min-width: 0"><span style="display: block; font-size: 15px; font-weight: 600">{{st.title}}</span><span style="{{st.subStyle}}">{{st.min}} · {{st.count}}</span></span></button></sc-for>
+<div style="border-top: 1px solid #E3DFD5; margin-top: 8px; padding: 12px 8px 4px; display: flex; flex-direction: column; gap: 8px">
+<sc-if value="{{notClosed}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{close}}" style="{{closeStyle}}">Close the review</button></sc-if>
+<sc-if value="{{closed}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{reopen}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Reopen</button></sc-if>
+<span style="font-size: 12px; line-height: 1.45; color: #5E5B53">{{closeHint}}</span>
+</div>
+</aside>
+<section aria-label="Current step" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px; min-width: 0">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px"><div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Step {{cur.n}} of {{nSteps}} · {{cur.min}}</div><h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500; font-size: 28px; margin-top: 4px">{{cur.title}}</h2><p style="margin: 6px 0 0; max-width: 640px; font-size: 14px; line-height: 1.55; color: #3D3A33">{{cur.why}}</p></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #5E5B53; white-space: nowrap">{{cur.count}}</span></div>
+<sc-if value="{{locked}}" hint-placeholder-val="{{false}}"><div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 16px; border-radius: 12px; background: #FDF1E3; border: 1px solid #E6D3A8"><span style="flex: 1; min-width: 260px; font-size: 14px; color: #8A3F06; font-weight: 600">{{lockText}}</span><button type="button" onClick="{{startNow}}" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #1B1B18; color: #D9B46A; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Start the review now</button></div></sc-if>
+<div style="{{bodyStyle}}">
+<sc-if value="{{is1}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{ciRows}}" as="c" hint-placeholder-count="5">
+<div style="border-top: 1px solid #EFEBE3; padding: 14px 0; display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center">
+<div><div style="font-size: 15px; font-weight: 600">{{c.name}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 2px">{{c.owner}} · last: {{c.last}}</div></div>
+<span style="{{c.badge.style}}">{{c.badge.label}}</span>
+</div>
+<sc-if value="{{c.done}}" hint-placeholder-val="{{false}}"><div style="{{c.compareStyle}}">{{c.compare}}</div></sc-if>
+<sc-if value="{{c.todo}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: 110px 120px 110px minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; padding: 12px; border-radius: 10px; background: #F6F4EF">
+<div style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">Actual<span title="The value before this week's check-in" style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; color: #1B1B18; padding: 8px 10px; border: 1px solid #D8D3C7; background: #FFFFFF; border-radius: 8px">{{c.actual}}</span></div>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">Value {{c.unit}}<input type="number" step="any" onInput="{{c.setValue}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">Confidence<input type="number" min="1" max="10" placeholder="1–10" onInput="{{c.setConf}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">What moved it<input type="text" onInput="{{c.setMoved}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">What blocks<input type="text" onInput="{{c.setBlocks}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label>
+<button type="button" onClick="{{c.save}}" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #1B1B18; color: #D9B46A; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap">Save check-in</button>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{is2}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: minmax(0, 1.1fr) 200px 96px minmax(0, 1fr) 104px; gap: 14px; padding: 0 8px 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53"><span>Key result</span><span>Quarter trajectory</span><span>Ratio</span><span>Forecast · next milestone</span><span>Status</span></div>
+<sc-for list="{{board}}" as="b" hint-placeholder-count="5">
+<div role="link" tabindex="0" onClick="{{b.open}}" style="{{b.rowStyle}}"><div><div style="font-size: 14px; font-weight: 600">{{b.name}}</div><div style="{{b.subStyle}}">{{b.sub}}</div></div><svg viewBox="0 0 260 60" width="200" height="46" role="img" aria-label="{{b.aria}}"><line x1="8" y1="54" x2="252" y2="54" stroke="#ECE8DF" stroke-width="1"></line><line x1="{{b.todayX}}" y1="2" x2="{{b.todayX}}" y2="58" stroke="#D8D3C7" stroke-width="1"></line><polyline points="{{b.expPts}}" fill="none" stroke="#1B1B18" stroke-width="1.5" stroke-dasharray="4 4"></polyline><polyline points="{{b.actPts}}" fill="none" stroke="{{b.actCol}}" stroke-width="2.5" stroke-linejoin="round"></polyline><sc-if value="{{b.projOn}}" hint-placeholder-val="{{true}}"><line x1="{{b.projX1}}" y1="{{b.projY1}}" x2="252" y2="{{b.projY2}}" stroke="{{b.projCol}}" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"></line><circle cx="252" cy="{{b.projY2}}" r="3.5" fill="{{b.projCol}}"></circle></sc-if><sc-if value="{{b.stale}}" hint-placeholder-val="{{false}}"><text x="{{b.staleX}}" y="40" font-size="11" fill="#5E5B53" font-family="IBM Plex Sans, sans-serif">? no recent data</text></sc-if><line x1="242" y1="6" x2="258" y2="6" stroke="#1B1B18" stroke-width="2"></line></svg><div><div style="{{b.ratioStyle}}">{{b.ratio}} <span style="{{b.arrowStyle}}">{{b.arrow}}</span></div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">{{b.ratioSub}}</div></div><div style="font-size: 13px; line-height: 1.55"><div>Forecast: <strong style="{{b.fcStyle}}">{{b.fcText}}</strong></div><div style="{{b.nextStyle}}">{{b.nextText}}</div></div><span style="{{b.pillStyle}}"><span style="{{b.dotStyle}}"></span>{{b.label}}</span></div>
+<sc-if value="{{b.needs}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px; gap: 10px; align-items: end; margin: 0 8px 12px; padding: 12px; border-radius: 10px; background: #FBF6EC; border: 1px solid #E6D3A8">
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">{{b.planLabel}}<input type="text" value="{{b.plan}}" onChange="{{b.setPlan}}" placeholder="What changes this week, concretely" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">Owner<select onChange="{{b.setPlanOwner}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"><sc-for list="{{b.planOwnerOpts}}" as="o" hint-placeholder-count="5"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select></label>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">By<input type="date" value="{{b.planDue}}" onChange="{{b.setPlanDue}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: -4px 8px 14px"><button type="button" onClick="{{b.validatePlan}}" style="{{b.valStyle}}">{{b.valLabel}}</button><button type="button" onClick="{{b.keepIt}}" style="{{b.keepStyle}}">{{b.keepLabel}}</button><span style="font-size: 12px; color: #5E5B53">{{b.planState}}</span></div>
+</sc-if>
+</sc-for>
+</sc-if>
+<sc-if value="{{is3}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{noTriage}}" hint-placeholder-val="{{false}}"><div style="padding: 24px; border-radius: 10px; background: #E6F2EA; color: #1E5E38; font-size: 15px; font-weight: 600">No Critical or High alert is open. Move on.</div></sc-if>
+<sc-for list="{{triage}}" as="t" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<span style="{{t.dot}}"></span>
+<div style="min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #5E5B53">{{t.alert}} · {{t.who}} · {{t.age}}</span>
+<span style="font-size: 15px; font-weight: 600">{{t.subject}}</span>
+<span style="font-size: 13px; line-height: 1.45; color: #3D3A33">{{t.detail}}</span>
+<sc-if value="{{t.todo}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; align-items: center">
+<button type="button" onClick="{{t.keep}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Owner confirmed</button>
+<select onChange="{{t.assign}}" aria-label="Reassign" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0; width: 170px"><sc-for list="{{t.ownerOpts}}" as="o" hint-placeholder-count="5"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select>
+<button type="button" onClick="{{t.snooze}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Snooze to next review</button>
+<button type="button" onClick="{{t.decide}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Turn into a decision</button>
+<button type="button" onClick="{{t.handled}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Settled in the room</button>
+<sc-if value="{{t.hasTask}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{t.delTask}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #F2C4BE; border-radius: 10px; background: #FFFFFF; color: #9B1C12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Delete the task</button></sc-if>
+</div>
+</sc-if>
+</div>
+<span style="{{t.outcome.style}}">{{t.outcome.label}}</span>
+</div>
+</sc-for>
+<sc-if value="{{hasTaskMsg}}" hint-placeholder-val="{{false}}"><div role="status" style="font-size: 13px; color: #9B1C12; background: #FDECEA; border-radius: 8px; padding: 8px 10px">{{taskMsg}}</div></sc-if>
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-top: 1px solid #E3DFD5; padding-top: 16px; margin-top: 6px"><h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 500">Open tasks</h3><span style="flex: 1"></span><span role="group" aria-label="Which tasks" style="display: inline-flex; gap: 3px; padding: 3px; background: #ECE8DF; border-radius: 10px"><button type="button" onClick="{{showWeek}}" style="{{tabTW}}">This week</button><button type="button" onClick="{{showAll}}" style="{{tabAll}}">All open tasks</button></span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5B53">{{remCount}}</span></div>
+<sc-if value="{{noRem}}" hint-placeholder-val="{{false}}"><div style="padding: 16px; border-radius: 10px; background: #E6F2EA; color: #1E5E38; font-size: 14px; font-weight: 600">Every task due this week is done.</div></sc-if>
+<sc-for list="{{remTasks}}" as="r" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid #EFEBE3">
+<div style="min-width: 0"><div style="font-size: 15px; font-weight: 600">{{r.title}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 2px">{{r.meta}}</div></div>
+<span style="{{r.badge.style}}">{{r.badge.label}}</span>
+<button type="button" onClick="{{r.del}}" aria-label="Delete this task" style="min-height: 40px; padding: 0 14px; border: 1px solid #F2C4BE; border-radius: 10px; background: #FFFFFF; color: #9B1C12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Delete</button>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{is4}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{noDecs}}" hint-placeholder-val="{{false}}"><div style="padding: 24px; border-radius: 10px; background: #E6F2EA; color: #1E5E38; font-size: 15px; font-weight: 600">No decision is due before next Saturday.</div></sc-if>
+<sc-for list="{{decRows}}" as="d" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 170px auto auto; gap: 12px; align-items: center; padding: 14px 0; border-top: 1px solid #EFEBE3">
+<div><div style="font-size: 15px; font-weight: 600">{{d.title}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 2px">{{d.owner}} · {{d.rev}}</div></div>
+<sc-if value="{{d.isTodo}}" hint-placeholder-val="{{true}}"><label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">New deadline<input type="date" value="{{d.deadline}}" onChange="{{d.setDeadline}}" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"></label></sc-if>
+<button type="button" onClick="{{d.open}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Decide now →</button>
+<span style="{{d.badge.style}}">{{d.badge.label}}</span>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{is5}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{noMs}}" hint-placeholder-val="{{false}}"><div style="padding: 24px; border-radius: 10px; background: #F6F4EF; color: #5E5B53; font-size: 15px">No weekly milestone due this week or last week. They are set in Build, one person, one week, one verifiable result.</div></sc-if>
+<sc-for list="{{msRows}}" as="m" hint-placeholder-count="3">
+<div style="{{m.cardStyle}}">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start">
+<div style="min-width: 0"><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">{{m.eyebrow}}</div><div style="font-size: 15px; font-weight: 600; line-height: 1.45; margin-top: 4px">{{m.formula}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 2px">{{m.meta}}</div></div>
+<span style="{{m.badge.style}}">{{m.badge.label}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{m.goals}}" as="g" hint-placeholder-count="3"><button type="button" onClick="{{g.toggle}}" aria-pressed="{{g.ok}}" style="{{g.style}}"><span style="{{g.boxStyle}}">{{g.mark}}</span><span>{{g.t}}</span></button></sc-for>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5B53">{{m.count}}</span><span style="flex: 1"></span>
+<button type="button" onClick="{{m.doneGo}}" style="{{m.doneStyle}}">Done</button>
+<button type="button" onClick="{{m.notGo}}" style="{{m.notStyle}}">Not done</button>
+<sc-if value="{{m.isNot}}" hint-placeholder-val="{{false}}"><select onChange="{{m.setCause}}" aria-label="Cause of the miss" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; box-sizing: border-box; min-width: 0; width: 190px"><sc-for list="{{m.causeOpts}}" as="o" hint-placeholder-count="6"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select></sc-if>
+</div>
+<sc-if value="{{m.hasHint}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #9B1C12; background: #FDECEA; border-radius: 8px; padding: 8px 10px">{{m.hint}}</div></sc-if>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{is8}}" hint-placeholder-val="{{false}}">
+<div style="font-size: 14px; color: #5E5B53">The milestones of {{nextWeek}} become official here. Each one: one result, one owner, its mini goals. No minimum and no maximum: a key result may have none next week when others come first.</div>
+<sc-for list="{{nextRows}}" as="k" hint-placeholder-count="4">
+<div style="border: 1px solid #E3DFD5; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center"><div style="min-width: 0"><div style="font-size: 15px; font-weight: 600">{{k.kr}}</div><div style="font-size: 13px; color: #5E5B53">{{k.owner}}</div></div><span style="{{k.badge.style}}">{{k.badge.label}}</span></div>
+<sc-for list="{{k.items}}" as="i" hint-placeholder-count="2"><div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: #F6F4EF"><div style="min-width: 0"><div style="font-size: 14px; line-height: 1.45">{{i.text}}</div><div style="font-size: 12px; color: #5E5B53; margin-top: 2px">{{i.meta}}</div></div><button type="button" onClick="{{i.toggle}}" style="{{i.style}}">{{i.label}}</button></div></sc-for>
+<sc-if value="{{k.hasLater}}" hint-placeholder-val="{{false}}"><select onChange="{{k.pull}}" aria-label="Bring forward a milestone" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"><sc-for list="{{k.laterOpts}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select></sc-if>
+<sc-if value="{{k.canAdd}}" hint-placeholder-val="{{true}}"><div style="display: grid; grid-template-columns: minmax(0, 1.4fr) 150px minmax(0, 1fr) auto; gap: 8px; align-items: center"><input type="text" placeholder="New milestone: the verifiable result" onInput="{{k.setText}}" aria-label="New milestone" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"><select onChange="{{k.setOwner}}" aria-label="Owner" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"><sc-for list="{{k.ownerOpts}}" as="o" hint-placeholder-count="5"><option value="{{o.v}}" selected="{{o.sel}}">{{o.l}}</option></sc-for></select><input type="text" placeholder="Mini goals, separated by ;" onInput="{{k.setProof}}" aria-label="Mini goals" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0"><button type="button" onClick="{{k.add}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Add and validate</button></div></sc-if>
+<sc-if value="{{k.full}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; color: #5E5B53">3 milestones for this key result next week: the maximum.</div></sc-if>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 16px; border-radius: 12px; background: #F6F4EF"><button type="button" onClick="{{validateNext}}" style="{{validateStyle}}">{{validateLabel}}</button><span style="font-size: 13px; color: #5E5B53; flex: 1; min-width: 240px">{{validateHint}}</span></div>
+</sc-if>
+</div>
+<div style="display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid #E3DFD5; padding-top: 16px; margin-top: 4px">
+<sc-if value="{{hasPrev}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{prev}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">← Previous step</button></sc-if>
+<span style="flex-grow: 1"></span>
+<sc-if value="{{hasNext}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{next}}" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #1B1B18; color: #D9B46A; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap">Next step →</button></sc-if>
+</div>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #5E5B53">Notes of the review<textarea rows="3" onChange="{{setNotes}}" placeholder="What the room agreed that doesn't fit elsewhere" style="font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0; resize: vertical">{{notes}}</textarea></label>
+</section>
+</div>
+</sc-if>
+<sc-if value="{{isHist}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start">
+<section aria-label="Milestones reached" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Milestones reached</div>
+<div style="font-family: Fraunces, Georgia, serif; font-size: 48px; line-height: 1">{{reliability}}</div>
+<div style="font-size: 13px; color: #5E5B53">{{reliabilityText}}</div>
+<sc-if value="{{hasBars}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 12px; align-items: flex-end; height: 120px; padding-top: 10px; border-bottom: 1px solid #E3DFD5"><sc-for list="{{bars}}" as="b" hint-placeholder-count="2"><div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">{{b.pct}}</span><div style="{{b.style}}"></div></div></sc-for></div>
+<div style="display: flex; gap: 12px"><sc-for list="{{bars}}" as="b" hint-placeholder-count="2"><span style="width: 36px; text-align: center; font-size: 12px; color: #5E5B53">{{b.label}}</span></sc-for></div></sc-if>
+</section>
+<section aria-label="Past reviews" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 24px 110px 90px minmax(0, 1fr) 110px 90px 90px; gap: 12px; padding: 14px 18px; background: #F6F4EF; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53"><span></span><span>Week</span><span>Date</span><span>KRs at closing</span><span>Milestones reached</span><span>Alerts triaged</span><span>Next milestones</span></div>
+<sc-if value="{{noHist}}" hint-placeholder-val="{{false}}"><div style="padding: 28px; color: #5E5B53">No review closed yet.</div></sc-if>
+<sc-for list="{{hist}}" as="h" hint-placeholder-count="2">
+<button type="button" onClick="{{h.toggle}}" style="display: grid; grid-template-columns: 24px 110px 90px minmax(0, 1fr) 110px 90px 90px; gap: 12px; align-items: center; width: 100%; padding: 14px 18px; border: 0; border-top: 1px solid #EFEBE3; background: #FFFFFF; font: inherit; color: #1B1B18; text-align: left; cursor: pointer">
+<span>{{h.chev}}</span><strong>{{h.week}}</strong><span style="font-size: 14px">{{h.date}}</span>
+<span style="display: flex; gap: 6px"><sc-for list="{{h.dots}}" as="dt" hint-placeholder-count="5"><span title="{{dt.tip}}" style="{{dt.style}}"></span></sc-for></span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px">{{h.reached}} <span style="color: #5E5B53">{{h.pct}}</span></span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px">{{h.triaged}}</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px">{{h.made}}</span>
+</button>
+<sc-if value="{{h.isOpen}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 6px 18px 18px 54px; background: #FFFFFF">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; margin-bottom: 6px">Milestones of the week · facilitated by {{h.by}}</div><sc-for list="{{h.msWeek}}" as="x" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 70px minmax(0, 1fr) 150px; gap: 8px; padding: 6px 0; border-top: 1px solid #EFEBE3; font-size: 13px"><strong>{{x.who}}</strong><span>{{x.text}}</span><span style="{{x.style}}; text-align: right">{{x.res}}</span></div></sc-for></div>
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53; margin-bottom: 6px">Milestones made official for the next week</div><sc-for list="{{h.nextMs}}" as="x" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-top: 1px solid #EFEBE3; font-size: 13px"><strong>{{x.who}}</strong><span>{{x.text}}</span></div></sc-for>
+<sc-if value="{{h.without}}" hint-placeholder-val="{{false}}"><div style="margin-top: 8px; font-size: 12px; color: #5E5B53">Left without a milestone: {{h.without}}</div></sc-if>
+<sc-if value="{{h.hasGaps}}" hint-placeholder-val="{{false}}"><div style="margin-top: 8px; font-size: 12px; color: #8A3F06">{{h.gaps}}</div></sc-if></div>
+</div>
+</sc-if>
+</sc-for>
+</section>
+</div>
+</sc-if>
+</main>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 32px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Page method</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Weekly Review</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Close" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>What this page is for</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">The Weekly Review is the Saturday ritual that keeps the quarter on track: 45 minutes, the whole team, always the same 6 steps, in this order: the tasks (alert triage), the milestones, the key results, then the scoreboard, the decisions and next week's milestones. Everything is read from the shared data (key results, alerts, decisions, tasks) and everything decided in the room is written back to it. Each closed review is kept in History with a snapshot of the key results, the milestones of the week and those made official for the next one.</p>
+</section>
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>How it makes everyone more efficient</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong style="color: #1B1B18">Numbers before opinions.</strong> Every KR is checked in before it is discussed.</li>
+<li><strong style="color: #1B1B18">No red KR without a plan.</strong> A red or untracked KR leaves the room with a plan, an owner and a date.</li>
+<li><strong style="color: #1B1B18">Nothing stuck survives Saturday.</strong> Every Critical and High alert still open gets an outcome in front of the team.</li>
+<li><strong style="color: #1B1B18">Milestones closed on facts.</strong> Each weekly milestone is judged on its mini goals: all ticked is done, anything else is not done with its cause (estimation, dependency, priority, skill, commitment).</li>
+<li><strong style="color: #1B1B18">Milestones you can count on.</strong> Each week's milestones are made official on Saturday and closed on their mini goals the next Saturday: the share reached is the team's reliability.</li>
+</ul>
+</section>
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>How to use it</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Check-ins are done on Saturday: each KR owner saves the check-in in step 3 before the review. The red count in the sidebar shows the KRs still missing.</li>
+<li>On Saturday, the facilitator runs the 6 steps in order on a shared screen. The left rail shows what is done.</li>
+<li>Step 1 settles the alerts and the tasks still open this week (Delete asks once: press Enter). Step 2 ticks the mini goals of each weekly milestone, then marks it done or not done. Step 3 records each key result's new value next to its actual value. Step 6 makes next week's milestones official; a key result may have none (the validation first shows its risk, the milestones it reached and its last 3 weeks). Step 6 is required to close; the others can stay open: the gaps are recorded with the review.</li>
+<li>Close the review. It moves to History, and next Saturday its milestones come back in step 2.</li>
+</ol>
+</section>
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Got it</button>
+</div>
+</div>
+</sc-if>
+<button type="button" onClick="{{openInfo}}" aria-label="How this page works" title="How this page works" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'week', step: 1, info: false, open: null };
+    this.ci = {};
+    this.add = {};
+  }
+  renderVals() {
+    const S = window.SKL;
+    const s = this.state;
+    const W = S.week;
+    const rid = S.reviewId(W);
+    const me = S.me;
+    const krs = S.list('krs');
+    const tasks = S.list('tasks');
+    const reviews = S.list('reviews');
+    const prev = reviews.filter(r => r.status === 'closed' && r.week < W).sort((a, b) => b.week - a.week)[0] || null;
+    const stored = S.get('reviews', rid);
+    const base = () => ({ id: rid, week: W, date: S.weekFriday(W), status: 'draft', facilitator: me || 'romain', startedBy: me || '',
+      prevCommitments: prev ? (prev.commitments || []) : [], results: {}, recovery: {}, triage: {}, rescheduled: {}, commitments: [], notes: '' });
+    const r = stored ? JSON.parse(JSON.stringify(stored)) : base();
+    const closed = r.status === 'closed';
+    const put = mut => { const x = stored ? JSON.parse(JSON.stringify(S.get('reviews', rid))) : base(); mut(x); S.save('reviews', x); };
+    const nextFri = S.weekFriday(Math.min(13, W + 1));
+    const FIELD = 'font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF; caret-color: #FFFFFF; border-radius: 8px; width: 100%; box-sizing: border-box; min-width: 0';
+    const pill = (txt, st) => ({ label: txt, style: 'display: inline-block; white-space: nowrap; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; ' + st });
+    const OK = 'background: #E6F2EA; color: #1E5E38;', WARN = 'background: #FDF1E3; color: #8A3F06;', BAD = 'background: #FDECEA; color: #9B1C12;', NEU = 'background: #EFECE4; color: #3D3A33;';
+    const memberOpts = cur => S.members.map(m => ({ v: m.id, l: m.name, sel: m.id === cur }));
+
+    // ---- step 1: check-ins ----
+    const ciRows = krs.map(k => {
+      const done = S.checkedThisWeek(k), last = S.lastCheck(k), st = S.krStatus(k);
+      const f = this.ci[k.id] || (this.ci[k.id] = { value: '', conf: '', moved: '', blocks: '' });
+      const set = key => e => { f[key] = e.target.value; };
+      return {
+        name: k.name, owner: S.member(k.owner).name, done, todo: !done,
+        last: last ? S.fmtVal(last.value, k.unit) + ' · ' + S.dayLabel(last.date) + ' · confidence ' + last.conf + '/10' : 'No check-in yet',
+        badge: done ? pill('Checked in', OK) : pill(st.key === 'stale' ? 'Missing · ' + st.age + ' d' : 'Missing this week', BAD),
+        unit: k.unit === 'pct' ? '%' : k.unit === 'eur' ? '€' : k.unit === 'eur2' ? '€' : '',
+        setValue: set('value'), setConf: set('conf'), setMoved: set('moved'), setBlocks: set('blocks'),
+        save: () => {
+          if (f.value === '' || isNaN(Number(f.value))) return;
+          const kk = JSON.parse(JSON.stringify(k));
+          kk.checkins = (kk.checkins || []).concat([{ week: W, date: S.iso(S.today), value: Number(f.value), conf: Number(f.conf) || '', moved: f.moved, blocks: f.blocks, prios: [] }]);
+          kk.current = Number(f.value);
+          S.save('krs', kk);
+          this.ci[k.id] = { value: '', conf: '', moved: '', blocks: '' };
+        }
+      };
+    });
+    const ciDone = ciRows.filter(x => x.done).length;
+
+    // ---- step 2: scoreboard + recovery plans ----
+    const board = krs.map(k => {
+      const v = S.krView(k);
+      v.open = () => S.openKr(k.id);
+      v.rowStyle = v.rowStyle.replace('grid-template-columns: 250px 260px 120px minmax(0, 1fr) 96px; gap: 18px', 'grid-template-columns: minmax(0, 1.1fr) 200px 96px minmax(0, 1fr) 104px; gap: 14px');
+      const needs = v.key === 'red' || v.key === 'stale';
+      const plan = (r.recovery || {})[k.id] || { plan: '', owner: k.owner, due: S.iso(new Date(S.today.getTime() + 2 * 86400000)) };
+      const setP = key => e => { const val = e.target.value; put(x => { x.recovery = x.recovery || {}; x.recovery[k.id] = Object.assign({}, plan, { [key]: val }); }); };
+      v.needs = needs; v.plan = plan.plan; v.planOwnerOpts = memberOpts(plan.owner); v.planDue = plan.due;
+      v.setPlan = setP('plan'); v.setPlanOwner = setP('owner'); v.setPlanDue = setP('due');
+      v.planOk = needs && !!plan.plan && !!plan.owner;
+      v.planLabel = v.key === 'red' ? 'Recovery plan · required within 48 h for a red KR' : 'Plan to get the data back · no check-in means no steering';
+      return v;
+    });
+    const needPlans = board.filter(b => b.needs), plansOk = needPlans.filter(b => b.planOk).length;
+
+    // ---- step 3: alert triage ----
+    const hot = S.inbox().filter(a => (a.sev === 'Critical' || a.sev === 'High') && (a.status === 'open' || (r.triage || {})[a.id]));
+    const tri = (a, what, patch, extra, outcome) => { S.inboxAct(a, what, patch, extra); put(x => { x.triage = x.triage || {}; x.triage[a.id] = outcome; }); };
+    const triage = hot.map(a => {
+      const out = (r.triage || {})[a.id];
+      return {
+        sev: a.sev, alert: a.alert, subject: a.subject, detail: a.detail, who: a.assigneeName, age: a.ageH < 24 ? a.ageH + ' h' : Math.round(a.ageH / 24) + ' d',
+        dot: 'width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; background: ' + (a.sev === 'Critical' ? '#B42318' : '#B45309'),
+        done: !!out, todo: !out, outcome: out ? pill(out, OK) : pill(a.escalated ? 'Escalated · decide now' : 'To triage', a.escalated ? BAD : WARN),
+        ownerOpts: memberOpts(a.assignee),
+        assign: e => { const v = e.target.value; tri(a, 'assign', { assignee: v }, S.member(v).name, 'Assigned to ' + S.member(v).name + ' in review'); },
+        keep: () => tri(a, 'assign', { assignee: a.assignee }, a.assigneeName + ' (confirmed in review)', 'Owner confirmed: ' + a.assigneeName),
+        snooze: () => tri(a, 'snooze', { status: 'snoozed', snoozeUntil: nextFri }, S.shortDate(nextFri), 'Snoozed to next review'),
+        decide: () => {
+          const links = { kr: a.to === 'roadmap' ? [a.ref] : [], task: S.get('tasks', a.ref) ? [a.ref] : [], del: [] };
+          S.createDecision({ title: a.alert + ': ' + a.subject, question: 'What do we do about “' + a.subject + '”?', owner: a.assignee, source: 'Weekly Review W' + W, links,
+            deadline: S.iso(new Date(S.today.getTime() + 2 * 86400000)),
+            frame: { problem: a.detail, vars: [{ name: '', w: 34, ctx: '' }, { name: '', w: 33, ctx: '' }, { name: '', w: 33, ctx: '' }], opts: [{ name: '', desc: '', sc: [0, 0, 0] }, { name: '', desc: '', sc: [0, 0, 0] }, { name: '', desc: '', sc: [0, 0, 0] }] } });
+          tri(a, 'decision', { status: 'handled' }, '', 'Turned into a decision');
+        },
+        handled: () => tri(a, 'handled', { status: 'handled', note: 'Settled in the Weekly Review W' + W }, '', 'Settled in the room')
+      };
+    });
+    const triDone = triage.filter(t => t.done).length;
+
+    // ---- step 4: decisions ----
+    const decs = S.list('decisions').filter(d => (d.col === 'todo' && d.deadline && d.deadline <= nextFri) || (d.col === 'review' && d.review && d.review <= nextFri) || (r.rescheduled || {})[d.id]);
+    const decRows = decs.map(d => {
+      const late = d.col === 'todo' && S.daysFromToday(d.deadline) < 0;
+      const res = (r.rescheduled || {})[d.id];
+      const settled = d.col === 'done' || !!res;
+      return {
+        title: d.title, owner: S.member(d.owner).name, rev: d.col === 'review' ? 'Review due ' + S.shortDate(d.review) : (d.reversible ? 'Reversible' : 'Irreversible') + ' · due ' + S.shortDate(d.deadline),
+        badge: d.col === 'done' ? pill('Decided', OK) : res ? pill(res, OK) : late ? pill('Overdue', BAD) : d.col === 'review' ? pill('Review due', WARN) : pill('Due this week', WARN),
+        settled, open: () => S.goto('decisions', d.id), isTodo: d.col === 'todo', deadline: d.deadline,
+        setDeadline: e => { const v = e.target.value; if (!v) return; const dd = JSON.parse(JSON.stringify(d)); dd.deadline = v; S.save('decisions', dd); put(x => { x.rescheduled = x.rescheduled || {}; x.rescheduled[d.id] = 'New deadline ' + S.shortDate(v); }); }
+      };
+    });
+    const decDone = decRows.filter(x => x.settled).length;
+
+    // ---- step 5: last week's promises ----
+    const REASONS = ['Dependency', 'Underestimated', 'Priority changed', 'Unknown discovered', 'Not started'];
+    const prevC = r.prevCommitments || [];
+    const promRows = prevC.map(c => {
+      const t = c.task ? S.get('tasks', c.task) : null;
+      const res = (r.results || {})[c.id];
+      const hint = t ? (t.status === 'done' ? 'Linked task done' : 'Linked task ' + ({ todo: 'not started', progress: 'in progress', blocked: 'blocked', split: 'to split' }[t.status] || t.status)) : c.dec ? 'Linked decision ' + ((S.get('decisions', c.dec) || {}).col === 'done' ? 'taken' : 'still open') : 'No linked task';
+      const setRes = (kept, reason) => put(x => { x.prevCommitments = x.prevCommitments && x.prevCommitments.length ? x.prevCommitments : prevC; x.results = x.results || {}; x.results[c.id] = { kept, reason: reason || '' }; });
+      return {
+        owner: S.member(c.owner).name, text: c.text, hint, hintStyle: 'font-size: 12px; color: ' + (t && t.status === 'done' ? '#1E5E38' : '#5E5B53'),
+        kept: () => setRes(true), missed: () => setRes(false, (res && res.reason) || ''),
+        reasonOpts: [{ v: '', l: 'Why missed?', sel: !(res && res.reason) }].concat(REASONS.map(x => ({ v: x, l: x, sel: !!(res && res.reason === x) }))),
+        setReason: e => setRes(false, e.target.value),
+        isMissed: !!res && !res.kept,
+        keptStyle: 'min-height: 36px; padding: 0 14px; border-radius: 9px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; ' + (res && res.kept ? 'border: 1px solid #2E7D4F; background: #2E7D4F; color: #FFFFFF;' : 'border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18;'),
+        missedStyle: 'min-height: 36px; padding: 0 14px; border-radius: 9px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; ' + (res && !res.kept ? 'border: 1px solid #B42318; background: #B42318; color: #FFFFFF;' : 'border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18;'),
+        done: !!res
+      };
+    });
+    const promDone = promRows.filter(x => x.done).length;
+    const keptN = prevC.filter(c => (r.results || {})[c.id] && r.results[c.id].kept).length;
+
+    // ---- step 6: next week's promises ----
+    const people = S.members.map(m => {
+      const l = S.load(m.id);
+      const mine = (r.commitments || []).filter(c => c.owner === m.id);
+      const a = this.add[m.id] || (this.add[m.id] = { task: '', text: '' });
+      const open = tasks.filter(t => t.owner === m.id && S.isOpen(t) && t.status !== 'split' && t.due && t.due <= nextFri && !mine.some(c => c.task === t.id));
+      return {
+        name: m.name, role: m.role, load: l.pct + '%', loadText: l.hours + ' h planned of ' + l.cap + ' h, next 7 days',
+        loadStyle: 'font-family: \'IBM Plex Mono\', monospace; font-size: 14px; font-weight: 600; color: ' + (l.pct > 90 ? '#9B1C12' : l.pct > 70 ? '#8A3F06' : '#1E5E38'),
+        items: mine.map(c => ({ text: c.text, meta: c.task ? 'Task · due ' + S.dayLabel((S.get('tasks', c.task) || {}).due) : 'Free commitment', remove: () => put(x => { x.commitments = (x.commitments || []).filter(y => y.id !== c.id); }) })),
+        none: !mine.length, full: mine.length >= 3, canAdd: mine.length < 3,
+        taskOpts: [{ v: '', l: open.length ? 'Pick one of ' + m.name + '\'s tasks…' : 'No open task due by ' + S.shortDate(nextFri), sel: true }].concat(open.map(t => ({ v: t.id, l: t.title + ' · ' + S.dayLabel(t.due), sel: false }))),
+        pickTask: e => { const t = S.get('tasks', e.target.value); if (!t) return; put(x => { x.commitments = (x.commitments || []).concat([{ id: S.newId('c'), owner: m.id, text: t.title, task: t.id, kr: t.kr || '' }]); }); },
+        setText: e => { a.text = e.target.value; },
+        addText: () => { const txt = (a.text || '').trim(); if (!txt) return; a.text = ''; put(x => { x.commitments = (x.commitments || []).concat([{ id: S.newId('c'), owner: m.id, text: txt, task: '', kr: '' }]); }); },
+        cardStyle: 'background: #FFFFFF; border: 1px solid ' + (mine.length ? '#E3DFD5' : '#E6D3A8') + '; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px'
+      };
+    });
+    const pplDone = people.filter(p => !p.none).length;
+
+    // ---- steps ----
+    const STEPS = [
+      { n: 1, title: 'Check-ins', min: '10 min', done: ciDone === krs.length, count: ciDone + ' / ' + krs.length + ' KRs', why: 'Every key result gets its number for the week before anyone discusses it. No number, no steering.' },
+      { n: 2, title: 'Scoreboard', min: '10 min', done: plansOk === needPlans.length, count: needPlans.length ? plansOk + ' / ' + needPlans.length + ' plans' : 'No red KR', why: 'Read every KR against its expected value. Every red or untracked KR leaves with a plan, an owner and a date.' },
+      { n: 3, title: 'Alert triage', min: '10 min', done: triDone === triage.length, count: triage.length ? triDone + ' / ' + triage.length + ' alerts' : 'Nothing open', why: 'Every Critical and High alert still open gets an outcome in the room: owner confirmed, reassigned, snoozed, decided or settled.' },
+      { n: 4, title: 'Decisions', min: '5 min', done: decDone === decRows.length, count: decRows.length ? decDone + ' / ' + decRows.length + ' decisions' : 'Nothing due', why: 'Overdue decisions and those due before next Friday: decide now or set a new date in front of everyone.' },
+      { n: 5, title: 'Last week\'s promises', min: '5 min', done: promDone === promRows.length, count: promRows.length ? keptN + ' / ' + promRows.length + ' kept' : 'None recorded', why: 'Each promise made last Friday is kept or missed. A missed promise gets a reason, not a debate.' },
+      { n: 6, title: 'Next week\'s promises', min: '5 min', done: pplDone === people.length, count: pplDone + ' / ' + people.length + ' people', why: 'Everyone commits to at most 3 things for next Friday, checked against their real load.' }
+    ];
+    const cur = STEPS[s.step - 1];
+    const doneN = STEPS.filter(x => x.done).length;
+    const canClose = !closed && STEPS[4].done && STEPS[5].done;
+    const steps = STEPS.map(x => ({
+      n: x.n, title: x.title, min: x.min, count: x.count, on: s.step === x.n,
+      go: () => this.setState({ step: x.n }),
+      style: 'display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: start; width: 100%; padding: 12px 14px; border: 0; border-radius: 10px; text-align: left; font: inherit; color: #1B1B18; cursor: pointer; ' + (s.step === x.n ? 'background: #1B1B18; color: #FFFFFF;' : 'background: transparent;'),
+      numStyle: 'width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; ' + (x.done ? 'background: #2E7D4F; color: #FFFFFF;' : s.step === x.n ? 'background: #D9B46A; color: #1B1B18;' : 'background: #E3DFD5; color: #3D3A33;'),
+      num: x.done ? '✓' : String(x.n),
+      subStyle: 'display: block; font-size: 12px; margin-top: 2px; color: ' + (s.step === x.n ? '#C9C4B7' : '#5E5B53')
+    }));
+
+    // ---- history ----
+    const stats = S.promiseStats();
+    const hist = reviews.filter(x => x.status === 'closed').sort((a, b) => b.week - a.week).map(x => {
+      const res = x.results || {}, pc = x.prevCommitments || [];
+      const kept = pc.filter(c => res[c.id] && res[c.id].kept).length;
+      const DOT = { green: '#2E7D4F', amber: '#B45309', red: '#B42318', stale: '#8E8A80', new: '#C9C4B7' };
+      const openIt = s.open === x.id;
+      return {
+        week: 'Week ' + x.week, date: S.shortDate(x.date), by: S.member(x.facilitator).name,
+        dots: (x.snapshot || []).map(k => ({ style: 'width: 12px; height: 12px; border-radius: 50%; background: ' + (DOT[k.status] || '#C9C4B7'), tip: k.name + ' · ' + k.status })),
+        kept: pc.length ? kept + ' / ' + pc.length : '—', pct: pc.length ? Math.round(kept / pc.length * 100) + '%' : '',
+        triaged: Object.keys(x.triage || {}).length, plans: Object.keys(x.recovery || {}).length, made: (x.commitments || []).length,
+        gaps: x.gaps || '', hasGaps: !!x.gaps,
+        toggle: () => this.setState({ open: openIt ? null : x.id }), isOpen: openIt, chev: openIt ? '▾' : '▸',
+        commits: (x.commitments || []).map(c => ({ who: S.member(c.owner).name, text: c.text })),
+        results: pc.map(c => ({ who: S.member(c.owner).name, text: c.text, res: res[c.id] ? (res[c.id].kept ? 'Kept' : 'Missed' + (res[c.id].reason ? ' · ' + res[c.id].reason : '')) : '—', style: 'font-size: 13px; font-weight: 600; color: ' + (res[c.id] && res[c.id].kept ? '#1E5E38' : '#9B1C12') }))
+      };
+    });
+    const bars = stats.map(p => ({ label: 'W' + p.week, pct: p.pct + '%', h: Math.max(4, Math.round(p.pct * 0.9)), style: 'width: 36px; border-radius: 6px 6px 0 0; height: ' + Math.max(4, Math.round(p.pct * 0.9)) + 'px; background: ' + (p.pct >= 80 ? '#2E7D4F' : p.pct >= 60 ? '#B45309' : '#B42318') }));
+    const lastPct = stats.length ? stats[stats.length - 1].pct : null;
+
+    const statusPill = closed ? pill('Closed · ' + S.dayLabel(r.closedAt), OK) : stored ? pill('In progress · ' + doneN + ' / 6 steps', WARN) : pill('Not started', NEU);
+    const close = () => {
+      if (!canClose) return;
+      const gaps = STEPS.filter(x => !x.done).map(x => x.title + ' (' + x.count + ')').join(' · ');
+      put(x => {
+        x.status = 'closed'; x.closedAt = S.iso(S.today); x.closedBy = me || '';
+        x.prevCommitments = x.prevCommitments && x.prevCommitments.length ? x.prevCommitments : prevC;
+        x.snapshot = krs.map(k => { const st = S.krStatus(k); return { id: k.id, name: k.name, status: st.key, ratio: st.ratio === null || st.ratio === undefined ? null : Math.round(st.ratio * 100) / 100, value: k.current }; });
+        x.gaps = gaps ? 'Closed with open points: ' + gaps : '';
+      });
+      this.setState({ view: 'history', open: rid });
+    };
+    const reopen = () => put(x => { x.status = 'draft'; x.closedAt = ''; });
+
+    return {
+      info: !!s.info, openInfo: () => this.setState({ info: true }), closeInfo: () => this.setState({ info: false }),
+      eyebrow: 'Q4 2026 · week ' + W + ' of 13 · review on ' + S.parse(S.weekFriday(W)).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      title: 'Weekly Review · week ' + W,
+      facilitator: 'Facilitator: ' + S.member(r.facilitator).name + ' · 45 minutes · the whole team',
+      statusPill,
+      isWeek: s.view === 'week', isHist: s.view === 'history',
+      goWeek: () => this.setState({ view: 'week' }), goHist: () => this.setState({ view: 'history' }),
+      tabWeek: 'min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; font: inherit; font-size: 14px; cursor: pointer; ' + (s.view === 'week' ? 'background: #1B1B18; color: #FFFFFF; font-weight: 600;' : 'background: transparent; color: #3D3A33;'),
+      tabHist: 'min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; font: inherit; font-size: 14px; cursor: pointer; ' + (s.view === 'history' ? 'background: #1B1B18; color: #FFFFFF; font-weight: 600;' : 'background: transparent; color: #3D3A33;'),
+      steps, cur, curN: s.step, is1: s.step === 1, is2: s.step === 2, is3: s.step === 3, is4: s.step === 4, is5: s.step === 5, is6: s.step === 6,
+      prev: () => this.setState({ step: Math.max(1, s.step - 1) }), next: () => this.setState({ step: Math.min(6, s.step + 1) }),
+      hasPrev: s.step > 1, hasNext: s.step < 6,
+      progress: doneN + ' of 6 steps done', progressW: 'height: 6px; border-radius: 3px; background: #D9B46A; width: ' + Math.round(doneN / 6 * 100) + '%',
+      ciRows, board, triage, noTriage: !triage.length, decRows, noDecs: !decRows.length,
+      promRows, noProm: !promRows.length, promScore: promRows.length ? keptN + ' of ' + promRows.length + ' kept' : '',
+      people, nextFri: S.shortDate(nextFri),
+      closed, notClosed: !closed, canClose, close, reopen,
+      closeHint: closed ? 'This review is closed. Its snapshot is in History.' : canClose ? (doneN === 6 ? 'All 6 steps are done.' : 'You can close now. Open points are recorded with the review.') : 'Steps 5 and 6 are required before closing.',
+      closeStyle: 'min-height: 48px; padding: 0 22px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; ' + (canClose ? 'background: #1B1B18; color: #D9B46A; cursor: pointer;' : 'background: #D8D3C7; color: #5E5B53; cursor: not-allowed;'),
+      notes: r.notes || '', setNotes: e => { const v = e.target.value; put(x => { x.notes = v; }); },
+      hist, noHist: !hist.length, bars, hasBars: !!bars.length,
+      reliability: lastPct === null ? '—' : lastPct + '%',
+      reliabilityText: stats.length ? 'of last week\'s promises kept · target ≥ 80%' : 'No promise scored yet'
+    };
+  }
+}
+</script>
+</body>
+</html>

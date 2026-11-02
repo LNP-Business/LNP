@@ -1,0 +1,23 @@
+{
+  "_illustrative": true,
+  "_note": "Shape based on the Meeting schema of GET /meetings (06 §1). VERIFY against a captured webhook.",
+  "recording_id": 123456789,
+  "title": "Strategy call — Test Prospect",
+  "url": "https://fathom.video/calls/123456789",
+  "share_url": "https://fathom.video/share/xxxx",
+  "created_at": "2026-10-27T15:50:00Z",
+  "scheduled_start_time": "2026-10-27T15:00:00Z",
+  "recording_start_time": "2026-10-27T15:02:00Z",
+  "recording_end_time": "2026-10-27T15:47:00Z",
+  "calendar_invitees": [
+    { "name": "Sales Rep", "email": "sales@example.com", "email_domain": "example.com", "is_external": false },
+    { "name": "Test Prospect", "email": "test.prospect@example.com", "email_domain": "example.com", "is_external": true }
+  ],
+  "recorded_by": { "name": "Sales Rep", "email": "sales@example.com" },
+  "transcript": [
+    { "speaker": { "display_name": "Sales Rep", "matched_calendar_invitee_email": "sales@example.com" }, "text": "Thanks for joining.", "timestamp": "00:00:04" },
+    { "speaker": { "display_name": "Test Prospect", "matched_calendar_invitee_email": "test.prospect@example.com" }, "text": "Happy to be here.", "timestamp": "00:00:07" }
+  ],
+  "default_summary": { "template_name": "General", "markdown_formatted": "## Summary\n- ..." },
+  "action_items": []
+}
