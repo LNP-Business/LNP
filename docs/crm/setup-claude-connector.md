@@ -2,7 +2,7 @@
 
 What it gives you: in any Claude conversation, ask about LNP ("Which clocks are critical this morning?",
 "Prepare my next call with Yassine Diallo", "How many no-shows this month?") and Claude answers from the live
-CRM, with **your** rights: what you can see in the app, nothing more. Admins can also make changes (phase B). It covers the whole app: Operating System, Sales System, Knowledge System, Agent System and Settings.
+CRM, with **your** rights: what you can see in the app, nothing more. Admins can also add a note to a lead or declare a call's outcome. It covers LNP: the Sales cockpit, Sales Day, the CRM and Settings › Alerts.
 Specification: `17-claude-connector.md`.
 
 ## 1. Once, by Romain (after the PR is approved)
@@ -31,9 +31,9 @@ On a personal plan (Pro, Max):
 3. Name: `LNP`. URL: `https://lnp-sales.vercel.app/api/mcp` (the LNP domain; `https://lnp-sales.vercel.app/api/mcp` works
    too, but never an address that redirects: Claude refuses a connector whose address changes on the way). Leave the advanced OAuth fields (client ID, secret)
    empty: Claude registers itself.
-4. Click **Add**, then **Connect**. A new tab opens on the LNP sign-in page ("Connect Claude": it says Claude asks
-   to read LNP with your rights and cannot change anything).
-5. Type your LNP email and password, click **Sign in and allow**. The tab closes and Claude shows LNP as connected.
+4. Click **Add**, then **Connect**. A new tab opens on the LNP sign-in page ("Connecter Claude": it says Claude asks
+   to read LNP with your rights, and that only admins can also have it add a note or declare a call's outcome).
+5. Type your LNP email and password, click **Se connecter et autoriser**. The tab closes and Claude shows LNP as connected.
 
 On a Team or Enterprise plan: an owner adds it once in **Organization settings › Connectors** (same name and URL),
 then each person opens Settings › Connectors, finds LNP and clicks **Connect** (steps 4–5).
@@ -41,38 +41,29 @@ then each person opens Settings › Connectors, finds LNP and clicks **Connect**
 ## 4. Use it
 
 In a conversation, open the tools menu (the sliders icon under the message box) and make sure **LNP** is on.
-Then ask in plain words, about any part of LNP. Claude picks among 23 tools:
+Then ask in plain words, about any part of LNP. Claude picks among 10 tools:
 
 | Ask for | Tool |
 |---|---|
-| What is waiting, which screen shows what, the team | `os_overview` |
-| Objectives and key results, their status | `okrs`, `key_result` |
-| The plan: gaps, milestones by week | `roadmap` |
-| Someone's day, tasks | `my_day`, `tasks` |
-| Decisions | `decisions` |
-| The weekly review | `weekly_review` |
-| Alerts and alert rules | `alerts` |
-| A lead, the pipeline, what is late, a call to prepare, sales KPIs | `find_lead`, `lead_record`, `clocks_running`, `pipeline_summary`, `call_prep`, `call_analysis`, `performance` |
-| The library, memos | `library` |
-| Mechanisms and registers | `mechanism` |
-| The LNP Map | `skl_map` |
-| The Agent System | `agent_system` |
-| How a screen works | `page_method` |
-| Any record, raw | `os_data` |
+| Who you are, which leads you see | `whoami` |
+| A lead, its story, a call to prepare | `find_lead`, `lead_record`, `call_prep` |
+| What is late or critical, the pipeline by stage | `clocks_running`, `pipeline_summary` |
+| The analysis of an R1 or R2 call | `call_analysis` |
+| Sales figures for a week, 4 weeks or the quarter (Cockpit commercial) | `performance` |
+| The alert rules (Paramètres › Alertes) | `alert_rules` |
+| What a screen is for, how to use it | `page_method` |
 
 A screen closed for someone in Settings › Access is closed in Claude too.
 
-**Admins can also change things** (10 write tools): create, update or delete a task, check in a key result, mark a
-milestone reached, open or decide a decision, act on an alert, add a note to a lead, declare a call's outcome. Claude asks
-before each change. The app's rules apply: only a task's owner changes it, only a key result's owner checks it in.
-If Claude says LNP does not know who you are, open LNP once and pick your name in "You are".
+**Admins can also change things** (2 write tools): add a note to a lead, declare a call's outcome. Claude asks before
+each change, and the CRM's own rules apply (a reason is required for "no", the cycle is recomputed).
 
 Claude asks your permission the first time it uses each tool; you can allow it for the conversation or always.
 
 ## 5. If something goes wrong
 
-- "The Claude connector is not open for this account": an admin must tick Claude for you in Settings › Access.
-- "Wrong email or password": the same password as the LNP web edition; an admin can send a reset link (Team access).
+- "Le connecteur Claude n’est pas ouvert pour ce compte": an admin must tick Claude for you in Settings › Access.
+- "E-mail ou mot de passe incorrect": the same password as the LNP web edition; an admin can send a reset link (Team access).
 - Claude says the sign-in has expired, or tools stop answering: Settings › Connectors › LNP › **Disconnect**, then
   **Connect** again.
 - "Too many requests": more than 60 tool calls in a minute; wait a minute.

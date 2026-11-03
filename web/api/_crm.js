@@ -1,4 +1,4 @@
-// SKL OS CRM read tools for the Claude connector (docs/crm/17-claude-connector.md §4), shared by web/api/mcp.js.
+// LNP CRM read tools for the Claude connector (docs/crm/17-claude-connector.md §4), shared by web/api/mcp.js.
 // Every query runs with the CALLER's Supabase client (their own token), so row-level security decides what is visible
 // exactly as in the app: a sales rep sees their own cycles only. No service-role key here, never a call transcript
 // (crm_calls.transcript and summary_md are never selected), never a webhook payload, never another member's email.
@@ -66,7 +66,7 @@ async function chunked(ids, size, fn) {
   return [].concat(...(await Promise.all(parts)));
 }
 
-// The caller: SKL role, CRM profile, time zone and whether they see every cycle. Loaded once per request.
+// The caller: LNP role, CRM profile, time zone and whether they see every cycle. Loaded once per request.
 export async function loadContext(u, user) {
   const [mem, crm, team, stages] = await Promise.all([
     rows(u.from("members").select("role").eq("user_id", user.id)),
@@ -113,12 +113,12 @@ export async function whoami(u, ctx) {
   const n = await u.from("crm_cycles").select("id", { count: "exact", head: true }).eq("status", "active");
   const lines = [
     "**" + ((ctx.me && ctx.me.full_name) || ctx.email) + "** (" + ctx.email + ")",
-    "- SKL OS role: " + (ctx.role || "none"),
+    "- LNP role: " + (ctx.role || "none"),
     "- CRM role: " + (ctx.crmRole || "none") + (ctx.me ? " · member key `" + ctx.me.member_key + "`" : ""),
     "- Sees: " + (ctx.seesAll ? "every cycle of the team" : "only the cycles they own"),
     "- Time zone: " + ctx.tz,
     "- Live cycles visible: " + (n.count == null ? "—" : n.count),
-    "- Connector: read only (phase A). Writes (notes, outcomes, drafts) come later."
+    (ctx.role === "admin" ? "- Connector: read tools, plus the write tools of admins (lead notes, call outcomes)" : "- Connector: read only (write tools are for admins)")
   ];
   return { text: lines.join("\n"), rows: 1 };
 }
@@ -299,7 +299,7 @@ export async function pipelineSummary(u, ctx, { owner, stage }) {
   return { text: L.join("\n"), rows: cycles.length };
 }
 
-// the SKL call analysis (web/supabase/020): latest record of each call, its four competence results and its latest job
+// the call analysis (web/supabase/020): latest record of each call, its four competence results and its latest job
 const CA_NAMES = { SPIN: "Discovery (SPIN)", GAP: "Gap", PITCH: "Pitch", OBJECTIONS: "Objections" };
 async function latestAnalyses(u, callIds) {
   if (!callIds.length) return { recs: {}, results: {}, jobs: {} };
