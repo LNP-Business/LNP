@@ -1,526 +1,95 @@
-> **LNP** (this repository): an exact copy of the SKL OS Sales System, see `LNP.md`. `edition.json` keeps only the Sales System
-> (Sales Cockpit, Sales Day, CRM) and Settings in the sidebar and opens on the Sales Cockpit (`skl-os/nav.py`, `skl-os/build.py`).
-> Its back end is its own Supabase project, empty at the start (no ALKIMIY data).
+# LNP · consignes du dépôt
 
-# SKL OS — build kit
+LNP est l'application commerciale de Les Nouveaux Profs : une page unique (HTML autonome) publiée sur Vercel, avec un back end
+Supabase. Présentation, marque et installation : `LNP.md`. Ne jamais toucher aux dépôts ni aux projets Supabase d'autres
+entreprises (SKL OS, Clarity…).
 
-SKL OS is a single-page prototype (one self-contained HTML file, English) with four systems:
-**Operating System** (Cockpit, Build, Execute, Decisions, Weekly Review), **Sales System** (Cockpit, Sales Day, CRM), **Knowledge System**
-(Library, Mechanism map, Pre-call, Sales, Operating System mechanisms, SKL Map) and **Agent System**
-(Overview, Decisions, Agents, Triggers, Log), plus Settings (Alerts, Registers).
+## Règles
 
-This repository rebuilds it **byte for byte**. The reference output is artifact version 43.
+- **Tout ce qu'une personne lit est en français** : libellés, boutons, infobulles, messages, fenêtres « Mode d'emploi », dates
+  et nombres au format `fr-FR`. Termes : `docs/lnp/GLOSSAIRE.md`. Pas d'anglicisme quand un mot français courant existe.
+- Ne jamais écrire « closer » ni « closing » : « commercial », « conclure », « vente ».
+- L'entreprise est **LNP** (Les Nouveaux Profs). Aucune mention de SKL ni d'ALKIMIY dans ce qu'on lit (les noms techniques
+  internes `SKL_*`, `skl-os/`, `skl-web.js` restent : ce sont des identifiants).
+- Seul ce que la personne lit est traduit : identifiants, clés, valeurs comparées dans le code (`'won'`, `"held"`…), types
+  d'événements et noms de champs restent en anglais.
+- Toute suppression demande confirmation dans une fenêtre (`S.confirm` / `window.sklConfirm` dans la page, `sklAsk` dans le CRM).
+- Ne jamais mettre de clé dans le dépôt. Les secrets du CRM sont des secrets des fonctions Supabase (`docs/crm/setup.md`) ;
+  ne jamais les demander dans une conversation.
 
-## Build
+## Construire la page
 
-Requirements: Python 3.10+, Node 18+ with npm (only for the React bundle of the mechanism app).
+Prérequis : Python 3.10+, Node 18+.
 
 ```bash
-./build.sh            # builds skl-os/skl-os-en.html
-./build.sh --verify   # same, then checks the output against skl-os/EXPECTED.sha256
+./build.sh            # skl-os/skl-os-en.html, puis web/public/index.html et web/api/_kb.json
+./build.sh --verify   # même chose, puis comparaison avec skl-os/EXPECTED.sha256
 ```
 
-`--verify` must print `OK: byte-identical to the reference build`. Run it first, before changing
-anything, to prove the environment reproduces the reference. Once you change a source, the hash
-changes by design: do not update `EXPECTED.sha256` unless the user asks to set a new reference.
+Ne mettre à jour `EXPECTED.sha256` que lorsque Romain valide une nouvelle référence.
 
-## How the build works
+1. **Écrans** (`skl-os/`, dans cet ordre) : `harmonize.py` (cadre des Paramètres et du CRM), `gen_access.py` (Compte, Accès),
+   `gen_salescockpit.py` (Cockpit commercial), `gen_salesday.py` (Ma journée), `nav.py` (barre latérale). Ils écrivent les
+   gabarits `skl-en/project/*.dc.html` ; l'en-tête commun est `skl-en/project/Shell.base.html`, le bouton « i » et sa fenêtre
+   viennent de `skl-os/shell.py`.
+2. **Assemblage** : `build.py en` réunit les gabarits, `store.js`, `kr_view.js`, `crm/data.js`, le CRM (`crm_doc.html`), le module
+   du Cockpit (`sales_v2.json`) et celui de Ma journée (`salesday_module.js`), puis applique `edition.json` (écrans gardés, nom,
+   logo, couleurs, polices).
+3. **Édition web** : `web/build_web.py` écrit `web/public/index.html` ; `web/kb/build_kb.mjs` écrit `web/api/_kb.json` (les modes
+   d'emploi des écrans, lus par le connecteur Claude).
 
-`build.sh` runs three stages. Every step is idempotent: run the whole script again after any edit,
-never a single generator in isolation unless you know its inputs are fresh.
+Fichiers intermédiaires figés (entrées du build, non régénérés par `build.sh`) :
+- `skl-os/sales_v2.json` (Cockpit commercial) : modifier `proposal/sales-cockpit-v2.html`, puis `python3 skl-os/gen_sales_v2.py`.
+- `skl-os/crm_doc.html` (le CRM) : modifier `uploads/ALKIMIY_Lite.html` (source du CRM, dictionnaire français, langue fixée en
+  français), `skl-os/gen_crm.py` (ses retouches, vérifiées par des assertions), `docs/crm/reference/sales-cycle-v6.html` (vue Cycle
+  de vente), `skl-os/crm/*.js` (données, encaissements, analyse d'appel), puis `python3 skl-os/gen_crm.py`.
+- Les gabarits `*.pre-hz.dc.html` : modifier ceux-là (ou le générateur), jamais le `.dc.html` généré.
 
-1. **Mechanism app** (`mechapp/`): `assemble.py` builds `app.jsx` from `uploads/editeur-systeme.jsx`
-   (the Iteration-system editor) plus `embed.jsx` (SKL mechanisms: Pre-call, Sales, Execution
-   steering, Results steering, map, registers). esbuild bundles it to `mechapp/dist/mech.js`.
-   Versions are pinned by `package-lock.json` (use `npm ci`, never `npm install`).
-2. **Screens and modules** (`skl-os/`, run in this order):
-   | Script | Produces |
-   |---|---|
-   | `gen_seed.py` | `seed.json`, the demo dataset (KRs, tasks, decisions) |
-   | `gen_cockpit_v2.py` | `cockpit_v2.json`: Cockpit Overview + Key result room modules |
-   | `gen_poles.py` | adds Marketing and Finance modules to `cockpit_v2.json` |
-   | `harmonize.py` | one page frame for Decisions, Review, Settings, Registers, Library, CRM (from `*.pre-hz.dc.html`) |
-   | `inject_logic.py` | puts `decisions_logic.js` and `review_logic.js` into their screen templates |
-   | `gen_cockpit.py` | Cockpit screen (from `Main.pre-store.dc.html`) |
-   | `gen_build.py` | `build.json` + `Build.dc.html`: Build (six steps, Claude planner, carried over). Also writes the shared core `window.SKL_OS2` of Build and Execute (`os2_common.js`, `build_module.js`, `execute_module.js`, prompt pack `proposal/os-v2/prompts.js`) and its styles `os2.css` |
-   | `gen_execute.py` | `execute.json` + `Execute.dc.html`: Execute (week gate, day set-up, one task at a time, end of day), same core |
-   | `gen_mechos.py` | `MechOS.dc.html`: the two OS mechanisms on one screen |
-   | `gen_carto.py` | `carto.json` + 5 `Carto*.dc.html`: the SKL Map, from `skl-os/carto/cartographie-skl.en.html` |
-   | `gen_agents.py` | 5 `Agents*.dc.html` screens; the module itself is `agents_module.js` |
-   | `gen_access.py` | `Access.dc.html`: Settings › Access frame (admins of the web edition only; filled by `web/public/skl-web.js`) |
-   | `gen_salescockpit.py` | `SalesCockpit.dc.html`: Sales System › Cockpit, the same `SKL_SALES` module as Cockpit › Sales (`sales_v2.json`) in its own screen |
-   | `gen_salesday.py` | `SalesDay.dc.html`: Sales System › Sales Day, the frame of the `SKL_SALESDAY` module (`salesday_module.js`) |
-   | `nav.py` | rewrites the sidebar of every screen (system switch, foldable groups, badges) |
-3. **Assembly**: `build.py en` reads every `skl-en/project/*.dc.html` template, the store
-   (`store.js`, `kr_view.js`, `seed.json`), the shadow-DOM modules (`cockpit_v2.json`, `rm.json`,
-   `sales_v2.json`, `carto.json`, `agents_module.js`), the CRM document (`crm_doc.html`) and
-   `mechapp/dist/mech.js`, and writes `skl-os/skl-os-en.html`.
-4. **Web edition**: `web/build_web.py` writes `web/public/index.html` for Vercel (see below).
+## Où changer quoi
 
-### Frozen intermediates
+- Barre latérale (groupes, entrées, logo) : `skl-os/nav.py` ; nom, logo, couleurs, polices : `edition.json`.
+- Cockpit commercial : `proposal/sales-cockpit-v2.html` + `skl-os/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
+- Ma journée : `skl-os/salesday_module.js` + `gen_salesday.py`.
+- CRM, Cycle de vente, encaissements : voir les fichiers figés ci-dessus ; règles SLA : `supabase/functions/_shared/sla_rules.js`
+  (une seule source pour l'écran et pour `sla-tick`).
+- Analyse d'appel (écran) : `skl-os/crm/call_analysis.js`, `call_analysis_view.js`, `transcript_parse.js` ; les codes du moteur
+  sont traduits à l'affichage, les citations restent mot pour mot.
+- Paramètres › Alertes : `skl-en/project/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/skl-web.js`.
+- Connexion, équipe, accès par écran, interface `window.claude.use("db" | "user" | "crm" | "assets")` : `web/public/skl-web.js`.
 
-These files are inputs of the build, not regenerated by `build.sh`:
-- `skl-os/sales_v2.json` — Cockpit › Sales. To change it, edit `proposal/sales-cockpit-v2.html`,
-  then run `python3 skl-os/gen_sales_v2.py` before `./build.sh`.
-- `skl-os/crm_doc.html` — the CRM (ALKIMIY Lite). Regenerate with `python3 skl-os/gen_crm.py`
-  (reads `uploads/ALKIMIY_Lite.html`) only if the CRM source changes; `harmonize.py` re-applies its frame.
-- `*.pre-*.dc.html`, `*.pre-hz.dc.html` templates in `skl-en/project/` — the originals that the
-  generators start from. Edit these (or the generator), never the generated `.dc.html`.
+## Édition web (Vercel + Supabase)
 
-## Where to change what
+- `web/api/` : `config.js` (URL publique et clé anonyme), `me.js`, `team.js` (administrateurs : inviter, changer un rôle, lien de
+  réinitialisation, retirer ; les liens sont rendus à l'administrateur au format `/#skl-link=…`), `files.js`, `bootstrap.js`
+  (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
+- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salesday`, `crm`, `settings`, `claude`
+  (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte.
+- **Connecteur Claude** (`web/api/mcp.js`, OAuth `web/api/oauth.js`, doc `docs/crm/17-claude-connector.md`) : 10 outils de lecture
+  (prospects, pipeline, préparation et analyse d'appel, performance, modes d'emploi, règles d'alerte) et 2 outils d'écriture pour les
+  administrateurs (note sur un prospect, issue d'un appel), toujours avec le jeton de la personne (RLS). Ne jamais renvoyer une
+  transcription. Tests : `cd web && npm ci && npm test`.
 
-- Key results: `skl-os/kr_seed.js` (units `n`, `pct`, `eur`, `eur2`, `usd`; `kind: 'ceiling'` for a "stay below" KR,
-  on target whenever the value is at or under the target; `plan: [[week, value], …]` read on the Sunday ending each
-  week sets the expected value by date and the dashed plan line). Objective labels: `kr_view.js`, renamed by `config/objectives`.
-- Weeks on screen are ISO calendar weeks (`S.wl(w)` → "W42"; Q4 2026 runs W40 to W52); the data keeps weeks 1 to 13 of the
-  quarter (milestones, check-ins, `plan`). Never print a raw quarter week as "W3".
-- The OS clock is today's date; set `window.SKL_TODAY = "YYYY-MM-DD"` before the store loads to pin it (tests, demos).
-- Library (Knowledge System): logic and markup in `skl-en/project/Bibliotheque.pre-hz.dc.html` (drag a card to another domain, Modify, file import; **Rename** on every open document, Romain 2026-11-02: a deliverable or memo saves its `title`, the four built-in frameworks save theirs in `config/library.titles` (`fw1`…`fw4`), through `S.confirm({primary, focus})` whose `onOk` gets the field's value); KR memos in `skl-os/library/memos.json`.
-- Build and Execute (Romain 2026-10-30: they replace Roadmap and My Day; reference `proposal/os-v2/roadmap-studio.html` and
-  `prompts.js`, integration spec `docs/os-v2/`). One core for both screens (`window.SKL_OS2`, mounted twice with
-  `mountModule("[data-build]", "SKL_BUILD")` / `("[data-execute]", "SKL_EXECUTE")`), split in `os2_common.js` (rules `R`, the
-  store adapter, checks, order, suggestions, Claude planner, events, Page method), `build_module.js` (the six steps, the
-  Claude panel, carried over, "Your week") and `execute_module.js` (week gate, day set-up, run, requests, unplanned, end of
-  day, replan, EOD); styles `os2.css` (the reference tokens; `@container` instead of `@media`). Rules in one object `R`:
-  task 4 h, 3 milestones per week per key result (a fourth is chosen out before the next step), 9 h × 6 days = 54 h of own
-  work a week (help on top), 3 daily objectives, WIP 1, lunch 12:30 for 1 h, new tasks within 8 working days; the week being
-  planned is this ISO week, the next one from Sunday 2 pm. Data, all in the store:
-  - key results `krs`; milestones `k.miles` (`week` = quarter week, shown as ISO; `text`, `owner`, `doneDef` = proof lines;
-    new ids `kr.id + "-m" + n`); Build shows the milestones from the week being planned on, earlier ones stay untouched;
-    risks `k.risks` (`{text, fix, p, i, owner, mile}`); `k.why`; the deadline of every key result is the end of its quarter (week 13, `dueOf`; no deadline choice in Build, `k.due` is no longer read, Romain 2026-11-02); Commit is personal (Romain 2026-11-02): each member commits their
-    own roadmap of the week (their milestones and tasks across the ticked key results) in Build › Commit, saved as their week in `weeks`,
-    which opens Execute for them; `k.committed` is no longer written; a committed week is locked until the next week and shared (Romain
-    2026-11-02, `lockedWeek`): its targeted key results come from the commit (`krs`) on every computer, every step shows validated,
-    the Build steps and carried over are read only (fields disabled, edit clicks refused by `lockBlocks`), no "Commit again";
-    a week only unlocked by a lead (`override`, no `krs`) is not locked; Build › Key Results stays editable;
-  - tasks only through `S.taskCreate` / `S.taskUpdate` / `S.taskDelete` (owner rules; a refused change is shown and the
-    screen goes back to the store); new optional fields `deps` (task ids) and `notBefore` (ISO week); a split task gets
-    status `split`; a plan is written back only when it changed on the screen (`BASE`), never over a remote change;
-  - shared collections (store `COLS`, also read by the connector): `weeks` (`<member>:W<isoWeek>` = `{at, by, krs, override?}`: the person's committed roadmap;
-    a lead (CEO / CPO) unlocks with a reason, logged as a decision), `days` (`<member>:<YYYY-MM-DD>` = the person's
-    Execute state: the reference day object, the log of real times, done, dropped, back to the queue, planned new tasks),
-    `requests` (`{from, to, title, doneWhen, est, at, serves, answer, message, answeredAt}`: "Ask a colleague" in Execute;
-    the answer shows to the requester in Execute);
-  - Execute's day set-up (Romain 2026-11-02): a day may serve one key result only (a focus milestone with no task today is not a
-    fault, only covered ones are listed); one of the 3 objectives can be one of the person's tasks ("Or choose one of your tasks",
-    `day.own[].task`, shown "Task to finish"): it goes into Today, the day cannot be validated without it, and finishing the task
-    reaches the objective (`day.objs[].task`).
-  - Execute's days (Romain 2026-11-02): working days are Monday to Saturday (9 h × 6 days; Sunday is skipped); a day is named by its
-    place in the week, Monday = Day 1 … Saturday = Day 6 (`weekDayNo`); `day.n` stays the person's running count from `d0`
-    (`dayDateOf`), and states saved under the old Monday-to-Friday count are moved to the same dates once (`migrateDays`, `nv: 2`).
-  - Execute never saves before the shared days are read (Romain 2026-11-02: a fresh day made in the first seconds after loading the
-    web edition was saved over the real one): `SKL.isLoaded(col)` (`store.js`, true once a collection's first snapshot arrived, at once
-    in demo); a state made before `days` arrived is provisional (`PRE`), never saved, and replaced by the stored one when they arrive.
-  - coefficients = actual ÷ estimated from the Execute log of the last 4 weeks, else `config/coefficients.values[member]`,
-    else 1.3; carried over = the previous week's days of each person (unfinished, objectives not reached, back to the queue).
-  - Claude planner: the Artifact keeps the reference (`claude.use("sample")` and the SKL OS connector through `mcp`); the web
-    edition calls `web/api/planner.js` through `claude.use("planner")` (`skl-web.js`): the server rebuilds the prompt with
-    `web/api/_prompts.json` (from `prompts.js`, `web/kb/build_kb.mjs`), reads CONTEXT and `skl_os_read` with the caller's
-    token (the connector's readers), model `claude-opus-5-5` at effort medium, key in the Vercel env var `ANTHROPIC_API_KEY`,
-    audit row and 60 calls per minute like `/api/mcp`. Claude never writes. EOD: Slack through `mcp` in the Artifact; Copy
-    and "Continue without posting" in the web edition.
-  - Build's top bar has two views (Romain 2026-10-30): Build (the six steps) and **Key Results** (`boardHTML` in
-    `build_module.js`): one row per key result grouped by objective, its milestones as cards in their quarter week (13 ISO
-    week columns, the board scrolls sideways and always opens on this week, last week at the left edge; a past week's milestone
-    not reached shows "delayed", Romain 2026-11-02), each with its owner; + in a cell adds a milestone
-    (result, week, owner, proof lines), a card opens it (edit, delete asked first), a key result opens its form (objective,
-    name, metric, unit, baseline, target, owner, deadline, stay below); "+ New key result" numbers it in its objective
-    (`kr<o><n>`, "o.n · …"), a new objective goes into `config/objectives`. Writes `krs` directly; the Claude panel stays on
-    the right. Execute is reached from the sidebar.
-  - The old links land on the new screens: `monjour` / `inbox` → Execute, `roadmap` → Build (`build.py` `MOVED`,
-    `kr_view.js` `S.goto` / `S.openKr`; `web/api/_screens.js` maps old access lists).
-- Plan rules (one set of helpers in `store.js`, used by every screen): milestone `id` (generated as `kr.id + "-m" + index`
-  when missing), `inits` (indexes of the initiatives that deliver it, default all), `sharedWith` (`["krId:mileId"]`);
-  task `mile` (milestone id) and `doneWhen`. `S.milestoneLoad` (max 3 per person
-  per week, a shared milestone counts once, "Target…" milestones not at all), `S.coverageGaps` (2 weeks in a row with no
-  milestone, from the current week to week 13), `S.nextActionGaps` (an open task due within 2 weeks per initiative),
-  `S.checkinDue` (check-ins are done on Saturday: overdue once a Saturday passed with no check-in that week),
-  `S.planHealth` (plan health, read by the connector), `S.quickAdd` (`@name`, `today`/`tomorrow`/`mon`…`sun`, `3h`, "Explore:";
-  defaults: you or the KR owner, Friday, 2 h; over 8 h refused), `S.taskCreate` / `S.taskUpdate` / `S.taskDelete`
-  (only a task's owner can check, move or re-date it; its owner or an admin can delete it: `S.isAdmin` = the web edition's admins
-  (`html.skl-admin`, no "You are" needed), the leads CEO / CPO in the Artifact; `S.canDeleteTask`; the connector's write tools pass `{admin: true}`;
-  Romain 2026-10-31), `S.deleteInit` + `S.restore` (Undo).
-- Weekly Review (`skl-os/review_logic.js`, markup `skl-en/project/Review.pre-hz.dc.html`; Romain 2026-10-31 / 11-01): 6 steps in the
-  order tasks, milestones, key results: 1 Alert triage (each alert on a task can delete it, and the tasks still open this week are listed
-  with Delete, or every open task with "All open tasks": `S.confirm({quick: true})` puts the focus on Delete so Enter confirms; `S.taskDelete(id, {review: true})` lets a lead,
-  CEO or CPO, delete anyone's task), 2 Milestones, 3 Check-ins (an Actual box left of Value = the value before this week's check-in,
-  then "Actual before → new value (±)"), 4 Scoreboard (each red or untracked KR is settled: its recovery plan is validated
-  (`r.recovery[kr].validated`) or it is kept as is, not a priority (`.kept`); editing the plan asks again), 5 Decisions, 6 Next milestones (next week's milestones made official: Validate
-  one already built (`m.validated = {week, at, by, review}`), bring one forward from a later week, or create one; no minimum and no
-  maximum per key result (Romain 2026-11-01); validating the step makes every listed milestone official at once; "Validate the milestones of W…" (`r.nextOk = {week, at, by, without}`) first asks, for the key results left
-  without one, with their risk, the milestones they reached so far and their last 3 weekly values: `S.confirm({html, width})`).
-  Steps keep their content number (`ALL`, `ORDER = [3, 5, 1, 2, 4, 8]`); closing needs step 6. The week under review is the first one whose review
-  is not closed (closing W44 moves the screen to W45); step 2 lists this week's milestones and earlier ones still waiting for a verdict only.
-  No step can be done before the review's Saturday (steps shown faded, none counted done) unless a lead uses "Start the review now"
-  (`r.startedAt`, asked first; Romain 2026-11-02). **No promises anywhere in the OS**
-  (removed 2026-11-01): the reliability figure is the share of a finished week's milestones reached (`S.milestoneStats`, Cockpit tile,
-  Overview gauge, review History, connector `weekly_review`).
-- Build › step 1, **The outcome** (Romain 2026-11-02): one compact row per key result (fits without scrolling), tick up to `R.krMax` (3)
-  key results for the week (`S.sel`, kept per person in this browser), none ticked is allowed but then The outcome and "Validate my
-  week" cannot be validated; the row clicked is the one worked on (`S.kr`; Milestones, Tasks, Pre-mortem and Commit show every ticked key result one under the
-  other (`perKr`), each in a `[data-krsec]` section whose events act on its plan (`bind` sets `S.kr`); "+ Add a task" preselects the person whose week is built (the "You are" person, Romain 2026-11-02) as its owner; Commit is one card for the builder's own roadmap (`myCommitHTML`: the
-  steps' checks, their tasks in order with hours, "Commit my roadmap W…", only by that person; lead unlock kept); Estimates shows one load card for the ticked key results (`weekLoadIds` / `loadHTML(ids)`)
-  then their tasks one key result under the other, no tabs (Romain 2026-11-02); its count is the builder's own tasks and weeks over the limit); no "Why it matters"; step 2 Milestones is each person's own set-up (Romain 2026-11-02):
-  it counts only the builder's milestones of the week being planned across the ticked key results (`myMs`; an unowned milestone belongs
-  to its key result's owner, `ownerOfMs` / `mine`), and the cap of `R.msWeek` (3) milestones of that week is per person across the targeted
-  key results (others' milestones show "<name> sets it up"; "Target…" milestones excluded; later weeks keep 3 per key result)
-  (`othersIn` / `capIn` / `overWeeks` in `os2_common.js`: chooser, load check). Step 3 Tasks likewise (Romain 2026-11-02): each of the builder's
-  milestones of the week needs at least one task, someone else's milestone needs none of theirs, and only the builder's own tasks
-  (`t.o`, else the milestone's owner) count their checks. Step 5 Pre-mortem too: a risk with a mitigation is required only on the builder's own milestones of the
-  week (`riskChecks`; others' milestones read "<name> runs its pre-mortem", later weeks "Pre-mortem when its week comes"). What is missing on someone
-  else's milestone or task shows in grey ("<name> sets it up: …", `neutralHTML`), never as a red check of the builder's. The weekly measures left step 1 (popup and Cockpit page below).
-- Build, weekly measures (`measHTML` / `saveMeas` in `build_module.js`, Romain 2026-10-31): one
-  value per quarter week up to this week, saved at once as that week's check-in (`checkins[{week, value, manual}]`, kept with its
-  confidence and notes when it exists); the latest week sets `current`; a curve against the dashed plan; emptying a week asks first.
-  The same values for every key result at once: Build › Key Results › **Weekly results** (`measTabHTML`, a table key result × 13 weeks).
-  On each key result's page: Cockpit › Key results › Check-ins › **Weekly results** (`cv2_krroom.js` `openWeeks`, popup added by
-  `gen_cockpit_v2.py`): the 13 weeks with result, expected value, how it was recorded (Weekly Review / by hand, changed), confidence,
-  and the curve against the plan. One helper for all three places: `S.krWeeks` / `S.setKrWeek` (`store.js`) and `S.krWeekAsk`
-  (`kr_view.js`): a new value is saved at once; changing or removing a recorded one (by hand or from the Weekly Review) asks first.
-  In Build › Key Results, the key result's popup (`krPopHTML` → `krWeeksHTML`, Romain 2026-11-01) lists every week up to this one:
-  type the result and **Validate** (saved and locked: `S.setKrWeek(id, q, v, true)`, `checkins[].locked = {at, by}`); a locked week
-  shows 🔒 and changes only after **Modify** (asked first, `S.lockKrWeek(id, q, false)`).
-- Data and rules shared by all screens: `skl-os/store.js` (alerts a1–a14, KR status, inbox, badges).
-- A screen's behaviour: its `skl-os/*_logic.js`; a module: its generator or source file listed above.
-- Sidebar (systems, groups, entries, badges): `skl-os/nav.py`; fold state logic: `skl-os/build.py`.
-- Typing never loses the focus (Romain 2026-11-02), in the shell (`build.py`): a data change (local save, or the shared
-  database echoing it back in the web edition) redraws the screen or a module only once no field is focused (`fieldFocused` /
-  `textFocused` look into shadow roots; each module of `mountModule` waits for its own field's `focusout`); a redraw called from
-  a field's `change` waits until the focus has reached the next field; every redraw gives the focused field its focus, caret and
-  unsaved text back (`focusMark` / `focusBack`). In Build, `refreshChecks` redraws with `REDRAW` set (the removed field's
-  `change` is ignored) and text fields save on `input` (their `change` never re-renders, only selects do).
-- SKL Map content: `skl-os/carto/cartographie-skl.en.html` (the French original is `cartographie-skl.html`).
-- Agent System content and sample data: `skl-os/agents_module.js`.
+## Back end du CRM
 
-## Design system (source of truth: the Cockpit)
+Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données du CRM sont dans les tables `crm_*`
+(`web/supabase/003_crm_core.sql` et suivants), les écritures du navigateur passent par les fonctions `crm_*` (`004_crm_rpc.sql`).
+- Fonctions Edge (`supabase/functions/`, `verify_jwt = false`, chacune vérifie son jeton ou sa signature) : `iclosed-in`,
+  `fathom-in`, `sendblue-in`, `whop-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
+  `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes SLA vers Slack toutes les 5 min), `callqa-llm`.
+- Libellés en base (étapes, motifs, règles d'alerte, prochaines actions) : en français ; `034_lnp_fr_labels.sql` met à jour une
+  base existante.
+- Tests SQL sur un Postgres local : `web/supabase/tests/run.sh` ; données : `node skl-os/crm/data.test.js` ; Cycle de vente :
+  `node skl-os/crm/sales_cycle_accept.js $PWD/skl-os/skl-os-en.html <dossier>` ; fonctions : `deno test --allow-env --allow-read supabase/tests`.
+- La base en ligne ne change qu'après accord de Romain sur la PR.
 
-- Background `#F6F4EF`, cards `#FFFFFF` with border `#E3DFD5` and radius 14px, ink `#1B1B18`,
-  muted `#5E5B53`, gold `#D9B46A` (text gold `#9A6614` / `#7A4B00`), soft `#ECE8DF`.
-- Fonts: Fraunces (headings), IBM Plex Sans (body), IBM Plex Mono (numbers, codes).
-- Frame: main padding `40px 48px 48px`, gap 28px; a 54px top bar with the views as a segmented
-  control on the left (`#ECE8DF` group, active tab `#1B1B18` / white) and context + actions on the
-  right; `padding-right: 72px` for the round “i” button; no page title (the sidebar says where you are).
-- Buttons: primary dark `#1B1B18` with gold text; secondary white with `#D8D3C7` border.
-- Every screen has a “Page method” popup (i button): what it is for, how it helps, how to use it.
-- Every delete or remove button asks first in a confirmation popup: `S.confirm` / `window.sklConfirm({title, body, ok, onOk})`
-  (`kr_view.js`) in the OS, the modules, the mechanism editor (patched in `mechapp/assemble.py`) and the web edition;
-  `sklAsk` in the CRM (added by `gen_crm.py`); the SKL Map has its own `askConfirm`. An empty draft row can go at once.
+## Analyse d'appel
 
-## Wording rules
+Le moteur (`call-analysis/`) a ses propres règles : lire `call-analysis/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
+le code décide et note. Les consignes envoyées au modèle (`call-analysis/engine/alkimiy_callqa/prompts/*.md`) restent en anglais :
+les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/call-analysis.yml`.
 
-- All UI text is in English.
-- Never write “closer”: always “sales” / “sales rep”.
-- The company is ALKIMIY.
+## Vérifier après un changement
 
-## Runtime and publishing
-
-The page is designed as a claude.ai Artifact with the runtime capabilities `db` and `user`
-(shared database, “You are” selector). Opened as a plain file it runs in demo mode: sample data,
-nothing saved. To publish it as an Artifact, publish `skl-os/skl-os-en.html` and declare
-`capabilities: {db: {}, user: {}}`.
-
-## Web edition (Vercel + Supabase)
-
-Production: https://os.stealthkairoslabs.com, also https://skl-os.vercel.app (Vercel project `skl-os`, root directory `web/`, deployed from `main`).
-`build.sh` stage 4 (`web/build_web.py`) wraps the verified page into `web/public/index.html`; the page itself
-is unchanged, so `skl-os/skl-os-en.html` stays the reference output.
-
-- `web/public/skl-web.js`: sign-in screen, set-password flow (invite and reset links), the signed-in account (Sign out)
-  and the Team access panel drawn into **Settings › Account** (`Account.dc.html`, written by `gen_access.py`; Romain
-  2026-10-26: nothing of the account in the sidebar; the "You are" choice is there too, filled by `build.py`; everyone keeps
-  Account, even with Settings closed), and the `window.claude.use("db" | "user")` interface backed by Supabase
-  (table `docs`, one row per document, live through Realtime). The app code does not know the difference.
-- `web/api/config.js` (public URL + anon key), `web/api/team.js` (admins: list, invite, role, reset link,
-  remove; links are returned to the admin, no email server; they point to the domain the admin is using, `SITE_URL`
-  only as a fallback for local runs, so a new Vercel domain needs no setting change), `web/api/bootstrap.js` (one-time setup and test
-  accounts, disabled unless the `BOOTSTRAP_TOKEN` env var exists — remove it after use).
-- `web/supabase/001_init.sql`: tables `members` (user_id, email, role admin/member/viewer) and `docs`, with
-  row-level security: members read, admins and members write, viewers read only, anonymous nothing.
-- Vercel env vars (Production): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (sensitive,
-  server only), `SITE_URL`. Never commit keys.
-- **Settings › Access** (admins only): which screens each person can open, per system (Operating, Sales, Knowledge, Agent,
-  Settings) or per screen; admins can be narrowed too (they always keep Access), nobody changes their own access. Stored in
-  each user's auth `app_metadata.screens` (written only by `/api/team`, read by `/api/me` at sign-in); default for
-  everyone, new people included: every screen (`web/api/_screens.js`, Romain 2026-10-25; `011_access_everyone.sql` cleared
-  the narrower lists). Every SKL OS member is also a CRM member (`011`: trigger on `members`; SKL admin = CRM admin,
-  member = sales lead, viewer = viewer), so the whole CRM is visible to the team. `skl-web.js` hides closed entries, blocks
-  navigation to closed screens and starts on an open one. Elements marked `data-admin-only` show only for admins
-  (`html.skl-admin`), so the Access entry never shows in the Artifact. This is screen visibility, not data
-  isolation: the shared `docs` rows stay readable by every member.
-- **Claude connector** (`docs/crm/17-claude-connector.md`, setup `docs/crm/setup-claude-connector.md`): remote MCP server
-  `web/api/mcp.js` (SDK `@modelcontextprotocol/sdk`, stateless; 23 read tools: the CRM in `web/api/_crm.js`, the rest of the app
-  in `web/api/_os.js`, which runs the app's own `store.js` on the shared `docs` rows; all with the caller's own token so RLS
-  applies; Settings › Access closes the matching tools; page content from `web/api/_kb.json`, built by `web/kb/build_kb.mjs`
-  in `build.sh` stage 4; admins also get 10 write tools in `web/api/_write.js`: tasks, check-ins, milestones, decisions,
-  alerts through `store.js` with writes queued and saved with the caller's token, lead notes and outcomes through the CRM RPCs)
-  and its OAuth 2.1 server `web/api/oauth.js` (dynamic registration, PKCE, the SKL OS sign-in;
-  tokens = the person's own Supabase tokens; `vercel.json` rewrites the `/.well-known/…` and `/api/oauth/*` paths).
-  `014_mcp.sql`: OAuth tables (service role only), audit row per tool call and 60 calls per minute (`crm_mcp_call`,
-  `crm_mcp_done`). Access key `claude` (Settings › Access, admins by default). Never return a transcript.
-  Tests: `cd web && npm test` (in-memory Supabase with the CRM's RLS, `web/tests/`).
-- `web/supabase/002_q4_okrs.sql` (generated by `gen_002_q4_okrs.py` from `skl-os/seed.json`): loads the Q4 2026
-  objectives and key results into the live database and removes the demo rows. Regenerate it after changing `kr_seed.js`.
-- **Library files**: a deliverable is always an imported file (any format). `skl-web.js` exposes
-  `claude.use("assets")` (`upload(file)`, `open(id, {download})`); `/api/files` issues signed upload URLs (admins,
-  members) and short-lived signed links (any member) for the private Storage bucket `library`, created on first use.
-  The KR memos ship as PDFs in `skl-os/library/memos/` (listed in `memos.json`) and live in the bucket at
-  `memos/<file>`; upload them once with `/api/bootstrap` action `storefile` while `BOOTSTRAP_TOKEN` is set.
-- Not shared yet: the CRM (ALKIMIY Lite) starts empty and saves nothing (only its language choice is kept in the browser);
-  `gen_crm.py` removes ALKIMIY Lite's fictional sample leads, alerts and sales reps (reps = Valentino `sales`, Romain
-  `romain`). In the web edition (`SKL_CRM` live) the board shows the real CRM cycles (`gen_crm.py` live script,
-  `window.sklCrmLive`) plus everyone who never booked ("No booking"); call outcomes are declared in CRM › Sales cycle
-  (phase 3), notes on the board, other board edits come later. The shared CRM is being built (next section).
-
-## CRM back end (in progress)
-
-Specification: `docs/crm/` (read `docs/crm/README.md` first; one phase per branch, PR never merged without Romain).
-CRM data goes in relational `crm_*` tables (`web/supabase/003_crm_core.sql`), not in `docs`.
-- `supabase/`: Supabase CLI workdir for the CRM Edge Functions only (`verify_jwt = false`, each checks its own
-  token or signature). Phase 0: `iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in` store the raw request in
-  `crm_webhook_log` and nothing else.
-- Phase 2: `process-inbox` (worker, every minute through pg_cron + pg_net, `006_crm_cron.sql`) maps pending raw rows
-  (`_shared/mappers/iclosed.ts`, `_shared/normalize.ts`) and calls `crm_apply_items` (`005_crm_pipeline.sql`: matching,
-  person, cycle, call, events and the projector `crm_recompute_cycle`, one transaction per row). Sources without a
-  mapper stay `received` until their phase.
-  iClosed's native webhooks (since 2026-10-25: `hookType` + the call under `event`, fixtures `docs/crm/fixtures/iclosed-native-*.json`):
-  Call booked / rescheduled / cancelled → `crm_apply_items`; Contact updated → only a new name, email or phone (`crm_apply_contact`,
-  `023_crm_contact_update.sql`, chosen by item type through `APPLY_TYPE` in `worker.ts`; Romain 2026-10-27: the iClosed status is never
-  read, the CRM keeps its own); Outcome added stays ignored.
-- Import of existing leads: Edge Function `crm-import` (`POST ?source=iclosed|close&dry=1`, then without `dry`; `?run=<id>`
-  to continue) reads iClosed contacts (`ICLOSED_API_KEY`, `_shared/importers/iclosed.ts`, `?page=` from 0) and Close leads
-  (`CLOSE_API_KEY`) and calls `crm_import_people` (`007_crm_import.sql`): one person per contact, found again by email,
-  phone or Close / iClosed contact id (no duplicates across tools or runs), the source status (iClosed DISQUALIFIED…,
-  Close New…) kept as `status_label` on an `imported` event; a dry run is rolled back and returns counts only.
-  `?report=statuses` = read-only counts of iClosed statuses of the Close contacts. Done once on 2026-10-24 (1 501 people).
-  `008_crm_import_cycles.sql`: `crm_import_iclosed_disqualified(p_dry)` gives each person imported as iClosed DISQUALIFIED
-  one closed cycle with the CRM status `disqualified` (reason `dq_off_target`, event `cycle_disqualified` source `import`,
-  which the projector in 005 keeps until an outcome or a reopening); people with a cycle already are left alone.
-  `?source=iclosed_calls` + `009_crm_import_calls.sql` (`crm_import_calls`): iClosed's past calls become each person's
-  cycle (R1, R2… at their real dates, canceled / no-show / held), closed by the history (`_shared/importers/iclosed.ts`
-  `iclosedClose`, corrected 2026-10-25 by `013_crm_reclassify.sql`: won = iClosed WON or deal, an onboarding or case-study
-  call, or Close "Customer" / won opportunity (SQL); disqualified = iClosed contact status DISQUALIFIED, or the latest call
-  ended UNQUALIFIED, BAD_FIT or REJECTED without a cancellation (iClosed puts REJECTED on canceled discovery calls);
-  a call ahead or in the last 30 days = active; else lost, unreachable after a no-show, timing otherwise).
-  `crm_reclassify_imported(p_dry)` re-reads every imported cycle with these rules (never one with an outcome or payment).
-  People with no call: view `crm_people_without_cycle`, shown in the CRM with the status "No booking" (`nobook`, first
-  pipeline column since 2026-10-31 (Romain: at the far right), added by `gen_crm.py`; `SKL_CRM.listNoBooking`). The sales rep of a lead is
-  changed from the lead record header or the Leads list (web edition, admins and sales leads: `ownmenu` / `ownpick` in `gen_crm.py`,
-  `crm_reassign_cycle` of 004; only active CRM members who sell can be chosen, so a rep needs an SKL OS account first). `listBoard` reads past the 1000-row page;
-  its `onCycles` callback lets the CRM draw the leads as soon as the cycles are in (calls, messages and events follow; a pill
-  says what is loading, or why a load failed, with Retry).
-  `015_crm_owners.sql`: a cycle with no owner takes the CRM member whose `email` or `iclosed_email` is the host of its latest
-  booked call (`crm_assign_owners_from_hosts(p_dry, p_member)`, calls get `host_id`); a trigger on `crm_members` runs it
-  for every member added or whose email changes, so inviting a sales rep hands them their leads. An owner set is kept.
-  `016_crm_sales_cockpit.sql`: `crm_sales_cockpit()` (security invoker, one call) computes every figure of the Sales cockpit
-  (Cockpit › Sales and Sales System › Cockpit, module `sales_v2.json`) from the CRM for 7 / 30 / 56 days, each against the
-  period before: funnel, show and close rates, cash and refunds (payments), order value (deals), weighted pipeline,
-  follow-up in 24 h, days per stage, team per owner, 8 weekly points, cash at risk (open alerts, overdue next moves).
-  `gen_sales_v2.py` patches the module: `SKL_CRM.salesCockpit()` in the web edition (refreshed every 5 min), the sample in
-  the Artifact; a figure with no data shows "—" / "not measured" and the parity gate says WAIT instead of PASS.
-  `017_crm_sales_cockpit_fast.sql`: same figures in under a second (016 hit the 8 s statement limit under row-level security):
-  security definer, visibility decided once (every cycle for admins, sales leads, viewers; else one's own); the window
-  function is closed to callers. In the web edition the module never shows the sample: a cover says "Loading…" or why the
-  figures did not load, with Retry.
-  `018_crm_won_calls_held.sql`: every past call of a won cycle is held (Romain 2026-10-25): `crm_mark_won_calls_held(p_dry)`
-  sets past `scheduled` calls of won cycles to `held` with an `outcome_held` event (no declared outcome: with no payment it
-  would reopen the cycle) and refuses if the count of won cycles changes. The cockpit's team is grouped by sales rep = the
-  cycle owner, else the host of its latest booked call (so Valentino, who has no account, shows).
-  `019_crm_sales_team.sql`: the team table shows only the current sales reps, listed in `crm_sales_team` (rep key = member key
-  or host email local part; Valentino only, Romain 2026-10-25); cycles of reps who left keep them and count in the totals.
-  `022_crm_manual_cash.sql` (Romain 2026-10-26): the cash of signed clients entered by hand until Whop sends it (phase 5):
-  `crm_payments.source` `whop` | `manual` (+ `method`, `note`, `created_by`), `crm_set_deal` (amount signed), `crm_add_payment`
-  (a manual payment and a `payment_succeeded` event: the cycle is won at its first payment, the cockpit counts the cash),
-  `crm_delete_payment` (manual only, asked first); admins, sales leads or the cycle's sales rep. UI: `skl-os/crm/cash_ui.js`
-  (`sklCash`), opened from the lead's Invoicing and payment panel or its card (shown for won leads and live leads in the
-  decision or cash stage); in the web edition the card and panel read Signed / Collected.
-  `024_crm_payment_plan.sql` (Romain 2026-10-28: the terms at close, not the method): `crm_deals.schedule` = instalments
-  `[{due, amount}]`, `payment_plan` = "Paid in full" / "N instalments" (also written by the Sales cycle outcome form, whose
-  "Payment terms" chips are Paid in full, 2, 3, 4, 6); `crm_set_payment_plan(p_cycle, p_amount, p_currency, p_schedule)`
-  (instalments add up to the amount signed, 1 to 12). The cash window shows the plan with each instalment Paid / Part paid /
-  Due / Overdue (payments settle them in due order), sets it, and no longer asks the method (stored `other`); amounts show
-  in the deal's currency (`lead.cur`, `money(v, cur)` in the CRM document).
-  `026_crm_refunds.sql` (Romain 2026-10-30: refunds count as lost): a cycle whose payments are all refunded is lost, reason
-  `refunded` (automatic), dated at the last `payment_refunded` event (projector of 025 with that rule); a partial refund keeps
-  it won; `crm_add_refund(p_payment, p_amount default the rest)` (admins, sales leads, the cycle's sales rep), the cash
-  window's "Refunded" button on each payment (`SKL_CRM.addRefund`).
-  `027_crm_yes_keeps_deal.sql`: a "yes" outcome fills only what it carries; without an amount it keeps the deal's amount
-  signed, currency, product and payment plan (before, it erased what 022 / 024 had set).
-  `010_crm_first_seen.sql`: `crm_people.first_seen_at` = when the lead came in (earliest event, trigger on `crm_events`);
-  the CRM's "Created" filter (All leads / last week / last month, `S.cx.born`, added by `gen_crm.py`) reads it.
-  Pipeline period (Romain 2026-10-31): 7 days / 30 days / All at the top right of the Pipeline (`S.cx.per`, `cxLast`: the lead's
-  latest event, booking, upcoming call or stage entry); the board, its KPIs and counts follow it (`gen_crm.py`).
-  Column order per person (Romain 2026-10-31): a Pipeline column is dragged by its header (`cxCols`, `cxMoveCol`); the order is
-  saved for the signed-in person only (`SKL_CRM.setPref("crm.pipeline.cols")`, `031_crm_member_prefs.sql`: `crm_member_prefs`,
-  `crm_get_pref` / `crm_set_pref`, own rows only; in this browser outside the web edition); "Reset columns" goes back to the default.
-  **Long follow-up** (`longfu`, between R3+ and Won, Romain 2026-10-31): a live lead (new, booked, held, no-show) or a lost one
-  (not refunded) with no event for over 14 days and no call ahead (`toLead` in `gen_crm.py`).
-- **Sales System › Sales Day** (Romain 2026-10-31, `salesday_module.js`, frame `gen_salesday.py`): the sales rep's day, one lead at a
-  time like Execute: outcomes to declare first (`next_move` `declare_outcome`), then calls within 24 h, reschedules (`rebook`),
-  no-shows of the last 14 days, follow-ups with no sales touch for 48 h; leads silent for 14 days stay in Long follow-up. A card ends
-  with its action (an outcome through `crm_declare_outcome`, or Done = a note through `crm_add_note`) and swipes away; Tomorrow /
-  Skip; a lead handled today does not come back today. The day list is the person's own (`salesday.<date>` in `crm_member_prefs`).
-  Sample leads outside the web edition. Access key `salesday` (given to every list that has `crm`, `web/api/_screens.js`).
-- **CRM › Sales cycle** (`docs/crm/16-sales-cycle-screen.md`): the reference mock-up `docs/crm/reference/sales-cycle-v6.html`,
-  whole, patched by `gen_crm.py` (assert-checked replacements) and shown as the third CRM view in its own frame over the
-  CRM document (`sklCycle`, `sklCrmTab`). Demo: the mock-up's sample leads and clock. Web edition: `SKL_CRM.salesCycleView()`
-  (`skl-os/crm/data.js`, §3 view model from the board's cycles, calls and events) through `scLive`. Phase 3: the outcome form
-  saves through `crm_declare_outcome` (`saveLive` → the CRM document's `sklCrmDeclare` → `SKL_CRM.declareOutcome`, then a
-  reload), reasons from `crm_reason_codes` (automatic ones left out); a declared outcome overrides the status an import gave
-  (005 projector) and its next step / amount ride on the outcome event (004); messages, Whop and iClosed links come later,
-  the call analysis says none exists yet, a viewer sees no write button, a sales no
-  sales filter. Board filters added to the mock-up: Activity (last 7 / 30 / 90 days since the lead's last past event)
-  and Stage (Show / Decision / Cash: the current stage, or the one a closed cycle ended in). "My Day › Needs you" posts `{skl:"go", screen:"monjour"}` to the shell (`build.py`), which opens Execute. Its Page method is
-  in the CRM's (round i button). The lead record (Pipeline, Leads) shows the lead's Sales cycle story at the top (`sklTimeline`: the Sales cycle
-  document in its embedded mode `scEmbed`, web edition only); its vertical cycle column is gone, and so are the Next action and Sales note panels (Romain 2026-10-29). Past 72 h, the Sales cycle
-  and the lead's timeline count in days (`fmtH` / `atH`, patched by `gen_crm.py`). Checks: `node skl-os/crm/sales_cycle_accept.js $PWD/skl-os/skl-os-en.html <dir>` (§14)
-  and `sales_cycle_live.js` (live behaviour); the reference sample has 22 events for Yassine (§14 test 8 says 23).
-- **Sales cycle SLAs v3** (`docs/crm/18-sales-cycle-slas.md`, Romain 2026-10-30): rules in `supabase/functions/_shared/sla_rules.js`
-  (`SKL_SLA`: SH-2, SH-6, SH-8, SH-11, DE-1, DE-7, DE-9, CA-2, CO-1 with their Due soon / Late / Critical thresholds), one source
-  for the screen (inlined by `gen_crm.py`: a lead's level = its worst open SLA, KPI row across the width with Due soon and
-  Closed, a mark on the lane at each miss) and for `sla-tick` (Edge Function, every 5 min, `006_crm_cron.sql`): each new Late
-  or Critical miss is posted once to Slack #sales-cycle (IDA workspace, secret `SLACK_SALES_CYCLE_WEBHOOK_URL`, setup.md step
-  7b) through `028_crm_sla_alerts.sql` (`crm_sla_snapshot`, `crm_sla_claim`, `crm_sla_notices`, `crm_settings.sla_alerts`).
-- Sendblue (docs/crm/07): `process-inbox` maps `sendblue` rows with `_shared/mappers/sendblue.ts` (message = one event,
-  `source_id` `sendblue:<handle>`; later webhooks only update its `status`; STOP / `opted_out` → `opt_out`; calls →
-  `phone_call_in/out`; group messages ignored) and applies them with `crm_apply_messages` (`012_crm_messages.sql`): person
-  by phone (an unknown number becomes a person), cycle = the latest one opened before the message, recompute. The worker
-  picks the apply function per source (`APPLY` in `worker.ts`). An outbound message whose Sendblue `source` is `workflow`
-  is automatic (actor `auto`, "iMessage · auto" in the Sales cycle); `dashboard` = typed by a sales rep.
-  History: `crm-import ?report=sendblue` (counts) and `?source=sendblue[&dry=1]` read `GET /api/v2/messages`
-  (`_shared/importers/sendblue.ts`, `limit`/`offset`, `pagination.hasMore`, secrets `SENDBLUE_API_KEY_ID` /
-  `SENDBLUE_API_SECRET`) and call `crm_import_messages` by 250 (statement time limit). Done on 2026-10-25: 5 224
-  messages (1 352 in, 967 by the sales, 2 884 automatic), every active cycle has its conversation.
-- Fathom (docs/crm/06 §0, Romain 2026-10-29: Fathom, not iClosed, is the source of truth of the sales calls; every sales
-  recording of Valentino is linked to a lead, one with no lead is a professional call): `025_crm_fathom_calls.sql` rules
-  FL-1 to FL-6. A recording counts when its recorder is in `crm_sales_team`; its lead = the first of (a) an invitee's or
-  speaker's email, (b) the person whose call the recorder hosted was booked within ±90 min (`fathom_match_minutes`), (c) a
-  full name (invitee, speaker, title); none → `not_sales`, several → `ambiguous`, all kept in `crm_fathom_recordings`
-  (admins). A linked recording is a held call (fills its booking or becomes a new call); R1, R2… = the cycle's recordings in
-  order (`crm_rank_calls`, trigger; other calls take the next number; `unique (cycle_id, rank)` dropped; since
-  `029_crm_call_ranks.sql`, Romain 2026-10-31, for every cycle: a call takes a new number only with a recording or a transcript, so a
-  canceled, rescheduled or no-show R1 and its new booking stay R1, and an R2 exists only after an analysable R1); it asks for its
-  outcome until declared (projector redefined in 025). No webhook (Romain 2026-10-29): job `crm-fathom-hourly` (006) →
-  `crm-import ?source=fathom&queue=1` (`importers/fathom.ts`, last two days, R1 / R2 analyses queued) →
-  `crm_import_recordings`; a history import (`&since=&dry=1`) never queues an analysis; `mappers/fathom.ts` serves both and a
-  webhook if one is ever added (`process-inbox` → `crm_apply_recordings`). Needs `FATHOM_API_KEY` (already set).
-  `030_crm_no_show_rule.sql` (Romain 2026-10-31): a call is complete with a Fathom recording of 7 min or more
-  (`crm_settings.no_show_rule.min_minutes`) or a transcript added by hand (`crm_call_complete`; only complete calls take a new
-  R number); `crm_apply_no_show_rule(p_dry, p_cycle)` (job `crm-no-show-hourly` in 006, through `crm_no_show_tick`, only when
-  `no_show_rule.enabled`) reads the past calls (from `no_show_rule.since` = where the Fathom history starts, after `grace_hours`)
-  of cycles not won, with no complete recording and no declared outcome: before any complete call → `no_show` + event
-  `outcome_no_show` (source `rules`); after one (R2+) → new call status `missed` + `call_missed`, the lead stays in its round and
-  the next move is "Plan a reschedule" (`rebook`, `missed` = the rank). A complete recording that comes later puts the call back
-  to `held` (trigger `crm_calls_recorded`).
-  `032_crm_fathom_closest.sql` (2026-10-31, Romain doubted the cockpit's no-show rate): Valentino's calls are back to back, so FL-2 (b)
-  often found several bookings within ±90 min and left the recording ambiguous (held but linked to nobody; 030 then made every
-  candidate a no-show). Now the closest booking wins when it starts within `fathom_close_minutes` (15) of the recording and nobody
-  else's does (rule `booking_closest`); 030 never makes a no-show of a call an ambiguous recording of 7 min or more may be
-  (`crm_call_has_ambiguous_recording`), and the no-shows it set on such calls go back to "outcome to declare". Then re-import Fathom.
-  Same file (Romain 2026-10-31): a complete call needs **30 minutes** of Fathom recording (`no_show_rule.min_minutes`, was 7), and
-  the cockpit's show rate counts **leads** (`crm_sales_cockpit_window`: `shown_leads` = a complete call ever, `pending_leads` = a call
-  booked ahead or the last call canceled to be rescheduled (`crm_call_is_reschedule`, the iClosed reason), neither shown nor no-show,
-  `no_show_leads` = the rest); `gen_sales_v2.py` reads them.
-  `033_crm_noshow_audit.sql` (audit of 2026-11-01, 6 of 99 leads wrongly no-show on 30 days): a won lead always counts as shown;
-  a tie (two leads booked on the same slot) goes to the one whose call the sales rep declared held (rule `booking_declared`).
-- Tests: `deno test --allow-env --allow-read supabase/tests`. `.github/workflows/crm-functions.yml` runs them and, from `main` only,
-  deploys the functions to the Supabase project `skl-os` (the same project as the app, no separate dev project) when
-  the GitHub secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` exist.
-- Phase 1: `web/supabase/004_crm_rpc.sql` = every write from the browser (security-definer `crm_*` functions: role and
-  ownership check, `crm_audit_log`, events), `crm_admin_set_member` (links an account to its SKL member id, CRM role and
-  lead) and `crm_merge_alert_defaults` (adds c1–c18 to `config/alerts` as `alerts.cN` / `values["cN.param"]`, a1–a18
-  untouched). `skl-os/crm/data.js` = `window.SKL_CRM` (reads through RLS, writes through the RPCs; demo data outside the
-  web edition, which marks itself `window.claude.web` and serves `claude.use("crm")` from `skl-web.js`).
-- SQL checks on a throwaway local Postgres: `web/supabase/tests/run.sh` (stubs of Supabase in `supabase_stub.sql`);
-  data layer: `node skl-os/crm/data.test.js`. The live database changes only after the phase PR is approved.
-- CRM secrets are Supabase function secrets (list and steps: `docs/crm/setup.md`); never ask for them in a chat.
-- Captured payloads become fixtures through `supabase/scripts/export_fixtures.py` (anonymised); never commit raw rows.
-
-## Call analysis (in progress)
-
-The SKL sales-call analysis system lives in `call-analysis/` (handoff package of 2026-10-25: methodology, engine, specs).
-Integration plan and Romain's decisions: `call-analysis/PLAN.md` (one PR per phase).
-The 15 real transcripts used by the Annex B tests and the screen mock-up (real call 001) are kept out of git (`.gitignore`);
-CI downloads them from the private Storage bucket `callqa-fixtures` (without them, `CALLQA_SKIP_MISSING_CORPUS=1` skips 25).
-Phase 2: `web/supabase/020_crm_call_analysis.sql` (tables `crm_ca_*`, transcript columns on `crm_calls`; which calls:
-`crm_ca_call_info` = sales calls R1 and R2 only; who reads: `crm_ca_can_read` = CRM admins and the cycle's owner; browser RPCs
-`crm_ca_add_transcript`, `crm_ca_retry`, `crm_ca_latest`, `crm_ca_record`; worker RPCs `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail`,
-service role only). Worker `call-analysis/worker/run.py` (stdlib; `.github/workflows/call-analysis.yml`, hourly and on demand,
-GitHub secret `SUPABASE_SERVICE_ROLE_KEY`) runs the engine in parallel rounds (`callqa_worker/prefetch.py`: the pipeline is replayed
-on cached answers and each round sends the questions of the first waiting task, 24 at a time; same result as a sequential run, no extra
-question; a job longer than 90 min stops for good, never retried: the first real call ran over 5 h sequentially) and asks the model through the
-Edge Function `callqa-llm` (Supabase secret `ANTHROPIC_API_KEY`; bearer = service role key; cost step 1, Romain 2026-10-28:
-effort `low`, the prompt of a pass cached and pass 1 sent before passes 2 and 3, `call-analysis/docs/ARCHITECTURE.md` §7;
-the foundation keeps the model's default effort and `spin.register` runs at medium, `TASK_EFFORT`; a run's effort is the workflow
-input `effort` = low | default, `CALLQA_EFFORT`, stored in `crm_ca_jobs.usage.effort`). Tests:
-`cd call-analysis/worker && python3 -m pytest -q tests`, `web/supabase/tests/call_analysis_test.sql`, `supabase/tests/callqa_llm.test.ts`.
-Phase 3 (screen): `021_crm_call_analysis_board.sql` (`crm_ca_board()`: the caller's past R1 / R2 sales calls with their analysis state);
-`skl-os/crm/call_analysis.js` (`SKL_CA`: in the web edition the analysis shows in the lead record, under "Call analysis" (`leadView`: the lead's
-past R1 / R2 calls, then the chosen one; chips, the Leads column and Sales cycle open it there through `showInLead`); a window to add a
-transcript with speaker mapping; queued / failed states), `call_analysis_view.js` (`SKL_CAV`: the record drawn exactly as Romain's mock-up
-"Analyse d'un appel" of 2026-10-27: tiles (no call map since 2026-10-29), the transcript only from its Transcript button, Discovery (rows by register of the question, SPIN v1.3 SB-26 to SB-35: Financial, Time & load, Identity & status,
-Mental & emotional, Other; a SPIN letter opens its question and the prospect's answer under its row, one at a time), Gap, Pitch, Objections with A · I · E · M, one row per objection with all its verbatims (Romain 2026-10-29); the lead's R1 / R2
-sales calls are a segmented control above it; in the web edition the lead
-record fills the CRM area, `cx-full`) and
-`transcript_parse.js` (`SKL_TRANSCRIPT`: pasted formats → engine lines; test `node skl-os/crm/transcript_parse.test.js`), inlined by
-`gen_crm.py`: a chip on pipeline cards, an Analysis column in the lead list, Call analysis in Sales cycle (held calls and past calls
-waiting for their outcome). The connector's `call_analysis` and `call_prep` read `crm_ca_*` (never the transcript). The rules below come from `call-analysis/CLAUDE.md` and override
-everything for this system.
-
-You are integrating the SKL sales-call analysis system into the app. Read this file first, every session.
-
-### What this system does
-It reads the transcript of a sales call and evaluates four competences of the sales: **SPIN discovery**,
-**Gap formalisation**, **Pitch**, **Objection removal**. Each result is a score on 100, item levels with exact quotes
-as evidence, and verdicts (gap present/absent, pitch compliant/non-compliant). Results are shown per call
-(call analysis screen) and aggregated per period (performance screen).
-
-### The rule that overrides everything
-**The model extracts and quotes; the code decides and scores.**
-- No prompt ever asks a model for a score, a level or a verdict. A model answers one closed question about one unit,
-  in JSON, and supports every positive answer with an exact quote and a turn id.
-- Every quote is checked by code: exact substring of the cited turn, spoken by the expected role, inside the expected
-  phase (Part C, C3). An invalid answer is replayed once, then the unit goes `to_review` and is excluded from scores.
-- Three independent passes per unit; disagreement → arbiter (decides by walking the rules, never by voting);
-  undecidable → `to_review` (Part C, C4).
-- The prospect's exact words are the backbone: restatements are checked with the verbatim rule (GB-22).
-
-### Sources of truth (in this order)
-1. `call-analysis/docs/methodology/` — scoring (A), **bounding rules (B)** and calibration cases (C) per competence, plus
-   `00_engine_common_part_C.md`. `call-analysis/docs/BOUNDING_INDEX.md` lists every bounding rule and where it is.
-2. `call-analysis/docs/memos/` — the human-readable SKL memos (PDF), one per competence (SPIN memo 1.1 of 2026-10-29, built from
-   `memos/src/memo_1_spin.py`; update it with every SPIN rule change).
-3. `call-analysis/engine/` — the reference implementation (Python, stdlib only), 209 tests.
-4. `call-analysis/docs/ARCHITECTURE.md`, `call-analysis/docs/OUTPUT_CONTRACT.md`, `call-analysis/docs/SCREEN_SPEC.md`, `call-analysis/docs/OPEN_DECISIONS.md`.
-If code and methodology disagree, the methodology wins: fix the code and add a test.
-
-### Never
-- Never invent a business fact: a threshold, weight, price, mechanism text, client case, model id. Missing →
-  configuration constant + flag + entry in `call-analysis/docs/OPEN_DECISIONS.md`.
-- Never let a model output a score, a level or a verdict; never skip the quote checks to "save calls".
-- Never change a rule without updating, in the same change: the methodology file, the engine, the tests (and say
-  which memo needs an update).
-- Never use the calibration test set to tune a prompt or a threshold (Part C, C7).
-- Never compare scores computed under different rules versions; re-score on a version change (C8).
-- Never write the word "closer": always "sales".
-- Never put the API key or transcripts with personal data in the repository or in logs.
-
-### Engine map (`call-analysis/engine/alkimiy_callqa`)
-`core/models.py` data model · `core/text.py` quote checks, verbatim rule, numbers, sentences · `core/llm.py` model
-client (live + mock) · `core/runner.py` passes, replay, arbitration, audit · `core/foundation.py` parsing,
-diarization, attribution repair, phase map · `core/scoring.py` · `core/aggregate.py` periods ·
-`competences/{spin,gap,pitch,objections}.py` · `prompts/*.md` (one per model task, 30 tasks) · `pipeline.py`
-fixed order: foundation → SPIN → Gap → Pitch → Objections.
-
-### Commands
-```
-cd call-analysis/engine && pip install pytest && python3 -m pytest -q tests        # must stay green (209 tests)
-CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
-python3 -m alkimiy_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
-```
-
-## Checks after a change
-
-Open `skl-os/skl-os-en.html` in a browser (or Playwright) and check every screen renders with no
-console error: Cockpit (all tabs), Build (the six steps), Execute (week gate, day set-up, run, end of day), Decisions,
-Weekly Review, CRM, Library, Mechanism map, Pre-call, Sales, Operating System, the five SKL Map
-views, the five Agent System screens, Settings and Registers.
+Ouvrir `skl-os/skl-os-en.html` dans un navigateur (ou Playwright) et vérifier, sans erreur dans la console et sans texte anglais :
+Cockpit commercial (7 j, 30 j, 8 sem.), Ma journée, CRM (Pipeline, Prospects, Cycle de vente, fiche prospect, fenêtre
+d'encaissement), Paramètres (Alertes, Compte ; Accès en édition web) et chaque « Mode d'emploi ».

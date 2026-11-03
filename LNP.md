@@ -1,41 +1,43 @@
-# LNP · Sales System
+# LNP · Ventes
 
-LNP is an exact copy of the **Sales System of SKL OS** (Sales Cockpit, Sales Day, CRM with Sales cycle, call analysis,
-cash, SLAs), taken from `RomainSKL/skl-os` at commit `bed45f0` (2026-11-02). Same code, same screens, same rules.
-Only `edition.json` differs: the sidebar shows the Sales System and Settings (Alerts, Account, Access), the app opens on
-the Sales Cockpit, and every other SKL OS screen (still built, never linked) lands on the Sales Cockpit.
+LNP est l'application commerciale de **Les Nouveaux Profs** : Cockpit commercial, Ma journée, CRM (Pipeline, Prospects, Cycle de
+vente, fiche prospect, analyse d'appel, encaissements, alertes SLA) et Paramètres (Alertes, Compte, Accès). Elle est entièrement en
+français (`docs/lnp/GLOSSAIRE.md` fixe les termes) et aux couleurs du site https://www.lesnouveauxprofs.fr/.
+
+En ligne : https://lnp-sales.vercel.app (projet Vercel `lnp`, dossier racine `web/`, déployé depuis `main`).
 
 ```bash
-./build.sh            # builds skl-os/skl-os-en.html and web/public/index.html (the LNP page)
-./build.sh --verify   # checks the output against skl-os/EXPECTED.sha256 (the LNP reference)
+./build.sh            # construit skl-os/skl-os-en.html et web/public/index.html (la page LNP)
+./build.sh --verify   # compare le résultat à l'empreinte de référence skl-os/EXPECTED.sha256
 ```
 
-Its own name (2026-11-03): `edition.json` `brand` (sidebar "LNP Sales"), `title` (browser tab) and `rename` (every text of the
-page: SKL OS → LNP, ALKIMIY → LNP, ALKIMIY Lite → LNP CRM, applied by `skl-os/build.py`); `web/public/skl-web.js` (sign-in,
-Account, Access) says LNP. Remove `edition.json` to get the full SKL OS back. Everything else in `CLAUDE.md` applies unchanged.
+## La marque : `edition.json`
 
-## Its own back end (a new, empty database: no ALKIMIY data)
+- `brand`, `title` : « LNP Ventes » dans la barre latérale, « LNP · Ventes » dans l'onglet.
+- `wordmark`, `logo` : le nom « Les Nouveaux Profs » et le logo LNP (`skl-os/brand/lnp-logo.png`) dans la barre latérale, le logo en
+  icône d'onglet (`skl-os/nav.py`, `skl-os/build.py`).
+- `recolor` et `fonts` : la charte de Les Nouveaux Profs (nuit `#1E2A5E`, vif `#2B6CF5`, vif-clair `#5B8DF7`, ciel `#AECBF2`,
+  pâle `#E3ECFB`, ardoise `#5A6478`, cassé `#F7F8FB`) et la police Poppins, appliquées par `skl-os/build.py` à la page finie.
+- `rename` : les anciens noms remplacés par LNP dans tout le texte de la page.
+- `systems`, `settings`, `home` : la page ne contient que les écrans de LNP et s'ouvre sur le Cockpit commercial.
 
-LNP is a separate company from SKL and ALKIMIY: **every account is LNP's own** (GitHub `LNP-Business`, Vercel,
-Anthropic, Slack, iClosed, Fathom, Sendblue, Close), created with LNP's email, never an SKL / ALKIMIY account or key.
-One exception, Supabase (Romain 2026-11-03): LNP's project lives in the **ALKIMIY** Supabase organization. It is its own
-project, `LNP` (ref `lludbqyosuzgwvvphmqc`, eu-central-1), never the SKL OS project, and its database holds LNP's data only.
+## Le back end
 
-1. **Supabase**: the project `LNP` (ref `lludbqyosuzgwvvphmqc`) in the ALKIMIY organization. In the SQL editor run, in order, every file of
-   `web/supabase/` **except `002_q4_okrs.sql`** (that one loads ALKIMIY's Q4 key results). `019_crm_sales_team.sql` adds
-   Valentino as the sales rep: change the insert to LNP's sales reps before running it, or edit the table afterwards.
-   `006_crm_cron.sql`: set `functions_url` to `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1` as its header says.
-2. **Edge Functions** (`supabase/functions/`): deploy them to the new project (`supabase link --project-ref lludbqyosuzgwvvphmqc`,
-   `supabase functions deploy`), or let `.github/workflows/crm-functions.yml` do it from `main` once the GitHub secrets
-   `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` (the new ref) exist.
-3. **Function secrets** (Supabase › Edge Functions › Secrets), LNP's own accounts: `ICLOSED_API_KEY`, `ICLOSED_INBOUND_TOKEN`,
-   `FATHOM_API_KEY`, `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET`, `CLOSE_API_KEY` (if used), `ANTHROPIC_API_KEY` (call analysis),
-   `SLACK_SALES_CYCLE_WEBHOOK_URL` (SLA alerts). List and steps: `docs/crm/setup.md` (its webhook URLs show the SKL OS
-   project ref: use the new one). The Slack link of SLA alerts: `crm_settings.sla_alerts.link` = the LNP site + `/#crm`.
-4. **Vercel**: New project › import `RomainSKL/lnp`, root directory `web/`, env vars `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
-   `SUPABASE_SERVICE_ROLE_KEY` (sensitive), `SITE_URL`, and `ANTHROPIC_API_KEY` if the Claude features are used.
-   First admin: set `BOOTSTRAP_TOKEN` once and use `/api/bootstrap` (see `CLAUDE.md`, Web edition), then remove it.
-5. **Call analysis worker** (`.github/workflows/call-analysis.yml`): repository variable `SUPABASE_URL`
-   (`https://lludbqyosuzgwvvphmqc.supabase.co`) and secret `SUPABASE_SERVICE_ROLE_KEY`.
+Tous les comptes sont ceux de LNP (GitHub `LNP-Business`, Vercel, Anthropic, Slack, iClosed, Fathom, Sendblue, Close).
+Seule exception, Supabase (Romain, 2026-11-03) : le projet `LNP` (réf. `lludbqyosuzgwvvphmqc`, eu-central-1) est rangé dans
+l'organisation Supabase **ALKIMIY**. C'est un projet à part, dont la base ne contient que les données de LNP.
 
-Never put keys in this repository.
+1. **Base Supabase** : chaque fichier de `web/supabase/` (`001` puis `003` à `034`), dans l'ordre. `034_lnp_fr_labels.sql` passe
+   en français les libellés d'une base déjà remplie ; il peut être rejoué. `crm_sales_team` liste les commerciaux de LNP.
+   `crm_settings.functions_url` = `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1` (`006_crm_cron.sql`).
+2. **Fonctions Edge** (`supabase/functions/`) : déployées par `.github/workflows/crm-functions.yml` depuis `main`, avec les secrets
+   GitHub `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF`.
+3. **Secrets des fonctions** (Supabase › Edge Functions › Secrets), comptes de LNP : `ICLOSED_API_KEY`, `ICLOSED_INBOUND_TOKEN`,
+   `FATHOM_API_KEY`, `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET`, `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY` (analyse
+   d'appel), `SLACK_SALES_CYCLE_WEBHOOK_URL` (alertes SLA). Étapes : `docs/crm/setup.md`. Lien des alertes Slack :
+   `crm_settings.sla_alerts.link` = `https://lnp-sales.vercel.app/#crm`.
+4. **Vercel** : projet `lnp`, dossier racine `web/`, variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+   (sensible), `SITE_URL`. Premier administrateur : `BOOTSTRAP_TOKEN` le temps d'appeler `/api/bootstrap`, puis le retirer.
+5. **Analyse d'appel** (`.github/workflows/call-analysis.yml`) : variable de dépôt `SUPABASE_URL` et secret `SUPABASE_SERVICE_ROLE_KEY`.
+
+Ne jamais mettre de clé dans ce dépôt.

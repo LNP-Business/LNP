@@ -332,11 +332,11 @@ What the code does, and where it departs from the text above:
   not change (test 7). Tests 1 and 8 on a real deployment (MCP Inspector, claude.ai) wait for the migration to be applied:
   see `setup-claude-connector.md`.
 
-## 9. LNP's screens, 3 November 2026 (Romain: LNP keeps only the Sales System, every SKL OS leftover removed)
+## 9. LNP's screens, 3 November 2026 (Romain: LNP keeps only the Sales System, every leftover of the former app removed)
 
-SKL OS had 23 read tools over its four systems (§9 of version 1.1). LNP is the Sales System (Sales cockpit, Sales Day, CRM)
+The former app had 23 read tools over its four systems (§9 of version 1.1). LNP is the Sales System (Sales cockpit, Sales Day, CRM)
 and Settings (Alerts, Account, Access), so the tools about key results, Build / roadmap, Execute / My Day, tasks,
-decisions, the weekly review, the library, mechanisms, the SKL Map and the Agent System are gone, with their write tools,
+decisions, the weekly review, the library, mechanisms, the journey map and the Agent System are gone, with their write tools,
 the Build planner (`/api/planner`) and the raw reader `os_data`. The server says `lnp` (version 2.0.0), its instructions
 and every tool description say LNP. 10 read tools:
 
@@ -356,12 +356,12 @@ and every tool description say LNP. 10 read tools:
   (SalesCockpit, SalesDay, CRM, Settings, Account, Access) where it is in the sidebar, its access key, what it shows and
   its Page method popup (from `skl-en/project/<Screen>.dc.html`, with `edition.json` "rename" applied as in the page; a
   screen whose file is missing is left out). The Page methods are in French, as in the app. The kb no longer holds the
-  SKL Map, the mechanisms, the Agent System sample or `store.js`: nothing reads them.
+  journey map, the mechanisms, the Agent System sample or `store.js`: nothing reads them.
 - Settings › Access (`web/api/_screens.js`): the keys are `salescockpit`, `salesday`, `crm`, `settings` and `claude`. A list
-  saved before with SKL OS keys (`cockpit`, `build`, `bibliotheque`…) is read without error: those keys are ignored
+  saved before with the former app's keys (`cockpit`, `build`, `bibliotheque`…) is read without error: those keys are ignored
   (`crm` still brings `salesday`).
-- Tests: 14 in `web/tests/connector.test.js`: the 10 read tools and nothing else, no "SKL" or "ALKIMIY" in tool names,
-  descriptions or server instructions, the Page methods and alert rules, Settings › Access with an old SKL OS list.
+- Tests: 14 in `web/tests/connector.test.js`: the 10 read tools and nothing else, no name of the former companies in tool names,
+  descriptions or server instructions, the Page methods and alert rules, Settings › Access with an old list of the former app.
 
 ## 10. Phase B: writes, for admins, 25 October 2026 (LNP: the CRM writes only, 3 November 2026)
 

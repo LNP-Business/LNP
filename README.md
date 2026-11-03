@@ -1,12 +1,10 @@
-# LNP · Sales System
+# LNP · Ventes
 
-An exact copy of the LNP Sales System (Sales Cockpit, Sales Day, CRM). Setup: `LNP.md`.
+L'application commerciale de Les Nouveaux Profs : Cockpit commercial, Ma journée, CRM et Paramètres, en français.
+En ligne : https://lnp-sales.vercel.app
 
-# LNP build kit
+    ./build.sh
 
-Rebuilds LNP (artifact version 43) byte for byte.
-
-    ./build.sh --verify
-
-Output: `skl-os/skl-os-en.html`. Requirements: Python 3.10+, Node 18+ with npm.
-Everything Claude Code needs to know (pipeline, where to edit, design system, rules) is in `CLAUDE.md`.
+Résultat : `skl-os/skl-os-en.html` et `web/public/index.html`. Prérequis : Python 3.10+, Node 18+.
+Marque et installation : `LNP.md`. Consignes de travail (où modifier quoi, règles, vérifications) : `CLAUDE.md`.
+Vocabulaire de l'application : `docs/lnp/GLOSSAIRE.md`.
