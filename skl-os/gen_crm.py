@@ -257,7 +257,7 @@ crm = crm[:m.start()] + 'let ALERTS=[];' + crm[m.end():]
 m = re.search(r'const SALES=\[.*?\n\];', crm, flags=re.S)
 assert m, 'SALES block not found'
 crm = crm[:m.start()] + ('const SALES=[\n'
-  ' {id:"sales",name:"Valentino",ini:"V",color:"#1B1B18",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0},\n'
+  ' {id:"sales",name:"Camille Martin",ini:"CM",color:"#1B1B18",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0},\n'
   ' {id:"romain",name:"Romain",ini:"R",color:"#7A4B00",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0}\n'
   '];') + crm[m.end():]
 # ---- CRM › Sales cycle (docs/crm/16-sales-cycle-screen.md): the reference mock-up v6, whole, as the third CRM view ----

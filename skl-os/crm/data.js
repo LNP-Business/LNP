@@ -9,7 +9,7 @@
   // A tiny sample so screens have something to draw in demo mode (fictional people).
   var now = Date.now(), H = 3600 * 1000;
   var DEMO = {
-    me: { id: "demo-sales", member_key: "sales", full_name: "Valentino", role: "sales" },
+    me: { id: "demo-sales", member_key: "sales", full_name: "Camille Martin", role: "sales" },
     cycles: [
       { id: "demo-c1", status: "active", origin: "new", owner_key: "sales", opened_at: new Date(now - 50 * H).toISOString(),
         current_stage: "show", person: { id: "demo-p1", full_name: "Prospect d’exemple A", primary_email: "a@example.com" },

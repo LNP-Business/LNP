@@ -11,11 +11,11 @@
   var Q_START = new Date("2026-09-28T12:00:00");    // Monday of week 1
   var DAY = 86400000;
   var MEMBERS = [
-    { id: "amin", name: "Amin", role: "CEO", cap: 10, stats: { done: 4, doneWas: "→ 4", cycle: "2.0 d", fiab: "90%", prec: "× 1.1" } },
+    { id: "amin", name: "Claire Dubois", role: "CEO", cap: 10, stats: { done: 4, doneWas: "→ 4", cycle: "2.0 d", fiab: "90%", prec: "× 1.1" } },
     { id: "romain", name: "Romain", role: "CPO", cap: 8, stats: { done: 8, doneWas: "↑ 7", cycle: "1.8 d", fiab: "85%", prec: "× 1.1" } },
-    { id: "marketing", name: "Michael", role: "CMO · Marketing", cap: 24, stats: { done: 8, doneWas: "↑ 6", cycle: "3.8 d", fiab: "78%", prec: "× 1.3" } },
-    { id: "contenu", name: "Ilya", role: "Content Lead", cap: 20, stats: { done: 6, doneWas: "↓ 8", cycle: "3.9 d", fiab: "64%", prec: "× 1.6" } },
-    { id: "sales", name: "Valentino", role: "Sales", cap: 20, stats: { done: 9, doneWas: "↑ 7", cycle: "2.4 d", fiab: "81%", prec: "× 1.2" } }
+    { id: "marketing", name: "Julie Bernard", role: "CMO · Marketing", cap: 24, stats: { done: 8, doneWas: "↑ 6", cycle: "3.8 d", fiab: "78%", prec: "× 1.3" } },
+    { id: "contenu", name: "Hugo Petit", role: "Content Lead", cap: 20, stats: { done: 6, doneWas: "↓ 8", cycle: "3.9 d", fiab: "64%", prec: "× 1.6" } },
+    { id: "sales", name: "Camille Martin", role: "Sales", cap: 20, stats: { done: 9, doneWas: "↑ 7", cycle: "2.4 d", fiab: "81%", prec: "× 1.2" } }
   ];
 
   var data = {};
@@ -54,7 +54,7 @@
       var ref = db.collection(col).doc(id);
       return del ? ref.delete() : ref.set(body);
     }).catch(function (e) {
-      if (e && e.code === "invalid_argument") { readOnly = true; SKL.notice = "Read-only access: changes are not saved."; emit(true); }
+      if (e && e.code === "invalid_argument") { readOnly = true; SKL.notice = "Accès en lecture seule : les modifications ne sont pas enregistrées."; emit(true); }
       else if (e && e.code === "unavailable") { setTimeout(function () { write(col, id, body, del); }, 800 + Math.random() * 800); }
       else console.error("SKL write", key, e);
     });
@@ -107,7 +107,7 @@
   function krWeeks(k) { var by = {}; (k && k.checkins || []).forEach(function (c) { if (c && c.week) by[c.week] = c; }); return by; }
   function setKrWeek(id, q, v, lock) {
     var k = get("krs", id); if (!k) return { ok: false, why: "Key result not found" };
-    if (readOnly) return { ok: false, why: "Read-only access: not saved" };
+    if (readOnly) return { ok: false, why: "Accès en lecture seule : non enregistré" };
     var k2 = clone(k); delete k2.expected; k2.checkins = k2.checkins || [];
     var i = k2.checkins.map(function (c) { return c && c.week; }).lastIndexOf(q);
     if (v === null || v === "" || v === undefined) k2.checkins = k2.checkins.filter(function (c) { return !(c && c.week === q); });
@@ -122,7 +122,7 @@
   // a week's result validated = locked (Romain 2026-11-01): it is changed only after "Modify", asked first on screen
   function lockKrWeek(id, q, on) {
     var k = get("krs", id); if (!k) return { ok: false, why: "Key result not found" };
-    if (readOnly) return { ok: false, why: "Read-only access: not saved" };
+    if (readOnly) return { ok: false, why: "Accès en lecture seule : non enregistré" };
     var k2 = clone(k); delete k2.expected; var c = (k2.checkins || []).filter(function (x) { return x && x.week === q; }).pop();
     if (!c) return { ok: false, why: "No result for that week yet" };
     if (on) c.locked = { at: iso(TODAY), by: meId || "" }; else delete c.locked;
@@ -551,7 +551,7 @@
     if (!String(f.title || "").trim()) miss.push("write the task");
     if (miss.length) return { ok: false, why: "Still missing: " + miss.join(", ") + "." };
     if (Number(f.est) > TASK_MAX_H) return { ok: false, why: "Over 8 h: split it before you start" };
-    if (readOnly) return { ok: false, why: "Read-only access: not saved" };
+    if (readOnly) return { ok: false, why: "Accès en lecture seule : non enregistré" };
     var t = { id: mkId("t"), title: String(f.title).trim(), kr: f.kr || "", init: Number(f.init) >= 0 ? Number(f.init) : -1, mile: f.mile || "", owner: f.owner || meId || "",
       due: f.due, est: f.est === 0 ? 0 : Number(f.est) || 2, status: f.status || "todo", kind: f.kind || "L", unc: f.kind === "E" ? "I" : "C", note: f.note || "", since: "",
       doneWhen: f.doneWhen || "", start: weekOf(f.due), end: weekOf(f.due), by: meId || "" };
@@ -676,7 +676,7 @@
         if (uid && data.members.get(uid)) { meId = data.members.get(uid).member; emit(true); }
         else if (uid && meId) write("members", uid, { id: uid, member: meId });
       });
-      if (userApi && userApi.can) userApi.can("data.write").then(function (w) { if (w === false) { readOnly = true; SKL.notice = "Read-only access: changes are not saved."; emit(true); } });
+      if (userApi && userApi.can) userApi.can("data.write").then(function (w) { if (w === false) { readOnly = true; SKL.notice = "Accès en lecture seule : les modifications ne sont pas enregistrées."; emit(true); } });
       emit(true);
     }).catch(function (e) { console.error(e); mode = "demo"; emit(true); });
   }

@@ -1,7 +1,7 @@
 """One page frame for every screen, with the Cockpit as the reference:
 main padding 40px 48px, one 54px top bar (views as a segmented control on the left, context and actions on the right),
 no page title (the sidebar says where you are), the same button styles everywhere.
-Idempotent: pages are rebuilt from their *.pre-hz.dc.html copy; Build and Execute are modules (gen_build.py, gen_execute.py)."""
+Idempotent: pages are rebuilt from their *.pre-hz.dc.html copy. LNP: Settings and the CRM only."""
 import pathlib, re, shutil, json
 HERE = pathlib.Path(__file__).resolve().parent
 P = HERE.parent / 'skl-en' / 'project'
@@ -46,33 +46,7 @@ def source(name):
         shutil.copy(f, bak)
     return f, bak.read_text(encoding='utf-8')
 
-# ---- Decisions: Board | Archive on the left, lead-time rule and New decision on the right
-f, s = source('Decisions')
-i, j, h = first_header(s)
-btns = re.findall(r'<button.*?</button>', h, re.S)
-arch, new = btns[0], btns[1]
-arch_inner = re.sub(r'<svg.*?</svg>', '', arch[arch.index('>') + 1:-len('</button>')], flags=re.S)
-arch_btn = arch[:arch.index('>') + 1]
-arch_btn = restyle(arch_btn, TAB_OFF) + arch_inner + '</button>'
-rule = re.search(r'<div style="font-size: 14px[^>]*>(.*?)</div>', h).group(1)
-s = s[:i] + bar(f'<div role="group" aria-label="Views" style="{SEG}"><span style="{TAB_ON}" aria-current="page">Board</span>{arch_btn}</div>',
-                f'<span style="{CTX}">{rule}</span>' + restyle(new, PRIMARY)) + s[j:]
-f.write_text(main_pad(s), encoding='utf-8'); print('Decisions ok')
-
-# ---- Weekly Review: This week | History on the left, week, status and facilitator on the right
-f, s = source('Review')
-i, j, h = first_header(s)
-tabs = re.search(r'<div role="tablist".*?</div>', h, re.S).group(0)
-tabs = re.sub(r'style="display: flex; gap: 4px; padding: 5px; background: #ECE8DF; border-radius: 12px"', f'style="{SEG}"', tabs)
-right = (f'<span style="{CTX}">{{{{eyebrow}}}}<br>{{{{facilitator}}}}</span><span style="{{{{statusPill.style}}}}">{{{{statusPill.label}}}}</span>')
-s = s[:i] + bar(tabs, right) + s[j:]
-old_tab = 'min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; font: inherit; font-size: 14px; cursor: pointer; '
-assert s.count(old_tab) >= 2, 'review tab style'
-s = s.replace(old_tab, 'min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; ')
-s = s.replace("'background: transparent; color: #3D3A33;'),", "'background: transparent; color: #3D3A33; font-weight: 500;'),")
-f.write_text(main_pad(s), encoding='utf-8'); print('Review ok')
-
-# ---- Settings: Alerts | Registers, save state and buttons on the right
+# ---- Settings: Alerts, save state and buttons on the right
 f, s = source('Settings')
 i, j, h = first_header(s)
 btns = re.findall(r'<button.*?</button>', h, re.S)
@@ -80,22 +54,6 @@ save_txt = re.search(r'<span style="font-size: 13px; color: \{\{saveColor\}\}">\
 s = s[:i] + bar(settings_seg('Settings.dc.html'), save_txt + restyle(btns[0], SECONDARY) + btns[1]) + s[j:]
 f.write_text(main_pad(s), encoding='utf-8'); print('Settings ok')
 
-f, s = source('Registers')
-i, j, h = first_header(s)
-s = s[:i] + bar(settings_seg('Registers.dc.html'),
-                f'<span style="{CTX}; max-width: 520px">What belongs to several mechanisms at once, written once so nobody reconciles two copies.</span>') + s[j:]
-f.write_text(main_pad(s), encoding='utf-8'); print('Registers ok')
-
-# ---- Library: Library | Mechanism map, IP legend and New deliverable on the right
-f, s = source('Bibliotheque')
-i, j, h = first_header(s)
-new = re.search(r'<button.*?</button>', h, re.S).group(0)
-legend_start = s.index('<div style="display: flex; align-items: center; gap: 18px; font-size: 12px; color: #5E5B53">', j)
-legend_end = s.index('</div>', s.index('</span></div>', legend_start)) if False else s.index('</span></div>', legend_start) + len('</span></div>')
-s = (s[:i] + bar('',
-                 f'<span style="{CTX}"><span style="padding: 2px 7px; border-radius: 5px; background: #F4ECDD; color: #7A4B00; font-weight: 600">IP</span> SKL intellectual property · click a deliverable to open it</span>' + restyle(new, PRIMARY))
-     + s[j:legend_start] + s[legend_end:])
-f.write_text(main_pad(s), encoding='utf-8'); print('Library ok')
 
 # ---- CRM (its own document): same top bar for Pipeline | Leads, same frame
 crm = HERE / 'crm_doc.html'; c = crm.read_text(encoding='utf-8')

@@ -88,7 +88,7 @@
   // sample leads for the Artifact and the plain file (fictional people)
   function demo(now) {
     var iso = function (ms) { return new Date(ms).toISOString(); };
-    var me = { id: "demo-sales", full_name: "Valentino", role: "sales" };
+    var me = { id: "demo-sales", full_name: "Camille Martin", role: "sales" };
     var cy = function (id, name, extra) { return Object.assign({ id: id, status: "active", owner_id: me.id, opened_at: iso(now - 9 * DAY), person: { full_name: name, primary_email: name.toLowerCase().replace(/ /g, ".") + "@example.com", primary_phone: "+1 555 0100" }, calls: [], events: [], deal: null }, extra); };
     return { me: me, members: [me], reasons: DEMO_REASONS, cycles: [
       cy("d1", "Prospect fictif A", { next_move: { code: "declare_outcome" }, last_event_at: iso(now - 20 * H),

@@ -99,7 +99,7 @@
     var ta = W && W.querySelector("#ca-raw"); if (!ta) return;
     var P = window.SKL_TRANSCRIPT.parse(ta.value); PARSED = P;
     W.querySelector("#ca-pinfo").textContent = P.turns.length ? P.turns.length + " prise" + (P.turns.length <= 1 ? "" : "s") + " de parole · " + P.speakers.length + " intervenant" + (P.speakers.length <= 1 ? "" : "s") + (P.turns.length ? " · se termine à " + P.turns[P.turns.length - 1].ts : "") : "";
-    var map = window.SKL_TRANSCRIPT.guessMap(P.speakers, CUR.ctx.sales || (CUR.row && CUR.row.sales_name) || "Valentino");
+    var map = window.SKL_TRANSCRIPT.guessMap(P.speakers, CUR.ctx.sales || (CUR.row && CUR.row.sales_name) || "");
     W.querySelector("#ca-map").innerHTML = (P.warnings.length ? '<div class="ca-err" style="margin-bottom:10px">' + P.warnings.map(esc).join("<br>") + "</div>" : "") +
       (P.speakers.length ? '<table class="ca-tbl"><thead><tr><th>Intervenant dans la transcription</th><th>Prises de parole</th><th>Mots</th><th>Rôle</th></tr></thead><tbody>' + P.speakers.map(function (s) {
         return "<tr><td><b>" + esc(s.name) + "</b></td><td class=\"ca-mono\">" + s.turns + '</td><td class="ca-mono">' + s.words + '</td><td><select class="ca-sel" data-spk="' + esc(s.name) + '">' +
