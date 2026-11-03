@@ -42,27 +42,27 @@ export function promptFor(b, context) {
 // the JSON object of the answer (the model is asked for nothing else)
 export function parseAnswer(text) {
   const s = String(text || ""), a = s.indexOf("{"), z = s.lastIndexOf("}");
-  let o = {}; try { o = JSON.parse(s.slice(a, z + 1)); } catch (e) { return { message: s.trim().slice(0, 2000) || "Claude gave no usable answer.", question: "", suggestions: [] }; }
+  let o = {}; try { o = JSON.parse(s.slice(a, z + 1)); } catch (e) { return { message: s.trim().slice(0, 2000) || "Claude n’a pas donné de réponse exploitable.", question: "", suggestions: [] }; }
   return { message: String(o.message || ""), question: String(o.question || ""), suggestions: Array.isArray(o.suggestions) ? o.suggestions.slice(0, 6) : [] };
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") { res.setHeader("Allow", "POST"); return send(res, 405, { error: "POST only" }); }
+  if (req.method !== "POST") { res.setHeader("Allow", "POST"); return send(res, 405, { error: "POST uniquement" }); }
   const m = /^Bearer\s+(.+)$/i.exec(req.headers.authorization || "");
-  if (!m) return send(res, 401, { error: "Sign in first." });
+  if (!m) return send(res, 401, { error: "Connectez-vous d’abord." });
   const { data, error } = await anon().auth.getUser(m[1]);
-  if (error || !data || !data.user) return send(res, 401, { error: "The sign-in has expired." });
+  if (error || !data || !data.user) return send(res, 401, { error: "La connexion a expiré." });
   const u = asUser(m[1]), user = data.user;
   const mem = await u.from("members").select("role").eq("user_id", user.id);
   const role = mem.data && mem.data[0] ? mem.data[0].role : null;
-  if (!role) return send(res, 403, { error: "This account is not a member of SKL OS." });
+  if (!role) return send(res, 403, { error: "Ce compte ne fait pas partie de l’équipe LNP." });
   const access = accessOf(user, role);
-  if (!access.includes("build")) return send(res, 403, { error: "Build is closed for you in Settings › Access." });
-  if (!process.env.ANTHROPIC_API_KEY) return send(res, 503, { code: "not_configured", error: "The Claude planner is not set up yet." });
+  if (!access.includes("build")) return send(res, 403, { error: "Build vous est fermé dans Paramètres › Accès." });
+  if (!process.env.ANTHROPIC_API_KEY) return send(res, 503, { code: "not_configured", error: "Le planificateur Claude n’est pas encore configuré." });
   const b = await readJson(req);
   const t0 = Date.now(); let id = null;
   const r = await u.rpc("crm_mcp_call", { p_tool: "planner", p_input: { step: String(b.step || "").slice(0, 20), kr: String(b.kr || "").slice(0, 20) } });
-  if (r.error) return r.error.code === "P0M60" ? send(res, 429, { code: "rate_limited", error: "Too many requests: wait a minute." }) : send(res, 500, { error: r.error.message });
+  if (r.error) return r.error.code === "P0M60" ? send(res, 429, { code: "rate_limited", error: "Trop de demandes : patientez une minute." }) : send(res, 500, { error: r.error.message });
   id = r.data;
   let ctx = null, os = null, reads = 0;
   const getCtx = () => (ctx = ctx || T.loadContext(u, user));
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
       }
       messages.push({ role: "user", content: results });
     }
-    const out = msg.stop_reason === "refusal" ? { message: "Claude declined this request.", question: "", suggestions: [] }
+    const out = msg.stop_reason === "refusal" ? { message: "Claude a refusé cette demande.", question: "", suggestions: [] }
       : parseAnswer(msg.content.filter(x => x.type === "text").map(x => x.text).join(""));
     await u.rpc("crm_mcp_done", { p_id: id, p_rows: reads, p_ms: Date.now() - t0, p_error: null });
     return send(res, 200, out);
@@ -106,6 +106,6 @@ export default async function handler(req, res) {
     await u.rpc("crm_mcp_done", { p_id: id, p_rows: reads, p_ms: Date.now() - t0, p_error: String(e.message || e).slice(0, 300) });
     console.error("planner", e && e.status, e && e.message);
     const st = e && e.status;
-    return send(res, st === 429 ? 429 : 502, { code: st === 429 ? "rate_limited" : "unavailable", error: "Claude did not answer this time." });
+    return send(res, st === 429 ? 429 : 502, { code: st === 429 ? "rate_limited" : "unavailable", error: "Claude n’a pas répondu cette fois-ci." });
   }
 }

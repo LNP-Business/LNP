@@ -5,7 +5,7 @@ import { BUCKET, ensureBucket } from "./files.js";
 
 export default async function handler(req, res) {
   const token = process.env.BOOTSTRAP_TOKEN;
-  if (!token || req.method !== "POST" || req.headers["x-bootstrap-token"] !== token) return send(res, 404, { error: "Not found." });
+  if (!token || req.method !== "POST" || req.headers["x-bootstrap-token"] !== token) return send(res, 404, { error: "Introuvable." });
   const sb = admin();
   const b0 = await readJson(req);
   // test accounts for end-to-end checks, only while BOOTSTRAP_TOKEN exists
@@ -40,15 +40,15 @@ export default async function handler(req, res) {
   }
   if (b0.action === "deleteuser") {
     const { data } = await sb.from("members").select("user_id, role").eq("email", String(b0.email || "")).maybeSingle();
-    if (!data || data.role === "admin") return send(res, 400, { error: "Only test accounts can be deleted here." });
+    if (!data || data.role === "admin") return send(res, 400, { error: "Seuls les comptes de test peuvent être supprimés ici." });
     const { error } = await sb.auth.admin.deleteUser(data.user_id);
     return error ? send(res, 500, { error: error.message }) : send(res, 200, { ok: true });
   }
   const { count, error: e1 } = await sb.from("members").select("user_id", { count: "exact", head: true }).eq("role", "admin");
   if (e1) return send(res, 500, { error: e1.message });
-  if (count) return send(res, 409, { error: "The team already has an admin." });
+  if (count) return send(res, 409, { error: "L’équipe a déjà un administrateur." });
   const email = String(b0.email || "").trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send(res, 400, { error: "Enter a valid email address." });
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send(res, 400, { error: "Saisissez une adresse e-mail valide." });
   const redirectTo = origin(req) + "/";
   let link = await sb.auth.admin.generateLink({ type: "invite", email, options: { redirectTo } });
   if (link.error && /already|registered|exists/i.test(link.error.message)) link = await sb.auth.admin.generateLink({ type: "recovery", email, options: { redirectTo } });

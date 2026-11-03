@@ -11,13 +11,13 @@ if ENGINE.exists():
 
 SYSTEMS = {
     "os": ("Operating System", "OS", "Main.dc.html"),
-    "ss": ("Sales System", "SS", "SalesCockpit.dc.html"),
+    "ss": ("Ventes", "SS", "SalesCockpit.dc.html"),
     "ks": ("Knowledge System", "KS", "Bibliotheque.dc.html"),
     "as": ("Agent System", "AS", "AgentsOverview.dc.html"),
 }
 GROUPS = {
     "os": [("Operating System", [("Main.dc.html", "Cockpit", None), ("Build.dc.html", "Build", None), ("Execute.dc.html", "Execute", None), ("Decisions.dc.html", "Decisions", (5, "Decisions to act on: to decide and to review", "decisions")), ("Review.dc.html", "Weekly Review", (3, "Key results not checked in this week", "review"))])],
-    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit", None), ("SalesDay.dc.html", "Sales Day", None), ("CRM.dc.html", "CRM", None)])],
+    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("SalesDay.dc.html", "Ma journée", None), ("CRM.dc.html", "CRM", None)])],
     "ks": [("Knowledge System", [("Bibliotheque.dc.html", "Library", None)]),
            ("Mechanisms", [("Mechanisms.dc.html", "Mechanism map", None),
                            ("MechPrecall.dc.html", "Pre-call", (fr.get("precall"), f"{fr.get('precall')} frictions", "") if fr.get("precall") else None),
@@ -27,8 +27,13 @@ GROUPS = {
                         ("CartoSim.dc.html", "Simulator", None), ("CartoModel.dc.html", "Model", None)])],
     "as": [("Pilot", [("AgentsOverview.dc.html", "Overview", None), ("AgentsDecisions.dc.html", "Decisions", (4, "Agent proposals waiting for your decision", "agentdec")),
                       ("AgentsRegistry.dc.html", "Agents", None), ("AgentsTriggers.dc.html", "Triggers", None), ("AgentsLog.dc.html", "Log", None)])],
-    "settings": [("Settings", [("Settings.dc.html", "Alerts", None), ("Registers.dc.html", "Registers", None), ("Account.dc.html", "Account", None), ("Access.dc.html", "Access", None)])],
+    "settings": [("Settings", [("Settings.dc.html", "Alertes", None), ("Registers.dc.html", "Registres", None), ("Account.dc.html", "Compte", None), ("Access.dc.html", "Accès", None)])],
 }
+# LNP is in French (Romain 2026-11-03): the group titles shown; the fold keys (data-navgrp, also read by web/public/skl-web.js)
+# keep the English names
+GROUP_LABEL = {"Sales System": "Ventes", "Settings": "Paramètres"}
+# the footer note under the groups, in French (the week of the quarter is rewritten by the shell, build.py decorate)
+FOOT_FR = [("Q4 2026 · week ", "T4 2026 · semaine "), ("Weekly review: Saturday", "Revue hebdomadaire : samedi")]
 # Edition (LNP, 2026-11-02): edition.json at the repository root keeps only some systems in the sidebar (LNP = the Sales System:
 # Cockpit, Sales Day, CRM) and the Settings screens it lists; the other screens stay built but are never linked.
 EDITION = {}
@@ -83,8 +88,8 @@ def nav(file, footer):
     for gi, (gname, items) in enumerate(GROUPS[area]):
         mt = 'margin-top: 10px; ' if gi else ''
         key = area + '-' + re.sub(r'[^a-z0-9]+', '-', gname.lower()).strip('-')
-        out.append(f'<button type="button" data-navgrp="{key}" aria-expanded="true" title="Fold or unfold {gname}" style="{mt}display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left">'
-                   f'<span>{gname}</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>')
+        out.append(f'<button type="button" data-navgrp="{key}" aria-expanded="true" title="Replier ou déplier {GROUP_LABEL.get(gname, gname)}" style="{mt}display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left">'
+                   f'<span>{GROUP_LABEL.get(gname, gname)}</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>')
         out.append(f'<div data-navitems="{key}" style="display: flex; flex-direction: column; gap: 4px">')
         for href, label, badge in items:
             on = href == file
@@ -106,7 +111,7 @@ def nav(file, footer):
     style = ('display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; '
              + ('font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A' if on else 'color: #C9C4B7; border: 1px solid #34322C'))
     cur = ' aria-current="true"' if on else ''
-    out.append(f'<a href="Settings.dc.html"{cur} style="{style}">{GEAR}Settings</a>')
+    out.append(f'<a href="Settings.dc.html"{cur} style="{style}">{GEAR}Paramètres</a>')
     out.append('</nav>')
     return '\n'.join(out)
 
@@ -120,6 +125,8 @@ for file in SCREENS:
     assert m, file
     foot = re.search(r'font-size: 13px; color: #A8A396; line-height: 1.5">(.*?)</div>', m.group(0), flags=re.S)
     footer = (foot.group(1) if foot else 'Q4 2026 · week 3/13').replace('Weekly review: Friday', 'Weekly review: Saturday')
+    for a, z in FOOT_FR:
+        footer = footer.replace(a, z)
     s = s[:m.start()] + nav(file, footer) + s[m.end():]
     f.write_text(s, encoding='utf-8')
     print('nav updated:', file)
