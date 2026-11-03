@@ -42,7 +42,8 @@ def main() -> int:
         try:
             cfg = claim.get("config") or {}
             client = GatewayClient(url.rstrip("/") + "/functions/v1/callqa-llm", key, cfg.get("tiers") or {},
-                                   effort=os.environ.get("CALLQA_EFFORT") or cfg.get("effort") or "low")
+                                   effort=os.environ.get("CALLQA_EFFORT") or cfg.get("effort") or "none",
+                                   passes=int(cfg.get("passes") or 3))
             started = time.time()
             record = run_job(claim, client, rounds=True, workers=24, budget_s=90 * 60, log=lambda m: print(f"job {job}: {m}", flush=True))
             usage = {"tiers": client.usage, "seconds": round(time.time() - started), "effort": getattr(client, "effort", None)}

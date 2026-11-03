@@ -35,7 +35,10 @@ Deno.test("callqa-llm: the question is cached when it will be asked again; effor
   eq((await handleLlm(post({ ...q, cache_prompt: true, effort: "medium" }), env, ok)).status, 200);
   eq(body.messages, [{ role: "user", content: [{ type: "text", text: "UNIT", cache_control: { type: "ephemeral" } }] }]);
   eq(body.output_config, { effort: "medium" });
-  eq((await handleLlm(post({ ...q, effort: "none" }), env, ok)).status, 400);
+  eq((await handleLlm(post({ ...q, effort: "none" }), env, ok)).status, 200);
+  eq(body.thinking, { type: "disabled" }, "none: thinking disabled:");
+  eq("output_config" in body, false, "none: no effort sent:");
+  eq((await handleLlm(post({ ...q, effort: "nope" }), env, ok)).status, 400);
   eq((await handleLlm(post({ ...q, effort: "default" }), env, ok)).status, 200);
   eq("output_config" in body, false, "default: no effort sent:");
 });

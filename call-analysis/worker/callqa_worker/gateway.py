@@ -35,11 +35,11 @@ class GatewayError(RuntimeError):
 
 class GatewayClient:
     def __init__(self, url: str, key: str, tiers: dict[str, str], max_tokens: int = 4000, attempts: int = 5,
-                 timeout: float = 180, sleep=time.sleep, opener=None, effort: str = "low"):
+                 timeout: float = 180, sleep=time.sleep, opener=None, effort: str = "low", passes: int = 3):
         missing = [t for t in ("fast", "strong", "arbiter") if not tiers.get(t)]
         if missing:
             raise GatewayError("model id missing for tier " + ", ".join(missing) + " (crm_ca_config)", final=True)
-        self.url, self.key, self.tiers, self.effort = url, key, tiers, effort
+        self.url, self.key, self.tiers, self.effort, self.passes = url, key, tiers, effort, int(passes or 3)
         self.max_tokens, self.attempts, self.timeout, self.sleep = max_tokens, attempts, timeout, sleep
         self.opener = opener or urllib.request.urlopen
         self.lock = threading.Lock()
@@ -54,9 +54,14 @@ class GatewayClient:
                 u[k] += int(usage.get(k) or 0)
 
     def ask(self, task_id: str, unit_id: str, tier: str, system: str, prompt: str, pass_no: int) -> dict[str, Any]:
+        # effort "none" (LNP, 2026-11-03): no thinking on any question, except the foundation, which keeps its default
+        effort = TASK_EFFORT.get(task_id, self.effort)
+        if self.effort == "none" and not task_id.startswith("foundation."):
+            effort = "none"
+        # a question is cached only when another pass will ask it again (one pass: writing the cache costs more than it saves)
         body = json.dumps({"model": self.tiers[tier], "system": system, "prompt": prompt,
-                           "max_tokens": self.max_tokens, "effort": TASK_EFFORT.get(task_id, self.effort),
-                           "cache_prompt": int(pass_no) >= 1}).encode()
+                           "max_tokens": self.max_tokens, "effort": effort,
+                           "cache_prompt": int(pass_no) >= 1 and self.passes > 1}).encode()
         last = ""
         for i in range(self.attempts):
             req = urllib.request.Request(self.url, data=body, method="POST", headers={

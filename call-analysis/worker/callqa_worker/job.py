@@ -42,13 +42,16 @@ def run_job(claim: dict, client: Any, config: Optional[RunConfig] = None, rounds
             log=None, budget_s: Optional[float] = None) -> dict:
     """rounds=True: the questions go to the model in parallel batches (prefetch.py), same result as a sequential run."""
     passes = int((claim.get("config") or {}).get("passes") or 3)
+    # crm_ca_config.passes = 1 turns on the cost option of Part C, C4 (one pass, 10 % of the units still run with three):
+    # allowed only once the C7 protocol shows at least 95 % item-level concordance on the current rules version
+    single = passes == 1
     if not rounds:
-        cfg = config or RunConfig(passes=passes, parallel_passes=True)
+        cfg = config or RunConfig(passes=passes, single_pass_allowed=single, parallel_passes=True)
         ctx = build_context(claim)
         analyse_call(ctx, Runner(client, cfg))
         return result_record(ctx)
     pre = PrefetchClient(client)
-    cfg = config or RunConfig(passes=passes)
+    cfg = config or RunConfig(passes=passes, single_pass_allowed=single)
     ctx = analyse_in_rounds(lambda: build_context(claim), lambda c, cl: analyse_call(c, Runner(cl, cfg)), pre, workers, log=log, budget_s=budget_s)
     check_model_errors(ctx.audit)
     return result_record(ctx)
