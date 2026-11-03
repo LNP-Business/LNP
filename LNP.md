@@ -16,14 +16,16 @@ Account, Access) says LNP. Remove `edition.json` to get the full SKL OS back. Ev
 
 ## Its own back end (a new, empty database: no ALKIMIY data)
 
-LNP is a separate company from SKL and ALKIMIY: **every account is LNP's own** (GitHub `LNP-Business`, Supabase, Vercel,
+LNP is a separate company from SKL and ALKIMIY: **every account is LNP's own** (GitHub `LNP-Business`, Vercel,
 Anthropic, Slack, iClosed, Fathom, Sendblue, Close), created with LNP's email, never an SKL / ALKIMIY account or key.
+One exception, Supabase (Romain 2026-11-03): LNP's project lives in the **ALKIMIY** Supabase organization. It is its own
+project, `LNP` (ref `lludbqyosuzgwvvphmqc`, eu-central-1), never the SKL OS project, and its database holds LNP's data only.
 
-1. **Supabase**: create a new project (Supabase dashboard › New project). In the SQL editor run, in order, every file of
+1. **Supabase**: the project `LNP` (ref `lludbqyosuzgwvvphmqc`) in the ALKIMIY organization. In the SQL editor run, in order, every file of
    `web/supabase/` **except `002_q4_okrs.sql`** (that one loads ALKIMIY's Q4 key results). `019_crm_sales_team.sql` adds
    Valentino as the sales rep: change the insert to LNP's sales reps before running it, or edit the table afterwards.
-   `006_crm_cron.sql`: set `functions_url` to `https://<new-ref>.supabase.co/functions/v1` as its header says.
-2. **Edge Functions** (`supabase/functions/`): deploy them to the new project (`supabase link --project-ref <new-ref>`,
+   `006_crm_cron.sql`: set `functions_url` to `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1` as its header says.
+2. **Edge Functions** (`supabase/functions/`): deploy them to the new project (`supabase link --project-ref lludbqyosuzgwvvphmqc`,
    `supabase functions deploy`), or let `.github/workflows/crm-functions.yml` do it from `main` once the GitHub secrets
    `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` (the new ref) exist.
 3. **Function secrets** (Supabase › Edge Functions › Secrets), LNP's own accounts: `ICLOSED_API_KEY`, `ICLOSED_INBOUND_TOKEN`,
@@ -34,6 +36,6 @@ Anthropic, Slack, iClosed, Fathom, Sendblue, Close), created with LNP's email, n
    `SUPABASE_SERVICE_ROLE_KEY` (sensitive), `SITE_URL`, and `ANTHROPIC_API_KEY` if the Claude features are used.
    First admin: set `BOOTSTRAP_TOKEN` once and use `/api/bootstrap` (see `CLAUDE.md`, Web edition), then remove it.
 5. **Call analysis worker** (`.github/workflows/call-analysis.yml`): repository variable `SUPABASE_URL`
-   (`https://<new-ref>.supabase.co`) and secret `SUPABASE_SERVICE_ROLE_KEY`.
+   (`https://lludbqyosuzgwvvphmqc.supabase.co`) and secret `SUPABASE_SERVICE_ROLE_KEY`.
 
 Never put keys in this repository.
