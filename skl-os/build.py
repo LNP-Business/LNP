@@ -8,6 +8,7 @@ OUT = HERE / ("skl-os-en.html" if LANG == "en" else "skl-os.html")
 TITLE = "SKL OS English" if LANG == "en" else "SKL OS"
 _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
+TITLE = EDITION.get("title", TITLE)
 # screens kept by the edition: its systems' screens and its Settings screens (None = every screen)
 _SYS = {"os": ["cockpit", "review", "build", "execute", "decisions"], "ss": ["salescockpit", "salesday", "crm"]}
 EDITION_KEEP = (sum((_SYS.get(x, []) for x in EDITION.get("systems", [])), []) + [f.replace(".dc.html", "").lower() for f in EDITION.get("settings", [])]) if EDITION else None
@@ -531,5 +532,8 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 }})();
 </script>
 """
+# edition.json "rename" (LNP, 2026-11-03): its own name instead of SKL OS / ALKIMIY in every text of the page, in order
+for a, z in EDITION.get("rename", []):
+    page = page.replace(a, z)
 OUT.write_text(page, encoding="utf-8")
 print(OUT, len(page))

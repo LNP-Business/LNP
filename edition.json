@@ -1,6 +1,35 @@
 {
   "name": "LNP",
-  "systems": ["ss"],
+  "systems": [
+    "ss"
+  ],
   "home": "salescockpit",
-  "settings": ["Settings.dc.html", "Account.dc.html", "Access.dc.html"]
+  "settings": [
+    "Settings.dc.html",
+    "Account.dc.html",
+    "Access.dc.html"
+  ],
+  "brand": [
+    "LNP",
+    "Sales"
+  ],
+  "title": "LNP",
+  "rename": [
+    [
+      "taken as is from ALKIMIY Lite",
+      "the LNP CRM"
+    ],
+    [
+      "ALKIMIY Lite",
+      "LNP CRM"
+    ],
+    [
+      "SKL OS",
+      "LNP"
+    ],
+    [
+      "ALKIMIY",
+      "LNP"
+    ]
+  ]
 }

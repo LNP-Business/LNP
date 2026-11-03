@@ -55,10 +55,11 @@ GEAR = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="cur
 
 def nav(file, footer):
     area = SCREENS[file]
+    brand = EDITION.get("brand", ["SKL", None])  # LNP: its own name in the sidebar
     short = {"os": "OS", "ss": "SS", "ks": "KS", "as": "AS", "settings": "OS"}[area]
     out = [
         '<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">',
-        f'<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">SKL <span style="color: #D9B46A">{short}</span></div>',
+        f'<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">{brand[0]} <span style="color: #D9B46A">{brand[1] or short}</span></div>',
         '<div role="group" aria-label="Switch system" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 4px; background: #2C2B26; border-radius: 12px; margin-bottom: 18px">',
     ]
     for sid, (sname, _, home) in (SYSTEMS.items() if len(SYSTEMS) > 1 else []):
