@@ -535,5 +535,31 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 # edition.json "rename" (LNP, 2026-11-03): its own name instead of SKL OS / ALKIMIY in every text of the page, in order
 for a, z in EDITION.get("rename", []):
     page = page.replace(a, z)
+
+
+def restyle(text, edition=EDITION):
+    """edition.json "recolor" and "fonts" (LNP, 2026-11-03): the colours and fonts of Les Nouveaux Profs in every
+    screen, applied to the finished page like "rename" (hex colours, rgb()/rgba() triples, then font names)."""
+    rc = edition.get("recolor") or {}
+    hx = {k.lower(): v for k, v in rc.get("hex", {}).items()}
+    if hx:
+        text = re.sub(r"#[0-9a-fA-F]{6}\b", lambda m: hx.get(m.group(0).lower(), m.group(0)), text)
+    rg = rc.get("rgb", {})
+    if rg:
+        def _rgb(m):
+            z = rg.get(f"{m.group(2)},{m.group(3)},{m.group(4)}")
+            return f"rgb{m.group(1)}({z}" if z else m.group(0)
+        text = re.sub(r"rgb(a?)\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", _rgb, text)
+    for a, z in edition.get("fonts", []):
+        text = text.replace(a, z)
+    return text
+
+
+page = restyle(page)
+_logo = HERE.parent / EDITION["logo"] if EDITION.get("logo") else None
+if _logo and _logo.exists():  # LNP: its logo as the tab icon
+    import base64
+    page = page.replace("</title>", '</title>\n<link rel="icon" type="image/png" href="data:image/png;base64,'
+                        + base64.b64encode(_logo.read_bytes()).decode() + '">', 1)
 OUT.write_text(page, encoding="utf-8")
 print(OUT, len(page))

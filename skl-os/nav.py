@@ -1,6 +1,6 @@
 """Rewrite the sidebar of each English screen: system switch (Operating / Sales / Knowledge / Agent), the groups of
 that system, the footer note, and the Settings button at the very bottom."""
-import pathlib, re, json
+import pathlib, re, json, base64
 
 P = pathlib.Path(__file__).resolve().parent.parent / "skl-en" / "project"
 ENGINE = pathlib.Path(__file__).resolve().parent.parent / "iter" / "engine.json"
@@ -57,9 +57,19 @@ def nav(file, footer):
     area = SCREENS[file]
     brand = EDITION.get("brand", ["SKL", None])  # LNP: its own name in the sidebar
     short = {"os": "OS", "ss": "SS", "ks": "KS", "as": "AS", "settings": "OS"}[area]
+    head = f'<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">{brand[0]} <span style="color: #D9B46A">{brand[1] or short}</span></div>'
+    if EDITION.get("wordmark"):  # LNP (2026-11-03): the logo of Les Nouveaux Profs, its pastille and its name, as on its site
+        w1, w2, w3 = EDITION["wordmark"]
+        logo = _ed.parent / EDITION.get("logo", "")
+        img = (f'<img src="data:image/png;base64,{base64.b64encode(logo.read_bytes()).decode()}" alt="" width="38" height="38" '
+               'style="width: 38px; height: 38px; border-radius: 10px; flex: none; display: block">') if EDITION.get("logo") and logo.is_file() else ""
+        head = ('<div style="display: flex; align-items: center; gap: 11px; padding: 0 8px 20px">' + img
+                + '<div style="font-family: Poppins, Arial, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .09em; '
+                f'text-transform: uppercase; line-height: 1.2; color: #F7F8FB">{w1}<span style="color: #5B8DF7">{w2}</span>{w3}'
+                f'<div style="font-size: 10.5px; letter-spacing: .16em; font-weight: 600; color: #AECBF2; margin-top: 3px">{brand[1] or short}</div></div></div>')
     out = [
         '<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">',
-        f'<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">{brand[0]} <span style="color: #D9B46A">{brand[1] or short}</span></div>',
+        head,
         '<div role="group" aria-label="Switch system" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 4px; background: #2C2B26; border-radius: 12px; margin-bottom: 18px">',
     ]
     for sid, (sname, _, home) in (SYSTEMS.items() if len(SYSTEMS) > 1 else []):
