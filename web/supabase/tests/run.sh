@@ -94,6 +94,8 @@ run 037_crm_iclosed_deals.sql
 run 037_crm_iclosed_deals.sql
 run 038_crm_cockpit_held_r1.sql
 run 038_crm_cockpit_held_r1.sql
+run 039_crm_cockpit_audit.sql
+run 039_crm_cockpit_audit.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -115,3 +117,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lnp_fr_labels_test.sql | tail -
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_engine_choice_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/iclosed_deals_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_held_r1_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_audit_test.sql | tail -1

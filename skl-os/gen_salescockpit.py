@@ -13,7 +13,7 @@ INFO = info_popup('Cockpit commercial', [
     ('À quoi sert cette page', 'p', 'La vue commerciale de LNP sur un seul écran : comment les prospects deviennent des encaissements, ce que chaque appel '
      'et chaque vente coûte et rapporte, où en est chaque commercial, ce qui arrive dans les 30 prochains jours et quels encaissements sont à risque.'),
     ('Ce qu’elle apporte', 'ul', [
-        '<strong>Du prospect à l’encaissement</strong> montre, étape par étape, où l’entonnoir perd des prospects, pour que l’équipe travaille d’abord l’étape la plus faible. Les <strong>appels honorés</strong> ne comptent que les R1 : le premier appel tenu de chaque prospect, jamais les R2 ni les R3.',
+        '<strong>Du prospect à l’encaissement</strong> montre, étape par étape, où l’entonnoir perd des prospects, pour que l’équipe travaille d’abord l’étape la plus faible. Les <strong>appels honorés</strong> ne comptent que les R1 : les prospects venus à leur R1, jamais les R2 ni les R3. Le <strong>taux de présence</strong> compare ces prospects à ceux dont le R1 était prévu ; un R1 sans issue déclarée reste en attente pendant 48 h, puis compte comme absence. Les fiches de test de l’équipe ne comptent pas.',
         '<strong>Rentabilité unitaire</strong> suit les 8 dernières semaines face à la référence (pointillés) : ce que rapporte un appel, le panier moyen et le taux de remboursement.',
         '<strong>Équipe commerciale</strong> classe les commerciaux par montant encaissé ; un clic ouvre leur pipeline dans le CRM.',
         '<strong>À venir</strong> et <strong>Encaissements à risque</strong> disent ce qu’il faut préparer et ce qu’il faut sécuriser ce mois-ci.',
