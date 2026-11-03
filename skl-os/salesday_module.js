@@ -62,23 +62,25 @@
 
   // what a card asks, in the order of the queue
   var KIND = {
-    outcome: { n: "Outcome to declare", c: "#B42318", act: "Declare the outcome of the call" },
-    prep: { n: "Call today", c: "#3B6FD4", act: "Prepare and confirm the call" },
-    resched: { n: "Reschedule", c: "#6366F1", act: "Plan a reschedule" },
-    reengage: { n: "No-show", c: "#8B5CF6", act: "Re-engage after the no-show" },
-    follow: { n: "Follow-up", c: "#9A6614", act: "Follow up" }
+    outcome: { n: "Issue à déclarer", c: "#B42318", act: "Déclarer l'issue de l'appel" },
+    prep: { n: "Appel aujourd'hui", c: "#3B6FD4", act: "Préparer et confirmer l'appel" },
+    resched: { n: "À replanifier", c: "#6366F1", act: "Replanifier l'appel" },
+    reengage: { n: "Absent", c: "#8B5CF6", act: "Relancer après l'absence" },
+    follow: { n: "Relance", c: "#9A6614", act: "Relancer" }
   };
   var ORDER = ["outcome", "prep", "resched", "reengage", "follow"];
-  var DEMO_REASONS = [{ code: "price", kind: "lost", label: "Price" }, { code: "timing", kind: "lost", label: "Timing" },
-    { code: "trust", kind: "lost", label: "Lack of trust" }, { code: "partner", kind: "lost", label: "Partner" },
-    { code: "dq_off_target", kind: "disqualified", label: "Not the target" }, { code: "dq_budget", kind: "disqualified", label: "No budget at all" }];
+  var DEMO_REASONS = [{ code: "price", kind: "lost", label: "Prix" }, { code: "timing", kind: "lost", label: "Mauvais moment" },
+    { code: "trust", kind: "lost", label: "Manque de confiance" }, { code: "partner", kind: "lost", label: "Conjoint ou associé" },
+    { code: "dq_off_target", kind: "disqualified", label: "Hors cible" }, { code: "dq_budget", kind: "disqualified", label: "Aucun budget" }];
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function dayKey(t) { var d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function ago(ms, now) {
-    var d = now - ms, a = Math.abs(d), f = a < H ? Math.max(1, Math.round(a / 60e3)) + " min" : a < 72 * H ? Math.round(a / H) + " h" : Math.round(a / DAY) + " days";
-    return d >= 0 ? f + " ago" : "in " + f;
+    var d = now - ms, a = Math.abs(d), f = a < H ? Math.max(1, Math.round(a / 60e3)) + " min" : a < 72 * H ? Math.round(a / H) + " h" : Math.round(a / DAY) + " j";
+    return d >= 0 ? "il y a " + f : "dans " + f;
   }
+  // shown labels of a "Done today" row (the stored `how` values stay as they are)
+  var HOW = { done: "fait", "no-show": "absent", yes: "oui", "follow-up": "relance", no: "non", disqualified: "disqualifié" };
   function hm(ms) { var d = new Date(ms); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
   function t(iso) { return iso ? Date.parse(iso) : null; }
   function callEnd(k) { return t(k.scheduled_end) || (t(k.scheduled_start) ? t(k.scheduled_start) + 45 * 60e3 : null); }
@@ -89,20 +91,20 @@
     var me = { id: "demo-sales", full_name: "Valentino", role: "sales" };
     var cy = function (id, name, extra) { return Object.assign({ id: id, status: "active", owner_id: me.id, opened_at: iso(now - 9 * DAY), person: { full_name: name, primary_email: name.toLowerCase().replace(/ /g, ".") + "@example.com", primary_phone: "+1 555 0100" }, calls: [], events: [], deal: null }, extra); };
     return { me: me, members: [me], reasons: DEMO_REASONS, cycles: [
-      cy("d1", "Sample Prospect A", { next_move: { code: "declare_outcome" }, last_event_at: iso(now - 20 * H),
+      cy("d1", "Prospect fictif A", { next_move: { code: "declare_outcome" }, last_event_at: iso(now - 20 * H),
         calls: [{ id: "d1k1", rank: 1, status: "held", scheduled_start: iso(now - 21 * H), scheduled_end: iso(now - 20 * H) }] }),
-      cy("d2", "Sample Prospect B", { next_move: { code: "declare_outcome" }, last_event_at: iso(now - 4 * H),
+      cy("d2", "Prospect fictif B", { next_move: { code: "declare_outcome" }, last_event_at: iso(now - 4 * H),
         calls: [{ id: "d2k1", rank: 1, status: "scheduled", scheduled_start: iso(now - 5 * H), scheduled_end: iso(now - 4 * H) }] }),
-      cy("d3", "Sample Prospect C", { next_move: { code: "attend_call" }, last_event_at: iso(now - 2 * DAY),
+      cy("d3", "Prospect fictif C", { next_move: { code: "attend_call" }, last_event_at: iso(now - 2 * DAY),
         calls: [{ id: "d3k1", rank: 1, status: "scheduled", scheduled_start: iso(now + 3 * H), scheduled_end: iso(now + 4 * H) }] }),
-      cy("d4", "Sample Prospect D", { next_move: { code: "rebook", missed: 2 }, last_event_at: iso(now - DAY),
+      cy("d4", "Prospect fictif D", { next_move: { code: "rebook", missed: 2 }, last_event_at: iso(now - DAY),
         calls: [{ id: "d4k1", rank: 1, status: "held", scheduled_start: iso(now - 6 * DAY), scheduled_end: iso(now - 6 * DAY + H) },
                 { id: "d4k2", rank: 2, status: "missed", scheduled_start: iso(now - DAY - H), scheduled_end: iso(now - DAY) }] }),
-      cy("d5", "Sample Prospect E", { next_move: { code: "follow_up" }, last_event_at: iso(now - 2 * DAY),
+      cy("d5", "Prospect fictif E", { next_move: { code: "follow_up" }, last_event_at: iso(now - 2 * DAY),
         calls: [{ id: "d5k1", rank: 1, status: "no_show", scheduled_start: iso(now - 2 * DAY), scheduled_end: iso(now - 2 * DAY + H) }] }),
-      cy("d6", "Sample Prospect F", { next_move: { code: "follow_up" }, last_event_at: iso(now - 4 * DAY), last_sales_at: iso(now - 4 * DAY),
+      cy("d6", "Prospect fictif F", { next_move: { code: "follow_up" }, last_event_at: iso(now - 4 * DAY), last_sales_at: iso(now - 4 * DAY),
         calls: [{ id: "d6k1", rank: 1, status: "held", scheduled_start: iso(now - 5 * DAY), scheduled_end: iso(now - 5 * DAY + H) }],
-        events: [{ type: "outcome_follow_up", source: "crm", call_id: "d6k1", occurred_at: iso(now - 5 * DAY), data: { next_step: "Send the case study and call back" } }] })
+        events: [{ type: "outcome_follow_up", source: "crm", call_id: "d6k1", occurred_at: iso(now - 5 * DAY), data: { next_step: "Envoyer l'étude de cas et rappeler" } }] })
     ] };
   }
 
@@ -140,14 +142,14 @@
 
   window.SKL_SALESDAY = {
     css: CSS,
-    html: '<div id="sd"><div class="card cover">Loading your day…</div></div>',
+    html: '<div id="sd"><div class="card cover">Chargement de votre journée…</div></div>',
     mount: function (root, tip, toast) {
       var box = root.getElementById("sd");
       var C = window.SKL_CRM, S = { live: false, loading: true, error: "", me: null, members: [], reasons: DEMO_REASONS, cycles: [],
         who: "me", day: { done: [], snoozed: [] }, dayKey: dayKey(Date.now()), skipped: [], form: {}, busy: false, front: null, msg: "" };
       function say(m) { if (!toast) return; toast.textContent = m; toast.style.opacity = 1; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.opacity = 0; }, 2400); }
       function lead() { return S.me && ["admin", "sales_lead", "viewer"].indexOf(S.me.role) >= 0; }
-      function saveDay() { if (C) C.setPref("salesday." + S.dayKey, S.day).catch(function () { say("Today's list could not be saved"); }); }
+      function saveDay() { if (C) C.setPref("salesday." + S.dayKey, S.day).catch(function () { say("La liste du jour n'a pas pu être enregistrée"); }); }
       function load() {
         S.loading = true; S.error = ""; render();
         var now = Date.now();
@@ -178,10 +180,10 @@
       }
       function facts(i, now) {
         var c = i.c, k = i.call, out = [];
-        if (k) out.push([(i.kind === "prep" ? hm(t(k.scheduled_start)) : ago(callEnd(k), now)), "R" + (k.rank || 1) + " · " + (k.status === "missed" ? "not held" : k.status === "no_show" ? "no-show" : i.kind === "prep" ? "today" : "call")]);
-        out.push([c.last_event_at ? ago(t(c.last_event_at), now) : "—", "last activity"]);
+        if (k) out.push([(i.kind === "prep" ? hm(t(k.scheduled_start)) : ago(callEnd(k), now)), "R" + (k.rank || 1) + " · " + (k.status === "missed" ? "manqué" : k.status === "no_show" ? "absent" : i.kind === "prep" ? "aujourd'hui" : "appel")]);
+        out.push([c.last_event_at ? ago(t(c.last_event_at), now) : "—", "dernière activité"]);
         var owner = S.members.filter(function (m) { return m.id === c.owner_id; })[0];
-        out.push([owner ? owner.full_name : "—", "sales rep"]);
+        out.push([owner ? owner.full_name : "—", "commercial"]);
         return out;
       }
       function nextStep(c) {
@@ -190,63 +192,63 @@
       }
       function cardHTML(i, n, of, now) {
         var K = KIND[i.kind], F = S.form, c = i.c;
-        var head = '<div class="ctx"><span class="tag" style="background:' + K.c + '">' + K.n + '</span><span>Lead ' + n + ' of ' + of + '</span>' +
+        var head = '<div class="ctx"><span class="tag" style="background:' + K.c + '">' + K.n + '</span><span>Prospect ' + n + ' sur ' + of + '</span>' +
           (c.person && c.person.primary_phone ? '<span>· ' + esc(c.person.primary_phone) + '</span>' : '') + '</div><h2>' + esc(i.name) + '</h2>';
-        var act = K.act + (i.kind === "resched" && c.next_move && c.next_move.missed ? " · R" + c.next_move.missed + " was not held (no Fathom recording)" : "") +
+        var act = K.act + (i.kind === "resched" && c.next_move && c.next_move.missed ? " · R" + c.next_move.missed + " n'a pas eu lieu (pas d'enregistrement Fathom)" : "") +
           (i.kind === "follow" && nextStep(c) ? " · " + nextStep(c) : "");
-        var body = '<div class="act"><b>To do</b><span>' + esc(act) + '</span></div><div class="facts">' +
+        var body = '<div class="act"><b>À faire</b><span>' + esc(act) + '</span></div><div class="facts">' +
           facts(i, now).map(function (f) { return '<div><b title="' + esc(f[0]) + '">' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span></div>'; }).join("") + '</div>';
         var ro = S.live && S.me && S.me.role === "viewer";
         if (i.kind === "outcome") {
           var att = F.att, dec = F.dec, rs = S.reasons.filter(function (r) { return r.kind === (dec === "no" ? "lost" : "disqualified"); });
-          body += '<div class="lbl">Did the call happen?</div><div class="chips">' +
-            [["held", "Held"], ["no_show", "No-show"]].map(function (x) { return '<button class="chip" data-att="' + x[0] + '" aria-pressed="' + (att === x[0]) + '">' + x[1] + '</button>'; }).join("") + '</div>';
+          body += '<div class="lbl">L\'appel a-t-il eu lieu ?</div><div class="chips">' +
+            [["held", "Honoré"], ["no_show", "Absent"]].map(function (x) { return '<button class="chip" data-att="' + x[0] + '" aria-pressed="' + (att === x[0]) + '">' + x[1] + '</button>'; }).join("") + '</div>';
           if (att === "held") {
-            body += '<div class="lbl">Decision</div><div class="chips">' + [["yes", "Yes"], ["follow_up", "Follow-up"], ["no", "No"], ["disqualified", "Disqualified"]]
+            body += '<div class="lbl">Décision</div><div class="chips">' + [["yes", "Oui"], ["follow_up", "Relance"], ["no", "Non"], ["disqualified", "Disqualifié"]]
               .map(function (x) { return '<button class="chip" data-dec="' + x[0] + '" aria-pressed="' + (dec === x[0]) + '">' + x[1] + '</button>'; }).join("") + '</div>';
-            if (dec === "follow_up") body += '<input class="inp" id="sdnext" placeholder="Next step (what was agreed)" value="' + esc(F.next || "") + '">';
-            if (dec === "no" || dec === "disqualified") body += '<select class="inp" id="sdreason" aria-label="Reason"><option value="">Reason…</option>' +
+            if (dec === "follow_up") body += '<input class="inp" id="sdnext" placeholder="Prochaine étape (ce qui a été convenu)" value="' + esc(F.next || "") + '">';
+            if (dec === "no" || dec === "disqualified") body += '<select class="inp" id="sdreason" aria-label="Motif"><option value="">Motif…</option>' +
               rs.map(function (r) { return '<option value="' + esc(r.code) + '"' + (F.reason === r.code ? " selected" : "") + '>' + esc(r.label) + '</option>'; }).join("") + '</select>';
-            if (dec === "yes") body += '<input class="inp" id="sdamount" inputmode="decimal" placeholder="Amount signed (optional)" value="' + esc(F.amount || "") + '">';
+            if (dec === "yes") body += '<input class="inp" id="sdamount" inputmode="decimal" placeholder="Montant signé (facultatif)" value="' + esc(F.amount || "") + '">';
           }
           var ok = att === "no_show" || (att === "held" && dec && (dec === "yes" || dec === "follow_up" || F.reason));
           body += (F.err ? '<div class="err">' + esc(F.err) + '</div>' : '') +
-            '<div class="cacts"><button class="btn p" data-do="declare"' + (ok && !S.busy && !ro ? "" : " disabled") + '>' + (S.busy ? "Saving…" : "Declare and next") + '</button>' +
-            '<button class="btn" data-do="snooze">Tomorrow</button><button class="btn" data-do="skip">Skip</button></div>';
+            '<div class="cacts"><button class="btn p" data-do="declare"' + (ok && !S.busy && !ro ? "" : " disabled") + '>' + (S.busy ? "Enregistrement…" : "Déclarer et suivant") + '</button>' +
+            '<button class="btn" data-do="snooze">Demain</button><button class="btn" data-do="skip">Passer</button></div>';
         } else {
-          body += '<textarea class="inp" id="sdnote" placeholder="What did you do? (saved as a note on the lead)">' + esc(F.note || "") + '</textarea>' +
+          body += '<textarea class="inp" id="sdnote" placeholder="Qu\'avez-vous fait ? (enregistré en note sur le prospect)">' + esc(F.note || "") + '</textarea>' +
             (F.err ? '<div class="err">' + esc(F.err) + '</div>' : '') +
-            '<div class="cacts"><button class="btn p" data-do="done"' + (S.busy || ro ? " disabled" : "") + '>' + (S.busy ? "Saving…" : "Done") + '</button>' +
-            '<button class="btn" data-do="snooze">Tomorrow</button><button class="btn" data-do="skip">Skip</button></div>' +
-            '<div class="hint">Swipe the card to the right when it is done.</div>';
+            '<div class="cacts"><button class="btn p" data-do="done"' + (S.busy || ro ? " disabled" : "") + '>' + (S.busy ? "Enregistrement…" : "Fait") + '</button>' +
+            '<button class="btn" data-do="snooze">Demain</button><button class="btn" data-do="skip">Passer</button></div>' +
+            '<div class="hint">Faites glisser la carte vers la droite une fois l\'action faite.</div>';
         }
         return '<div class="deck"><article class="tc" id="tc" data-id="' + esc(i.id) + '">' + head + body +
-          '<div class="cacts"><button class="btn ln sm" data-go="CRM.dc.html">Open the CRM</button></div></article></div>';
+          '<div class="cacts"><button class="btn ln sm" data-go="CRM.dc.html">Ouvrir le CRM</button></div></article></div>';
       }
       function render() {
         if (!box.isConnected) return;
-        if (S.loading) { box.innerHTML = '<div class="card cover">Loading your day…</div>'; return; }
-        if (S.error) { box.innerHTML = '<div class="card cover">Your day could not be loaded: ' + esc(S.error) + '<div class="cacts"><button class="btn" data-do="reload">Retry</button></div></div>'; return; }
+        if (S.loading) { box.innerHTML = '<div class="card cover">Chargement de votre journée…</div>'; return; }
+        if (S.error) { box.innerHTML = '<div class="card cover">Votre journée n\'a pas pu être chargée : ' + esc(S.error) + '<div class="cacts"><button class="btn" data-do="reload">Réessayer</button></div></div>'; return; }
         if (dayKey(Date.now()) !== S.dayKey) { S.dayKey = dayKey(Date.now()); S.day = { done: [], snoozed: [] }; S.skipped = []; }
         var L = lists(), now = L.now, cur = L.open[0];
         var counts = {}; L.open.forEach(function (i) { counts[i.kind] = (counts[i.kind] || 0) + 1; });
-        var who = (lead() || !S.live) ? '<select class="sel" data-who aria-label="Whose leads"><option value="me"' + (S.who === "me" ? " selected" : "") + '>My leads</option>' +
-          (lead() ? '<option value="all"' + (S.who === "all" ? " selected" : "") + '>Everyone</option>' + S.members.filter(function (m) { return m.active !== false && S.me && m.id !== S.me.id; })
+        var who = (lead() || !S.live) ? '<select class="sel" data-who aria-label="Prospects affichés"><option value="me"' + (S.who === "me" ? " selected" : "") + '>Mes prospects</option>' +
+          (lead() ? '<option value="all"' + (S.who === "all" ? " selected" : "") + '>Toute l\'équipe</option>' + S.members.filter(function (m) { return m.active !== false && S.me && m.id !== S.me.id; })
             .map(function (m) { return '<option value="' + esc(m.id) + '"' + (S.who === m.id ? " selected" : "") + '>' + esc(m.full_name) + '</option>'; }).join("") : "") + '</select>' : "";
-        var dateLbl = new Date(now).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+        var dateLbl = new Date(now).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
         var pct = L.total ? Math.round(L.done.length / L.total * 100) : 0;
-        var main = '<div class="card main"><div class="head"><div><span class="pk">Sales Day · ' + (S.live ? "" : "sample leads · ") + L.done.length + ' of ' + L.total + ' done</span><h2>' + esc(dateLbl) + '</h2></div><span class="sp"></span>' + who +
-          '<button class="btn sm" data-do="reload" title="Read the CRM again">Refresh</button></div>' +
+        var main = '<div class="card main"><div class="head"><div><span class="pk">Ma journée · ' + (S.live ? "" : "prospects fictifs · ") + L.done.length + ' sur ' + L.total + ' fait' + (L.done.length > 1 ? 's' : '') + '</span><h2>' + esc(dateLbl) + '</h2></div><span class="sp"></span>' + who +
+          '<button class="btn sm" data-do="reload" title="Relire le CRM">Actualiser</button></div>' +
           '<div class="prog"><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
           '<div class="kinds">' + ORDER.filter(function (k) { return counts[k]; }).map(function (k) { return '<span class="kd"><i style="background:' + KIND[k].c + '"></i>' + KIND[k].n + ' <b>' + counts[k] + '</b></span>'; }).join("") + '</div>' +
           '<div class="stage">' + (cur ? cardHTML(cur, L.done.length + 1, L.total, now) :
-            '<div class="deck"><article class="tc clear"><span class="pk">All clear</span><h2>Every lead of today is handled</h2><p class="empty">New outcomes and follow-ups show here as soon as the CRM has them. ' +
-            (L.snoozed.length ? L.snoozed.length + ' put aside for tomorrow.' : '') + '</p></article></div>') + '</div></div>';
+            '<div class="deck"><article class="tc clear"><span class="pk">Tout est fait</span><h2>Tous les prospects du jour sont traités</h2><p class="empty">Les nouvelles issues et relances s\'affichent ici dès que le CRM les reçoit. ' +
+            (L.snoozed.length ? L.snoozed.length + ' mis de côté pour demain.' : '') + '</p></article></div>') + '</div></div>';
         var next = L.open.slice(1, 9).map(function (i) { return '<button class="li" data-front="' + esc(i.id) + '"><i style="background:' + KIND[i.kind].c + '"></i><span>' + esc(i.name) + '</span><em>' + KIND[i.kind].n + '</em></button>'; }).join("");
-        var done = L.done.slice().reverse().map(function (d) { return '<div class="li done"><i style="background:' + (KIND[d.kind] || KIND.follow).c + '"></i><span>' + esc(d.name) + '</span><em>' + esc(d.how || "") + " · " + hm(t(d.at)) + '</em></div>'; }).join("");
-        var side = '<div class="side"><div class="card"><h3>Up next</h3>' + (next || '<div class="empty">Nothing else waiting.</div>') + (L.open.length > 9 ? '<div class="empty">+ ' + (L.open.length - 9) + ' more</div>' : '') + '</div>' +
-          '<div class="card"><h3>Done today</h3>' + (done || '<div class="empty">Nothing yet.</div>') + '</div>' +
-          (L.snoozed.length ? '<div class="card"><h3>Tomorrow</h3>' + L.snoozed.map(function (i) { return '<div class="li"><i style="background:' + KIND[i.kind].c + '"></i><span>' + esc(i.name) + '</span><button class="btn ln sm" data-unsnooze="' + esc(i.id) + '">Back today</button></div>'; }).join("") + '</div>' : '') + '</div>';
+        var done = L.done.slice().reverse().map(function (d) { return '<div class="li done"><i style="background:' + (KIND[d.kind] || KIND.follow).c + '"></i><span>' + esc(d.name) + '</span><em>' + esc(HOW[d.how] || d.how || "") + " · " + hm(t(d.at)) + '</em></div>'; }).join("");
+        var side = '<div class="side"><div class="card"><h3>À suivre</h3>' + (next || '<div class="empty">Rien d\'autre en attente.</div>') + (L.open.length > 9 ? '<div class="empty">+ ' + (L.open.length - 9) + ' autres</div>' : '') + '</div>' +
+          '<div class="card"><h3>Fait aujourd\'hui</h3>' + (done || '<div class="empty">Rien pour l\'instant.</div>') + '</div>' +
+          (L.snoozed.length ? '<div class="card"><h3>Demain</h3>' + L.snoozed.map(function (i) { return '<div class="li"><i style="background:' + KIND[i.kind].c + '"></i><span>' + esc(i.name) + '</span><button class="btn ln sm" data-unsnooze="' + esc(i.id) + '">Remettre aujourd\'hui</button></div>'; }).join("") + '</div>' : '') + '</div>';
         box.innerHTML = '<div class="wrap">' + main + side + '</div>';
         swipe();
       }
@@ -269,9 +271,9 @@
         if (kind === "done") {
           var note = (F.note || "").trim();
           S.busy = true; F.err = ""; render();
-          Promise.resolve(S.live ? C.addNote(i.c.id, "Sales Day · " + KIND[i.kind].act + (note ? ": " + note : "")) : { demo: true }).then(function (r) {
+          Promise.resolve(S.live ? C.addNote(i.c.id, "Ma journée · " + KIND[i.kind].act + (note ? " : " + note : "")) : { demo: true }).then(function (r) {
             S.busy = false;
-            if (r && r.error) { F.err = r.error.message || "Not saved"; return render(); }
+            if (r && r.error) { F.err = r.error.message || "Non enregistré"; return render(); }
             finish("out", function () { markDone(i, "done"); });
           }, function (e) { S.busy = false; F.err = String((e && e.message) || e); render(); });
           return;
@@ -282,12 +284,14 @@
             p.decision = F.dec;
             if (F.dec === "no" || F.dec === "disqualified") p.reason_code = F.reason;
             if (F.dec === "follow_up" && (F.next || "").trim()) p.next_step = F.next.trim();
-            if (F.dec === "yes" && F.amount && !isNaN(Number(F.amount))) p.amount_sold = Number(F.amount);
+            // a French amount ("1 500,50") is read as 1500.50
+            var amt = Number(String(F.amount || "").replace(/[\s\u00a0\u202f]/g, "").replace(",", "."));
+            if (F.dec === "yes" && F.amount && !isNaN(amt)) p.amount_sold = amt;
           }
           S.busy = true; F.err = ""; render();
           Promise.resolve(S.live ? C.declareOutcome(i.call.id, p) : { demo: true }).then(function (r) {
             S.busy = false;
-            if (r && r.error) { F.err = r.error.message || "Not saved"; return render(); }
+            if (r && r.error) { F.err = r.error.message || "Non enregistré"; return render(); }
             var how = F.att === "no_show" ? "no-show" : { yes: "yes", follow_up: "follow-up", no: "no", disqualified: "disqualified" }[F.dec];
             finish("out", function () {
               markDone(i, how);
@@ -298,7 +302,7 @@
               i.c.last_sales_at = new Date().toISOString();
               if (F.dec === "no" || F.dec === "disqualified") i.c.status = F.dec === "no" ? "lost" : "disqualified";
             });
-            say("Outcome declared for " + i.name);
+            say("Issue déclarée pour " + i.name);
           }, function (e) { S.busy = false; F.err = String((e && e.message) || e); render(); });
         }
       }
