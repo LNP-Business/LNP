@@ -1,6 +1,6 @@
 // One import run: pages from the source (Close or iClosed) -> crm_import_people, counts saved on crm_import_runs.
 import { closeLeadToItems, closePages, ImportItem } from "./importers/close.ts";
-import { iclosedAllCalls, iclosedCallsToItems, iclosedContactToItem, iclosedPages } from "./importers/iclosed.ts";
+import { iclosedAllCalls, iclosedAllDeals, iclosedCallsToItems, iclosedDealsToItems, iclosedContactToItem, iclosedPages } from "./importers/iclosed.ts";
 import { sendblueAllMessages, sendblueHistoryItems } from "./importers/sendblue.ts";
 import { fathomHistoryItems, fathomMeetings } from "./importers/fathom.ts";
 import { Rpc } from "./worker.ts";
@@ -95,6 +95,26 @@ export async function importIclosedCalls(o: Opts): Promise<Out> {
     return { run: run.id, dry: o.dry, more: false, stats };
   } catch (e) {
     await o.rpc("crm_import_save", { p_run: run.id, p_cursor: { source: "iclosed_calls" }, p_stats: stats, p_status: "failed", p_error: String((e as Error)?.message ?? e) });
+    throw e;
+  }
+}
+
+// iClosed deals (037): every deal, then crm_import_deals by batches of 100 (sales and cash of the cockpit).
+export async function importIclosedDeals(o: Opts): Promise<Out> {
+  if (!o.apiKey) return { error: "ICLOSED_API_KEY is not set in Supabase (Edge Functions › Secrets)" };
+  const busy = await o.rest("GET", `crm_import_runs?status=eq.running&started_at=gte.${new Date(Date.now() - 10 * 60e3).toISOString()}&select=id`);
+  if (busy.length) return { error: "an import is already running", run: busy[0].id };
+  const [run] = await o.rest("POST", "crm_import_runs", { source: "import", dry_run: o.dry, cursor: { source: "iclosed_deals" } });
+  let stats: Stats = {};
+  try {
+    const items = iclosedDealsToItems(await iclosedAllDeals(o.apiKey, o.fetchFn));
+    for (let i = 0; i < items.length; i += 100) {
+      stats = addStats(stats, (await o.rpc("crm_import_deals", { p_items: items.slice(i, i + 100), p_dry: o.dry })) as Stats);
+    }
+    await o.rpc("crm_import_save", { p_run: run.id, p_cursor: { source: "iclosed_deals" }, p_stats: stats, p_status: "done" });
+    return { run: run.id, dry: o.dry, more: false, stats };
+  } catch (e) {
+    await o.rpc("crm_import_save", { p_run: run.id, p_cursor: { source: "iclosed_deals" }, p_stats: stats, p_status: "failed", p_error: String((e as Error)?.message ?? e) });
     throw e;
   }
 }

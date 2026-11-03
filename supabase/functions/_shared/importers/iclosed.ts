@@ -140,3 +140,58 @@ export async function iclosedAllCalls(apiKey: string, fetchFn: typeof fetch = fe
   }
   return [...seen.values()];
 }
+
+// ── deals (GET /v1/deals) → crm_deals and crm_payments ──
+export async function iclosedAllDeals(apiKey: string, fetchFn: typeof fetch = fetch, limit = 100, wait: Wait = sleep) {
+  const headers = iclosedHeaders(apiKey), seen = new Map<number, Obj>();
+  for (let page = 0; page < 500; page++) {
+    if (page) await wait(ICLOSED_PAGE_GAP_MS);
+    const j = await iclosedGet(`${ICLOSED_BASE}/v1/deals?limit=${limit}&page=${page}`, headers, fetchFn, wait);
+    const list: Obj[] = j?.data?.deals ?? [];
+    const before = seen.size;
+    for (const d of list) seen.set(d.id, d);
+    if (!list.length || seen.size === before || seen.size >= Number(j?.data?.count ?? 0)) break;
+  }
+  return [...seen.values()];
+}
+
+// Read-only counts over iClosed's deals (types, recurrence, products, amounts by month), no personal data.
+export function dealsReport(deals: Obj[]) {
+  const count = (m: Obj, k: unknown) => { const s = String(k ?? "(none)"); m[s] = (m[s] ?? 0) + 1; };
+  const types: Obj = {}, recurring: Obj = {}, products: Obj = {}, tags: Obj = {}, events: Obj = {}, users: Obj = {}, formats: Obj = {};
+  const months: Obj = {}, byType: Obj = {};
+  let withCall = 0, withContact = 0, timeVsCreated = 0;
+  for (const d of deals) {
+    count(types, d.transactionType); count(recurring, d.recurring); count(products, d.product?.name); count(tags, d.tag?.name);
+    count(events, d.event?.name); count(users, normEmail(d.user?.email)); count(formats, String(d.value ?? "").replace(/\d/g, "9"));
+    const v = Number(String(d.value ?? "").replace(",", ".")), m = String(d.time ?? d.createdAt ?? "").slice(0, 7);
+    months[m] = months[m] ?? { n: 0, sum: 0 }; months[m].n++; months[m].sum += Number.isFinite(v) ? v : 0;
+    const t = String(d.transactionType ?? "(none)");
+    byType[t] = byType[t] ?? { n: 0, sum: 0, min: null, max: null };
+    byType[t].n++; if (Number.isFinite(v)) { byType[t].sum += v; byType[t].min = Math.min(byType[t].min ?? v, v); byType[t].max = Math.max(byType[t].max ?? v, v); }
+    if (d.eventCallId) withCall++; if (d.contactId) withContact++;
+    if (d.time && d.createdAt && String(d.time).slice(0, 10) !== String(d.createdAt).slice(0, 10)) timeVsCreated++;
+  }
+  const perContact: Obj = {};
+  const byC = new Map<string, number>(); for (const d of deals) byC.set(String(d.contactId), (byC.get(String(d.contactId)) ?? 0) + 1);
+  for (const n of byC.values()) count(perContact, n);
+  return { deals: deals.length, types, by_type: byType, recurring, products, tags, events, users, value_formats: formats, months,
+    with_event_call: withCall, with_contact: withContact, time_not_created_day: timeVsCreated, deals_per_contact: perContact,
+    time_format: deals[0] ? String(deals[0].time ?? "").replace(/\d/g, "9") : null };
+}
+
+// One item per deal for crm_import_deals (037). iClosed's `time` ("2026-06-12 10:00:00.000", no zone) is read as UTC.
+export function iclosedDealsToItems(deals: Obj[]) {
+  const iso = (t: unknown) => {
+    const s = String(t ?? "").trim();
+    if (!s) return null;
+    const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : s.replace(" ", "T") + "Z");
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  };
+  return deals.map((d) => ({
+    iclosed_deal_id: String(d.id), iclosed_call_id: d.eventCallId != null ? String(d.eventCallId) : null,
+    iclosed_contact_id: d.contactId != null ? String(d.contactId) : null, type: d.transactionType ?? null,
+    value: String(d.value ?? "").replace(",", ".").trim() || null, product: String(d.product?.name ?? "").trim() || null,
+    at: iso(d.time) ?? iso(d.createdAt),
+  }));
+}

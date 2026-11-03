@@ -377,6 +377,23 @@ pas les lignes `whop`. La fixture `whop-payment_succeeded.json` montre la forme 
 skl_person_id}}` et les en-têtes Standard Webhooks. La correspondance prévue (`docs/crm/08-integration-whop.md` §4) n'est pas
 codée.
 
+### 5.5 Ventes et encaissements iClosed (037)
+
+Tant que Whop n'est pas branché, les montants du Cockpit (encaissé, rapport par appel, panier moyen, remboursements) viennent des
+ventes que les commerciaux saisissent dans iClosed (`GET /v1/deals` : `value`, `transactionType` `WON` ou `DEPOSIT`, `product`,
+`time`, `eventCallId`, `contactId`). `crm-import ?source=iclosed_deals` lit toutes les ventes et appelle `crm_import_deals` par lots
+de 100 ; la tâche `crm-iclosed-deals-hourly` le relance à la minute 41 de chaque heure. `?report=deals` donne des comptes seulement
+(types, produits, montants par mois).
+
+| iClosed | CRM |
+|---|---|
+| le cycle | celui de l'appel (`crm_calls.iclosed_call_id = eventCallId`), sinon le dernier cycle de la personne dont l'identité `iclosed_contact_id` vaut `contactId` ; sans cycle, la vente est comptée `unmatched` et rien n'est écrit |
+| chaque vente | une ligne `crm_payments` (`source = 'iclosed'`, `method` `won` ou `deposit`, `amount = value`, `paid_at = time` lu en UTC, clé `iclosed_deal_id`) et un événement `payment_succeeded` (`source_id = 'deal:<id>'`) : le cycle passe gagné à la date de la vente |
+| le cycle vendu | une ligne `crm_deals` : `amount_sold` = somme de ses ventes iClosed, `product`, `yes_at` = première vente ; un montant saisi à la main n'est jamais remplacé |
+
+Limites : iClosed n'a pas de remboursement (le taux de remboursement reste à 0 %) ni d'échéancier ; le montant saisi dans iClosed
+est pris comme encaissé.
+
 ---
 
 ## 6. `crm-import` (imports, rapports, sondes)
