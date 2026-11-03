@@ -159,8 +159,8 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         else:
             ctx.results["PITCH"] = _safe(ctx, "PITCH", lambda: run_pitch(ctx, s3.answer, drops))
 
-    # S4 · objections after the pitch, prevention before the price
-    if not ctx.phases.pitch_start and not ctx.phases.first_price:
+    # S4 · objections after the first price (OB-27), prevention before it; no price = nothing to read
+    if not ctx.phases.first_price:
         ctx.results["OBJECTIONS"] = CompetenceResult("OBJECTIONS", RULES["OBJECTIONS"], status="not_applicable",
                                                      reasons=["no_resistance_no_price"], concordance="single_reading")
     else:

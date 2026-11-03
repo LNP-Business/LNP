@@ -178,6 +178,7 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | OB-24 | Denied anxiety | `methodology/04_objections_B_bounding_rules.md` |
 | OB-25 | External reason that also limits time | `methodology/04_objections_B_bounding_rules.md` |
 | OB-26 | Attribution | `methodology/04_objections_B_bounding_rules.md` |
+| OB-27 | Scope: after the first price only | `methodology/04_objections_B_bounding_rules.md` |
 
 ## Exclusion rules
 Each bounding file ends with an exclusion table ("Never counts as…", X1, X2, …) and a table of minimal pairs (two passages that differ by one element and change the verdict). Minimal pairs are implemented as unit tests in `engine/tests/`.

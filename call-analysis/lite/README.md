@@ -15,7 +15,7 @@ Switch (per job, read by the worker from the claim): `update crm_ca_config set e
    prospect's answer.
 2. The **gap** played back, with the Gap 1.3 methodology (absence gate, verbatim rule GB-22, formula GB-28 to GB-34).
 3. The **pitch**, with the Pitch 2.0 methodology (compliance gate, staircase, roadmap, claims, promises, adhesion).
-4. The **objections raised after the pitch start only**, each objection **once** (its repeats merged, with all their
+4. The **objections raised after the first price only** (OB-27), each objection **once** (its repeats merged, with all their
    quotes), and **A · I · E · M** on each; plus the prevention facts before the first price.
 
 ## The steps
@@ -36,8 +36,8 @@ most steps fail, the job stops (`ModelErrors`, not retried).
 | S3 `lite.s3_pitch` | in one answer, the engine's pitch questions: category of the validated P, steps 1 to 4, roadmap, claims, outcome promises, adhesion | runs the engine's `PitchCompetence` unchanged (list answers cut into its chunks); compliance gate (PB-37 pitch after the yes, PB-35 claims, PB-36 promises), K1 to K7 are the engine's code. Whether the pitch comes after the gap is decided by code from the Gap validation turn, never asked |
 | S4 `lite.s4_objections` | each different resistance once, its subjects and every quote; for the first passage: topic change, acknowledge, isolate, explore, matching gesture, reaction; the prevention facts | see below |
 
-S4 in code (`objections.py`): a quote must be an exact passage of a PROSPECT or co-decider turn **after the pitch
-start** (before: dropped and counted); the nature comes from the subjects with the OB-3 boundary tests
+S4 in code (`objections.py`): a quote must be an exact passage of a PROSPECT or co-decider turn **after the first
+price** (before it: dropped and counted); the nature comes from the subjects with the OB-3 boundary tests
 (`nature_of_subjects`, OB-24); objections of the same nature and theme, or sharing a quote, are merged into one with all
 their quotes; one episode per objection: response = the sales turns from its first passage to the topic change (the
 model's, checked: a SALES turn before the next objection), reaction = the prospect turns after the first response; a
@@ -110,8 +110,8 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    without a kind counts as present); the stopping question (GB-30) is S1's flag (the engine's regex still applies
    first). The validation must be read on the prospect turn right after the passage (GB-8, code): a reading of another
    turn makes the unit `to_review`.
-8. **Objections**: (a) only resistances after the pitch start (Romain, 2026-11-03); the methodology reads the whole
-   call. (b) One objection per nature and theme: repeats inside the episode are a repetition (persisting), after it a
+8. **Objections**: (a) only resistances after the first price (OB-27, Romain, 2026-11-03; the engine applies the same
+   rule). (b) One objection per nature and theme: repeats inside the episode are a repetition (persisting), after it a
    recurrence (H5 = 0), and two natures in one passage (OB-4) are merged into one when they share a quote. (c) The
    topic change (OB-8) is the model's single answer, checked to be a SALES turn before the next objection, not the
    engine's code-and-question walk turn by turn. (d) The deadlines found at detection (OB-2, OB-25) do not feed

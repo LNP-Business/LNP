@@ -336,14 +336,14 @@ def test_pair8a_latent_and_8b_not_latent():
              (SALES, "Let's move on to the curriculum and the modules."),                   # T003
              (PROSPECT, "Okay."),                                                           # T004
              (SALES, "Module one covers design fundamentals and color theory.")]            # T005
-    ctx = synth(lines)
+    ctx = synth(lines, first_price="T001")                 # OB-27: resistances are read after the first price
     ans = {("obj.resistance", "res:T002"): doubt("it's not the right time for me", "postponement"),
            ("obj.topic", "topic:T002.inertia:T003"): {"new_subject": True, "receive_and_leave": False,
                                                        "quote": "Let's move on to the curriculum"}}
     res, _ = run(ctx, ans)
     e = ep_by_turn(res, "T002")[0]
     assert e["reaction"]["level"] == "latent" and e["latent_rule"] == "no_reaction" and lvl(e, "H4") == 0   # 8a
-    assert res.status == "scored" and res.details["prevention_status"] == "not_applicable"
+    assert res.status == "scored" and res.details["prevention_status"] == "scored"
 
     lines8b = [(SALES, "So tell me about your goals."),                                     # T001
                (PROSPECT, "Maybe later, it's not the right time for me."),                  # T002
@@ -354,7 +354,7 @@ def test_pair8a_latent_and_8b_not_latent():
                (SALES, "How does that feel when you say it out loud?"),                     # T007
                (PROSPECT, "Honestly, it feels terrible, I don't want that."),               # T008
                (SALES, "Let's look at the curriculum and the modules.")]                    # T009
-    ctx = synth(lines8b)
+    ctx = synth(lines8b, first_price="T001")
     ans = {("obj.resistance", "res:T002"): doubt("it's not the right time for me", "postponement"),
            ("obj.topic", "topic:T002.inertia:T003"): {"new_subject": False, "receive_and_leave": False},
            ("obj.topic", "topic:T002.inertia:T005"): {"new_subject": False, "receive_and_leave": False},
@@ -385,31 +385,33 @@ def test_pair8a_latent_and_8b_not_latent():
 
 
 def test_recurrence_in_call_ob11():
-    lines = [(PROSPECT, "It's too expensive for me."),                    # T001
-             (SALES, "I understand. Compared to what?"),                   # T002
-             (PROSPECT, "Compared to a normal course online."),            # T003
-             (SALES, "Let's look at the next module together now."),      # T004
-             (PROSPECT, "Sure."),                                          # T005
-             (SALES, "Module two covers lighting plans."),                 # T006
-             (PROSPECT, "Honestly it's still too expensive."),             # T007
-             (SALES, "Let's book a call with your partner.")]              # T008
-    ctx = synth(lines)
-    ans = {("obj.resistance", "res:T001"): doubt("too expensive for me", "price"),
-           ("obj.resistance", "res:T007"): doubt("it's still too expensive", "price"),
-           ("obj.topic", "topic:T001.objection:T002"): {"new_subject": False, "receive_and_leave": False}}
+    lines = [(SALES, "The investment is 5,800."),                         # T001, OB-27: the first price
+             (PROSPECT, "It's too expensive for me."),                    # T002
+             (SALES, "I understand. Compared to what?"),                   # T003
+             (PROSPECT, "Compared to a normal course online."),            # T004
+             (SALES, "Let's look at the next module together now."),      # T005
+             (PROSPECT, "Sure."),                                          # T006
+             (SALES, "Module two covers lighting plans."),                 # T007
+             (PROSPECT, "Honestly it's still too expensive."),             # T008
+             (SALES, "Let's book a call with your partner.")]              # T009
+    ctx = synth(lines, first_price="T001")
+    ans = {("obj.resistance", "res:T002"): doubt("too expensive for me", "price"),
+           ("obj.resistance", "res:T008"): doubt("it's still too expensive", "price"),
+           ("obj.topic", "topic:T002.objection:T003"): {"new_subject": False, "receive_and_leave": False}}
     res, _ = run(ctx, ans)
-    e1, e2 = ep_by_turn(res, "T001")[0], ep_by_turn(res, "T007")[0]
-    assert e1["end_reason"] == "topic_change" and e1["topic_change"] == "T004"
+    e1, e2 = ep_by_turn(res, "T002")[0], ep_by_turn(res, "T008")[0]
+    assert e1["end_reason"] == "topic_change" and e1["topic_change"] == "T005"
     assert e2["recurrence_of"] == e1["id"] and e1["recurs_later"] and lvl(e1, "H5") == 0 and lvl(e2, "H5") == 2
 
 
 def test_recurrence_from_previous_call_of_cycle():
-    ctx = synth([(PROSPECT, "It's too expensive for me."), (SALES, "Let's book the next step.")])
+    ctx = synth([(SALES, "The investment is 5,800."), (PROSPECT, "It's too expensive for me."),
+                 (SALES, "Let's book the next step.")], first_price="T001")
     ctx.prior_inputs = [{"kind": "objections_episodes", "call_id": "C1",
                          "episodes": [{"id": "E1", "nature": "objection", "subtype": "price"}]}]
-    ans = {("obj.resistance", "res:T001"): doubt("too expensive for me", "price")}
+    ans = {("obj.resistance", "res:T002"): doubt("too expensive for me", "price")}
     res, _ = run(ctx, ans)
-    assert ep_by_turn(res, "T001")[0]["recurrence_of"] == "C1:E1"
+    assert ep_by_turn(res, "T002")[0]["recurrence_of"] == "C1:E1"
     assert res.details["recurs_from_previous_call"][0]["id"] == "E1"
 
 
@@ -432,10 +434,27 @@ def test_no_resistance_no_price_not_applicable():
 
 
 def test_to_review_candidate_blocks_not_applicable():
-    ctx = synth([(SALES, "How was your week?"), (PROSPECT, "Honestly it's too expensive.")])
+    ctx = synth([(SALES, "How was your week?"), (PROSPECT, "Honestly it's too expensive.")], first_price="T001")
     bad = {"exclusion": "none", "doubts": [{"quote": "not in the turn at all", "subjects": ["price"]}]}
     res, _ = run(ctx, {("obj.resistance", "res:T002"): bad})
     assert res.status == "to_review" and "to_review:res:T002" in res.flags
+
+
+def test_ob27_nothing_before_the_first_price_is_an_objection():
+    lines = [(SALES, "So what holds you back today?"),                    # T001
+             (PROSPECT, "Honestly I'm scared it's too expensive."),       # T002, before the price: never read
+             (SALES, "The investment is 5,800."),                         # T003, first price
+             (PROSPECT, "It's too expensive for me."),                    # T004
+             (SALES, "Let's book the next step.")]                        # T005
+    ctx = synth(lines, first_price="T003")
+    ans = {("obj.resistance", "res:T002"): doubt("it's too expensive", "price"),
+           ("obj.resistance", "res:T004"): doubt("too expensive for me", "price")}
+    res, client = run(ctx, ans)
+    assert [e["resistance"]["turn"] for e in res.details["episodes"]] == ["T004"]
+    assert not any(c[1] == "res:T002" for c in client.calls)                  # not even asked
+    ctx = synth(lines)                                                         # no price: no episode at all
+    res, _ = run(ctx, ans)
+    assert res.details["episodes"] == [] and res.status == "not_applicable"
 
 
 # =============================================================================================== Part 3
@@ -484,7 +503,9 @@ def test_annexB_case22_case27_call005():
 
 def test_annexB_case25_call044_receive_and_leave_latent():
     """Case 25: 'It's just such a significant investment' (no listed marker: nominated by the model),
-    T052 receives it and changes topic in the same turn -> latent (OB-10, OB-22), H4 0."""
+    T052 receives it and changes topic in the same turn -> latent (OB-10, OB-22), H4 0.
+    OB-27 (2026-11-03): this case needs call 044's first price (a turn before T051) set below, and the nomination key
+    of the chunk that starts right after it; to fill in when the corpus is available (docs/OPEN_DECISIONS.md)."""
     ctx = load("044")
     ans = {
         ("obj.nominate", "nominate:T001"): {"nominations": [

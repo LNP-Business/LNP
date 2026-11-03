@@ -95,6 +95,12 @@ A "resolution" whose content was first stated by the sales and only approved ("s
 
 **OB-26 · Attribution.** The diarization quality gate (Part C, C1) must flag `attribution_doubtful` turns before bounding. When the flag is missing, the model marks a turn as doubtful if its content contradicts its label (the sales' own name or offer described in the first person under a PROSPECT label); such turns are excluded from episodes.
 
+**OB-27 · Scope: after the first price only.** (Romain, 2026-11-03.) A resistance is read only in a PROSPECT (or
+co-decider) turn that comes after the first price (Pitch anchor PB-3 / PB-18). Nothing said before the first price is
+an objection, an anxiety or an inertia: it is neither nominated, nor bounded, nor scored, even if it matches an OB-1
+marker. A call with no price has no episode (handling `not_applicable`). Prevention (A4, OB-18, OB-19) is unchanged: it
+still reads the facts stated before the first price, because those are not objections.
+
 ## A5. Exclusion rules (summary)
 
 | # | Never counts as… | Case |
