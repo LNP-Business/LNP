@@ -43,6 +43,11 @@ SCREENS = [
     ("salesday", "SalesDay"),
 ]
 
+# LNP (2026-11-03): only the screens of the edition are in the page (the Operating, Knowledge and Agent screens are gone)
+if EDITION_KEEP is not None:
+    SCREENS = [s for s in SCREENS if s[0] in EDITION_KEEP]
+OS_MODULES = EDITION_KEEP is None  # the Operating / Knowledge / Agent modules, only in the full SKL OS build
+
 templates, classes = [], []
 SHELL_ARIA = [('aria-label="Main navigation"', 'aria-label="Navigation principale"'), ('aria-label="Switch system"', 'aria-label="Changer de système"'),
               ('aria-label="Views"', 'aria-label="Vues"'),
@@ -71,7 +76,9 @@ for sid, fname in SCREENS:
 
 STOREJS = ""
 if LANG == "en" and (HERE / "store.js").exists():
-    STOREJS = ("<script>window.SKL_SEED = " + (HERE / "seed.json").read_text(encoding="utf-8").replace("</", "<\\/") + ";</script>\n"
+    # LNP: no Operating System sample data (key results, tasks, memos of ALKIMIY) in the page
+    SEED = (HERE / "seed.json").read_text(encoding="utf-8") if OS_MODULES else json.dumps({"krs": [], "tasks": [], "decisions": [], "reviews": [], "deliverables": []})
+    STOREJS = ("<script>window.SKL_SEED = " + SEED.replace("</", "<\\/") + ";</script>\n"
                + "<script>" + (HERE / "store.js").read_text(encoding="utf-8") + "</script>\n"
                + "<script>" + (HERE / "kr_view.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>\n"
                + "<script>" + (HERE / "crm" / "data.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>")
@@ -81,7 +88,7 @@ CRMJS = ""
 if LANG == "en" and CRMDOC.exists():
     CRMJS = "<script>window.SKL_CRM_DOC = " + json.dumps(CRMDOC.read_text(encoding="utf-8")).replace("</", "<\\/") + ";</script>"
     CV2 = HERE / "cockpit_v2.json"
-    if CV2.exists():
+    if OS_MODULES and CV2.exists():
         cv = json.loads(CV2.read_text(encoding="utf-8"))
         for key, name in (("ov", "SKL_OV"), ("kr", "SKL_KRROOM"), ("mkt", "SKL_MKT"), ("fin", "SKL_FIN")):
             m = cv[key]
@@ -90,7 +97,7 @@ if LANG == "en" and CRMDOC.exists():
     # Build and Execute: one core (window.SKL_OS2), two modules (gen_build.py, gen_execute.py)
     for fname, name in (("build.json", "SKL_BUILD"), ("execute.json", "SKL_EXECUTE")):
         MJ = HERE / fname
-        if MJ.exists():
+        if OS_MODULES and MJ.exists():
             m = json.loads(MJ.read_text(encoding="utf-8"))
             if m.get("core"):
                 CRMJS += "\n<script>" + m["core"].replace("</", "<\\/") + "</script>"
@@ -100,10 +107,10 @@ if LANG == "en" and CRMDOC.exists():
     if SDJ.exists():
         CRMJS += "\n<script>" + SDJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     AGJ = HERE / "agents_module.js"
-    if AGJ.exists():
+    if OS_MODULES and AGJ.exists():
         CRMJS += "\n<script>" + AGJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     CJ = HERE / "carto.json"
-    if CJ.exists():
+    if OS_MODULES and CJ.exists():
         m = json.loads(CJ.read_text(encoding="utf-8"))
         CRMJS += ("\n<script>window.SKL_CARTO = {css: " + json.dumps(m["css"]).replace("</", "<\\/") + ", html: " + json.dumps(m["html"]).replace("</", "<\\/")
                   + ", mount: " + m["js"].replace("</", "<\\/") + "};</script>")
@@ -112,7 +119,7 @@ if LANG == "en" and CRMDOC.exists():
         sv = json.loads(SALESV2.read_text(encoding="utf-8"))
         CRMJS += ("\n<script>window.SKL_SALES = {css: " + json.dumps(sv["css"]).replace("</", "<\\/") + ", html: " + json.dumps(sv["html"]).replace("</", "<\\/")
                   + ", mount: " + sv["js"].replace("</", "<\\/") + "};</script>")
-MECHJS = ("<script>" + MECH.read_text(encoding="utf-8") + "</script>") if (LANG == "en" and MECH.exists()) else ""
+MECHJS = ("<script>" + MECH.read_text(encoding="utf-8") + "</script>") if (LANG == "en" and OS_MODULES and MECH.exists()) else ""
 page = f"""<title>{TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -106,7 +106,8 @@ def nav(file, footer):
         out.append('</div>')
     out.append('<div style="flex-grow: 1"></div>')
     # who you are, sign-in and sign-out, Team access: Settings › Account (Romain, 2026-10-26), not the sidebar
-    out.append(f'<div style="padding: 6px 14px 14px; font-size: 13px; color: #A8A396; line-height: 1.5">{footer}</div>')
+    if not EDITION:  # LNP: no quarter / weekly review note (Operating System screens)
+        out.append(f'<div style="padding: 6px 14px 14px; font-size: 13px; color: #A8A396; line-height: 1.5">{footer}</div>')
     on = area == "settings"
     style = ('display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; '
              + ('font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A' if on else 'color: #C9C4B7; border: 1px solid #34322C'))
