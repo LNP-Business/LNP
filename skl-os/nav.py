@@ -85,9 +85,14 @@ def nav(file, footer):
     out.append('</div>')
     if len(SYSTEMS) < 2:
         del out[-2:]  # one system only (edition.json): no system switch
-    for gi, (gname, items) in enumerate(GROUPS[area]):
+    # one system only (edition.json, LNP): no system switch, so the Settings screens also list that system's groups, to go
+    # back to the Cockpit commercial, Ma journée or the CRM (Romain 2026-11-03)
+    groups = [(area, g) for g in GROUPS[area]]
+    if area == "settings" and len(SYSTEMS) < 2:
+        groups = [(sid, g) for sid in SYSTEMS for g in GROUPS[sid]] + groups
+    for gi, (garea, (gname, items)) in enumerate(groups):
         mt = 'margin-top: 10px; ' if gi else ''
-        key = area + '-' + re.sub(r'[^a-z0-9]+', '-', gname.lower()).strip('-')
+        key = garea + '-' + re.sub(r'[^a-z0-9]+', '-', gname.lower()).strip('-')
         out.append(f'<button type="button" data-navgrp="{key}" aria-expanded="true" title="Replier ou déplier {GROUP_LABEL.get(gname, gname)}" style="{mt}display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left">'
                    f'<span>{GROUP_LABEL.get(gname, gname)}</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>')
         out.append(f'<div data-navitems="{key}" style="display: flex; flex-direction: column; gap: 4px">')
