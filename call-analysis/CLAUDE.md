@@ -44,9 +44,15 @@ diarization, attribution repair, phase map · `core/scoring.py` · `core/aggrega
 `competences/{spin,gap,pitch,objections}.py` · `prompts/*.md` (one per model task, 30 tasks) · `pipeline.py`
 fixed order: foundation → SPIN → Gap → Pitch → Objections.
 
+## Lite engine (`lite/callqa_lite`, 2026-11-03)
+Five whole-transcript steps (phases, discovery, gap, pitch, objections after the pitch) on the fast tier, one reading;
+the code checks every quote and reuses the engine's decision code (Gap and Pitch competences unchanged, through
+`shim.StepRunner`). Selected per job by `crm_ca_config.engine = 'lite'`. Read `lite/README.md` (approximations) first.
+
 ## Commands
 ```
 cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (209 tests)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m alkimiy_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
+cd lite && python3 -m pytest -q tests                                 # lite engine
 ```

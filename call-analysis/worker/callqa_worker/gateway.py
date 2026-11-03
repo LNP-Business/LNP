@@ -59,9 +59,21 @@ class GatewayClient:
         if self.effort == "none" and not task_id.startswith("foundation."):
             effort = "none"
         # a question is cached only when another pass will ask it again (one pass: writing the cache costs more than it saves)
-        body = json.dumps({"model": self.tiers[tier], "system": system, "prompt": prompt,
-                           "max_tokens": self.max_tokens, "effort": effort,
-                           "cache_prompt": int(pass_no) >= 1 and self.passes > 1}).encode()
+        body = {"model": self.tiers[tier], "system": system, "prompt": prompt,
+                "max_tokens": self.max_tokens, "effort": effort,
+                "cache_prompt": int(pass_no) >= 1 and self.passes > 1}
+        return parse_json(self._post(tier, body).get("text") or "")
+
+    def complete(self, task_id: str, unit_id: str, tier: str, system: str, prefix: str, prompt: str,
+                 max_tokens: int = 16000, effort: str = "low") -> dict[str, Any]:
+        """One step of the lite engine (call-analysis/lite): the transcript goes in `prefix`, cached by the gateway and
+        read back by the next steps; the step prompt is not cached. Returns {text, stop_reason} (the step parses it)."""
+        out = self._post(tier, {"model": self.tiers[tier], "system": system, "prefix": prefix, "prompt": prompt,
+                                "max_tokens": int(max_tokens), "effort": effort, "cache_prompt": False})
+        return {"text": out.get("text") or "", "stop_reason": out.get("stop_reason")}
+
+    def _post(self, tier: str, payload: dict) -> dict[str, Any]:
+        body = json.dumps(payload).encode()
         last = ""
         for i in range(self.attempts):
             req = urllib.request.Request(self.url, data=body, method="POST", headers={
@@ -70,7 +82,7 @@ class GatewayClient:
                 with self.opener(req, timeout=self.timeout) as r:
                     out = json.loads(r.read())
                 self._count(tier, out.get("usage") or {})
-                return parse_json(out.get("text") or "")
+                return out
             except urllib.error.HTTPError as e:
                 try:
                     j = json.loads(e.read())

@@ -86,6 +86,8 @@ run 033_crm_noshow_audit.sql
 run 033_crm_noshow_audit.sql
 run 034_lnp_fr_labels.sql
 run 034_lnp_fr_labels.sql
+run 035_crm_ca_engine_choice.sql
+run 035_crm_ca_engine_choice.sql
 run 036_crm_cockpit_active_team.sql
 run 036_crm_cockpit_active_team.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
@@ -106,3 +108,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/member_prefs_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/fathom_closest_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/noshow_audit_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lnp_fr_labels_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_engine_choice_test.sql | tail -1

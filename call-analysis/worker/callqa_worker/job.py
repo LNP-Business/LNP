@@ -1,6 +1,13 @@
-"""One job: the claim returned by crm_ca_claim → CallContext → engine pipeline → call record (OUTPUT_CONTRACT.md)."""
+"""One job: the claim returned by crm_ca_claim → CallContext → engine pipeline → call record (OUTPUT_CONTRACT.md).
+
+crm_ca_config.engine (035, 2026-11-03) picks the engine per job: 'full' (alkimiy_callqa, unchanged) or 'lite'
+(call-analysis/lite: five whole-transcript steps on the fast tier, the code still decides).
+"""
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
 from typing import Any, Optional
 
 from alkimiy_callqa.core.foundation import parse_transcript
@@ -11,6 +18,36 @@ from alkimiy_callqa.pipeline import analyse_call, result_record
 from .prefetch import PrefetchClient, analyse_in_rounds
 
 ENGINE_VERSION = "alkimiy_callqa-1.0"
+LITE_DIR = Path(__file__).resolve().parents[2] / "lite"
+
+
+def engine_of(claim: dict) -> str:
+    return "lite" if (claim.get("config") or {}).get("engine") == "lite" else "full"
+
+
+def engine_version(claim: dict) -> str:
+    if engine_of(claim) == "lite":
+        return _lite().LITE_VERSION
+    return ENGINE_VERSION
+
+
+def _lite():
+    if str(LITE_DIR) not in sys.path:
+        sys.path.insert(0, str(LITE_DIR))
+    import callqa_lite
+    return callqa_lite
+
+
+def run_lite(claim: dict, client: Any, effort: Optional[str] = None) -> dict:
+    """The lite engine: one model call per step through client.complete (GatewayClient), tier fast, effort low unless
+    CALLQA_LITE_EFFORT says otherwise. A failure of the model steps raises ModelErrors (never retried as is)."""
+    _lite()
+    from callqa_lite.engine import LiteModelError, analyse
+    try:
+        return analyse(build_context(claim), client,
+                       {"effort": effort or os.environ.get("CALLQA_LITE_EFFORT") or "low"})
+    except LiteModelError as e:
+        raise ModelErrors(str(e)) from None
 
 
 def case_library(rows: list[dict]) -> list[dict]:
@@ -40,7 +77,10 @@ def build_context(claim: dict) -> CallContext:
 
 def run_job(claim: dict, client: Any, config: Optional[RunConfig] = None, rounds: bool = False, workers: int = 16,
             log=None, budget_s: Optional[float] = None) -> dict:
-    """rounds=True: the questions go to the model in parallel batches (prefetch.py), same result as a sequential run."""
+    """rounds=True: the questions go to the model in parallel batches (prefetch.py), same result as a sequential run.
+    config.engine = 'lite': the lite engine instead (the other arguments do not apply)."""
+    if engine_of(claim) == "lite":
+        return run_lite(claim, client)
     passes = int((claim.get("config") or {}).get("passes") or 3)
     # crm_ca_config.passes = 1 turns on the cost option of Part C, C4 (one pass, 10 % of the units still run with three):
     # allowed only once the C7 protocol shows at least 95 % item-level concordance on the current rules version
@@ -74,4 +114,5 @@ def summary(record: dict) -> str:
     """One log line: status and scores only (never a quote)."""
     res = record.get("results") or {}
     parts = [f"{k}={v.get('score') if v.get('score') is not None else v.get('status')}" for k, v in res.items()]
-    return f"status={record.get('status')} turns={len(record.get('turns') or [])} " + " ".join(parts)
+    lite = "engine=lite " if (record.get("meta") or {}).get("engine") == "lite" else ""
+    return f"{lite}status={record.get('status')} turns={len(record.get('turns') or [])} " + " ".join(parts)
