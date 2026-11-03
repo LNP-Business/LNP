@@ -10,9 +10,14 @@ the Sales Cockpit, and every other SKL OS screen (still built, never linked) lan
 ./build.sh --verify   # checks the output against skl-os/EXPECTED.sha256 (the LNP reference)
 ```
 
-Remove `edition.json` to get the full SKL OS back. Everything else in `CLAUDE.md` applies unchanged.
+Its own name (2026-11-03): `edition.json` `brand` (sidebar "LNP Sales"), `title` (browser tab) and `rename` (every text of the
+page: SKL OS → LNP, ALKIMIY → LNP, ALKIMIY Lite → LNP CRM, applied by `skl-os/build.py`); `web/public/skl-web.js` (sign-in,
+Account, Access) says LNP. Remove `edition.json` to get the full SKL OS back. Everything else in `CLAUDE.md` applies unchanged.
 
 ## Its own back end (a new, empty database: no ALKIMIY data)
+
+LNP is a separate company from SKL and ALKIMIY: **every account is LNP's own** (GitHub `LNP-Business`, Supabase, Vercel,
+Anthropic, Slack, iClosed, Fathom, Sendblue, Close), created with LNP's email, never an SKL / ALKIMIY account or key.
 
 1. **Supabase**: create a new project (Supabase dashboard › New project). In the SQL editor run, in order, every file of
    `web/supabase/` **except `002_q4_okrs.sql`** (that one loads ALKIMIY's Q4 key results). `019_crm_sales_team.sql` adds

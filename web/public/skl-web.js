@@ -1,4 +1,4 @@
-/* SKL OS on the web: sign-in, team access, and the same `window.claude.use("db" | "user")` interface the
+/* LNP on the web: sign-in, team access, and the same `window.claude.use("db" | "user")` interface the
    app uses inside a claude.ai Artifact, served by Supabase. Loaded before the app, so the app itself is
    unchanged: store.js and the SKL Map wait for `use()`, which resolves once the person is signed in. */
 (function () {
@@ -110,7 +110,7 @@
     if (!r.ok) { var err = new Error(j.error || "File request failed"); err.code = r.status === 403 ? "not_granted" : "unavailable"; throw err; }
     return j;
   }
-  // Build › Claude planner: /api/planner builds the prompt and reads SKL OS with the person's own token (read only)
+  // Build › Claude planner: /api/planner builds the prompt and reads LNP with the person's own token (read only)
   var PLANNER = {
     ask: async function (body, signal) {
       var s = await sb.auth.getSession();
@@ -223,7 +223,7 @@
   }
   var gate = null;
   function showGate(view, msg) {
-    if (!gate) { gate = h("div", { id: "skl-gate", role: "dialog", "aria-modal": "true", "aria-label": "Sign in to SKL OS" }); document.body.appendChild(gate); }
+    if (!gate) { gate = h("div", { id: "skl-gate", role: "dialog", "aria-modal": "true", "aria-label": "Sign in to LNP" }); document.body.appendChild(gate); }
     gate.textContent = "";
     var card = h("div", { "class": "card" }, [h("div", { "class": "logo" }, ["SKL ", h("span", { text: "OS" })])]);
     var note = msg ? h("div", { "class": msg.ok ? "ok" : "err", text: msg.text }) : null;
@@ -234,17 +234,17 @@
       card.appendChild(h("p", { text: "Signing you in…" }));
     } else if (view === "denied") {
       card.appendChild(h("h1", { text: "No access yet" }));
-      card.appendChild(h("p", { text: "You are signed in as " + (ctx && ctx.user ? ctx.user.email : "") + ", but this account is not on the SKL OS team. Ask an admin to invite you." }));
+      card.appendChild(h("p", { text: "You are signed in as " + (ctx && ctx.user ? ctx.user.email : "") + ", but this account is not on the LNP team. Ask an admin to invite you." }));
       card.appendChild(h("button", { "class": "btn", type: "button", text: "Sign out", onclick: signOut }));
     } else if (view === "noscreens") {
       card.appendChild(h("h1", { text: "No screens opened yet" }));
-      card.appendChild(h("p", { text: "You are on the SKL OS team, but no screen is open to you yet. Ask an admin to open some in Settings › Access." }));
+      card.appendChild(h("p", { text: "You are on the LNP team, but no screen is open to you yet. Ask an admin to open some in Settings › Access." }));
       card.appendChild(h("button", { "class": "btn", type: "button", text: "Sign out", onclick: signOut }));
     } else if (view === "setpw") {
       var p1 = h("input", { type: "password", autocomplete: "new-password", minlength: "8", required: "" });
       var p2 = h("input", { type: "password", autocomplete: "new-password", minlength: "8", required: "" });
       var go = h("button", { "class": "btn", type: "submit", text: "Save my password" });
-      card.appendChild(h("h1", { text: linkType === "recovery" ? "Choose a new password" : "Welcome to SKL OS" }));
+      card.appendChild(h("h1", { text: linkType === "recovery" ? "Choose a new password" : "Welcome to LNP" }));
       card.appendChild(h("p", { text: "Choose the password you will use to sign in" + (ctx && ctx.user ? " as " + ctx.user.email : "") + ". At least 8 characters." }));
       if (note) card.appendChild(note);
       var f = h("form", { style: "display:flex;flex-direction:column;gap:14px" }, [
@@ -271,7 +271,7 @@
       var pw = h("input", { type: "password", autocomplete: "current-password", required: "" });
       var btn = h("button", { "class": "btn", type: "submit", text: "Sign in" });
       card.appendChild(h("h1", { text: "Sign in" }));
-      card.appendChild(h("p", { text: "SKL OS is for the ALKIMIY team. Use the email you were invited with." }));
+      card.appendChild(h("p", { text: "LNP is for the LNP team. Use the email you were invited with." }));
       if (note) card.appendChild(note);
       var form = h("form", { style: "display:flex;flex-direction:column;gap:14px" }, [
         h("label", {}, ["Email", em]), h("label", {}, ["Password", pw]), btn]);
@@ -317,7 +317,7 @@
     { key: "ks", name: "Knowledge System", home: "bibliotheque", groups: [["Knowledge System", [["bibliotheque", "Library"]]], ["Mechanisms", [["mechanisms", "Mechanism map"], ["mechprecall", "Pre-call"], ["mechsales", "Sales"], ["mechos", "Operating System"]]], ["SKL Map", [["cartomap", "Journey"], ["cartoevents", "Events"], ["cartoworks", "Build order"], ["cartosim", "Simulator"], ["cartomodel", "Model"]]]] },
     { key: "as", name: "Agent System", home: "agentsoverview", groups: [["Pilot", [["agentsoverview", "Overview"], ["agentsdecisions", "Decisions"], ["agentsregistry", "Agents"], ["agentstriggers", "Triggers"], ["agentslog", "Log"]]]] },
     { key: "settings", name: "Settings", home: "settings", groups: [["Settings", [["settings", "Alerts"], ["registers", "Registers"]]]] },
-    // not a screen: the SKL OS connector in Claude (docs/crm/17-claude-connector.md); admins only by default
+    // not a screen: the LNP connector in Claude (docs/crm/17-claude-connector.md); admins only by default
     { key: "claude", name: "Claude", nav: false, groups: [["Claude", [["claude", "Claude connector"]]]] }
   ];
   var NAV = AREAS.filter(function (a) { return a.nav !== false; });
@@ -386,7 +386,7 @@
       box.className = "skl-access";
       if (acc.err) { box.appendChild(h("div", { "class": "err", text: acc.err })); return; }
       if (!acc.data) { box.appendChild(h("div", { "class": "card" }, [h("p", { "class": "q", text: "Loading the team…" })])); if (!acc.loading) loadAccess(); return; }
-      box.appendChild(h("div", { "class": "card" }, [h("h2", { text: "Who opens what" }), h("p", { "class": "q", text: "Everyone opens every system by default, new people included. Untick a system (Operating, Sales, Knowledge, Agent, Settings) to close all of it for that person, or untick single screens. What is closed disappears from their sidebar and cannot be opened. Admins can be narrowed too, but keep Settings › Access; nobody changes their own access. The Claude column lets a person use the SKL OS connector in Claude (read only, admins only by default). This hides screens, it does not hide data: the CRM rules still decide which leads a person reads." })]));
+      box.appendChild(h("div", { "class": "card" }, [h("h2", { text: "Who opens what" }), h("p", { "class": "q", text: "Everyone opens every system by default, new people included. Untick a system (Operating, Sales, Knowledge, Agent, Settings) to close all of it for that person, or untick single screens. What is closed disappears from their sidebar and cannot be opened. Admins can be narrowed too, but keep Settings › Access; nobody changes their own access. The Claude column lets a person use the LNP connector in Claude (read only, admins only by default). This hides screens, it does not hide data: the CRM rules still decide which leads a person reads." })]));
       if (acc.data.members.length < 2) box.appendChild(h("div", { "class": "card" }, [h("h2", { text: "Nobody to set up yet" }), h("p", { "class": "q", text: "Invite people with Team access, in Settings › Account. They start with every system open." })]));
       acc.data.members.forEach(function (m) {
         var isMe = m.user_id === acc.data.me;
@@ -457,7 +457,7 @@
       var copy = h("button", { "class": "btnl", type: "button", text: "Copy the link" });
       copy.addEventListener("click", function () { navigator.clipboard.writeText(link).then(function () { copy.textContent = "Copied"; }); });
       return h("div", { "class": "linkbox" }, [h("strong", { text: title }),
-        h("span", { text: "Send this link to " + email + " (Slack, email…). It opens SKL OS and asks them to choose a password. It works once; if it no longer works, create a new one here (New invite link)." }),
+        h("span", { text: "Send this link to " + email + " (Slack, email…). It opens LNP and asks them to choose a password. It works once; if it no longer works, create a new one here (New invite link)." }),
         h("code", { text: link }), h("div", {}, [copy])]);
     }
     function roleSel(v) {
@@ -468,7 +468,7 @@
     async function draw(err) {
       card.textContent = "";
       card.appendChild(h("div", { style: "display:flex;flex-direction:column;gap:4px" }, [h("h2", { text: "Team access" }),
-        h("div", { "class": "q", text: "Who can open SKL OS, and what they can do. Invite someone, then send them their link. Which screens each person opens: the Access tab." })]));
+        h("div", { "class": "q", text: "Who can open LNP, and what they can do. Invite someone, then send them their link. Which screens each person opens: the Access tab." })]));
       if (err) card.appendChild(h("div", { "class": "err", text: err }));
       var em = h("input", { type: "email", placeholder: "name@alkimiy.com", style: "min-width:240px" });
       var rs = roleSel("member");
@@ -498,7 +498,7 @@
         rm.addEventListener("click", function () {
           var go = async function () { try { await api("POST", { action: "remove", user_id: m.user_id }); flash = null; draw(); } catch (e) { draw(e.message); } };
           if (!window.sklConfirm) { if (rm.dataset.sure !== "1") { rm.dataset.sure = "1"; rm.textContent = "Confirm removal"; return; } return go(); }
-          window.sklConfirm({ title: "Remove this person?", body: m.email + " will no longer be able to sign in to SKL OS. Their work stays in the shared data.", ok: "Remove access", onOk: go });
+          window.sklConfirm({ title: "Remove this person?", body: m.email + " will no longer be able to sign in to LNP. Their work stays in the shared data.", ok: "Remove access", onOk: go });
         });
         var last = m.lastSignIn ? "Last sign-in " + new Date(m.lastSignIn).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "Invited · has not signed in yet";
         tb.appendChild(h("tr", {}, [
