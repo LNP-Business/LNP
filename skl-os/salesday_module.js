@@ -1,4 +1,4 @@
-/* SKL OS › Sales System › Sales Day (Romain 2026-10-31): the sales rep's day, one lead at a time, like Execute in the
+/* LNP › Sales System › Sales Day (Romain 2026-10-31): the sales rep's day, one lead at a time, like Execute in the
    Operating System. The queue is built from the CRM: outcomes to declare first (the call is over and nothing is declared),
    then today's calls to prepare, reschedules to plan (a missed R2, a canceled call), no-shows to re-engage and follow-ups due.
    A card is finished with its action (an outcome declared, or "Done" with what was done, saved as a note on the lead); it

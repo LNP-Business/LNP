@@ -1,8 +1,8 @@
--- SKL OS CRM — core schema (web/supabase/003_crm_core.sql)
+-- LNP CRM — core schema (web/supabase/003_crm_core.sql)
 -- Applies to the existing Supabase project "skl-os", after 001_init.sql and 002_q4_okrs.sql.
 -- Single source of truth for sales cycles: call booked -> won / lost / disqualified, plus nurture.
 --
--- DELIBERATE EXCEPTION to the SKL OS convention "every collection is a JSON document in docs":
+-- DELIBERATE EXCEPTION to the LNP convention "every collection is a JSON document in docs":
 -- the CRM needs database-enforced idempotency (unique source ids), real per-sales data isolation
 -- (row-level security; docs rows are readable by every member) and high volumes (messages,
 -- transcripts). All CRM objects are therefore relational and prefixed crm_. Do not move them into docs.
@@ -40,7 +40,7 @@ create type outbound_status  as enum ('pending_approval', 'queued', 'sent', 'del
 -- ───────────────────────── team ─────────────────────────
 -- One row per signed-in account that takes part in sales. The app-level role (admin / member /
 -- viewer) stays in the existing members table; this table only adds what the CRM needs.
--- member_key is the SKL member id used everywhere in SKL OS ('sales' = Valentino, 'romain', 'amin'...).
+-- member_key is the LNP member id used everywhere in LNP ('sales' = Valentino, 'romain', 'amin'...).
 create table crm_members (
   id               uuid primary key references public.members(user_id) on delete restrict,  -- existing table (001_init.sql)
   member_key       text not null unique,
@@ -309,7 +309,7 @@ create table crm_alerts (
   cycle_id      uuid references crm_cycles(id) on delete cascade,
   person_id     uuid references crm_people(id),
   severity      alert_severity not null,
-  owner_key     text not null,              -- SKL member id the alert is about / assigned to
+  owner_key     text not null,              -- LNP member id the alert is about / assigned to
   owner_id      uuid references crm_members(id),
   title         text not null,
   detail        text,
@@ -535,7 +535,7 @@ insert into crm_settings (key, value) values ('alert_rule_defaults', '[
 
 insert into crm_settings (key, value) values
   ('team_email_domains', '["skl.live"]'),             -- VERIFY: domains used to tell internal from external invitees
-  ('default_owner', '"sales"'),                        -- SKL member id used when the iClosed host is unknown (Valentino)
+  ('default_owner', '"sales"'),                        -- LNP member id used when the iClosed host is unknown (Valentino)
   ('whop_plans', '{}'),                                -- product name -> Whop plan id (fill in phase 0)
   ('analysis_model', '"claude-sonnet-5-5"'),
   ('nurture_sending_enabled', 'false'),                -- stays false until legal sign-off (Q6)

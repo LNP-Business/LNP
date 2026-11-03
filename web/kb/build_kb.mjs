@@ -20,7 +20,7 @@ const SCREENS = [
   ["Access", "access", "Paramètres › Accès", "which screens each person can open and who may use the Claude connector (admins only)"]
 ];
 
-// edition.json "rename": the page's own names (SKL OS → LNP, ALKIMIY → LNP…), applied in order like skl-os/build.py
+// edition.json "rename": the page's own names (LNP → LNP, ALKIMIY → LNP…), applied in order like skl-os/build.py
 const RENAME = has("edition.json") ? (JSON.parse(read("edition.json")).rename || []) : [];
 const renamed = t => RENAME.reduce((s, [a, z]) => s.split(a).join(z), t);
 

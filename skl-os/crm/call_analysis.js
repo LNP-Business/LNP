@@ -1,4 +1,4 @@
-/* SKL OS CRM — call analysis (call-analysis/docs/SCREEN_SPEC.md, plan call-analysis/PLAN.md phase 3).
+/* LNP CRM — call analysis (call-analysis/docs/SCREEN_SPEC.md, plan call-analysis/PLAN.md phase 3).
    The analysis of a call shows in its lead record, under "Call analysis" (leadView: the lead's past R1 / R2 sales calls,
    then the chosen one drawn by SKL_CAV, call_analysis_view.js, as in Romain's mock-up of 2026-10-27). Opened from the pipeline
    card chip, the lead list "Analysis" column and Sales cycle (a call's "Call analysis" button): a call with a transcript opens

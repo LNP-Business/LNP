@@ -1,4 +1,4 @@
--- SKL OS CRM — imported cycles read again with the corrected rules (web/supabase/013_crm_reclassify.sql), after 012.
+-- LNP CRM — imported cycles read again with the corrected rules (web/supabase/013_crm_reclassify.sql), after 012.
 -- Romain, 2026-10-25: won leads showed as disqualified or lost. iClosed almost never records a sale, and its REJECTED
 -- outcome goes with a canceled discovery call (178 canceled by the team, 43 by the lead), not with a disqualification.
 -- Rules, for every cycle closed or opened by an import (never one with a declared outcome or a payment):

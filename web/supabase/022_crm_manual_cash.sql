@@ -1,4 +1,4 @@
--- SKL OS CRM — cash entered by hand (web/supabase/022_crm_manual_cash.sql), after 021.
+-- LNP CRM — cash entered by hand (web/supabase/022_crm_manual_cash.sql), after 021.
 -- Romain, 2026-10-26: the cash of signed clients can be entered by hand from the lead record, until Whop sends its payments
 -- (phase 5, automatic). Two sources in crm_payments: 'whop' (later, webhook) and 'manual' (this file).
 --   crm_set_deal(p_cycle, p_amount, p_currency)   the amount signed (crm_deals.amount_sold), created if missing

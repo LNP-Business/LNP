@@ -2109,7 +2109,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){const m=document.getElementById("cxMenu");if(!m.hidden){closeMenu();return}const l2=document.getElementById("layer2");if(l2.innerHTML){l2.innerHTML="";return}if(S.cx.mini&&S.cx.lead){S.cx.mini=null;renderLead();return}closeLayer();}
   if(e.key==="Enter"){const el=e.target.closest("tr[data-act],.al[data-act],.mini-al[data-act]"); if(el&&e.target===el)el.click();}
 });
-/* SKL OS: dashboard first; team rows open the SKL CRM filtered on that sales rep */
+/* LNP: dashboard first; team rows open the LNP CRM filtered on that sales rep */
 {const _rn=renderNav;renderNav=function(){_rn();const k=S.view==="dash";document.getElementById("sklKR").hidden=!k;document.getElementById("sklBack").hidden=k;};}
 document.addEventListener("click",e=>{const el=e.target.closest('[data-act="teamrow"]');if(!el)return;e.stopImmediatePropagation();e.preventDefault();try{parent.postMessage({skl:"crm",owner:el.dataset.id},"*")}catch(x){}},true);
 S.view="dash";renderAll();

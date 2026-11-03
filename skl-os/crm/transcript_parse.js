@@ -1,4 +1,4 @@
-/* SKL OS CRM — reads a pasted or dropped call transcript into speaker turns (call analysis, "Add transcript").
+/* LNP CRM — reads a pasted or dropped call transcript into speaker turns (call analysis, "Add transcript").
    Formats: the engine's own ("[T001 00:06] SALES: text", "[00:06] Name: text"), "00:06 Name: text", "Name (00:06): text",
    blocks with a header line ("Name  0:06", "0:06 - Name", "Name: 0:06") followed by the text, WebVTT / SRT, and the JSON
    of a Fathom meeting (transcript[] with speaker.display_name, text, timestamp). Consecutive lines of one speaker are joined.

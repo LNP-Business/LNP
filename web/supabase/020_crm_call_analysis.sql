@@ -1,5 +1,5 @@
--- SKL OS CRM — call analysis storage and job queue (web/supabase/020_crm_call_analysis.sql), after 019.
--- The SKL call analysis engine (call-analysis/, plan call-analysis/PLAN.md) reads a sales call transcript and scores four
+-- LNP CRM — call analysis storage and job queue (web/supabase/020_crm_call_analysis.sql), after 019.
+-- The LNP call analysis engine (call-analysis/, plan call-analysis/PLAN.md) reads a sales call transcript and scores four
 -- competences (SPIN, Gap, Pitch, Objections). The engine runs in a worker outside the database (GitHub Actions); this file
 -- holds what it reads and writes:
 --   crm_calls        + transcript_raw (engine format "[mm:ss] Speaker: text"), speaker_map (label → SALES / PROSPECT /

@@ -1,4 +1,4 @@
-/* SKL OS — one shared source of truth for every screen.
+/* LNP — one shared source of truth for every screen.
    Key results, tasks, decisions, deliverables, alert acknowledgements, dailies, alert settings and
    mechanism models live in the artifact's shared database when it is available; otherwise the page runs
    on the demo dataset, locally. Every screen reads and writes through window.SKL. */
@@ -56,7 +56,7 @@
     }).catch(function (e) {
       if (e && e.code === "invalid_argument") { readOnly = true; SKL.notice = "Accès en lecture seule : les modifications ne sont pas enregistrées."; emit(true); }
       else if (e && e.code === "unavailable") { setTimeout(function () { write(col, id, body, del); }, 800 + Math.random() * 800); }
-      else console.error("SKL write", key, e);
+      else console.error("LNP write", key, e);
     });
   }
 
@@ -346,7 +346,7 @@
     return 1 + Math.round((d - mon1) / (7 * DAY));
   }
   function wl(w) { return "W" + isoWeek(w); }
-  // ---------- weekly milestones (SKL operating standard: one person, one week, one verifiable result) ----------
+  // ---------- weekly milestones (LNP operating standard: one person, one week, one verifiable result) ----------
   // Formula: "By [day, time], [verifiable result], which moves KR x.y. Done = [binary proof]".
   // A milestone: { week, text (the result), owner?, byDay, byTime, doneDef: [{t, ok}] (mini goals, ticked at the weekly review), deps: [{who, what, by}], noDeps,
   //   chk: {fit, stretch}, rag: "green"|"amber"|"red", ragNote, status: "done"|"notdone", proof, cause, causeNote, changedV }
@@ -608,7 +608,7 @@
     emit(false);
   }
 
-  var SKL = window.SKL = {
+  var LNP = window.SKL = {
     get today() { return TODAY; }, get week() { return weekOf(iso(TODAY)); }, iso: iso, parse: parse, daysFromToday: daysFromToday, weekOf: weekOf,
     weekFriday: weekFriday, weekSaturday: weekSaturday, weekSunday: weekSunday, weekMonday: weekMonday, dayLabel: dayLabel, shortDate: shortDate,
     members: MEMBERS, member: member,
@@ -669,7 +669,7 @@
           data[c] = m;
           if (c === "members" && uid) { var mine = m.get(uid); if (mine && mine.member && mine.member !== meId) { meId = mine.member; try { localStorage.setItem("skl_me", meId); } catch (e) {} changed = true; } }
           if (changed) emit(true);
-        }, function (err) { console.error("SKL snapshot", c, err); });
+        }, function (err) { console.error("LNP snapshot", c, err); });
       });
       if (userApi) userApi.id().then(function (id) {
         uid = id;

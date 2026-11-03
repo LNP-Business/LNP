@@ -1,4 +1,4 @@
--- SKL OS CRM — event pipeline (web/supabase/005_crm_pipeline.sql), after 004_crm_rpc.sql. Phase 2.
+-- LNP CRM — event pipeline (web/supabase/005_crm_pipeline.sql), after 004_crm_rpc.sql. Phase 2.
 -- process-inbox (Edge Function) maps each raw crm_webhook_log row into canonical items (docs/crm/04 §2) and hands them
 -- to crm_apply_items, which matches the person and the cycle (03), writes entities and events and recomputes the
 -- cycle, all in one transaction. crm_recompute_cycle is the projector (04 §3): a cycle's derived state is rebuilt

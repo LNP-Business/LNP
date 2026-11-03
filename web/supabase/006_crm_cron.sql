@@ -1,4 +1,4 @@
--- SKL OS CRM — schedule of process-inbox (web/supabase/006_crm_cron.sql), after 005. Phase 2.
+-- LNP CRM — schedule of process-inbox (web/supabase/006_crm_cron.sql), after 005. Phase 2.
 -- pg_cron calls the Edge Function every minute through pg_net while raw rows of a mapped source wait (04 §2: within
 -- 2 minutes). The base URL of the project's functions is a CRM setting (not a secret), e.g.
 --   insert into crm_settings (key, value, is_proposal) values ('functions_url', '"https://<ref>.supabase.co/functions/v1"', false);

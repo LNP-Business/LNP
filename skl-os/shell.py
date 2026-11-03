@@ -1,4 +1,4 @@
-"""Common frame for new SKL OS screens: same head, same sidebar (rewritten by nav.py), same info button and popup."""
+"""Common frame for new LNP screens: same head, same sidebar (rewritten by nav.py), same info button and popup."""
 import pathlib, re
 HERE = pathlib.Path(__file__).resolve().parent
 P = HERE.parent / 'skl-en' / 'project'

@@ -1,4 +1,4 @@
--- SKL OS CRM — import of the leads that already exist (web/supabase/007_crm_import.sql), after 006.
+-- LNP CRM — import of the leads that already exist (web/supabase/007_crm_import.sql), after 006.
 -- The Edge Function crm-import reads Close (and later iClosed) page by page and hands each page to crm_import_people.
 -- One person per contact; a person is found again by any of its identifiers (email, phone, Close / iClosed ids), so a
 -- lead present in both tools, or imported twice, stays one person (03). A dry run goes through exactly the same code and

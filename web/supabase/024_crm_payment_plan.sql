@@ -1,4 +1,4 @@
--- SKL OS CRM — payment plan of a signed client (web/supabase/024_crm_payment_plan.sql), after 023.
+-- LNP CRM — payment plan of a signed client (web/supabase/024_crm_payment_plan.sql), after 023.
 -- Romain, 2026-10-28: when a lead closes, its payment terms are set (paid in full, or in several instalments), not the
 -- payment method. The plan lives on the deal: crm_deals.schedule = [{"due": "YYYY-MM-DD", "amount": n}, …] in due order,
 -- crm_deals.payment_plan = "Paid in full" or "N instalments" (the label the Sales cycle outcome form already writes, 004).

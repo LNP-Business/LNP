@@ -1,4 +1,4 @@
--- SKL OS CRM — the Sales team of the cockpit (web/supabase/019_crm_sales_team.sql), after 018.
+-- LNP CRM — the Sales team of the cockpit (web/supabase/019_crm_sales_team.sql), after 018.
 -- Romain, 2026-10-25: "keep only Valentino, the other sales reps left; their leads stay attached to them".
 -- crm_sales_team = the sales reps shown in the cockpit's team table, by rep key: a CRM member key, or the local part of
 -- the iClosed host email (valentino@… → valentino). crm_sales_cockpit() gives a row to these reps only; the cycles of the

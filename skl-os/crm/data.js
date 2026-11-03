@@ -1,4 +1,4 @@
-/* SKL OS CRM data layer (docs/crm/11-crm-frontend.md §2): window.SKL_CRM.
+/* LNP CRM data layer (docs/crm/11-crm-frontend.md §2): window.SKL_CRM.
    Web edition: reads crm_* tables through the Supabase client of web/public/skl-web.js (claude.use("crm")), so row-level
    security decides what each person sees; writes go only through the crm_* RPCs (web/supabase/004_crm_rpc.sql).
    Artifact or plain file: demo mode, sample data, nothing saved. Screens start using it in phases 2-3. */

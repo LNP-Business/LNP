@@ -118,7 +118,7 @@ do $$ declare pid uuid; begin
   assert (select first_seen_at from crm_people_without_cycle where primary_email = 'bob@ex.com') is not null, 'view has it';
 end $$;
 
--- 011: every SKL OS member is a CRM member, now and when invited later; saved screen lists are cleared
+-- 011: every LNP member is a CRM member, now and when invited later; saved screen lists are cleared
 do $$ declare u uuid := '30000000-0000-0000-0000-0000000000b1'; v uuid := '30000000-0000-0000-0000-0000000000b2'; begin
   insert into auth.users (id, email, raw_app_meta_data) values (u, 'michael@ex.com', '{"screens":["crm"],"provider":"email"}'), (v, 'vic@ex.com', '{}');
   update auth.users set raw_app_meta_data = raw_app_meta_data - 'screens' where raw_app_meta_data ? 'screens';

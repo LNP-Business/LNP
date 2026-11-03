@@ -1,4 +1,4 @@
-/* SKL OS · one way to show a key result everywhere (Cockpit overview, department views, Sales dashboard).
+/* LNP · one way to show a key result everywhere (Cockpit overview, department views, Sales dashboard).
    Everything is computed from the shared key results: check-ins, expected value, milestones. */
 (function () {
   var S = window.SKL;

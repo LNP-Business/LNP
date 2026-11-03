@@ -23,7 +23,7 @@ GROUPS = {
                            ("MechPrecall.dc.html", "Pre-call", (fr.get("precall"), f"{fr.get('precall')} frictions", "") if fr.get("precall") else None),
                            ("MechSales.dc.html", "Sales", (fr.get("sales"), f"{fr.get('sales')} frictions", "") if fr.get("sales") else None),
                            ("MechOS.dc.html", "Operating System", None)]),
-           ("SKL Map", [("CartoMap.dc.html", "Journey", None), ("CartoEvents.dc.html", "Events", None), ("CartoWorks.dc.html", "Build order", None),
+           ("LNP Map", [("CartoMap.dc.html", "Journey", None), ("CartoEvents.dc.html", "Events", None), ("CartoWorks.dc.html", "Build order", None),
                         ("CartoSim.dc.html", "Simulator", None), ("CartoModel.dc.html", "Model", None)])],
     "as": [("Pilot", [("AgentsOverview.dc.html", "Overview", None), ("AgentsDecisions.dc.html", "Decisions", (4, "Agent proposals waiting for your decision", "agentdec")),
                       ("AgentsRegistry.dc.html", "Agents", None), ("AgentsTriggers.dc.html", "Triggers", None), ("AgentsLog.dc.html", "Log", None)])],
@@ -60,7 +60,7 @@ GEAR = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="cur
 
 def nav(file, footer):
     area = SCREENS[file]
-    brand = EDITION.get("brand", ["SKL", None])  # LNP: its own name in the sidebar
+    brand = EDITION.get("brand", ["LNP", None])  # LNP: its own name in the sidebar
     short = {"os": "OS", "ss": "SS", "ks": "KS", "as": "AS", "settings": "OS"}[area]
     head = f'<div style="font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600; color: #F6F4EF; padding: 0 12px 18px">{brand[0]} <span style="color: #D9B46A">{brand[1] or short}</span></div>'
     if EDITION.get("wordmark"):  # LNP (2026-11-03): the logo of Les Nouveaux Profs, its pastille and its name, as on its site

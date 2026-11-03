@@ -1,5 +1,5 @@
 """Cockpit › Sales, one screen: the approved proposal (proposal/sales-cockpit-v2.html) turned into a module
-that SKL OS mounts in a shadow root under the Cockpit tabs. Writes sales_v2.json = {css, html, js}."""
+that LNP mounts in a shadow root under the Cockpit tabs. Writes sales_v2.json = {css, html, js}."""
 import json, pathlib, re
 HERE = pathlib.Path(__file__).resolve().parent
 src = (HERE.parent / 'proposal' / 'sales-cockpit-v2.html').read_text(encoding='utf-8')
@@ -29,7 +29,7 @@ html = '<div class="sv">' + body + '</div>'
 
 # ---- script: same logic, reading the shadow root, the shared key result, and talking to the CRM ----
 js = re.search(r'<script>(.*?)</script>', src, re.S).group(1)
-js = js.replace('const KR={name:"50 k€ encaissés",cur:12000,exp:15000,target:50000,status:"Orange"}; // SKL key result, from Roadmap\n', '')
+js = js.replace('const KR={name:"50 k€ encaissés",cur:12000,exp:15000,target:50000,status:"Orange"}; // LNP key result, from Roadmap\n', '')
 js = js.replace('const el=(id)=>document.getElementById(id);\nconst tip=el("tip");',
                 'const el=(id)=>R.getElementById(id);\nconst tip=TIP;')
 js = js.replace('function toast(m){const t=el("toast");', 'function toast(m){const t=TOAST;')

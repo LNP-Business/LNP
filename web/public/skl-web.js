@@ -1,6 +1,6 @@
 /* LNP on the web: sign-in, team access, and the same `window.claude.use("db" | "user")` interface the
    app uses inside a claude.ai Artifact, served by Supabase. Loaded before the app, so the app itself is
-   unchanged: store.js and the SKL Map wait for `use()`, which resolves once the person is signed in. */
+   unchanged: store.js and the LNP Map wait for `use()`, which resolves once the person is signed in. */
 (function () {
   "use strict";
   var cfg = window.SKL_WEB_CONFIG || {};
@@ -316,7 +316,7 @@
   var AREAS = [
     { key: "os", name: "Operating System", home: "cockpit", groups: [["Operating System", [["cockpit", "Cockpit"], ["build", "Build"], ["execute", "Execute"], ["decisions", "Decisions"], ["review", "Weekly Review"]]]] },
     { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salesday", "Ma journée"], ["crm", "CRM"]], "Ventes"]] },
-    { key: "ks", name: "Knowledge System", home: "bibliotheque", groups: [["Knowledge System", [["bibliotheque", "Library"]]], ["Mechanisms", [["mechanisms", "Mechanism map"], ["mechprecall", "Pre-call"], ["mechsales", "Sales"], ["mechos", "Operating System"]]], ["SKL Map", [["cartomap", "Journey"], ["cartoevents", "Events"], ["cartoworks", "Build order"], ["cartosim", "Simulator"], ["cartomodel", "Model"]]]] },
+    { key: "ks", name: "Knowledge System", home: "bibliotheque", groups: [["Knowledge System", [["bibliotheque", "Library"]]], ["Mechanisms", [["mechanisms", "Mechanism map"], ["mechprecall", "Pre-call"], ["mechsales", "Sales"], ["mechos", "Operating System"]]], ["LNP Map", [["cartomap", "Journey"], ["cartoevents", "Events"], ["cartoworks", "Build order"], ["cartosim", "Simulator"], ["cartomodel", "Model"]]]] },
     { key: "as", name: "Agent System", home: "agentsoverview", groups: [["Pilot", [["agentsoverview", "Overview"], ["agentsdecisions", "Decisions"], ["agentsregistry", "Agents"], ["agentstriggers", "Triggers"], ["agentslog", "Log"]]]] },
     { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes"], ["registers", "Registres"]], "Paramètres"]] },
     // not a screen: the LNP connector in Claude (docs/crm/17-claude-connector.md); admins only by default

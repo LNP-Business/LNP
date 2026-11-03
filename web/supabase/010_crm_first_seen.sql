@@ -1,4 +1,4 @@
--- SKL OS CRM — when a lead came in (web/supabase/010_crm_first_seen.sql), after 009.
+-- LNP CRM — when a lead came in (web/supabase/010_crm_first_seen.sql), after 009.
 -- crm_people.created_at is the day a row was written (the imports wrote 1 501 rows on 2026-10-24), not the day the lead
 -- arrived. first_seen_at is the earliest moment the CRM knows of the person: the earliest of its events (iClosed contact
 -- creation, Close lead creation, first booking…), kept up to date by a trigger on every new event. The CRM's

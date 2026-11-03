@@ -158,7 +158,7 @@ test("registration accepts Claude's callback and local tools only", async () => 
 
 test("OAuth: sign-in page, code bound to PKCE and single use, cancel, wrong password", async () => {
   const s = await signIn("romain");
-  assert.equal(s.pageStatus, 200); assert.match(s.html, /demande à <strong>lire<\/strong> LNP/); assert.ok(!/SKL|ALKIMIY/.test(s.html), "no SKL name on the sign-in page");
+  assert.equal(s.pageStatus, 200); assert.match(s.html, /demande à <strong>lire<\/strong> LNP/); assert.ok(!/SKL|ALKIMIY/.test(s.html), "no LNP name on the sign-in page");
   assert.equal(s.status, 302); assert.equal(new URL(s.loc).searchParams.get("state"), "st-1"); assert.ok(s.loc.startsWith(CALLBACK));
   assert.equal(s.tokenStatus, 200); assert.equal(s.tokens.token_type, "Bearer"); assert.ok(s.tokens.access_token && s.tokens.refresh_token);
   const again = await fetch(BASE + "/api/oauth/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "authorization_code", code: s.code, code_verifier: s.verifier, client_id: s.client.client_id }) });
@@ -276,7 +276,7 @@ test("LNP's screens and Settings: Page methods and alert rules", async () => {
   assert.ok(!/SKL|ALKIMIY/.test(init || ""), "server instructions say LNP");
   assert.equal(c.getServerVersion().name, "lnp");
   const t = async (name, args = {}) => { const r = await c.callTool({ name, arguments: args }); assert.ok(!r.isError, name + ": " + text(r)); return text(r); };
-  const list = await t("page_method"); assert.match(list, /Cockpit commercial/); assert.match(list, /Ma journée/); assert.match(list, /CRM/); assert.ok(!/Build|Execute|Library|SKL Map|Agent System/.test(list), "only LNP's screens");
+  const list = await t("page_method"); assert.match(list, /Cockpit commercial/); assert.match(list, /Ma journée/); assert.match(list, /CRM/); assert.ok(!/Build|Execute|Library|LNP Map|Agent System/.test(list), "only LNP's screens");
   assert.match(await t("page_method", { screen: "CRM" }), /Page method · Ventes › CRM\n[\s\S]{40,}/);
   assert.match(await t("page_method", { screen: "Sales Day" }), /Ventes › Ma journée/);
   const bad = await c.callTool({ name: "page_method", arguments: { screen: "Weekly Review" } }); assert.ok(bad.isError); assert.match(text(bad), /No screen 'Weekly Review'/);
@@ -288,7 +288,7 @@ test("LNP's screens and Settings: Page methods and alert rules", async () => {
 });
 
 test("Settings › Access closes the matching tools", async () => {
-  // an access list written by SKL OS (old keys: cockpit, build…) is read without error; only LNP's keys count
+  // an access list written by LNP (old keys: cockpit, build…) is read without error; only LNP's keys count
   DB.users.find(u => u.id === ids.valentino).app_metadata = { screens: ["cockpit", "build", "salescockpit", "claude"] };
   const s = await signIn("valentino"), c = await client(s.tokens.access_token);
   assert.ok(!(await c.callTool({ name: "performance", arguments: {} })).isError, "the Sales cockpit opens performance");

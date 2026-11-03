@@ -1,4 +1,4 @@
--- SKL OS CRM — Fathom is the source of truth of the sales calls (web/supabase/025_crm_fathom_calls.sql), after 024.
+-- LNP CRM — Fathom is the source of truth of the sales calls (web/supabase/025_crm_fathom_calls.sql), after 024.
 -- Romain, 2026-10-29: "100 % of the Fathom calls that are sales calls, recorded by Valentino, are linked to a lead. A Fathom
 -- call with no link to an existing lead is probably a professional call, not a sales call. The source of truth of the calls
 -- is Fathom, not iClosed: booked calls can be canceled or rescheduled. Several Fathom calls with one lead = R1 + R2, or more."

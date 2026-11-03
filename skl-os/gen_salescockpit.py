@@ -24,7 +24,7 @@ INFO = info_popup('Cockpit commercial', [
         'Survolez un chiffre pour voir comment il est calculé ; cliquez sur un commercial pour ouvrir ses prospects dans le CRM.',
         'Ouvrez le CRM (dans le menu) pour agir sur un prospect : déclarer l’issue, relancer, ajouter une note.'])
 ])
-# the popup frame of shell.py is shared with the SKL OS screens (still in English): this screen says it in French.
+# the popup frame of shell.py is shared with the LNP screens (still in English): this screen says it in French.
 # Plain replaces, no assert: once shell.py speaks French they simply find nothing.
 FR_FRAME = [('>Page method<', '>Mode d’emploi<'), ('>Got it<', '>Compris<'), ('aria-label="Close"', 'aria-label="Fermer"'),
             ('aria-label="How this page works" title="How this page works"', 'aria-label="Mode d’emploi de la page" title="Mode d’emploi de la page"')]

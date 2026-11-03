@@ -1,11 +1,11 @@
-"""Assemble the 4 SKL OS screens (Design-canvas .dc.html files) into one standalone prototype page."""
+"""Assemble the 4 LNP screens (Design-canvas .dc.html files) into one standalone prototype page."""
 import re, pathlib, sys, json
 
 HERE = pathlib.Path(__file__).resolve().parent
 LANG = sys.argv[1] if len(sys.argv) > 1 else "fr"
 SRC = HERE.parent / ("skl-en" if LANG == "en" else "skl") / "project"
 OUT = HERE / ("skl-os-en.html" if LANG == "en" else "skl-os.html")
-TITLE = "SKL OS English" if LANG == "en" else "SKL OS"
+TITLE = "LNP English" if LANG == "en" else "LNP"
 _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
 TITLE = EDITION.get("title", TITLE)
@@ -46,7 +46,7 @@ SCREENS = [
 # LNP (2026-11-03): only the screens of the edition are in the page (the Operating, Knowledge and Agent screens are gone)
 if EDITION_KEEP is not None:
     SCREENS = [s for s in SCREENS if s[0] in EDITION_KEEP]
-OS_MODULES = EDITION_KEEP is None  # the Operating / Knowledge / Agent modules, only in the full SKL OS build
+OS_MODULES = EDITION_KEEP is None  # the Operating / Knowledge / Agent modules, only in the full LNP build
 
 templates, classes = [], []
 SHELL_ARIA = [('aria-label="Main navigation"', 'aria-label="Navigation principale"'), ('aria-label="Switch system"', 'aria-label="Changer de système"'),
@@ -125,7 +125,7 @@ page = f"""<title>{TITLE}</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
 <style>
-/* Single light product UI, as designed in the SKL OS canvas: warm paper ground, ink sidebar, blue action. */
+/* Single light product UI, as designed in the LNP canvas: warm paper ground, ink sidebar, blue action. */
 :root {{
   color-scheme: light;
   --paper: #F6F4EF;
@@ -551,7 +551,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 }})();
 </script>
 """
-# edition.json "rename" (LNP, 2026-11-03): its own name instead of SKL OS / ALKIMIY in every text of the page, in order
+# edition.json "rename" (LNP, 2026-11-03): its own name instead of LNP / ALKIMIY in every text of the page, in order
 for a, z in EDITION.get("rename", []):
     page = page.replace(a, z)
 

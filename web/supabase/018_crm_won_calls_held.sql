@@ -1,4 +1,4 @@
--- SKL OS CRM — won cycles' calls held, and the team by sales rep (web/supabase/018_crm_won_calls_held.sql), after 017.
+-- LNP CRM — won cycles' calls held, and the team by sales rep (web/supabase/018_crm_won_calls_held.sql), after 017.
 -- Romain, 2026-10-25: "every lead that had a sales call and was closed (won) had its call held: validate the outcome".
 -- 1. crm_mark_won_calls_held(p_dry): in every won cycle, each past call still "scheduled" (no outcome recorded) becomes held,
 --    with an outcome_held event (source crm, actor system), as the iClosed import records held calls (009). No declared
@@ -6,7 +6,7 @@
 --    the cycle stays won from its import. Each cycle is recomputed; the function checks that no won cycle changed status.
 --    A dry run is rolled back and returns the counts. Run once below.
 -- 2. crm_sales_cockpit(): the Sales team groups cycles by sales rep = the cycle's owner, else the host of its latest booked
---    call (valentino@… → Valentino), so the people who sell show even without an SKL OS account.
+--    call (valentino@… → Valentino), so the people who sell show even without an LNP account.
 -- Safe to run again.
 
 create or replace function crm_mark_won_calls_held(p_dry boolean) returns jsonb
@@ -62,7 +62,7 @@ begin
     -- team: the same figures per cycle owner over the period
     v_rows := '[]';
     -- the sales rep of a cycle: its owner, else the host of its latest booked call (iClosed), so the team shows the
-    -- people who sell even when they have no SKL OS account (Valentino…)
+    -- people who sell even when they have no LNP account (Valentino…)
     for m in select r.rep, min(r.name) as name, array_agg(r.id) as ids from (
                select c.id, coalesce(cm.member_key, nullif(split_part(h.host, '@', 1), ''), 'none') as rep,
                       coalesce(cm.full_name, initcap(nullif(split_part(split_part(h.host, '@', 1), '.', 1), '')), 'Non attribué') as name

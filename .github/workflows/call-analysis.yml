@@ -1,4 +1,4 @@
-# SKL call analysis (call-analysis/PLAN.md): engine and worker tests on every change; the worker runs every hour and on demand.
+# LNP call analysis (call-analysis/PLAN.md): engine and worker tests on every change; the worker runs every hour and on demand.
 # GitHub secret needed: SUPABASE_SERVICE_ROLE_KEY (Supabase › Project settings › API keys). Without it the tests run without
 # the real transcripts (25 Annex B tests skipped) and the worker does nothing. The model key stays in Supabase
 # (function secret ANTHROPIC_API_KEY, read by the Edge Function callqa-llm).

@@ -2,11 +2,13 @@
 import re, pathlib, json
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 P = ROOT / 'skl-en' / 'project'
-src = (P / 'Decisions.dc.html').read_text(encoding='utf-8')
+# LNP: the shared screen head (skl-en/project/Shell.base.html, the head of the former Decisions screen) and the i button of shell.py
+import sys; sys.path.insert(0, str(ROOT / 'skl-os')); from shell import INFO_BTN
+src = (P / 'Shell.base.html').read_text(encoding='utf-8').replace('{title}', 'CRM')
 m = re.search(r'<div style="position: relative; width: \d+px', src)
-head = src[:m.start()].replace('<title>SKL OS — Decisions</title>', '<title>SKL OS — CRM</title>')
+head = src[:m.start()]
 nav = re.search(r'<nav aria-label="Main navigation".*?</nav>', src, flags=re.S).group(0)
-ibtn = re.search(r'<button type="button" onClick="\{\{openInfo\}\}".*?</button>', src, flags=re.S).group(0)
+ibtn = INFO_BTN
 H3 = 'margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600'
 NUM = 'width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center'
 TXT = 'margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33'
@@ -56,7 +58,7 @@ class Component extends DCLogic {
 (P / 'CRM.dc.html').write_text(out, encoding='utf-8')
 
 
-# ---- SKL OS palette for the ALKIMIY Lite screens: white / black / gold, SKL type ----
+# ---- LNP palette for the ALKIMIY Lite screens: white / black / gold, LNP type ----
 SKL_VARS = ('<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">'
   '<style>:root{--bg:#F6F4EF;--bg-2:#EFECE4;--card:#FFFFFF;--ink:#1B1B18;--ink-2:#3D3A33;--muted:#5E5B53;--muted-2:#8E8A80;'
   '--line:#E3DFD5;--hair:#EFEBE3;--side:#1B1B18;--side-2:#2C2B26;--side-ink:#C9C4B7;--side-mut:#8E8A80;--side-line:#34322C;'
@@ -96,7 +98,7 @@ crm = theme(crm)
 inj = '<style>.side{display:none!important}.app{grid-template-columns:minmax(0,1fr)!important}.wrap{padding-inline-end:96px}</style>'
 i = crm.index('<div class="app">'); crm = crm[:i] + inj + '\n' + crm[i:]
 k = crm.rindex('renderAll();'); crm = crm[:k] + 'S.view="crm";renderAll();' + crm[k + len('renderAll();'):]
-# a way back to the pipeline when SKL OS opens the CRM on its alerts
+# a way back to the pipeline when LNP opens the CRM on its alerts
 crm = crm.replace('<section class="view" id="v-alerts"></section>', '<button class="linkbtn" id="sklCrmBack" data-act="goto" data-v="crm" hidden style="margin-bottom:14px">← Pipeline</button>\n      <section class="view" id="v-alerts"></section>', 1)
 k = crm.rindex('S.view="crm";renderAll();')
 crm = crm[:k] + '{const _rn=renderNav;renderNav=function(){_rn();const b=document.getElementById("sklCrmBack");if(b)b.hidden=S.view!=="alerts";};}' + crm[k:]
@@ -253,7 +255,7 @@ crm = crm[:m.start()] + 'const LEADS=[];' + crm[m.end():]
 m = re.search(r'let ALERTS=\[.*?\n\];', crm, flags=re.S)
 assert m, 'ALERTS block not found'
 crm = crm[:m.start()] + 'let ALERTS=[];' + crm[m.end():]
-# its sales reps were fictional too: the real ones, by their SKL member id (no figures until the shared CRM has data)
+# its sales reps were fictional too: the real ones, by their LNP member id (no figures until the shared CRM has data)
 m = re.search(r'const SALES=\[.*?\n\];', crm, flags=re.S)
 assert m, 'SALES block not found'
 crm = crm[:m.start()] + ('const SALES=[\n'
@@ -273,7 +275,7 @@ for a, b in [
     ('S.of={res:"held",dec:"fu",amt:l.a,inst:"3",reason:"",nur:"y",step:""}', 'S.of={res:"held",dec:"fu",amt:l.a,inst:"1",reason:"",nur:"y",step:""}'),
     ('<span class="mock">Maquette v6 · CRM › Cycle de vente · prospects d’exemple · maintenant = dim. 25 oct., 08:51 (Dubaï)</span>',
      '<span class="mock" id="scMock">Démo · prospects d’exemple · rien n’est enregistré · maintenant = dim. 25 oct., 08:51 (Dubaï)</span>'),
-    # one Page method per screen: SKL OS's round i button (top right) explains the CRM and its Sales cycle view, so the
+    # one Page method per screen: LNP's round i button (top right) explains the CRM and its Sales cycle view, so the
     # mock-up's own i button goes and its top bar keeps the 72 px the round button needs (design system)
     ('<button class="ibtn" data-method="1" aria-label="Mode d’emploi">i</button>', ''),
     ('<header class="top">', '<header class="top" style="padding-right:72px">'),
@@ -321,7 +323,7 @@ for a, b in [
     ('const paid=rows.filter(e=>e.k==="paid"&&e.t<=l.age).length?3000:0;',
      'const paid=LIVE?(l.collected||0):rows.filter(e=>e.k==="paid"&&e.t<=l.age).length?3000:0;'),
     ('\nrender();\n</script>',
-     '\n/* SKL OS web edition: real cycles from SKL_CRM.salesCycleView(), the real clock, the CRM team */\n'
+     '\n/* LNP web edition: real cycles from SKL_CRM.salesCycleView(), the real clock, the CRM team */\n'
      'window.scLive=function(d){LIVE=true;NOW=d.now||Date.now();LEADS.splice(0,LEADS.length,...d.leads);'
      'Object.keys(REPS).forEach(k=>delete REPS[k]);Object.assign(REPS,d.reps);if(!d.keep)S.open.clear();'
      'document.getElementById("scMock").hidden=true;const rs=document.getElementById("rep"),v=S.rep;'
@@ -590,7 +592,7 @@ d = d.replace('<section class="view" id="v-dash"></section>',
 d = d.replace('<section class="view" id="v-settings"></section>',
               '<section class="view" id="v-settings"></section>\n      <div id="sklKR">' + kr + '</div>', 1)
 hook = '''
-/* SKL OS: dashboard first; team rows open the SKL CRM filtered on that sales rep */
+/* LNP: dashboard first; team rows open the LNP CRM filtered on that sales rep */
 {const _rn=renderNav;renderNav=function(){_rn();const k=S.view==="dash";document.getElementById("sklKR").hidden=!k;document.getElementById("sklBack").hidden=k;};}
 document.addEventListener("click",e=>{const el=e.target.closest('[data-act="teamrow"]');if(!el)return;e.stopImmediatePropagation();e.preventDefault();try{parent.postMessage({skl:"crm",owner:el.dataset.id},"*")}catch(x){}},true);
 S.view="dash";renderAll();'''

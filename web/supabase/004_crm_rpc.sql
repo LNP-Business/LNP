@@ -1,4 +1,4 @@
--- SKL OS CRM — writes from the front end (web/supabase/004_crm_rpc.sql), after 003_crm_core.sql.
+-- LNP CRM — writes from the front end (web/supabase/004_crm_rpc.sql), after 003_crm_core.sql.
 -- The browser never writes crm_* tables: it calls these security-definer functions, which check the caller's CRM
 -- role and ownership, write crm_audit_log and the matching crm_events (docs/crm/02-data-model.md §5).
 -- Phase 1 = the mechanisms. Not yet here: the projector (phase 2: derived cycle columns and statuses), the Whop
@@ -27,7 +27,7 @@ returns void language sql security definer set search_path = public as $$
 $$;
 
 -- ───────────────────────── team ─────────────────────────
--- Link a signed-in account (existing members row, found by email) to its SKL member id, CRM role and lead
+-- Link a signed-in account (existing members row, found by email) to its LNP member id, CRM role and lead
 -- (Valentino -> Romain, Romain -> Amin). Allowed to an app admin (members.role = 'admin') or a CRM admin.
 create or replace function crm_admin_set_member(
   p_email text, p_member_key text, p_full_name text, p_role member_role,

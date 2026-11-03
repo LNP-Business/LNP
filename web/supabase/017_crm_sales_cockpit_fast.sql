@@ -1,4 +1,4 @@
--- SKL OS CRM — the Sales cockpit, fast (web/supabase/017_crm_sales_cockpit_fast.sql), after 016.
+-- LNP CRM — the Sales cockpit, fast (web/supabase/017_crm_sales_cockpit_fast.sql), after 016.
 -- 016 ran with the caller's row-level security on every row read: 45 s for an admin, over Supabase's 8 s statement limit
 -- for signed-in people, so the browser got an error and the cockpit kept its sample figures. Same figures, same rules,
 -- decided once per call: crm_sales_cockpit() runs as security definer, refuses a person with no CRM role, and keeps to

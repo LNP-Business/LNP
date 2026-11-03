@@ -1,4 +1,4 @@
-// SKL CRM · Sales cycle SLAs v3 (docs/crm/18-sales-cycle-slas.md, Romain 2026-10-25 / 2026-10-30). One source for the
+// LNP CRM · Sales cycle SLAs v3 (docs/crm/18-sales-cycle-slas.md, Romain 2026-10-25 / 2026-10-30). One source for the
 // Sales cycle screen (inlined by skl-os/gen_crm.py) and the Slack alerts (supabase/functions/sla-tick).
 // A lead is the screen's model: {age, ev: [{t (hours since the cycle opened), w: s|p|a, k, r, dur (min)}]}; opt.t0 = the
 // cycle's opening (ms) turns on the sales window of CO-1 / CO-2 (08:00-22:00, opt.tz, default America/New_York).

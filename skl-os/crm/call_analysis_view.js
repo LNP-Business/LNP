@@ -1,4 +1,4 @@
-/* SKL OS CRM — the call analysis as designed (Romain 2026-10-27: "Analyse d'un appel · maquette", call-analysis/docs/SCREEN_SPEC.md,
+/* LNP CRM — the call analysis as designed (Romain 2026-10-27: "Analyse d'un appel · maquette", call-analysis/docs/SCREEN_SPEC.md,
    reference built on real call 001). Shown inside the lead record, under "Call analysis": header card with the four scores,
    transcript drawer, then 1 The discovery, 2 The gap played back, 3 The pitch, 4 Objections, with the mock-up's
    colours, type and layout, filled from the engine's record (crm_ca_record). The code decides and scores; this file only shows

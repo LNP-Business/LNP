@@ -1,4 +1,4 @@
--- SKL OS — Claude connector (web/supabase/014_mcp.sql), after 013. docs/crm/17-claude-connector.md.
+-- LNP — Claude connector (web/supabase/014_mcp.sql), after 013. docs/crm/17-claude-connector.md.
 -- 1. The OAuth tables of the small authorization server on Vercel (web/api/oauth.js): clients registered by Claude
 --    (RFC 7591) and one-time authorization codes (60 s, single use, stored as a hash). Row-level security on and no
 --    policy: only the service role (server code) reads or writes them.

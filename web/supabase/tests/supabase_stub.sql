@@ -1,4 +1,4 @@
--- The parts of a Supabase project that the SKL OS SQL files rely on, for tests on a plain local Postgres.
+-- The parts of a Supabase project that the LNP SQL files rely on, for tests on a plain local Postgres.
 -- roles are cluster-wide: create them once
 do $$ begin create role anon nologin; exception when duplicate_object then null; end $$;
 do $$ begin create role authenticated nologin; exception when duplicate_object then null; end $$;

@@ -1,4 +1,4 @@
-/* SKL OS CRM — cash of a signed client, entered by hand (web/supabase/022_crm_manual_cash.sql; Romain, 2026-10-26).
+/* LNP CRM — cash of a signed client, entered by hand (web/supabase/022_crm_manual_cash.sql; Romain, 2026-10-26).
    A window over the CRM document, opened from the lead's "Invoicing and payment" panel or its card: the amount signed,
    the payments received (date, amount, source: entered by hand or Whop), a form to add one, and Remove (asked first) for a
    payment entered by hand. Whop's payments will arrive on their own later (phase 5) and show here too.

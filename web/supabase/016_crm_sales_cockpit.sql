@@ -1,4 +1,4 @@
--- SKL OS CRM — the Sales cockpit on live data (web/supabase/016_crm_sales_cockpit.sql), after 015.
+-- LNP CRM — the Sales cockpit on live data (web/supabase/016_crm_sales_cockpit.sql), after 015.
 -- Cockpit › Sales and Sales System › Cockpit drew the approved mock-up's sample figures. crm_sales_cockpit() computes every
 -- figure of that dashboard from the CRM, for the three periods of its switch (last 7, 30 and 56 days), each with its
 -- baseline = the same figure over the period just before (the 30 days before the last 30 days…). One call, read with the
