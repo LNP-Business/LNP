@@ -37,7 +37,8 @@ ou un projet de LNP.
 
 1. Secrets GitHub du dépôt (Settings › Secrets and variables › Actions) : `SUPABASE_ACCESS_TOKEN` (token Supabase créé pour ce
    déploiement, sur un compte qui ne voit que les projets de NOUVEAU), `SUPABASE_PROJECT_REF` (la réf.), `SUPABASE_SERVICE_ROLE_KEY`
-   (clé `service_role` du projet) ; variable `SUPABASE_URL` = `https://<ref>.supabase.co`.
+   (la clé **secret** du projet, `sb_secret_…`, Project Settings › API Keys : la fonction `callqa-llm` refuse l'ancienne clé
+   `service_role` en `eyJ…`) ; variable `SUPABASE_URL` = `https://<ref>.supabase.co`.
 2. GitHub › Actions › « CRM functions » › Run workflow sur `main` : les 8 fonctions sont déployées (`--no-verify-jwt --yes`).
    Contrôle : Supabase › Edge Functions montre `iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in`, `process-inbox`, `crm-import`,
    `sla-tick`, `callqa-llm`.

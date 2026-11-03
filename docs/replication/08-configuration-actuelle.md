@@ -8,7 +8,7 @@ des réglages publics et des compteurs. À utiliser comme état attendu d'une r�
 | Élément | Valeur |
 |---|---|
 | Dépôt | `LNP-Business/LNP` (public), branche par défaut `main` |
-| Secrets Actions | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Secrets Actions | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_SERVICE_ROLE_KEY` (= la clé secret `sb_secret_…` du projet, depuis le 3 novembre) |
 | Variable Actions | `SUPABASE_URL` = `https://lludbqyosuzgwvvphmqc.supabase.co` |
 | Workflows | `crm-functions.yml`, `call-analysis.yml` (chapitre 06) |
 
