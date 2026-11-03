@@ -7,6 +7,24 @@ import { ICLOSED_BASE, iclosedHeaders } from "./probe.ts";
 
 type Obj = Record<string, any>;
 
+// iClosed limits its API (HTTP 429 "RATE_LIMIT_EXCEEDED" seen on 2026-11-03 when pages came back to back): pages are read at
+// most one every ICLOSED_PAGE_GAP_MS, and a 429 waits for Retry-After (else 5, 10, 20… s) before the same page is asked
+// again, 6 times at most (the same rule as the Fathom importer).
+export const ICLOSED_PAGE_GAP_MS = 600;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+type Wait = (ms: number) => Promise<unknown>;
+
+async function iclosedGet(url: string, headers: HeadersInit, fetchFn: typeof fetch, wait: Wait): Promise<Obj> {
+  let r = await fetchFn(url, { headers });
+  for (let retry = 0; r.status === 429 && retry < 6; retry++) {
+    const after = Number(r.headers.get("retry-after"));
+    await wait(after > 0 ? after * 1000 : 5000 * 2 ** retry);
+    r = await fetchFn(url, { headers });
+  }
+  if (!r.ok) throw new Error(`iClosed API: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
+  return await r.json();
+}
+
 export function iclosedContactToItem(c: Obj): ImportItem {
   const name = [c.firstName, c.lastName].map((x) => String(x ?? "").trim()).filter(Boolean).join(" ") || null;
   return {
@@ -26,12 +44,11 @@ export function iclosedContactToItem(c: Obj): ImportItem {
 }
 
 // Stops on an empty page, on a page with nothing new (the API repeating itself) or once the announced count is reached.
-export async function* iclosedPages(apiKey: string, startPage = 0, limit = 100, fetchFn: typeof fetch = fetch) {
+export async function* iclosedPages(apiKey: string, startPage = 0, limit = 100, fetchFn: typeof fetch = fetch, wait: Wait = sleep) {
   const headers = iclosedHeaders(apiKey), seen = new Set<number>();
   for (let page = startPage; page < startPage + 500; page++) {
-    const r = await fetchFn(`${ICLOSED_BASE}/v1/contacts?limit=${limit}&page=${page}`, { headers });
-    if (!r.ok) throw new Error(`iClosed API: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
-    const j = await r.json();
+    if (page > startPage) await wait(ICLOSED_PAGE_GAP_MS);
+    const j = await iclosedGet(`${ICLOSED_BASE}/v1/contacts?limit=${limit}&page=${page}`, headers, fetchFn, wait);
     const total = Number(j?.data?.count ?? 0);
     const contacts = ((j?.data?.contacts ?? []) as Obj[]).filter((c) => !seen.has(c.id));
     contacts.forEach((c) => seen.add(c.id));
@@ -110,12 +127,11 @@ export function iclosedCallsToItems(calls: Obj[], now = Date.now()) {
   });
 }
 
-export async function iclosedAllCalls(apiKey: string, fetchFn: typeof fetch = fetch, limit = 100) {
+export async function iclosedAllCalls(apiKey: string, fetchFn: typeof fetch = fetch, limit = 100, wait: Wait = sleep) {
   const headers = iclosedHeaders(apiKey), seen = new Map<number, Obj>();
   for (let page = 0; page < 500; page++) {
-    const r = await fetchFn(`${ICLOSED_BASE}/v1/eventCalls?limit=${limit}&page=${page}`, { headers });
-    if (!r.ok) throw new Error(`iClosed API: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
-    const j = await r.json();
+    if (page) await wait(ICLOSED_PAGE_GAP_MS);
+    const j = await iclosedGet(`${ICLOSED_BASE}/v1/eventCalls?limit=${limit}&page=${page}`, headers, fetchFn, wait);
     const list: Obj[] = j?.data?.eventCalls ?? [];
     const before = seen.size;
     for (const c of list) seen.set(c.id, c);
