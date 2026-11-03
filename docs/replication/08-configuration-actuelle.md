@@ -76,3 +76,14 @@ des réglages publics et des compteurs. À utiliser comme état attendu d'une r�
 ## Équipe
 
 Un compte : l'administrateur créé le 3 novembre 2026. `crm_sales_team` est vide (commerciaux à ajouter). Aucune donnée CRM.
+
+## Constats vérifiés en direct (points à corriger ou à surveiller)
+
+| Constat | Vérification | Conséquence |
+|---|---|---|
+| Realtime : seule la table `docs` est dans la publication `supabase_realtime` | `pg_publication_tables` | le CRM s'abonne aussi à `crm_cycles`, `crm_events`, `crm_alerts`, mais ces tables ne sont pas publiées : les écrans du CRM ne se mettent pas à jour seuls (il faut recharger). Correctif : `alter publication supabase_realtime add table crm_cycles, crm_events, crm_alerts;` |
+| `crm_members.id` → `members` en `on delete restrict` | `pg_constraint` (`confdeltype = r`) | depuis `011`, chaque membre a sa ligne `crm_members` : retirer une personne depuis Paramètres › Compte risque d'être refusé par la base. À tester, puis corriger (supprimer la ligne `crm_members` d'abord, ou passer la clé en `on delete cascade`) |
+| Fonctions du worker d'analyse | `has_function_privilege('service_role', …)` | `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail` sont bien exécutables par `service_role` (droits par défaut de Supabase) ; le worker a déjà appelé `crm_ca_claim` avec succès |
+| `crm_alerts` n'est jamais rempli | recherche dans le code (chapitres 02 et 03) | « Encaissements à risque » ne montre que les prochaines étapes en retard ; la vue Alertes du CRM reste vide. Les alertes commerciales actives sont les SLA (`sla_rules.js`, Slack) |
+| Paramètres › Alertes ne règle que des alertes de l'ancien système d'exploitation (tâches, objectifs, décisions) | chapitre 02 | sans effet dans LNP tant que ces données n'existent pas |
+| `whop-in` stocke les paiements sans les traiter | chapitre 04 | les encaissements se saisissent à la main dans la fenêtre d'encaissement |
