@@ -15,7 +15,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
         listMembers: async () => [{ id: 'u-r', member_key: 'romain', full_name: 'Romain' }],
         listNoBooking: async () => [],
         me: async () => ({ member_key: 'romain', role }),
-        salesCycleView: window.parent.SKL_CRM.salesCycleView,
+        salesCycleView: window.parent.SKL_CRM.salesCycleView, reasonLabel: window.parent.SKL_CRM.reasonLabel,
         listBoard: async () => [
           cyc('a1', 'Active Due', 'active', [{ id: 'k1', rank: 1, status: 'scheduled', scheduled_start: iso(-30), scheduled_end: iso(-29) }], [{ type: 'call_booked', occurred_at: iso(-200), call_id: 'k1', source: 'import', data: { event_name: 'Design Career Roadmap Call' } }], { next_move: { code: 'declare_outcome' } }),
           cyc('a2', 'Active Soon', 'active', [{ id: 'k2', rank: 1, status: 'scheduled', scheduled_start: iso(5), scheduled_end: iso(5.75) }], [{ type: 'call_booked', occurred_at: iso(-20), call_id: 'k2', source: 'iclosed', data: {} }], { opened_at: iso(-20) }),
@@ -43,13 +43,15 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.waitForTimeout(200); await sc.click('.det [data-pop]'); await p.waitForTimeout(200);
   res.summaryLabel = await sc.$eval('.sum3 .pk', e => e.innerText);
   await sc.click('.rec [data-an]'); await p.waitForTimeout(150);
-  res.analysis = (await sc.$eval('.adlg', e => e.innerText)).replace(/\s+/g, ' ').slice(0, 220);
+  // live: the call analysis opens in the CRM document (SKL_CA), not in the Sales cycle frame
+  res.analysis = ((await sc.$eval('.adlg', e => e.innerText).catch(() => null)) || (await cf.evaluate(() => (document.querySelector('.ca-scrim,[class*="ca-"][role="dialog"]') || {}).innerText || 'opened in the CRM document (SKL_CA)'))).replace(/\s+/g, ' ').slice(0, 220);
+  await cf.evaluate(() => { try { if (window.SKL_CA && SKL_CA.close) SKL_CA.close(); } catch (e) {} document.querySelectorAll('.ca-scrim').forEach(x => x.remove()); });
   await p.keyboard.press('Escape'); await p.keyboard.press('Escape'); await p.waitForTimeout(100);
   // a write in live mode: declare the outcome → says phase 3, changes nothing
   await sc.evaluate(() => { const r = [...document.querySelectorAll('.r')].find(x => x.querySelector('.nm').innerText === 'Active Due'); r.querySelector('.who').click(); });
   await p.waitForTimeout(200); await sc.click('[data-act="outcome"]'); await p.waitForTimeout(100);
   await sc.click('[data-of="dec:no"]'); res.reasons = await sc.$$eval('[data-of^="reason:"]', a => a.map(x => x.innerText));
-  await sc.click('[data-of="dec:fu"]'); await sc.fill('#ofs', 'Call back Thursday'); await sc.click('[data-ofsave]'); await p.waitForTimeout(400);
+  await sc.click('[data-of="dec:fu"]'); await sc.fill('#ofs', 'Rappeler jeudi'); await sc.click('[data-ofsave]'); await p.waitForTimeout(400);
   res.writeToast = await sc.$eval('#toast', e => e.innerText); res.declared = await cf.evaluate(() => window.__declared);
   await sc.click('[data-send], [data-act="whop"], [data-act="book"]').catch(() => {}); 
   res.needsGoes = await sc.evaluate(() => { let sent = null; const o = parent.parent.postMessage; return true; });

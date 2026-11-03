@@ -1,4 +1,4 @@
-<title>CRM Sales Cycle</title>
+<title>CRM · Cycle de vente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
@@ -339,30 +339,30 @@ svg.cn{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-in
 </style>
 
 <div class="wrap">
-  <span class="mock">Mock-up v6 · CRM › Sales cycle · sample leads · now = Sun 25 Oct, 08:51 (Dubai)</span>
+  <span class="mock">Maquette v6 · CRM › Cycle de vente · prospects d’exemple · maintenant = dim. 25 oct., 08:51 (Dubaï)</span>
   <header class="top">
-    <div class="seg" role="group" aria-label="CRM views"><button aria-pressed="false">Pipeline</button><button aria-pressed="false">Leads</button><button aria-pressed="true">Sales cycle</button></div>
+    <div class="seg" role="group" aria-label="Vues du CRM"><button aria-pressed="false">Pipeline</button><button aria-pressed="false">Prospects</button><button aria-pressed="true">Cycle de vente</button></div>
     <div class="sp"></div>
-    <input class="in" id="q" type="search" placeholder="Search a lead" aria-label="Search a lead">
-    <select class="in" id="rep" aria-label="Sales rep"></select>
-    <button class="ibtn" data-method="1" aria-label="Page method">i</button>
+    <input class="in" id="q" type="search" placeholder="Rechercher un prospect" aria-label="Rechercher un prospect">
+    <select class="in" id="rep" aria-label="Commercial"></select>
+    <button class="ibtn" data-method="1" aria-label="Mode d’emploi">i</button>
   </header>
-  <div class="kpis" id="kpis" role="group" aria-label="Filters"></div>
+  <div class="kpis" id="kpis" role="group" aria-label="Filtres"></div>
   <div class="btool" id="btool"></div>
-  <section class="board" id="board" aria-label="Sales cycle of every lead"></section>
+  <section class="board" id="board" aria-label="Cycle de vente de chaque prospect"></section>
   <div class="legend">
-    <span><i class="sw" style="background:#2A9D8F"></i>Show</span>
-    <span><i class="sw" style="background:#8B67C9"></i>Decision</span>
-    <span><i class="sw" style="background:#4F9A5B"></i>Cash</span>
-    <span><i class="sw" style="border:1.5px dashed #8B67C9;background:none"></i>Projected, if the next stages stay on target</span>
-    <span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--late) 0 4px,#F6C27E 4px 8px)"></i>Over target</span>
-    <span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--crit) 0 4px,#E3796F 4px 8px)"></i>Over twice the target</span>
-    <span><i style="width:9px;height:9px;border-radius:50%;background:var(--ink2);display:inline-block"></i>sales</span>
+    <span><i class="sw" style="background:#2A9D8F"></i>Présence</span>
+    <span><i class="sw" style="background:#8B67C9"></i>Décision</span>
+    <span><i class="sw" style="background:#4F9A5B"></i>Encaissement</span>
+    <span><i class="sw" style="border:1.5px dashed #8B67C9;background:none"></i>Projeté, si les étapes suivantes restent dans l’objectif</span>
+    <span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--late) 0 4px,#F6C27E 4px 8px)"></i>Au-delà de l’objectif</span>
+    <span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--crit) 0 4px,#E3796F 4px 8px)"></i>Plus de deux fois l’objectif</span>
+    <span><i style="width:9px;height:9px;border-radius:50%;background:var(--ink2);display:inline-block"></i>commercial</span>
     <span><i style="width:9px;height:9px;border-radius:50%;border:2px solid var(--gold2);display:inline-block"></i>prospect</span>
-    <span><b style="color:var(--crit)">✕</b> no-show</span>
-    <span><i class="evc" style="position:static;margin:0;display:inline-grid">3</i>interactions too close to read: click to open them</span>
-    <span><i class="nxc" style="position:relative;margin:0;transform:none;display:inline-block">R2 · Thu 19:00</i>next call</span>
-    <span>Row: Simple shows interactions when you hover a line · drag a line to move in time</span>
+    <span><b style="color:var(--crit)">✕</b> absence</span>
+    <span><i class="evc" style="position:static;margin:0;display:inline-grid">3</i>échanges trop proches pour être lus : cliquez pour les ouvrir</span>
+    <span><i class="nxc" style="position:relative;margin:0;transform:none;display:inline-block">R2 · jeu. 19:00</i>prochain appel</span>
+    <span>Ligne : Simple montre les échanges au survol d’une ligne · faites glisser une ligne pour vous déplacer dans le temps</span>
   </div>
 </div>
 <div class="tip" id="tip" role="tooltip"></div>
@@ -373,9 +373,9 @@ svg.cn{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-in
 <script>
 /* ---------- the cycle: from the booked call to won / lost (stages and targets in hours are proposals) ---------- */
 const STAGES=[
-  {k:"show",n:"Show",     from:"Call booked",   to:"Call held",   tgt:96, red:168, c:"#2A9D8F"},
-  {k:"dec", n:"Decision", from:"Call held",     to:"Yes or no",   tgt:72, red:144, c:"#8B67C9"},
-  {k:"cash",n:"Cash",     from:"Yes",           to:"First payment",tgt:24, red:48, c:"#4F9A5B"}
+  {k:"show",n:"Présence", from:"RDV pris",      to:"Appel honoré", tgt:96, red:168, c:"#2A9D8F"},
+  {k:"dec", n:"Décision", from:"Appel honoré",  to:"Oui ou non",   tgt:72, red:144, c:"#8B67C9"},
+  {k:"cash",n:"Encaissement",from:"Oui",       to:"Premier paiement",tgt:24, red:48, c:"#4F9A5B"}
 ];
 const SLA={first:1,reply:2,atRisk:4,follow:48}; // first sales message ≤ 1 h after booking · reply ≤ 2 h · "at risk" 4 h before a target · follow up after 48 h of silence
 const IDEAL=[];STAGES.reduce((a,s)=>{IDEAL.push(a+s.tgt);return a+s.tgt},0);
@@ -386,8 +386,8 @@ const REPS={lea:["Léa Moreau","#7A4B00"],karim:["Karim Benali","#1F6A66"],ines:
    paylink (Whop link sent), paid (Whop payment), note. Events with t > age are scheduled. ---------- */
 const E=(t,w,k,txt,x)=>Object.assign({t,w,k,txt},x||{});
 const LEADS=[
- {id:"yd",p:"Yassine Diallo",o:"malik",prod:"Elite Coaching",a:6000,age:300,nx:{txt:"Call Yassine for the decision promised on Monday",src:"from the R2 outcome"},ph:"+33 6 12 48 90 21",em:"y.diallo@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+ {id:"yd",p:"Yassine Diallo",o:"malik",prod:"Elite Coaching",a:6000,age:300,nx:{txt:"Appeler Yassine pour la décision promise lundi",src:"d’après l’issue du R2"},ph:"+33 6 12 48 90 21",em:"y.diallo@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.1,"a","remind","Votre appel avec Malik est confirmé. Vous recevrez un rappel la veille.",{st:"Delivered"}),
   E(1.5,"s","im","Bonjour Yassine, c'est Malik de SKL. Merci pour votre réservation ! Pour préparer notre échange : où en êtes-vous aujourd'hui sur votre chiffre d'affaires mensuel ?",{st:"Read"}),
   E(3,"p","im","Bonjour Malik, merci. Autour de 8 000 € par mois, mais très irrégulier."),
@@ -395,113 +395,113 @@ const LEADS=[
   E(40,"a","remind","Rappel : votre appel avec Malik a lieu demain à 15:00. Lien de connexion envoyé par email.",{st:"Delivered"}),
   E(62,"s","im","Hâte d'échanger tout à l'heure ! Gardez sous la main vos chiffres des 3 derniers mois.",{st:"Read"}),
   E(63,"p","im","Top, c'est noté 👍"),
-  E(64,"s","meet","R1 · Strategy call",{r:1,dur:50}),
-  E(65,"s","decision","Outcome declared · Held · Follow-up · next step: send the recap, then a call with his wife",{fu:1}),
+  E(64,"s","meet","R1 · Appel stratégique",{r:1,dur:50}),
+  E(65,"s","decision","Issue déclarée · Honoré · Relance · prochaine étape : envoyer le récap, puis un appel avec sa femme",{fu:1}),
   E(66,"s","im","Merci pour l'échange Yassine. Comme convenu, le récap : vous voulez passer de 8 000 € irréguliers à 20 000 € réguliers d'ici 6 mois. Elite Coaching : 6 000 €, payable en 3 fois. Je reste dispo pour toute question.",{st:"Read"}),
   E(110,"p","im","Merci Malik. Je dois en parler à ma femme avant de décider."),
   E(112,"s","im","C'est normal. Voulez-vous qu'on se fasse un appel à trois cette semaine pour répondre à ses questions ?",{st:"Read"}),
   E(130,"p","im","Oui, jeudi soir ça irait ?"),
   E(131,"s","im","Parfait, voici le lien pour réserver le créneau qui vous arrange.",{st:"Read"}),
-  E(132,"p","booked","Booked R2 · Call with his wife (45 min)",{r:2}),
+  E(132,"p","booked","RDV R2 pris · Appel avec sa femme (45 min)",{r:2}),
   E(180,"a","remind","Rappel : votre appel avec Malik a lieu demain à 19:00.",{st:"Delivered"}),
-  E(204,"s","meet","R2 · Call with his wife",{r:2,dur:35}),
-  E(205,"s","decision","Outcome declared · Held · Follow-up · reason: timing · next step: decision by Monday",{fu:1}),
+  E(204,"s","meet","R2 · Appel avec sa femme",{r:2,dur:35}),
+  E(205,"s","decision","Issue déclarée · Honoré · Relance · motif : moment · prochaine étape : décision d’ici lundi",{fu:1}),
   E(206,"s","im","Merci à vous deux pour ce moment. Je reviens vers vous lundi comme convenu.",{st:"Read"}),
-  E(250,"s","call","Phone call · outgoing · no answer"),
+  E(250,"s","call","Appel téléphonique · sortant · sans réponse"),
   E(251,"s","im","Bonjour Yassine, j'ai essayé de vous joindre. Avez-vous pu en reparler tous les deux ?",{st:"Delivered"})]},
- {id:"cg",p:"Chloé Garnier",o:"malik",prod:"Signature Program",a:3500,age:260,nx:{txt:"Two no-shows: send a last message, then disqualify",src:"rule: 2 no-shows"},ph:"+33 7 81 22 54 10",em:"chloe.g@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+ {id:"cg",p:"Chloé Garnier",o:"malik",prod:"Signature Program",a:3500,age:260,nx:{txt:"Deux absences : envoyer un dernier message, puis disqualifier",src:"règle : 2 absences"},ph:"+33 7 81 22 54 10",em:"chloe.g@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.4,"s","im","Bonjour Chloé, c'est Malik de SKL, ravi de vous parler jeudi !",{st:"Delivered"}),
   E(24,"a","remind","Rappel : votre appel avec Malik a lieu demain à 11:00.",{st:"Delivered"}),
-  E(48,"p","noshow","No-show R1",{r:1}),
+  E(48,"p","noshow","Absence R1",{r:1}),
   E(49,"s","im","Bonjour Chloé, je ne vous ai pas vue à notre rendez-vous. Tout va bien ? On peut le décaler si besoin.",{st:"Delivered"}),
   E(68,"p","im","Désolée, un imprévu avec les enfants. On peut reprogrammer ?"),
   E(69,"s","im","Bien sûr, voici le lien pour choisir un nouveau créneau.",{st:"Read"}),
-  E(70,"p","booked","Booked R1 again · Strategy call (45 min)",{r:1}),
+  E(70,"p","booked","RDV R1 repris · Appel stratégique (45 min)",{r:1}),
   E(116,"a","remind","Rappel : votre appel avec Malik a lieu demain à 11:00.",{st:"Delivered"}),
-  E(140,"p","noshow","Second no-show R1",{r:1}),
+  E(140,"p","noshow","Deuxième absence R1",{r:1}),
   E(141,"s","im","Chloé, deuxième rendez-vous manqué. Si ce n'est pas le bon moment, dites-le-moi simplement.",{st:"Delivered"}),
-  E(190,"s","call","Phone call · outgoing · no answer")]},
- {id:"ak",p:"Amine Kaci",o:"sofia",prod:"Elite Coaching",a:6000,age:150,nx:{txt:"Chase the first Whop payment",src:"yes on R1, link not paid"},ph:"+33 6 55 03 77 41",em:"amine.k@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(190,"s","call","Appel téléphonique · sortant · sans réponse")]},
+ {id:"ak",p:"Amine Kaci",o:"sofia",prod:"Elite Coaching",a:6000,age:150,nx:{txt:"Relancer le premier paiement Whop",src:"oui au R1, lien non payé"},ph:"+33 6 55 03 77 41",em:"amine.k@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.5,"s","im","Bonjour Amine, Sofia de SKL. Merci pour votre réservation, à mercredi !",{st:"Read"}),
   E(26,"a","remind","Rappel : votre appel avec Sofia a lieu demain à 18:00.",{st:"Delivered"}),
-  E(50,"s","meet","R1 · Strategy call",{r:1,dur:55}),
-  E(51,"s","decision","Outcome declared · Held · Yes · €6,000 · 3 instalments",{yes:1}),
-  E(52,"s","paylink","Whop payment link sent by iMessage · Elite Coaching · 3 × €2,000"),
+  E(50,"s","meet","R1 · Appel stratégique",{r:1,dur:55}),
+  E(51,"s","decision","Issue déclarée · Honoré · Oui · 6 000 € · 3 échéances",{yes:1}),
+  E(52,"s","paylink","Lien de paiement Whop envoyé par iMessage · Elite Coaching · 3 × 2 000 €"),
   E(70,"p","im","Merci Sofia, je règle ça ce week-end."),
   E(100,"s","im","Bonjour Amine, petit rappel pour le lien de paiement. Besoin d'aide ?",{st:"Delivered"})]},
- {id:"om",p:"Olivier Masson",o:"karim",prod:"Elite Coaching",a:6000,age:230,nx:{txt:"Send the Q1 case study promised on R2",src:"from the R2 outcome"},ph:"+33 6 40 18 92 65",em:"o.masson@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+ {id:"om",p:"Olivier Masson",o:"karim",prod:"Elite Coaching",a:6000,age:230,nx:{txt:"Envoyer l’étude de cas du T1 promise au R2",src:"d’après l’issue du R2"},ph:"+33 6 40 18 92 65",em:"o.masson@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.3,"s","im","Bonjour Olivier, Karim de SKL. Au plaisir de vous parler !",{st:"Read"}),
-  E(45,"s","meet","R1 · Strategy call",{r:1,dur:45}),
-  E(46,"s","decision","Outcome declared · Held · Follow-up · next step: answer the timing objection",{fu:1}),
+  E(45,"s","meet","R1 · Appel stratégique",{r:1,dur:45}),
+  E(46,"s","decision","Issue déclarée · Honoré · Relance · prochaine étape : répondre à l’objection de moment",{fu:1}),
   E(47,"s","im","Merci Olivier. Comme promis, le détail du programme et le calendrier de démarrage.",{st:"Read"}),
   E(120,"p","im","J'ai bien lu. Honnêtement, ce n'est pas le bon moment, on lance une nouvelle offre en janvier."),
   E(122,"s","im","Je comprends. Justement, ce lancement est le meilleur moment pour structurer la vente. On en parle 20 minutes ?",{st:"Read"}),
-  E(140,"p","booked","Booked R2 · Strategy follow-up",{r:2}),
-  E(170,"s","meet","R2 · Timing",{r:2,dur:30}),
-  E(171,"s","decision","Outcome declared · Held · Follow-up · reason: timing · next step: case study from the same industry",{fu:1}),
-  E(172,"s","note","Send the case study of a client who launched in Q1.")]},
+  E(140,"p","booked","RDV R2 pris · Suite de l’appel stratégique",{r:2}),
+  E(170,"s","meet","R2 · Moment",{r:2,dur:30}),
+  E(171,"s","decision","Issue déclarée · Honoré · Relance · motif : moment · prochaine étape : étude de cas du même secteur",{fu:1}),
+  E(172,"s","note","Envoyer l’étude de cas d’un client qui a lancé au T1.")]},
  {id:"tg",p:"Thomas Girard",o:"karim",prod:"Signature Program",a:3500,age:100,ph:"+33 6 77 31 06 58",em:"t.girard@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.6,"s","im","Bonjour Thomas, Karim de SKL. À vendredi !",{st:"Read"}),
   E(56,"a","remind","Rappel : votre appel avec Karim a lieu demain à 16:00.",{st:"Delivered"}),
   E(79,"a","remind","Votre appel commence dans 1 heure.",{st:"Delivered"}),
-  E(80,"s","meetdue","R1 · Strategy call · time passed, outcome not declared",{r:1})]},
- {id:"nb",p:"Nadia Benz",o:"lea",prod:"Elite Coaching",a:6000,age:70,nx:{txt:"Answer her question: can she pay in 3 instalments?",src:"her iMessage"},ph:"+33 6 03 64 85 12",em:"nadia.b@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(80,"s","meetdue","R1 · Appel stratégique · heure passée, issue non déclarée",{r:1})]},
+ {id:"nb",p:"Nadia Benz",o:"lea",prod:"Elite Coaching",a:6000,age:70,nx:{txt:"Répondre à sa question : peut-elle payer en 3 échéances ?",src:"son iMessage"},ph:"+33 6 03 64 85 12",em:"nadia.b@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.2,"s","im","Bonjour Nadia, Léa de SKL. Merci et à très vite !",{st:"Read"}),
-  E(40,"s","meet","R1 · Strategy call",{r:1,dur:48}),
-  E(41,"s","decision","Outcome declared · Held · Follow-up · next step: proposal",{fu:1}),
+  E(40,"s","meet","R1 · Appel stratégique",{r:1,dur:48}),
+  E(41,"s","decision","Issue déclarée · Honoré · Relance · prochaine étape : proposition",{fu:1}),
   E(41.5,"s","im","Merci Nadia ! Voici la proposition dont nous avons parlé.",{st:"Read"}),
   E(60,"p","im","Merci Léa. Est-ce que le paiement en 3 fois est possible ?")]},
- {id:"mf",p:"M. Ferrand",o:"lea",prod:"Signature Program",a:3500,age:72,nx:{txt:"Follow up the proposal",src:"proposal sent after R1"},ph:"+33 6 92 11 47 03",em:"m.ferrand@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+ {id:"mf",p:"M. Ferrand",o:"lea",prod:"Signature Program",a:3500,age:72,nx:{txt:"Relancer la proposition",src:"proposition envoyée après le R1"},ph:"+33 6 92 11 47 03",em:"m.ferrand@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.5,"s","im","Bonjour, Léa de SKL. À jeudi pour notre échange.",{st:"Read"}),
-  E(30,"s","meet","R1 · Strategy call",{r:1,dur:42}),
-  E(31,"s","decision","Outcome declared · Held · Follow-up · next step: recap and proposal",{fu:1}),
+  E(30,"s","meet","R1 · Appel stratégique",{r:1,dur:42}),
+  E(31,"s","decision","Issue déclarée · Honoré · Relance · prochaine étape : récap et proposition",{fu:1}),
   E(33,"s","im","Merci pour l'échange. Voici le récap et la proposition. Je vous laisse en prendre connaissance.",{st:"Read"})]},
  {id:"cv",p:"Claire Vidal",o:"sofia",prod:"Elite Coaching",a:6000,age:69.5,ph:"+33 6 28 70 39 44",em:"c.vidal@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.3,"s","im","Bonjour Claire, Sofia de SKL. Ravie de notre rendez-vous de dimanche !",{st:"Read"}),
   E(47,"a","remind","Rappel : votre appel avec Sofia a lieu demain à 10:00.",{st:"Delivered"}),
   E(68,"s","im","Bonjour Claire, à tout à l'heure ! Pensez à noter ce qui vous bloque le plus aujourd'hui.",{st:"Read"}),
   E(69,"p","im","Avec plaisir, à tout à l'heure."),
-  E(71,"s","meet","R1 · Strategy call",{r:1,dur:45})]},
+  E(71,"s","meet","R1 · Appel stratégique",{r:1,dur:45})]},
  {id:"md",p:"Marc Dupont",o:"lea",prod:"Signature Program",a:3500,age:20,ph:"+33 6 14 59 82 30",em:"marc.d@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.4,"s","im","Bonjour Marc, Léa de SKL. Merci, à mardi !",{st:"Delivered"}),
   E(26,"a","remind","Rappel : votre appel avec Léa a lieu demain à 14:00."),
-  E(50,"s","meet","R1 · Strategy call",{r:1,dur:45})]},
- {id:"ar",p:"Amandine Roy",o:"ines",prod:"Signature Program",a:3500,age:60,nx:{txt:"Call her back on Friday, as she asked",src:"her SMS",due:62},ph:"+33 7 52 40 18 96",em:"a.roy@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(50,"s","meet","R1 · Appel stratégique",{r:1,dur:45})]},
+ {id:"ar",p:"Amandine Roy",o:"ines",prod:"Signature Program",a:3500,age:60,nx:{txt:"La rappeler vendredi, comme elle l’a demandé",src:"son SMS",due:62},ph:"+33 7 52 40 18 96",em:"a.roy@example.com",ev:[
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.7,"s","sms","Bonjour Amandine, Inès de SKL. Merci pour la réservation !",{st:"Delivered"}),
-  E(30,"p","noshow","No-show R1",{r:1}),
+  E(30,"p","noshow","Absence R1",{r:1}),
   E(31,"s","sms","Bonjour Amandine, je ne vous ai pas vue. On reprogramme ?",{st:"Delivered"}),
   E(50,"p","sms","Pouvez-vous m'appeler vendredi ?"),
-  E(55,"s","call","Phone call · outgoing · no answer")]},
+  E(55,"s","call","Appel téléphonique · sortant · sans réponse")]},
  {id:"jp",p:"Julien Perrot",o:"karim",prod:"Elite Coaching",a:6000,age:3,ph:"+33 6 31 75 20 87",em:"julien.p@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.1,"a","remind","Votre appel avec Karim est confirmé.",{st:"Delivered"}),
   E(1.2,"s","im","Bonjour Julien, Karim de SKL. Merci, à jeudi !",{st:"Delivered"}),
-  E(80,"s","meet","R1 · Strategy call",{r:1})]},
+  E(80,"s","meet","R1 · Appel stratégique",{r:1})]},
  {id:"kb",p:"Kevin Blanchard",o:"karim",prod:"Elite Coaching",a:6000,age:160,ph:"+33 6 66 02 91 73",em:"k.blanchard@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.4,"s","im","Bonjour Kevin, Karim de SKL. À lundi !",{st:"Read"}),
-  E(60,"s","meet","R1 · Strategy call",{r:1,dur:52}),
-  E(61,"s","decision","Outcome declared · Held · Yes · €6,000 · 2 instalments",{yes:1}),
-  E(62,"s","paylink","Whop payment link sent by iMessage · Elite Coaching · 2 × €3,000"),
-  E(90,"p","paid","Whop payment · €3,000 · first instalment")]},
+  E(60,"s","meet","R1 · Appel stratégique",{r:1,dur:52}),
+  E(61,"s","decision","Issue déclarée · Honoré · Oui · 6 000 € · 2 échéances",{yes:1}),
+  E(62,"s","paylink","Lien de paiement Whop envoyé par iMessage · Elite Coaching · 2 × 3 000 €"),
+  E(90,"p","paid","Paiement Whop · 3 000 € · première échéance")]},
  {id:"ht",p:"Hakim Touré",o:"sofia",prod:"Elite Coaching",a:6000,age:90,ph:"+33 6 08 47 63 15",em:"hakim.t@example.com",ev:[
-  E(0,"p","booked","Booked R1 · Strategy call (45 min)",{r:1}),
+  E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.5,"s","im","Bonjour Hakim, Sofia de SKL. À bientôt !",{st:"Read"}),
-  E(50,"s","meet","R1 · Strategy call",{r:1,dur:40}),
-  E(51,"s","decision","Outcome declared · Held · No · reason: price",{no:1})]}
+  E(50,"s","meet","R1 · Appel stratégique",{r:1,dur:40}),
+  E(51,"s","decision","Issue déclarée · Honoré · Non · motif : prix",{no:1})]}
 ];
 /* ---------- derived state ---------- */
 const G={tg:0};
-function fmtH(h){h=Math.max(0,h);return h<10?(Math.round(h*10)/10).toString().replace(/\.0$/,"")+" h":Math.round(h)+" h"}
+function fmtH(h){h=Math.max(0,h);return h<10?(Math.round(h*10)/10).toString().replace(/\.0$/,"").replace(".",",")+" h":Math.round(h)+" h"}
 function analyse(l){
   const ev=l.ev,past=ev.filter(e=>e.t<=l.age),fut=ev.filter(e=>e.t>l.age);
   const tHeld=(past.find(e=>e.k==="meet")||{}).t,
@@ -520,11 +520,11 @@ function analyse(l){
     const next=fut.find(e=>e.k==="meet");
     const real=past.filter(e=>e.w!=="a"&&e.k!=="meetdue");
     const last=real[real.length-1];
-    if(due)ball={who:"s",txt:"Declare the R"+(due.r||1)+" outcome",since:due.t,over:l.age-due.t,src:"call time passed, no outcome"};
-    else if(next)ball={who:"call",txt:"Call in "+fmtH(next.t-l.age),since:next.t,ev:next};
+    if(due)ball={who:"s",txt:"Déclarer l’issue du R"+(due.r||1),since:due.t,over:l.age-due.t,src:"heure de l’appel passée, aucune issue"};
+    else if(next)ball={who:"call",txt:"Appel dans "+fmtH(next.t-l.age),since:next.t,ev:next};
     else if(l.nx&&l.nx.due!=null)ball={who:"s",txt:l.nx.txt,since:last?last.t:0,over:l.age-l.nx.due,src:l.nx.src};
-    else if(last&&last.w==="p")ball={who:"s",txt:"Reply to the prospect",since:last.t,over:l.age-last.t-SLA.reply};
-    else if(last){const w=l.age-last.t;ball=w>SLA.follow?{who:"s",txt:"Follow up the prospect",since:last.t,over:w-SLA.follow}:{who:"p",txt:"Waiting on the prospect",since:last.t,left:SLA.follow-w}}
+    else if(last&&last.w==="p")ball={who:"s",txt:"Répondre au prospect",since:last.t,over:l.age-last.t-SLA.reply};
+    else if(last){const w=l.age-last.t;ball=w>SLA.follow?{who:"s",txt:"Relancer le prospect",since:last.t,over:w-SLA.follow}:{who:"p",txt:"En attente du prospect",since:last.t,left:SLA.follow-w}}
     if(ball&&l.nx&&ball.who!=="call"&&!due){if(ball.who==="s")ball.txt=l.nx.txt;ball.src=l.nx.src;ball.then=l.nx.txt}
   }
   const firstTouch=ev.find(e=>e.w==="s"&&(e.k==="im"||e.k==="sms"||e.k==="call"));const ftLate=firstTouch&&firstTouch.t>SLA.first?firstTouch.t:0;
@@ -540,35 +540,37 @@ const LV={crit:3,late:2,risk:1,ok:0};
 /* ---------- view ---------- */
 let LW=900;const VIEWS={book:{start:0,span:340},cal:{start:-170,span:290}};
 const S={axis:"book",rowd:"simple",sort:"urg",grp:"none",mode:"story",sx:{},jump:null,view:VIEWS.book,f:"all",rep:"",q:"",open:new Set(["yd"]),sel:null,showClosed:false,notif:false,pop:null,tab:"hist"};
-const ZOOMS=[["24 h",24],["72 h",72],["168 h",168],["All",null]];
+const ZOOMS=[["24 h",24],["72 h",72],["168 h",168],["Tout",null]];
 let OFF=0; // 0 = hours since booking; -age = calendar (0 = now)
 const x=h=>1+(h+OFF-S.view.start)/S.view.span*98; // hour 0 sits just inside the left edge
 const off=l=>S.axis==="cal"?-l.age:0;
+const eur=v=>Math.round(Number(v)||0).toLocaleString("fr-FR")+" €";
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2);
 function stepFor(span){const c=[1,2,3,6,12,24,48,72,96,168];return c.find(s=>span/s<=12)||168}
 const ICON={call:"☎",im:"✉",sms:"✉",booked:"◷",remind:"⏰",meet:"●",meetdue:"!",noshow:"✕",decision:"✓",paylink:"€",paid:"€",note:"✐"};
-const CH={call:"Phone call",im:"iMessage",sms:"SMS",booked:"iClosed booking",remind:"iMessage · auto",meet:"Video call",meetdue:"Video call",noshow:"No-show",decision:"Outcome",paylink:"Whop link",paid:"Whop payment",note:"Note"};
+const CH={call:"Appel téléphonique",im:"iMessage",sms:"SMS",booked:"RDV iClosed",remind:"iMessage · auto",meet:"Visio",meetdue:"Visio",noshow:"Absence",decision:"Issue",paylink:"Lien Whop",paid:"Paiement Whop",note:"Note"};
+const STL={Delivered:"Distribué",Read:"Lu",Sent:"Envoyé",Queued:"En file",Failed:"Échec",Error:"Erreur",Received:"Reçu",Pending:"En attente",Accepted:"Accepté",Declined:"Refusé"};
 
 function laneHTML(l,A){
   OFF=off(l);
   let h=`<div class="base"></div>`;
   A.segs.forEach(s=>{const st=STAGES[s.i];
     const L=x(s.a),R=x(s.done?s.end:Math.min(s.end,s.a+st.tgt));
-    h+=`<div class="seg2" style="left:${L}%;width:${Math.max(.3,R-L)}%;background:${st.c}" data-tip="${esc(st.n)}${s.done?"":" · in progress"}|${fmtH(s.dur)} for a target of ${st.tgt} h"></div>`;
-    if(s.dur>st.tgt){const a=x(s.a+st.tgt),b=x(s.end);h+=`<div class="${s.done?"xs":"over"} ${s.v}" style="left:${a}%;width:${b-a}%;--c:${st.c}" data-tip="${esc(st.n)} overrun${s.done?" (closed)":""}|+${fmtH(s.dur-st.tgt)} over the ${st.tgt} h target"></div>`}
+    h+=`<div class="seg2" style="left:${L}%;width:${Math.max(.3,R-L)}%;background:${st.c}" data-tip="${esc(st.n)}${s.done?"":" · en cours"}|${fmtH(s.dur)} pour un objectif de ${st.tgt} h"></div>`;
+    if(s.dur>st.tgt){const a=x(s.a+st.tgt),b=x(s.end);h+=`<div class="${s.done?"xs":"over"} ${s.v}" style="left:${a}%;width:${b-a}%;--c:${st.c}" data-tip="${esc(st.n)} : dépassement${s.done?" (clos)":""}|+${fmtH(s.dur-st.tgt)} au-delà de l’objectif de ${st.tgt} h"></div>`}
   });
   clusters(A.past.concat(A.fut)).forEach(c=>{
     if(c.ev.length===1){const e=c.ev[0],fut=e.t>l.age,cls=e.k==="noshow"?"nsx":fut?"fut":e.k==="paid"?"pay":e.w==="a"?"a":e.w==="p"?"l":"";
-      h+=`<span class="ev ${cls}" style="left:${x(e.t)}%" data-tip="${fut?"Scheduled":CH[e.k]} · hour ${fmtH(e.t)}|${esc(e.txt)}">${e.k==="noshow"?"✕":""}</span>`;return}
-    const list=c.ev.map(e=>`h ${fmtH(e.t)} · ${e.w==="s"?"Sales":e.w==="p"?"Prospect":"Auto"} · ${CH[e.k]}`).join("<br>");
-    h+=`<button class="evc ${c.ev.some(e=>e.k==="noshow")?"bad":""}" style="left:${x((c.t0+c.t1)/2)}%" data-clu="${l.id}:${l.ev.indexOf(c.ev[0])}" data-tip="${c.ev.length} interactions within ${fmtH(c.t1-c.t0)}|${esc(list)}<br><i>Click to read them</i>" aria-label="${c.ev.length} interactions, open them">${c.ev.length}</button>`});
+      h+=`<span class="ev ${cls}" style="left:${x(e.t)}%" data-tip="${fut?"Prévu":CH[e.k]} · hour ${fmtH(e.t)}|${esc(e.txt)}">${e.k==="noshow"?"✕":""}</span>`;return}
+    const list=c.ev.map(e=>`h ${fmtH(e.t)} · ${e.w==="s"?"Commercial":e.w==="p"?"Prospect":"Auto"} · ${CH[e.k]}`).join("<br>");
+    h+=`<button class="evc ${c.ev.some(e=>e.k==="noshow")?"bad":""}" style="left:${x((c.t0+c.t1)/2)}%" data-clu="${l.id}:${l.ev.indexOf(c.ev[0])}" data-tip="${c.ev.length} échanges en ${fmtH(c.t1-c.t0)}|${esc(list)}<br><i>Cliquez pour les lire</i>" aria-label="${c.ev.length} échanges, les ouvrir">${c.ev.length}</button>`});
   if(!A.closed&&A.cur){const cs=STAGES[A.cur.i];let t=Math.max(l.age,A.cur.a+cs.tgt);
-    if(t>l.age)h+=`<div class="gh" style="left:${x(l.age)}%;width:${x(t)-x(l.age)}%;--c:${cs.c}" data-tip="${cs.n} · time left|${fmtH(t-l.age)} before the ${cs.tgt} h target"></div>`;
-    for(let k=A.cur.i+1;k<STAGES.length;k++){const g=STAGES[k];h+=`<div class="gh" style="left:${x(t)}%;width:${x(t+g.tgt)-x(t)}%;--c:${g.c}" data-tip="${g.n} · projected|from h ${fmtH(t)} to h ${fmtH(t+g.tgt)} if every next stage stays on target"></div>`;t+=g.tgt}
-    h+=`<span class="eta" style="left:${x(t)}%" data-tip="Projected cash|${S.axis==="cal"?dayOf(l,t)+" "+timeOf(l,t):"h "+fmtH(t)} if every next stage stays on target">€</span>`}
-  A.fut.filter(e=>e.k==="meet").forEach(e=>{h+=`<span class="nxc" style="left:${x(e.t)}%" data-tip="Next call · ${esc(e.txt)}|${dayOf(l,e.t)} ${timeOf(l,e.t)} · in ${fmtH(e.t-l.age)}">R${e.r||1} · ${callWhen(l,e.t)}</span>`});
-  if(!A.closed)h+=`<span class="nowd ${A.level==="crit"?"bad":""}" style="left:${x(l.age)}%" data-tip="Now · hour ${fmtH(l.age)}|${A.cur?esc(STAGES[A.cur.i].n)+" for "+fmtH(A.cur.dur):""}"></span>`;
+    if(t>l.age)h+=`<div class="gh" style="left:${x(l.age)}%;width:${x(t)-x(l.age)}%;--c:${cs.c}" data-tip="${cs.n} · temps restant|${fmtH(t-l.age)} avant l’objectif de ${cs.tgt} h"></div>`;
+    for(let k=A.cur.i+1;k<STAGES.length;k++){const g=STAGES[k];h+=`<div class="gh" style="left:${x(t)}%;width:${x(t+g.tgt)-x(t)}%;--c:${g.c}" data-tip="${g.n} · projeté|de h ${fmtH(t)} à h ${fmtH(t+g.tgt)} si chaque étape suivante reste dans l’objectif"></div>`;t+=g.tgt}
+    h+=`<span class="eta" style="left:${x(t)}%" data-tip="Encaissement projeté|${S.axis==="cal"?dayOf(l,t)+" "+timeOf(l,t):"h "+fmtH(t)} si chaque étape suivante reste dans l’objectif">€</span>`}
+  A.fut.filter(e=>e.k==="meet").forEach(e=>{h+=`<span class="nxc" style="left:${x(e.t)}%" data-tip="Prochain appel · ${esc(e.txt)}|${dayOf(l,e.t)} ${timeOf(l,e.t)} · dans ${fmtH(e.t-l.age)}">R${e.r||1} · ${callWhen(l,e.t)}</span>`});
+  if(!A.closed)h+=`<span class="nowd ${A.level==="crit"?"bad":""}" style="left:${x(l.age)}%" data-tip="Maintenant · hour ${fmtH(l.age)}|${A.cur?esc(STAGES[A.cur.i].n)+" depuis "+fmtH(A.cur.dur):""}"></span>`;
   return h;
 }
 function clusters(evs){const thr=14/LW*S.view.span,out=[];
@@ -579,20 +581,20 @@ function respOf(l,rows){const out={};
     const prev=rows.slice(0,i).filter(z=>z.w!=="a"&&!isM(z)&&z.w!==e.w).pop();if(!prev)return;
     const j=rows.indexOf(prev);if(!rows.slice(j+1,i).every(z=>z.w==="a"||z.w!==e.w))return;
     if(rows.some(z=>isM(z)&&z.t>=prev.t&&z.t<=e.t))return;
-    const dt=e.t-prev.t;out[i]={dt,bad:e.w==="s"&&dt>SLA.reply,txt:(e.w==="s"?"answered in ":"replied in ")+fmtH(dt)}});
+    const dt=e.t-prev.t;out[i]={dt,bad:e.w==="s"&&dt>SLA.reply,txt:(e.w==="s"?"réponse en ":"a répondu en ")+fmtH(dt)}});
   return out}
 /* "Who must act": the real next step (outcome form or rule), its urgency in words, and where it comes from */
 function toneOf(A){const b=A.ball;if(A.closed==="won")return "ok";if(A.closed)return "wait";if(!b)return "wait";if(b.who==="s")return A.level==="crit"||b.over>24?"crit":A.level==="late"||b.over>0?"late":"info";return b.who==="call"?"info":"wait"}
 function actOf(l,A){const b=A.ball,t=toneOf(A);
-  if(A.closed==="won")return {t,b:"Won · hand over to delivery",s:`${fmtH(l.age)} cycle · first payment received`};
-  if(A.closed==="lost")return {t,b:"Lost",s:`at ${STAGES[A.segs.length-1].n} · reason in the outcome`};
-  if(b&&b.who==="s")return {t,b:b.txt,s:`${t==="crit"?'<span class="tag crit">Critical</span>':t==="late"?'<span class="tag late">Late</span>':""}${b.over>0?"overdue "+fmtH(b.over):"due in "+fmtH(-b.over)}${b.src?" · "+esc(b.src):""}`,tip:A.cur&&A.cur.v!=="ok"?`${STAGES[A.cur.i].n} is ${fmtH(A.cur.dur-STAGES[A.cur.i].tgt)} over its ${STAGES[A.cur.i].tgt} h target`:""};
-  if(b&&b.who==="call")return {t,b:`R${b.ev.r||1} call · ${callWhen(l,b.ev.t)}`,s:`in ${fmtH(b.ev.t-l.age)} · ${A.past.some(e=>e.k==="meet")?"prepare from the last analysis":"first call"}`};
-  return {t,b:"Waiting on the prospect",s:`follow up in ${fmtH(b?b.left:0)}${b&&b.src?" · "+esc(b.src):""}`};
+  if(A.closed==="won")return {t,b:"Gagné · passer la main à l’accompagnement",s:`cycle de ${fmtH(l.age)} · premier paiement reçu`};
+  if(A.closed==="lost")return {t,b:"Perdu",s:`à l’étape ${STAGES[A.segs.length-1].n} · motif dans l’issue`};
+  if(b&&b.who==="s")return {t,b:b.txt,s:`${t==="crit"?'<span class="tag crit">Critique</span>':t==="late"?'<span class="tag late">En retard</span>':""}${b.over>0?"en retard de "+fmtH(b.over):"à faire dans "+fmtH(-b.over)}${b.src?" · "+esc(b.src):""}`,tip:A.cur&&A.cur.v!=="ok"?`${STAGES[A.cur.i].n} : ${fmtH(A.cur.dur-STAGES[A.cur.i].tgt)} au-delà de son objectif de ${STAGES[A.cur.i].tgt} h`:""};
+  if(b&&b.who==="call")return {t,b:`Appel R${b.ev.r||1} · ${callWhen(l,b.ev.t)}`,s:`dans ${fmtH(b.ev.t-l.age)} · ${A.past.some(e=>e.k==="meet")?"préparer à partir de la dernière analyse":"premier appel"}`};
+  return {t,b:"En attente du prospect",s:`relancer dans ${fmtH(b?b.left:0)}${b&&b.src?" · "+esc(b.src):""}`};
 }
-function statusHTML(l,A){const a=actOf(l,A);return `<div class="act ${a.t}" ${a.tip?`data-tip="Why ${a.t==="crit"?"critical":"late"}|${esc(a.tip)}"`:""}><b>${esc(a.b)}</b><small>${a.s}</small></div>`}
+function statusHTML(l,A){const a=actOf(l,A);return `<div class="act ${a.t}" ${a.tip?`data-tip="Pourquoi ${a.t==="crit"?"critique":"en retard"}|${esc(a.tip)}"`:""}><b>${esc(a.b)}</b><small>${a.s}</small></div>`}
 function pillOf(l,A){const a=actOf(l,A);return `<span class="pill ${a.t}">${esc(a.b)}</span>`}
-function callWhen(l,t){const d=at(l,t),k=Math.round((new Date(fIso.format(d))-new Date(fIso.format(NOW)))/864e5);return (k===0?"Today":k===1?"Tomorrow":k===-1?"Yesterday":fDayS.format(d))+" "+timeOf(l,t)}
+function callWhen(l,t){const d=at(l,t),k=Math.round((new Date(fIso.format(d))-new Date(fIso.format(NOW)))/864e5);return (k===0?"Aujourd’hui":k===1?"Demain":k===-1?"Hier":fDayS.format(d))+" "+timeOf(l,t)}
 function nodeCls(e,fut){return e.k==="noshow"?"x":e.k==="paid"||(e.k==="decision"&&e.yes)?"ok":fut?"fut":e.w==="a"?"a":e.w==="p"?"p":"s"}
 function whoName(l,e){return e.w==="s"?REPS[l.o][0].split(" ")[0]:e.w==="p"?"Prospect":"Auto"}
 function storyHTML(l,A,rows,R){
@@ -603,20 +605,20 @@ function storyHTML(l,A,rows,R){
     if(fut&&prevT!=null&&prevT<=l.age){cols+=nowCol();}
     const st=stageOf(e.t),seg=A.segs.find(z=>z.i===st),newSt=!fut&&st!==prevSt;if(!fut)prevSt=st;
     const id=l.id+":"+i,sel=S.sel===id,r=R[i];
-    const card=`<button class="sc ${e.w} ${fut?"fut":""} ${e.k==="noshow"?"bad":""}" data-ev="${id}" aria-pressed="${sel}"><span class="sh"><i class="ic ${nodeCls(e,fut)}">${ICON[e.k]||"•"}</i><b>${esc(CH[e.k])}</b><span>${esc(whoName(l,e))}</span></span><span class="tx">${esc(e.txt)}</span>${r?`<span class="rs2 ${r.bad?"bad":""}">${r.txt}</span>`:fut?`<span class="rs2">scheduled</span>`:""}</button>`;
+    const card=`<button class="sc ${e.w} ${fut?"fut":""} ${e.k==="noshow"?"bad":""}" data-ev="${id}" aria-pressed="${sel}"><span class="sh"><i class="ic ${nodeCls(e,fut)}">${ICON[e.k]||"•"}</i><b>${esc(CH[e.k])}</b><span>${esc(whoName(l,e))}</span></span><span class="tx">${esc(e.txt)}</span>${r?`<span class="rs2 ${r.bad?"bad":""}">${r.txt}</span>`:fut?`<span class="rs2">prévu</span>`:""}</button>`;
     cols+=`<div class="col ${newSt?"newst":""}" style="--c:${STAGES[st].c}">
       <div class="slot st0">${newSt?`<span class="sbn">${STAGES[st].n}${seg?` · <em class="${seg.v}">${fmtH(seg.dur)}</em> / ${STAGES[st].tgt} h`:""}</span>`:""}</div>
       <div class="slot up">${e.w!=="p"?card:""}</div>
-      <div class="slot ax">${gap(e.t)}<i class="dot ${nodeCls(e,fut)}"></i><span class="hh">h ${fmtH(e.t).replace(" h","")}</span>${e.k==="meet"&&!fut?`<button class="anl" data-an="${l.id}:${i}">Call analysis</button>`:""}</div>
+      <div class="slot ax">${gap(e.t)}<i class="dot ${nodeCls(e,fut)}"></i><span class="hh">h ${fmtH(e.t).replace(" h","")}</span>${e.k==="meet"&&!fut?`<button class="anl" data-an="${l.id}:${i}">Analyse d’appel</button>`:""}</div>
       <div class="slot dn">${e.w==="p"?card:""}</div></div>`;
     prevT=e.t;});
   if(!A.closed&&!(rows.length&&rows[rows.length-1].t>l.age))cols+=nowCol();
   function nowCol(){const b=A.ball;let up="",dn="";
-    const c=b?`<div class="sc move ${b.who==="s"&&b.over>0?"bad":""}"><span class="sh"><b>${b.who==="p"?"Prospect's move":"Sales' move"}</b></span><span class="tx">${esc(b.txt)}</span><span class="rs2 ${b.who==="s"&&b.over>0?"bad":""}">${b.who==="s"?(b.over>0?"overdue "+fmtH(b.over):"due in "+fmtH(-b.over)):b.who==="p"?"silent for "+fmtH(l.age-b.since):""}</span></div>`:"";
+    const c=b?`<div class="sc move ${b.who==="s"&&b.over>0?"bad":""}"><span class="sh"><b>${b.who==="p"?"Au prospect d’agir":"Au commercial d’agir"}</b></span><span class="tx">${esc(b.txt)}</span><span class="rs2 ${b.who==="s"&&b.over>0?"bad":""}">${b.who==="s"?(b.over>0?"en retard de "+fmtH(b.over):"à faire dans "+fmtH(-b.over)):b.who==="p"?"silencieux depuis "+fmtH(l.age-b.since):""}</span></div>`:"";
     if(b&&b.who==="p")dn=c;else up=c;
     const g=gap(l.age);prevT=l.age;
-    return `<div class="col now" style="--c:${A.cur?STAGES[A.cur.i].c:"#9A968C"}"><div class="slot st0"></div><div class="slot up">${up}</div><div class="slot ax">${g}<i class="dot nowx ${A.level==="crit"?"bad":""}"></i><span class="hh"><b>Now</b> · h ${fmtH(l.age).replace(" h","")}</span></div><div class="slot dn">${dn}</div></div>`}
-  return `<div class="storyw"><div class="lanel"><span>Sales · ${esc(REPS[l.o][0].split(" ")[0])}</span><span>Prospect</span></div><div class="story" tabindex="0" data-story="${l.id}" aria-label="Interactions of ${esc(l.p)}, in order">${cols}</div></div>`;
+    return `<div class="col now" style="--c:${A.cur?STAGES[A.cur.i].c:"#9A968C"}"><div class="slot st0"></div><div class="slot up">${up}</div><div class="slot ax">${g}<i class="dot nowx ${A.level==="crit"?"bad":""}"></i><span class="hh"><b>Maintenant</b> · h ${fmtH(l.age).replace(" h","")}</span></div><div class="slot dn">${dn}</div></div>`}
+  return `<div class="storyw"><div class="lanel"><span>Commercial · ${esc(REPS[l.o][0].split(" ")[0])}</span><span>Prospect</span></div><div class="story" tabindex="0" data-story="${l.id}" aria-label="Échanges de ${esc(l.p)}, dans l’ordre">${cols}</div></div>`;
 }
 function scaleHTML(l,A,rows,R){
   const end=Math.max(l.age,...rows.map(e=>e.t))+4,st0=0,sp=end-st0,X=h=>1.5+(h-st0)/sp*97,W=Math.max(300,LW+190);
@@ -626,33 +628,33 @@ function scaleHTML(l,A,rows,R){
   const pos=(e,i)=>({x:X(e.t),y:e.w==="s"?yS-tierOf[i]*28:e.w==="p"?yP+tierOf[i]*28:yA});
   let nodes="",path="";
   rows.forEach((e,i)=>{const p=pos(e,i),fut=e.t>l.age;
-    nodes+=`<button class="node ${nodeCls(e,fut)}" style="left:${p.x}%;top:${p.y}px" data-ev="${l.id}:${i}" aria-pressed="${S.sel===l.id+":"+i}" data-tip="${fut?"Scheduled":CH[e.k]} · hour ${fmtH(e.t)} · ${esc(whoName(l,e))}|${esc(e.txt)}${R[i]?"<br>"+R[i].txt:""}" aria-label="${esc(CH[e.k]+": "+e.txt)}">${ICON[e.k]||"•"}</button>`;
+    nodes+=`<button class="node ${nodeCls(e,fut)}" style="left:${p.x}%;top:${p.y}px" data-ev="${l.id}:${i}" aria-pressed="${S.sel===l.id+":"+i}" data-tip="${fut?"Prévu":CH[e.k]} · hour ${fmtH(e.t)} · ${esc(whoName(l,e))}|${esc(e.txt)}${R[i]?"<br>"+R[i].txt:""}" aria-label="${esc(CH[e.k]+": "+e.txt)}">${ICON[e.k]||"•"}</button>`;
     if(R[i]){const prev=rows.slice(0,i).filter(z=>z.w!=="a"&&!isM(z)&&z.w!==e.w).pop(),pa=pos(prev,rows.indexOf(prev));
       path+=`<line x1="${pa.x}%" y1="${pa.y}" x2="${p.x}%" y2="${p.y}" stroke="${R[i].bad?"#E3796F":"#D9C9A3"}" stroke-width="1.5" ${R[i].bad?"":'stroke-dasharray="3 4"'}/>`}});
   const step=stepFor(sp);let ticks="";for(let h=0;h<=end;h+=step)ticks+=`<span class="tick" style="left:${X(h)}%;bottom:4px">${h} h</span>`;
-  const segs=A.segs.map(z=>`<i class="sgb" style="background:${STAGES[z.i].c};left:${X(z.a)}%;width:${X(z.end)-X(z.a)}%;top:${yA-2}px" data-tip="${STAGES[z.i].n}|${fmtH(z.dur)} for a ${STAGES[z.i].tgt} h target"></i>`).join("");
-  return `<div class="storyw"><div class="lanel" style="height:${H}px"><span>Sales</span><span>Prospect</span></div><div class="dl2" style="height:${H}px"><div class="ln" style="top:${yA}px"></div>${segs}<svg class="cn" aria-hidden="true">${path}</svg>${nodes}<span class="nowd" style="left:${X(l.age)}%;top:${yA}px" data-tip="Now|hour ${fmtH(l.age)}"></span>${ticks}</div></div>`;
+  const segs=A.segs.map(z=>`<i class="sgb" style="background:${STAGES[z.i].c};left:${X(z.a)}%;width:${X(z.end)-X(z.a)}%;top:${yA-2}px" data-tip="${STAGES[z.i].n}|${fmtH(z.dur)} pour un objectif de ${STAGES[z.i].tgt} h"></i>`).join("");
+  return `<div class="storyw"><div class="lanel" style="height:${H}px"><span>Commercial</span><span>Prospect</span></div><div class="dl2" style="height:${H}px"><div class="ln" style="top:${yA}px"></div>${segs}<svg class="cn" aria-hidden="true">${path}</svg>${nodes}<span class="nowd" style="left:${X(l.age)}%;top:${yA}px" data-tip="Maintenant|hour ${fmtH(l.age)}"></span>${ticks}</div></div>`;
 }
 function tableHTML(l,A,rows,R){
-  return `<div class="feed"><table aria-label="Interactions of ${esc(l.p)}">${rows.map((e,i)=>{const fut=e.t>l.age;
-    return `<tr data-ev="${l.id}:${i}" aria-current="${S.sel===l.id+":"+i}"><td class="t">h ${fmtH(e.t).replace(" h","")}</td><td class="w ${e.w}">${esc(whoName(l,e))}</td><td class="ch">${CH[e.k]}${fut?" · scheduled":""}</td><td>${esc(e.txt)}</td><td class="rs ${R[i]&&R[i].bad?"bad":""}">${R[i]?R[i].txt:""}</td></tr>`}).join("")}</table></div>`;
+  return `<div class="feed"><table aria-label="Échanges de ${esc(l.p)}">${rows.map((e,i)=>{const fut=e.t>l.age;
+    return `<tr data-ev="${l.id}:${i}" aria-current="${S.sel===l.id+":"+i}"><td class="t">h ${fmtH(e.t).replace(" h","")}</td><td class="w ${e.w}">${esc(whoName(l,e))}</td><td class="ch">${CH[e.k]}${fut?" · prévu":""}</td><td>${esc(e.txt)}</td><td class="rs ${R[i]&&R[i].bad?"bad":""}">${R[i]?R[i].txt:""}</td></tr>`}).join("")}</table></div>`;
 }
 function detailHTML(l,A){
   const rows=A.past.concat(A.fut),R=respOf(l,rows);
   const n=rows.filter(e=>e.t<=l.age&&e.w!=="a").length,slow=Object.values(R).filter(r=>r.bad).length;
   const body=S.mode==="scale"?scaleHTML(l,A,rows,R):S.mode==="table"?tableHTML(l,A,rows,R):storyHTML(l,A,rows,R);
-  const M=[["story","Story"],["scale","Time scale"],["table","Table"]];
+  const M=[["story","Récit"],["scale","Échelle de temps"],["table","Tableau"]];
   return `<div class="det"><div class="dtool">
-    <div class="mseg" role="group" aria-label="How to read the interactions">${M.map(m=>`<button data-mode="${m[0]}" aria-pressed="${S.mode===m[0]}">${m[1]}</button>`).join("")}</div>
-    <span class="dsum"><b>${n}</b> interactions · <b>${slow}</b> slow sales ${slow===1?"reply":"replies"}${A.ftLate?` · first sales message <b>${fmtH(A.ftLate)}</b> after booking`:""}</span>
+    <div class="mseg" role="group" aria-label="Comment lire les échanges">${M.map(m=>`<button data-mode="${m[0]}" aria-pressed="${S.mode===m[0]}">${m[1]}</button>`).join("")}</div>
+    <span class="dsum"><b>${n}</b> échanges · <b>${slow}</b> ${slow===1?"réponse lente":"réponses lentes"} du commercial${A.ftLate?` · premier message du commercial <b>${fmtH(A.ftLate)}</b> après la prise de RDV`:""}</span>
     <span class="sp"></span>
-    ${quickActs(l,A)}<button class="btn sm" data-pop="${l.id}">Open lead record</button></div>${body}</div>`;
+    ${quickActs(l,A)}<button class="btn sm" data-pop="${l.id}">Ouvrir la fiche prospect</button></div>${body}</div>`;
 }
 function quickActs(l,A,big){const c=big?"btn":"btn sm",out=[];
-  if(A.past.some(e=>e.k==="meetdue"))out.push(`<button class="${c} p" data-act="outcome" data-id="${l.id}">Declare the outcome</button>`);
-  if(!A.closed)out.push(`<button class="${c}" data-act="reply" data-id="${l.id}">Reply by iMessage</button>`);
-  if(A.past.some(e=>e.k==="decision"&&e.yes)&&!A.past.some(e=>e.k==="paid"))out.push(`<button class="${c}" data-act="whop" data-id="${l.id}">Copy the Whop link</button>`);
-  if(!A.closed&&!A.fut.some(e=>e.k==="meet"))out.push(`<button class="${c}" data-act="book" data-id="${l.id}">Book the next call</button>`);
+  if(A.past.some(e=>e.k==="meetdue"))out.push(`<button class="${c} p" data-act="outcome" data-id="${l.id}">Déclarer l’issue</button>`);
+  if(!A.closed)out.push(`<button class="${c}" data-act="reply" data-id="${l.id}">Répondre par iMessage</button>`);
+  if(A.past.some(e=>e.k==="decision"&&e.yes)&&!A.past.some(e=>e.k==="paid"))out.push(`<button class="${c}" data-act="whop" data-id="${l.id}">Copier le lien Whop</button>`);
+  if(!A.closed&&!A.fut.some(e=>e.k==="meet"))out.push(`<button class="${c}" data-act="book" data-id="${l.id}">Planifier le prochain appel</button>`);
   return out.join("")}
 function render(){
   const cal=S.axis==="cal",maxAge=Math.max(...LEADS.map(l=>l.age));
@@ -664,7 +666,7 @@ function render(){
   const cnt={crit:0,late:0,risk:0,salesOwes:0,wait:0};
   live.forEach(l=>{const a=A[l.id];if(a.level==="crit")cnt.crit++;else if(a.level==="late")cnt.late++;if(a.risk)cnt.risk++;if(a.ball&&a.ball.who==="s")cnt.salesOwes++;if(a.ball&&a.ball.who==="p")cnt.wait++;});
   const calls24=live.filter(l=>A[l.id].fut.some(e=>e.k==="meet"&&e.t-l.age<=24)).length;
-  const K=[["all","All live leads",live.length,"var(--ink2)"],["crit","Critical",cnt.crit,"var(--crit)"],["late","Late",cnt.late,"var(--late)"],["sales","Sales must act",cnt.salesOwes,"var(--ink)"],["calls","Calls within 24 h",calls24,"var(--info)"],["wait","Waiting on prospect",cnt.wait,"var(--sts)"]];
+  const K=[["all","Tous les prospects en cours",live.length,"var(--ink2)"],["crit","Critique",cnt.crit,"var(--crit)"],["late","En retard",cnt.late,"var(--late)"],["sales","Le commercial doit agir",cnt.salesOwes,"var(--ink)"],["calls","Appels sous 24 h",calls24,"var(--info)"],["wait","En attente du prospect",cnt.wait,"var(--sts)"]];
   document.getElementById("kpis").innerHTML=K.map(k=>`<button class="kpi" data-f="${k[0]}" aria-pressed="${S.f===k[0]}"><i style="background:${k[3]}"></i><b>${k[2]}</b><span>${k[1]}</span></button>`).join("");
   const nextCall=l=>{const n=A[l.id].fut.find(e=>e.k==="meet");return n?n.t-l.age:1e9};
   const keep=l=>{const a=A[l.id];return S.f==="all"||(S.f==="crit"&&a.level==="crit")||(S.f==="late"&&a.level==="late")||(S.f==="calls"&&nextCall(l)<=24)||(S.f==="sales"&&a.ball&&a.ball.who==="s")||(S.f==="wait"&&a.ball&&a.ball.who==="p")};
@@ -674,40 +676,40 @@ function render(){
   // toolbar of the board
   const zSpan=z=>z||(cal?maxAge+130:340);
   document.getElementById("btool").innerHTML=`
-    <div class="mseg w" role="group" aria-label="Time axis"><button data-axis="book" aria-pressed="${!cal}">Since booking</button><button data-axis="cal" aria-pressed="${cal}">Calendar</button></div>
-    <div class="zoom" role="group" aria-label="Time window">${ZOOMS.map(z=>`<button data-z="${z[1]||0}" aria-pressed="${zSpan(z[1])===S.view.span}">${z[0]}</button>`).join("")}</div>
-    <span class="lb">Row</span><div class="mseg w" role="group" aria-label="Row detail"><button data-rowd="simple" aria-pressed="${S.rowd==="simple"}">Simple</button><button data-rowd="full" aria-pressed="${S.rowd==="full"}">Full</button></div>
-    <span class="lb">Sort</span><select class="in" data-sel="sort" aria-label="Sort">${[["urg","Most urgent"],["call","Next call"],["amt","Amount"],["stage","Time in stage"]].map(o=>`<option value="${o[0]}" ${S.sort===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>
-    <span class="lb">Group</span><select class="in" data-sel="grp" aria-label="Group">${[["none","None"],["who","Who must act"],["stage","Stage"]].map(o=>`<option value="${o[0]}" ${S.grp===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>
-    <button class="needs" data-needs="1" title="CRM alerts arrive in My Day › Needs you, with every other SKL OS alert">My Day › Needs you <b>${cnt.crit+cnt.late}</b></button>`;
+    <div class="mseg w" role="group" aria-label="Axe du temps"><button data-axis="book" aria-pressed="${!cal}">Depuis le RDV</button><button data-axis="cal" aria-pressed="${cal}">Calendrier</button></div>
+    <div class="zoom" role="group" aria-label="Fenêtre de temps">${ZOOMS.map(z=>`<button data-z="${z[1]||0}" aria-pressed="${zSpan(z[1])===S.view.span}">${z[0]}</button>`).join("")}</div>
+    <span class="lb">Ligne</span><div class="mseg w" role="group" aria-label="Détail des lignes"><button data-rowd="simple" aria-pressed="${S.rowd==="simple"}">Simple</button><button data-rowd="full" aria-pressed="${S.rowd==="full"}">Complet</button></div>
+    <span class="lb">Tri</span><select class="in" data-sel="sort" aria-label="Tri">${[["urg","Plus urgent"],["call","Prochain appel"],["amt","Montant"],["stage","Temps dans l’étape"]].map(o=>`<option value="${o[0]}" ${S.sort===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>
+    <span class="lb">Grouper</span><select class="in" data-sel="grp" aria-label="Grouper">${[["none","Aucun"],["who","Qui doit agir"],["stage","Étape"]].map(o=>`<option value="${o[0]}" ${S.grp===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>
+    <button class="needs" data-needs="1" title="Les alertes du CRM arrivent avec toutes les autres alertes">Alertes du CRM <b>${cnt.crit+cnt.late}</b></button>`;
   // axis
   let ticks="",goals="",guides="";
   if(!cal){
     const step=stepFor(S.view.span);for(let h=Math.ceil(S.view.start/step)*step;h<=S.view.start+S.view.span;h+=step)if(x(h)>=1&&x(h)<96)ticks+=`<span class="tick" style="left:${x(h)}%">${h} h</span>`;
-    goals=STAGES.map((s,i)=>{const a=i?IDEAL[i-1]:0;return `<span class="band" style="left:${x(a)}%;width:${x(IDEAL[i])-x(a)}%;--c:${s.c}" data-tip="${s.n} · ideal|${s.tgt} h, from h ${a} to h ${IDEAL[i]}"><b>${s.n}</b><small>${s.tgt} h</small></span>`}).join("");
+    goals=STAGES.map((s,i)=>{const a=i?IDEAL[i-1]:0;return `<span class="band" style="left:${x(a)}%;width:${x(IDEAL[i])-x(a)}%;--c:${s.c}" data-tip="${s.n} · idéal|${s.tgt} h, de h ${a} à h ${IDEAL[i]}"><b>${s.n}</b><small>${s.tgt} h</small></span>`}).join("");
     guides=IDEAL.map(h=>`<i style="left:${x(h)}%"></i>`).join("");
   }else{
     const loc=new Date(NOW+4*3600e3),m0=-(loc.getUTCHours()+loc.getUTCMinutes()/60),end=S.view.start+S.view.span;
     for(let m=m0+Math.floor((S.view.start-m0)/24)*24;m<=end;m+=24){
       if(x(m)>0&&x(m)<100)guides+=`<i class="day" style="left:${x(m)}%"></i>`;
       const mid=m+12,td=Math.abs(m-m0)<1,dpx=24/S.view.span*LW,dd=new Date(NOW+mid*3600e3),kk=Math.round((m-m0)/24);
-      if(x(mid)>3&&x(mid)<97&&(dpx>=46||td||kk%2===0))ticks+=`<span class="dayt ${td?"today":""}" style="left:${x(mid)}%">${td?"Today":dpx>=110?fDay.format(dd):fDayS.format(dd)+" "+fNum.format(dd)}</span>`;
+      if(x(mid)>3&&x(mid)<97&&(dpx>=46||td||kk%2===0))ticks+=`<span class="dayt ${td?"today":""}" style="left:${x(mid)}%">${td?"Aujourd’hui":dpx>=110?fDay.format(dd):fDayS.format(dd)+" "+fNum.format(dd)}</span>`;
       if(S.view.span<=96)for(let k=6;k<24;k+=6){const hh=m+k;if(x(hh)>2&&x(hh)<98)ticks+=`<span class="tick" style="left:${x(hh)}%">${String(k).padStart(2,"0")}:00</span>`}}
-    if(x(0)>0&&x(0)<100){guides+=`<i class="nowl" style="left:${x(0)}%"></i>`;ticks+=`<span class="nowlab" style="left:${x(0)}%">Now ${fTime.format(NOW)}</span>`}
+    if(x(0)>0&&x(0)<100){guides+=`<i class="nowl" style="left:${x(0)}%"></i>`;ticks+=`<span class="nowlab" style="left:${x(0)}%">Maintenant ${fTime.format(NOW)}</span>`}
   }
   const row=l=>{const a=A[l.id],rp=REPS[l.o],open=S.open.has(l.id);
     const c=a.cur&&STAGES[a.cur.i];
-    const sub=a.closed?`<span class="sub">${a.closed==="won"?"Won":"Lost"} · ${fmtH(l.age)} cycle</span>`:c?`<span class="sub"><i style="background:${c.c}"></i>${c.n} · <em class="${a.cur.v}">${fmtH(a.cur.dur)}</em> / ${c.tgt} h</span>`:"";
+    const sub=a.closed?`<span class="sub">${a.closed==="won"?"Gagné":"Perdu"} · cycle de ${fmtH(l.age)}</span>`:c?`<span class="sub"><i style="background:${c.c}"></i>${c.n} · <em class="${a.cur.v}">${fmtH(a.cur.dur)}</em> / ${c.tgt} h</span>`:"";
     return `<div class="r ${open?"open":""}"><div class="c"><button class="who" data-row="${l.id}" aria-expanded="${open}"><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="av" style="background:${rp[1]}" title="${esc(rp[0])}">${ini(rp[0])}</span><span class="nmw"><span class="nm">${esc(l.p)}</span>${sub}</span></button></div>
       <div class="c lane lane-pan" data-row="${l.id}">${laneHTML(l,a)}</div><div class="c st">${statusHTML(l,a)}</div></div>${open?detailHTML(l,a):""}`};
-  const GR=S.grp==="who"?[["Sales must act",l=>A[l.id].ball&&A[l.id].ball.who==="s"],["Call scheduled",l=>A[l.id].ball&&A[l.id].ball.who==="call"],["Waiting on the prospect",l=>!A[l.id].ball||A[l.id].ball.who==="p"]]
-    :S.grp==="stage"?STAGES.map(s=>[s.n,l=>A[l.id].cur&&STAGES[A[l.id].cur.i].k===s.k]):[["Live",()=>true]];
+  const GR=S.grp==="who"?[["Le commercial doit agir",l=>A[l.id].ball&&A[l.id].ball.who==="s"],["Appel prévu",l=>A[l.id].ball&&A[l.id].ball.who==="call"],["En attente du prospect",l=>!A[l.id].ball||A[l.id].ball.who==="p"]]
+    :S.grp==="stage"?STAGES.map(s=>[s.n,l=>A[l.id].cur&&STAGES[A[l.id].cur.i].k===s.k]):[["En cours",()=>true]];
   const body=GR.map(([n,f])=>{const m=rows.filter(f);return m.length||S.grp==="none"?`<div class="sec">${n} · ${m.length}</div>${m.map(row).join("")}`:""}).join("")||"";
   const bd=document.getElementById("board");bd.className="board"+(S.rowd==="simple"?" simple":"");
-  bd.innerHTML=`<div class="g axis"><div class="c1">Lead · stage</div><div class="ruler">${goals}${ticks}</div><div class="c3">Who must act · next step</div></div>
+  bd.innerHTML=`<div class="g axis"><div class="c1">Prospect · étape</div><div class="ruler">${goals}${ticks}</div><div class="c3">Qui doit agir · prochaine étape</div></div>
     <div class="rows"><div class="guides">${guides}</div><div class="g">
-    ${rows.length?body:`<div class="sec" style="text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--mut)">No lead in this view.</div>`}
-    <div class="sec">Closed · ${closed.length} <button data-closed>${S.showClosed?"Hide":"Show"}</button></div>${S.showClosed?closed.map(row).join(""):""}</div></div>`;
+    ${rows.length?body:`<div class="sec" style="text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--mut)">Aucun prospect dans cette vue.</div>`}
+    <div class="sec">Clos · ${closed.length} <button data-closed>${S.showClosed?"Masquer":"Afficher"}</button></div>${S.showClosed?closed.map(row).join(""):""}</div></div>`;
   renderPop();renderModal();
   const ln=document.querySelector(".lane");if(ln&&Math.abs(ln.clientWidth-LW)>24){LW=ln.clientWidth;return render()}
   document.querySelectorAll(".story").forEach(el=>{const id=el.dataset.story;el.scrollLeft=S.sx[id]!=null?S.sx[id]:el.scrollWidth});
@@ -716,77 +718,77 @@ function render(){
 /* ---------- lead record: 100 % of the interactions, and the call analysis ---------- */
 const NOW=new Date("2026-10-25T08:51:00+04:00").getTime();
 const TZ="Asia/Dubai";
-const fDay=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric",month:"short"});
-const fTime=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false});
-const fDayS=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short"});
-const fNum=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric"});
+const fDay=new Intl.DateTimeFormat("fr-FR",{timeZone:TZ,weekday:"short",day:"numeric",month:"short"});
+const fTime=new Intl.DateTimeFormat("fr-FR",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false});
+const fDayS=new Intl.DateTimeFormat("fr-FR",{timeZone:TZ,weekday:"short"});
+const fNum=new Intl.DateTimeFormat("fr-FR",{timeZone:TZ,day:"numeric"});
 const fIso=new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"});
 const at=(l,t)=>new Date(NOW-(l.age-t)*3600e3);
 const dayOf=(l,t)=>fDay.format(at(l,t)), timeOf=(l,t)=>fTime.format(at(l,t));
 const KIND={im:"msg",sms:"msg",call:"call",meet:"call",meetdue:"call",noshow:"call",booked:"sys",remind:"msg",decision:"sys",note:"sys",paylink:"pay",paid:"pay"};
-const FILTERS=[["all","All"],["msg","Messages"],["call","Calls"],["pay","Payments"],["sys","Bookings and outcomes"]];
-const REGS=[{c:"F",n:"Financial",col:"#C9A04A"},{c:"T",n:"Time & load",col:"#B45309"},{c:"Id",n:"Identity & status",col:"#7A4B00"},{c:"M",n:"Mental & emotional",col:"#1B1B18"}];
-const SPIN=[["S","L1 · Situation","#2E7D4F"],["P","L2 · Problem","#B45309"],["I","L3 · Implication","#B42318"],["N","L4 · Need-payoff","#1B1B18"]];
-const STATE={deep:["Deep","#2E7D4F","rgba(46,125,79,.13)"],reinf:["Reinforced","#2E6FC0","rgba(46,111,192,.11)"],touched:["Touched","#B45309","rgba(180,83,9,.13)"],absent:["Absent","#6B675E","#ECE8DF"]};
+const FILTERS=[["all","Tout"],["msg","Messages"],["call","Appels"],["pay","Paiements"],["sys","RDV et issues"]];
+const REGS=[{c:"F",n:"Financier",col:"#C9A04A"},{c:"T",n:"Temps et charge",col:"#B45309"},{c:"Id",n:"Identité et statut",col:"#7A4B00"},{c:"M",n:"Mental et émotionnel",col:"#1B1B18"}];
+const SPIN=[["S","L1 · Situation","#2E7D4F"],["P","L2 · Problème","#B45309"],["I","L3 · Implication","#B42318"],["N","L4 · Bénéfice","#1B1B18"]];
+const STATE={deep:["Puits","#2E7D4F","rgba(46,125,79,.13)"],reinf:["Renfort","#2E6FC0","rgba(46,111,192,.11)"],touched:["Effleuré","#B45309","rgba(180,83,9,.13)"],absent:["Absent","#6B675E","#ECE8DF"]};
 /* hand-written analyses for the demo; others are generated from the lead's own history */
 const ANALYSES={
  "yd:1":{q:{S:4,P:5,I:3,N:1},out:2,regs:[
-   {c:"F",seq:"SPPI",gains:"1101",st:"deep",diag:"Revenue quantified (€8,000, irregular) and its cost named: the prospect computed the gap himself."},
-   {c:"T",seq:"PI",gains:"10",st:"reinf",diag:"Load named (\"evenings on admin\") but never measured in hours."},
-   {c:"Id",seq:"PIN",gains:"111",st:"deep",diag:"Strong identity gap: he sees himself at €20,000 a month and feels behind his peers."},
-   {c:"M",seq:"",gains:"",st:"absent",diag:"No question on this register. He mentioned stress once, unprompted (gift)."}],
-  profile:[["Pain","Revenue is irregular: two good months, then one very low.","12:40"],["Quantified stake","From €8,000 irregular to €20,000 a month within 6 months.","18:05"],["Decision process","Decides with his wife; she manages the household budget.","38:20"],["Timing","Wants to start before January.","41:10"]],
-  obj:[{o:"Partner",w:"« Je dois en parler à ma femme. »",at:"39:30",seq:[["A",1],["I",0],["C",0]]},{o:"Price",w:"« 6 000, c'est un vrai budget. »",at:"44:15",seq:[["A",1],["I",1],["C",1]]}],
+   {c:"F",seq:"SPPI",gains:"1101",st:"deep",diag:"Chiffre d’affaires chiffré (8 000 €, irrégulier) et son coût nommé : le prospect a calculé l’écart lui-même."},
+   {c:"T",seq:"PI",gains:"10",st:"reinf",diag:"Charge nommée (« des soirées sur l’administratif ») mais jamais mesurée en heures."},
+   {c:"Id",seq:"PIN",gains:"111",st:"deep",diag:"Fort écart d’identité : il se voit à 20 000 € par mois et se sent en retard sur ses pairs."},
+   {c:"M",seq:"",gains:"",st:"absent",diag:"Aucune question sur ce registre. Il a parlé du stress une fois, spontanément (cadeau)."}],
+  profile:[["Douleur","Le chiffre d’affaires est irrégulier : deux bons mois, puis un très bas.","12:40"],["Enjeu chiffré","De 8 000 € irréguliers à 20 000 € par mois d’ici 6 mois.","18:05"],["Processus de décision","Décide avec sa femme ; elle gère le budget du foyer.","38:20"],["Moment","Veut commencer avant janvier.","41:10"]],
+  obj:[{o:"Conjoint",w:"« Je dois en parler à ma femme. »",at:"39:30",seq:[["A",1],["I",0],["C",0]]},{o:"Prix",w:"« 6 000, c'est un vrai budget. »",at:"44:15",seq:[["A",1],["I",1],["C",1]]}],
   gap:{q:"« Aujourd'hui je fais 8 000 € quand ça va, je veux 20 000 € tous les mois sans courir après chaque client. »",src:[["Situation","8 000 € quand ça va","12:40","F"],["Vision","20 000 € tous les mois","18:05","Id"]]},
-  next:{goals:["Reconfirm the €20,000 goal with his wife present","Isolate the partner objection before talking price"],q:["What would have to be true for you both to say yes?","What does an irregular month cost your household?"],risks:["The partner objection was acknowledged but never isolated","Mental register absent: stress not explored"]}},
+  next:{goals:["Faire reconfirmer l’objectif de 20 000 € en présence de sa femme","Isoler l’objection du conjoint avant de parler prix"],q:["Que faudrait-il pour que vous disiez oui tous les deux ?","Que coûte un mois irrégulier à votre foyer ?"],risks:["L’objection du conjoint a été accueillie mais jamais isolée","Registre mental absent : stress non exploré"]}},
  "yd:2":{q:{S:2,P:2,I:2,N:2},out:1,regs:[
-   {c:"F",seq:"SN",gains:"11",st:"reinf",diag:"Payment in 3 instalments reassured on cash flow."},
-   {c:"T",seq:"",gains:"",st:"absent",diag:"No question on this register."},
-   {c:"Id",seq:"PIN",gains:"101",st:"reinf",diag:"His wife restated the goal in her own words."},
-   {c:"M",seq:"PI",gains:"11",st:"touched",diag:"Fear of committing too fast named by his wife, not explored further."}],
-  profile:[["Pain","Same as R1; his wife adds the stress of irregular months.","06:10"],["Decision process","Joint decision; wants to sleep on it.","29:40"],["Timing","Decision promised for Monday.","33:00"]],
-  obj:[{o:"Timing",w:"« On préfère prendre le week-end pour réfléchir. »",at:"28:50",seq:[["A",1],["I",1],["C",0]]}],
+   {c:"F",seq:"SN",gains:"11",st:"reinf",diag:"Le paiement en 3 échéances a rassuré sur la trésorerie."},
+   {c:"T",seq:"",gains:"",st:"absent",diag:"Aucune question sur ce registre."},
+   {c:"Id",seq:"PIN",gains:"101",st:"reinf",diag:"Sa femme a reformulé l’objectif avec ses propres mots."},
+   {c:"M",seq:"PI",gains:"11",st:"touched",diag:"Peur de s’engager trop vite nommée par sa femme, non approfondie."}],
+  profile:[["Douleur","Comme au R1 ; sa femme ajoute le stress des mois irréguliers.","06:10"],["Processus de décision","Décision commune ; veut prendre le temps d’y réfléchir.","29:40"],["Moment","Décision promise pour lundi.","33:00"]],
+  obj:[{o:"Moment",w:"« On préfère prendre le week-end pour réfléchir. »",at:"28:50",seq:[["A",1],["I",1],["C",0]]}],
   gap:{q:null},
-  next:{goals:["Get the decision on Monday as agreed"],q:["What did you decide over the weekend?","What is left to settle for you both?"],risks:["No gap played back to his wife","Decision date at risk: 49 h without a reply"]}}
+  next:{goals:["Obtenir la décision lundi comme convenu"],q:["Qu’avez-vous décidé ce week-end ?","Que vous reste-t-il à régler tous les deux ?"],risks:["Aucun écart restitué à sa femme","Date de décision menacée : 49 h sans réponse"]}}
 };
 function genAnalysis(l,e){
   const won=l.ev.some(z=>z.k==="decision"&&z.yes),lost=l.ev.some(z=>z.k==="decision"&&z.no);
   return {q:{S:3,P:3,I:won?3:1,N:won?2:0},out:1,regs:[
-    {c:"F",seq:won?"SPI":"SP",gains:won?"111":"10",st:won?"deep":"touched",diag:won?"Cost of the situation quantified by the prospect.":"Money mentioned, never quantified."},
-    {c:"T",seq:"P",gains:"1",st:"reinf",diag:"Time and load named, not measured."},
-    {c:"Id",seq:won?"IN":"",gains:won?"11":"",st:won?"deep":"absent",diag:won?"Clear vision of where they want to be.":"No question on this register."},
-    {c:"M",seq:"",gains:"",st:"absent",diag:"No question on this register."}],
-   profile:[["Pain","Stated in the prospect's words (see recap message).","10:20"],["Decision process","Decides alone.","30:00"]],
-   obj:lost?[{o:"Price",w:"« C'est au-dessus de mon budget. »",at:"35:10",seq:[["A",1],["I",0],["C",0]]}]:[],
+    {c:"F",seq:won?"SPI":"SP",gains:won?"111":"10",st:won?"deep":"touched",diag:won?"Coût de la situation chiffré par le prospect.":"Argent évoqué, jamais chiffré."},
+    {c:"T",seq:"P",gains:"1",st:"reinf",diag:"Temps et charge nommés, non mesurés."},
+    {c:"Id",seq:won?"IN":"",gains:won?"11":"",st:won?"deep":"absent",diag:won?"Vision claire de là où il veut aller.":"Aucune question sur ce registre."},
+    {c:"M",seq:"",gains:"",st:"absent",diag:"Aucune question sur ce registre."}],
+   profile:[["Douleur","Exprimée avec les mots du prospect (voir le message de récap).","10:20"],["Processus de décision","Décide seul.","30:00"]],
+   obj:lost?[{o:"Prix",w:"« C'est au-dessus de mon budget. »",at:"35:10",seq:[["A",1],["I",0],["C",0]]}]:[],
    gap:won?{q:"« Je veux arrêter de dépendre du bouche-à-oreille. »",src:[["Situation","clients par le bouche-à-oreille","09:30","F"],["Vision","un flux régulier","20:15","Id"]]}:{q:null},
-   next:{goals:[won?"Make sure the first payment goes through":"Isolate the main objection before any new offer"],q:["What would change your answer?"],risks:[lost?"Price objection acknowledged but not isolated":"—"]}};
+   next:{goals:[won?"S’assurer que le premier paiement passe":"Isoler l’objection principale avant toute nouvelle offre"],q:["Qu’est-ce qui changerait votre réponse ?"],risks:[lost?"Objection de prix accueillie mais non isolée":"—"]}};
 }
 function analysisFor(l,i){const e=l.ev[i];return ANALYSES[l.id+":"+e.r]||genAnalysis(l,e)}
 function anHTML(l,i){
   const e=l.ev[i],A=analysisFor(l,i),rp=REPS[l.o];
   const tot=Object.values(A.q).reduce((a,b)=>a+b,0)+A.out;
-  const spin=SPIN.map(s=>`<div class="sp-i"><i style="background:${s[2]}"></i><b>${A.q[s[0]]}</b><span>${s[1]}</span></div>`).join("")+`<div class="sp-i"><i style="background:#D8D3C7"></i><b>${A.out}</b><span>outside SPIN</span></div>`;
+  const spin=SPIN.map(s=>`<div class="sp-i"><i style="background:${s[2]}"></i><b>${A.q[s[0]]}</b><span>${s[1]}</span></div>`).join("")+`<div class="sp-i"><i style="background:#D8D3C7"></i><b>${A.out}</b><span>hors SPIN</span></div>`;
   const regs=A.regs.map(r=>{const R=REGS.find(x=>x.c===r.c),st=STATE[r.st];
-    const chips=r.seq?r.seq.split("").map((q,k)=>{const s=SPIN.find(z=>z[0]===q);return `<i class="qm ${r.gains[k]==="1"?"ok":"zero"}" style="--fc:${s[2]}" title="${s[1]} · ${r.gains[k]==="1"?"question that had an effect":"question with no effect"}">${q}</i>`}).join(""):`<span class="mut">no question asked</span>`;
+    const chips=r.seq?r.seq.split("").map((q,k)=>{const s=SPIN.find(z=>z[0]===q);return `<i class="qm ${r.gains[k]==="1"?"ok":"zero"}" style="--fc:${s[2]}" title="${s[1]} · ${r.gains[k]==="1"?"question qui a produit un effet":"question sans effet"}">${q}</i>`}).join(""):`<span class="mut">aucune question posée</span>`;
     return `<tr><td><span class="rg"><i style="background:${R.col}"></i>${R.n}</span></td><td>${chips}</td><td><span class="stp" style="color:${st[1]};background:${st[2]}">${st[0]}</span></td><td class="mut">${esc(r.diag)}</td></tr>`}).join("");
   const prof=A.profile.map(p=>`<div class="pf"><span class="pk">${esc(p[0])}</span><span>${esc(p[1])}</span><span class="mono mut">${p[2]}</span></div>`).join("");
   const dur=(e.dur||45)*60,sec=s=>{const[m,x]=s.split(":").map(Number);return m*60+x};
-  const obj=A.obj.length?`<table class="atb"><thead><tr><th>Objection</th><th>Prospect's words</th><th>When in the call</th><th>A · I · C sequence</th></tr></thead><tbody>${A.obj.map(o=>`<tr><td><b>${esc(o.o)}</b></td><td>${esc(o.w)}</td><td><div class="when"><i style="left:${Math.min(100,sec(o.at)/dur*100)}%"></i></div><span class="mono mut">${o.at}</span></td><td>${o.seq.map(s=>`<span class="aic ${s[1]?"ok":"miss"}" title="${{A:"Acknowledge",I:"Isolate",C:"Clarify"}[s[0]]} · ${s[1]?"done":"missing"}">${s[0]}</span>`).join("")}</td></tr>`).join("")}</tbody></table>`:`<p class="mut">No objection in this call.</p>`;
-  const gap=A.gap.q?`<blockquote class="gapq">${esc(A.gap.q)}</blockquote><div class="srcs">${A.gap.src.map(s=>{const R=REGS.find(x=>x.c===s[3]);return `<div class="src" style="--rc:${R.col}"><span class="pk">${s[0]}</span><q>${esc(s[1])}</q><span class="mono mut">${s[2]} · ${R.n}</span></div>`}).join("")}</div>`:`<div class="nogap">No gap played back. The sales rep moved on without restating the distance between the situation and the vision.</div>`;
-  const nx=`<div class="nx3"><div><span class="pk">Goals</span><ul>${A.next.goals.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div><div><span class="pk">Questions to ask</span><ul>${A.next.q.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div><div><span class="pk">Risks</span><ul>${A.next.risks.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div></div>`;
+  const obj=A.obj.length?`<table class="atb"><thead><tr><th>Objection</th><th>Les mots du prospect</th><th>Moment de l’appel</th><th>Séquence A · I · C</th></tr></thead><tbody>${A.obj.map(o=>`<tr><td><b>${esc(o.o)}</b></td><td>${esc(o.w)}</td><td><div class="when"><i style="left:${Math.min(100,sec(o.at)/dur*100)}%"></i></div><span class="mono mut">${o.at}</span></td><td>${o.seq.map(s=>`<span class="aic ${s[1]?"ok":"miss"}" title="${{A:"Accueillir",I:"Isoler",C:"Clarifier"}[s[0]]} · ${s[1]?"fait":"manquant"}">${s[0]}</span>`).join("")}</td></tr>`).join("")}</tbody></table>`:`<p class="mut">Aucune objection dans cet appel.</p>`;
+  const gap=A.gap.q?`<blockquote class="gapq">${esc(A.gap.q)}</blockquote><div class="srcs">${A.gap.src.map(s=>{const R=REGS.find(x=>x.c===s[3]);return `<div class="src" style="--rc:${R.col}"><span class="pk">${s[0]}</span><q>${esc(s[1])}</q><span class="mono mut">${s[2]} · ${R.n}</span></div>`}).join("")}</div>`:`<div class="nogap">Aucun écart restitué. Le commercial est passé à la suite sans reformuler l’écart entre la situation et la vision.</div>`;
+  const nx=`<div class="nx3"><div><span class="pk">Objectifs</span><ul>${A.next.goals.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div><div><span class="pk">Questions à poser</span><ul>${A.next.q.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div><div><span class="pk">Risques</span><ul>${A.next.risks.map(g=>`<li>${esc(g)}</li>`).join("")}</ul></div></div>`;
   const blk=(n,t,d,b)=>`<section class="ablk"><div class="abh"><span class="an-n">${n}</span><div><h4>${t}</h4>${d?`<p>${d}</p>`:""}</div></div>${b}</section>`;
   return `<div class="scrim2" data-closean="1"><div class="adlg" role="dialog" aria-modal="true" aria-labelledby="anh">
-    <div class="dh"><div><div class="kick">Call analysis</div><h2 id="anh">${esc(e.txt.split(" · ")[0])} · ${esc(l.p)}</h2>
+    <div class="dh"><div><div class="kick">Analyse d’appel</div><h2 id="anh">${esc(e.txt.split(" · ")[0])} · ${esc(l.p)}</h2>
       <div class="meta"><span>${dayOf(l,e.t)} · ${timeOf(l,e.t)}</span><span>·</span><span class="mono">${e.dur||45} min</span><span>·</span><span>${esc(rp[0])}</span><span>·</span><span>${tot} questions</span></div></div>
-      <button class="x" data-closean="1" aria-label="Close">×</button></div>
+      <button class="x" data-closean="1" aria-label="Fermer">×</button></div>
     <div class="abody">
-      <div class="aban">Post-call analyst (Claude) · method v0 · the transcript is not shown in the CRM; short extracts are quoted as evidence, with their time in the call.</div>
+      <div class="aban">Analyste après appel (Claude) · méthode v0 · la transcription n’est pas affichée dans le CRM ; de courts extraits sont cités comme preuves, avec leur moment dans l’appel.</div>
       <div class="spinbar">${spin}</div>
-      ${blk(1,"The diagnosis","The four registers, read from the prospect's answers",`<div class="tw"><table class="atb"><thead><tr><th>Register</th><th>Questions asked, in order</th><th>State</th><th>Reading</th></tr></thead><tbody>${regs}</tbody></table></div><div class="lg"><span><i class="qm ok" style="--fc:#2E7D4F">S</i>question that had an effect</span><span><i class="qm zero" style="--fc:#B45309">P</i>question with no effect</span>${SPIN.map(s=>`<span><b style="color:${s[2]}">${s[0]}</b> ${s[1].split(" · ")[1]}</span>`).join("")}</div>`)}
-      ${blk(2,"The lead’s profile","Read from the prospect’s words, not from the sales rep’s questions.",prof)}
-      ${blk(3,"Objections","An objection is something the prospect says; AIC is coded on what the sales rep answers next.",obj)}
-      ${blk(4,"The gap to play back","The distance between the situation and the vision, in the prospect’s own words.",gap)}
-      ${blk(5,"Prepare the next call","",nx)}
+      ${blk(1,"Le diagnostic","Les quatre registres, lus dans les réponses du prospect",`<div class="tw"><table class="atb"><thead><tr><th>Registre</th><th>Questions posées, dans l’ordre</th><th>État</th><th>Lecture</th></tr></thead><tbody>${regs}</tbody></table></div><div class="lg"><span><i class="qm ok" style="--fc:#2E7D4F">S</i>question qui a produit un effet</span><span><i class="qm zero" style="--fc:#B45309">P</i>question sans effet</span>${SPIN.map(s=>`<span><b style="color:${s[2]}">${s[0]}</b> ${s[1].split(" · ")[1]}</span>`).join("")}</div>`)}
+      ${blk(2,"Le profil du prospect","Lu dans les mots du prospect, pas dans les questions du commercial.",prof)}
+      ${blk(3,"Objections","Une objection est une prise de parole du prospect ; l’AIC se code sur ce que le commercial répond ensuite.",obj)}
+      ${blk(4,"L’écart à restituer","L’écart entre la situation et la vision, dans les mots du prospect.",gap)}
+      ${blk(5,"Préparer le prochain appel","",nx)}
     </div></div></div>`;
 }
 function itemHTML(l,e,i,R){
@@ -794,15 +796,15 @@ function itemHTML(l,e,i,R){
   const r=R[i]?`<span class="rt2 ${R[i].bad?"bad":""}">${R[i].txt}</span>`:"";
   if(e.k==="im"||e.k==="sms"||e.k==="remind"){
     const side=e.w==="p"?"pin":"pout",ch=e.k==="sms"?"SMS":"iMessage";
-    return `<div class="msg ${side} ${e.w==="a"?"auto":""}"><div class="bub">${esc(e.txt)}</div><div class="mm">${esc(who)} · ${ch}${e.w==="a"?" · automatic":""} · ${time}${e.st&&side==="pout"?" · "+e.st:""} ${h} ${r}</div></div>`}
+    return `<div class="msg ${side} ${e.w==="a"?"auto":""}"><div class="bub">${esc(e.txt)}</div><div class="mm">${esc(who)} · ${ch}${e.w==="a"?" · automatique":""} · ${time}${e.st&&side==="pout"?" · "+(STL[e.st]||e.st):""} ${h} ${r}</div></div>`}
   if(e.k==="meet"||e.k==="meetdue"||e.k==="noshow"){
-    const st=e.k==="noshow"?["No-show","crit"]:e.k==="meetdue"?["Outcome not declared","late"]:fut?["Scheduled","info"]:["Held","ok"];
-    const btn=e.k==="meet"&&!fut?`<button class="btn p sm" data-an="${l.id}:${i}">Call analysis</button><span class="fl">Recording in Fathom ↗</span>`:e.k==="meetdue"?`<button class="btn p sm">Declare the outcome</button>`:e.k==="noshow"?"":`<span class="fl">Reminders and warming steps planned</span>`;
-    return `<div class="callc ${st[1]}"><div class="cl1"><span class="cico">${e.k==="noshow"?"✕":"●"}</span><b>${esc(e.k==="noshow"?"R"+(e.r||1)+" · No-show":e.txt.split(" · ").slice(0,2).join(" · "))}</b><span class="pill ${st[1]}">${st[0]}</span></div>
-      <div class="cl2 mut">Video call · ${dayOf(l,e.t)} · ${time}${e.dur&&!fut?" · "+e.dur+" min":""} · ${esc(REPS[l.o][0])} ${h}</div><div class="cl3">${btn}</div></div>`}
+    const st=e.k==="noshow"?["Absence","crit"]:e.k==="meetdue"?["Issue non déclarée","late"]:fut?["Prévu","info"]:["Honoré","ok"];
+    const btn=e.k==="meet"&&!fut?`<button class="btn p sm" data-an="${l.id}:${i}">Analyse d’appel</button><span class="fl">Enregistrement dans Fathom ↗</span>`:e.k==="meetdue"?`<button class="btn p sm">Déclarer l’issue</button>`:e.k==="noshow"?"":`<span class="fl">Rappels et mise en condition prévus</span>`;
+    return `<div class="callc ${st[1]}"><div class="cl1"><span class="cico">${e.k==="noshow"?"✕":"●"}</span><b>${esc(e.k==="noshow"?"R"+(e.r||1)+" · Absence":e.txt.split(" · ").slice(0,2).join(" · "))}</b><span class="pill ${st[1]}">${st[0]}</span></div>
+      <div class="cl2 mut">Visio · ${dayOf(l,e.t)} · ${time}${e.dur&&!fut?" · "+e.dur+" min":""} · ${esc(REPS[l.o][0])} ${h}</div><div class="cl3">${btn}</div></div>`}
   if(e.k==="call")return `<div class="sysr"><span class="si">☎</span><span>${esc(e.txt)} · ${esc(who)} · Sendblue</span><span class="mut">${time}</span>${h}</div>`;
   if(e.k==="paylink"||e.k==="paid")return `<div class="sysr pay ${e.k==="paid"?"ok":""}"><span class="si">€</span><span>${esc(e.txt)}</span><span class="mut">${time}</span>${h}</div>`;
-  if(e.k==="decision")return `<div class="sysr dec"><span class="si">✓</span><span>${esc(e.txt.replace("Outcome declared · ",""))}</span><span class="mut">declared by ${esc(who)} · ${time}</span>${h}</div>`;
+  if(e.k==="decision")return `<div class="sysr dec"><span class="si">✓</span><span>${esc(e.txt.replace("Issue déclarée · ",""))}</span><span class="mut">déclarée par ${esc(who)} · ${time}</span>${h}</div>`;
   if(e.k==="note")return `<div class="sysr note"><span class="si">✐</span><span>Note · ${esc(e.txt)}</span><span class="mut">${esc(who)} · ${time}</span>${h}</div>`;
   return `<div class="sysr"><span class="si">◷</span><span>${esc(e.txt)} · iClosed</span><span class="mut">${time}</span>${h}</div>`;
 }
@@ -814,90 +816,90 @@ function renderPop(){
   let idx=rows.map((e,i)=>i).filter(i=>flt==="all"||(KIND[rows[i].k]||"sys")===flt);
   if(S.order==="new")idx=idx.reverse();
   let feed="",lastDay="";
-  idx.forEach(i=>{const e=rows[i],d=dayOf(l,e.t);if(d!==lastDay){feed+=`<div class="dsep"><span>${d}${e.t>l.age?" · scheduled":""}</span></div>`;lastDay=d}
-    if(S.order!=="new"&&i>0&&rows[i-1].t<=l.age&&e.t>l.age&&flt==="all")feed+=`<div class="nowsep"><span>Now · ${dayOf(l,l.age)} ${timeOf(l,l.age)}</span></div>`;
+  idx.forEach(i=>{const e=rows[i],d=dayOf(l,e.t);if(d!==lastDay){feed+=`<div class="dsep"><span>${d}${e.t>l.age?" · prévu":""}</span></div>`;lastDay=d}
+    if(S.order!=="new"&&i>0&&rows[i-1].t<=l.age&&e.t>l.age&&flt==="all")feed+=`<div class="nowsep"><span>Maintenant · ${dayOf(l,l.age)} ${timeOf(l,l.age)}</span></div>`;
     feed+=itemHTML(l,e,i,R)});
   const msgs=rows.filter(e=>e.t<=l.age&&(e.k==="im"||e.k==="sms"));
   const inN=msgs.filter(e=>e.w==="p").length,outN=msgs.filter(e=>e.w==="s").length,autoN=rows.filter(e=>e.t<=l.age&&e.k==="remind").length;
-  const reps=Object.values(R).filter(r=>r.txt.startsWith("answered")).map(r=>r.dt).sort((a,b)=>a-b);const med=reps.length?reps[Math.floor(reps.length/2)]:null;
+  const reps=Object.values(R).filter(r=>r.txt.startsWith("réponse")).map(r=>r.dt).sort((a,b)=>a-b);const med=reps.length?reps[Math.floor(reps.length/2)]:null;
   const calls=rows.map((e,i)=>[e,i]).filter(([e])=>e.k==="meet"||e.k==="noshow"||e.k==="meetdue");
   const stg=A.segs.map(s=>{const st=STAGES[s.i];return `<span class="stc" style="--c:${st.c}"><b>${st.n}</b> ${fmtH(s.dur)} / ${st.tgt} h${s.v!=="ok"?` <em class="${s.v}">+${fmtH(s.dur-st.tgt)}</em>`:""}</span>`}).join("");
   const won=A.closed==="won",lost=A.closed==="lost";
   const paid=rows.filter(e=>e.k==="paid"&&e.t<=l.age).length?3000:0;
   box.innerHTML=`<div class="scrim" data-close="1"><div class="rec" role="dialog" aria-modal="true" aria-labelledby="ph">
-   <div class="dh"><div style="min-width:0"><div class="kick">Lead record</div><h2 id="ph">${esc(l.p)}</h2>
-     <div class="meta">${pillOf(l,A)}<span>${esc(rp[0])}</span><span>·</span><span>${esc(l.prod)}</span><span>·</span><span class="mono">€${l.a.toLocaleString("en-US")}</span><span>·</span><span class="mono">${l.ph}</span><span>·</span><span>${l.em}</span></div>
-     <div class="stgs">${stg}<span class="mut">cycle opened ${dayOf(l,0)} · ${fmtH(l.age)} ago</span></div>
+   <div class="dh"><div style="min-width:0"><div class="kick">Fiche prospect</div><h2 id="ph">${esc(l.p)}</h2>
+     <div class="meta">${pillOf(l,A)}<span>${esc(rp[0])}</span><span>·</span><span>${esc(l.prod)}</span><span>·</span><span class="mono">${eur(l.a)}</span><span>·</span><span class="mono">${l.ph}</span><span>·</span><span>${l.em}</span></div>
+     <div class="stgs">${stg}<span class="mut">cycle ouvert le ${dayOf(l,0)} · il y a ${fmtH(l.age)}</span></div>
      <div class="hact">${quickActs(l,A,1)}</div></div>
-     <button class="x" data-close="1" aria-label="Close">×</button></div>
+     <button class="x" data-close="1" aria-label="Fermer">×</button></div>
    <div class="rbody">
     <div class="rmain">
-      <div class="sum3"><span class="pk">Summary · written by Claude from the events · proposal</span><ol>${summaryOf(l,A).map(t=>`<li>${esc(t)}</li>`).join("")}</ol></div>
-      <div class="rtool"><div class="fchips" role="group" aria-label="Filter">${FILTERS.map(f=>`<button data-flt="${f[0]}" aria-pressed="${flt===f[0]}">${f[1]} <span>${cnt[f[0]]||0}</span></button>`).join("")}</div>
-        <button class="btn sm" data-order="1">${S.order==="new"?"Newest first":"Oldest first"} ⇅</button></div>
-      <div class="convo">${feed||`<p class="mut">Nothing in this filter.</p>`}</div>
-      ${A.closed?"":`<div class="comp"><div class="row"><textarea class="cta" id="cmp" rows="1" placeholder="Write to ${esc(l.p.split(" ")[0])}…" aria-label="Message to ${esc(l.p)}"></textarea><button class="btn p" data-send="${l.id}">Send</button></div><span class="mut sm2">iMessage through Sendblue, from ${esc(rp[0])}'s number · ${esc(l.ph)} · it appears in the conversation and in the response times.</span></div>`}
+      <div class="sum3"><span class="pk">Résumé · rédigé par Claude à partir des événements · proposition</span><ol>${summaryOf(l,A).map(t=>`<li>${esc(t)}</li>`).join("")}</ol></div>
+      <div class="rtool"><div class="fchips" role="group" aria-label="Filtre">${FILTERS.map(f=>`<button data-flt="${f[0]}" aria-pressed="${flt===f[0]}">${f[1]} <span>${cnt[f[0]]||0}</span></button>`).join("")}</div>
+        <button class="btn sm" data-order="1">${S.order==="new"?"Plus récents d’abord":"Plus anciens d’abord"} ⇅</button></div>
+      <div class="convo">${feed||`<p class="mut">Rien dans ce filtre.</p>`}</div>
+      ${A.closed?"":`<div class="comp"><div class="row"><textarea class="cta" id="cmp" rows="1" placeholder="Écrire à ${esc(l.p.split(" ")[0])}…" aria-label="Message à ${esc(l.p)}"></textarea><button class="btn p" data-send="${l.id}">Envoyer</button></div><span class="mut sm2">iMessage via Sendblue, depuis le numéro de ${esc(rp[0])} · ${esc(l.ph)} · il apparaît dans la conversation et dans les temps de réponse.</span></div>`}
     </div>
     <aside class="rside">
-      <div class="sbox dark"><span class="pk">Who must act</span><b>${A.ball?esc(A.ball.txt):won?"Won · hand over to delivery":lost?"Lost":"—"}</b>${A.ball&&A.ball.who==="s"&&A.ball.over>0?`<span class="od">overdue ${fmtH(A.ball.over)}</span>`:""}</div>
-      <div class="sbox"><span class="pk">Interactions</span>
-        <div class="kv2"><span>Messages from the prospect</span><b class="mono">${inN}</b><span>Messages from the sales rep</span><b class="mono">${outN}</b><span>Automatic messages</span><b class="mono">${autoN}</b><span>Median sales reply</span><b class="mono">${med!=null?fmtH(med):"—"}</b><span>Calls held · no-shows</span><b class="mono">${calls.filter(([e])=>e.k==="meet"&&e.t<=l.age).length} · ${calls.filter(([e])=>e.k==="noshow").length}</b></div></div>
-      <div class="sbox"><span class="pk">Calls</span>${calls.length?calls.map(([e,i])=>`<div class="cr"><span><b>R${e.r||1}</b> · ${dayOf(l,e.t)} ${timeOf(l,e.t)}</span>${e.k==="meet"&&e.t<=l.age?`<button class="lnk" data-an="${l.id}:${i}">Analysis</button>`:`<span class="mut">${e.k==="noshow"?"no-show":e.k==="meetdue"?"no outcome":"scheduled"}</span>`}</div>`).join(""):`<span class="mut">No call yet.</span>`}</div>
-      <div class="sbox"><span class="pk">Money</span><div class="kv2"><span>Sold</span><b class="mono">${rows.some(e=>e.k==="decision"&&e.yes)?"€"+l.a.toLocaleString("en-US"):"—"}</b><span>Collected (Whop)</span><b class="mono">${paid?"€"+paid.toLocaleString("en-US"):"€0"}</b></div></div>
-      <p class="mut sm2">Everything on this page comes from iClosed, Sendblue, Fathom, Whop and the outcome forms. Call transcripts stay in Fathom.</p>
+      <div class="sbox dark"><span class="pk">Qui doit agir</span><b>${A.ball?esc(A.ball.txt):won?"Gagné · passer la main à l’accompagnement":lost?"Perdu":"—"}</b>${A.ball&&A.ball.who==="s"&&A.ball.over>0?`<span class="od">en retard de ${fmtH(A.ball.over)}</span>`:""}</div>
+      <div class="sbox"><span class="pk">Échanges</span>
+        <div class="kv2"><span>Messages du prospect</span><b class="mono">${inN}</b><span>Messages du commercial</span><b class="mono">${outN}</b><span>Messages automatiques</span><b class="mono">${autoN}</b><span>Réponse médiane du commercial</span><b class="mono">${med!=null?fmtH(med):"—"}</b><span>Appels honorés · absences</span><b class="mono">${calls.filter(([e])=>e.k==="meet"&&e.t<=l.age).length} · ${calls.filter(([e])=>e.k==="noshow").length}</b></div></div>
+      <div class="sbox"><span class="pk">Appels</span>${calls.length?calls.map(([e,i])=>`<div class="cr"><span><b>R${e.r||1}</b> · ${dayOf(l,e.t)} ${timeOf(l,e.t)}</span>${e.k==="meet"&&e.t<=l.age?`<button class="lnk" data-an="${l.id}:${i}">Analyse</button>`:`<span class="mut">${e.k==="noshow"?"absence":e.k==="meetdue"?"sans issue":"prévu"}</span>`}</div>`).join(""):`<span class="mut">Aucun appel pour l’instant.</span>`}</div>
+      <div class="sbox"><span class="pk">Montants</span><div class="kv2"><span>Vendu</span><b class="mono">${rows.some(e=>e.k==="decision"&&e.yes)?eur(l.a):"—"}</b><span>Encaissé (Whop)</span><b class="mono">${eur(paid)}</b></div></div>
+      <p class="mut sm2">Tout ce qui figure sur cette page vient d’iClosed, de Sendblue, de Fathom, de Whop et des formulaires d’issue. Les transcriptions des appels restent dans Fathom.</p>
     </aside>
    </div></div></div>${S.an?anHTML(LEADS.find(z=>z.id===S.an.split(":")[0]),+S.an.split(":")[1]):""}`;
 }
 
 /* ---------- v6: summary, outcome form, page method, quick actions ---------- */
 function summaryOf(l,A){
-  if(l.id==="yd"&&!l.ev.some(e=>e.t>251&&e.t<=l.age))return [`R1 held ${dayOf(l,64)} (50 min): wants to go from €8,000 irregular to €20,000 a month; decides with his wife.`,
-    `R2 held ${dayOf(l,204)} with his wife (35 min): timing objection, decision promised for Monday.`,
-    `Since then: one missed call and one message, no reply for ${fmtH(l.age-251)}.`];
+  if(l.id==="yd"&&!l.ev.some(e=>e.t>251&&e.t<=l.age))return [`R1 honoré ${dayOf(l,64)} (50 min) : veut passer de 8 000 € irréguliers à 20 000 € par mois ; décide avec sa femme.`,
+    `R2 honoré ${dayOf(l,204)} avec sa femme (35 min) : objection de moment, décision promise pour lundi.`,
+    `Depuis : un appel manqué et un message, sans réponse depuis ${fmtH(l.age-251)}.`];
   const p=A.past,out=[];
-  const calls=p.filter(e=>e.k==="meet"||e.k==="noshow"||e.k==="meetdue").map(e=>e.k==="noshow"?`R${e.r||1} no-show ${dayOf(l,e.t)}`:e.k==="meetdue"?`R${e.r||1} time passed ${dayOf(l,e.t)}, no outcome declared`:`R${e.r||1} held ${dayOf(l,e.t)} (${e.dur||45} min)`);
-  out.push(calls.length?calls.join(" · ")+".":`Booked ${dayOf(l,0)} at ${timeOf(l,0)}; no call yet.`);
+  const calls=p.filter(e=>e.k==="meet"||e.k==="noshow"||e.k==="meetdue").map(e=>e.k==="noshow"?`R${e.r||1} absence ${dayOf(l,e.t)}`:e.k==="meetdue"?`R${e.r||1} heure passée ${dayOf(l,e.t)}, aucune issue déclarée`:`R${e.r||1} honoré ${dayOf(l,e.t)} (${e.dur||45} min)`);
+  out.push(calls.length?calls.join(" · ")+".":`RDV pris ${dayOf(l,0)} à ${timeOf(l,0)} ; aucun appel pour l’instant.`);
   const d=[...p].reverse().find(e=>e.k==="decision"),n=A.fut.find(e=>e.k==="meet");
-  out.push(d?"Last outcome: "+d.txt.replace("Outcome declared · ","").split(" · ").join(", ")+".":n?`Next: R${n.r||1} ${callWhen(l,n.t)}, in ${fmtH(n.t-l.age)}.`:"No outcome declared yet.");
+  out.push(d?"Dernière issue : "+d.txt.replace("Issue déclarée · ","").split(" · ").join(", ")+".":n?`Prochain : R${n.r||1} ${callWhen(l,n.t)}, dans ${fmtH(n.t-l.age)}.`:"Aucune issue déclarée pour l’instant.");
   const lp=[...p].reverse().find(e=>e.w==="p"&&(e.k==="im"||e.k==="sms"||e.k==="paid"));
-  out.push(A.closed==="won"?"First Whop payment received: hand over to delivery.":lp?`Prospect's last word, ${fmtH(l.age-lp.t)} ago: « ${lp.txt.length>80?lp.txt.slice(0,78)+"…":lp.txt} »`:"No message from the prospect yet.");
+  out.push(A.closed==="won"?"Premier paiement Whop reçu : passer la main à l’accompagnement.":lp?`Dernier mot du prospect, il y a ${fmtH(l.age-lp.t)} : « ${lp.txt.length>80?lp.txt.slice(0,78)+"…":lp.txt} »`:"Aucun message du prospect pour l’instant.");
   return out}
 function toast(t){const el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>el.hidden=true,3800)}
-function copy(t,msg){try{navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast(msg+" (copy blocked here: "+t+")"))}catch(e){toast(msg+" ("+t+")")}}
-const OF_REASONS={no:["Price","Timing","Partner","Not a priority","Chose another offer"],dq:["Not the target","No budget at all","Not reachable"]};
+function copy(t,msg){try{navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast(msg+" (copie bloquée ici : "+t+")"))}catch(e){toast(msg+" ("+t+")")}}
+const OF_REASONS={no:["Prix","Pas le bon moment","Associé ou conjoint","Pas une priorité","A choisi une autre offre"],dq:["Hors cible","Aucun budget","Injoignable"]};
 function renderModal(){const box=document.getElementById("modal");
-  if(S.method){box.innerHTML=`<div class="scrim2" data-mclose="1"><div class="adlg meth" role="dialog" aria-modal="true" aria-labelledby="mh"><div class="dh"><div><div class="kick">Page method</div><h2 id="mh">Sales cycle</h2></div><button class="x" data-mclose="1" aria-label="Close">×</button></div>
+  if(S.method){box.innerHTML=`<div class="scrim2" data-mclose="1"><div class="adlg meth" role="dialog" aria-modal="true" aria-labelledby="mh"><div class="dh"><div><div class="kick">Mode d’emploi</div><h2 id="mh">Cycle de vente</h2></div><button class="x" data-mclose="1" aria-label="Fermer">×</button></div>
     <div class="abody">
-     <section><h4>What it is for</h4><p>Follow every live lead from the booked call to the first Whop payment, and see who must act now.</p></section>
-     <section><h4>How it helps</h4><ul><li>One line per lead: time spent in the stage against its target, the next step written in the last outcome, and the next call.</li><li>Open a line to read every interaction in order; open the lead record for 100 % of the messages, calls and payments, and the call analysis.</li><li>Act from the line: declare an outcome, reply by iMessage, copy the Whop link, book the next call.</li></ul></section>
-     <section><h4>How to use it</h4><ul><li>Each morning: <b>Critical</b>, then <b>Sales must act</b>, top to bottom.</li><li><b>Calendar</b> shows today and the calls of the next days; <b>Since booking</b> compares cycle lengths.</li><li><b>Row: Simple</b> keeps lines readable; hover a line, or choose <b>Full</b>, to see each interaction.</li><li>Alerts are not repeated here: they arrive in My Day › Needs you.</li></ul></section>
+     <section><h4>À quoi il sert</h4><p>Suivre chaque prospect en cours, du RDV pris au premier paiement Whop, et voir qui doit agir maintenant.</p></section>
+     <section><h4>Ce qu’il apporte</h4><ul><li>Une ligne par prospect : le temps passé dans l’étape face à son objectif, la prochaine étape notée dans la dernière issue et le prochain appel.</li><li>Ouvrez une ligne pour lire chaque échange dans l’ordre ; ouvrez la fiche prospect pour 100 % des messages, appels et paiements, et l’analyse d’appel.</li><li>Agissez depuis la ligne : déclarer une issue, répondre par iMessage, copier le lien Whop, planifier le prochain appel.</li></ul></section>
+     <section><h4>Comment l’utiliser</h4><ul><li>Chaque matin : <b>Critique</b>, puis <b>Le commercial doit agir</b>, de haut en bas.</li><li><b>Calendrier</b> montre aujourd’hui et les appels des prochains jours ; <b>Depuis le RDV</b> compare la durée des cycles.</li><li><b>Ligne : Simple</b> garde les lignes lisibles ; survolez une ligne, ou choisissez <b>Complet</b>, pour voir chaque échange.</li><li>Les alertes ne sont pas répétées ici.</li></ul></section>
     </div></div></div>`;return}
   const l=LEADS.find(z=>z.id===S.ofm);if(!l){box.innerHTML="";return}
   const f=S.of,calls=l.ev.filter(e=>e.k==="meetdue"),c=calls[0];
   const ch=(k,opts)=>`<div class="och">${opts.map(o=>`<button data-of="${k}:${o[0]}" aria-pressed="${f[k]===o[0]}">${o[1]}</button>`).join("")}</div>`;
   let more="";
-  if(f.res==="held"){more+=`<div class="fr"><span>Decision</span>${ch("dec",[["yes","Yes"],["fu","Follow-up"],["no","No"],["dq","Disqualified"]])}</div>`;
-    if(f.dec==="yes")more+=`<div class="fr"><span>Amount sold</span><input class="fi" id="ofa" value="${f.amt}" inputmode="numeric"></div><div class="fr"><span>Instalments</span>${ch("inst",[["1","1"],["2","2"],["3","3"]])}</div>`;
-    if(f.dec==="fu")more+=`<div class="fr"><span>Next step (shown in "Who must act")</span><input class="fi" id="ofs" value="${esc(f.step)}" placeholder="e.g. Send the case study, then call on Thursday"></div>`;
-    if(f.dec==="no"||f.dec==="dq")more+=`<div class="fr"><span>Reason</span>${ch("reason",OF_REASONS[f.dec].map(r=>[r,r]))}</div>`;
-    if(f.dec==="no")more+=`<div class="fr"><span>Nurture</span>${ch("nur",[["y","Put in nurture"],["n","No nurture"]])}</div>`;}
-  box.innerHTML=`<div class="scrim2" data-oclose="1"><div class="ofm" role="dialog" aria-modal="true" aria-labelledby="oh"><div class="dh"><div><div class="kick">Outcome form</div><h2 id="oh">R${c?c.r||1:1} · ${esc(l.p)}</h2><div class="meta"><span>${c?dayOf(l,c.t)+" · "+timeOf(l,c.t):""}</span><span>·</span><span>${esc(REPS[l.o][0])}</span></div></div><button class="x" data-oclose="1" aria-label="Close">×</button></div>
-    <div class="fb"><div class="fr"><span>Did the call take place?</span>${ch("res",[["held","Held"],["noshow","No-show"]])}</div>${more}</div>
-    <div class="ffoot"><button class="btn" data-oclose="1">Cancel</button><button class="btn p" data-ofsave="${l.id}">Save the outcome</button></div></div></div>`;
+  if(f.res==="held"){more+=`<div class="fr"><span>Décision</span>${ch("dec",[["yes","Oui"],["fu","Relance"],["no","Non"],["dq","Disqualifié"]])}</div>`;
+    if(f.dec==="yes")more+=`<div class="fr"><span>Montant vendu</span><input class="fi" id="ofa" value="${f.amt}" inputmode="numeric"></div><div class="fr"><span>Échéances</span>${ch("inst",[["1","1"],["2","2"],["3","3"]])}</div>`;
+    if(f.dec==="fu")more+=`<div class="fr"><span>Prochaine étape (affichée dans « Qui doit agir »)</span><input class="fi" id="ofs" value="${esc(f.step)}" placeholder="ex. Envoyer l’étude de cas, puis appeler jeudi"></div>`;
+    if(f.dec==="no"||f.dec==="dq")more+=`<div class="fr"><span>Motif</span>${ch("reason",OF_REASONS[f.dec].map(r=>[r,r]))}</div>`;
+    if(f.dec==="no")more+=`<div class="fr"><span>Suivi long terme</span>${ch("nur",[["y","Mettre en suivi long terme"],["n","Pas de suivi long terme"]])}</div>`;}
+  box.innerHTML=`<div class="scrim2" data-oclose="1"><div class="ofm" role="dialog" aria-modal="true" aria-labelledby="oh"><div class="dh"><div><div class="kick">Formulaire d’issue</div><h2 id="oh">R${c?c.r||1:1} · ${esc(l.p)}</h2><div class="meta"><span>${c?dayOf(l,c.t)+" · "+timeOf(l,c.t):""}</span><span>·</span><span>${esc(REPS[l.o][0])}</span></div></div><button class="x" data-oclose="1" aria-label="Fermer">×</button></div>
+    <div class="fb"><div class="fr"><span>L’appel a-t-il eu lieu ?</span>${ch("res",[["held","Honoré"],["noshow","Absent"]])}</div>${more}</div>
+    <div class="ffoot"><button class="btn" data-oclose="1">Annuler</button><button class="btn p" data-ofsave="${l.id}">Enregistrer l’issue</button></div></div></div>`;
 }
 function saveOutcome(l){const f=S.of,i=l.ev.findIndex(e=>e.k==="meetdue");if(i<0)return;const c=l.ev[i];
   const ins=(e)=>{const k=l.ev.findIndex(z=>z.t>l.age);k<0?l.ev.push(e):l.ev.splice(k,0,e)};
-  if(f.res==="noshow"){l.ev[i]=E(c.t,"p","noshow","No-show R"+(c.r||1),{r:c.r||1});l.nx={txt:"Re-engage after the no-show",src:"your outcome",due:l.age+2};return}
-  l.ev[i]=E(c.t,"s","meet","R"+(c.r||1)+" · Strategy call",{r:c.r||1,dur:45});
+  if(f.res==="noshow"){l.ev[i]=E(c.t,"p","noshow","Absence R"+(c.r||1),{r:c.r||1});l.nx={txt:"Reprendre contact après l’absence",src:"votre issue",due:l.age+2};return}
+  l.ev[i]=E(c.t,"s","meet","R"+(c.r||1)+" · Appel stratégique",{r:c.r||1,dur:45});
   const a=document.getElementById("ofa"),st=document.getElementById("ofs");
-  if(f.dec==="yes"){const amt=+(a&&a.value||l.a)||l.a;ins(E(l.age,"s","decision",`Outcome declared · Held · Yes · €${amt.toLocaleString("en-US")} · ${f.inst} instalment${f.inst==="1"?"":"s"}`,{yes:1}));l.a=amt;l.nx={txt:"Send the Whop link",src:"yes on R"+(c.r||1),due:l.age+1}}
-  else if(f.dec==="fu"){const t=(st&&st.value.trim())||"Follow up";ins(E(l.age,"s","decision","Outcome declared · Held · Follow-up · next step: "+t,{fu:1}));l.nx={txt:t,src:"your outcome"}}
-  else if(f.dec==="no")ins(E(l.age,"s","decision",`Outcome declared · Held · No · reason: ${f.reason}${f.nur==="y"?" · nurture":""}`,{no:1}));
-  else ins(E(l.age,"s","decision","Outcome declared · Held · Disqualified · reason: "+f.reason,{no:1}));
+  if(f.dec==="yes"){const amt=+(a&&a.value||l.a)||l.a;ins(E(l.age,"s","decision",`Issue déclarée · Honoré · Oui · ${eur(amt)} · ${f.inst==="1"?"payé en une fois":f.inst+" échéances"}`,{yes:1}));l.a=amt;l.nx={txt:"Envoyer le lien Whop",src:"oui au R"+(c.r||1),due:l.age+1}}
+  else if(f.dec==="fu"){const t=(st&&st.value.trim())||"Relance";ins(E(l.age,"s","decision","Issue déclarée · Honoré · Relance · prochaine étape : "+t,{fu:1}));l.nx={txt:t,src:"votre issue"}}
+  else if(f.dec==="no")ins(E(l.age,"s","decision",`Issue déclarée · Honoré · Non · motif : ${f.reason}${f.nur==="y"?" · suivi long terme":""}`,{no:1}));
+  else ins(E(l.age,"s","decision","Issue déclarée · Honoré · Disqualifié · motif : "+f.reason,{no:1}));
 }
 
 /* ---------- interactions ---------- */
-document.getElementById("rep").innerHTML=`<option value="">All sales reps</option>`+Object.entries(REPS).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join("");
+document.getElementById("rep").innerHTML=`<option value="">Tous les commerciaux</option>`+Object.entries(REPS).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join("");
 document.getElementById("rep").onchange=e=>{S.rep=e.target.value;render()};
 document.getElementById("q").oninput=e=>{S.q=e.target.value.trim().toLowerCase();render()};
 let drag=null,moved=false;
@@ -915,18 +917,18 @@ document.addEventListener("click",e=>{
   if(t.dataset.mclose){if(e.target===t||t.classList.contains("x")){S.method=false;renderModal()}return}
   if(t.dataset.oclose){if(e.target===t||t.tagName==="BUTTON"){S.ofm=null;renderModal()}return}
   if(t.dataset.of){const[k,v]=t.dataset.of.split(":");const a=document.getElementById("ofa"),st=document.getElementById("ofs");if(a)S.of.amt=a.value;if(st)S.of.step=st.value;S.of[k]=v;if(k==="dec")S.of.reason=(OF_REASONS[v]||[""])[0];return renderModal()}
-  if(t.dataset.ofsave){const l=LEADS.find(z=>z.id===t.dataset.ofsave);saveOutcome(l);S.ofm=null;toast("Outcome saved · the stage, the next step and the alerts are recomputed");return render()}
+  if(t.dataset.ofsave){const l=LEADS.find(z=>z.id===t.dataset.ofsave);saveOutcome(l);S.ofm=null;toast("Issue enregistrée · l’étape, la prochaine étape et les alertes sont recalculées");return render()}
   if(t.dataset.act){const l=LEADS.find(z=>z.id===t.dataset.id),a=t.dataset.act;
     if(a==="outcome"){S.ofm=l.id;S.of={res:"held",dec:"fu",amt:l.a,inst:"3",reason:"",nur:"y",step:""};return renderModal()}
     if(a==="reply"){S.pop=l.id;S.flt="all";S.an=null;renderPop();const c=document.getElementById("cmp");if(c){c.focus();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight}return}
-    if(a==="whop")return copy("https://whop.com/checkout/demo-"+l.id,"Whop link copied · paste it in the conversation; the payment will be matched to this cycle");
-    if(a==="book")return copy("https://app.iclosed.io/e/alkimiy/strategy-follow-up?skl="+l.id,"iClosed link copied · the call it books joins this cycle");}
+    if(a==="whop")return copy("https://whop.com/checkout/demo-"+l.id,"Lien Whop copié · collez-le dans la conversation ; le paiement sera rattaché à ce cycle");
+    if(a==="book")return copy("https://app.iclosed.io/e/alkimiy/strategy-follow-up?skl="+l.id,"Lien iClosed copié · l’appel qu’il planifie rejoint ce cycle");}
   if(t.dataset.send){const l=LEADS.find(z=>z.id===t.dataset.send),c=document.getElementById("cmp"),v=c&&c.value.trim();if(!v){c&&c.focus();return}
     const k=l.ev.findIndex(z=>z.t>l.age),ev=E(l.age,"s","im",v,{st:"Sent"});k<0?l.ev.push(ev):l.ev.splice(k,0,ev);if(l.nx&&l.nx.due==null)l.nx=null;else if(l.nx&&l.nx.due<=l.age+2)l.nx=null;
-    toast("Sent by iMessage through Sendblue (mock-up: nothing leaves this page)");render();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight;return}
+    toast("Envoyé par iMessage via Sendblue (maquette : rien ne quitte cette page)");render();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight;return}
   if(t.dataset.axis){if(S.axis!==t.dataset.axis){S.axis=t.dataset.axis;S.view=VIEWS[S.axis]}return render()}
   if(t.dataset.rowd){S.rowd=t.dataset.rowd;return render()}
-  if(t.dataset.needs)return toast("In SKL OS this opens My Day › Needs you: CRM alerts c1–c18 arrive there with every other alert.");
+  if(t.dataset.needs)return toast("Dans l’application, ceci ouvre les alertes du CRM (c1 à c18), avec toutes les autres alertes.");
   if(t.dataset.an){if(!S.pop)S.pop=t.dataset.an.split(":")[0];S.an=t.dataset.an;return renderPop()}
   if(t.dataset.closean){if(e.target===t||t.classList.contains("x")){S.an=null;renderPop()}return}
   if(t.dataset.flt){S.flt=t.dataset.flt;return renderPop()}

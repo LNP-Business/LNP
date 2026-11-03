@@ -56,27 +56,30 @@ async function load(claude) { const w = { claude }; vm.runInNewContext(src, { wi
   assert.equal(sc[0].o, "romain"); assert.equal(sc[1].o, "none"); assert.equal(Math.round(sc[0].age), 100);
   assert.deepEqual(sc[0].ev.map((e) => e.k), ["booked", "meet", "note", "note", "meetdue", "meet"], "booked, held, note, canceled, passed with no outcome, ahead");
   assert.equal(sc[0].ev[1].dur, 45); assert.equal(sc[0].ev[5].t, 120);
-  assert.equal(sc[0].nx.txt, "Rebook the call");
-  assert.equal(sc[1].ev[0].no, 1); assert.ok(sc[1].ev[0].txt.includes("Not the target")); assert.equal(sc[1].p, "x@y.z");
+  assert.equal(sc[0].nx.txt, "Reprendre un rendez-vous");
+  assert.equal(sc[1].ev[0].no, 1); assert.ok(sc[1].ev[0].txt.includes("Hors cible")); assert.equal(sc[1].p, "x@y.z");
   assert.deepEqual(sc[2].ev.map((e) => e.k), ["decision", "paid"], "an imported win closes the cycle as won");
   // phase 3: declared outcomes become decision lines, the latest one gives the next step; calls carry their id
   const sc3 = C.salesCycleView([{ id: "c9", opened_at: h(0), owner_id: "u1", person: { full_name: "Out" },
     calls: [{ id: "k9", rank: 1, status: "held", scheduled_start: h(10), scheduled_end: h(10.75) }],
     events: [{ type: "outcome_held", source: "crm", occurred_at: h(11), call_id: "k9" },
-             { type: "outcome_follow_up", source: "crm", occurred_at: h(11), call_id: "k9", data: { next_step: "Send the case study" } }] }], [], NOW);
+             { type: "outcome_follow_up", source: "crm", occurred_at: h(11), call_id: "k9", data: { next_step: "Envoyer l’étude de cas" } }] }], [], NOW);
   assert.equal(sc3[0].ev.find((e) => e.k === "meet").cid, "k9");
-  assert.ok(sc3[0].ev.some((e) => e.k === "decision" && e.fu && /next step: Send the case study/.test(e.txt)));
-  assert.deepEqual(sc3[0].nx, { txt: "Send the case study", src: "from the R1 outcome" });
+  assert.ok(sc3[0].ev.some((e) => e.k === "decision" && e.fu && /prochaine étape : Envoyer l’étude de cas/.test(e.txt)));
+  assert.deepEqual(sc3[0].nx, { txt: "Envoyer l’étude de cas", src: "d’après l’issue du R1" });
   const sc4 = C.salesCycleView([{ id: "c8", opened_at: h(0), calls: [{ id: "k8", rank: 2, status: "held", scheduled_start: h(10), scheduled_end: h(11) }],
     events: [{ type: "outcome_no", source: "crm", occurred_at: h(12), call_id: "k8", data: { reason_code: "price", nurture: "standard" } }] }], [], NOW);
-  assert.ok(sc4[0].ev.some((e) => e.k === "decision" && e.no && /reason: Price · nurture/.test(e.txt)));
-  // 030: an R2 with no Fathom recording is not a no-show: a note on the lane and "Plan a reschedule"
+  assert.ok(sc4[0].ev.some((e) => e.k === "decision" && e.no && /motif : Prix · suivi long terme/.test(e.txt)));
+  // 030: an R2 with no Fathom recording is not a no-show: a note on the lane and "Replanifier l’appel"
   const sc5 = C.salesCycleView([{ id: "c7", opened_at: h(0), next_move: { code: "rebook", missed: 2 },
     calls: [{ id: "k71", rank: 1, status: "held", scheduled_start: h(10), scheduled_end: h(11) },
             { id: "k72", rank: 2, status: "missed", scheduled_start: h(30), scheduled_end: h(31) }], events: [] }], [], NOW);
   assert.ok(!sc5[0].ev.some((e) => e.k === "noshow" || e.k === "meetdue"));
-  assert.ok(sc5[0].ev.some((e) => e.k === "note" && e.r === 2 && /plan a reschedule/.test(e.txt)));
-  assert.deepEqual(sc5[0].nx, { txt: "Plan a reschedule", src: "R2 not held" });
+  assert.ok(sc5[0].ev.some((e) => e.k === "note" && e.r === 2 && /à replanifier/.test(e.txt)));
+  assert.deepEqual(sc5[0].nx, { txt: "Replanifier l’appel", src: "R2 non honoré" });
+  // French labels of reasons and payment plans (old English rows and new French ones)
+  assert.equal(C.reasonLabel("dq_customer"), "Déjà client"); assert.equal(C.reasonLabel("zz", "Zz"), "Zz");
+  assert.equal(C.planLabel("Paid in full"), "payé en une fois"); assert.equal(C.planLabel("3 instalments"), "3 échéances"); assert.equal(C.planLabel("2 échéances"), "2 échéances");
   // web edition where the crm interface is missing: demo
   C = await load({ web: true, use: () => Promise.reject(new Error("x")) });
   assert.equal(C.mode(), "demo");
