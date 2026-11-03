@@ -86,5 +86,5 @@ jobs:
         if: steps.ready.outputs.go == 'true'
         run: |
           for f in iclosed-in fathom-in sendblue-in whop-in process-inbox crm-import callqa-llm sla-tick; do
-            supabase functions deploy "$f" --project-ref "$PROJECT_REF" --no-verify-jwt
+            supabase functions deploy "$f" --remote="$PROJECT_REF" --no-verify-jwt --yes
           done
