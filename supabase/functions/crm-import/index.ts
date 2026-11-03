@@ -1,10 +1,11 @@
 // crm-import: brings the leads that already exist in Close and iClosed into the CRM, without duplicates
-// (web/supabase/007_crm_import.sql). POST ?source=close|iclosed|iclosed_calls|sendblue|fathom&dry=1 for a dry run (counts only, nothing written), without dry
+// (web/supabase/007_crm_import.sql). POST ?source=close|iclosed|iclosed_calls|iclosed_deals|sendblue|fathom&dry=1 for a dry run (counts only, nothing written), without dry
 // for the import; ?run=<id> continues a run that stopped on the time budget. Answers counts only, never personal data.
-import { importClose, importFathom, importIclosed, importIclosedCalls, importSendblue } from "../_shared/import_run.ts";
+import { importClose, importFathom, importIclosed, importIclosedCalls, importIclosedDeals, importSendblue } from "../_shared/import_run.ts";
 import { sendblueAllMessages, sendblueReport } from "../_shared/importers/sendblue.ts";
 import { restRpc } from "../_shared/worker.ts";
 import { callsReport, statusReport } from "../_shared/importers/report.ts";
+import { dealsReport, iclosedAllDeals } from "../_shared/importers/iclosed.ts";
 import { ICLOSED_BASE, ICLOSED_PROBE_PATHS, ICLOSED_SPECS, iclosedHeaders, pagination, probe } from "../_shared/importers/probe.ts";
 
 Deno.serve(async (req) => {
@@ -39,6 +40,11 @@ Deno.serve(async (req) => {
     try { return Response.json(await callsReport(iclosedHeaders(Deno.env.get("ICLOSED_API_KEY") ?? ""))); }
     catch (e) { return Response.json({ error: String((e as Error)?.message ?? e).slice(0, 300) }, { status: 500 }); }
   }
+  if (u.searchParams.get("report") === "deals") {
+    // read-only counts over iClosed's deals (transaction types, products, amounts by month), to map them onto crm_deals / crm_payments
+    try { return Response.json(dealsReport(await iclosedAllDeals(Deno.env.get("ICLOSED_API_KEY") ?? ""))); }
+    catch (e) { return Response.json({ error: String((e as Error)?.message ?? e).slice(0, 300) }, { status: 500 }); }
+  }
   if (u.searchParams.get("report") === "sendblue") {
     // read-only counts over Sendblue's message history (directions, services, statuses, sources, months)
     try { return Response.json(sendblueReport(await sendblueAllMessages(Deno.env.get("SENDBLUE_API_KEY_ID") ?? "", Deno.env.get("SENDBLUE_API_SECRET") ?? ""))); }
@@ -70,11 +76,11 @@ Deno.serve(async (req) => {
     }
   }
   const source = u.searchParams.get("source");
-  if (source !== "close" && source !== "iclosed" && source !== "iclosed_calls") {
-    return Response.json({ error: "source must be close, iclosed or iclosed_calls" }, { status: 400 });
+  if (source !== "close" && source !== "iclosed" && source !== "iclosed_calls" && source !== "iclosed_deals") {
+    return Response.json({ error: "source must be close, iclosed, iclosed_calls or iclosed_deals" }, { status: 400 });
   }
   try {
-    const out = await (source === "close" ? importClose : source === "iclosed" ? importIclosed : importIclosedCalls)({
+    const out = await (source === "close" ? importClose : source === "iclosed" ? importIclosed : source === "iclosed_calls" ? importIclosedCalls : importIclosedDeals)({
       rpc: restRpc(), rest: restTable,
       apiKey: Deno.env.get(source === "close" ? "CLOSE_API_KEY" : "ICLOSED_API_KEY") ?? "",
       dry: u.searchParams.get("dry") === "1", run: u.searchParams.get("run"),

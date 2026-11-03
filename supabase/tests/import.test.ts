@@ -148,3 +148,19 @@ Deno.test("sendblue history: pages by offset until hasMore is false, same mappin
   eq(items.map((i: any) => i.type), ["message_in", "message_out", "message_out"]);
   eq((sendblueReport(all) as any).direction, { in: 2, out: 2 });
 });
+
+Deno.test("iClosed deals: one item each, time read as UTC, value and product kept", async () => {
+  const { iclosedDealsToItems, dealsReport } = await import("../functions/_shared/importers/iclosed.ts");
+  const deals = [
+    { id: 7, eventCallId: 11, contactId: 3, value: "3000", time: "2026-10-20 10:00:00.000", transactionType: "WON", product: { name: "LNP 3000" } },
+    { id: 8, eventCallId: null, contactId: 4, value: "500", time: "", createdAt: "2026-10-21T09:00:00.000Z", transactionType: "DEPOSIT", product: { name: " Acompte " } },
+  ];
+  const items = iclosedDealsToItems(deals);
+  eq(items[0], { iclosed_deal_id: "7", iclosed_call_id: "11", iclosed_contact_id: "3", type: "WON", value: "3000", product: "LNP 3000", at: "2026-10-20T10:00:00.000Z" });
+  eq(items[1].iclosed_call_id, null);
+  eq(items[1].at, "2026-10-21T09:00:00.000Z");
+  eq(items[1].product, "Acompte");
+  const rep = dealsReport(deals);
+  eq(rep.types, { WON: 1, DEPOSIT: 1 });
+  eq(rep.by_type.WON.sum, 3000);
+});
