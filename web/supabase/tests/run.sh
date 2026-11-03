@@ -86,6 +86,8 @@ run 033_crm_noshow_audit.sql
 run 033_crm_noshow_audit.sql
 run 034_lnp_fr_labels.sql
 run 034_lnp_fr_labels.sql
+run 036_crm_cockpit_active_team.sql
+run 036_crm_cockpit_active_team.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
