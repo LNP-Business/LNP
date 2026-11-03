@@ -52,3 +52,20 @@ Deno.test("callqa-llm: bad model id, missing key, provider errors", async () => 
   const bad = await handleLlm(post(q), env, () => Promise.resolve(Response.json({ error: { type: "invalid_request_error", message: "x" } }, { status: 400 })));
   eq(bad.status, 502); eq((await bad.json()).retry, false);
 });
+
+Deno.test("callqa-llm: a prefix block (the transcript of the lite engine) is cached before the step prompt", async () => {
+  let body: Record<string, unknown> = {};
+  const ok = (_u: string, init: RequestInit) => { body = JSON.parse(String(init.body)); return Promise.resolve(Response.json({ content: [], stop_reason: "end_turn" })); };
+  const r = await handleLlm(post({ ...q, prefix: "T001 [SALES] Hello", max_tokens: 16000, effort: "low" }), env, ok);
+  eq(r.status, 200);
+  eq(body.messages, [{ role: "user", content: [
+    { type: "text", text: "T001 [SALES] Hello", cache_control: { type: "ephemeral" } }, { type: "text", text: "UNIT" }] }]);
+  eq(body.max_tokens, 16000, "16 000 tokens allowed:");
+  eq(body.output_config, { effort: "low" });
+  eq((await r.json()).stop_reason, "end_turn");
+  eq((await handleLlm(post({ ...q, max_tokens: 50000 }), env, ok)).status, 200);
+  eq(body.max_tokens, 16000, "capped at 16 000:");
+  eq((await handleLlm(post({ ...q, prefix: "" }), env, ok)).status, 200);
+  eq(body.messages, [{ role: "user", content: [{ type: "text", text: "UNIT" }] }], "empty prefix: one block:");
+  eq((await handleLlm(post({ ...q, prefix: 12 }), env, ok)).status, 400);
+});

@@ -1133,7 +1133,7 @@ class GapCompetence:
 
         # ---- restitution inventory (code) and model clauses
         st_all = statements_from_atoms(ctx, wend)
-        spans = inventory(ctx)
+        spans = self.candidate_spans(ctx)
         rs: list[Restitution] = []
         for sp in spans:
             r = self._run_span(ctx, runner, sp, st_all, concs, to_review)
@@ -1203,6 +1203,10 @@ class GapCompetence:
         res.details = self._details(ctx, rs, verdict, reasons, scored, diag_r, items, sel_a, sel_b, sel_p, ab_rule,
                                     p_rule, horizon, blockers, warn, st, B_out)
         return res
+
+    def candidate_spans(self, ctx: CallContext) -> list[Span]:
+        """A1 inventory (code). The lite engine (call-analysis/lite) adds the passages its model step found."""
+        return inventory(ctx)
 
     # ---------------------------------------------------------------- steps
     def _run_span(self, ctx, runner, sp, st, concs, to_review) -> Restitution:
