@@ -7,10 +7,11 @@ import { ICLOSED_BASE, iclosedHeaders } from "./probe.ts";
 
 type Obj = Record<string, any>;
 
-// iClosed limits its API (HTTP 429 "RATE_LIMIT_EXCEEDED" seen on 2026-11-03 when pages came back to back): pages are read at
-// most one every ICLOSED_PAGE_GAP_MS, and a 429 waits for Retry-After (else 5, 10, 20… s) before the same page is asked
-// again, 6 times at most (the same rule as the Fathom importer).
-export const ICLOSED_PAGE_GAP_MS = 600;
+// iClosed limits its API (HTTP 429 "RATE_LIMIT_EXCEEDED" seen on 2026-11-03 when pages came back to back; its Retry-After is
+// shorter than the time its quota takes to refill, so six retries one second apart all failed): pages are read at most one
+// every ICLOSED_PAGE_GAP_MS, and a 429 waits at least 5, 10, 20, then 30 s (longer if Retry-After says so) before the same
+// page is asked again, 6 times at most (about 2 min, inside a function's run time). The error then names the last Retry-After.
+export const ICLOSED_PAGE_GAP_MS = 1100;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 type Wait = (ms: number) => Promise<unknown>;
 
@@ -18,10 +19,10 @@ async function iclosedGet(url: string, headers: HeadersInit, fetchFn: typeof fet
   let r = await fetchFn(url, { headers });
   for (let retry = 0; r.status === 429 && retry < 6; retry++) {
     const after = Number(r.headers.get("retry-after"));
-    await wait(after > 0 ? after * 1000 : 5000 * 2 ** retry);
+    await wait(Math.max(after > 0 ? after * 1000 : 0, Math.min(5000 * 2 ** retry, 30000)));
     r = await fetchFn(url, { headers });
   }
-  if (!r.ok) throw new Error(`iClosed API: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) throw new Error(`iClosed API: HTTP ${r.status}${r.status === 429 ? ` (Retry-After ${r.headers.get("retry-after") ?? "—"})` : ""} ${(await r.text()).slice(0, 200)}`);
   return await r.json();
 }
 
