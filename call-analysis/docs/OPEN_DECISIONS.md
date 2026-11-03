@@ -60,3 +60,23 @@ the methodology file, the memo, the engine constant or rule, and the tests.
   topic-change rule is strict (episodes often end at the next resistance) — check against the reliability target.
 - SPIN: only a P opens a deep chain; unanswered stacked units do not break a chain; the stacked-question exception
   decided by shared words.
+
+## E. Lite engine (`call-analysis/lite`, 2026-11-03): approximations to confirm
+The lite engine (`crm_ca_config.engine = 'lite'`, five whole-transcript steps on the fast tier, target 0.10 USD a call)
+keeps the rule "the model quotes, the code decides" and the engine's decision code, with these approximations
+(details in `call-analysis/lite/README.md`):
+- One reading per fact, no arbiter (C4 requires 95 % reproducibility before one pass): results `single_reading`, to
+  stay provisional until the lite and full engines are compared on the same calls.
+- Invalid evidence dropped item by item (an unproved atom, clause, claim or gesture counts as not said / not done)
+  instead of a replay of the unit (C3 rule 7); only an invalid JSON answer is asked again once.
+- No model attribution check (C1): the code's diarization gate only.
+- SPIN: the letter is the model's reading of the gates, with the code's hard rules (validation tail, closed
+  need-payoff); segmentation is the model's listing; same object (SB-16) = matching object labels + the lexical check;
+  SB-21 left to the model's OUT reason; register agreement (SB-33) not measured.
+- Gap: X13 read from the atom's figure kind (no kind = present); the stopping question (GB-30) is a flag of S1.
+- Objections (Romain 2026-11-03): only after the pitch start, each objection once; repeats after its episode are a
+  recurrence (H5 = 0); two natures in one passage (OB-4) merged when they share a quote; topic change (OB-8) read once by
+  the model and checked by code; detection deadlines (OB-2, OB-25) do not feed prevention.
+- Language: the engine's word lists (approvals, tails, GB-22 person shift, stop words) are English; on a French call
+  they apply as in the reference engine.
+- Screen: the objections table shows the first quote of each objection; `episodes[].quotes` holds the others.

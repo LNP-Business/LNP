@@ -4,6 +4,8 @@
 // marked for prompt caching; the question itself too when the worker says it will be asked again (the 3 passes of a unit,
 // call-analysis/docs/ARCHITECTURE.md §7). effort (low by default) keeps the model's thinking short: the answer is one
 // closed JSON; "default" sends no effort, so the model uses its own. Answers the model's text and token usage only; never logs a prompt or a transcript.
+// prefix (lite engine, call-analysis/lite, 2026-11-03): an optional first block of the user message, always marked for
+// caching, so the transcript is written to the cache once and read back by the next steps of the same call.
 export type LlmEnv = { anthropicKey: string; serviceKeys: string[] };
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
 
@@ -16,15 +18,18 @@ export async function handleLlm(req: Request, env: LlmEnv, fetchFn: Fetch = fetc
   const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
   if (!bearer || !env.serviceKeys.some((k) => k && k === bearer)) return Response.json({ error: "unauthorized" }, { status: 401 });
   if (!env.anthropicKey) return Response.json({ error: "ANTHROPIC_API_KEY is not set in the Supabase function secrets" }, { status: 409 });
-  let b: { model?: unknown; system?: unknown; prompt?: unknown; max_tokens?: unknown; effort?: unknown; cache_prompt?: unknown };
+  let b: { model?: unknown; system?: unknown; prompt?: unknown; prefix?: unknown; max_tokens?: unknown; effort?: unknown; cache_prompt?: unknown };
   try { b = await req.json(); } catch { return Response.json({ error: "JSON body expected" }, { status: 400 }); }
   if (typeof b.model !== "string" || !/^claude-[a-z0-9.\-]+$/.test(b.model)) return Response.json({ error: "model must be a claude-* id" }, { status: 400 });
   if (typeof b.system !== "string" || typeof b.prompt !== "string" || !b.prompt) return Response.json({ error: "system and prompt are required" }, { status: 400 });
   const maxTokens = Math.min(Math.max(Number(b.max_tokens) || 4000, 1), 16000);
   const effort = b.effort === undefined ? "low" : b.effort;
   if (typeof effort !== "string" || !EFFORTS.includes(effort)) return Response.json({ error: "effort must be one of " + EFFORTS.join(", ") }, { status: 400 });
+  if (b.prefix !== undefined && b.prefix !== null && typeof b.prefix !== "string") return Response.json({ error: "prefix must be a string" }, { status: 400 });
   const text: Record<string, unknown> = { type: "text", text: b.prompt };
   if (b.cache_prompt === true) text.cache_control = { type: "ephemeral" };
+  const content: Record<string, unknown>[] = typeof b.prefix === "string" && b.prefix
+    ? [{ type: "text", text: b.prefix, cache_control: { type: "ephemeral" } }, text] : [text];
   const res = await fetchFn(ANTHROPIC_URL, {
     method: "POST",
     headers: { "x-api-key": env.anthropicKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
@@ -34,7 +39,7 @@ export async function handleLlm(req: Request, env: LlmEnv, fetchFn: Fetch = fetc
       model: b.model, max_tokens: maxTokens,
       ...(effort === "default" ? {} : effort === "none" ? { thinking: { type: "disabled" } } : { output_config: { effort } }),
       system: [{ type: "text", text: b.system, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: [text] }],
+      messages: [{ role: "user", content }],
     }),
   });
   const out = await res.json().catch(() => ({}));

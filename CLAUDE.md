@@ -87,6 +87,11 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 Le moteur (`call-analysis/`) a ses propres règles : lire `call-analysis/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
 le code décide et note. Les consignes envoyées au modèle (`call-analysis/engine/alkimiy_callqa/prompts/*.md`) restent en anglais :
 les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/call-analysis.yml`.
+Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier
+(phases, questions de découverte, écart, présentation de l'offre, objections après la présentation), le code vérifie
+chaque citation et calcule les notes avec les fonctions du moteur de référence. Choix par analyse :
+`update crm_ca_config set engine = 'lite';` (retour : `engine = 'full'`, valeur par défaut ; migration 035). Tests :
+`cd call-analysis/lite && python3 -m pytest -q tests` ; écarts avec la méthodologie : `call-analysis/lite/README.md`.
 
 ## Vérifier après un changement
 

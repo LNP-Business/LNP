@@ -47,6 +47,8 @@ jobs:
         run: cd call-analysis/engine && python3 -m pytest -q tests
       - name: Worker
         run: cd call-analysis/worker && python3 -m pytest -q tests
+      - name: Lite engine
+        run: cd call-analysis/lite && python3 -m pytest -q tests
 
   worker:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
