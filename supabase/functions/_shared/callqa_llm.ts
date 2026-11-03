@@ -8,7 +8,8 @@ export type LlmEnv = { anthropicKey: string; serviceKeys: string[] };
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
 
 export const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-export const EFFORTS = ["low", "medium", "high", "xhigh", "max", "default"];
+// "none" (LNP, 2026-11-03, cost under 10 cents a call): no thinking at all, for a closed JSON question on a fast model
+export const EFFORTS = ["none", "low", "medium", "high", "xhigh", "max", "default"];
 
 export async function handleLlm(req: Request, env: LlmEnv, fetchFn: Fetch = fetch): Promise<Response> {
   if (req.method !== "POST") return Response.json({ error: "POST only" }, { status: 405 });
@@ -30,7 +31,8 @@ export async function handleLlm(req: Request, env: LlmEnv, fetchFn: Fetch = fetc
     body: JSON.stringify({
       // no temperature: the current models refuse it ("deprecated for this model", 2026-10-26); three independent passes
       // and the arbiter carry the reproducibility (Part C, C4)
-      model: b.model, max_tokens: maxTokens, ...(effort === "default" ? {} : { output_config: { effort } }),
+      model: b.model, max_tokens: maxTokens,
+      ...(effort === "default" ? {} : effort === "none" ? { thinking: { type: "disabled" } } : { output_config: { effort } }),
       system: [{ type: "text", text: b.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: [text] }],
     }),

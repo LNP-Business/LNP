@@ -14,10 +14,10 @@ on:
   workflow_dispatch:
     inputs:
       effort:
-        description: "Model effort of this run: low (cost step 1) or default (each model's own default), to compare them"
+        description: "Model effort of this run: none (no thinking, LNP default), low, or default (each model's own default), to compare them"
         type: choice
-        options: [low, default]
-        default: low
+        options: [none, low, default]
+        default: none
 env:
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}  # LNP: repository variable, https://<ref>.supabase.co
 jobs:
@@ -73,5 +73,5 @@ jobs:
         if: steps.ready.outputs.go == 'true'
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          CALLQA_EFFORT: ${{ inputs.effort || 'low' }}
+          CALLQA_EFFORT: ${{ inputs.effort || 'none' }}
         run: python3 call-analysis/worker/run.py --budget-min 120

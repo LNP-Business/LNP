@@ -64,6 +64,24 @@ def test_gateway_sends_the_tier_model_and_counts_usage():
     assert seen[0]["effort"] == "low" and seen[0]["cache_prompt"] is True, "a pass: low effort, question cached"
 
 
+def test_gateway_effort_none_turns_thinking_off_but_keeps_the_foundation_default():
+    # LNP (2026-11-03, under 10 cents a call): effort "none" on every question, the register included; the foundation keeps
+    # its default
+    op, seen = opener_from([(200, {"text": "{}"})] * 3)
+    g = GatewayClient("https://x/f", "k", TIERS, opener=op, sleep=lambda s: None, effort="none", passes=1)
+    g.ask("spin.gates", "sol:T001", "fast", "s", "p", 1)
+    g.ask("spin.register", "register:Q1", "fast", "s", "p", 1)
+    g.ask("foundation.phases", "chunk:1", "fast", "s", "p", 1)
+    assert [s["effort"] for s in seen] == ["none", "none", "default"]
+
+
+def test_gateway_caches_a_question_only_when_another_pass_asks_it():
+    op, seen = opener_from([(200, {"text": "{}"})] * 2)
+    GatewayClient("https://x/f", "k", TIERS, opener=op, sleep=lambda s: None, passes=1).ask("t", "u", "fast", "s", "p", 1)
+    GatewayClient("https://x/f", "k", TIERS, opener=op, sleep=lambda s: None, passes=3).ask("t", "u", "fast", "s", "p", 1)
+    assert [s["cache_prompt"] for s in seen] == [False, True]
+
+
 def test_gateway_keeps_the_model_default_for_the_foundation():
     op, seen = opener_from([(200, {"text": "{}"})])
     GatewayClient("https://x/f", "k", TIERS, opener=op, sleep=lambda s: None).ask("foundation.attribution", "chunk:1", "fast", "s", "p", 1)
