@@ -30,7 +30,7 @@ export async function tick(rpc: Rpc, post: (text: string) => Promise<boolean>, n
   const send = items.filter((x) => fresh.has(String(x.key)));
   if (!send.length) return { cycles: cycles.length, new: 0, posted: false };
   // deno-lint-ignore no-explicit-any
-  const ok = await post(slackText(send as any, String(cfg.link || "https://os.stealthkairoslabs.com/#crm")));
+  const ok = await post(slackText(send as any, String(cfg.link || "https://lnp-sales.vercel.app/#crm")));
   return { cycles: cycles.length, new: send.length, posted: ok };
 }
 

@@ -527,7 +527,7 @@ Appels (hors annulés et sans début) : `held` → `s meet` ; `no_show` → `p n
 ```
 
 Critiques d'abord. Prospect inconnu → « un prospect » ; sans propriétaire → « sans commercial attitré ». Le lien vient de
-`crm_settings.sla_alerts.link` ; à défaut le code utilise `https://os.stealthkairoslabs.com/#crm` : dans une réplique,
+`crm_settings.sla_alerts.link` ; à défaut le code utilise `https://lnp-sales.vercel.app/#crm` (`sla-tick/index.ts`) : dans une réplique,
 renseigner `link` avec l'adresse de l'application suivie de `/#crm`.
 
 ---
