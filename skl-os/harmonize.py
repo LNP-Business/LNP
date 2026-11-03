@@ -2,7 +2,7 @@
 main padding 40px 48px, one 54px top bar (views as a segmented control on the left, context and actions on the right),
 no page title (the sidebar says where you are), the same button styles everywhere.
 Idempotent: pages are rebuilt from their *.pre-hz.dc.html copy; Build and Execute are modules (gen_build.py, gen_execute.py)."""
-import pathlib, re, shutil
+import pathlib, re, shutil, json
 HERE = pathlib.Path(__file__).resolve().parent
 P = HERE.parent / 'skl-en' / 'project'
 
@@ -24,6 +24,12 @@ def seg(items):  # items: (label, href or None for current)
         adm = ' data-admin-only' if href == 'Access.dc.html' else ''
         out.append(f'<span style="{TAB_ON}" aria-current="page">{label}</span>' if href is None else f'<a href="{href}"{adm} style="{TAB_OFF}">{label}</a>')
     return f'<div role="group" aria-label="Views" style="{SEG}">' + ''.join(out) + '</div>'
+# Settings views, in French (LNP, Romain 2026-11-03); an edition (edition.json "settings") keeps only its own Settings screens
+_ed = HERE.parent / 'edition.json'
+_keep = json.load(open(_ed, encoding='utf-8')).get('settings') if _ed.exists() else None
+SETTINGS_TABS = [('Alertes et notifications', 'Settings.dc.html'), ('Registres', 'Registers.dc.html'), ('Compte', 'Account.dc.html'), ('Accès', 'Access.dc.html')]
+def settings_seg(current):
+    return seg([(l, None if f == current else f) for l, f in SETTINGS_TABS if not _keep or f in _keep or f == current])
 def restyle(btn, style):
     return re.sub(r'style="[^"]*"', f'style="{style}"', btn, count=1)
 def main_pad(s):
@@ -71,12 +77,12 @@ f, s = source('Settings')
 i, j, h = first_header(s)
 btns = re.findall(r'<button.*?</button>', h, re.S)
 save_txt = re.search(r'<span style="font-size: 13px; color: \{\{saveColor\}\}">\{\{saveText\}\}</span>', h).group(0)
-s = s[:i] + bar(seg([('Alerts &amp; notifications', None), ('Registers', 'Registers.dc.html'), ('Account', 'Account.dc.html'), ('Access', 'Access.dc.html')]), save_txt + restyle(btns[0], SECONDARY) + btns[1]) + s[j:]
+s = s[:i] + bar(settings_seg('Settings.dc.html'), save_txt + restyle(btns[0], SECONDARY) + btns[1]) + s[j:]
 f.write_text(main_pad(s), encoding='utf-8'); print('Settings ok')
 
 f, s = source('Registers')
 i, j, h = first_header(s)
-s = s[:i] + bar(seg([('Alerts &amp; notifications', 'Settings.dc.html'), ('Registers', None), ('Account', 'Account.dc.html'), ('Access', 'Access.dc.html')]),
+s = s[:i] + bar(settings_seg('Registers.dc.html'),
                 f'<span style="{CTX}; max-width: 520px">What belongs to several mechanisms at once, written once so nobody reconciles two copies.</span>') + s[j:]
 f.write_text(main_pad(s), encoding='utf-8'); print('Registers ok')
 

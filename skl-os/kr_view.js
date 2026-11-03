@@ -159,14 +159,14 @@
     box.setAttribute("role", "alertdialog"); box.setAttribute("aria-modal", "true"); box.setAttribute("aria-labelledby", "sklcfT");
     box.style.cssText = "width:min(460px,100%);background:#fff;border:1px solid #E3DFD5;border-radius:14px;padding:24px;box-shadow:0 18px 50px rgba(27,27,24,.25);display:flex;flex-direction:column;gap:14px;color:#1B1B18";
     box.innerHTML = '<h3 id="sklcfT" style="margin:0;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:22px"></h3><p style="margin:0;font-size:14px;line-height:1.55;color:#5E5B53"></p>' +
-      '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px"><button type="button" data-no style="font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:10px 16px;cursor:pointer;background:#fff;border:1px solid #D8D3C7;color:#1B1B18">Cancel</button>' +
+      '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px"><button type="button" data-no style="font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:10px 16px;cursor:pointer;background:#fff;border:1px solid #D8D3C7;color:#1B1B18">Annuler</button>' +
       '<button type="button" data-yes style="font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:10px 16px;cursor:pointer;background:#B42318;border:1px solid #B42318;color:#fff"></button></div>';
-    box.querySelector("h3").textContent = o.title || "Delete this item?";
-    box.querySelector("p").textContent = o.body || "This cannot be undone.";
+    box.querySelector("h3").textContent = o.title || "Supprimer cet élément ?";
+    box.querySelector("p").textContent = o.body || "Cette action est définitive.";
     // o.html: a richer body built by the caller from escaped values (Weekly Review: key results left without a milestone)
     if (o.html) { var hb = document.createElement("div"); hb.style.cssText = "display:flex;flex-direction:column;gap:10px"; hb.innerHTML = o.html; box.querySelector("p").replaceWith(hb); }
     if (o.width) box.style.width = "min(" + Number(o.width) + "px,100%)";
-    box.querySelector("[data-yes]").textContent = o.ok || "Delete";
+    box.querySelector("[data-yes]").textContent = o.ok || "Supprimer";
     // o.primary: an action that changes nothing for good (Rename), dark button with gold text; o.focus: the field to type in, Enter confirms
     if (o.primary) box.querySelector("[data-yes]").style.cssText += ";background:#1B1B18;border-color:#1B1B18;color:#D9B46A";
     bg.appendChild(box);

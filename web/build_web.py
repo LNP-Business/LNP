@@ -9,7 +9,7 @@ OUT = HERE / "public" / "index.html"
 SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"
 
 page = PAGE.read_text(encoding="utf-8")
-head = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+head = ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         '<meta name="robots" content="noindex">\n'
         '<script src="/api/config"></script>\n'
