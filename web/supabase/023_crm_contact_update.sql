@@ -15,7 +15,7 @@ begin
     pid := (crm_people_for(jsonb_build_object('iclosed_contact_id', it#>>'{identity,iclosed_contact_id}')))[1];
     if pid is null then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary)
-      values (p_inbox, 'iclosed', 'Contact update for a person the CRM never saw', it#>>'{data,summary}');
+      values (p_inbox, 'iclosed', 'Mise à jour d''un contact inconnu du CRM', it#>>'{data,summary}');
       if result <> 'processed' then result := 'unmatched'; end if;
       continue;
     end if;
@@ -29,7 +29,7 @@ begin
                'phone', case when 'phone' = any(changed) then phone end)))) x where x <> pid);
     if cardinality(other) > 0 then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary, candidate_person_ids)
-      values (p_inbox, 'iclosed', 'New email or phone already belongs to another person', it#>>'{data,summary}', pid || other);
+      values (p_inbox, 'iclosed', 'Nouvel e-mail ou téléphone déjà attribué à une autre personne', it#>>'{data,summary}', pid || other);
       if result <> 'processed' then result := 'unmatched'; end if;
       continue;
     end if;

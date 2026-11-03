@@ -12,12 +12,12 @@ language plpgsql stable security definer set search_path = public as $$
 declare me crm_members;
 begin
   select * into me from crm_members where id = auth.uid() and active;
-  if me.id is null then raise exception 'Not a CRM member' using errcode = '42501'; end if;
+  if me.id is null then raise exception 'Vous n''êtes pas membre du CRM' using errcode = '42501'; end if;
   if me.role = any(p_roles) then return me; end if;
   if me.role = 'sales' and p_cycle is not null and exists (select 1 from crm_cycles where id = p_cycle and owner_id = me.id) then
     return me;
   end if;
-  raise exception 'Not allowed for role %', me.role using errcode = '42501';
+  raise exception 'Action non autorisée pour le rôle %', me.role using errcode = '42501';
 end $$;
 
 create or replace function crm_audit(p_actor uuid, p_action text, p_entity text, p_entity_id text, p_before jsonb, p_after jsonb)
@@ -37,14 +37,14 @@ create or replace function crm_admin_set_member(
 declare uid uuid; lead uuid; before jsonb; actor uuid;
 begin
   if coalesce(public.my_role(), '') <> 'admin' and coalesce(crm_role()::text, '') <> 'admin' then
-    raise exception 'Only an admin can set CRM members' using errcode = '42501';
+    raise exception 'Seul un administrateur peut définir les membres du CRM' using errcode = '42501';
   end if;
   select user_id into uid from members where lower(email) = lower(trim(p_email));
-  if uid is null then raise exception 'No SKL OS account with the email % (invite the person first)', p_email; end if;
+  if uid is null then raise exception 'Aucun compte avec l''adresse e-mail % (invitez d''abord la personne)', p_email; end if;
   if p_lead_key is not null then
     select id into lead from crm_members where member_key = p_lead_key;
-    if lead is null then raise exception 'Unknown lead %: set the lead first', p_lead_key; end if;
-    if lead = uid then raise exception 'A member cannot be their own lead'; end if;
+    if lead is null then raise exception 'Responsable inconnu % : définissez d''abord le responsable', p_lead_key; end if;
+    if lead = uid then raise exception 'Un membre ne peut pas être son propre responsable'; end if;
   end if;
   select to_jsonb(m) into before from crm_members m where id = uid;
   insert into crm_members (id, member_key, full_name, email, role, lead_id, iclosed_email, fathom_email, sendblue_number, active)
@@ -68,19 +68,19 @@ declare c crm_calls; cy crm_cycles; me crm_members; prev crm_call_outcomes; o cr
         att attendance; dec decision; t timestamptz := now();
 begin
   select * into c from crm_calls where id = p_call;
-  if c.id is null then raise exception 'Unknown call'; end if;
+  if c.id is null then raise exception 'Appel inconnu'; end if;
   select * into cy from crm_cycles where id = c.cycle_id;
   me := crm_require(array['admin', 'sales_lead']::member_role[], cy.id);
   att := (p->>'attendance')::attendance;
   dec := nullif(p->>'decision', '')::decision;
-  if att is null then raise exception 'attendance is required'; end if;
-  if att = 'no_show' and dec is not null then raise exception 'A no-show has no decision'; end if;
-  if att = 'held' and dec is null then raise exception 'A held call needs a decision'; end if;
+  if att is null then raise exception 'La présence est obligatoire'; end if;
+  if att = 'no_show' and dec is not null then raise exception 'Une absence n''a pas de décision'; end if;
+  if att = 'held' and dec is null then raise exception 'Un appel honoré demande une décision'; end if;
   if dec in ('no', 'disqualified') then
     select kind into rk from crm_reason_codes where code = p->>'reason_code' and active;
-    if rk is null then raise exception 'A reason is required for % (crm_reason_codes)', dec; end if;
+    if rk is null then raise exception 'Un motif est obligatoire pour la décision %', dec; end if;
     if (dec = 'no' and rk <> 'lost') or (dec = 'disqualified' and rk <> 'disqualified') then
-      raise exception 'Reason % does not fit decision %', p->>'reason_code', dec;
+      raise exception 'Le motif % ne correspond pas à la décision %', p->>'reason_code', dec;
     end if;
   end if;
   select * into prev from crm_call_outcomes where call_id = p_call and superseded_at is null;
@@ -123,8 +123,8 @@ declare me crm_members; cy crm_cycles; eid bigint; t timestamptz := now();
 begin
   me := crm_require(array['admin', 'sales_lead']::member_role[], p_cycle);
   select * into cy from crm_cycles where id = p_cycle;
-  if cy.id is null then raise exception 'Unknown cycle'; end if;
-  if coalesce(trim(p_text), '') = '' then raise exception 'Empty note'; end if;
+  if cy.id is null then raise exception 'Cycle inconnu'; end if;
+  if coalesce(trim(p_text), '') = '' then raise exception 'Note vide'; end if;
   insert into crm_events (person_id, cycle_id, occurred_at, actor, member_id, channel, type, content, source, source_id)
   values (cy.person_id, cy.id, t, 'sales', me.id, 'crm', 'note', trim(p_text), 'crm', 'crm:note:' || gen_random_uuid())
   returning id into eid;
@@ -138,10 +138,10 @@ declare me crm_members; before uuid;
 begin
   me := crm_require(array['admin', 'sales_lead']::member_role[]);
   if not exists (select 1 from crm_members where id = p_member and active and role <> 'viewer') then
-    raise exception 'The new owner must be an active CRM member who sells';
+    raise exception 'Le nouveau commercial attitré doit être un membre actif du CRM qui vend';
   end if;
   select owner_id into before from crm_cycles where id = p_cycle;
-  if not found then raise exception 'Unknown cycle'; end if;
+  if not found then raise exception 'Cycle inconnu'; end if;
   update crm_cycles set owner_id = p_member where id = p_cycle;
   update crm_alerts set owner_id = p_member, owner_key = (select member_key from crm_members where id = p_member)
    where cycle_id = p_cycle and resolved_at is null;
@@ -155,7 +155,7 @@ language plpgsql security definer set search_path = public as $$
 declare me crm_members; days int; until_at timestamptz;
 begin
   me := crm_require(array['admin', 'sales_lead']::member_role[], p_cycle);
-  if not exists (select 1 from crm_cycles where id = p_cycle) then raise exception 'Unknown cycle'; end if;
+  if not exists (select 1 from crm_cycles where id = p_cycle) then raise exception 'Cycle inconnu'; end if;
   select coalesce(max((params->>'snooze_days')::int), 7) into days from crm_rules where kind = 'auto_close';
   until_at := now() + make_interval(days => days);
   perform crm_audit(me.id, 'cancel_auto_close', 'crm_cycles', p_cycle::text, null, jsonb_build_object('suppressed_until', until_at));
@@ -173,10 +173,10 @@ begin
   me := crm_require(array['admin', 'sales_lead']::member_role[], cyc);
   select * into tr from crm_nurture_tracks where person_id = p_person and status = 'active';
   if act = 'enter' then
-    if tr.id is not null then raise exception 'Already in nurture'; end if;
-    if cyc is null then raise exception 'Nurture needs the cycle it comes from'; end if;
+    if tr.id is not null then raise exception 'Déjà en maturation'; end if;
+    if cyc is null then raise exception 'La maturation a besoin du cycle d''origine'; end if;
     if exists (select 1 from crm_people where id = p_person and opted_out_at is not null) then
-      raise exception 'This person opted out of messages';
+      raise exception 'Cette personne a refusé les messages';
     end if;
     insert into crm_nurture_tracks (person_id, origin_cycle_id, reason_code, intensity, owner_id, entered_at, return_date)
     values (p_person, cyc, nullif(p->>'reason_code', ''), coalesce(nullif(p->>'intensity', ''), 'standard')::nurture_choice,
@@ -186,13 +186,13 @@ begin
     values (p_person, cyc, t, 'sales', me.id, 'crm', 'nurture_entered', jsonb_build_object('nurture_id', tr.id),
       'crm', 'crm:crm_nurture_tracks:' || tr.id || ':entered');
   elsif act = 'leave' then
-    if tr.id is null then raise exception 'Not in nurture'; end if;
+    if tr.id is null then raise exception 'Pas en maturation'; end if;
     update crm_nurture_tracks set status = 'removed', ended_at = t where id = tr.id;
   elsif act = 'set_return' then
-    if tr.id is null then raise exception 'Not in nurture'; end if;
+    if tr.id is null then raise exception 'Pas en maturation'; end if;
     update crm_nurture_tracks set return_date = nullif(p->>'return_date', '')::date where id = tr.id;
   else
-    raise exception 'action must be enter, leave or set_return';
+    raise exception 'action doit valoir enter, leave ou set_return';
   end if;
   perform crm_audit(me.id, 'nurture_' || act, 'crm_nurture_tracks', tr.id::text, null, p);
   return tr.id;
@@ -207,11 +207,11 @@ declare me crm_members; it crm_unmatched_inbox;
 begin
   me := crm_require(array['admin', 'sales_lead']::member_role[]);
   select * into it from crm_unmatched_inbox where id = p_item;
-  if it.id is null then raise exception 'Unknown item'; end if;
-  if it.resolved_at is not null or it.dismissed then raise exception 'Already handled'; end if;
-  if not exists (select 1 from crm_people where id = p_person and merged_into is null) then raise exception 'Unknown person'; end if;
+  if it.id is null then raise exception 'Élément inconnu'; end if;
+  if it.resolved_at is not null or it.dismissed then raise exception 'Déjà traité'; end if;
+  if not exists (select 1 from crm_people where id = p_person and merged_into is null) then raise exception 'Personne inconnue'; end if;
   if p_cycle is not null and not exists (select 1 from crm_cycles where id = p_cycle and person_id = p_person) then
-    raise exception 'That cycle is not this person''s';
+    raise exception 'Ce cycle n''appartient pas à cette personne';
   end if;
   update crm_unmatched_inbox set resolved_person_id = p_person, resolved_cycle_id = p_cycle, resolved_by = me.id, resolved_at = now()
    where id = p_item;
@@ -227,7 +227,7 @@ begin
   me := crm_require(array['admin', 'sales_lead']::member_role[]);
   update crm_unmatched_inbox set dismissed = true, resolved_by = me.id, resolved_at = now()
    where id = p_item and resolved_at is null and not dismissed;
-  if not found then raise exception 'Unknown or already handled item'; end if;
+  if not found then raise exception 'Élément inconnu ou déjà traité'; end if;
   perform crm_audit(me.id, 'dismiss_unmatched', 'crm_unmatched_inbox', p_item::text, null, null);
 end $$;
 
@@ -237,18 +237,18 @@ language plpgsql security definer set search_path = public as $$
 declare me crm_members;
 begin
   me := crm_require(array['admin', 'sales_lead']::member_role[]);
-  if p_keep = p_merge then raise exception 'Same person'; end if;
+  if p_keep = p_merge then raise exception 'Même personne'; end if;
   if not exists (select 1 from crm_people where id = p_keep and merged_into is null)
      or not exists (select 1 from crm_people where id = p_merge and merged_into is null) then
-    raise exception 'Unknown or already merged person';
+    raise exception 'Personne inconnue ou déjà fusionnée';
   end if;
   if exists (select 1 from crm_cycles where person_id = p_keep and status = 'active')
      and exists (select 1 from crm_cycles where person_id = p_merge and status = 'active') then
-    raise exception 'Both people have an active cycle: close one first';
+    raise exception 'Les deux personnes ont un cycle en cours : clôturez-en un d''abord';
   end if;
   if exists (select 1 from crm_nurture_tracks where person_id = p_keep and status = 'active')
      and exists (select 1 from crm_nurture_tracks where person_id = p_merge and status = 'active') then
-    raise exception 'Both people are in nurture: end one first';
+    raise exception 'Les deux personnes sont en maturation : arrêtez-en une d''abord';
   end if;
   delete from crm_person_identities i where i.person_id = p_merge
      and exists (select 1 from crm_person_identities k where k.person_id = p_keep and k.kind = i.kind and k.value = i.value);
@@ -279,7 +279,7 @@ begin
     select to_jsonb(s) into after from crm_settings s where key = p_key;
   elsif p_table = 'crm_rules' then
     select to_jsonb(r) into before from crm_rules r where key = p_key;
-    if before is null then raise exception 'Unknown rule % (a new rule needs its evaluator first)', p_key; end if;
+    if before is null then raise exception 'Règle inconnue % (une nouvelle règle a d''abord besoin de son évaluateur)', p_key; end if;
     update crm_rules set enabled = coalesce((p_value->>'enabled')::boolean, enabled),
       params = coalesce(p_value->'params', params), is_proposal = false, updated_at = now() where key = p_key;
     select to_jsonb(r) into after from crm_rules r where key = p_key;
@@ -312,7 +312,7 @@ begin
      where code = p_key;
     select to_jsonb(r) into after from crm_reason_codes r where code = p_key;
   else
-    raise exception 'Not a CRM configuration table: %', p_table;
+    raise exception 'Pas une table de configuration du CRM : %', p_table;
   end if;
   perform crm_audit(me.id, 'update_config', p_table, p_key, before, after);
 end $$;
@@ -323,7 +323,7 @@ language plpgsql security definer set search_path = public as $$
 declare me crm_members;
 begin
   me := crm_require(array['admin', 'sales_lead']::member_role[], p_cycle);
-  raise exception 'Payment links arrive in phase 5 (Whop)' using errcode = '0A000';
+  raise exception 'Les liens de paiement arrivent en phase 5 (Whop)' using errcode = '0A000';
 end $$;
 
 -- ───────────────────────── CRM alert rules in Settings › Alerts ─────────────────────────
@@ -335,7 +335,7 @@ language plpgsql security definer set search_path = public as $$
 declare body jsonb; d jsonb; alerts jsonb; vals jsonb; added int := 0; k text; v jsonb;
 begin
   if auth.uid() is not null and coalesce(public.my_role(), '') <> 'admin' then
-    raise exception 'Only an admin can change the alert rules' using errcode = '42501';
+    raise exception 'Seul un administrateur peut modifier les règles d''alerte' using errcode = '42501';
   end if;
   select coalesce(d0.body, '{}'::jsonb) into body from (select 1) x left join docs d0 on d0.col = 'config' and d0.id = 'alerts';
   alerts := coalesce(body->'alerts', '{}'::jsonb);

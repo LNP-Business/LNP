@@ -64,9 +64,9 @@ Deno.test("sla-tick: posts each new miss once, never the past, never before the 
   const post = (t: string) => { posts.push(t); return Promise.resolve(true); };
   const now = Date.parse("2026-10-30T11:00:00Z");
   eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, new: 1, posted: true });
-  if (!/Critical\* · SH-2 First sales contact · \*Test Lead\* \(Valentino\)/.test(posts[0])) throw new Error(posts[0]);
+  if (!/Critique\* · SH-2 .+ · \*Test Lead\* \(Valentino\)/.test(posts[0])) throw new Error(posts[0]);
   eq(await tick(rpc, post, now + 60e3, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, new: 0, posted: false }, "twice:");
   eq(await tick(rpc, post, now, { since: "2026-10-30T12:00:00Z" }), { cycles: 1, new: 0, posted: false }, "before since:");
   eq(posts.length, 1);
-  eq(slackText([{ level: "late", sla: "CO-1", name: "Reply", person: "A", owner: "B", elapsed: "1 h", extra: "x", target: "15 min" }], "L").split("\n")[0], "1 sales cycle SLA missed");
+  eq(slackText([{ level: "late", sla: "CO-1", name: "Reply", person: "A", owner: "B", elapsed: "1 h", extra: "x", target: "15 min" }], "L").split("\n")[0], "1 SLA du cycle de vente dépassé");
 });

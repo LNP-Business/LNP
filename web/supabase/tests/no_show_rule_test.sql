@@ -28,7 +28,7 @@ begin
   assert (select status::text from crm_calls where id = k1) = 'no_show' and (select status::text from crm_calls where id = k2) = 'no_show', 'R1 with no complete recording = no-show';
   assert (select status::text from crm_calls where id = k3) = 'held', 'the complete R1 stays held';
   assert (select status::text from crm_calls where id = k4) = 'missed', 'a missed R2 is not a no-show';
-  assert (select next_move->>'label' from crm_cycles where id = cid) = 'Plan a reschedule', 'next move after a missed R2';
+  assert (select next_move->>'label' from crm_cycles where id = cid) = 'Replanifier l''appel', 'next move after a missed R2';
   assert (select no_shows from crm_cycles where id = cid) = 2, 'no-shows counted: R1 only';
   r := crm_apply_no_show_rule(false, cid);
   assert (r->>'no_show_r1')::int = 0 and (r->>'missed_r2_plus')::int = 0, 'runs again without change';

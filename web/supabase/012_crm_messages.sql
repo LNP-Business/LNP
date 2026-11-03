@@ -45,7 +45,7 @@ begin
       result := 'processed';
     exception when sqlstate 'P0M02' then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary, candidate_person_ids)
-      values (p_inbox, 'sendblue', 'Several people have this phone number', it#>>'{identity,phone}', crm_people_for(it->'identity'));
+      values (p_inbox, 'sendblue', 'Plusieurs personnes ont ce numéro de téléphone', it#>>'{identity,phone}', crm_people_for(it->'identity'));
       if result <> 'processed' then result := 'unmatched'; end if;
     end;
   end loop;

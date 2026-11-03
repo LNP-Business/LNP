@@ -13,11 +13,11 @@ begin
   perform crm_set_payment_plan(cid, 5800, 'USD', '[{"due":"2026-10-28","amount":1933},{"due":"2026-11-27","amount":1933},{"due":"2026-12-27","amount":1934}]');
   perform crm_declare_outcome(k1, '{"attendance":"held","decision":"yes","next_step":"Confirm the first payment"}');
   select * into d from crm_deals where cycle_id = cid;
-  assert d.amount_sold = 5800 and d.currency = 'USD' and d.payment_plan = '3 instalments' and jsonb_array_length(d.schedule) = 3,
+  assert d.amount_sold = 5800 and d.currency = 'USD' and d.payment_plan = '3 échéances' and jsonb_array_length(d.schedule) = 3,
     'a yes without amount keeps the amount signed, currency and plan';
   assert d.yes_at is not null, 'the yes date is set';
-  perform crm_declare_outcome(k2, '{"attendance":"held","decision":"yes","amount_sold":"6000","currency":"USD","payment_plan":"Paid in full"}');
+  perform crm_declare_outcome(k2, '{"attendance":"held","decision":"yes","amount_sold":"6000","currency":"USD","payment_plan":"Payé en une fois"}');
   select * into d from crm_deals where cycle_id = cid;
-  assert d.amount_sold = 6000 and d.payment_plan = 'Paid in full', 'a yes with an amount still sets it';
+  assert d.amount_sold = 6000 and d.payment_plan = 'Payé en une fois', 'a yes with an amount still sets it';
 end $$;
 select 'yes keeps deal SQL checks: all passed';

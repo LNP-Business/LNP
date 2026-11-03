@@ -45,9 +45,9 @@ export function toLead(c: Snap, now: number) {
   return { id: c.id, age, ev, opened };
 }
 
-// the Slack text of the new misses, most critical first; the lead's name links to the CRM
+// the Slack text of the new misses (in French, LNP 2026-11-03), most critical first; the link opens the CRM
 export function slackText(items: { level: string; sla: string; name: string; person: string; owner: string; elapsed: string; extra: string; target: string }[], link: string) {
   const L = items.slice().sort((a, b) => (a.level === b.level ? 0 : a.level === "crit" ? -1 : 1)).map((x) =>
-    `${x.level === "crit" ? ":red_circle: *Critical*" : ":large_orange_circle: *Late*"} · ${x.sla} ${x.name} · *${x.person}* (${x.owner}) · ${x.elapsed} ${x.extra}, target ${x.target}`);
-  return `${items.length} sales cycle SLA${items.length > 1 ? "s" : ""} missed\n` + L.join("\n") + `\n<${link}|Open the Sales cycle>`;
+    `${x.level === "crit" ? ":red_circle: *Critique*" : ":large_orange_circle: *En retard*"} · ${x.sla} ${x.name} · *${x.person}* (${x.owner}) · ${x.elapsed} ${x.extra}, objectif ${x.target}`);
+  return `${items.length} SLA du cycle de vente dépassé${items.length > 1 ? "s" : ""}\n` + L.join("\n") + `\n<${link}|Ouvrir le cycle de vente>`;
 }

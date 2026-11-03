@@ -5,7 +5,7 @@
 -- like crm_add_payment (022); event payment_refunded; the projector below is 025's with the refund rule added.
 
 insert into crm_reason_codes (code, kind, label, nurture_default, automatic, position)
-values ('refunded', 'lost', 'Refunded', 'none', true, 8)
+values ('refunded', 'lost', 'Remboursé', 'none', true, 8)
 on conflict (code) do update set kind = excluded.kind, label = excluded.label, automatic = excluded.automatic;
 
 create or replace function crm_add_refund(p_payment uuid, p_amount numeric default null, p_refunded_at timestamptz default null, p_note text default null)
@@ -13,12 +13,12 @@ returns numeric language plpgsql security definer set search_path = public as $$
 declare me crm_members; p crm_payments; cy crm_cycles; amt numeric; at timestamptz := coalesce(p_refunded_at, now());
 begin
   select * into p from crm_payments where id = p_payment;
-  if p.id is null then raise exception 'Unknown payment' using errcode = 'P0002'; end if;
+  if p.id is null then raise exception 'Paiement inconnu' using errcode = 'P0002'; end if;
   me := crm_require(array['admin', 'sales_lead']::member_role[], p.cycle_id);
   amt := coalesce(p_amount, p.amount - p.refunded_amount);   -- default: the rest of the payment
-  if amt is null or amt <= 0 then raise exception 'The refund must be more than zero' using errcode = '22023'; end if;
-  if p.refunded_amount + amt > p.amount then raise exception 'A refund cannot exceed the payment' using errcode = '22023'; end if;
-  if at > now() + interval '1 day' then raise exception 'A refund cannot be in the future' using errcode = '22023'; end if;
+  if amt is null or amt <= 0 then raise exception 'Le remboursement doit être supérieur à zéro' using errcode = '22023'; end if;
+  if p.refunded_amount + amt > p.amount then raise exception 'Un remboursement ne peut pas dépasser le paiement' using errcode = '22023'; end if;
+  if at > now() + interval '1 day' then raise exception 'Un remboursement ne peut pas être dans le futur' using errcode = '22023'; end if;
   select * into cy from crm_cycles where id = p.cycle_id;
   update crm_payments set refunded_amount = refunded_amount + amt, updated_at = now(),
          note = coalesce(nullif(trim(coalesce(p_note, '')), ''), note) where id = p.id;
@@ -106,10 +106,10 @@ begin
   select * into last_call from crm_calls where cycle_id = p_cycle order by rank desc, coalesce(recording_start, scheduled_start) desc limit 1;
   nm := case
     when new_status <> 'active' then null
-    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Declare the call outcome', 'due_at', coalesce(late.recording_end, late.scheduled_end))
-    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Call R' || nxt.rank, 'due_at', nxt.scheduled_start)
-    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Rebook the call')
-    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Follow up') end;
+    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Déclarer l''issue de l''appel', 'due_at', coalesce(late.recording_end, late.scheduled_end))
+    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Appel R' || nxt.rank, 'due_at', nxt.scheduled_start)
+    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Reprendre un rendez-vous')
+    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Relancer') end;
 
   update crm_cycles set
     current_stage = prev_stage, stage_entered_at = prev_at,

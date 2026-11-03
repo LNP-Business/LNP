@@ -7,19 +7,19 @@ declare c crm_calls; cy crm_cycles; me crm_members; prev crm_call_outcomes; o cr
         att attendance; dec decision; t timestamptz := now();
 begin
   select * into c from crm_calls where id = p_call;
-  if c.id is null then raise exception 'Unknown call'; end if;
+  if c.id is null then raise exception 'Appel inconnu'; end if;
   select * into cy from crm_cycles where id = c.cycle_id;
   me := crm_require(array['admin', 'sales_lead']::member_role[], cy.id);
   att := (p->>'attendance')::attendance;
   dec := nullif(p->>'decision', '')::decision;
-  if att is null then raise exception 'attendance is required'; end if;
-  if att = 'no_show' and dec is not null then raise exception 'A no-show has no decision'; end if;
-  if att = 'held' and dec is null then raise exception 'A held call needs a decision'; end if;
+  if att is null then raise exception 'La présence est obligatoire'; end if;
+  if att = 'no_show' and dec is not null then raise exception 'Une absence n''a pas de décision'; end if;
+  if att = 'held' and dec is null then raise exception 'Un appel honoré demande une décision'; end if;
   if dec in ('no', 'disqualified') then
     select kind into rk from crm_reason_codes where code = p->>'reason_code' and active;
-    if rk is null then raise exception 'A reason is required for % (crm_reason_codes)', dec; end if;
+    if rk is null then raise exception 'Un motif est obligatoire pour la décision %', dec; end if;
     if (dec = 'no' and rk <> 'lost') or (dec = 'disqualified' and rk <> 'disqualified') then
-      raise exception 'Reason % does not fit decision %', p->>'reason_code', dec;
+      raise exception 'Le motif % ne correspond pas à la décision %', p->>'reason_code', dec;
     end if;
   end if;
   select * into prev from crm_call_outcomes where call_id = p_call and superseded_at is null;
