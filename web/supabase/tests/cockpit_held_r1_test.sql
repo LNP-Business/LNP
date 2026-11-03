@@ -14,7 +14,8 @@ begin
   assert (r->>'held')::int = 1, 'one held R1 ' || r;
   assert (r->>'no_show')::int = 1, 'no-shows unchanged ' || r;
   r := crm_sales_cockpit_window(now() - interval '4 days 12 hours', now(), array[cid], true);
-  assert (r->>'held')::int = 0, 'the first R1 was held before this period ' || r;
+  -- 039: held = the leads who showed at an R1 due in the period (here the second R1)
+  assert (r->>'held')::int = 1, 'a lead who showed at an R1 of the period ' || r;
   -- show rate: leads with an R1 due; a past R1 with no outcome = no-show, all canceled = left out
   insert into crm_people (full_name) values ('Ghost') returning id into pid;
   insert into crm_cycles (person_id, opened_at) values (pid, now() - interval '6 days') returning id into cid2;
