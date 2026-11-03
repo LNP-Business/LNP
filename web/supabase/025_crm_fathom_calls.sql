@@ -248,7 +248,7 @@ begin
       result := 'processed'; touched := touched || (r->>'cycle')::uuid;
     elsif r->>'status' = 'ambiguous' then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary, candidate_person_ids)
-      select p_inbox, 'fathom', 'Fathom recording: several leads match', it#>>'{data,title}', candidates
+      select p_inbox, 'fathom', 'Enregistrement Fathom : plusieurs prospects correspondent', it#>>'{data,title}', candidates
         from crm_fathom_recordings where recording_id = (it#>>'{refs,fathom_recording_id}')::bigint;
       if result <> 'processed' then result := 'unmatched'; end if;
     else
@@ -316,11 +316,11 @@ language sql stable security definer set search_path = public as $$
     'call_id', r.id, 'cycle_id', r.cycle_id, 'start_utc', r.scheduled_start, 'event_name', r.bk->>'event_name',
     'sales_round', r.sales_round,
     'eligible', coalesce(not r.other_kind and r.sales_round between 1 and 2 and r.scheduled_start < now(), false),
-    'reason', case when r.other_kind and r.fathom then 'no Fathom recording of this call by a sales rep'
-                   when r.other_kind then 'not a sales call (onboarding or case study)'
-                   when r.status = 'canceled' then 'call canceled'
-                   when r.scheduled_start >= now() then 'call not held yet'
-                   when r.sales_round > 2 then 'only R1 and R2 sales calls are analysed' end,
+    'reason', case when r.other_kind and r.fathom then 'aucun enregistrement Fathom de cet appel par un commercial'
+                   when r.other_kind then 'pas un appel de vente (accueil ou étude de cas)'
+                   when r.status = 'canceled' then 'appel annulé'
+                   when r.scheduled_start >= now() then 'l''appel n''a pas encore eu lieu'
+                   when r.sales_round > 2 then 'seuls les appels de vente R1 et R2 sont analysés' end,
     'sales_id', coalesce(cm.member_key, nullif(split_part(r.host, '@', 1), ''), 'none'),
     'sales_name', coalesce(cm.full_name, st.name, initcap(nullif(split_part(split_part(r.host, '@', 1), '.', 1), ''))),
     'timezone', coalesce(cm.timezone, (select default_timezone from crm_ca_config)),
@@ -402,10 +402,10 @@ begin
   select * into last_call from crm_calls where cycle_id = p_cycle order by rank desc, coalesce(recording_start, scheduled_start) desc limit 1;
   nm := case
     when new_status <> 'active' then null
-    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Declare the call outcome', 'due_at', coalesce(late.recording_end, late.scheduled_end))
-    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Call R' || nxt.rank, 'due_at', nxt.scheduled_start)
-    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Rebook the call')
-    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Follow up') end;
+    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Déclarer l''issue de l''appel', 'due_at', coalesce(late.recording_end, late.scheduled_end))
+    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Appel R' || nxt.rank, 'due_at', nxt.scheduled_start)
+    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Reprendre un rendez-vous')
+    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Relancer') end;
 
   update crm_cycles set
     current_stage = prev_stage, stage_entered_at = prev_at,

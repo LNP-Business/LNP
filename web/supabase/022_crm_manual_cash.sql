@@ -23,9 +23,9 @@ create or replace function crm_set_deal(p_cycle uuid, p_amount numeric, p_curren
 language plpgsql security definer set search_path = public as $$
 declare me crm_members; d crm_deals; before jsonb;
 begin
-  if not exists (select 1 from crm_cycles where id = p_cycle) then raise exception 'Unknown cycle' using errcode = 'P0002'; end if;
+  if not exists (select 1 from crm_cycles where id = p_cycle) then raise exception 'Cycle inconnu' using errcode = 'P0002'; end if;
   me := crm_require(array['admin', 'sales_lead']::member_role[], p_cycle);
-  if p_amount is null or p_amount < 0 then raise exception 'The amount signed must be zero or more' using errcode = '22023'; end if;
+  if p_amount is null or p_amount < 0 then raise exception 'Le montant signé doit être positif ou nul' using errcode = '22023'; end if;
   select * into d from crm_deals where cycle_id = p_cycle;
   before := to_jsonb(d);
   insert into crm_deals (cycle_id, amount_sold, currency, yes_at)
@@ -42,12 +42,12 @@ returns uuid language plpgsql security definer set search_path = public as $$
 declare me crm_members; cy crm_cycles; d crm_deals; pid uuid := gen_random_uuid(); at timestamptz := coalesce(p_paid_at, now());
 begin
   select * into cy from crm_cycles where id = p_cycle;
-  if cy.id is null then raise exception 'Unknown cycle' using errcode = 'P0002'; end if;
+  if cy.id is null then raise exception 'Cycle inconnu' using errcode = 'P0002'; end if;
   me := crm_require(array['admin', 'sales_lead']::member_role[], p_cycle);
-  if p_amount is null or p_amount <= 0 then raise exception 'The amount received must be more than zero' using errcode = '22023'; end if;
-  if at > now() + interval '1 day' then raise exception 'A payment cannot be in the future' using errcode = '22023'; end if;
+  if p_amount is null or p_amount <= 0 then raise exception 'Le montant reçu doit être supérieur à zéro' using errcode = '22023'; end if;
+  if at > now() + interval '1 day' then raise exception 'Un paiement ne peut pas être dans le futur' using errcode = '22023'; end if;
   if coalesce(p_method, '') not in ('bank_transfer', 'card', 'cash', 'other') then
-    raise exception 'Method: bank_transfer, card, cash or other' using errcode = '22023';
+    raise exception 'Moyen de paiement : bank_transfer, card, cash ou other' using errcode = '22023';
   end if;
   select * into d from crm_deals where cycle_id = p_cycle;
   if d.id is null then
@@ -70,9 +70,9 @@ language plpgsql security definer set search_path = public as $$
 declare me crm_members; p crm_payments;
 begin
   select * into p from crm_payments where id = p_payment;
-  if p.id is null then raise exception 'Unknown payment' using errcode = 'P0002'; end if;
+  if p.id is null then raise exception 'Paiement inconnu' using errcode = 'P0002'; end if;
   me := crm_require(array['admin', 'sales_lead']::member_role[], p.cycle_id);
-  if p.source <> 'manual' then raise exception 'Only a payment entered by hand can be removed here' using errcode = '42501'; end if;
+  if p.source <> 'manual' then raise exception 'Seul un paiement saisi à la main peut être supprimé ici' using errcode = '42501'; end if;
   delete from crm_events where source = 'crm' and source_id = 'payment:' || p.id;
   delete from crm_payments where id = p.id;
   perform crm_recompute_cycle(p.cycle_id);

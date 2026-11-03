@@ -84,6 +84,8 @@ run 032_crm_fathom_closest.sql
 run 032_crm_fathom_closest.sql
 run 033_crm_noshow_audit.sql
 run 033_crm_noshow_audit.sql
+run 034_lnp_fr_labels.sql
+run 034_lnp_fr_labels.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -101,3 +103,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/no_show_rule_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/member_prefs_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/fathom_closest_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/noshow_audit_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lnp_fr_labels_test.sql | tail -1

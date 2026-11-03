@@ -38,9 +38,9 @@ create or replace function crm_mcp_call(p_tool text, p_input jsonb) returns bigi
 language plpgsql security definer set search_path = public as $$
 declare n int; rid bigint;
 begin
-  if crm_role() is null then raise exception 'No CRM role' using errcode = '42501'; end if;
+  if crm_role() is null then raise exception 'Aucun rôle dans le CRM' using errcode = '42501'; end if;
   select count(*) into n from crm_audit_log where actor_id = auth.uid() and action like 'mcp:%' and at > now() - interval '1 minute';
-  if n >= 60 then raise exception 'Too many requests: 60 tool calls per minute' using errcode = 'P0M60'; end if;
+  if n >= 60 then raise exception 'Trop de requêtes : 60 appels d''outil par minute' using errcode = 'P0M60'; end if;
   insert into crm_audit_log (actor_id, action, entity, entity_id, after)
   values (auth.uid(), 'mcp:' || left(p_tool, 40), 'mcp', left(p_tool, 40), jsonb_build_object('input', coalesce(p_input, '{}'::jsonb)))
   returning id into rid;

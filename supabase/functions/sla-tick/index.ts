@@ -21,7 +21,7 @@ export async function tick(rpc: Rpc, post: (text: string) => Promise<boolean>, n
       const crossed = l.opened + b.at * 3600e3;
       if (crossed < since || now - crossed > maxAge) continue;
       items.push({ key: `${c.id}:${b.id}:${Math.round(b.start * 60)}:${b.level}`, cycle_id: c.id, sla: b.id, level: b.level,
-        crossed_at: new Date(crossed).toISOString(), name: b.name, person: c.person || "a lead", owner: c.owner || "no owner",
+        crossed_at: new Date(crossed).toISOString(), name: b.name, person: c.person || "un prospect", owner: c.owner || "sans commercial attitré",
         elapsed: SLA.fmt(b.elapsed), extra: b.extra, target: b.target });
     }
   }

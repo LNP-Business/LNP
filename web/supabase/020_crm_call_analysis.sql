@@ -149,10 +149,10 @@ language sql stable security definer set search_path = public as $$
     'call_id', r.id, 'cycle_id', r.cycle_id, 'start_utc', r.scheduled_start, 'event_name', r.bk->>'event_name',
     'sales_round', r.sales_round,
     'eligible', coalesce(not r.other_kind and r.sales_round between 1 and 2 and r.scheduled_start < now(), false),
-    'reason', case when r.other_kind then 'not a sales call (onboarding or case study)'
-                   when r.status = 'canceled' then 'call canceled'
-                   when r.scheduled_start >= now() then 'call not held yet'
-                   when r.sales_round > 2 then 'only R1 and R2 sales calls are analysed' end,
+    'reason', case when r.other_kind then 'pas un appel de vente (accueil ou étude de cas)'
+                   when r.status = 'canceled' then 'appel annulé'
+                   when r.scheduled_start >= now() then 'l''appel n''a pas encore eu lieu'
+                   when r.sales_round > 2 then 'seuls les appels de vente R1 et R2 sont analysés' end,
     'sales_id', coalesce(cm.member_key, nullif(split_part(r.host, '@', 1), ''), 'none'),
     'sales_name', coalesce(cm.full_name, st.name, initcap(nullif(split_part(split_part(r.host, '@', 1), '.', 1), ''))),
     'timezone', coalesce(cm.timezone, (select default_timezone from crm_ca_config)),
@@ -170,20 +170,20 @@ returns jsonb language plpgsql security definer set search_path = public as $$
 declare info jsonb; k crm_calls; j uuid; roles text[];
 begin
   select * into k from crm_calls where id = p_call;
-  if k.id is null then raise exception 'Unknown call' using errcode = 'P0002'; end if;
+  if k.id is null then raise exception 'Appel inconnu' using errcode = 'P0002'; end if;
   if not (coalesce(crm_role() = 'admin', false) or crm_owns_cycle(k.cycle_id)) then
-    raise exception 'Only an admin or the sales rep of this lead can add a transcript' using errcode = '42501';
+    raise exception 'Seul un administrateur ou le commercial de ce prospect peut ajouter une transcription' using errcode = '42501';
   end if;
   info := crm_ca_call_info(p_call);
-  if not (info->>'eligible')::boolean then raise exception 'Not analysed: %', info->>'reason' using errcode = '22023'; end if;
-  if coalesce(length(trim(p_raw)), 0) < 200 then raise exception 'The transcript is empty or too short' using errcode = '22023'; end if;
+  if not (info->>'eligible')::boolean then raise exception 'Non analysé : %', info->>'reason' using errcode = '22023'; end if;
+  if coalesce(length(trim(p_raw)), 0) < 200 then raise exception 'La transcription est vide ou trop courte' using errcode = '22023'; end if;
   select array_agg(distinct v) into roles from jsonb_each_text(coalesce(p_speaker_map, '{}')) x(kk, v);
   if roles is null or not (roles @> array['SALES', 'PROSPECT']) or not (roles <@ array['SALES', 'PROSPECT', 'OTHER']) then
-    raise exception 'Map every speaker to Sales, Prospect or Other, with at least one Sales and one Prospect' using errcode = '22023';
+    raise exception 'Associez chaque intervenant à Commercial, Prospect ou Autre, avec au moins un Commercial et un Prospect' using errcode = '22023';
   end if;
   update crm_calls set transcript_raw = p_raw, speaker_map = p_speaker_map, transcript_source = p_source, transcript_added_at = now()
    where id = p_call;
-  update crm_ca_jobs set status = 'failed', error = 'replaced by a new transcript', finished_at = now()
+  update crm_ca_jobs set status = 'failed', error = 'remplacée par une nouvelle transcription', finished_at = now()
    where call_id = p_call and status = 'queued';
   insert into crm_ca_jobs (call_id, created_by) values (p_call, auth.uid()) returning id into j;
   insert into crm_events (person_id, cycle_id, call_id, occurred_at, actor, member_id, channel, type, data, source, source_id)
@@ -199,9 +199,9 @@ language plpgsql security definer set search_path = public as $$
 declare k crm_calls; j uuid;
 begin
   select * into k from crm_calls where id = p_call;
-  if k.id is null then raise exception 'Unknown call' using errcode = 'P0002'; end if;
-  if not (coalesce(crm_role() = 'admin', false) or crm_owns_cycle(k.cycle_id)) then raise exception 'Not allowed' using errcode = '42501'; end if;
-  if k.transcript_raw is null then raise exception 'Add a transcript first' using errcode = '22023'; end if;
+  if k.id is null then raise exception 'Appel inconnu' using errcode = 'P0002'; end if;
+  if not (coalesce(crm_role() = 'admin', false) or crm_owns_cycle(k.cycle_id)) then raise exception 'Action non autorisée' using errcode = '42501'; end if;
+  if k.transcript_raw is null then raise exception 'Ajoutez d''abord une transcription' using errcode = '22023'; end if;
   if exists (select 1 from crm_ca_jobs where call_id = p_call and status in ('queued', 'running')) then
     return jsonb_build_object('status', 'already queued');
   end if;

@@ -482,55 +482,55 @@ create policy read_runs    on crm_agent_runs        for select using (crm_sees_a
 
 -- ───────────────────────── seed: proposals for DEFERRED configuration ─────────────────────────
 insert into crm_stage_definitions (key, label, position, enter_on, target_hours, critical_hours, color) values
-  ('show',     'Show',     1, array['call_booked'],                 96, 168, '#2A9D8F'),
-  ('decision', 'Decision', 2, array['outcome_held'],                72, 144, '#8B67C9'),
-  ('cash',     'Cash',     3, array['outcome_yes'],                 24,  48, '#4F9A5B');
+  ('show',     'Présence', 1, array['call_booked'],                 96, 168, '#2A9D8F'),
+  ('decision', 'Décision', 2, array['outcome_held'],                72, 144, '#8B67C9'),
+  ('cash',     'Encaissement', 3, array['outcome_yes'],                 24,  48, '#4F9A5B');
 
 insert into crm_reason_codes (code, kind, label, nurture_default, automatic, position) values
-  ('timing',          'lost', 'Timing',                 'standard', false, 1),
-  ('partner',         'lost', 'Partner or associate',   'standard', false, 2),
-  ('price',           'lost', 'Price',                  'standard', false, 3),
-  ('trust',           'lost', 'Lack of trust',          'standard', false, 4),
-  ('competitor',      'lost', 'Competitor',             'none',     false, 5),
-  ('unreachable',     'lost', 'Unreachable',            'light',    true,  6),
-  ('unpaid',          'lost', 'Payment not made',       'none',     true,  7),
-  ('dq_off_target',   'disqualified', 'Off target',        'none', false, 1),
+  ('timing',          'lost', 'Pas le bon moment',       'standard', false, 1),
+  ('partner',         'lost', 'Conjoint ou associé',    'standard', false, 2),
+  ('price',           'lost', 'Prix',                   'standard', false, 3),
+  ('trust',           'lost', 'Manque de confiance',    'standard', false, 4),
+  ('competitor',      'lost', 'Concurrent',             'none',     false, 5),
+  ('unreachable',     'lost', 'Injoignable',            'light',    true,  6),
+  ('unpaid',          'lost', 'Paiement non effectué',  'none',     true,  7),
+  ('dq_off_target',   'disqualified', 'Hors cible',        'none', false, 1),
   ('dq_budget',       'disqualified', 'Budget impossible', 'none', false, 2),
-  ('dq_not_decider',  'disqualified', 'Not a decision maker', 'none', false, 3),
-  ('dq_fake',         'disqualified', 'Fake contact or spam', 'none', false, 4),
-  ('dq_customer',     'disqualified', 'Already a customer', 'none', false, 5),
-  ('dq_out_of_offer', 'disqualified', 'Request outside the offer', 'none', false, 6);
+  ('dq_not_decider',  'disqualified', 'Pas décisionnaire', 'none', false, 3),
+  ('dq_fake',         'disqualified', 'Faux contact ou spam', 'none', false, 4),
+  ('dq_customer',     'disqualified', 'Déjà client', 'none', false, 5),
+  ('dq_out_of_offer', 'disqualified', 'Demande hors offre', 'none', false, 6);
 
 insert into crm_rules (key, kind, params, description, is_proposal) values
-  ('auto_lost_unreachable', 'auto_close', '{"silence_days":30,"min_attempts":4,"min_distinct_days":3,"notice_hours":24,"reason":"unreachable","snooze_days":7}', 'Decided: 30 days without reply and at least 4 attempts. Attempt definition DEFERRED.', false),
-  ('unpaid_yes',            'auto_close', '{"close_days":14,"reason":"unpaid","snooze_days":7}', 'Proposal (the 48 h alert is rule c7)', true),
-  ('not_recorded',          'auto_flag',  '{"after_hours":6}', 'Held call with no Fathom recording', true),
-  ('next_move',             'next_move',  '{"reply_hours":2,"follow_up_hours":48,"reopen_days":30}', 'Who must act: DEFERRED wording and logic', true),
-  ('nurture_cadence',       'nurture',    '{"standard_days":[14,21],"light_days":30,"archive_after_days":182}', 'Archive after 6 months decided; cadence proposal', true),
-  ('warming_steps',         'warming',    '{"steps":["D-3","D-1","D0"]}', 'Warming steps of the current CRM, per scheduled call', true);
+  ('auto_lost_unreachable', 'auto_close', '{"silence_days":30,"min_attempts":4,"min_distinct_days":3,"notice_hours":24,"reason":"unreachable","snooze_days":7}', 'Décidé : 30 jours sans réponse et au moins 4 tentatives. Définition d''une tentative à préciser.', false),
+  ('unpaid_yes',            'auto_close', '{"close_days":14,"reason":"unpaid","snooze_days":7}', 'Proposition (l''alerte à 48 h est la règle c7)', true),
+  ('not_recorded',          'auto_flag',  '{"after_hours":6}', 'Appel honoré sans enregistrement Fathom', true),
+  ('next_move',             'next_move',  '{"reply_hours":2,"follow_up_hours":48,"reopen_days":30}', 'Qui doit agir : formulation et logique à préciser', true),
+  ('nurture_cadence',       'nurture',    '{"standard_days":[14,21],"light_days":30,"archive_after_days":182}', 'Archivage après 6 mois décidé ; cadence proposée', true),
+  ('warming_steps',         'warming',    '{"steps":["D-3","D-1","D0"]}', 'Étapes de préparation du CRM actuel, par appel prévu', true);
 
 -- Default definitions of the CRM alert rules. On first deploy, merge them into the docs row
 -- config/alerts (without overwriting existing a1..a18) so Settings › Alerts lists and edits them.
 -- Severity scale and recipients follow Settings › Alerts: owner, department lead, Romain.
 insert into crm_settings (key, value) values ('alert_rule_defaults', '[
-  {"id":"c1","name":"Call outcome missing","severity":"high","threshold":{"after_minutes":0},"to":["owner"]},
-  {"id":"c2","name":"Prospect waiting for a reply","severity":"high","threshold":{"hours":2},"to":["owner"]},
-  {"id":"c3","name":"Follow-up due","severity":"medium","threshold":{"silence_hours":48},"to":["owner"]},
-  {"id":"c4","name":"Call to rebook","severity":"medium","threshold":{"hours":2},"to":["owner"]},
-  {"id":"c5","name":"Stage over target","severity":"medium","threshold":{"use":"stage target_hours"},"to":["owner"]},
-  {"id":"c6","name":"Stage critical","severity":"critical","threshold":{"use":"stage critical_hours"},"to":["owner","lead"]},
-  {"id":"c7","name":"Yes without payment","severity":"critical","threshold":{"hours":48},"to":["owner","romain"]},
-  {"id":"c8","name":"Payment blocked","severity":"critical","threshold":{},"to":["owner","romain"]},
-  {"id":"c9","name":"Refund or dispute","severity":"critical","threshold":{},"to":["romain","lead"]},
-  {"id":"c10","name":"Payment without a declared yes","severity":"medium","threshold":{},"to":["lead"]},
-  {"id":"c11","name":"Recording and outcome disagree","severity":"medium","threshold":{},"to":["owner","lead"]},
-  {"id":"c12","name":"Message not delivered","severity":"high","threshold":{},"to":["owner"]},
-  {"id":"c13","name":"Lead abandoned","severity":"high","threshold":{"silence_days":30,"attempts_below":4},"to":["owner","lead"]},
-  {"id":"c14","name":"Automatic loss tomorrow","severity":"medium","threshold":{"notice_hours":24},"to":["owner"]},
-  {"id":"c15","name":"Nurture return due","severity":"medium","threshold":{},"to":["owner"]},
-  {"id":"c16","name":"Unmatched items waiting","severity":"low","threshold":{"after_hours":2},"to":["lead"]},
-  {"id":"c17","name":"A source went silent","severity":"critical","threshold":{"iclosed_hours":6,"sendblue_hours":6,"fathom_missed_calls":2},"to":["romain"]},
-  {"id":"c18","name":"Reconciliation gap","severity":"critical","threshold":{},"to":["romain"]}
+  {"id":"c1","name":"Issue de l''appel manquante","severity":"high","threshold":{"after_minutes":0},"to":["owner"]},
+  {"id":"c2","name":"Prospect en attente de réponse","severity":"high","threshold":{"hours":2},"to":["owner"]},
+  {"id":"c3","name":"Relance à faire","severity":"medium","threshold":{"silence_hours":48},"to":["owner"]},
+  {"id":"c4","name":"Appel à replanifier","severity":"medium","threshold":{"hours":2},"to":["owner"]},
+  {"id":"c5","name":"Étape au-delà de l''objectif","severity":"medium","threshold":{"use":"stage target_hours"},"to":["owner"]},
+  {"id":"c6","name":"Étape critique","severity":"critical","threshold":{"use":"stage critical_hours"},"to":["owner","lead"]},
+  {"id":"c7","name":"Oui sans paiement","severity":"critical","threshold":{"hours":48},"to":["owner","romain"]},
+  {"id":"c8","name":"Paiement bloqué","severity":"critical","threshold":{},"to":["owner","romain"]},
+  {"id":"c9","name":"Remboursement ou litige","severity":"critical","threshold":{},"to":["romain","lead"]},
+  {"id":"c10","name":"Paiement sans oui déclaré","severity":"medium","threshold":{},"to":["lead"]},
+  {"id":"c11","name":"Enregistrement et issue en désaccord","severity":"medium","threshold":{},"to":["owner","lead"]},
+  {"id":"c12","name":"Message non distribué","severity":"high","threshold":{},"to":["owner"]},
+  {"id":"c13","name":"Prospect abandonné","severity":"high","threshold":{"silence_days":30,"attempts_below":4},"to":["owner","lead"]},
+  {"id":"c14","name":"Perte automatique demain","severity":"medium","threshold":{"notice_hours":24},"to":["owner"]},
+  {"id":"c15","name":"Retour de maturation à faire","severity":"medium","threshold":{},"to":["owner"]},
+  {"id":"c16","name":"Éléments non rattachés en attente","severity":"low","threshold":{"after_hours":2},"to":["lead"]},
+  {"id":"c17","name":"Une source ne répond plus","severity":"critical","threshold":{"iclosed_hours":6,"sendblue_hours":6,"fathom_missed_calls":2},"to":["romain"]},
+  {"id":"c18","name":"Écart de rapprochement","severity":"critical","threshold":{},"to":["romain"]}
 ]');
 
 insert into crm_settings (key, value) values
