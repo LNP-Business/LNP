@@ -143,6 +143,7 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             ctx.results["GAP"] = _to_review("GAP")
         else:
             ctx.results["GAP"] = _safe(ctx, "GAP", lambda: run_gap(ctx, s2.answer, facts, drops))
+    _gap_rules(ctx, questions, drops, meta)
 
     # S3 · pitch (needs the Gap result: validated P, selected A and B, roadmap blockers)
     if not ctx.phases.pitch_start:
@@ -177,6 +178,30 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         raise LiteModelError(f"{len(failed)} of {len(attempted)} model steps gave no valid JSON: " + ", ".join(failed))
     meta["failed_steps"] = failed
     return _record(ctx, meta, drops)
+
+
+def _gap_rules(ctx: CallContext, questions: Optional[list], drops: Drops, meta: dict) -> None:
+    """Romain, 2026-11-03.
+    - The discovery ends when the gap is made: with a gap present, the end of the discovery is its validation turn, and
+      SPIN is scored again on the questions asked up to it (a question after the validated gap is not discovery).
+      With no gap, the discovery ends before the pitch (SB-1, unchanged).
+    - A call with no discovery question, no pitch and no price has no gap to make: not applicable (§4), not absent."""
+    g, sp, ph = ctx.results.get("GAP"), ctx.results.get("SPIN"), ctx.phases
+    meta["discovery_end_rule"] = "pitch"
+    if g and g.verdict == "present":
+        vt = (g.details or {}).get("validation_turn")
+        if vt and (not ph.discovery_end or ctx.n(vt) < ctx.n(ph.discovery_end)):
+            ph.discovery_end = vt
+            meta["discovery_end_rule"] = "gap"
+            if questions is not None:
+                kept = [q for q in questions if isinstance(q, dict) and q.get("turn") in {t.id for t in ctx.turns}
+                        and ctx.n(q["turn"]) < ctx.n(vt)]
+                for _ in range(len(questions) - len(kept)):
+                    drops.add("S1", "question:after_gap")
+                ctx.results["SPIN"] = _safe(ctx, "SPIN", lambda: run_spin(ctx, kept, Drops())[0])
+    elif g and g.status == "scored" and sp and sp.status == "not_applicable" and not ph.pitch_start and not ph.first_price:
+        ctx.results["GAP"] = CompetenceResult("GAP", RULES["GAP"], status="not_applicable",
+                                              reasons=["no_discovery_no_pitch"], concordance="single_reading")
 
 
 def _record(ctx: CallContext, meta: dict, drops: Drops) -> dict:

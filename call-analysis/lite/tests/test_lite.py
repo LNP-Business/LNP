@@ -52,6 +52,55 @@ def test_phase_map_is_decided_by_the_engine_code():
         ("T003", "T019", "T027", "T039", "T027")
 
 
+def test_price_must_be_the_lnp_offer_price_with_its_explanation():
+    """Romain 2026-11-03: the first price is said by the sales for the LNP offer and goes with its explanation."""
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s0_phases"]["turns"] += [
+        # an amount that is not the price of the offer (the prospect's own figure): dropped
+        {"turn": "T023", "quote": "You go from 1,500 a month to 6,000 a month", "price_for_offer": True, "amount": 1500,
+         "lnp_offer_price": False},
+        # said as a price, but the explanation quoted is not an exact passage: dropped
+        {"turn": "T025", "quote": "Do you have any questions about how the weekly calls work?", "price_for_offer": True,
+         "amount": 900, "lnp_offer_price": True, "offer_explained": {"turn": "T019", "quote": "a twelve-month plan"}}]
+    rec, _ = run(a)
+    assert rec["phases"]["first_price"] == "T027"
+    r = rec["meta"]["steps"]["S0"]["reasons"]
+    assert r["price:not_lnp_offer"] == 1 and r["price:no_offer_explained"] == 1
+
+
+def test_an_introduction_followed_by_discovery_is_not_the_pitch_start():
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s0_phases"]["turns"].append(
+        {"turn": "T001", "quote": "Hi Alex, can you hear me okay?", "offer_description": True,
+         "followed_by_discovery": False, "next_discovery_question": {"turn": "T003", "quote": "what made you book this call?"}})
+    rec, _ = run(a)
+    assert rec["phases"]["pitch_start"] == "T019"
+
+
+def test_a_valid_lnp_price_before_the_pitch_start_moves_the_pitch_start():
+    a = copy.deepcopy(sc.ANSWERS)
+    t = next(x for x in a["lite.s0_phases"]["turns"] if x["turn"] == "T019")
+    t["followed_by_discovery"] = True                         # T019 taken as a mention: no pitch start before T027
+    t["next_discovery_question"] = None
+    rec, _ = run(a)
+    ph = rec["phases"]
+    assert ph["first_price"] == "T027" and ph["pitch_start"] == "T019"     # the price's explanation starts the pitch
+
+
+def test_the_discovery_ends_when_the_gap_is_made():
+    rec, _ = run()
+    assert rec["results"]["GAP"]["verdict"] == "present"
+    assert rec["meta"]["discovery_end_rule"] == "gap" and rec["phases"]["discovery_end"] == "T018"
+    assert all(int(x["turn"][1:]) < 18 for x in sols(rec))
+
+
+def test_no_discovery_no_pitch_gap_not_applicable():
+    a = {"lite.s0_phases": {"turns": []}, "lite.s1_discovery": {"questions": []},
+         "lite.s2_gap": {"passages": []}, "lite.s3_pitch": {}, "lite.s4_objections": {"objections": []}}
+    rec, _ = run(a)
+    assert rec["results"]["GAP"]["status"] == "not_applicable"
+
+
 def test_discovery_keeps_only_the_questions_before_the_pitch():
     rec, _ = run()
     s = sols(rec)
