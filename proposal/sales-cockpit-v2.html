@@ -69,11 +69,11 @@ svg text{font-family:var(--sans)}
 .uel small{font-size:11px;color:var(--mut2)}
 .uec{min-width:0;min-height:0;position:relative}
 /* team */
-.team{display:flex;flex-direction:column;flex:1;min-height:0}
+.team{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .th,.tr{display:grid;grid-template-columns:150px minmax(0,1fr) 62px 62px;gap:12px;align-items:center}
-.th{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut2);padding:0 0 6px;border-bottom:1px solid var(--line)}
+.th{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut2);padding:0 0 6px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1;background:#FFFFFF}
 .th span:nth-child(n+3){text-align:right}
-.tr{flex:0 1 62px;border:0;border-bottom:1px solid var(--line2);background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0;min-height:0;border-radius:6px}
+.tr{flex:0 0 56px;border:0;border-bottom:1px solid var(--line2);background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0;min-height:0;border-radius:6px}
 .tr:hover{background:var(--goldsoft)}
 .who{display:flex;align-items:center;gap:8px;min-width:0}.who i{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 .who div{min-width:0}.who b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.who small{display:block;font-size:11px;color:var(--mut)}
