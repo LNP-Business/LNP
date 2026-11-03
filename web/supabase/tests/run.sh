@@ -88,6 +88,8 @@ run 034_lnp_fr_labels.sql
 run 034_lnp_fr_labels.sql
 run 035_crm_ca_engine_choice.sql
 run 035_crm_ca_engine_choice.sql
+run 036_crm_cockpit_active_team.sql
+run 036_crm_cockpit_active_team.sql
 run 037_crm_iclosed_deals.sql
 run 037_crm_iclosed_deals.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
