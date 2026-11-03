@@ -1,11 +1,11 @@
-# 17 --- SKL OS connector for Claude (remote MCP server)
+# 17 --- LNP connector for Claude (remote MCP server)
 
 Version 1.1 · 25 October 2026 · status: phase A built (read only), see §8 for what was verified and decided
 
 ## 0. Goal
 
 Let Romain and the team ask Claude, in any claude.ai conversation,
-questions about SKL OS and get answers from live data, with the same
+questions about LNP and get answers from live data, with the same
 rights as in the app:
 
 -   "Which SLAs are critical this morning?"
@@ -14,15 +14,15 @@ rights as in the app:
 -   "What is my number for October?"
 
 How: the web edition exposes a **remote MCP server** at
-`https://<SKL OS domain>/api/mcp`. Claude connects to it as a **custom
+`https://<LNP domain>/api/mcp`. Claude connects to it as a **custom
 connector** (claude.ai › Customize › Connectors › Add custom connector,
 or Organization settings › Connectors on Team/Enterprise). Each person
-signs in with their **own SKL OS account** (OAuth), so row-level
+signs in with their **own LNP account** (OAuth), so row-level
 security applies exactly as in the app: Valentino sees his cycles only,
 a viewer cannot write.
 
 Why not the Supabase connector: it has admin rights (it bypasses RLS and
-roles, can change data and schema) and knows tables, not SKL rules
+roles, can change data and schema) and knows tables, not LNP rules
 (stages, SLAs, "who must act"). Keep it for Romain's admin work only.
 
 ## 1. Scope
@@ -30,7 +30,7 @@ roles, can change data and schema) and knows tables, not SKL rules
   -------------------------------------------------------------------------
   Phase                   Content                   Writes
   ----------------------- ------------------------- -----------------------
-  **A (this spec)**       OAuth sign-in with SKL OS none
+  **A (this spec)**       OAuth sign-in with LNP none
                           accounts, 8 read tools,   
                           audit log, tests          
 
@@ -52,7 +52,7 @@ changes, the call transcript.
 
     claude.ai ──MCP (Streamable HTTP, JSON-RPC)──► Vercel  /api/mcp            (tools)
               ──OAuth 2.1 (PKCE)──────────────────► Vercel  /api/oauth/*       (authorization server)
-                                                      │  sign-in page = existing SKL OS sign-in (skl-web.js)
+                                                      │  sign-in page = existing LNP sign-in (skl-web.js)
                                                       ▼
                                               Supabase (same project)  ── queries run WITH THE USER'S JWT → RLS
 
@@ -111,9 +111,9 @@ Supabase JWT and RLS works with no extra code.
                                                   VERIFY the exact callback URLs in Claude's
                                                   connector docs)
 
-  `GET /api/oauth/authorize`                      Shows the existing SKL OS sign-in (email +
+  `GET /api/oauth/authorize`                      Shows the existing LNP sign-in (email +
                                                   password, same look), then a consent line
-                                                  "Allow Claude to read SKL OS as "; issues a
+                                                  "Allow Claude to read LNP as "; issues a
                                                   one-time code bound to the PKCE challenge,
                                                   client and redirect URI (table
                                                   `mcp_oauth_codes`, 60 s, single use)
@@ -295,7 +295,7 @@ What the code does, and where it departs from the text above:
     `https://claude.ai/api/mcp/auth_callback` (verified in Anthropic's connector docs), `https://claude.com/api/mcp/auth_callback`
     (the docs say the domain may move) and `http://localhost` / `127.0.0.1` for the MCP Inspector and Claude Code.
     Client ID Metadata Documents are not supported yet; Claude also offers registration, which this server supports.
-  - The sign-in page asks for the SKL OS email and password and says what Claude gets ("read SKL OS with your rights,
+  - The sign-in page asks for the LNP email and password and says what Claude gets ("read LNP with your rights,
     it cannot change anything"). It signs in **a session of its own** (never the browser's), so the tokens Claude receives
     are the person's own Supabase access and refresh tokens; row-level security applies with no extra code. The code is
     one-time (stored as a hash, 60 s) and bound to the client, the redirect URI and the PKCE challenge.
@@ -308,7 +308,7 @@ What the code does, and where it departs from the text above:
 - **MCP**: `web/api/mcp.js`, official SDK `@modelcontextprotocol/sdk` 1.32.1 (`McpServer` + `StreamableHTTPServerTransport`,
   stateless, JSON responses), `zod` 4.6.7; GET answers 405. 401 carries
   `WWW-Authenticate: Bearer resource_metadata="<domain>/.well-known/oauth-protected-resource/api/mcp"` (plus
-  `error="invalid_token"` for a bad or expired token); 403 for a person with no SKL OS membership, no CRM role or no
+  `error="invalid_token"` for a bad or expired token); 403 for a person with no LNP membership, no CRM role or no
   `claude` key.
 - **Access key `claude`**: a "Claude" column in Settings › Access. Default: admins only (`web/api/_screens.js`
   `defaultAccess(role)`); an admin can tick it for anyone.
@@ -346,7 +346,7 @@ What the code does, and where it departs from the text above:
 | Sales System › CRM | the 8 tools of §4 |
 | Knowledge System › Library | `library` |
 | Knowledge System › Mechanism map, Pre-call, Sales, Operating System; Settings › Registers | `mechanism` |
-| Knowledge System › SKL Map (5 views) | `skl_map` |
+| Knowledge System › LNP Map (5 views) | `skl_map` |
 | Agent System (5 screens) | `agent_system` |
 | Settings › Alerts | `alerts` (`include_rules`) |
 | Any screen's Page method | `page_method` |
@@ -359,7 +359,7 @@ What the code does, and where it departs from the text above:
   write (`can("data.write")` → false, and its database stub ignores writes): the tests check that no row changes.
   The caller's day is today in their time zone (`crm_members.timezone`, default Asia/Dubai).
 - **Page content** (not in the database): `web/kb/build_kb.mjs`, run by `build.sh` stage 4, writes `web/api/_kb.json`
-  from the sources: the SKL Map base model (`cartographie-skl.en.html`; the team's edits are the `needs` collection,
+  from the sources: the LNP Map base model (`cartographie-skl.en.html`; the team's edits are the `needs` collection,
   merged), the mechanisms' base models (`editeur-systeme.jsx`, `embed.jsx`; the team's versions in `mech` win), the Agent
   System sample (`agents_module.js`, fictitious data of the spec, said so in the answer), every Page method (the `.dc.html`
   screens plus the Roadmap and My Day modules) and `store.js` itself. `vercel.json` ships it with the function.
@@ -367,12 +367,12 @@ What the code does, and where it departs from the text above:
   Roadmap or Weekly Review; `decisions`: Decisions…); a closed screen gives "closed for you in Settings › Access".
   `os_overview`, `page_method` and `os_data` need only the `claude` key (`os_data` reads what members can read anyway).
 - Tests: 13 in `web/tests/connector.test.js`; the new ones run every new tool on sample shared rows (status, overdue,
-  escalation, plan gaps, the team's SKL Map edits, Page methods), check that nothing is written, and that Settings › Access
+  escalation, plan gaps, the team's LNP Map edits, Page methods), check that nothing is written, and that Settings › Access
   closes the matching tools.
 
 ## 10. Phase B: writes, for admins, 25 October 2026 (Romain: "every admin member must be able to edit")
 
-10 write tools, registered for SKL OS **admins only** (others do not even see them; 33 tools for an admin, 23 otherwise).
+10 write tools, registered for LNP **admins only** (others do not even see them; 33 tools for an admin, 23 otherwise).
 Claude asks the person before each call (a write tool is marked `readOnlyHint: false`, `task_delete` `destructiveHint: true`).
 
 | Tool | What it changes | Rule (the app's own) |
@@ -393,7 +393,7 @@ Claude asks the person before each call (a write tool is marked `readOnlyHint: f
   admins and members write). CRM writes call the app's functions with the caller's token. No rule is copied.
 - Who you are: the "You are" choice saved by the app (`members/<user id>`); if none yet, the team member whose id or
   first name is the email's name (amin@… → Amin), saved the same way the app saves "You are". Otherwise the tool asks the
-  person to pick their name once in SKL OS.
+  person to pick their name once in LNP.
 - Owner rules stay as in the app (an admin cannot change someone else's task or check in someone else's key result);
   relaxing them for admins would change the app too.
 - Every call still writes its audit row (`mcp:<tool>`) and counts in the 60 calls a minute.

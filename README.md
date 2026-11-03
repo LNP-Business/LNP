@@ -1,10 +1,10 @@
 # LNP · Sales System
 
-An exact copy of the SKL OS Sales System (Sales Cockpit, Sales Day, CRM). Setup: `LNP.md`.
+An exact copy of the LNP Sales System (Sales Cockpit, Sales Day, CRM). Setup: `LNP.md`.
 
-# SKL OS build kit
+# LNP build kit
 
-Rebuilds SKL OS (artifact version 43) byte for byte.
+Rebuilds LNP (artifact version 43) byte for byte.
 
     ./build.sh --verify
 

@@ -20,7 +20,7 @@
                      └───────────────┬──────────────────────────────────────────────┘
                                      │ supabase-js client already opened by web/public/skl-web.js
                                      ▼
-        Vercel "skl-os.vercel.app": SKL OS web edition (sign-in, /api/config, /api/me, /api/team…)
+        Vercel "lnp-sales.vercel.app": LNP web edition (sign-in, /api/config, /api/me, /api/team…)
         store.js merges crm_alerts into the alert list → My Day › Needs you, Settings › Alerts
 ```
 
@@ -32,7 +32,7 @@
 | CRM rules | `rules-tick` | CRM rules (`crm_rules`) and CRM alert instances c1–c18 (`crm_alerts`) |
 | Outbound | Edge Functions | Sendblue sends, Whop checkouts, Claude calls |
 | Admin functions | existing Vercel `web/api/*` | Unchanged (team, access, files) |
-| Front end | existing SKL OS web edition | CRM screens on `crm_*` tables; alerts through the existing engine |
+| Front end | existing LNP web edition | CRM screens on `crm_*` tables; alerts through the existing engine |
 
 **Why Supabase Edge Functions and not Vercel `/api` for webhooks:** the jobs run every 15 minutes
 and at night, need retries and must sit next to the database; Vercel stays for the existing admin
@@ -84,8 +84,8 @@ numbered source of truth.
 
 | Environment | Supabase | Front end | Webhooks |
 |---|---|---|---|
-| `dev` | **none** (D13): the same project `skl-os`, with test people only; unit tests run without a database | Vercel preview deployment of the branch | test accounts / replayed fixtures |
-| `prod` | `skl-os` | https://skl-os.vercel.app | real providers |
+| `dev` | **none** (D13): the same project `LNP`, with test people only; unit tests run without a database | Vercel preview deployment of the branch | test accounts / replayed fixtures |
+| `prod` | `skl-os` | https://lnp-sales.vercel.app | real providers |
 
 ## 5. Secrets
 

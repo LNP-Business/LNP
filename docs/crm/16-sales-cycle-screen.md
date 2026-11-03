@@ -10,8 +10,8 @@ wording, colours, spacing, behaviour).
 ## 0. How to use this document (for the builder)
 
 1. Open `reference/sales-cycle-v6.html` in a browser and click through every element listed in §14 before writing code.
-2. Read the current SKL OS repository first. This spec describes **only the Sales cycle screen**. It does not describe
-   how SKL OS is organised today; adapt the integration points (§12) to the code you find, and reuse what exists
+2. Read the current LNP repository first. This spec describes **only the Sales cycle screen**. It does not describe
+   how LNP is organised today; adapt the integration points (§12) to the code you find, and reuse what exists
    (design tokens, confirmation popup, Page method popup, alert engine, sign-in, roles).
 3. The screen reads the CRM data model of this pack (`02-data-model.md`, `04-event-pipeline.md`). Where those tables
    are not built yet, implement the view model of §3 behind one adapter function so the screen can run on sample data
@@ -39,7 +39,7 @@ to **lost / disqualified**, and show at a glance **who must act now, on what, an
 **Who uses it.** The sales (Valentino) every day to know what to do; the sales lead (Romain) to steer. A sales sees
 only their own cycles (row-level security, `12-security-compliance.md`); the sales lead, admins and viewers see all.
 
-**Place in SKL OS.** CRM area, third view of the segmented control: `Pipeline | Leads | Sales cycle`.
+**Place in LNP.** CRM area, third view of the segmented control: `Pipeline | Leads | Sales cycle`.
 
 ---
 
@@ -68,7 +68,7 @@ Times are **calendar hours** (D7).
 
 ### 2.3 Other settings
 
-- Time zone of display: the viewer's SKL OS time zone (mock-up: `Asia/Dubai`). Dates formatted `en-GB`
+- Time zone of display: the viewer's LNP time zone (mock-up: `Asia/Dubai`). Dates formatted `en-GB`
   (`Sun, 25 Oct`, `08:51`, 24-hour clock).
 - Sales reps: from `crm_members` (name, initials, avatar colour).
 - Default view: axis "Since booking", row detail "Simple", sort "Most urgent", group "None", filter "All live leads",
@@ -486,9 +486,9 @@ page; focus ring gold 2 px.
 
 ---
 
-## 12. Integration in SKL OS (adapt to the current code)
+## 12. Integration in LNP (adapt to the current code)
 
-- **Navigation**: CRM › Sales cycle, same frame as the other SKL OS screens (top bar, i button, no page title).
+- **Navigation**: CRM › Sales cycle, same frame as the other LNP screens (top bar, i button, no page title).
 - **Data**: an adapter `salesCycleView()` returns `Lead[]` (§3) from the `crm_` tables through the Supabase client
   of the web edition (live through Realtime); demo mode (file opened without sign-in, or Artifact) uses the sample
   leads of the reference file and saves nothing.

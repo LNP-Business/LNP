@@ -4,10 +4,10 @@ This guide is for Romain. It says, step by step, where to paste each secret and 
 Supabase, GitHub, iClosed, Fathom, Sendblue and Whop, so that the four "inbox" functions
 start receiving real data.
 
-Everything stays in one place (decision D13): the **existing Supabase project `skl-os`** and the
-**existing GitHub repository RomainSKL/skl-os**. No second project. Phase 0 only adds one table
+Everything stays in one place (decision D13): the **existing Supabase project `LNP`** and the
+**existing GitHub repository LNP-Business/LNP**. No second project. Phase 0 only adds one table
 (`crm_webhook_log`, invisible to the app and to every signed-in person) and four functions; the app at
-https://skl-os.vercel.app works exactly as before.
+https://lnp-sales.vercel.app works exactly as before.
 
 **Rules for secrets**
 - Paste a secret only in the place this guide names (Supabase or GitHub). Never in a chat, an email,
@@ -40,7 +40,7 @@ The functions are deployed by GitHub, from the branch `main` only. GitHub needs 
 1. Supabase: click your avatar (top right) › **Account preferences** › **Access Tokens**
    (https://supabase.com/dashboard/account/tokens) › **Generate new token**. Name: `github-skl-os`.
    Copy the token (it starts with `sbp_`). This token can manage your Supabase projects: paste it only in GitHub, just below.
-2. GitHub: open https://github.com/RomainSKL/skl-os › **Settings** › **Secrets and variables** › **Actions** ›
+2. GitHub: open https://github.com/LNP-Business/LNP › **Settings** › **Secrets and variables** › **Actions** ›
    **New repository secret**, twice:
 
    | Name | Value |
@@ -94,7 +94,7 @@ iClosed has its own webhooks (Q1 answered), so Zapier is not needed.
 
 1. iClosed › **Settings** › **Integrations / Webhooks** › add a webhook.
 2. **URL** (the token goes at the end of the address):
-   `https://ohocejgkkwanbpdbypye.supabase.co/functions/v1/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>`
+   `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>`
    (replace `<ICLOSED_INBOUND_TOKEN>` with the value you made in step 3). If iClosed lets you add a header instead,
    you can use the header `x-skl-token` = your token and the address without `?k=…`.
 3. **Events**: call booked (scheduled), call rescheduled, call cancelled. If iClosed offers more (no-show, outcome…),
@@ -160,7 +160,7 @@ The Sales cycle SLAs (docs/crm/18) post each new Late or Critical miss to Slack 
 (theinteriordesign). It needs an incoming webhook of that channel, kept as a Supabase secret; never paste it in a chat.
 
 1. In Slack (IDA workspace), create the channel **#sales-cycle** if it does not exist.
-2. Open https://api.slack.com/apps › **Create New App** › **From scratch**: name **SKL OS alerts**, workspace
+2. Open https://api.slack.com/apps › **Create New App** › **From scratch**: name **LNP alerts**, workspace
    **theinteriordesign**.
 3. **Incoming Webhooks** › turn it on › **Add New Webhook to Workspace** › choose **#sales-cycle** › **Allow**.
 4. Copy the webhook URL (starts with `https://hooks.slack.com/services/`).
@@ -189,7 +189,7 @@ The Sales cycle SLAs (docs/crm/18) post each new Late or Critical miss to Slack 
 | Q5 | Automations in iClosed (reminders, follow-ups, workflows): trigger, message, recipient | |
 | Q5 | Automations in Sendblue: trigger, message, recipient | |
 | Q9 | Region of `skl-os`: ap-southeast-2 (Sydney). Origin of the leads (US / EU) to confirm later | |
-| Q10 | Done? Supabase `skl-os` › Authentication › URL Configuration: Site URL = `https://skl-os.vercel.app`, Redirect URLs include `https://skl-os.vercel.app/**` | |
+| Q10 | Done? Supabase `skl-os` › Authentication › URL Configuration: Site URL = `https://lnp-sales.vercel.app`, Redirect URLs include `https://lnp-sales.vercel.app/**` | |
 | Q10 | Done? Supabase `skl-os` › Authentication › Sign In / Providers › Email: Email OTP Expiration = `86400` | |
 | — | iClosed webhook events offered (step 4.5) | |
 | — | Whop plan id of each product (step 7.5) | |

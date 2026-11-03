@@ -7,7 +7,7 @@ at the end of phase 6 every cycle is traced from booking to won / lost / disqual
 
 | Phase | Branch | Content | Definition of done |
 |---|---|---|---|
-| 0 | `crm-0-capture` | Supabase `supabase/` workdir, `crm_webhook_log` only, the 4 ingestion functions storing raw rows, providers pointed at them (project `skl-os`, test people only: D13), real payloads captured into `fixtures/`, automation inventory (Q5), answers to Q8–Q10 | One real payload per event type; inventory and answers written in `00-decisions.md` |
+| 0 | `crm-0-capture` | Supabase `supabase/` workdir, `crm_webhook_log` only, the 4 ingestion functions storing raw rows, providers pointed at them (project `LNP`, test people only: D13), real payloads captured into `fixtures/`, automation inventory (Q5), answers to Q8–Q10 | One real payload per event type; inventory and answers written in `00-decisions.md` |
 | 1 | `crm-1-schema` | `web/supabase/003_crm_core.sql` (link `crm_members` to `members`), RPC skeletons with role checks + audit, `skl-os/crm/data.js` on the existing client, export / import of browser CRM data, merge c1–c18 into `config/alerts` | Valentino sees only his cycles, Romain and Amin see all; import dry-run matches the browser data; build and demo still work |
 | 2 | `crm-2-iclosed` | normalize, match, process-inbox, projector, iClosed mapper and Zaps, history import, CRM › Sales cycle on real data | 20 bookings / reschedules / cancels in < 2 min, right cycle, no duplicate; replay safe; late events reorder |
 | 3 | `crm-3-outcome` | Outcome form + `crm_declare_outcome`, lead record tabs, Pipeline / Leads on cycles, Unmatched screen | A full cycle runs from booking to yes / no / disqualified in the CRM only |
@@ -22,7 +22,7 @@ at the end of phase 6 every cycle is traced from booking to won / lost / disqual
 ## Prompts for Claude Code
 
 Every prompt assumes `docs/crm/` and `web/supabase/003_crm_core.sql` are in the repository.
-Add to each: *"Follow CLAUDE.md and the SKL OS functional specification. Run ./build.sh, open every
+Add to each: *"Follow CLAUDE.md and the LNP functional specification. Run ./build.sh, open every
 screen with no console error, update the functional specification sections you touched. Open a
 PR; do not merge."*
 
@@ -42,7 +42,7 @@ the Supabase region and the pending web settings in 00-decisions.md (Q8-Q10).
 ```
 Read docs/crm 00-03, 10 §2, 11, 12. Branch "crm-1-schema". Apply web/supabase/003_crm_core.sql
 (fold 003a into it). Link crm_members to the existing members table using the columns found in
-phase 0, with member_key = the SKL member id and lead_id per the existing lead rule (Valentino ->
+phase 0, with member_key = the LNP member id and lead_id per the existing lead rule (Valentino ->
 Romain, Romain -> Amin). Implement the RPCs of 02 §5 as security-definer functions with role and
 ownership checks and crm_audit_log. Add skl-os/crm/data.js on the Supabase client already opened
 by web/public/skl-web.js, with a demo-mode fallback. Add "Export my CRM data" to the current CRM

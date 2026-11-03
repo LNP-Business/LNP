@@ -1,7 +1,7 @@
 # 09 — Call analysis with Claude
 
 When a Fathom recording with a transcript is attached to a call, the CRM asks Claude to analyse
-it with the SKL method and fills the lead record tabs "Prospect analysis" and "Next call".
+it with the LNP method and fills the lead record tabs "Prospect analysis" and "Next call".
 
 This is the Agent System agent **Post-call analyst** (Sales). Every run writes a `crm_agent_runs`
 row (trigger `call_recorded`, status, duration, tokens, cost) so it shows in Agent System › Log;

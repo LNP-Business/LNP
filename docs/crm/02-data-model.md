@@ -12,7 +12,7 @@ The SQL is in `web/supabase/003_crm_core.sql`. This file explains it.
 - **Configuration is data.** `crm_stage_definitions`, `crm_reason_codes`, `crm_rules`, `crm_settings` hold every
   business rule Romain has deferred; CRM alert rules c1–c18 live with a1–a18 in the `docs` row
   `config/alerts`. Seed rows are proposals (`is_proposal = true`).
-- **A deliberate exception.** SKL OS stores every collection as JSON in `docs`. The CRM does not:
+- **A deliberate exception.** LNP stores every collection as JSON in `docs`. The CRM does not:
   it needs database-enforced uniqueness of source ids, real per-sales isolation (any member can read
   any `docs` row) and large volumes. All CRM objects are relational and prefixed `crm_`. Existing
   tables (`docs`, `members`) are not modified.
@@ -21,7 +21,7 @@ The SQL is in `web/supabase/003_crm_core.sql`. This file explains it.
 
 | Table | Kind | Purpose |
 |---|---|---|
-| `crm_members` | master | CRM profile of a signed-in account: `member_key` (SKL member id: `sales`, `romain`…), CRM role (sales, sales_lead, admin, viewer), `lead_id` (escalation: Valentino → Romain → Amin), iClosed / Fathom emails, Sendblue line. App roles stay in `members`. |
+| `crm_members` | master | CRM profile of a signed-in account: `member_key` (LNP member id: `sales`, `romain`…), CRM role (sales, sales_lead, admin, viewer), `lead_id` (escalation: Valentino → Romain → Amin), iClosed / Fathom emails, Sendblue line. App roles stay in `members`. |
 | `crm_people` | master | Prospect; `opted_out_at` blocks all automated messages forever |
 | `crm_person_identities` | master | Every normalised identifier pointing to a person; unique `(kind, value)` |
 | `crm_cycles` | master + derived columns | Status, origin, owner (master); stage, counters, `next_move` (derived) |
