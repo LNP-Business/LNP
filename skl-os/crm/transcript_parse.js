@@ -13,7 +13,7 @@
   var VTT_CUE = new RegExp("^" + TS + "\\s*-->\\s*" + TS);
 
   function clean(s) { return String(s || "").replace(/\s+/g, " ").trim(); }
-  function speakerName(s) { return clean(String(s || "").replace(/:/g, " ").replace(/\s*\(.*?\)\s*$/, "")) || "Unknown"; }
+  function speakerName(s) { return clean(String(s || "").replace(/:/g, " ").replace(/\s*\(.*?\)\s*$/, "")) || "Inconnu"; }
   function normTs(t) {
     var p = String(t || "").split(".")[0].split(",")[0].split(":").map(function (x) { return parseInt(x, 10) || 0; });
     if (p.length === 2) p.unshift(0);
@@ -60,7 +60,7 @@
   function parse(raw) {
     raw = String(raw || "").replace(/\r\n?/g, "\n").replace(/ /g, " ");
     var t = raw.trim();
-    if (!t) return { turns: [], speakers: [], format: "empty", warnings: ["The transcript is empty."] };
+    if (!t) return { turns: [], speakers: [], format: "empty", warnings: ["La transcription est vide."] };
     var res = (t[0] === "[" || t[0] === "{") && /"text"\s*:/.test(t) ? fromJson(t) : null;
     var lines = raw.split("\n").map(function (l) { return l.trim(); });
     if (!res && lines.some(function (l) { return VTT_CUE.test(l); })) res = fromVtt(lines);
@@ -87,9 +87,9 @@
     });
     res.speakers = Object.keys(stats).map(function (k) { return stats[k]; }).sort(function (a, b) { return b.words - a.words; });
     res.warnings = [];
-    if (!res.turns.length) res.warnings.push("No speaker turn found: each turn needs a time and a speaker name.");
-    else if (res.speakers.length < 2) res.warnings.push("Only one speaker found: the sales and the prospect must both be named.");
-    if (res.turns.length && res.turns.every(function (x) { return x.ts === "00:00"; })) res.warnings.push("No times found: the call map and the timings will be empty.");
+    if (!res.turns.length) res.warnings.push("Aucune prise de parole trouvée : chaque prise de parole a besoin d'une heure et du nom de la personne qui parle.");
+    else if (res.speakers.length < 2) res.warnings.push("Un seul intervenant trouvé : le commercial et le prospect doivent être nommés tous les deux.");
+    if (res.turns.length && res.turns.every(function (x) { return x.ts === "00:00"; })) res.warnings.push("Aucune heure trouvée : les chronologies de l'appel seront vides.");
     return res;
   }
 
