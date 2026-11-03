@@ -17,7 +17,7 @@ SYSTEMS = {
 }
 GROUPS = {
     "os": [("Operating System", [("Main.dc.html", "Cockpit", None), ("Build.dc.html", "Build", None), ("Execute.dc.html", "Execute", None), ("Decisions.dc.html", "Decisions", (5, "Decisions to act on: to decide and to review", "decisions")), ("Review.dc.html", "Weekly Review", (3, "Key results not checked in this week", "review"))])],
-    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("SalesDay.dc.html", "Ma journée", None), ("CRM.dc.html", "CRM", None)])],
+    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None)])],
     "ks": [("Knowledge System", [("Bibliotheque.dc.html", "Library", None)]),
            ("Mechanisms", [("Mechanisms.dc.html", "Mechanism map", None),
                            ("MechPrecall.dc.html", "Pre-call", (fr.get("precall"), f"{fr.get('precall')} frictions", "") if fr.get("precall") else None),

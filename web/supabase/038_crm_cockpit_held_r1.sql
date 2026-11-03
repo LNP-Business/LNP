@@ -3,6 +3,8 @@
 -- les R1." crm_sales_cockpit_window (final definition of 036) counts, as held, each lead's first held call of rank 1, in the
 -- period where it was held. Every figure built on it follows: the cockpit's calls, close rate (won / held), cash per call
 -- (cash / held), the team rows and the weekly series. Live data, 2026-11-03: 7 d 42 -> 30, 30 d 241 -> 142, 56 d 415 -> 239.
+-- Show rate (same day): the leads with an R1 due in the period who held it, not only those with a 30 min Fathom recording:
+-- 7 d 55 % -> 70 %, 30 d -> 79 %, 56 d -> 83 %.
 -- Safe to run again.
 
 create or replace function crm_sales_cockpit_window(p_from timestamptz, p_to timestamptz, p_ids uuid[], p_people_all boolean, p_owner uuid default null, p_all boolean default true)
@@ -33,15 +35,15 @@ returns jsonb language sql stable security definer set search_path = public as $
                   and e.occurred_at >= coalesce(k.scheduled_end, k.scheduled_start)
                   and e.occurred_at < coalesce(k.scheduled_end, k.scheduled_start) + interval '24 hours')) done
            from crm_calls k join cy on cy.id = k.cycle_id where k.status = 'held' and k.scheduled_start >= p_from and k.scheduled_start < p_to),
-  -- 032 (Romain 2026-10-31): leads, not calls. A lead with a call due in the period showed if it ever had a complete sales call
-  -- (Fathom recording of no_show_rule.min_minutes = 30 or more, or a transcript added by hand); a lead whose call is booked
-  -- ahead or whose last call was canceled to be rescheduled is pending (neither showed nor no-show); every other lead: no-show
+  -- 038 (Romain 2026-11-03): "le taux de présence doit être entre appels bookés et appels réalisés". The leads with an R1 due in
+  -- the period (rank 1, start passed; a lead whose R1 calls were all canceled is left out); showed = an R1 held in the period
+  -- (iClosed outcome), a complete Fathom recording (032) or a won cycle; every other lead with an R1 due = no-show.
+  -- Before (032): showed only with a Fathom recording of 30 min or more, so a held R1 without recording counted as a no-show.
   ld as (select cy.id,
-           (cy.status = 'won' or exists (select 1 from crm_calls k where k.cycle_id = cy.id and crm_call_complete(k) and coalesce(k.recording_start, k.scheduled_start) <= now())) shown,
-           exists (select 1 from crm_calls k where k.cycle_id = cy.id and k.status = 'scheduled' and k.scheduled_start > now())
-             or coalesce((select k.status = 'canceled' and crm_call_is_reschedule(k.id) from crm_calls k where k.cycle_id = cy.id
-                           order by k.scheduled_start desc nulls last limit 1), false) pending
-           from cy where exists (select 1 from crm_calls k where k.cycle_id = cy.id and k.scheduled_start >= p_from and k.scheduled_start < p_to and k.scheduled_start < now())),
+           (cy.status = 'won' or bool_or(k.status = 'held' or crm_call_complete(k))) shown, false pending
+           from cy join crm_calls k on k.cycle_id = cy.id
+          where k.rank = 1 and k.scheduled_start >= p_from and k.scheduled_start < p_to and k.scheduled_start < now()
+          group by cy.id, cy.status having not bool_and(k.status = 'canceled')),
   st as (select percentile_cont(0.5) within group (order by h.hours) / 24 med
            from crm_stage_history h join cy on cy.id = h.cycle_id where h.exited_at >= p_from and h.exited_at < p_to and h.hours is not null)
   select jsonb_build_object(

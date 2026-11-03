@@ -50,6 +50,7 @@ begin
   insert into crm_calls (cycle_id, rank, status, scheduled_start, scheduled_end) values (c3, 1, 'canceled', now() - interval '3 days', now() - interval '3 days' + interval '45 minutes');
   insert into crm_calls (cycle_id, rank, status, scheduled_start, scheduled_end) values (c3, 1, 'scheduled', now() + interval '2 days', now() + interval '2 days' + interval '45 minutes');
   j := crm_sales_cockpit_window(now() - interval '7 days', now(), array[c1, c2, c3], false);
-  assert (j->>'shown_leads')::int = 1 and (j->>'no_show_leads')::int = 1 and (j->>'pending_leads')::int = 1, 'lead counts: ' || j::text;
+  -- 038: an R1 held in iClosed shows even with a short recording; a lead whose R1 calls in the period were all canceled is left out
+  assert (j->>'shown_leads')::int = 2 and (j->>'no_show_leads')::int = 0 and (j->>'pending_leads')::int = 0, 'lead counts: ' || j::text;
 end $$;
 select 'cockpit lead counts SQL checks: all passed';
