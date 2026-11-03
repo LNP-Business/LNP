@@ -1,4 +1,4 @@
-/* SKL OS CRM data layer (docs/crm/11-crm-frontend.md §2): window.SKL_CRM.
+/* LNP CRM data layer (docs/crm/11-crm-frontend.md §2): window.SKL_CRM.
    Web edition: reads crm_* tables through the Supabase client of web/public/skl-web.js (claude.use("crm")), so row-level
    security decides what each person sees; writes go only through the crm_* RPCs (web/supabase/004_crm_rpc.sql).
    Artifact or plain file: demo mode, sample data, nothing saved. Screens start using it in phases 2-3. */
@@ -9,13 +9,13 @@
   // A tiny sample so screens have something to draw in demo mode (fictional people).
   var now = Date.now(), H = 3600 * 1000;
   var DEMO = {
-    me: { id: "demo-sales", member_key: "sales", full_name: "Valentino", role: "sales" },
+    me: { id: "demo-sales", member_key: "sales", full_name: "Camille Martin", role: "sales" },
     cycles: [
       { id: "demo-c1", status: "active", origin: "new", owner_key: "sales", opened_at: new Date(now - 50 * H).toISOString(),
-        current_stage: "show", person: { id: "demo-p1", full_name: "Sample Prospect A", primary_email: "a@example.com" },
+        current_stage: "show", person: { id: "demo-p1", full_name: "Prospect d’exemple A", primary_email: "a@example.com" },
         calls: [{ id: "demo-call1", rank: 1, status: "scheduled", scheduled_start: new Date(now + 20 * H).toISOString() }] },
       { id: "demo-c2", status: "active", origin: "new", owner_key: "sales", opened_at: new Date(now - 120 * H).toISOString(),
-        current_stage: "decision", person: { id: "demo-p2", full_name: "Sample Prospect B", primary_email: "b@example.com" },
+        current_stage: "decision", person: { id: "demo-p2", full_name: "Prospect d’exemple B", primary_email: "b@example.com" },
         calls: [{ id: "demo-call2", rank: 1, status: "held", scheduled_start: new Date(now - 30 * H).toISOString() }] }
     ]
   };
@@ -56,9 +56,14 @@
 
   // CRM › Sales cycle (docs/crm/16 §3): the board's cycles as the screen's view model. Pure: cycles from listBoard,
   // members from listMembers, now in ms. t = hours since the booking (opened_at); events after now are scheduled.
-  var REASON = { price: "Price", timing: "Timing", partner: "Partner", trust: "Lack of trust", competitor: "Chose another offer",
-    unreachable: "Not reachable", unpaid: "Payment not made", dq_off_target: "Not the target", dq_budget: "No budget at all",
-    dq_not_decider: "Not a decision maker", dq_fake: "Fake contact or spam" };
+  // labels shown on screen, by reason code (the codes are data; LNP shows French)
+  var REASON = { price: "Prix", timing: "Pas le bon moment", partner: "Associé ou conjoint", trust: "Manque de confiance", competitor: "A choisi une autre offre",
+    unreachable: "Injoignable", unpaid: "Paiement non effectué", refunded: "Remboursé", dq_off_target: "Hors cible", dq_budget: "Aucun budget",
+    dq_not_decider: "Pas décisionnaire", dq_fake: "Faux contact ou spam", dq_customer: "Déjà client", dq_out_of_offer: "Demande hors de l’offre" };
+  function reasonLabel(code, fallback) { return REASON[code] || fallback || code || "—"; }
+  // a payment plan label (stored "Paid in full" / "N instalments", or the French ones) as shown on screen
+  function planLabel(x) { x = String(x || ""); var m = /^(\d+) (instal|échéance)/.exec(x); return /^(paid in full|payé en une fois)$/i.test(x) ? "payé en une fois" : m ? m[1] + " échéances" : x; }
+  function eur(v) { return Number(v).toLocaleString("fr-FR") + " €"; }
   function salesCycleView(cycles, members, now) {
     var H = 3600e3, keys = {};
     (members || []).forEach(function (m) { keys[m.id] = m.member_key; });
@@ -72,49 +77,49 @@
         var d = e.data || {}, r = rank[e.call_id] || 1, at = t(e.occurred_at), txt = e.content || "";
         var auto = e.actor === "auto" || e.actor === "system", sms = e.channel === "sms";
         switch (e.type) {
-          case "call_booked": add({ t: at, w: "p", k: "booked", r: r, txt: "Booked R" + r + (d.event_name ? " · " + d.event_name : "") }); break;
-          case "call_rescheduled": add({ t: at, w: "p", k: "booked", r: r, txt: "Rescheduled R" + r }); break;
-          case "call_canceled": add({ t: at, w: "a", k: "note", txt: "R" + r + " canceled" + (d.cancel_reason ? " · " + d.cancel_reason : "") }); break;
+          case "call_booked": add({ t: at, w: "p", k: "booked", r: r, txt: "RDV R" + r + " pris" + (d.event_name ? " · " + d.event_name : "") }); break;
+          case "call_rescheduled": add({ t: at, w: "p", k: "booked", r: r, txt: "RDV R" + r + " reporté" }); break;
+          case "call_canceled": add({ t: at, w: "a", k: "note", txt: "R" + r + " annulé" + (d.cancel_reason ? " · " + d.cancel_reason : "") }); break;
           case "message_in": add({ t: at, w: "p", k: sms ? "sms" : "im", txt: txt }); break;
           case "message_out": add(auto ? { t: at, w: "a", k: "remind", txt: txt, st: stOf(d.status) } : { t: at, w: "s", k: sms ? "sms" : "im", txt: txt, st: stOf(d.status) }); break;
-          case "phone_call_in": add({ t: at, w: "p", k: "call", txt: txt || "Incoming phone call" }); break;
-          case "phone_call_out": add({ t: at, w: "s", k: "call", txt: txt || "Outgoing phone call" }); break;
+          case "phone_call_in": add({ t: at, w: "p", k: "call", txt: txt || "Appel téléphonique entrant" }); break;
+          case "phone_call_out": add({ t: at, w: "s", k: "call", txt: txt || "Appel téléphonique sortant" }); break;
           case "note": add({ t: at, w: "s", k: "note", txt: txt }); break;
-          case "checkout_created": add({ t: at, w: "s", k: "paylink", txt: "Whop link sent" }); break;
-          case "payment_succeeded": add({ t: at, w: "p", k: "paid", txt: "Whop payment" + (d.amount ? " · €" + Number(d.amount).toLocaleString("en-US") : "") }); break;
+          case "checkout_created": add({ t: at, w: "s", k: "paylink", txt: "Lien Whop envoyé" }); break;
+          case "payment_succeeded": add({ t: at, w: "p", k: "paid", txt: "Paiement Whop" + (d.amount ? " · " + eur(d.amount) : "") }); break;
           case "cycle_won":
-            add({ t: at, w: "s", k: "decision", yes: 1, txt: "Outcome declared · Won" + (e.source === "import" ? " (from iClosed)" : "") });
-            if (!(c.events || []).some(function (x) { return x.type === "payment_succeeded"; })) add({ t: at, w: "p", k: "paid", txt: "Won · payment recorded in iClosed" });
+            add({ t: at, w: "s", k: "decision", yes: 1, txt: "Issue déclarée · Gagné" + (e.source === "import" ? " (depuis iClosed)" : "") });
+            if (!(c.events || []).some(function (x) { return x.type === "payment_succeeded"; })) add({ t: at, w: "p", k: "paid", txt: "Gagné · paiement enregistré dans iClosed" });
             break;
           // outcomes declared in the CRM (phase 3): the decision line and, for the latest one, the next step
           case "outcome_yes":
-            add({ t: at, w: "s", k: "decision", yes: 1, r: r, txt: "Outcome declared · Held · Yes" + (d.amount_sold ? " · €" + Number(d.amount_sold).toLocaleString("en-US") : "") +
-              (d.payment_plan ? " · " + d.payment_plan : "") });
-            lastOut = { t: at, nx: { txt: "Send the Whop link", src: "yes on R" + r, due: at + 1 } }; break;
+            add({ t: at, w: "s", k: "decision", yes: 1, r: r, txt: "Issue déclarée · Honoré · Oui" + (d.amount_sold ? " · " + eur(d.amount_sold) : "") +
+              (d.payment_plan ? " · " + planLabel(d.payment_plan) : "") });
+            lastOut = { t: at, nx: { txt: "Envoyer le lien Whop", src: "oui au R" + r, due: at + 1 } }; break;
           case "outcome_follow_up":
-            add({ t: at, w: "s", k: "decision", fu: 1, r: r, txt: "Outcome declared · Held · Follow-up" + (d.next_step ? " · next step: " + d.next_step : "") });
-            lastOut = { t: at, nx: d.next_step ? { txt: d.next_step, src: "from the R" + r + " outcome" } : null }; break;
-          case "outcome_no_show": if (e.source === "crm" || e.source === "rules") lastOut = { t: at, nx: { txt: "Re-engage after the no-show", src: e.source === "rules" ? "no Fathom recording" : "your outcome", due: at + 2 } }; break;
+            add({ t: at, w: "s", k: "decision", fu: 1, r: r, txt: "Issue déclarée · Honoré · Relance" + (d.next_step ? " · prochaine étape : " + d.next_step : "") });
+            lastOut = { t: at, nx: d.next_step ? { txt: d.next_step, src: "d’après l’issue du R" + r } : null }; break;
+          case "outcome_no_show": if (e.source === "crm" || e.source === "rules") lastOut = { t: at, nx: { txt: "Reprendre contact après l’absence", src: e.source === "rules" ? "aucun enregistrement Fathom" : "votre issue", due: at + 2 } }; break;
           case "outcome_no": case "outcome_disqualified":
-            add({ t: at, w: "s", k: "decision", no: 1, r: r, txt: "Outcome declared · Held · " + (e.type === "outcome_no" ? "No" : "Disqualified") +
-              " · reason: " + (REASON[d.reason_code] || d.reason_code || "—") + (d.nurture && d.nurture !== "none" ? " · nurture" : "") });
+            add({ t: at, w: "s", k: "decision", no: 1, r: r, txt: "Issue déclarée · Honoré · " + (e.type === "outcome_no" ? "Non" : "Disqualifié") +
+              " · motif : " + reasonLabel(d.reason_code) + (d.nurture && d.nurture !== "none" ? " · suivi long terme" : "") });
             lastOut = { t: at, nx: null }; break;
           case "cycle_lost": case "cycle_disqualified":
             if (ev.some(function (x) { return x.k === "decision" && x.no; })) break;   // one closing step
-            add({ t: at, w: "s", k: "decision", no: 1, txt: "Outcome declared · " + (e.type === "cycle_lost" ? "No" : "Disqualified") +
-              " · reason: " + (REASON[d.reason || c.close_reason] || d.reason || c.close_reason || "—") }); break;
+            add({ t: at, w: "s", k: "decision", no: 1, txt: "Issue déclarée · " + (e.type === "cycle_lost" ? "Non" : "Disqualifié") +
+              " · motif : " + reasonLabel(d.reason || c.close_reason) }); break;
         }
       });
       (c.calls || []).forEach(function (k) {
         var s = k.scheduled_start ? t(k.scheduled_start) : null, end = k.scheduled_end ? Date.parse(k.scheduled_end) : null;
         if (s == null || k.status === "canceled") return;
         var dur = end && k.scheduled_start ? Math.round((end - Date.parse(k.scheduled_start)) / 60e3) : undefined;
-        if (k.status === "held") add({ t: s, w: "s", k: "meet", r: k.rank, dur: dur, cid: k.id, txt: "R" + k.rank + " · Call" });
-        else if (k.status === "no_show") add({ t: s, w: "p", k: "noshow", r: k.rank, cid: k.id, txt: "No-show R" + k.rank });
+        if (k.status === "held") add({ t: s, w: "s", k: "meet", r: k.rank, dur: dur, cid: k.id, txt: "R" + k.rank + " · Appel" });
+        else if (k.status === "no_show") add({ t: s, w: "p", k: "noshow", r: k.rank, cid: k.id, txt: "Absence R" + k.rank });
         // 030: an R2+ with no Fathom recording of 7 min is not a no-show: the lead stays in its round, to reschedule
-        else if (k.status === "missed") add({ t: s, w: "a", k: "note", r: k.rank, cid: k.id, txt: "R" + k.rank + " not held (no Fathom recording) · plan a reschedule" });
-        else if (k.status === "outcome_pending" || (end ? end < now : s < age)) add({ t: s, w: "s", k: "meetdue", r: k.rank, cid: k.id, txt: "R" + k.rank + " · Call" });
-        else add({ t: s, w: "s", k: "meet", r: k.rank, dur: dur, cid: k.id, txt: "R" + k.rank + " · Call" });
+        else if (k.status === "missed") add({ t: s, w: "a", k: "note", r: k.rank, cid: k.id, txt: "R" + k.rank + " non honoré (aucun enregistrement Fathom) · à replanifier" });
+        else if (k.status === "outcome_pending" || (end ? end < now : s < age)) add({ t: s, w: "s", k: "meetdue", r: k.rank, cid: k.id, txt: "R" + k.rank + " · Appel" });
+        else add({ t: s, w: "s", k: "meet", r: k.rank, dur: dur, cid: k.id, txt: "R" + k.rank + " · Appel" });
       });
       ev.sort(function (a, b) { return a.t - b.t; });
       var p = c.person || {}, nm = c.next_move && c.next_move.code;
@@ -122,7 +127,7 @@
         prod: (c.deal && c.deal.product) || "—", a: (c.deal && Number(c.deal.amount_sold)) || 0, ph: p.primary_phone || "—", em: p.primary_email || "—",
         opened: c.opened_at, age: age, ev: ev,
         nx: lastOut && !ev.some(function (x) { return x.t > lastOut.t && x.t <= age && x.w === "s" && x.k !== "decision"; }) ? lastOut.nx
-          : nm === "rebook" ? (c.next_move.missed ? { txt: "Plan a reschedule", src: "R" + c.next_move.missed + " not held" } : { txt: "Rebook the call", src: "the last call was canceled" }) : null };
+          : nm === "rebook" ? (c.next_move.missed ? { txt: "Replanifier l’appel", src: "R" + c.next_move.missed + " non honoré" } : { txt: "Reprendre un rendez-vous", src: "le dernier appel a été annulé" }) : null };
     });
   }
 
@@ -180,6 +185,9 @@
       });
     },
     salesCycleView: salesCycleView,
+    // the French label of a loss or disqualification reason code, and of a payment plan
+    reasonLabel: reasonLabel,
+    planLabel: planLabel,
     // the CRM team: id, member_key, full_name, role (readable by every signed-in person)
     listMembers: async function () {
       await ready();

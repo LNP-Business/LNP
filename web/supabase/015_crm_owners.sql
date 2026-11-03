@@ -1,9 +1,9 @@
--- SKL OS CRM — each lead goes to its sales rep (web/supabase/015_crm_owners.sql), after 014.
+-- LNP CRM — each lead goes to its sales rep (web/supabase/015_crm_owners.sql), after 014.
 -- The imports opened every cycle with no owner: iClosed's calls were hosted by sales reps (valentino@…, paul@…) who had no
--- SKL OS account, and crm_owner_for (005) only finds CRM members. Now a cycle with no owner takes the member whose email,
+-- LNP account, and crm_owner_for (005) only finds CRM members. Now a cycle with no owner takes the member whose email,
 -- or iclosed_email, is the host of its latest booked call (event call_booked, data.host_email); its calls with that host get
 -- host_id too. It runs for every cycle with no owner now (crm_assign_owners_from_hosts) and again on its own whenever a CRM
--- member is added or their email / iclosed_email changes (trigger), so inviting Valentino to SKL OS hands him his leads.
+-- member is added or their email / iclosed_email changes (trigger), so inviting Valentino to LNP hands him his leads.
 -- An owner already set is never changed. A dry run is rolled back and returns counts only. Safe to run again.
 
 create or replace function crm_assign_owners_from_hosts(p_dry boolean, p_member uuid default null) returns jsonb

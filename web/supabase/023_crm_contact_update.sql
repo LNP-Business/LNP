@@ -1,4 +1,4 @@
--- SKL OS CRM — iClosed "Contact updated": the lead's own details (web/supabase/023_crm_contact_update.sql), after 022.
+-- LNP CRM — iClosed "Contact updated": the lead's own details (web/supabase/023_crm_contact_update.sql), after 022.
 -- Romain 2026-10-27: only the details are taken over (name, email, phone); a lead's status stays decided in the CRM
 -- (Sales cycle outcomes, 004 / 005), so the iClosed status (QUALIFIED, …_CALL_BOOKED) is never read. The mapper sends an
 -- item only when iClosed lists one of those details in updatedAttributes. The person is found by their iClosed contact id;
@@ -15,7 +15,7 @@ begin
     pid := (crm_people_for(jsonb_build_object('iclosed_contact_id', it#>>'{identity,iclosed_contact_id}')))[1];
     if pid is null then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary)
-      values (p_inbox, 'iclosed', 'Contact update for a person the CRM never saw', it#>>'{data,summary}');
+      values (p_inbox, 'iclosed', 'Mise à jour d''un contact inconnu du CRM', it#>>'{data,summary}');
       if result <> 'processed' then result := 'unmatched'; end if;
       continue;
     end if;
@@ -29,7 +29,7 @@ begin
                'phone', case when 'phone' = any(changed) then phone end)))) x where x <> pid);
     if cardinality(other) > 0 then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary, candidate_person_ids)
-      values (p_inbox, 'iclosed', 'New email or phone already belongs to another person', it#>>'{data,summary}', pid || other);
+      values (p_inbox, 'iclosed', 'Nouvel e-mail ou téléphone déjà attribué à une autre personne', it#>>'{data,summary}', pid || other);
       if result <> 'processed' then result := 'unmatched'; end if;
       continue;
     end if;

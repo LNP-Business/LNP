@@ -1,4 +1,4 @@
-"""Common frame for new SKL OS screens: same head, same sidebar (rewritten by nav.py), same info button and popup."""
+"""Common frame for new LNP screens: same head, same sidebar (rewritten by nav.py), same info button and popup."""
 import pathlib, re
 HERE = pathlib.Path(__file__).resolve().parent
 P = HERE.parent / 'skl-en' / 'project'
@@ -41,9 +41,8 @@ INFO_BTN = ('<button type="button" onClick="{{openInfo}}" aria-label="How this p
 
 
 def write_screen(fname, title, main, overlays, logic_file, info=True):
-    src = (P / 'Decisions.dc.html').read_text(encoding='utf-8')
-    head = src.split('<main', 1)[0]
-    head = head.replace('<title>SKL OS — Decisions</title>', f'<title>SKL OS — {title}</title>')
+    # LNP: the shared head of every screen (the head of the former Decisions screen, before <main>)
+    head = (P / 'Shell.base.html').read_text(encoding='utf-8').replace('{title}', title)
     logic = (HERE / logic_file).read_text(encoding='utf-8').strip()
     body = (head + main + '\n\n' + overlays + '\n' + (INFO_BTN if info else '') + '\n</div>\n</x-dc>\n'
             '<script type="text/x-dc" data-dc-script data-props=\'{"$preview":{"width":1440,"height":1180}}\'>\n' + logic + '\n</script>\n</body>\n</html>\n')

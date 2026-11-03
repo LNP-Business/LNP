@@ -1,4 +1,4 @@
--- SKL OS CRM — Sendblue messages and calls (web/supabase/012_crm_messages.sql), after 011. docs/crm/07.
+-- LNP CRM — Sendblue messages and calls (web/supabase/012_crm_messages.sql), after 011. docs/crm/07.
 -- Every iMessage / SMS of the sales' Sendblue lines becomes an event on the prospect (found by phone number), attached to
 -- the prospect's cycle (the latest one opened before the message), so the Sales cycle shows 100 % of the conversation. A message is
 -- one event, found again by its handle (source_id "sendblue:<handle>"): a later webhook only updates its status
@@ -45,7 +45,7 @@ begin
       result := 'processed';
     exception when sqlstate 'P0M02' then
       insert into crm_unmatched_inbox (inbox_id, source, reason, summary, candidate_person_ids)
-      values (p_inbox, 'sendblue', 'Several people have this phone number', it#>>'{identity,phone}', crm_people_for(it->'identity'));
+      values (p_inbox, 'sendblue', 'Plusieurs personnes ont ce numéro de téléphone', it#>>'{identity,phone}', crm_people_for(it->'identity'));
       if result <> 'processed' then result := 'unmatched'; end if;
     end;
   end loop;

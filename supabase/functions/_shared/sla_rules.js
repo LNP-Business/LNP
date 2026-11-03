@@ -1,4 +1,4 @@
-// SKL CRM · Sales cycle SLAs v3 (docs/crm/18-sales-cycle-slas.md, Romain 2026-10-25 / 2026-10-30). One source for the
+// LNP CRM · Sales cycle SLAs v3 (docs/crm/18-sales-cycle-slas.md, Romain 2026-10-25 / 2026-10-30). One source for the
 // Sales cycle screen (inlined by skl-os/gen_crm.py) and the Slack alerts (supabase/functions/sla-tick).
 // A lead is the screen's model: {age, ev: [{t (hours since the cycle opened), w: s|p|a, k, r, dur (min)}]}; opt.t0 = the
 // cycle's opening (ms) turns on the sales window of CO-1 / CO-2 (08:00-22:00, opt.tz, default America/New_York).
@@ -8,15 +8,15 @@
   "use strict";
   var M = 1 / 60;
   var DEFS = [
-    { id: "SH-2", name: "First sales contact", stage: "Show", target: "5 min", warn: 3 * M, late: 15 * M, crit: 1 },
-    { id: "SH-6", name: "R1 held at the planned time", stage: "Show", target: "at the planned time", warn: null, late: 0.75, crit: 48 },
-    { id: "SH-8", name: "Follow-up after a no-show", stage: "Show", target: "15 min", warn: null, late: 1, crit: 24 },
-    { id: "SH-11", name: "Outcome declared", stage: "Show", target: "15 min", warn: 10 * M, late: 1, crit: 24 },
-    { id: "DE-1", name: "Written recap after the call", stage: "Decision", target: "60 min", warn: 0.75, late: 3, crit: 24 },
-    { id: "DE-7", name: "Follow-up with no reply", stage: "Decision", target: "24 h", warn: 20, late: 48, crit: 96 },
-    { id: "DE-9", name: "Decision stage", stage: "Decision", target: "72 h", warn: 60, late: 72, crit: 144 },
-    { id: "CA-2", name: "First payment", stage: "Cash", target: "24 h", warn: 12, late: 24, crit: 48 },
-    { id: "CO-1", name: "Reply to a prospect message", stage: "Conversation", target: "15 min", warn: 10 * M, late: 1, crit: 4 }
+    { id: "SH-2", name: "Premier contact du commercial", stage: "Présence", target: "5 min", warn: 3 * M, late: 15 * M, crit: 1 },
+    { id: "SH-6", name: "R1 honoré à l’heure prévue", stage: "Présence", target: "à l’heure prévue", warn: null, late: 0.75, crit: 48 },
+    { id: "SH-8", name: "Relance après une absence", stage: "Présence", target: "15 min", warn: null, late: 1, crit: 24 },
+    { id: "SH-11", name: "Issue déclarée", stage: "Présence", target: "15 min", warn: 10 * M, late: 1, crit: 24 },
+    { id: "DE-1", name: "Récap écrit après l’appel", stage: "Décision", target: "60 min", warn: 0.75, late: 3, crit: 24 },
+    { id: "DE-7", name: "Relance sans réponse", stage: "Décision", target: "24 h", warn: 20, late: 48, crit: 96 },
+    { id: "DE-9", name: "Étape de décision", stage: "Décision", target: "72 h", warn: 60, late: 72, crit: 144 },
+    { id: "CA-2", name: "Premier paiement", stage: "Encaissement", target: "24 h", warn: 12, late: 24, crit: 48 },
+    { id: "CO-1", name: "Réponse à un message du prospect", stage: "Conversation", target: "15 min", warn: 10 * M, late: 1, crit: 4 }
   ];
   var BY = {}; DEFS.forEach(function (d) { BY[d.id] = d; });
   var RANK = { ok: 0, warn: 1, late: 2, crit: 3 };
@@ -52,45 +52,46 @@
         at: start + (lv === "crit" ? d.crit : lv === "late" ? d.late : d.warn), late: start + d.late, extra: extra || "" });
     }
     var booked = first(ev, function (e) { return e.k === "booked"; });
-    if (booked) { var c1 = first(ev, sTouch, booked.t); clock("SH-2", booked.t, c1 ? c1.t : null, "since the booking"); }
+    if (booked) { var c1 = first(ev, sTouch, booked.t); clock("SH-2", booked.t, c1 ? c1.t : null, "depuis la prise de RDV"); }
     // SH-6: the original R1 at its planned time; a no-show starts the recovery, held when a call is held from then on
     // (an R1 past with no outcome and no recording is SH-11's: declare what happened first)
     var r1 = first(ev, function (e) { return (e.k === "meet" || e.k === "meetdue" || e.k === "noshow") && (e.r || 1) === 1; });
     if (r1 && r1.k === "noshow") {
       var h1 = first(ev, function (e) { return held(e, age); }, r1.t);
-      clock("SH-6", r1.t, h1 ? h1.t : null, "since the planned R1");
+      clock("SH-6", r1.t, h1 ? h1.t : null, "depuis le R1 prévu");
     }
     ev.forEach(function (e, i) {
       if (e.t > age) return;
-      if (e.k === "noshow") { var f = first(ev, sTouch, e.t); clock("SH-8", e.t, f ? f.t : null, "since the R" + (e.r || 1) + " no-show"); }
-      if (e.k === "meetdue") clock("SH-11", callEnd(e), null, "since the end of R" + (e.r || 1));
+      if (e.k === "noshow") { var f = first(ev, sTouch, e.t); clock("SH-8", e.t, f ? f.t : null, "depuis l’absence au R" + (e.r || 1)); }
+      if (e.k === "meetdue") clock("SH-11", callEnd(e), null, "depuis la fin du R" + (e.r || 1));
       if (e.k === "meet") {
         var end = callEnd(e), dec = first(ev, function (z) { return z.k === "decision" && (z.r || 0) === (e.r || 0); }, end);
-        if (dec) clock("SH-11", end, dec.t, "after R" + (e.r || 1));
-        if (end <= age) { var rc = first(ev, sTouch, end); clock("DE-1", end, rc ? rc.t : null, "since the end of R" + (e.r || 1)); }
+        if (dec) clock("SH-11", end, dec.t, "après le R" + (e.r || 1));
+        if (end <= age) { var rc = first(ev, sTouch, end); clock("DE-1", end, rc ? rc.t : null, "depuis la fin du R" + (e.r || 1)); }
       }
       // CO-1: the first unanswered prospect message of a burst; a call held in between counts as the answer
       if (pTouch(e)) {
         var prev = null; for (var j = i - 1; j >= 0; j--) { if (sTouch(ev[j]) || held(ev[j], age)) break; if (pTouch(ev[j])) { prev = ev[j]; break; } }
         if (prev) return;
         var ans = first(ev, function (z) { return sTouch(z) || held(z, age); }, e.t + 1e-9);
-        clock("CO-1", windowStart(e.t, opt), ans ? ans.t : null, "since the prospect wrote");
+        clock("CO-1", windowStart(e.t, opt), ans ? ans.t : null, "depuis le message du prospect");
       }
     });
     var h = first(ev, function (e) { return held(e, age); });
     var decided = h && first(ev, function (e) { return e.k === "decision" && (e.yes || e.no); }, h.t);
-    if (h) clock("DE-9", h.t, decided ? decided.t : null, "in the Decision stage");
+    if (h) clock("DE-9", h.t, decided ? decided.t : null, "dans l’étape de décision");
     // DE-7: in the Decision stage, the sales wrote last, no call ahead
     if (h && !decided && !first(ev, function (e) { return e.k === "meet" && e.t > age; })) {
       var past = ev.filter(function (e) { return e.t <= age && (sTouch(e) || pTouch(e)); }), last = past[past.length - 1];
-      if (last && last.w === "s") clock("DE-7", last.t, null, "since the last sales message");
+      if (last && last.w === "s") clock("DE-7", last.t, null, "depuis le dernier message du commercial");
     }
     var yes = first(ev, function (e) { return e.k === "decision" && e.yes; });
-    if (yes) { var pd = first(ev, function (e) { return e.k === "paid"; }, yes.t); clock("CA-2", yes.t, pd ? pd.t : null, "since the yes"); }
+    if (yes) { var pd = first(ev, function (e) { return e.k === "paid"; }, yes.t); clock("CA-2", yes.t, pd ? pd.t : null, "depuis le oui"); }
     return out;
   }
   // the worst open level of a lead: crit, late, warn or ok
   function worst(list) { var w = "ok"; (list || []).forEach(function (b) { if (b.open && RANK[b.level] > RANK[w]) w = b.level; }); return w; }
-  function fmt(h) { return h < 1 ? Math.round(h * 60) + " min" : h < 72 ? (Math.round(h * 10) / 10) + " h" : Math.round(h / 24 * 10) / 10 + " d"; }
+  // shown in French (LNP): decimal comma, "j" for days
+  function fmt(h) { return (h < 1 ? Math.round(h * 60) + " min" : h < 72 ? (Math.round(h * 10) / 10) + " h" : Math.round(h / 24 * 10) / 10 + " j").replace(".", ","); }
   root.SKL_SLA = { DEFS: DEFS, evaluate: evaluate, worst: worst, fmt: fmt, RANK: RANK };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1,6 +1,6 @@
-# SKL call analysis · handoff package
+# LNP call analysis · handoff package
 
-Everything needed to add the SKL call analysis system to the app with Claude Code.
+Everything needed to add the LNP call analysis system to the app with Claude Code.
 
 | Path | What it is |
 |---|---|
@@ -9,7 +9,7 @@ Everything needed to add the SKL call analysis system to the app with Claude Cod
 | `docs/ARCHITECTURE.md` | Architecture: foundation → SPIN → Gap → Pitch → Objections, 30 model tasks, reliability, roadmap |
 | `docs/BOUNDING_INDEX.md` | Index of every bounding rule (SEG, SB, GB, PB, OB) and the element it bounds |
 | `docs/methodology/` | Full methodology per competence: A scoring · B bounding rules · C calibration cases; 00 common engine (Part C) |
-| `docs/memos/` | The four SKL competence memos (PDF), human source of truth |
+| `docs/memos/` | The four LNP competence memos (PDF), human source of truth |
 | `docs/OUTPUT_CONTRACT.md` | The call record stored per call and read by the screens |
 | `docs/SCREEN_SPEC.md` + `docs/screen/` | Call analysis screen specification and mockup |
 | `docs/OPEN_DECISIONS.md` | Inputs to provide, decisions to take, known contradictions, engine interpretations |

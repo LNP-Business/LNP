@@ -1,4 +1,4 @@
--- SKL OS CRM — won cycles' calls held, and the team by sales rep (web/supabase/018_crm_won_calls_held.sql), after 017.
+-- LNP CRM — won cycles' calls held, and the team by sales rep (web/supabase/018_crm_won_calls_held.sql), after 017.
 -- Romain, 2026-10-25: "every lead that had a sales call and was closed (won) had its call held: validate the outcome".
 -- 1. crm_mark_won_calls_held(p_dry): in every won cycle, each past call still "scheduled" (no outcome recorded) becomes held,
 --    with an outcome_held event (source crm, actor system), as the iClosed import records held calls (009). No declared
@@ -6,7 +6,7 @@
 --    the cycle stays won from its import. Each cycle is recomputed; the function checks that no won cycle changed status.
 --    A dry run is rolled back and returns the counts. Run once below.
 -- 2. crm_sales_cockpit(): the Sales team groups cycles by sales rep = the cycle's owner, else the host of its latest booked
---    call (valentino@… → Valentino), so the people who sell show even without an SKL OS account.
+--    call (valentino@… → Valentino), so the people who sell show even without an LNP account.
 -- Safe to run again.
 
 create or replace function crm_mark_won_calls_held(p_dry boolean) returns jsonb
@@ -42,7 +42,7 @@ declare
   aov180 numeric; pond numeric; v_weekly jsonb; v_week jsonb; v_i int; v_alerts jsonb;
   v_sees boolean := crm_sees_all(); v_ids uuid[];
 begin
-  if crm_role() is null then raise exception 'No CRM role' using errcode = '42501'; end if;
+  if crm_role() is null then raise exception 'Aucun rôle dans le CRM' using errcode = '42501'; end if;
   -- what the caller may see, decided once (as row-level security would: every cycle, or the cycles they own)
   select coalesce(array_agg(id), '{}') into v_ids from crm_cycles where v_sees or owner_id = auth.uid();
   -- average order value of the last 180 days, for live cycles with no deal yet
@@ -62,10 +62,10 @@ begin
     -- team: the same figures per cycle owner over the period
     v_rows := '[]';
     -- the sales rep of a cycle: its owner, else the host of its latest booked call (iClosed), so the team shows the
-    -- people who sell even when they have no SKL OS account (Valentino…)
+    -- people who sell even when they have no LNP account (Valentino…)
     for m in select r.rep, min(r.name) as name, array_agg(r.id) as ids from (
                select c.id, coalesce(cm.member_key, nullif(split_part(h.host, '@', 1), ''), 'none') as rep,
-                      coalesce(cm.full_name, initcap(nullif(split_part(split_part(h.host, '@', 1), '.', 1), '')), 'Unassigned') as name
+                      coalesce(cm.full_name, initcap(nullif(split_part(split_part(h.host, '@', 1), '.', 1), '')), 'Non attribué') as name
                  from crm_cycles c left join crm_members cm on cm.id = c.owner_id
                  left join lateral (select lower(e.data->>'host_email') host from crm_events e
                                      where e.cycle_id = c.id and e.type = 'call_booked' and coalesce(e.data->>'host_email', '') <> ''
@@ -97,8 +97,8 @@ begin
       from crm_alerts al left join val v on v.id = al.cycle_id left join crm_members cm on cm.id = al.owner_id
       left join crm_people pe on pe.id = al.person_id where al.resolved_at is null and (v_sees or al.owner_id = auth.uid())
     union all
-    select 'next', coalesce(cm.member_key, 'none'), coalesce(v.v, 0), (c.next_move->>'label') || ' · overdue',
-           coalesce(pe.full_name, pe.primary_email, '') || ' · ' || initcap(coalesce(c.current_stage, '')), (c.next_move->>'due_at')::timestamptz
+    select 'next', coalesce(cm.member_key, 'none'), coalesce(v.v, 0), (c.next_move->>'label') || ' · en retard',
+           coalesce(pe.full_name, pe.primary_email, '') || ' · ' || coalesce((select sd.label from crm_stage_definitions sd where sd.key = c.current_stage), initcap(coalesce(c.current_stage, ''))), (c.next_move->>'due_at')::timestamptz
       from crm_cycles c join val v on v.id = c.id left join crm_members cm on cm.id = c.owner_id left join crm_people pe on pe.id = c.person_id
      where c.status = 'active' and c.next_move ? 'due_at' and (c.next_move->>'due_at')::timestamptz < now_
        and not exists (select 1 from crm_alerts al2 where al2.cycle_id = c.id and al2.resolved_at is null))

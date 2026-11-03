@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sales Cockpit · proposal</title>
+<title>Cockpit commercial · proposition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -52,8 +52,8 @@ main{flex:1;min-width:0;padding:18px 24px 20px;display:grid;grid-template-rows:a
 .rB{grid-template-columns:minmax(0,4.6fr) minmax(0,3.5fr) minmax(0,3.9fr)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;min-height:0;min-width:0;position:relative}
 .ch{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
-.ch h2{margin:0;font-family:var(--serif);font-weight:500;font-size:19px}
-.ch .q{font-size:12px;color:var(--mut)}
+.ch h2{margin:0;font-family:var(--serif);font-weight:500;font-size:19px;white-space:nowrap}
+.ch .q{font-size:12px;color:var(--mut);text-align:right}
 .ey{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 svg{display:block;overflow:visible}
 svg text{font-family:var(--sans)}
@@ -106,10 +106,10 @@ svg text{font-family:var(--sans)}
 </style>
 </head>
 <body>
-<div class="note">Proposal · not live</div>
+<div class="note">Proposition · pas en direct</div>
 <div id="stage">
-<nav aria-label="Main navigation">
-  <div class="logo">SKL <span>OS</span></div>
+<nav aria-label="Navigation principale">
+  <div class="logo">LNP <span>OS</span></div>
   <div class="sys"><span class="on">Operating<br>System</span><span>Knowledge<br>System</span></div>
   <div class="grp">Operating System</div>
   <div class="it on">Cockpit</div><div class="it">Roadmap</div><div class="it">Inbox<b>4</b></div><div class="it">My Day<b>1</b></div><div class="it">Decisions<b>5</b></div><div class="it">Weekly Review<b>3</b></div>
@@ -118,33 +118,33 @@ svg text{font-family:var(--sans)}
 <main>
   <header class="top">
     <div class="seg" id="tabs" role="group" aria-label="Cockpit view"><button>Overview</button><button>Marketing</button><button class="on">Sales</button><button>Finance</button></div>
-    <div class="seg" id="per" role="group" aria-label="Period"></div>
+    <div class="seg" id="per" role="group" aria-label="Période"></div>
     <span class="sp"></span>
     <div class="verdict" id="verdict"></div>
   </header>
 
   <section class="row rA">
     <div class="card">
-      <div class="ch"><h2>From lead to cash</h2><span class="q" id="flowq"></span></div>
+      <div class="ch"><h2>Du prospect à l’encaissement</h2><span class="q" id="flowq"></span></div>
       <div id="flow" style="flex:1;min-height:0"></div>
     </div>
     <div class="card">
-      <div class="ch"><h2>Unit economics</h2><span class="q">last 8 weeks · dashed line = baseline</span></div>
+      <div class="ch"><h2>Rentabilité unitaire</h2><span class="q">8 semaines · pointillés = réf.</span></div>
       <div class="ue" id="ue"></div>
     </div>
   </section>
 
   <section class="row rB">
     <div class="card">
-      <div class="ch"><h2>Sales team</h2><span class="q">sorted by cash · click to open their pipeline</span></div>
+      <div class="ch"><h2>Équipe commerciale</h2><span class="q">par encaissé · un clic ouvre son pipeline</span></div>
       <div class="team" id="team"></div>
     </div>
     <div class="card">
-      <div class="ch"><h2>What's coming</h2><span class="q">next 30 days</span></div>
+      <div class="ch"><h2>À venir</h2><span class="q">30 prochains jours</span></div>
       <div class="pipe" id="pipe"></div>
     </div>
     <div class="card">
-      <div class="ch"><h2>Cash at risk</h2><span class="q" id="alq"></span></div>
+      <div class="ch"><h2>Encaissements à risque</h2><span class="q" id="alq"></span></div>
       <div class="al" id="al"></div>
     </div>
   </section>
@@ -154,7 +154,7 @@ svg text{font-family:var(--sans)}
 <div id="toast" role="status"></div>
 
 <script>
-/* ---- data: the same figures as the ALKIMIY Lite dashboard in SKL OS ---- */
+/* ---- data: the same figures as the ALKIMIY Lite dashboard in LNP ---- */
 const SALES=[
  {id:"lea",name:"Léa Moreau",ini:"LM",color:"#1B1B18",calls:26,won:8,close:34,cpc:1150,cash:24600,show:76},
  {id:"karim",name:"Karim Benali",ini:"KB",color:"#7A4B00",calls:24,won:8,close:33,cpc:1300,cash:27800,show:78},
@@ -166,24 +166,25 @@ const KPI={
  all:{sales:[38,38],cash:[112400,113000],cpc:[1050,1030],show:[70,71],refund:[4.3,4.4],aov:[3720,3660],funnel:[440,174,122,38],pond:70100,close:31.1,upfront:61,follow:73,velo:7}
 };
 const ALERTS=[
- {c:"1.5",o:"cro",imp:8400,t:"Signed vs collected gap",obj:"September sales"},
- {c:"2.4",o:"malik",imp:1450,t:"Stalling deal",obj:"Yassine Diallo · Call booked"},
- {c:"2.3",o:"lea",imp:1180,t:"Missing follow-up",obj:"M. Ferrand · €3,500 · Call held"},
- {c:"2.2",o:"karim",imp:900,t:"Missing warming",obj:"Hugo Lemaire · Call booked"},
- {c:"2.2",o:"lea",imp:820,t:"Missing warming",obj:"Marc Dupont · Call booked"},
- {c:"2.10",o:"lea",imp:720,t:"Lead with no next action",obj:"Nadia Benz · €6,000 · Call held"},
- {c:"2.10",o:"ines",imp:640,t:"Lead with no next action",obj:"Théo Laurent · €3,500 · Call held"},
- {c:"2.8",o:"sofia",imp:600,t:"Loss without a fix",obj:"Hakim Touré · €6,000 · Lost"}
+ {c:"1.5",o:"cro",imp:8400,t:"Écart signé / encaissé",obj:"Ventes de septembre"},
+ {c:"2.4",o:"malik",imp:1450,t:"Vente qui stagne",obj:"Yassine Diallo · RDV pris"},
+ {c:"2.3",o:"lea",imp:1180,t:"Relance manquante",obj:"M. Ferrand · 3 500 € · Appel honoré"},
+ {c:"2.2",o:"karim",imp:900,t:"Message avant RDV manquant",obj:"Hugo Lemaire · RDV pris"},
+ {c:"2.2",o:"lea",imp:820,t:"Message avant RDV manquant",obj:"Marc Dupont · RDV pris"},
+ {c:"2.10",o:"lea",imp:720,t:"Prospect sans prochaine action",obj:"Nadia Benz · 6 000 € · Appel honoré"},
+ {c:"2.10",o:"ines",imp:640,t:"Prospect sans prochaine action",obj:"Théo Laurent · 3 500 € · Appel honoré"},
+ {c:"2.8",o:"sofia",imp:600,t:"Perte sans correctif",obj:"Hakim Touré · 6 000 € · Perdu"}
 ];
-const KR={name:"€50k collected",cur:12000,exp:15000,target:50000,status:"Amber"}; // SKL key result, from Roadmap
-const PF={7:.24,30:1,56:1.85}, PL={7:"7 d",30:"30 d",56:"8 wk"};
+const KR={name:"50 k€ encaissés",cur:12000,exp:15000,target:50000,status:"Orange"}; // LNP key result, from Roadmap
+const PF={7:.24,30:1,56:1.85}, PL={7:"7 j",30:"30 j",56:"8 sem."};
 const S={period:30};
 
 /* ---- helpers ---- */
-const nf=x=>Math.round(x).toLocaleString("en-GB");
-const money=x=>"€"+nf(x);
-const moneyK=x=>x>=1000?"€"+(Math.round(x/100)/10).toLocaleString("en-GB")+"k":"€"+nf(x);
-const pc=(x,d=0)=>(Math.round(x*10**d)/10**d).toLocaleString("en-GB",{minimumFractionDigits:d})+"%";
+const nf=x=>Math.round(x).toLocaleString("fr-FR");
+const money=x=>nf(x)+"\u00a0€";
+const moneyK=x=>x>=1000?(Math.round(x/100)/10).toLocaleString("fr-FR")+"\u00a0k€":nf(x)+"\u00a0€";
+const pc=(x,d=0)=>(Math.round(x*10**d)/10**d).toLocaleString("fr-FR",{minimumFractionDigits:d})+"\u00a0%";
+const pl=x=>Math.round(x)>1?"s":""; // French plural: 0 and 1 are singular
 const tone=(ratio)=>ratio>=100?"g":ratio>=95?"a":"r";
 const COL={g:"var(--green)",a:"var(--amber)",r:"var(--red)"};
 function series(end,base,seed){const o=[];for(let i=0;i<8;i++){const k=i/7;o.push(base*(1-k)+end*k+base*Math.sin((i+seed)*1.7)*.04)}o[7]=end;return o}
@@ -201,23 +202,23 @@ function controls(){
 /* ---- the 6 parity criteria, computed once ---- */
 function criteria(K,f){
   const d=[
-    {k:"sales",l:"Deals won",v:K.sales[0]*f,b:K.sales[1]*f,fmt:nf},
-    {k:"cash",l:"Cash collected",v:K.cash[0]*f,b:K.cash[1]*f,fmt:moneyK},
-    {k:"show",l:"Show rate",v:K.show[0],b:K.show[1],fmt:x=>pc(x)},
-    {k:"cpc",l:"Revenue per call",v:K.cpc[0],b:K.cpc[1],fmt:money},
-    {k:"aov",l:"Average order value",v:K.aov[0],b:K.aov[1],fmt:money},
-    {k:"refund",l:"Refund rate",v:K.refund[0],b:K.refund[1],fmt:x=>pc(x,1),inv:true}
+    {k:"sales",l:"Ventes gagnées",v:K.sales[0]*f,b:K.sales[1]*f,fmt:nf},
+    {k:"cash",l:"Montant encaissé",v:K.cash[0]*f,b:K.cash[1]*f,fmt:moneyK},
+    {k:"show",l:"Taux de présence",v:K.show[0],b:K.show[1],fmt:x=>pc(x)},
+    {k:"cpc",l:"Chiffre d’affaires par appel",v:K.cpc[0],b:K.cpc[1],fmt:money},
+    {k:"aov",l:"Panier moyen",v:K.aov[0],b:K.aov[1],fmt:money},
+    {k:"refund",l:"Taux de remboursement",v:K.refund[0],b:K.refund[1],fmt:x=>pc(x,1),inv:true}
   ];
   d.forEach(x=>{x.ratio=x.inv?x.b/x.v*100:x.v/x.b*100;x.tone=tone(x.ratio)});
   return Object.fromEntries(d.map(x=>[x.k,x]));
 }
 
-/* ---- header: parity verdict + SKL key result ---- */
+/* ---- header: parity verdict + LNP key result ---- */
 function header(C){
   const below=Object.values(C).filter(x=>x.ratio<100);
   const fail=below.length>0;
-  el("verdict").innerHTML=`<span class="vbadge ${fail?"fail":"pass"}">${fail?"FAIL":"PASS"}</span><span class="vt"><b>Parity gate</b><br>${fail?below.length+" of 6 below base":"6 of 6 at base"}</span>`;
-  el("verdict").setAttribute("data-tip","Parity gate: the 6 criteria against their baseline. "+(fail?"Below: "+below.map(x=>x.l.toLowerCase()).join(", ")+". ":"")+"Deals won, show rate and cash are marked in the flow, the other three in unit economics.");
+  el("verdict").innerHTML=`<span class="vbadge ${fail?"fail":"pass"}">${fail?"ÉCHEC":"VALIDÉ"}</span><span class="vt"><b>Contrôle de parité</b><br>${fail?below.length+" sur 6 sous la référence":"6 sur 6 à la référence"}</span>`;
+  el("verdict").setAttribute("data-tip","Contrôle de parité : les 6 critères face à leur référence. "+(fail?"Sous la référence : "+below.map(x=>x.l.toLowerCase()).join(", ")+". ":"")+"Ventes gagnées, taux de présence et montant encaissé sont marqués dans le flux, les trois autres dans la rentabilité unitaire.");
 
 }
 
@@ -226,22 +227,22 @@ function flow(K,f,C){
   const box=el("flow"), W=box.clientWidth, H=box.clientHeight;
   const fn=K.funnel.map(x=>x*f), cash=K.cash[0]*f, signed=cash/(K.upfront/100);
   const st=[
-    {l:"Leads",v:fn[0],fmt:nf(fn[0])},
-    {l:"Calls booked",v:fn[1],fmt:nf(fn[1])},
-    {l:"Calls held",v:fn[2],fmt:nf(fn[2])},
-    {l:"Deals won",v:fn[3],fmt:nf(fn[3]),crit:C.sales},
-    {l:"Revenue",v:fn[3],fmt:moneyK(cash),crit:C.cash,cash:true}
+    {l:"Prospects",v:fn[0],fmt:nf(fn[0])},
+    {l:"RDV pris",v:fn[1],fmt:nf(fn[1])},
+    {l:"Appels honorés",v:fn[2],fmt:nf(fn[2])},
+    {l:"Ventes gagnées",v:fn[3],fmt:nf(fn[3]),crit:C.sales},
+    {l:"Encaissé",v:fn[3],fmt:moneyK(cash),crit:C.cash,cash:true}
   ];
   const rates=[
-    {v:fn[1]/fn[0]*100,l:"booked"},
-    {v:fn[2]/fn[1]*100,l:"show rate",crit:C.show},
-    {v:fn[3]/fn[2]*100,l:"close rate"},
-    {v:K.upfront,l:"paid upfront",up:true}
+    {v:fn[1]/fn[0]*100,l:"prise RDV",t:"Prise de RDV"},
+    {v:fn[2]/fn[1]*100,l:"présence",t:"Taux de présence",crit:C.show},
+    {v:fn[3]/fn[2]*100,l:"conversion",t:"Taux de conversion"},
+    {v:K.upfront,l:"comptant",up:true}
   ];
   const top=34, bot=78, hMax=H-top-bot, colW=Math.min(92,(W-40)/9), pad=22, gap=(W-2*pad-colW*5)/4;
   const hOf=v=>Math.max(10,hMax*Math.sqrt(v/fn[0]));
   const mid=top+hMax/2;
-  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="From lead to cash">`;
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Du prospect à l’encaissement">`;
   s+=`<defs><linearGradient id="rib" x1="0" x2="1"><stop offset="0" stop-color="#ECE8DF"/><stop offset="1" stop-color="#F6F4EF"/></linearGradient></defs>`;
   // ribbons
   st.forEach((x,i)=>{if(i===4)return;const h1=hOf(x.v),h2=hOf(st[i+1].v),x1=pad+i*(colW+gap)+colW,x2=pad+(i+1)*(colW+gap);
@@ -249,7 +250,7 @@ function flow(K,f,C){
     const r=rates[i], rc=r.crit?COL[r.crit.tone]:"var(--ink)";
     const cx=(x1+x2)/2;
     const lbl=r.crit?`${pc(r.v)}`:pc(r.v);
-    const tipTxt=r.crit?`${r.l}: ${pc(r.v)} · baseline ${pc(r.crit.b)} (${pc(r.crit.ratio)} of baseline)`:r.up?`Share of signed revenue paid in full: ${pc(r.v)}. The rest is instalments still to collect.`:`${r.l}: ${pc(r.v)}`;
+    const tipTxt=r.crit?`${r.t} : ${pc(r.v)} · référence ${pc(r.crit.b)} (${pc(r.crit.ratio)} de la référence)`:r.up?`Part du chiffre d’affaires signé payée à la signature : ${pc(r.v)}. Le reste, ce sont des échéances encore à encaisser.`:`${r.t} : ${pc(r.v)}`;
     s+=`<g data-tip="${tipTxt}"><rect x="${cx-38}" y="${mid-19}" width="76" height="38" rx="9" fill="#fff" stroke="${r.crit?rc:"#E3DFD5"}" stroke-width="${r.crit&&r.crit.tone!=="g"?1.5:1}"/>
       <text x="${cx}" y="${mid+1}" text-anchor="middle" font-family="IBM Plex Mono" font-size="15" font-weight="600" fill="${rc}">${lbl}</text>
       <text x="${cx}" y="${mid+13}" text-anchor="middle" font-size="10" fill="#5E5B53">${r.l}</text></g>`;
@@ -259,7 +260,7 @@ function flow(K,f,C){
     const h=hOf(x.v), x0=pad+i*(colW+gap), y0=mid-h/2, c=x.crit?COL[x.crit.tone]:null;
     if(x.cash){
       const hc=h*(K.upfront/100);
-      s+=`<g data-tip="Signed revenue ${moneyK(signed)} · collected ${moneyK(cash)} (${pc(K.upfront)} upfront) · baseline ${moneyK(x.crit.b)}"><rect x="${x0}" y="${y0}" width="${colW}" height="${h}" rx="6" fill="#FBF6EC" stroke="#D9B46A" stroke-dasharray="3 3"/>
+      s+=`<g data-tip="Chiffre d’affaires signé ${moneyK(signed)} · encaissé ${moneyK(cash)} (${pc(K.upfront)} à la signature) · référence ${moneyK(x.crit.b)}"><rect x="${x0}" y="${y0}" width="${colW}" height="${h}" rx="6" fill="#FBF6EC" stroke="#D9B46A" stroke-dasharray="3 3"/>
         <rect x="${x0}" y="${y0+h-hc}" width="${colW}" height="${hc}" rx="6" fill="#D9B46A"/></g>`;
     } else s+=`<rect x="${x0}" y="${y0}" width="${colW}" height="${h}" rx="6" fill="${i===3?"#1B1B18":"#3D3A33"}" opacity="${i===3?1:.9-i*.12}"/>`;
     // labels
@@ -267,15 +268,15 @@ function flow(K,f,C){
     const vy=H-bot+26;
     s+=`<text x="${x0+colW/2}" y="${vy}" text-anchor="middle" font-family="Fraunces" font-size="${x.cash?24:22}" fill="#1B1B18">${x.fmt}</text>`;
     if(x.crit){
-      s+=`<g data-tip="${x.crit.l}: ${x.crit.fmt(x.crit.v)} · baseline ${x.crit.fmt(x.crit.b)}"><rect x="${x0+colW/2-44}" y="${vy+10}" width="88" height="20" rx="10" fill="${x.crit.tone==="g"?"#E6F2EA":x.crit.tone==="a"?"#FDF1E3":"#FDECEA"}"/>
-      <text x="${x0+colW/2}" y="${vy+24}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="${x.crit.tone==="g"?"#1E5E38":x.crit.tone==="a"?"#8A3F06":"#9B1C12"}">${pc(x.crit.ratio)} of base</text></g>`;
+      s+=`<g data-tip="${x.crit.l} : ${x.crit.fmt(x.crit.v)} · référence ${x.crit.fmt(x.crit.b)}"><rect x="${x0+colW/2-56}" y="${vy+10}" width="112" height="20" rx="10" fill="${x.crit.tone==="g"?"#E6F2EA":x.crit.tone==="a"?"#FDF1E3":"#FDECEA"}"/>
+      <text x="${x0+colW/2}" y="${vy+24}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="${x.crit.tone==="g"?"#1E5E38":x.crit.tone==="a"?"#8A3F06":"#9B1C12"}">${pc(x.crit.ratio)} de la réf.</text></g>`;
     } else if(x.cash===undefined && i<3){
-      s+=`<text x="${x0+colW/2}" y="${vy+22}" text-anchor="middle" font-size="11" fill="#8E8A80">${i===0?"entered":i===1?"on calendar":"attended"}</text>`;
+      s+=`<text x="${x0+colW/2}" y="${vy+22}" text-anchor="middle" font-size="11" fill="#8E8A80">${i===0?"entrés":i===1?"à l’agenda":"réalisés"}</text>`;
     }
   });
   s+=`</svg>`;
   box.innerHTML=s; bindTips(box);
-  el("flowq").textContent=`${PL[S.period]} · baseline marked on deals won, show rate and revenue`;
+  el("flowq").textContent=`${PL[S.period]} · réf. marquée sur ventes, présence et encaissé`;
 }
 
 /* ---- 2. Unit economics: the 3 remaining parity criteria, each as a full-size 8-week area chart against its baseline ---- */
@@ -285,7 +286,7 @@ function unit(C){
   const L=[C.cpc,C.aov,C.refund];
   el("ue").innerHTML=L.map((x,i)=>{const dv=(x.ratio-100), sg=dv>=0?"+":"−";
     return `<div class="uer"><div class="uel"><span class="n">${x.l}</span><span class="v">${x.fmt(x.v)}</span>
-      <span class="d ${x.tone}" data-tip="${x.inv?"Lower is better. ":""}${pc(x.ratio)} of the baseline">${sg}${pc(Math.abs(dv))} vs base</span><small>base ${x.fmt(x.b)}${x.inv?" · lower is better":""}</small></div>
+      <span class="d ${x.tone}" data-tip="${x.inv?"Plus c’est bas, mieux c’est. ":""}${pc(x.ratio)} de la référence">${sg}${pc(Math.abs(dv))} vs réf.</span><small>réf. ${x.fmt(x.b)}${x.inv?" · plus bas = mieux":""}</small></div>
       <div class="uec" id="uec${i}"></div></div>`}).join("");
   L.forEach((x,i)=>{
     const box=el("uec"+i), W=box.clientWidth, H=box.clientHeight; if(W<80||H<40) return;
@@ -295,18 +296,18 @@ function unit(C){
     const pts=ser.map((v,j)=>[X(j),Y(v)]), line=smooth(pts), last=pts[7], yb=Y(x.b);
     // worse than baseline = red: under it, or over it when lower is better
     const G="var(--green)", Rd="var(--red)", cUp=x.inv?Rd:G, cDn=x.inv?G:Rd, cEnd=(x.inv?x.v>x.b:x.v<x.b)?Rd:G;
-    let s=`<svg width="${W}" height="${H}" role="img" aria-label="${x.l}, last 8 weeks"><defs>
+    let s=`<svg width="${W}" height="${H}" role="img" aria-label="${x.l}, 8 dernières semaines"><defs>
       <clipPath id="uu${i}"><rect x="-10" y="-10" width="${W+20}" height="${yb+10}"/></clipPath>
       <clipPath id="ud${i}"><rect x="-10" y="${yb}" width="${W+20}" height="${H}"/></clipPath>
       <linearGradient id="gu${i}" gradientUnits="userSpaceOnUse" x1="0" y1="${T}" x2="0" y2="${yb}"><stop offset="0" style="stop-color:${cUp};stop-opacity:.05"/><stop offset="1" style="stop-color:${cUp};stop-opacity:.3"/></linearGradient>
       <linearGradient id="gd${i}" gradientUnits="userSpaceOnUse" x1="0" y1="${yb}" x2="0" y2="${H-B}"><stop offset="0" style="stop-color:${cDn};stop-opacity:.3"/><stop offset="1" style="stop-color:${cDn};stop-opacity:.05"/></linearGradient></defs>`;
     const band=`${line} L${last[0]},${yb} L0,${yb} Z`;
     s+=`<path d="${band}" fill="url(#gu${i})" clip-path="url(#uu${i})"/><path d="${band}" fill="url(#gd${i})" clip-path="url(#ud${i})"/>`;
-    s+=`<line x1="0" x2="${W-R}" y1="${yb}" y2="${yb}" stroke="var(--mut2)" stroke-dasharray="4 4"/><text x="${W-R+6}" y="${yb+4}" font-size="10" fill="var(--mut2)">base</text>`;
+    s+=`<line x1="0" x2="${W-R}" y1="${yb}" y2="${yb}" stroke="var(--mut2)" stroke-dasharray="4 4"/><text x="${W-R+6}" y="${yb+4}" font-size="10" fill="var(--mut2)">réf.</text>`;
     s+=`<path d="${line}" fill="none" stroke="${cUp}" stroke-width="2.5" stroke-linecap="round" clip-path="url(#uu${i})"/><path d="${line}" fill="none" stroke="${cDn}" stroke-width="2.5" stroke-linecap="round" clip-path="url(#ud${i})"/>`;
     s+=`<circle cx="${last[0]}" cy="${last[1]}" r="9" fill="${cEnd}" opacity=".15"/><circle cx="${last[0]}" cy="${last[1]}" r="4.5" fill="#fff" stroke="${cEnd}" stroke-width="2.5"/>`;
-    s+=`<text x="0" y="${H-3}" font-size="10" fill="var(--mut2)">8 wk ago</text><text x="${W-R}" y="${H-3}" font-size="10" text-anchor="end" fill="var(--mut2)">now</text>`;
-    ser.forEach((v,j)=>s+=`<rect x="${X(j)-(W-R)/14}" y="0" width="${(W-R)/7}" height="${H}" fill="transparent" data-tip="${j===7?"This week":(7-j)+" wk ago"}: ${x.fmt(v)}"/>`);
+    s+=`<text x="0" y="${H-3}" font-size="10" fill="var(--mut2)">il y a 8 sem.</text><text x="${W-R}" y="${H-3}" font-size="10" text-anchor="end" fill="var(--mut2)">maintenant</text>`;
+    ser.forEach((v,j)=>s+=`<rect x="${X(j)-(W-R)/14}" y="0" width="${(W-R)/7}" height="${H}" fill="transparent" data-tip="${j===7?"Cette semaine":"Il y a "+(7-j)+" sem."} : ${x.fmt(v)}"/>`);
     box.innerHTML=s+`</svg>`;
   });
   bindTips(el("ue"));
@@ -316,14 +317,14 @@ function unit(C){
 function team(f){
   const t=SALES.slice().sort((a,b)=>b.cash-a.cash);
   const mx=Math.max(...t.map(s=>s.cash));
-  el("team").innerHTML=`<div class="th"><span>Sales rep</span><span>Cash · won / calls</span><span>Close</span><span>Show</span></div>`+
+  el("team").innerHTML=`<div class="th"><span>Commercial</span><span data-tip="Montant encaissé · ventes gagnées / appels">Encaissé</span><span data-tip="Taux de conversion">Conversion</span><span data-tip="Taux de présence">Présence</span></div>`+
    t.map(s=>{const w=s.cash/mx*100, cl=s.close>=32?"g":s.close>=28?"a":"r", sh=s.show>=72?"g":s.show>=65?"a":"r";
-    return `<button class="tr" data-id="${s.id}" data-tip="${s.name}: ${money(s.cash*f)} collected, ${nf(s.won*f)} won from ${nf(s.calls*f)} calls">
-      <span class="who"><i style="background:${s.color}">${s.ini}</i><div><b>${s.name}</b><small>${money(s.cpc)} per call</small></div></span>
-      <span class="cbar"><i style="width:calc((100% - 62px) * ${w/100})"></i><span style="left:calc((100% - 62px) * ${w/100} + 6px)">${moneyK(s.cash*f)}</span><small>${nf(s.won*f)} won / ${nf(s.calls*f)} calls</small></span>
+    return `<button class="tr" data-id="${s.id}" data-tip="${s.name} : ${money(s.cash*f)} encaissés, ${nf(s.won*f)} vente${pl(s.won*f)} gagnée${pl(s.won*f)} sur ${nf(s.calls*f)} appel${pl(s.calls*f)}">
+      <span class="who"><i style="background:${s.color}">${s.ini}</i><div><b>${s.name}</b><small>${money(s.cpc)} par appel</small></div></span>
+      <span class="cbar"><i style="width:calc((100% - 62px) * ${w/100})"></i><span style="left:calc((100% - 62px) * ${w/100} + 6px)">${moneyK(s.cash*f)}</span><small>${nf(s.won*f)} gagnée${pl(s.won*f)} / ${nf(s.calls*f)} appel${pl(s.calls*f)}</small></span>
       <span class="pct ${cl} p${cl}">${pc(s.close)}</span><span class="pct ${sh} p${sh}">${pc(s.show)}</span>
     </button>`}).join("");
-  el("team").querySelectorAll(".tr").forEach(b=>b.onclick=()=>toast("Opens the CRM filtered on "+SALES.find(s=>s.id===b.dataset.id).name));
+  el("team").querySelectorAll(".tr").forEach(b=>b.onclick=()=>toast("Ouvre le CRM filtré sur "+SALES.find(s=>s.id===b.dataset.id).name));
   bindTips(el("team"));
 }
 
@@ -331,17 +332,17 @@ function team(f){
 function pipe(K){
   const fc=K.pond*K.upfront/100, w=fc/K.pond*100;
   el("pipe").innerHTML=`
-    <div data-tip="Weighted pipeline: each open deal × the observed win probability of its stage. Forecast = weighted pipeline × observed upfront rate.">
-      <div class="ey" style="margin-bottom:4px">30-day cash forecast</div>
-      <div style="display:flex;align-items:baseline;gap:8px"><span class="big">${moneyK(fc)}</span><span class="num" style="font-size:12px;color:var(--mut)">of ${moneyK(K.pond)} weighted</span></div>
+    <div data-tip="Pipeline pondéré : chaque vente en cours × la probabilité de gain observée à son étape. Prévision = pipeline pondéré × part observée payée à la signature.">
+      <div class="ey" style="margin-bottom:4px">Prévision d’encaissement à 30 jours</div>
+      <div style="display:flex;align-items:baseline;gap:8px"><span class="big">${moneyK(fc)}</span><span class="num" style="font-size:12px;color:var(--mut)">sur ${moneyK(K.pond)} pondérés</span></div>
       <div style="position:relative;height:16px;border-radius:5px;background:#FBF6EC;border:1px dashed #D9B46A;margin-top:8px"><i style="position:absolute;left:0;top:0;bottom:0;width:${w}%;border-radius:4px;background:var(--gold)"></i></div>
-      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);margin-top:4px"><span>expected in cash</span><span>still weighted pipeline</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);margin-top:4px"><span>encaissement attendu</span><span>reste en pipeline pondéré</span></div>
     </div>
     <div class="mini">
-      <div data-tip="Open deals followed up within 24 h. Target 75%."><span class="k">Follow-up in 24 h</span><span class="val ${K.follow<75?"a":"g"}">${pc(K.follow)}</span><div class="gbar"><i style="width:${K.follow}%;background:${K.follow<75?"var(--amber)":"var(--green)"}"></i><u style="left:75%"></u></div><span class="s">target 75%</span></div>
-      <div data-tip="Median days a deal spends in each stage. Alert above 8 days."><span class="k">Days per stage</span><span class="val ${K.velo>8?"a":"g"}">${K.velo} d</span><div class="gbar"><i style="width:${Math.min(100,K.velo/14*100)}%;background:${K.velo>8?"var(--amber)":"var(--green)"}"></i><u style="left:${8/14*100}%"></u></div><span class="s">alert above 8 d</span></div>
+      <div data-tip="Ventes en cours relancées sous 24 h. Objectif 75 %."><span class="k">Relance sous 24 h</span><span class="val ${K.follow<75?"a":"g"}">${pc(K.follow)}</span><div class="gbar"><i style="width:${K.follow}%;background:${K.follow<75?"var(--amber)":"var(--green)"}"></i><u style="left:75%"></u></div><span class="s">objectif 75 %</span></div>
+      <div data-tip="Nombre médian de jours qu’une vente passe à chaque étape. Alerte au-delà de 8 jours."><span class="k">Jours par étape</span><span class="val ${K.velo>8?"a":"g"}">${K.velo} j</span><div class="gbar"><i style="width:${Math.min(100,K.velo/14*100)}%;background:${K.velo>8?"var(--amber)":"var(--green)"}"></i><u style="left:${8/14*100}%"></u></div><span class="s">alerte au-delà de 8 j</span></div>
     </div>
-    <div class="kr" data-tip="SKL key result, from Roadmap: ${moneyK(KR.cur)} collected of ${moneyK(KR.target)}. Expected by now ${moneyK(KR.exp)}. Actual ÷ expected ${(KR.cur/KR.exp).toFixed(2)}."><div class="l"><span>Sales KR</span><b>${KR.status} · ${(KR.cur/KR.exp).toFixed(2)}</b></div><div class="v">${KR.name}: <strong>${moneyK(KR.cur)}</strong> <span style="color:#C9C4B7">· expected ${moneyK(KR.exp)}</span></div><div class="krbar"><i style="width:${KR.cur/KR.target*100}%"></i><u style="left:${KR.exp/KR.target*100}%"></u></div></div>`;
+    <div class="kr" data-tip="Résultat clé commercial : ${moneyK(KR.cur)} encaissés sur ${moneyK(KR.target)}. Attendu à date : ${moneyK(KR.exp)}. Réel ÷ attendu : ${(KR.cur/KR.exp).toFixed(2).replace(".",",")}."><div class="l"><span>Résultat clé</span><b>${KR.status} · ${(KR.cur/KR.exp).toFixed(2).replace(".",",")}</b></div><div class="v">${KR.name}: <strong>${moneyK(KR.cur)}</strong> <span style="color:#C9C4B7">· attendu ${moneyK(KR.exp)}</span></div><div class="krbar"><i style="width:${KR.cur/KR.target*100}%"></i><u style="left:${KR.exp/KR.target*100}%"></u></div></div>`;
   bindTips(el("pipe"));
 }
 
@@ -349,11 +350,11 @@ function pipe(K){
 function alerts(){
   const L=ALERTS.slice().sort((a,b)=>b.imp-a.imp);
   const tot=L.reduce((x,a)=>x+a.imp,0), mx=Math.max(...L.map(a=>a.imp),1), shown=L.slice(0,5);
-  el("alq").innerHTML=`<b class="num" style="color:var(--redt);font-size:13px">~${moneyK(tot)}</b> · ${L.length} alerts`;
+  el("alq").innerHTML=`<b class="num" style="color:var(--redt);font-size:13px">~${moneyK(tot)}</b> · ${L.length} alerte${L.length>1?"s":""}`;
   el("al").innerHTML=shown.map(a=>{const s=SALES.find(x=>x.id===a.o);
-    return `<div class="alr" data-tip="${a.t} · ${a.obj} · ${s?s.name:"CRO"} · estimated impact ${money(a.imp)}"><span class="code">${a.c}</span><div style="min-width:0"><div class="t">${a.t}</div><div class="o">${a.obj} · ${s?s.name.split(" ")[0]:"CRO"}</div></div>
+    return `<div class="alr" data-tip="${a.t} · ${a.obj} · ${s?s.name:"Direction"} · impact estimé ${money(a.imp)}"><span class="code">${a.c}</span><div style="min-width:0"><div class="t">${a.t}</div><div class="o">${a.obj} · ${s?s.name.split(" ")[0]:"Direction"}</div></div>
     <div class="ib"><i style="width:${Math.max(6,a.imp/mx*100)}%"></i><span>~${moneyK(a.imp)}</span></div></div>`}).join("")+
-    `<div class="more"><span style="color:var(--mut)">${L.length>5?(L.length-5)+" more, ~"+moneyK(L.slice(5).reduce((x,a)=>x+a.imp,0)):""}</span><button class="lnk" onclick="toast('Opens every alert in the CRM')">See all alerts →</button></div>`;
+    `<div class="more"><span style="color:var(--mut)">${L.length>5?(L.length-5)+" de plus, ~"+moneyK(L.slice(5).reduce((x,a)=>x+a.imp,0)):""}</span><button class="lnk" onclick="toast('Ouvre toutes les alertes dans le CRM')">Voir toutes les alertes →</button></div>`;
   bindTips(el("al"));
 }
 

@@ -20,7 +20,7 @@ Two families:
 
 ## 2. CRM alerts: one engine, rules c1–c18
 
-SKL OS already has one alert engine (functional spec §4): rules a1–a18 in `config/alerts`, edited
+LNP already has one alert engine (functional spec §4): rules a1–a18 in `config/alerts`, edited
 in Settings › Alerts (toggle, threshold, severity Low / Medium / High / Critical, who is notified:
 owner, department lead, Romain; channels; quiet hours; daily digest; escalation delay 24 h), the
 life of each alert in the `inbox` collection (open → taken, reassigned, snoozed, turned into a

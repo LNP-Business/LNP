@@ -26,6 +26,7 @@ function visible(table, row, who) {
   switch (table) {
     case "members": case "docs": return member;
     case "crm_members": case "crm_stage_definitions": case "crm_reason_codes": return !!crmRole(uid) || member;
+    case "crm_settings": return true;   // 003: read_config4, any signed-in user
     case "crm_cycles": return seesAll(uid) || row.owner_id === uid;
     case "crm_calls": case "crm_deals": case "crm_payments": case "crm_stage_history": return cycleVisible(uid, row.cycle_id);
     case "crm_events": return seesAll(uid) || (row.cycle_id ? cycleVisible(uid, row.cycle_id) : false);

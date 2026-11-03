@@ -1,6 +1,6 @@
-# CLAUDE.md · SKL call analysis system
+# CLAUDE.md · LNP call analysis system
 
-You are integrating the SKL sales-call analysis system into the app. Read this file first, every session.
+You are integrating the LNP sales-call analysis system into the app. Read this file first, every session.
 
 ## What this system does
 It reads the transcript of a sales call and evaluates four competences of the sales: **SPIN discovery**,
@@ -21,7 +21,7 @@ as evidence, and verdicts (gap present/absent, pitch compliant/non-compliant). R
 ## Sources of truth (in this order)
 1. `docs/methodology/` — scoring (A), **bounding rules (B)** and calibration cases (C) per competence, plus
    `00_engine_common_part_C.md`. `docs/BOUNDING_INDEX.md` lists every bounding rule and where it is.
-2. `docs/memos/` — the human-readable SKL memos (PDF), one per competence.
+2. `docs/memos/` — the human-readable LNP memos (PDF), one per competence.
 3. `engine/` — the reference implementation (Python, stdlib only), 209 tests.
 4. `docs/ARCHITECTURE.md`, `docs/OUTPUT_CONTRACT.md`, `docs/SCREEN_SPEC.md`, `docs/OPEN_DECISIONS.md`.
 If code and methodology disagree, the methodology wins: fix the code and add a test.

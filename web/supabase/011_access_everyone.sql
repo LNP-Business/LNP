@@ -1,8 +1,8 @@
--- SKL OS — everyone sees everything (web/supabase/011_access_everyone.sql), after 010. Romain, 2026-10-25: the CRM and every
--- SKL OS screen are open to every person of the team, and to every person added later.
+-- LNP — everyone sees everything (web/supabase/011_access_everyone.sql), after 010. Romain, 2026-10-25: the CRM and every
+-- LNP screen are open to every person of the team, and to every person added later.
 -- 1. Screens: the default access (web/api/_screens.js) is now every screen; the narrower lists saved so far are cleared.
--- 2. CRM data: row-level security shows the CRM to its members (crm_members); every SKL OS member now gets a CRM member
---    row, at once and when invited later (trigger on members): SKL admin = CRM admin, member = sales lead (sees and acts
+-- 2. CRM data: row-level security shows the CRM to its members (crm_members); every LNP member now gets a CRM member
+--    row, at once and when invited later (trigger on members): LNP admin = CRM admin, member = sales lead (sees and acts
 --    on every cycle), viewer = viewer (reads only). Rows already set by hand (Romain) are kept. Safe to run again.
 
 update auth.users set raw_app_meta_data = raw_app_meta_data - 'screens' where raw_app_meta_data ? 'screens';

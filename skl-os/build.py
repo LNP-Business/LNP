@@ -1,11 +1,11 @@
-"""Assemble the 4 SKL OS screens (Design-canvas .dc.html files) into one standalone prototype page."""
+"""Assemble the 4 LNP screens (Design-canvas .dc.html files) into one standalone prototype page."""
 import re, pathlib, sys, json
 
 HERE = pathlib.Path(__file__).resolve().parent
 LANG = sys.argv[1] if len(sys.argv) > 1 else "fr"
 SRC = HERE.parent / ("skl-en" if LANG == "en" else "skl") / "project"
 OUT = HERE / ("skl-os-en.html" if LANG == "en" else "skl-os.html")
-TITLE = "SKL OS English" if LANG == "en" else "SKL OS"
+TITLE = "LNP English" if LANG == "en" else "LNP"
 _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
 TITLE = EDITION.get("title", TITLE)
@@ -43,7 +43,17 @@ SCREENS = [
     ("salesday", "SalesDay"),
 ]
 
+# LNP (2026-11-03): only the screens of the edition are in the page (the Operating, Knowledge and Agent screens are gone)
+if EDITION_KEEP is not None:
+    SCREENS = [s for s in SCREENS if s[0] in EDITION_KEEP]
+OS_MODULES = EDITION_KEEP is None  # the Operating / Knowledge / Agent modules, only in the full LNP build
+
 templates, classes = [], []
+SHELL_ARIA = [('aria-label="Main navigation"', 'aria-label="Navigation principale"'), ('aria-label="Switch system"', 'aria-label="Changer de système"'),
+              ('aria-label="Views"', 'aria-label="Vues"'),
+              # the round "i" button and its popup on every screen, also on the screens written before (CRM.dc.html, gen_crm.py)
+              ('aria-label="How this page works" title="How this page works"', 'aria-label="Mode d’emploi de la page" title="Mode d’emploi de la page"'),
+              ('>Page method</div>', '>Mode d’emploi</div>'), ('aria-label="Close"', 'aria-label="Fermer"'), ('>Got it</button>', '>Compris</button>')]
 for sid, fname in SCREENS:
     if not (SRC / f"{fname}.dc.html").exists():
         continue
@@ -55,6 +65,10 @@ for sid, fname in SCREENS:
     # the methodology popup covers the viewport, wherever the viewer has scrolled
     body = body.replace('data-overlay="info" style="position: absolute;', 'data-overlay="info" style="position: fixed;')
     assert "</template>" not in body
+    # LNP is in French (Romain 2026-11-03): the shell's landmarks (read aloud by screen readers) and the Page method button and
+    # popup. The generators find the sidebar by its English label (nav.py, gen_crm.py), so it is translated here, in the page only.
+    for a, z in SHELL_ARIA:
+        body = body.replace(a, z)
     templates.append(f'<template id="tpl-{sid}" data-file="{fname}.dc.html">\n{body}\n</template>')
     script = src.split("data-dc-script", 1)[1].split(">", 1)[1].split("</script>", 1)[0].strip()
     assert script.startswith("class Component extends DCLogic")
@@ -62,7 +76,9 @@ for sid, fname in SCREENS:
 
 STOREJS = ""
 if LANG == "en" and (HERE / "store.js").exists():
-    STOREJS = ("<script>window.SKL_SEED = " + (HERE / "seed.json").read_text(encoding="utf-8").replace("</", "<\\/") + ";</script>\n"
+    # LNP: no Operating System sample data (key results, tasks, memos of ALKIMIY) in the page
+    SEED = (HERE / "seed.json").read_text(encoding="utf-8") if OS_MODULES else json.dumps({"krs": [], "tasks": [], "decisions": [], "reviews": [], "deliverables": []})
+    STOREJS = ("<script>window.SKL_SEED = " + SEED.replace("</", "<\\/") + ";</script>\n"
                + "<script>" + (HERE / "store.js").read_text(encoding="utf-8") + "</script>\n"
                + "<script>" + (HERE / "kr_view.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>\n"
                + "<script>" + (HERE / "crm" / "data.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>")
@@ -72,7 +88,7 @@ CRMJS = ""
 if LANG == "en" and CRMDOC.exists():
     CRMJS = "<script>window.SKL_CRM_DOC = " + json.dumps(CRMDOC.read_text(encoding="utf-8")).replace("</", "<\\/") + ";</script>"
     CV2 = HERE / "cockpit_v2.json"
-    if CV2.exists():
+    if OS_MODULES and CV2.exists():
         cv = json.loads(CV2.read_text(encoding="utf-8"))
         for key, name in (("ov", "SKL_OV"), ("kr", "SKL_KRROOM"), ("mkt", "SKL_MKT"), ("fin", "SKL_FIN")):
             m = cv[key]
@@ -81,7 +97,7 @@ if LANG == "en" and CRMDOC.exists():
     # Build and Execute: one core (window.SKL_OS2), two modules (gen_build.py, gen_execute.py)
     for fname, name in (("build.json", "SKL_BUILD"), ("execute.json", "SKL_EXECUTE")):
         MJ = HERE / fname
-        if MJ.exists():
+        if OS_MODULES and MJ.exists():
             m = json.loads(MJ.read_text(encoding="utf-8"))
             if m.get("core"):
                 CRMJS += "\n<script>" + m["core"].replace("</", "<\\/") + "</script>"
@@ -91,10 +107,10 @@ if LANG == "en" and CRMDOC.exists():
     if SDJ.exists():
         CRMJS += "\n<script>" + SDJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     AGJ = HERE / "agents_module.js"
-    if AGJ.exists():
+    if OS_MODULES and AGJ.exists():
         CRMJS += "\n<script>" + AGJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     CJ = HERE / "carto.json"
-    if CJ.exists():
+    if OS_MODULES and CJ.exists():
         m = json.loads(CJ.read_text(encoding="utf-8"))
         CRMJS += ("\n<script>window.SKL_CARTO = {css: " + json.dumps(m["css"]).replace("</", "<\\/") + ", html: " + json.dumps(m["html"]).replace("</", "<\\/")
                   + ", mount: " + m["js"].replace("</", "<\\/") + "};</script>")
@@ -103,13 +119,13 @@ if LANG == "en" and CRMDOC.exists():
         sv = json.loads(SALESV2.read_text(encoding="utf-8"))
         CRMJS += ("\n<script>window.SKL_SALES = {css: " + json.dumps(sv["css"]).replace("</", "<\\/") + ", html: " + json.dumps(sv["html"]).replace("</", "<\\/")
                   + ", mount: " + sv["js"].replace("</", "<\\/") + "};</script>")
-MECHJS = ("<script>" + MECH.read_text(encoding="utf-8") + "</script>") if (LANG == "en" and MECH.exists()) else ""
+MECHJS = ("<script>" + MECH.read_text(encoding="utf-8") + "</script>") if (LANG == "en" and OS_MODULES and MECH.exists()) else ""
 page = f"""<title>{TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
 <style>
-/* Single light product UI, as designed in the SKL OS canvas: warm paper ground, ink sidebar, blue action. */
+/* Single light product UI, as designed in the LNP canvas: warm paper ground, ink sidebar, blue action. */
 :root {{
   color-scheme: light;
   --paper: #F6F4EF;
@@ -145,6 +161,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 (function () {{
   "use strict";
   var app = document.getElementById("app");
+  try {{ document.documentElement.lang = "fr"; }} catch (e) {{}}   // LNP is in French (Romain 2026-11-03)
   var SCREENS = {{}};
   var instances = {{}};
   var current = "cockpit";
@@ -342,10 +359,10 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   function decorate() {{
     applyNav();
     var S = window.SKL; if (!S) return;
-    // the week of the quarter in the sidebar footer follows the OS clock
+    // the week of the quarter in the sidebar footer follows the OS clock (French: ISO week "S45", T4 = the fourth quarter)
     app.querySelectorAll("nav div").forEach(function (el) {{
       var t = el.firstChild;
-      if (t && t.nodeType === 3 && /^Q4 2026 · week \d+\/13/.test(t.nodeValue)) t.nodeValue = t.nodeValue.replace(/week \d+\/13/, S.wl(S.week) + " · week " + S.week + "/13");
+      if (t && t.nodeType === 3 && /^T4 2026 · semaine \d+\/13/.test(t.nodeValue)) t.nodeValue = t.nodeValue.replace(/semaine \d+\/13/, S.wl(S.week).replace(/^W/, "S") + " · semaine " + S.week + "/13");
     }});
     var b = S.badges();
     app.querySelectorAll("[data-badge]").forEach(function (el) {{
@@ -354,14 +371,15 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
       el.textContent = String(n); el.style.display = n ? "" : "none";
     }});
     var box = app.querySelector("[data-me]"); if (!box) return;
+    var ROLE_FR = {{ "Content Lead": "Responsable contenu", "Sales": "Commercial" }};   // shown only: the roles stay as stored
     box.textContent = "";
     var lab = document.createElement("label");
     lab.style.cssText = "display: flex; flex-direction: column; gap: 6px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53";
-    lab.appendChild(document.createTextNode("You are"));
+    lab.appendChild(document.createTextNode("Vous êtes"));
     var sel = document.createElement("select");
     sel.style.cssText = "font: inherit; font-size: 15px; letter-spacing: 0; text-transform: none; padding: 10px 12px; border-radius: 10px; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18";
-    var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choose who you are…"; sel.appendChild(o0);
-    S.members.forEach(function (m) {{ var o = document.createElement("option"); o.value = m.id; o.textContent = m.name + " · " + m.role; if (S.me === m.id) o.selected = true; sel.appendChild(o); }});
+    var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choisissez qui vous êtes…"; sel.appendChild(o0);
+    S.members.forEach(function (m) {{ var o = document.createElement("option"); o.value = m.id; o.textContent = m.name + " · " + (ROLE_FR[m.role] || m.role); if (S.me === m.id) o.selected = true; sel.appendChild(o); }});
     sel.addEventListener("change", function () {{ if (sel.value) S.setMe(sel.value); }});
     lab.appendChild(sel); box.appendChild(lab);
     var st = document.createElement("div");
@@ -369,7 +387,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
     var dot = document.createElement("span");
     dot.style.cssText = "width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: " + (S.mode === "shared" ? (S.readOnly ? "#D9B46A" : "#2E7D4F") : "#8E8A80");
     st.appendChild(dot);
-    st.appendChild(document.createTextNode(S.mode === "shared" ? (S.readOnly ? "Shared data · read only" : "Shared data · saved for the team") : S.mode === "loading" ? "Connecting…" : "Demo data · not saved"));
+    st.appendChild(document.createTextNode(S.mode === "shared" ? (S.readOnly ? "Données partagées · lecture seule" : "Données partagées · enregistrées pour l’équipe") : S.mode === "loading" ? "Connexion…" : "Données de démonstration · non enregistrées"));
     box.appendChild(st);
   }}
 
@@ -379,7 +397,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   function frameFor(key, bg) {{
     if (!frames[key] && FRAME_DOCS[key]) {{
       var f = document.createElement("iframe");
-      f.title = key === "crm" ? "CRM" : "Sales dashboard";
+      f.title = key === "crm" ? "CRM" : "Tableau de bord commercial";
       f.setAttribute("srcdoc", FRAME_DOCS[key]);
       f.style.cssText = "position: fixed; border: 0; z-index: 1; background: " + bg + ";";
       document.body.appendChild(f);
@@ -495,6 +513,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   // edition.json (LNP: the Sales System only): the home screen, and every screen outside the edition lands on it
   var HOME = {json.dumps(EDITION.get("home", "cockpit"))}, KEEP = {json.dumps(EDITION_KEEP)};
   if (KEEP) Object.keys(SCREENS).forEach(function (id) {{ if (KEEP.indexOf(id) < 0) MOVED[id] = HOME; }});
+  window.SKL_EDITION = {{ home: HOME, keep: KEEP }};   // read by web/public/skl-web.js (Settings › Access lists only these screens)
   function go(id) {{
     id = MOVED[id] || id;
     if (!SCREENS[id]) return;
@@ -532,8 +551,34 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 }})();
 </script>
 """
-# edition.json "rename" (LNP, 2026-11-03): its own name instead of SKL OS / ALKIMIY in every text of the page, in order
+# edition.json "rename" (LNP, 2026-11-03): its own name instead of LNP / ALKIMIY in every text of the page, in order
 for a, z in EDITION.get("rename", []):
     page = page.replace(a, z)
+
+
+def restyle(text, edition=EDITION):
+    """edition.json "recolor" and "fonts" (LNP, 2026-11-03): the colours and fonts of Les Nouveaux Profs in every
+    screen, applied to the finished page like "rename" (hex colours, rgb()/rgba() triples, then font names)."""
+    rc = edition.get("recolor") or {}
+    hx = {k.lower(): v for k, v in rc.get("hex", {}).items()}
+    if hx:
+        text = re.sub(r"#[0-9a-fA-F]{6}\b", lambda m: hx.get(m.group(0).lower(), m.group(0)), text)
+    rg = rc.get("rgb", {})
+    if rg:
+        def _rgb(m):
+            z = rg.get(f"{m.group(2)},{m.group(3)},{m.group(4)}")
+            return f"rgb{m.group(1)}({z}" if z else m.group(0)
+        text = re.sub(r"rgb(a?)\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", _rgb, text)
+    for a, z in edition.get("fonts", []):
+        text = text.replace(a, z)
+    return text
+
+
+page = restyle(page)
+_logo = HERE.parent / EDITION["logo"] if EDITION.get("logo") else None
+if _logo and _logo.exists():  # LNP: its logo as the tab icon
+    import base64
+    page = page.replace("</title>", '</title>\n<link rel="icon" type="image/png" href="data:image/png;base64,'
+                        + base64.b64encode(_logo.read_bytes()).decode() + '">', 1)
 OUT.write_text(page, encoding="utf-8")
 print(OUT, len(page))

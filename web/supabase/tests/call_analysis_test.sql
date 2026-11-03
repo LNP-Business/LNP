@@ -28,7 +28,7 @@ begin
   assert (info->>'eligible')::boolean and (info->>'sales_round')::int = 1, 'R1 eligible: ' || info::text;
   assert info->>'timezone' = 'Asia/Dubai', 'time zone from the owner';
   info := crm_ca_call_info(k2);
-  assert not (info->>'eligible')::boolean and info->>'reason' like 'not a sales call%', 'onboarding left out: ' || info::text;
+  assert not (info->>'eligible')::boolean and info->>'reason' like 'pas un appel de vente%', 'onboarding left out: ' || info::text;
   info := crm_ca_call_info(k3);
   assert (info->>'eligible')::boolean and (info->>'sales_round')::int = 2, 'R2 (onboarding does not count): ' || info::text;
   assert not (crm_ca_call_info(k4)->>'eligible')::boolean, 'R3 left out';

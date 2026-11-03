@@ -11,9 +11,9 @@
   ],
   "brand": [
     "LNP",
-    "Sales"
+    "Ventes"
   ],
-  "title": "LNP",
+  "title": "LNP · Ventes",
   "rename": [
     [
       "taken as is from ALKIMIY Lite",
@@ -24,12 +24,179 @@
       "LNP CRM"
     ],
     [
-      "SKL OS",
+      "LNP",
       "LNP"
     ],
     [
       "ALKIMIY",
       "LNP"
+    ]
+  ],
+  "wordmark": [
+    "Les ",
+    "Nouveaux",
+    " Profs"
+  ],
+  "logo": "skl-os/brand/lnp-logo.png",
+  "recolor": {
+    "source": "https://www.lesnouveauxprofs.fr/ (charte: nuit #1E2A5E, vif #2B6CF5, vif-clair #5B8DF7, ciel #AECBF2, pale #E3ECFB, ardoise #5A6478, casse #F7F8FB, vert #1F9D6B)",
+    "hex": {
+      "#141413": "#0C0F1B",
+      "#1B1B18": "#1E2A5E",
+      "#1E1C17": "#101525",
+      "#2C2B26": "#192039",
+      "#34322C": "#1D2643",
+      "#3D3A33": "#222C4E",
+      "#4A463D": "#29355E",
+      "#5E5B53": "#5A6478",
+      "#6B4A12": "#102D6D",
+      "#6B675C": "#545B73",
+      "#6B675E": "#545C75",
+      "#6E5110": "#102E6E",
+      "#7A4B00": "#1E2A5E",
+      "#7A5316": "#12347E",
+      "#7A5A12": "#11337B",
+      "#8A6417": "#143A8D",
+      "#8A8578": "#6D7695",
+      "#8C877B": "#707997",
+      "#8E8A7E": "#737C99",
+      "#8E8A80": "#747D9A",
+      "#94681A": "#163F98",
+      "#9A6410": "#2B6CF5",
+      "#9A6614": "#2B6CF5",
+      "#9A7A10": "#103C9A",
+      "#9A968C": "#828AA4",
+      "#9C9687": "#8088A3",
+      "#A0721A": "#1743A3",
+      "#A7A294": "#8E95AD",
+      "#A8A396": "#9097AE",
+      "#B08D57": "#2762E0",
+      "#B5761E": "#1A4CB9",
+      "#B7B2A6": "#A2A8BB",
+      "#C0BBAE": "#ABB1C3",
+      "#C39B4E": "#3068E1",
+      "#C98A2E": "#1F5AD8",
+      "#C9A04A": "#2B6CF5",
+      "#C9A24A": "#3169E2",
+      "#C9A35A": "#3F73E4",
+      "#C9C4B7": "#B6BBCA",
+      "#C9C4B8": "#B6BBCB",
+      "#CFC6B2": "#B6BBCB",
+      "#CFC8B6": "#B9BDCC",
+      "#CFC9BC": "#BCC1CF",
+      "#D8D3C7": "#AECBF2",
+      "#D9A93F": "#366CE2",
+      "#D9B46A": "#5B8DF7",
+      "#D9C9A3": "#8DACEF",
+      "#D9CFB8": "#A0BAF1",
+      "#D9D4C8": "#B7C3EA",
+      "#DDD7C9": "#BBC6EB",
+      "#DFA03A": "#376DE2",
+      "#E2DDD0": "#C4CEEE",
+      "#E3DFD5": "#E3ECFB",
+      "#E4DFD4": "#C9D2EF",
+      "#E6B266": "#638EE9",
+      "#E6D3A8": "#9DB8F1",
+      "#E7E2D6": "#CDD5F0",
+      "#E7E3DA": "#D0D8F1",
+      "#E8DCC2": "#B5C9F4",
+      "#E8E4DA": "#D0D8F2",
+      "#E9CF8E": "#89A9EE",
+      "#EAD9B3": "#AAC1F3",
+      "#EADBB8": "#AEC4F3",
+      "#EADFC6": "#BBCDF5",
+      "#EBCF8A": "#87A8EE",
+      "#EBE4DF": "#D7DDF3",
+      "#ECE8DF": "#E3ECFB",
+      "#EEEBE4": "#DDE3F5",
+      "#EFE3C8": "#C1D2F6",
+      "#EFEBE1": "#D7E2F9",
+      "#EFEBE3": "#DDE3F5",
+      "#EFECE4": "#DEE3F5",
+      "#F0EDE6": "#E0E5F6",
+      "#F1EEE6": "#E1E6F6",
+      "#F2F0EA": "#E5E9F7",
+      "#F3F0E8": "#E0E9FB",
+      "#F4ECDD": "#D8E2F9",
+      "#F4F1EA": "#E3EBFB",
+      "#F5F1ED": "#E9EDF9",
+      "#F6C27E": "#7EA4F6",
+      "#F6F4EF": "#F7F8FB",
+      "#F7EEDC": "#D9E4FA",
+      "#F7F5F0": "#EBF0FC",
+      "#F8F0DE": "#DCE6FA",
+      "#F8F0E2": "#E0E8FB",
+      "#F8F6F0": "#ECF1FC",
+      "#FAF8F3": "#F0F4FD",
+      "#FAF9F5": "#F2F5FD",
+      "#FBF1DA": "#DAE4FB",
+      "#FBF1DC": "#DCE6FB",
+      "#FBF1E0": "#E0E9FB",
+      "#FBF6EC": "#EBF0FC",
+      "#FBFAF7": "#F4F7FE",
+      "#FCF3E3": "#E3EBFC",
+      "#FCFBF8": "#F6F9FE",
+      "#FEF3E2": "#E2EBFE",
+      "#FFFBF0": "#F0F5FF",
+      "#FFFDF7": "#F7FAFF",
+      "#FFFDF8": "#F8FAFF",
+      "#FFFEFB": "#FBFCFF"
+    },
+    "rgb": {
+      "154,102,20": "43,108,245",
+      "183,178,166": "162,168,187",
+      "20,20,18": "11,15,27",
+      "217,180,106": "91,141,247",
+      "246,244,239": "247,248,251",
+      "251,246,236": "235,240,252",
+      "27,27,24": "30,42,94",
+      "94,91,83": "90,100,120"
+    }
+  },
+  "fonts": [
+    [
+      "family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600",
+      "family=Poppins:wght@400;500;600;700;800"
+    ],
+    [
+      "family=Fraunces:opsz,wght@9..144,500;9..144,600",
+      "family=Poppins:wght@400;500;600;700;800"
+    ],
+    [
+      "family=Manrope:wght@600;700;800",
+      "family=Poppins:wght@400;500;600;700;800"
+    ],
+    [
+      "family=Source+Serif+4:opsz,wght@8..60,600;8..60,700",
+      "family=Poppins:wght@400;500;600;700;800"
+    ],
+    [
+      "Source Serif 4",
+      "Poppins"
+    ],
+    [
+      "Manrope",
+      "Poppins"
+    ],
+    [
+      "Fraunces",
+      "Poppins"
+    ],
+    [
+      "IBM Plex Sans",
+      "Poppins"
+    ],
+    [
+      "Poppins, Georgia, serif",
+      "Poppins, Arial, sans-serif"
+    ],
+    [
+      "Poppins,Georgia,serif",
+      "Poppins,Arial,sans-serif"
+    ],
+    [
+      "'Poppins', Georgia, serif",
+      "'Poppins', Arial, sans-serif"
     ]
   ]
 }

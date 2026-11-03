@@ -5,7 +5,7 @@ Code at the repository root, and paste the prompt below.
 
 ---
 
-You are integrating the SKL sales-call analysis system into this application. Everything you need is in
+You are integrating the LNP sales-call analysis system into this application. Everything you need is in
 `call-analysis/` (adjust the path if the folder was copied elsewhere).
 
 **Read first, in this order, before writing any code:**

@@ -1,4 +1,4 @@
--- SKL OS on Supabase: the team, and one shared document store that mirrors the Artifact database.
+-- LNP on Supabase: the team, and one shared document store that mirrors the Artifact database.
 -- Run once on a fresh project (SQL editor, or the Management API).
 
 -- Who may use the app. Rows are written only by the server (service role), through /api/team.

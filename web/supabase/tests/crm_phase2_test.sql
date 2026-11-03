@@ -70,7 +70,7 @@ do $$ declare r text; begin
     '{"identity":{"email":"other@example.com","phone":"+15551230001"}}')));
   assert r = 'unmatched', 'conflict unmatched';
   assert (select count(*) from crm_unmatched_inbox) = 2, 'two unmatched items';
-  assert (select array_length(candidate_person_ids, 1) from crm_unmatched_inbox where reason like 'Identifiers%') = 2, 'candidates kept';
+  assert (select array_length(candidate_person_ids, 1) from crm_unmatched_inbox where reason like 'Les identifiants%') = 2, 'candidates kept';
 end $$;
 
 -- 6. outcome no -> lost (projector), a new booking within 30 days reopens the same cycle

@@ -1,17 +1,17 @@
-# SKL OS CRM — build specification pack (v1.2)
+# LNP CRM — build specification pack (v1.2)
 
-This folder is the complete specification for building the SKL OS CRM back end and wiring every
+This folder is the complete specification for building the LNP CRM back end and wiring every
 tool into it. It is written for Claude Code. Read it in the order below before writing any code.
 
-v1.2 aligns the pack with the current app as described in the **SKL OS Functional
-specification (24 Oct 2026)**: web edition on Vercel, Supabase project `skl-os`, `docs` + `members`
+v1.2 aligns the pack with the current app as described in the **LNP Functional
+specification (24 Oct 2026)**: web edition on Vercel, Supabase project `LNP`, `docs` + `members`
 tables, the existing alert engine (a1–a18, Settings › Alerts, My Day › Needs you), the Agent
 System and the build pipeline. When this pack and the functional specification disagree about
 what exists today, the functional specification wins; this pack describes what to add.
 
 ## What we are building
 
-The SKL OS CRM becomes the **single source of truth** for every sales cycle, from the moment a
+The LNP CRM becomes the **single source of truth** for every sales cycle, from the moment a
 call is booked until the cycle is **won** (first successful Whop payment), **lost**, or
 **disqualified**, plus a **nurture** track for people who may come back. It replaces the current
 browser-only CRM storage (ALKIMIY Lite, `localStorage`) with shared, isolated, live data.
@@ -24,7 +24,7 @@ browser-only CRM storage (ALKIMIY Lite, `localStorage`) with shared, isolated, l
 | Whop | Payments; first successful payment = won | CRM → Whop (checkout per cycle) + Whop → CRM |
 | Claude API | Call analysis (Agent System: Post-call analyst) | CRM → Claude |
 | Supabase `skl-os` | Database, auth (existing), Edge Functions, scheduled jobs | — |
-| Vercel `skl-os.vercel.app` | Existing web edition (front end + `/api` admin functions) | — |
+| Vercel `lnp-sales.vercel.app` | Existing web edition (front end + `/api` admin functions) | — |
 
 Everything a person decides about a lead (call outcome, no-show, yes/no, loss or
 disqualification reason, nurture, return date, notes) is entered **only in the CRM**.
@@ -41,13 +41,13 @@ disqualification reason, nurture, return date, notes) is entered **only in the C
 | `05`–`08` | iClosed, Fathom, Sendblue, Whop |
 | `09-call-analysis.md` | Claude analysis = Agent System "Post-call analyst" |
 | `10-rules-engine.md` | CRM rules and how CRM alerts plug into the existing alert engine |
-| `11-crm-frontend.md` | Changes to SKL OS screens, store.js, sidebar, Access |
+| `11-crm-frontend.md` | Changes to LNP screens, store.js, sidebar, Access |
 | `12-security-compliance.md` | Secrets, signatures, RLS, personal data |
 | `13-testing.md` | Tests, fixtures, end-to-end scenario, screen checks |
 | `14-operations.md` | Reconciliation, monitoring, replay, runbook |
 | `15-build-plan.md` | Phases, definition of done, one prompt per phase |
 | `16-sales-cycle-screen.md` | CRM › Sales cycle screen (reference mock-up: `reference/sales-cycle-v6.html`) |
-| `17-claude-connector.md` | SKL OS connector for Claude (remote MCP server, OAuth, 8 read tools); setup: `setup-claude-connector.md` |
+| `17-claude-connector.md` | LNP connector for Claude (remote MCP server, OAuth, 8 read tools); setup: `setup-claude-connector.md` |
 | `fixtures/` | Illustrative payloads — replace with captured real payloads in phase 0 |
 | `architecture-one-page.html` / `.pdf` | One-page diagram (French) |
 | `SKL-CRM-Implementation-stack-technique-v1.1.docx` | Business document for Romain (French); this pack takes precedence on technical points |

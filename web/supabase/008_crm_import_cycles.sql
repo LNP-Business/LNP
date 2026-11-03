@@ -1,4 +1,4 @@
--- SKL OS CRM — cycles from the imported history (web/supabase/008_crm_import_cycles.sql), after 007 and the 005 projector
+-- LNP CRM — cycles from the imported history (web/supabase/008_crm_import_cycles.sql), after 007 and the 005 projector
 -- that reads `source = 'import'` closing events. A person imported from iClosed with the status DISQUALIFIED gets one
 -- closed cycle with the CRM's own status `disqualified` (reason dq_off_target: iClosed disqualifies on its qualification
 -- form), so the methodology reads it like any disqualification. People who already have a cycle are left alone; a new

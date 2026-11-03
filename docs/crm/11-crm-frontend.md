@@ -1,6 +1,6 @@
-# 11 — SKL OS front end
+# 11 — LNP front end
 
-The CRM stays in SKL OS with the existing design system (functional spec §2): Cockpit as
+The CRM stays in LNP with the existing design system (functional spec §2): Cockpit as
 reference, Fraunces / IBM Plex, `#F6F4EF`, segmented control top bar, "i" Page method on every
 screen, confirmation popup before every delete, designed at 1440 px (no phone layout). UI text in
 English, never "closer". The CRM keeps its own English / French switch.

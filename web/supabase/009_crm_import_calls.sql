@@ -1,4 +1,4 @@
--- SKL OS CRM — cycles from iClosed's past calls (web/supabase/009_crm_import_calls.sql), after 008.
+-- LNP CRM — cycles from iClosed's past calls (web/supabase/009_crm_import_calls.sql), after 008.
 -- The Edge Function crm-import (?source=iclosed_calls) groups iClosed's calls by contact, translates iClosed's results into
 -- the CRM's own statuses (Romain, 2026-10-24: REJECTED = disqualified) and hands one item per person to crm_import_calls:
 -- the person's cycle (the existing one, else a new one opened at the first booking), its calls R1, R2… with their real

@@ -4,8 +4,8 @@
 
 | Item | State |
 |---|---|
-| Hosting | Web edition live at https://skl-os.vercel.app, deployed from `main` of RomainSKL/skl-os |
-| Database / auth | Supabase project `skl-os`: table `docs (col, id, body)` for every collection, table `members` (roles Admin / Member / Viewer), sign-in by invite link + password, `/api/config`, `/api/me`, `/api/team`, `/api/files` on Vercel |
+| Hosting | Web edition live at https://lnp-sales.vercel.app, deployed from `main` of LNP-Business/LNP |
+| Database / auth | Supabase project `LNP`: table `docs (col, id, body)` for every collection, table `members` (roles Admin / Member / Viewer), sign-in by invite link + password, `/api/config`, `/api/me`, `/api/team`, `/api/files` on Vercel |
 | Clock | Real OS clock (`window.SKL_TODAY` pins it for tests) |
 | Alerts | Engine in `store.js`, rules a1–a18 in `config/alerts`, Settings › Alerts (threshold, severity Low/Medium/High/Critical, recipients, channels, quiet hours, daily digest, 24 h escalation), life in `inbox` (Take it, Reassign, Snooze, Make it a decision, Handled), shown in My Day › Needs you |
 | Team | amin (CEO), romain (CPO), marketing (Michael), contenu (Ilya), sales (Valentino). Leads: Romain → Amin; everyone else → Romain |
@@ -18,7 +18,7 @@
 | # | Decision |
 |---|---|
 | D1 | Scope: from **call booked** to **won**, **lost** or **disqualified**. Before the booking is out of scope. |
-| D2 | The SKL OS CRM is the single source of truth. **Everything happens in the CRM.** iClosed is only a calendar. |
+| D2 | The LNP CRM is the single source of truth. **Everything happens in the CRM.** iClosed is only a calendar. |
 | D3 | **Won = first successful Whop payment** of the cycle's deal. |
 | D4 | **Lost** and **Disqualified** are distinct, each with a closed list of reasons. |
 | D5 | Automatic loss after **30 days without a prospect reply and at least 4 contact attempts** (attempt definition DEFERRED). |
@@ -29,7 +29,7 @@
 | D10 | **Sales lead = Romain**: CRM escalations for Valentino go to Romain; Romain's go to Amin (existing lead rule). |
 | D11 | CRM data lives in dedicated relational tables prefixed `crm_` — a deliberate exception to the "everything in `docs`" convention (idempotency, real per-sales isolation, volume). |
 | D12 | CRM alerts are **new rules c1–c18 of the existing alert engine**, not a second alert system. |
-| D13 | **One place**: the CRM uses the existing Supabase project `skl-os` and the existing repository RomainSKL/skl-os. No separate dev project. Tests use test people only (Romain, a teammate) and the providers' own test modes (Whop sandbox); test rows are removed before go-live. Functions deploy from `main` only. (Romain, 24 October 2026) |
+| D13 | **One place**: the CRM uses the existing Supabase project `LNP` and the existing repository LNP-Business/LNP. No separate dev project. Tests use test people only (Romain, a teammate) and the providers' own test modes (Whop sandbox); test rows are removed before go-live. Functions deploy from `main` only. (Romain, 24 October 2026) |
 
 ## Deferred (configuration, decided later)
 
@@ -58,7 +58,7 @@
 | Q6 | Legal sign-off: recording notice, nurture messages, retention period | Phases 4 and 8 |
 | Q7 | **Vercel plan**: the Hobby plan is, as far as known, for personal non-commercial use. Check Vercel's terms for an internal company tool; upgrade if needed. | Before go-live |
 | Q8 | ~~Columns of `members`~~ — answered: `user_id`, `email`, `role` (admin/member/viewer); `crm_members.id` references `members(user_id)` | — |
-| Q9 | Region of the Supabase project `skl-os`: **ap-southeast-2 (Sydney)**, not EU (read through the Supabase connector, 24 Oct 2026). Open (Romain, 24 Oct 2026): the origin of the leads (US, EU or both) is not settled; nothing changes for now. Decide before real automated messaging (phase 7) and before go-live, with the matching rules (GDPR for the EU; recording consent and TCPA in the US) | Before go-live |
+| Q9 | Region of the Supabase project `LNP`: **ap-southeast-2 (Sydney)**, not EU (read through the Supabase connector, 24 Oct 2026). Open (Romain, 24 Oct 2026): the origin of the leads (US, EU or both) is not settled; nothing changes for now. Decide before real automated messaging (phase 7) and before go-live, with the matching rules (GDPR for the EU; recording consent and TCPA in the US) | Before go-live |
 | Q10 | Pending web settings from the functional spec §14 (Site URL, OTP expiry) — still to do by Romain in the Supabase dashboard of `skl-os` (`setup.md` checklist) | Phase 1 |
 
 ## Phase 0 — findings (branch `crm-0-capture`)
@@ -73,7 +73,7 @@
 | `created_at` | `timestamptz not null` | default `now()` |
 
 RLS on; members read the team (`members_read`), nobody writes from the browser (only `/api/team` with the service
-role). `my_role()` (security definer) returns the caller's role. The SKL member id (`amin`, `romain`, `sales`…) is
+role). `my_role()` (security definer) returns the caller's role. The LNP member id (`amin`, `romain`, `sales`…) is
 **not** in this table: it lives in the app (team list in `skl-os/store.js`, "You are" selector), so `crm_members.member_key` must be filled
 by hand or by the phase 1 import. `crm_members.id` references `members(user_id)` (pack v1.2), and deleting an account
 cascades from `auth.users` to `members`, then is blocked by `crm_members` (`on delete restrict`): deactivate CRM
@@ -152,7 +152,7 @@ comes from the iClosed history import (phase 2). The functional specification §
 
 ### Team mapping (who is who in the CRM)
 
-`crm_members` links an existing SKL OS account to its SKL member id. Today the project has **two accounts, both admins,
+`crm_members` links an existing LNP account to its LNP member id. Today the project has **two accounts, both admins,
 on stealthkairoslabs.com**; Valentino and Amin have no account yet, so they must be invited (Settings › Team access)
 before they can be linked. Then, for each person, an admin runs (SQL editor or through Claude):
 

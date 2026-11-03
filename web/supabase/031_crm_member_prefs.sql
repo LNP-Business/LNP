@@ -22,8 +22,8 @@ $$;
 create or replace function crm_set_pref(p_key text, p_value jsonb) returns jsonb
 language plpgsql security definer set search_path = public as $$
 begin
-  if auth.uid() is null then raise exception 'Sign in first' using errcode = '42501'; end if;
-  if octet_length(p_value::text) > 20000 then raise exception 'Setting too large' using errcode = '22023'; end if;
+  if auth.uid() is null then raise exception 'Connectez-vous d''abord' using errcode = '42501'; end if;
+  if octet_length(p_value::text) > 20000 then raise exception 'Réglage trop volumineux' using errcode = '22023'; end if;
   if p_value is null or p_value = 'null'::jsonb then
     delete from crm_member_prefs where user_id = auth.uid() and key = p_key;
   else

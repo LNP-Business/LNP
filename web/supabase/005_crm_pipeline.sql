@@ -1,4 +1,4 @@
--- SKL OS CRM — event pipeline (web/supabase/005_crm_pipeline.sql), after 004_crm_rpc.sql. Phase 2.
+-- LNP CRM — event pipeline (web/supabase/005_crm_pipeline.sql), after 004_crm_rpc.sql. Phase 2.
 -- process-inbox (Edge Function) maps each raw crm_webhook_log row into canonical items (docs/crm/04 §2) and hands them
 -- to crm_apply_items, which matches the person and the cycle (03), writes entities and events and recomputes the
 -- cycle, all in one transaction. crm_recompute_cycle is the projector (04 §3): a cycle's derived state is rebuilt
@@ -69,10 +69,10 @@ begin
   select * into last_call from crm_calls where cycle_id = p_cycle order by rank desc limit 1;
   nm := case
     when new_status <> 'active' then null
-    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Declare the call outcome', 'due_at', late.scheduled_end)
-    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Call R' || nxt.rank, 'due_at', nxt.scheduled_start)
-    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Rebook the call')
-    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Follow up') end;
+    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Déclarer l''issue de l''appel', 'due_at', late.scheduled_end)
+    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Appel R' || nxt.rank, 'due_at', nxt.scheduled_start)
+    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Reprendre un rendez-vous')
+    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Relancer') end;
 
   update crm_cycles set
     current_stage = prev_stage, stage_entered_at = prev_at,
@@ -93,7 +93,7 @@ language plpgsql security definer set search_path = public as $$
 declare c uuid; n int := 0;
 begin
   if auth.uid() is not null and coalesce(crm_role()::text, '') <> 'admin' then
-    raise exception 'Only an admin can recompute every cycle' using errcode = '42501';
+    raise exception 'Seul un administrateur peut recalculer tous les cycles' using errcode = '42501';
   end if;
   for c in select id from crm_cycles loop perform crm_recompute_cycle(c); n := n + 1; end loop;
   return n;
@@ -176,14 +176,14 @@ begin
     else
       if typ = 'call_canceled' then
         insert into crm_unmatched_inbox (inbox_id, source, reason, summary)
-        values (p_inbox, src, 'Cancellation of a call the CRM never saw', it#>>'{data,summary}');
+        values (p_inbox, src, 'Annulation d''un appel inconnu du CRM', it#>>'{data,summary}');
         if result <> 'processed' then result := 'unmatched'; end if;
         continue;
       end if;
       persons := crm_people_for(it->'identity');
       if array_length(persons, 1) > 1 then
         insert into crm_unmatched_inbox (inbox_id, source, reason, summary, candidate_person_ids)
-        values (p_inbox, src, 'Identifiers point to several people', it#>>'{data,summary}', persons);
+        values (p_inbox, src, 'Les identifiants désignent plusieurs personnes', it#>>'{data,summary}', persons);
         if result <> 'processed' then result := 'unmatched'; end if;
         continue;
       end if;

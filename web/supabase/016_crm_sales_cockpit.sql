@@ -1,4 +1,4 @@
--- SKL OS CRM — the Sales cockpit on live data (web/supabase/016_crm_sales_cockpit.sql), after 015.
+-- LNP CRM — the Sales cockpit on live data (web/supabase/016_crm_sales_cockpit.sql), after 015.
 -- Cockpit › Sales and Sales System › Cockpit drew the approved mock-up's sample figures. crm_sales_cockpit() computes every
 -- figure of that dashboard from the CRM, for the three periods of its switch (last 7, 30 and 56 days), each with its
 -- baseline = the same figure over the period just before (the 30 days before the last 30 days…). One call, read with the
@@ -74,7 +74,7 @@ begin
     v_periods := v_periods || jsonb_build_object(v_days::text, jsonb_build_object('now', v_cur, 'base', v_base));
     -- team: the same figures per cycle owner over the period
     v_rows := '[]';
-    for m in select c.owner_id, cm.member_key, coalesce(cm.full_name, 'Unassigned') as name
+    for m in select c.owner_id, cm.member_key, coalesce(cm.full_name, 'Non attribué') as name
                from crm_cycles c left join crm_members cm on cm.id = c.owner_id group by c.owner_id, cm.member_key, cm.full_name loop
       v_rows := v_rows || jsonb_build_array(jsonb_build_object('id', coalesce(m.member_key, 'none'), 'name', m.name,
         'figures', crm_sales_cockpit_window(now_ - make_interval(days => v_days), now_, m.owner_id, false)));
@@ -102,8 +102,8 @@ begin
       from crm_alerts al left join val v on v.id = al.cycle_id left join crm_members cm on cm.id = al.owner_id
       left join crm_people pe on pe.id = al.person_id where al.resolved_at is null
     union all
-    select 'next', coalesce(cm.member_key, 'none'), coalesce(v.v, 0), (c.next_move->>'label') || ' · overdue',
-           coalesce(pe.full_name, pe.primary_email, '') || ' · ' || initcap(coalesce(c.current_stage, '')), (c.next_move->>'due_at')::timestamptz
+    select 'next', coalesce(cm.member_key, 'none'), coalesce(v.v, 0), (c.next_move->>'label') || ' · en retard',
+           coalesce(pe.full_name, pe.primary_email, '') || ' · ' || coalesce((select sd.label from crm_stage_definitions sd where sd.key = c.current_stage), initcap(coalesce(c.current_stage, ''))), (c.next_move->>'due_at')::timestamptz
       from crm_cycles c join val v on v.id = c.id left join crm_members cm on cm.id = c.owner_id left join crm_people pe on pe.id = c.person_id
      where c.status = 'active' and c.next_move ? 'due_at' and (c.next_move->>'due_at')::timestamptz < now_
        and not exists (select 1 from crm_alerts al2 where al2.cycle_id = c.id and al2.resolved_at is null))

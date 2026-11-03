@@ -179,11 +179,11 @@ begin
   select * into last_call from crm_calls where cycle_id = p_cycle order by rank desc, coalesce(recording_start, scheduled_start) desc limit 1;
   nm := case
     when new_status <> 'active' then null
-    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Declare the call outcome', 'due_at', coalesce(late.recording_end, late.scheduled_end))
-    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Call R' || nxt.rank, 'due_at', nxt.scheduled_start)
-    when last_call.status::text = 'missed' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Plan a reschedule', 'missed', last_call.rank)
-    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Rebook the call')
-    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Follow up') end;
+    when late.id is not null then jsonb_build_object('who', 'sales', 'code', 'declare_outcome', 'label', 'Déclarer l''issue de l''appel', 'due_at', coalesce(late.recording_end, late.scheduled_end))
+    when nxt.id is not null then jsonb_build_object('who', 'prospect', 'code', 'attend_call', 'label', 'Appel R' || nxt.rank, 'due_at', nxt.scheduled_start)
+    when last_call.status::text = 'missed' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Replanifier l''appel', 'missed', last_call.rank)
+    when last_call.status = 'canceled' then jsonb_build_object('who', 'sales', 'code', 'rebook', 'label', 'Reprendre un rendez-vous')
+    else jsonb_build_object('who', 'sales', 'code', 'follow_up', 'label', 'Relancer') end;
 
   update crm_cycles set
     current_stage = prev_stage, stage_entered_at = prev_at,

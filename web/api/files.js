@@ -13,13 +13,13 @@ export async function ensureBucket(sb) {
 const safe = n => String(n || "file").normalize("NFKD").replace(/[^\w.\- ]+/g, "").replace(/\s+/g, "-").slice(-120) || "file";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return send(res, 405, { error: "Method not allowed." });
+  if (req.method !== "POST") return send(res, 405, { error: "Méthode non autorisée." });
   const sb = admin();
   const me = await caller(req, sb);
-  if (!me || !me.role) return send(res, 401, { error: "Sign in first." });
+  if (!me || !me.role) return send(res, 401, { error: "Connectez-vous d’abord." });
   const b = await readJson(req);
   if (b.action === "upload") {
-    if (me.role !== "admin" && me.role !== "member") return send(res, 403, { error: "Read-only access: files cannot be added." });
+    if (me.role !== "admin" && me.role !== "member") return send(res, 403, { error: "Accès en lecture seule : impossible d’ajouter des fichiers." });
     const e = await ensureBucket(sb); if (e) return send(res, 500, { error: e.message });
     const d = new Date().toISOString().slice(0, 10);
     const path = d.slice(0, 7) + "/" + d + "-" + Math.random().toString(36).slice(2, 10) + "-" + safe(b.name);
@@ -29,11 +29,11 @@ export default async function handler(req, res) {
   }
   if (b.action === "url") {
     const path = String(b.path || "");
-    if (!path || path.includes("..")) return send(res, 400, { error: "Unknown file." });
+    if (!path || path.includes("..")) return send(res, 400, { error: "Fichier inconnu." });
     const opts = b.download ? { download: String(b.download) } : undefined;
     const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, 600, opts);
-    if (error) return send(res, 404, { error: "This file is no longer available." });
+    if (error) return send(res, 404, { error: "Ce fichier n’est plus disponible." });
     return send(res, 200, { url: data.signedUrl });
   }
-  return send(res, 400, { error: "Unknown action." });
+  return send(res, 400, { error: "Action inconnue." });
 }

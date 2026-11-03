@@ -1,4 +1,4 @@
--- SKL OS CRM — call analysis on the board (web/supabase/021_crm_call_analysis_board.sql), after 020.
+-- LNP CRM — call analysis on the board (web/supabase/021_crm_call_analysis_board.sql), after 020.
 -- crm_ca_board(): one row per past R1 / R2 sales call the caller may analyse (CRM admins: every call; a sales rep: the calls
 -- of his own cycles; others: none), with the state of its latest analysis. The CRM pipeline, the lead list and Sales cycle
 -- read it once per load to show a chip per lead ("Add transcript", "Analysing…", the four scores) and open the analysis.

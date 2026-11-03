@@ -615,7 +615,6 @@ div.cx-k{cursor:default}
     <div class="side-foot">
       <div class="me">RN</div>
       <div><div class="who">Romain N.</div><div class="rl" data-t="role_admin"></div></div>
-      <button class="langpill" data-act="goto" data-v="settings" id="langPill" aria-label="Language"></button>
     </div>
   </aside>
 
@@ -659,63 +658,63 @@ div.cx-k{cursor:default}
 /* ============ I18N ============ */
 const DICT = {
 fr:{
- brand_tag:"Pilotage revenu", role_admin:"Admin · CRO",
+ brand_tag:"Pilotage revenu", role_admin:"Administrateur · direction",
  nav_dash:"Tableau de bord", nav_crm:"CRM", nav_alerts:"Alertes", nav_settings:"Paramètres",
  crumb_admin:"Vue <b>Admin</b>",
- dash_title:"Pilotage campagne", dash_sub:"{n} sales · synchro Fathom il y a 6 min",
+ dash_title:"Pilotage campagne", dash_sub:"{n} commerciaux · synchro Fathom il y a 6 min",
  camp_all:"Vision globale", p7:"7 j", p30:"30 j", p56:"8 sem.",
- gate_label:"Gate parité", gate_pass:"PASS", gate_fail:"FAIL", gate_na:"NON ÉVALUABLE",
- gate_pass_d:"Les 6 critères sont au niveau de la baseline ou au-dessus.",
- gate_fail_d:"{n} critère(s) sous la baseline : {list}.",
+ gate_label:"Contrôle de parité", gate_pass:"VALIDÉ", gate_fail:"ÉCHEC", gate_na:"NON ÉVALUABLE",
+ gate_pass_d:"Les 6 critères sont au niveau de la référence ou au-dessus.",
+ gate_fail_d:"{n} critère(s) sous la référence : {list}.",
  gate_na_d:"Moins de 15 appels sur la fenêtre : le verdict n’est pas calculé.",
  gate_note:"Le verdict de la mission. Il ne se moyenne pas avec le reste.",
- k_sales:"Ventes conclues", k_cash:"Cash encaissé", k_cpc:"CA / appel", k_show:"Show rate", k_refund:"Remboursements", k_aov:"Panier moyen",
- of_base:"{p} baseline", base:"Baseline {v}", inverse:"plus bas = mieux", weeks8:"8 semaines",
- funnel_ey:"Du lead au cash", funnel_t:"Funnel de conversion",
- f_leads:"Leads reçus", f_booked:"RDV pris", f_held:"RDV honorés", f_won:"Ventes", f_cash:"Cash encaissé",
- sec_ey:"Ce qui explique le cash", sec_t:"Indicateurs secondaires",
- s_close:"Close rate présentés", s_close_d:"ventes ÷ RDV honorés",
- s_upfront:"Cash upfront", s_upfront_d:"comptant ÷ CA signé",
+ k_sales:"Ventes conclues", k_cash:"Montant encaissé", k_cpc:"CA / appel", k_show:"Taux de présence", k_refund:"Remboursements", k_aov:"Panier moyen",
+ of_base:"{p} de la référence", base:"Référence {v}", inverse:"plus bas = mieux", weeks8:"8 semaines",
+ funnel_ey:"Du prospect à l’encaissement", funnel_t:"Entonnoir de conversion",
+ f_leads:"Prospects reçus", f_booked:"RDV pris", f_held:"RDV honorés", f_won:"Ventes", f_cash:"Montant encaissé",
+ sec_ey:"Ce qui explique l’encaissé", sec_t:"Indicateurs secondaires",
+ s_close:"Taux de conversion (RDV honorés)", s_close_d:"ventes ÷ RDV honorés",
+ s_upfront:"Encaissé à la signature", s_upfront_d:"payé à la signature ÷ CA signé",
  s_follow:"Relance < 24 h", s_follow_d:"non-conclus relancés sous 24 h",
  s_pond:"Pipeline pondéré", s_pond_d:"probabilité observée par étape",
- s_proj:"Projection cash 30 j", s_proj_d:"pondéré × upfront observé",
+ s_proj:"Projection d’encaissement 30 j", s_proj_d:"pondéré × part payée à la signature observée",
  s_velo:"Vitesse pipeline", s_velo_d:"durée médiane par étape",
  days:"{n} j",
- team_ey:"Le cash d’abord, le reste explique", team_t:"Équipe sales", team_hint:"Cliquer une ligne ouvre son pipeline",
- th_sales:"Sales", th_calls:"Appels", th_won:"Ventes", th_close:"Close", th_cpc:"CA/appel", th_cash:"Cash", th_show:"Show", th_alerts:"Alertes",
+ team_ey:"L’encaissé d’abord, le reste l’explique", team_t:"Équipe commerciale", team_hint:"Cliquer une ligne ouvre son pipeline",
+ th_sales:"Commercial", th_calls:"Appels", th_won:"Ventes", th_close:"Conversion", th_cpc:"CA/appel", th_cash:"Encaissé", th_show:"Présence", th_alerts:"Alertes",
  dal_ey:"À traiter maintenant", dal_t:"Alertes actives", see_all:"Voir toutes les alertes →",
- crm_title:"Pipeline CRM", crm_sub:"{n} deals ouverts · probabilités observées, jamais déclarées",
- crm_brut:"Pipeline brut", crm_pond:"Pipeline pondéré", crm_signed:"Signé non encaissé", crm_rot:"Deals qui stagnent",
- crm_brut_d:"somme des montants ouverts", crm_pond_d:"montant × conversion observée", crm_signed_d:"deals closés, cash à venir", crm_rot_d:"> 7 j dans la même étape",
- search_ph:"Rechercher un prospect…", owner_all:"Tous les sales",
- f_all:"Tous", f_nowarm:"Sans warming", f_aged:"Stagnent", f_nonext:"Sans étape datée",
- show_closed:"Afficher perdus et disqualifiés", new_deal:"+ Nouveau deal",
- st_acquisition:"Acquisition", st_warming:"Warming", st_entretien:"Entretien", st_suivi:"Suivi", st_won:"Closé", st_cash:"Encaissé", st_lost:"Perdu", st_disq:"Disqualifié",
- prob:"conv. {p}", fl_nowarm:"sans warming", fl_aged:"{n} j dans l’étape", fl_nonext:"aucune étape datée",
- empty_col:"Aucun deal",
- d_prospect:"Prospect", d_owner:"Sales", d_stage:"Étape", d_amount:"Montant (€)", d_source:"Source", d_next:"Prochaine action", d_next_date:"Date", d_loss:"Motif de perte", d_warm:"Warming loggé (J-1 + Jour J)",
- d_hist:"Historique", d_save:"Enregistrer", d_cancel:"Annuler", d_new:"Nouveau deal", d_alerts:"Alertes liées",
- d_none:"— aucune —", d_prob:"Probabilité observée de l’étape : {p}. Elle n’est jamais saisie par le sales.",
- err_amount:"Saisis le montant signé pour passer ce deal en Closé.",
- err_loss:"Choisis un motif de perte. Une perte n’est pas une disqualification.",
+ crm_title:"Pipeline CRM", crm_sub:"{n} ventes en cours · probabilités observées, jamais déclarées",
+ crm_brut:"Pipeline brut", crm_pond:"Pipeline pondéré", crm_signed:"Signé non encaissé", crm_rot:"Ventes qui stagnent",
+ crm_brut_d:"somme des montants ouverts", crm_pond_d:"montant × conversion observée", crm_signed_d:"ventes gagnées, encaissement à venir", crm_rot_d:"> 7 j dans la même étape",
+ search_ph:"Rechercher un prospect…", owner_all:"Tous les commerciaux",
+ f_all:"Tous", f_nowarm:"Sans mise en condition", f_aged:"Stagnent", f_nonext:"Sans étape datée",
+ show_closed:"Afficher perdus et disqualifiés", new_deal:"+ Nouvelle vente",
+ st_acquisition:"Acquisition", st_warming:"Mise en condition", st_entretien:"Entretien", st_suivi:"Suivi", st_won:"Gagné", st_cash:"Encaissé", st_lost:"Perdu", st_disq:"Disqualifié",
+ prob:"conv. {p}", fl_nowarm:"sans mise en condition", fl_aged:"{n} j dans l’étape", fl_nonext:"aucune étape datée",
+ empty_col:"Aucune vente",
+ d_prospect:"Prospect", d_owner:"Commercial", d_stage:"Étape", d_amount:"Montant (€)", d_source:"Source", d_next:"Prochaine action", d_next_date:"Date", d_loss:"Motif de perte", d_warm:"Mise en condition notée (J-1 + Jour J)",
+ d_hist:"Historique", d_save:"Enregistrer", d_cancel:"Annuler", d_new:"Nouvelle vente", d_alerts:"Alertes liées",
+ d_none:"— aucune —", d_prob:"Probabilité observée de l’étape : {p}. Elle n’est jamais saisie par le commercial.",
+ err_amount:"Saisissez le montant signé pour passer cette vente en Gagné.",
+ err_loss:"Choisissez un motif de perte. Une perte n’est pas une disqualification.",
  err_name:"Indique le nom du prospect.",
- toast_saved:"Deal enregistré", toast_created:"Deal créé",
- loss_price:"Prix", loss_timing:"Timing", loss_trust:"Confiance", loss_comp:"Concurrent",
+ toast_saved:"Vente enregistrée", toast_created:"Vente créée",
+ loss_price:"Prix", loss_timing:"Pas le bon moment", loss_trust:"Confiance", loss_comp:"Concurrent",
  src_meta:"Publicité Meta", src_yt:"YouTube", src_org:"Organique", src_ref:"Parrainage",
- al_title:"Alertes", al_sub:"Chaque alerte a un propriétaire, un délai, une preuve de clôture et un coût cash.",
+ al_title:"Alertes", al_sub:"Chaque alerte a un propriétaire, un délai, une preuve de clôture et un coût en encaissement.",
  fresh:"Dernier balayage il y a 4 min",
  c_active:"À traiter", c_queue:"En file", c_deferred:"Différées", c_escal:"Escaladées", c_closed:"Fermées aujourd’hui",
  group_by:"Regrouper par", ax_decision:"Décision", ax_person:"Personne", ax_lever:"Levier",
- g_now:"Maintenant", g_1on1:"En 1:1", g_escalate:"À escalader", g_waiting:"En attente",
- lv_cash:"Cash", lv_process:"Process", lv_coaching:"Coaching",
+ g_now:"Maintenant", g_1on1:"En tête-à-tête", g_escalate:"À escalader", g_waiting:"En attente",
+ lv_cash:"Encaissement", lv_process:"Processus", lv_coaching:"Coaching",
  due_in:"notifie {who} dans {h} h", deferred_to:"différée au {d}", queued_rank:"en file · rang {n}",
  est:"estimé", occ:"{n}e occurrence ce mois", queue_note:"Plafond de 3 alertes actives par personne. Les suivantes attendent en file avec leur rang et leur antériorité.",
- defer:"Reporter 3 j", open_deal:"Ouvrir le deal",
+ defer:"Reporter 3 j", open_deal:"Ouvrir la vente",
  green_t:"Rien à traiter.", green_1:"Toutes les sources de données sont à jour", green_2:"Aucun fait déclencheur sur la fenêtre", green_3:"Aucune alerte en file", green_4:"Aucune escalade en cours",
  closed_t:"Fermées aujourd’hui", closed_by:"fermée · preuve : {p}",
  m_why:"Pourquoi cette alerte s’est activée", m_vals:"Valeurs de déclenchement", m_excl:"Ce qui ressemble au fait sans compter", m_log:"Journal", m_proof:"Preuve qui la ferme", m_owner:"Propriétaire",
  why_1:"L’objet est entré dans le périmètre après la mise en service de la règle {c}.", why_3:"Le délai stipulé est écoulé sans le geste attendu.", why_4:"Les exclusions dures ont été vérifiées : aucune ne s’applique.",
- log_created:"Création", log_notified:"Notification au propriétaire", log_escalated:"Escalade vers le CRO",
+ log_created:"Création", log_notified:"Notification au propriétaire", log_escalated:"Escalade vers la direction",
  toast_closed:"Alerte fermée · preuve enregistrée", toast_deferred:"Alerte reportée au {d}",
  set_title:"Paramètres", set_sub:"Préférences de l’espace ALKIMIY Lite",
  set_lang:"Langue de l’interface", set_lang_d:"S’applique à tous les écrans, aux montants et aux dates. Changement immédiat.",
@@ -723,14 +722,14 @@ fr:{
  set_disp:"Affichage", set_period:"Période par défaut du tableau de bord", set_period_d:"Fenêtre de calcul à l’ouverture",
  set_camp:"Campagne par défaut", set_camp_d:"Sélection à l’ouverture du tableau de bord et du CRM",
  set_notif:"Notifications",
- n_digest:"Récap quotidien par e-mail", n_digest_d:"Chaque matin à 8 h : alertes ouvertes et cash de la veille",
- n_push:"Notifier les sales en temps réel", n_push_d:"Alertes de niveau Deal et pipeline",
- n_monday:"Revue campagne du lundi", n_monday_d:"Gate parité et funnel envoyés au CRO",
+ n_digest:"Récap quotidien par e-mail", n_digest_d:"Chaque matin à 8 h : alertes ouvertes et encaissements de la veille",
+ n_push:"Notifier les commerciaux en temps réel", n_push_d:"Alertes de niveau vente et pipeline",
+ n_monday:"Revue campagne du lundi", n_monday_d:"Contrôle de parité et entonnoir envoyés à la direction",
  n_escal:"M’avertir à chaque escalade", n_escal_d:"Quand une alerte dépasse son délai",
  set_rules:"Règles d’alerte", set_rules_d:"Activer une règle est une décision : elle ne voit que ce qui arrive après sa mise en service.",
  locked:"Seuil à calibrer : activation verrouillée",
  set_team:"Équipe", set_team_d:"Identité par e-mail, jamais par nom.",
- role_sales:"Sales", role_hos:"Head of Sales", role_cro:"CRO · Admin",
+ role_sales:"Commercial", role_hos:"Directeur commercial", role_cro:"Direction · administrateur",
  toast_set:"Paramètres enregistrés", toast_lang:"Interface en français",
  rule_on:"Règle {c} activée", rule_off:"Règle {c} désactivée"
 },
@@ -813,55 +812,55 @@ en:{
 
 Object.assign(DICT.fr,{
  cy_add:"Ajouter une étape", cy_edit:"Modifier l’étape", cy_stage:"Étape", cy_note:"Commentaire", cy_note_ph:"Ex. décision attendue avec l’associé", cy_delete:"Supprimer",
- cy_saved:"Cycle de vente mis à jour", cy_deleted:"Étape supprimée", cy_err_date:"Choisis une date pour cette étape.",
- cy_sofar:"depuis l’entrée du lead", cy_proj:"décision projetée le", cy_total:"de cycle projeté", cy_ended:"cycle terminé · {s}", cy_today:"Aujourd’hui",
+ cy_saved:"Cycle de vente mis à jour", cy_deleted:"Étape supprimée", cy_err_date:"Choisissez une date pour cette étape.",
+ cy_sofar:"depuis l’arrivée du prospect", cy_proj:"décision projetée le", cy_total:"de cycle projeté", cy_ended:"cycle terminé · {s}", cy_today:"Aujourd’hui",
  cy_projected:"projetée", cy_planned:"planifiée", cx_src_manual:"saisie manuelle", cx_src_proj:"projection",
- cx_noan_ns:"Le {r} n’a pas eu lieu : le prospect ne s’est pas présenté (no-show ×{n}). L’analyse apparaîtra dès qu’un appel aura été tenu et son transcript ajouté.", cx_noan_nocall:"Aucun appel n’a encore eu lieu avec ce prospect. L’analyse apparaîtra après le R1.",
+ cx_noan_ns:"Le {r} n’a pas eu lieu : le prospect ne s’est pas présenté (absence ×{n}). L’analyse apparaîtra dès qu’un appel aura été honoré et sa transcription ajoutée.", cx_noan_nocall:"Aucun appel n’a encore eu lieu avec ce prospect. L’analyse apparaîtra après le R1.",
  cx_inv:"Facturé", cx_col:"Encaissé", cx_signed:"Signé", cx_pay_t:"Facturation et encaissement", cx_pay_edit:"Mettre à jour",
- cx_pay_d:"Saisis le montant facturé et le montant réellement encaissé sur ce deal.", cx_err_col:"L’encaissé ne peut pas dépasser le facturé.", cx_err_inv:"Le facturé ne peut pas dépasser le montant signé.",
+ cx_pay_d:"Saisissez le montant facturé et le montant réellement encaissé sur cette vente.", cx_err_col:"L’encaissé ne peut pas dépasser le facturé.", cx_err_inv:"Le facturé ne peut pas dépasser le montant signé.",
  cx_pay_saved:"Facturé et encaissé mis à jour", cx_left:"reste {v} à encaisser", cx_inv_left:"reste {v} à facturer", cx_paid:"Entièrement encaissé",
  cx_tot_pay:"facturé {i} · encaissé {c}", cx_pay_evt:"Facturé / encaissé mis à jour",
- cx_col_r1:"R1", cx_col_r2:"R2", cx_col_r3:"R3+", cx_sub_counts:"{a} planifié(s) · {b} réalisé(s)", cx_moved_r:"Lead passé en {r} · RDV planifié",
- st_nouveau:"Nouveau", st_planifie:"RDV planifié", st_noshow:"No-show", st_realise:"RDV réalisé", st_close:"Closé", st_perdu:"Perdu", st_disq:"Disqualifié",
- cx_title:"Prospects", cx_sub_pipe:"Glissez-déposez les cartes pour changer l’étape d’un lead — les colonnes R1, R2 et R3+ regroupent les RDV planifiés et réalisés de chaque tour", cx_sub_leads:"Tous les prospects synchronisés — filtrables par sale rep et statut",
- cx_k_noissue:"RDV sans issue déclarée", cx_k_noissue_s:"issue à déclarer — cliquer pour voir les leads",
- cx_k_noissue_i:"Dette de saisie : RDV planifiés dont l’heure est passée et dont personne n’a déclaré l’issue (réalisé, no-show…). Tant qu’elle n’est pas déclarée, le lead est figé et le reste du pipeline ment. Cliquer filtre le kanban sur ces leads.",
- cx_k_noshow:"No-shows à relancer", cx_k_noshow_d:"{n} à relancer maintenant", cx_k_noshow_s:"no-show ouverts — cliquer pour voir les leads",
- cx_k_noshow_i:"No-shows ouverts : prospects qui ne se sont pas présentés et qu’il faut relancer. Relance en deux temps (question souple après 24 h, ferme après 72 h). Cliquer filtre le kanban.",
- cx_k_dur:"Durées de vente", cx_k_dur1:"RDV réalisé → décision", cx_k_dur2:"Cycle complet (lead → closé)", cx_k_dur_s:"médianes — ventes gagnées datées",
- cx_k_dur_i:"Vitesse de vente : médiane des jours entre le RDV réalisé et la décision, et médiane du cycle complet (création du lead → closé), sur les ventes gagnées datées. Publiée à partir de 3 ventes.",
- cx_k_r2:"Leads en 2ᵉ tour et plus", cx_k_r2_s:"leads vivants, cycle R2 ou au-delà",
- cx_k_r2_i:"Leads vivants (nouveau, RDV planifié, RDV réalisé) qui en sont au 2ᵉ appel ou plus — closés, perdus et disqualifiés exclus. Un volume élevé signifie que la décision ne se prend pas au premier rendez-vous.",
- cx_k_rot:"Deals qui pourrissent", cx_k_rot_s:"niveau de vélocité rouge — mêmes seuils que les badges",
- cx_k_rot_i:"Leads qui stagnent trop longtemps dans une étape vivante (nouveau, RDV planifié) : niveau de vélocité rouge, mêmes seuils que les badges des cartes. « Ancienneté inconnue » n’est jamais compté rouge par défaut.",
+ cx_col_r1:"R1", cx_col_r2:"R2", cx_col_r3:"R3+", cx_sub_counts:"{a} planifié(s) · {b} honoré(s)", cx_moved_r:"Prospect passé en {r} · RDV planifié",
+ st_nouveau:"Nouveau", st_planifie:"RDV planifié", st_noshow:"Absent", st_realise:"RDV honoré", st_close:"Gagné", st_perdu:"Perdu", st_disq:"Disqualifié",
+ cx_title:"Prospects", cx_sub_pipe:"Glissez-déposez les cartes pour changer l’étape d’un prospect — les colonnes R1, R2 et R3+ regroupent les RDV planifiés et honorés de chaque tour", cx_sub_leads:"Tous les prospects synchronisés — filtrables par commercial et statut",
+ cx_k_noissue:"RDV sans issue déclarée", cx_k_noissue_s:"issue à déclarer — cliquer pour voir les prospects",
+ cx_k_noissue_i:"Dette de saisie : RDV planifiés dont l’heure est passée et dont personne n’a déclaré l’issue (honoré, absent…). Tant qu’elle n’est pas déclarée, le prospect est figé et le reste du pipeline est faux. Cliquer filtre le tableau sur ces prospects.",
+ cx_k_noshow:"Absents à relancer", cx_k_noshow_d:"{n} à relancer maintenant", cx_k_noshow_s:"absences ouvertes — cliquer pour voir les prospects",
+ cx_k_noshow_i:"Absences ouvertes : prospects qui ne se sont pas présentés et qu’il faut relancer. Relance en deux temps (question souple après 24 h, ferme après 72 h). Cliquer filtre le tableau.",
+ cx_k_dur:"Durées de vente", cx_k_dur1:"RDV honoré → décision", cx_k_dur2:"Cycle complet (prospect → gagné)", cx_k_dur_s:"médianes — ventes gagnées datées",
+ cx_k_dur_i:"Vitesse de vente : médiane des jours entre le RDV honoré et la décision, et médiane du cycle complet (arrivée du prospect → gagné), sur les ventes gagnées datées. Publiée à partir de 3 ventes.",
+ cx_k_r2:"Prospects en 2ᵉ tour et plus", cx_k_r2_s:"prospects en cours, cycle R2 ou au-delà",
+ cx_k_r2_i:"Prospects en cours (nouveau, RDV planifié, RDV honoré) qui en sont au 2ᵉ appel ou plus — gagnés, perdus et disqualifiés exclus. Un volume élevé signifie que la décision ne se prend pas au premier rendez-vous.",
+ cx_k_rot:"Ventes qui stagnent", cx_k_rot_s:"niveau de vitesse rouge — mêmes seuils que les pastilles",
+ cx_k_rot_i:"Prospects qui stagnent trop longtemps dans une étape en cours (nouveau, RDV planifié) : niveau de vitesse rouge, mêmes seuils que les pastilles des cartes. « Ancienneté inconnue » n’est jamais comptée rouge par défaut.",
  cx_unknown:"· {n} à l’ancienneté inconnue",
- cx_search:"Rechercher prospect, email, sale rep, produit…", cx_all_reps:"Tous les sale reps", cx_all_acts:"Toutes les prochaines actions",
- cx_count:"{n} / {tot} leads", cx_afficher:"Afficher", cx_show_rep:"Sale rep", cx_show_nx:"Prochaine action", cx_show_prod:"Produit", cx_show_amt:"Montant",
+ cx_search:"Rechercher un prospect, un e-mail, un commercial, un produit…", cx_all_reps:"Tous les commerciaux", cx_all_acts:"Toutes les prochaines actions",
+ cx_count:"{n} / {tot} prospects", cx_afficher:"Afficher", cx_show_rep:"Commercial", cx_show_nx:"Prochaine action", cx_show_prod:"Produit", cx_show_amt:"Montant",
  cx_age:"{n} j", cx_age_u:"ancienneté inconnue", cx_tent:"tentative {n}/3", cx_rel:"relance {n}/3", cx_ago:" · il y a {n} j",
- cx_missed:"RDV manqué", cx_plan:"Planifier…", cx_nowarm:"Aucun warming loggé", cx_jj_pending:"Jour J en attente",
- cx_warming:"Warming", cx_j3:"J-3", cx_j1:"J-1", cx_jj:"Jour J",
- cx_ns_back:"Contact repris sans RDV", cx_ns_lost:"Déclarer perdu", cx_empty:"Aucun lead",
- cx_today:"aujourd’hui", cx_tomorrow:"demain", cx_open:"Ouvrir la fiche lead", cx_markdone:"Marquer comme fait", cx_nx_clear:"Retirer l’action",
- cx_attach:"Rattacher les reps", cx_newlead:"Nouveau lead",
- cx_all_st:"Tous les status", cx_tr_all:"Transcript dispo : tous", cx_tr_yes:"Transcript dispo : oui", cx_tr_no:"Transcript dispo : non",
- cx_views:"Vues", cx_cols:"Colonnes", cx_export:"Export CSV", cx_selall:"Tout sélectionner",
- cx_th_p:"Prospect", cx_th_rep:"Sale rep", cx_th_tr:"Transcript dispo", cx_th_rdv:"Prochain RDV", cx_th_prix:"Prix proposé", cx_th_tour:"Tour", cx_th_st:"Status", cx_th_nx:"Prochaine action",
+ cx_missed:"RDV manqué", cx_plan:"Planifier…", cx_nowarm:"Aucune mise en condition notée", cx_jj_pending:"Jour J en attente",
+ cx_warming:"Mise en condition", cx_j3:"J-3", cx_j1:"J-1", cx_jj:"Jour J",
+ cx_ns_back:"Contact repris sans RDV", cx_ns_lost:"Déclarer perdu", cx_empty:"Aucun prospect",
+ cx_today:"aujourd’hui", cx_tomorrow:"demain", cx_open:"Ouvrir la fiche prospect", cx_markdone:"Marquer comme fait", cx_nx_clear:"Retirer l’action",
+ cx_attach:"Rattacher les commerciaux", cx_newlead:"Nouveau prospect",
+ cx_all_st:"Tous les statuts", cx_tr_all:"Transcription : toutes", cx_tr_yes:"Transcription : disponible", cx_tr_no:"Transcription : absente",
+ cx_views:"Vues", cx_cols:"Colonnes", cx_export:"Exporter en CSV", cx_selall:"Tout sélectionner",
+ cx_th_p:"Prospect", cx_th_rep:"Commercial", cx_th_tr:"Transcription", cx_th_rdv:"Prochain RDV", cx_th_prix:"Prix proposé", cx_th_tour:"Tour", cx_th_st:"Statut", cx_th_nx:"Prochaine action",
  cx_tr_notyet:"Pas encore", cx_tr_none:"Aucune",
  cx_status:"Statut", cx_change_st:"Changer le statut", cx_call:"{n} appel", cx_calls:"{n} appels", cx_upcoming:"à venir", cx_past:"passé", cx_close:"Fermer",
- cx_tab_an:"Analyse Prospect", cx_tab_next:"Prochain appel", cx_rdvhist:"Rendez-vous et historique", cx_add_tr:"Ajouter le transcript",
- cx_noan_t:"Aucune analyse disponible", cx_noan_d:"Ajoutez le transcript de l’appel pour lancer l’analyse. Aucune conclusion n’est affichée sans éléments exploitables.",
+ cx_tab_an:"Analyse du prospect", cx_tab_next:"Prochain appel", cx_rdvhist:"Rendez-vous et historique", cx_add_tr:"Ajouter la transcription",
+ cx_noan_t:"Aucune analyse disponible", cx_noan_d:"Ajoutez la transcription de l’appel pour lancer l’analyse. Aucune conclusion n’est affichée sans éléments exploitables.",
  cx_nonext:"Aucun appel n’a encore été analysé pour ce prospect.", cx_example:"exemple",
  cx_an_t:"Analyse du {r}", cx_an_pain:"Douleur exprimée", cx_an_stake:"Enjeu chiffré", cx_an_obj:"Objection principale", cx_an_dec:"Niveau de décision", cx_nx_t:"Préparer le R{n}",
  cx_rdv_late:"Rendez-vous dépassé", cx_late:"Dépassé", cx_rdv_next:"Prochain rendez-vous", cx_tour:"Tour {n}", cx_rdv_q:"Que s’est-il passé ? Déclarez l’issue de ce rendez-vous.",
- cx_held:"RDV tenu", cx_absent:"Pas présenté", cx_cycle:"Cycle de vente", cx_action:"Action",
- cx_src_bookings:"moteur bookings", cx_src_import:"import", cx_src_sales:"sales",
- cx_note:"Note sales", cx_note_edit:"Modifier la note", cx_note_empty:"Aucune note. Cliquez sur le crayon pour en ajouter une.", cx_note_save:"Enregistrer",
- cx_amount_t:"Montant signé", cx_amount_d:"Obligatoire pour passer le lead en Closé.", cx_reason_t:"Motif",
- cx_reason_perdu:"Pourquoi ce lead est-il perdu ? Une perte n’est pas une disqualification.", cx_reason_disq:"Pourquoi ce lead est-il disqualifié ?", cx_confirm:"Valider",
- cx_nl_name:"Nom du prospect", cx_nl_email:"E-mail", cx_nl_rep:"Sale rep", cx_nl_prod:"Produit", cx_nl_rdv:"Date du RDV (optionnel)", cx_nl_time:"Heure", cx_err_email:"Indique un e-mail valide.",
- cx_moved:"Lead passé en {s}", cx_done:"Action marquée comme faite", cx_nx_set:"Prochaine action : {a}", cx_tr_added:"Transcript ajouté · analyse en cours",
- cx_reps_done:"Reps rattachés par e-mail · aucun lead orphelin", cx_mock:"Disponible dans l’application — inactif dans la maquette", cx_created:"Lead créé", cx_note_saved:"Note enregistrée", cx_back:"Lead repassé en Nouveau",
- err_amount:"Saisis le montant signé pour passer ce lead en Closé.", open_deal:"Ouvrir la fiche lead"
+ cx_held:"RDV honoré", cx_absent:"Absent", cx_cycle:"Cycle de vente", cx_action:"Action",
+ cx_src_bookings:"prise de RDV", cx_src_import:"import", cx_src_sales:"commercial",
+ cx_note:"Note du commercial", cx_note_edit:"Modifier la note", cx_note_empty:"Aucune note. Cliquez sur le crayon pour en ajouter une.", cx_note_save:"Enregistrer",
+ cx_amount_t:"Montant signé", cx_amount_d:"Obligatoire pour passer le prospect en Gagné.", cx_reason_t:"Motif",
+ cx_reason_perdu:"Pourquoi ce prospect est-il perdu ? Une perte n’est pas une disqualification.", cx_reason_disq:"Pourquoi ce prospect est-il disqualifié ?", cx_confirm:"Valider",
+ cx_nl_name:"Nom du prospect", cx_nl_email:"E-mail", cx_nl_rep:"Commercial", cx_nl_prod:"Produit", cx_nl_rdv:"Date du RDV (facultatif)", cx_nl_time:"Heure", cx_err_email:"Indiquez un e-mail valide.",
+ cx_moved:"Prospect passé en {s}", cx_done:"Action marquée comme faite", cx_nx_set:"Prochaine action : {a}", cx_tr_added:"Transcription ajoutée · analyse en cours",
+ cx_reps_done:"Commerciaux rattachés par e-mail · aucun prospect orphelin", cx_mock:"Disponible dans l’application — inactif dans la maquette", cx_created:"Prospect créé", cx_note_saved:"Note enregistrée", cx_back:"Prospect repassé en Nouveau",
+ err_amount:"Saisissez le montant signé pour passer ce prospect en Gagné.", open_deal:"Ouvrir la fiche prospect"
 });
 Object.assign(DICT.en,{
  cy_add:"Add a step", cy_edit:"Edit step", cy_stage:"Stage", cy_note:"Comment", cy_note_ph:"E.g. decision expected with the partner", cy_delete:"Delete",
@@ -920,7 +919,7 @@ Object.assign(DICT.en,{
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const S = {
-  lang: lsGet("alk_lang_v2")==="fr"?"fr":"en",
+  lang:"fr",  /* LNP: French only (Romain 2026-11-03) */
   view:"dash", camp:"all", period:30,
   cx:{an:{open:null,fam:null,obj:null,om:null},anTr:"all",tab:"pipeline",q:"",owner:"all",act:"all",quick:null,show:{rep:true,nx:true,prod:true,amt:true},lst:"all",ltr:"all",sort:null,dir:1,cols:{rep:true,tr:true,rdv:true,prix:true,inv:true,col:true,tour:true,st:true,nx:true},sel:new Set(),lead:null,mini:null},
   axis:"decision",
@@ -958,10 +957,10 @@ const PF={7:.24,30:1,56:1.85};
 const STG=["nouveau","planifie","noshow","realise","close","perdu","disq"];
 const STC={nouveau:"#B7B2A6",planifie:"#C9A04A",noshow:"#7A4B00",realise:"#B45309",close:"#2E7D4F",perdu:"#B42318",disq:"#5E5B53"};
 const ALIVE=["nouveau","planifie","realise"];
-const ACT={call:{fr:"Appeler",en:"Call"},calendly:{fr:"Booker un RDV (Calendly)",en:"Book a call (Calendly)"},relance:{fr:"Relancer",en:"Follow up"},warm_j1:{fr:"Warming J-1",en:"D-1 warming"},warm_jj:{fr:"Warming Jour J",en:"Day-of warming"},prep:{fr:"Envoyer la préparation",en:"Send prep material"},resched:{fr:"Replanifier le RDV",en:"Reschedule the call"},reprise:{fr:"Reprise de contact",en:"Re-engage"},proposal:{fr:"Envoyer la proposition",en:"Send the proposal"},next_rdv:{fr:"Booker le RDV suivant",en:"Book the next call"},objection:{fr:"Traiter une objection",en:"Handle an objection"},alt:{fr:"Proposer une alternative",en:"Offer an alternative"},nurturing:{fr:"Mettre en nurturing",en:"Move to nurturing"},cash:{fr:"Suivre l’encaissement",en:"Track the payment"}};
+const ACT={call:{fr:"Appeler",en:"Call"},calendly:{fr:"Prendre un RDV (Calendly)",en:"Book a call (Calendly)"},relance:{fr:"Relancer",en:"Follow up"},warm_j1:{fr:"Mise en condition J-1",en:"D-1 warming"},warm_jj:{fr:"Mise en condition Jour J",en:"Day-of warming"},prep:{fr:"Envoyer la préparation",en:"Send prep material"},resched:{fr:"Replanifier le RDV",en:"Reschedule the call"},reprise:{fr:"Reprise de contact",en:"Re-engage"},proposal:{fr:"Envoyer la proposition",en:"Send the proposal"},next_rdv:{fr:"Prendre le RDV suivant",en:"Book the next call"},objection:{fr:"Traiter une objection",en:"Handle an objection"},alt:{fr:"Proposer une alternative",en:"Offer an alternative"},nurturing:{fr:"Mettre en suivi long terme",en:"Move to nurturing"},cash:{fr:"Suivre l’encaissement",en:"Track the payment"}};
 const ACT_BY={nouveau:["call","calendly","relance"],planifie:["call","warm_j1","warm_jj","prep","resched"],noshow:["reprise","resched","call"],realise:["relance","proposal","next_rdv","objection","alt","nurturing"],close:["cash","call"],perdu:["call","nurturing"],disq:["call"]};
 const REASONS={perdu:["budget","timing","trust","noshow_unreach"],disq:["offtarget","nomoney"]};
-const REASON_L={budget:{fr:"Budget",en:"Budget"},timing:{fr:"Pas le bon moment",en:"Bad timing"},trust:{fr:"Manque de confiance",en:"Lack of trust"},noshow_unreach:{fr:"Injoignable après no-show",en:"Unreachable after no-show"},offtarget:{fr:"Hors cible",en:"Off target"},nomoney:{fr:"Pas de capacité de financement",en:"No way to finance"}};
+const REASON_L={budget:{fr:"Budget",en:"Budget"},timing:{fr:"Pas le bon moment",en:"Bad timing"},trust:{fr:"Manque de confiance",en:"Lack of trust"},noshow_unreach:{fr:"Injoignable après une absence",en:"Unreachable after no-show"},offtarget:{fr:"Hors cible",en:"Off target"},nomoney:{fr:"Pas de capacité de financement",en:"No way to finance"}};
 const PRODUCTS=[{id:"sig",n:{fr:"Programme Signature",en:"Signature Program"},p:3500},{id:"elite",n:{fr:"Accompagnement Élite",en:"Elite Coaching"},p:6000}];
 const prodOf=l=>PRODUCTS.find(p=>p.id===l.prod)||PRODUCTS[0];
 const prodName=l=>L(prodOf(l).n);
@@ -1027,13 +1026,13 @@ const CODES={
  "2.3":{t:{fr:"Relance absente",en:"Missing follow-up"},act:{fr:"Créer la relance",en:"Create follow-up"},lv:"process",
    proof:{fr:"Tâche de relance datée créée",en:"Dated follow-up task created"},
    excl:{fr:["Une tâche de relance sans date d’échéance : c’est une intention, pas une relance.","Un message WhatsApp de logistique (lien, horaire)."],en:["A follow-up task with no due date: it is an intention, not a follow-up.","A logistics WhatsApp message (link, time slot)."]}},
- "2.2":{t:{fr:"Warming manquant",en:"Missing warming"},act:{fr:"Envoyer le warming",en:"Send warming"},lv:"process",
-   proof:{fr:"Séquence J-1 loggée sur la fiche",en:"D-1 sequence logged on the lead"},
+ "2.2":{t:{fr:"Mise en condition manquante",en:"Missing warming"},act:{fr:"Envoyer la mise en condition",en:"Send warming"},lv:"process",
+   proof:{fr:"Séquence J-1 notée sur la fiche",en:"D-1 sequence logged on the lead"},
    excl:{fr:["Un RDV planifié il y a moins de 2 h.","Un message envoyé mais non loggé sur la fiche lead."],en:["A call booked less than 2 hours ago.","A message sent but not logged on the lead record."]}},
- "2.10":{t:{fr:"Lead sans prochaine action",en:"Lead with no next action"},act:{fr:"Planifier l’étape",en:"Schedule next step"},lv:"process",
+ "2.10":{t:{fr:"Prospect sans prochaine action",en:"Lead with no next action"},act:{fr:"Planifier l’étape",en:"Schedule next step"},lv:"process",
    proof:{fr:"Étape datée posée",en:"Dated next step set"},
    excl:{fr:["Un lead archivé ou disqualifié sort du périmètre.","Une note libre sans date ne vaut pas action."],en:["An archived or disqualified lead leaves the scope.","A free-text note with no date is not an action."]}},
- "2.4":{t:{fr:"Deal qui stagne",en:"Stalling deal"},act:{fr:"Poser une action datée",en:"Set a dated action"},lv:"process",
+ "2.4":{t:{fr:"Vente qui stagne",en:"Stalling deal"},act:{fr:"Poser une action datée",en:"Set a dated action"},lv:"process",
    proof:{fr:"Action datée avec le prospect",en:"Dated action with the prospect"},
    excl:{fr:["Une action datée future avec le prospect suspend le compteur jusqu’à cette date."],en:["A future dated action with the prospect pauses the counter until that date."]}},
  "2.8":{t:{fr:"Perte sans correctif",en:"Loss without a fix"},act:{fr:"Saisir le correctif",en:"Log the fix"},lv:"coaching",
@@ -1043,7 +1042,7 @@ const CODES={
    proof:{fr:"Écart ramené sous 15 %",en:"Gap brought under 15%"},
    excl:{fr:["Un lead dont le montant facturé vaut zéro sort du calcul : zéro n’est pas renseigné."],en:["A lead with a billed amount of zero is left out: zero means not filled in."]}},
  "1.4":{t:{fr:"Remboursements en hausse",en:"Refunds rising"},act:{fr:"Analyser les ventes remboursées",en:"Review refunded deals"},lv:"cash",
-   proof:{fr:"Taux sous la baseline sur 4 semaines",en:"Rate under baseline for 4 weeks"},
+   proof:{fr:"Taux sous la référence sur 4 semaines",en:"Rate under baseline for 4 weeks"},
    excl:{fr:["Le remboursement est rattaché au mois de la vente, pas de l’encaissement."],en:["A refund belongs to the month of the sale, not of the payment."]}}
 };
 let ALERTS=[
@@ -1051,36 +1050,36 @@ let ALERTS=[
   fact:{fr:"Aucune tâche de relance datée depuis la fin d’appel d’avant-hier, 13:42.",en:"No dated follow-up task since the call ended two days ago at 13:42."},
   vals:[[{fr:"Fin d’appel",en:"Call ended"},{fr:"J-2 13:42",en:"D-2 13:42"}],[{fr:"Tâches de relance datées",en:"Dated follow-up tasks"},"0"],[{fr:"Délai",en:"Deadline"},"24 h"]]},
  {id:"a2",c:"2.2",deal:"d5",o:"karim",who:"HoS",imp:900,h:6,occ:2,g:"now",s:"active",sev:"h",
-  fact:{fr:"RDV de demain sans séquence de warming loggée.",en:"Tomorrow’s call has no warming sequence logged."},
-  vals:[[{fr:"RDV",en:"Call"},{fr:"J+1 10:00",en:"D+1 10:00"}],[{fr:"Messages loggés",en:"Messages logged"},"0"],[{fr:"Show rate non warmé",en:"Unwarmed show rate"},{fr:"52 %",en:"52%"}]]},
+  fact:{fr:"RDV de demain sans mise en condition notée.",en:"Tomorrow’s call has no warming sequence logged."},
+  vals:[[{fr:"RDV",en:"Call"},{fr:"J+1 10:00",en:"D+1 10:00"}],[{fr:"Messages notés",en:"Messages logged"},"0"],[{fr:"Taux de présence sans mise en condition",en:"Unwarmed show rate"},{fr:"52 %",en:"52%"}]]},
  {id:"a3",c:"2.10",deal:"d8",o:"ines",who:"HoS",imp:640,h:30,occ:1,g:"now",s:"active",sev:"m",
-  fact:{fr:"RDV réalisé il y a 5 j, aucune prochaine action datée.",en:"Call held 5 d ago, no dated next action."},
-  vals:[[{fr:"Étape",en:"Stage"},{fr:"RDV réalisé",en:"Call held"}],[{fr:"Jours dans l’étape",en:"Days in stage"},"5"],[{fr:"Étape datée",en:"Dated step"},"—"]]},
+  fact:{fr:"RDV honoré il y a 5 j, aucune prochaine action datée.",en:"Call held 5 d ago, no dated next action."},
+  vals:[[{fr:"Étape",en:"Stage"},{fr:"RDV honoré",en:"Call held"}],[{fr:"Jours dans l’étape",en:"Days in stage"},"5"],[{fr:"Étape datée",en:"Dated step"},"—"]]},
  {id:"a4",c:"2.4",deal:"d10",o:"malik",who:"HoS",imp:1450,h:-4,occ:3,g:"1on1",s:"active",sev:"h",
   fact:{fr:"14 j en RDV planifié, RDV dépassé sans issue déclarée. 3e occurrence : devient un sujet de séance.",en:"14 d in Call booked, call overdue with no outcome. 3rd occurrence: now a coaching topic."},
   vals:[[{fr:"Jours dans l’étape",en:"Days in stage"},"14"],[{fr:"Seuil observé",en:"Observed threshold"},"7"],[{fr:"Proba. décotée",en:"Discounted prob."},{fr:"9 %",en:"9%"}]]},
  {id:"a5",c:"1.5",deal:null,obj:{fr:"Ventes de septembre",en:"September sales"},o:"cro",who:"CEO",imp:8400,h:48,occ:1,g:"escalate",s:"active",sev:"h",camp:"nova",
-  fact:{fr:"Écart de 19 % entre CA signé et cash encaissé sur 4 semaines.",en:"19% gap between signed revenue and cash collected over 4 weeks."},
-  vals:[[{fr:"CA signé",en:"Signed revenue"},{fr:"138 900 €",en:"€138,900"}],[{fr:"Cash encaissé",en:"Cash collected"},{fr:"112 400 €",en:"€112,400"}],[{fr:"Seuil",en:"Threshold"},{fr:"15 %",en:"15%"}]]},
+  fact:{fr:"Écart de 19 % entre CA signé et montant encaissé sur 4 semaines.",en:"19% gap between signed revenue and cash collected over 4 weeks."},
+  vals:[[{fr:"CA signé",en:"Signed revenue"},{fr:"138 900 €",en:"€138,900"}],[{fr:"Montant encaissé",en:"Cash collected"},{fr:"112 400 €",en:"€112,400"}],[{fr:"Seuil",en:"Threshold"},{fr:"15 %",en:"15%"}]]},
  {id:"a6",c:"2.8",deal:"d15",o:"sofia",who:"HoS",imp:600,h:40,occ:2,g:"1on1",s:"active",sev:"m",
-  fact:{fr:"Lead perdu (budget) sans cause interne ni correctif saisi.",en:"Lead lost (budget) with no internal cause or fix logged."},
+  fact:{fr:"Prospect perdu (budget) sans cause interne ni correctif saisi.",en:"Lead lost (budget) with no internal cause or fix logged."},
   vals:[[{fr:"Motif",en:"Reason"},{fr:"Budget",en:"Budget"}],[{fr:"Cause interne",en:"Internal cause"},"—"],[{fr:"Correctif",en:"Fix"},"—"]]},
  {id:"a7",c:"2.2",deal:"d2",o:"lea",who:"HoS",imp:820,h:10,occ:1,g:"now",s:"active",sev:"m",
-  fact:{fr:"RDV de demain sans séquence de warming loggée.",en:"Tomorrow’s call has no warming sequence logged."},
-  vals:[[{fr:"RDV",en:"Call"},{fr:"J+1 15:30",en:"D+1 15:30"}],[{fr:"Messages loggés",en:"Messages logged"},"0"]]},
+  fact:{fr:"RDV de demain sans mise en condition notée.",en:"Tomorrow’s call has no warming sequence logged."},
+  vals:[[{fr:"RDV",en:"Call"},{fr:"J+1 15:30",en:"D+1 15:30"}],[{fr:"Messages notés",en:"Messages logged"},"0"]]},
  {id:"a8",c:"2.10",deal:"d4",o:"lea",who:"HoS",imp:720,h:28,occ:2,g:"now",s:"active",sev:"l",
-  fact:{fr:"RDV réalisé hier, aucune prochaine action datée.",en:"Call held yesterday, no dated next action."},
-  vals:[[{fr:"Étape",en:"Stage"},{fr:"RDV réalisé",en:"Call held"}],[{fr:"Étape datée",en:"Dated step"},"—"]]},
+  fact:{fr:"RDV honoré hier, aucune prochaine action datée.",en:"Call held yesterday, no dated next action."},
+  vals:[[{fr:"Étape",en:"Stage"},{fr:"RDV honoré",en:"Call held"}],[{fr:"Étape datée",en:"Dated step"},"—"]]},
  {id:"a9",c:"2.10",deal:"d20",o:"lea",who:"HoS",imp:260,h:20,occ:4,g:"now",s:"queued",rank:1,sev:"l",
-  fact:{fr:"Lead entré il y a 9 j, jamais contacté.",en:"Lead came in 9 d ago, never contacted."},
+  fact:{fr:"Prospect arrivé il y a 9 j, jamais contacté.",en:"Lead came in 9 d ago, never contacted."},
   vals:[[{fr:"Jours",en:"Days"},"9"],[{fr:"Tentatives d’appel",en:"Call attempts"},"0"]]},
  {id:"a10",c:"1.4",deal:null,obj:{fr:"Ventes d’août",en:"August sales"},o:"cro",who:"CEO",imp:3100,h:0,occ:1,g:"waiting",s:"deferred",defer:5,sev:"m",camp:"nova",
-  fact:{fr:"Taux de remboursement à 5,6 % pour une baseline à 4,4 %.",en:"Refund rate at 5.6% against a 4.4% baseline."},
-  vals:[[{fr:"Taux",en:"Rate"},{fr:"5,6 %",en:"5.6%"}],[{fr:"Baseline",en:"Baseline"},{fr:"4,4 %",en:"4.4%"}]]}
+  fact:{fr:"Taux de remboursement à 5,6 % pour une référence à 4,4 %.",en:"Refund rate at 5.6% against a 4.4% baseline."},
+  vals:[[{fr:"Taux",en:"Rate"},{fr:"5,6 %",en:"5.6%"}],[{fr:"Référence",en:"Baseline"},{fr:"4,4 %",en:"4.4%"}]]}
 ];
 let CLOSEDA=[];
 let RULES=[
- {c:"2.1",n:{fr:"Speed-to-lead",en:"Speed-to-lead"},on:false},
+ {c:"2.1",n:{fr:"Délai de premier contact",en:"Speed-to-lead"},on:false},
  {c:"2.2",n:CODES["2.2"].t,on:true},{c:"2.3",n:CODES["2.3"].t,on:true},{c:"2.4",n:CODES["2.4"].t,on:true},
  {c:"2.8",n:CODES["2.8"].t,on:true},{c:"2.10",n:CODES["2.10"].t,on:true},
  {c:"1.4",n:CODES["1.4"].t,on:true},{c:"1.5",n:CODES["1.5"].t,on:true},
@@ -1116,7 +1115,6 @@ function renderNav(){
   const n=activeAlerts().length;
   document.getElementById("nav").innerHTML=["dash","crm","alerts","settings"].map(v=>
     `<button class="nav-item ${S.view===v?'on':''}" data-act="goto" data-v="${v}">${ICON[v]}<span class="lbl">${t("nav_"+v)}</span>${v==="alerts"&&n?`<span class="nbadge">${n}</span>`:""}</button>`).join("");
-  document.getElementById("langPill").textContent=S.lang.toUpperCase();
   document.querySelectorAll("#side [data-t]").forEach(e=>e.textContent=t(e.dataset.t));
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+S.view));
   document.documentElement.lang=S.lang;
@@ -1283,7 +1281,7 @@ function cxBar(mode,n){const X=S.cx;
       <div class="cx-row"><span class="cx-aff">${IC.filter} ${t("cx_afficher")}</span>${["rep","nx","prod","amt"].map(k=>`<button class="cx-tog ${X.show[k]?"on":""}" data-act="cxshow" data-k="${k}" aria-pressed="${!!X.show[k]}">${t("cx_show_"+k)}</button>`).join("")}${X.quick?`<button class="cx-tog on cx-q" data-act="cxquick" data-k="${X.quick}">✕ ${t("cx_k_"+X.quick)}</button>`:""}</div></div>`;
   }
   const st=`<select class="sel" id="cxLst" data-act="cxlst" aria-label="${t("cx_all_st")}"><option value="all">${t("cx_all_st")}</option>${STG.map(s=>`<option value="${s}" ${X.lst===s?"selected":""}>${stLabel(s)}</option>`).join("")}</select>`;
-  const tr=`<select class="sel" id="cxLtr" data-act="cxltr" aria-label="Transcript">${["all","yes","no"].map(v=>`<option value="${v}" ${X.ltr===v?"selected":""}>${t("cx_tr_"+v)}</option>`).join("")}</select>`;
+  const tr=`<select class="sel" id="cxLtr" data-act="cxltr" aria-label="Transcription">${["all","yes","no"].map(v=>`<option value="${v}" ${X.ltr===v?"selected":""}>${t("cx_tr_"+v)}</option>`).join("")}</select>`;
   return `<div class="cx-bar"><div class="cx-row">${search}${reps}${st}${tr}</div>
     <div class="cx-row cx-row-end">${count}<button class="btn sm" data-act="cxmock">${IC.book} ${t("cx_views")}</button><button class="btn sm" data-act="cxcols">${IC.cols} ${t("cx_cols")}</button><button class="btn sm" data-act="cxmock">${IC.dl} ${t("cx_export")}</button></div></div>`;
 }
@@ -1366,7 +1364,7 @@ function cxLeads(){const X=S.cx;let list=cxFiltered("leads");
 
 function renderCRM(){const X=S.cx,el=document.getElementById("v-crm");
   el.innerHTML=`<div class="cx-head"><div class="crumb">${t("crumb_admin")}</div><h1>${t("cx_title")}</h1><div class="sub">${X.tab==="pipeline"?t("cx_sub_pipe"):t("cx_sub_leads")}</div></div>
-  <div class="cx-tabs-row"><div class="cx-tabs" role="tablist"><button role="tab" aria-selected="${X.tab==="pipeline"}" class="${X.tab==="pipeline"?"on":""}" data-act="cxtab" data-t="pipeline">Pipeline</button><button role="tab" aria-selected="${X.tab==="leads"}" class="${X.tab==="leads"?"on":""}" data-act="cxtab" data-t="leads">Leads <span class="cx-n">${LEADS.length}</span></button></div>
+  <div class="cx-tabs-row"><div class="cx-tabs" role="tablist"><button role="tab" aria-selected="${X.tab==="pipeline"}" class="${X.tab==="pipeline"?"on":""}" data-act="cxtab" data-t="pipeline">Pipeline</button><button role="tab" aria-selected="${X.tab==="leads"}" class="${X.tab==="leads"?"on":""}" data-act="cxtab" data-t="leads">Prospects <span class="cx-n">${LEADS.length}</span></button></div>
   ${X.tab==="leads"?`<div class="controls"><button class="btn" data-act="cxreps">${IC.link} ${t("cx_attach")}</button><button class="btn gold" data-act="cxnew">+ ${t("cx_newlead")}</button></div>`:""}</div>
   ${X.tab==="pipeline"?cxPipeline():cxLeads()}`;
   if(X.tab==="pipeline")cxDnD();
@@ -1776,7 +1774,7 @@ function openRuleInfo(c){const R=RULE_INFO[c],rule=RULES.find(r=>r.c===c);if(!R)
     </div></div>`;
 }
 Object.assign(DICT.fr,{
- ri_info:"En savoir plus sur cette règle", ri_level:"Niveau {n}", ri_lvl_1:"Campagne", ri_lvl_2:"Deal et pipeline", ri_lvl_3:"Exécution", ri_lvl_5:"Intégrité",
+ ri_info:"En savoir plus sur cette règle", ri_level:"Niveau {n}", ri_lvl_1:"Campagne", ri_lvl_2:"Vente et pipeline", ri_lvl_3:"Exécution", ri_lvl_5:"Intégrité",
  ri_st_active:"Active en production", ri_st_ready:"Bornée, prête à activer", ri_st_delivery:"En livraison", ri_st_calib:"Seuil à calibrer",
  ri_on:"Activée", ri_off:"Désactivée",
  ri_why:"À quoi sert cette alerte", ri_how:"Comment elle se déclenche", ri_bounds:"Bornes",
@@ -1787,7 +1785,7 @@ Object.assign(DICT.fr,{
  ri_g_owner:"Propriétaire", ri_g_owner_d:"Une personne nommée qui peut agir",
  ri_g_deadline:"Délai", ri_g_deadline_d:"Au-delà, l’alerte escalade",
  ri_g_proof:"Preuve", ri_g_proof_d:"Une condition mesurée la ferme, jamais une case cochée",
- ri_g_cost:"Coût", ri_g_cost_d:"Ne pas agir coûte du cash identifiable",
+ ri_g_cost:"Coût", ri_g_cost_d:"Ne pas agir coûte un montant identifiable",
  ri_common:"Plafond de 3 alertes actives par personne, les autres en file visible. Une règle ne voit que ce qui arrive après sa mise en service : le stock historique est hors périmètre.",
  ri_arb:"Arbitrages :", ri_src:"Source : Bornage des alertes, doc 02, v1.0"
 });
@@ -1997,8 +1995,8 @@ function anAction(act,el){const an=S.cx.an,id=S.cx.lead&&S.cx.lead.id;
   }return false;
 }
 Object.assign(DICT.fr,{
- an_ey:"Analyse d’appel · R1", an_title:"Analyse d’appel — {p}", an_sales:"sales", an_tours:"{n} tours reconstitués dont {s} du sales", an_cont:"{n} tour contaminé", an_conts:"{n} tours contaminés",
- an_transcript:"Transcript",
+ an_ey:"Analyse d’appel · R1", an_title:"Analyse d’appel — {p}", an_sales:"commercial", an_tours:"{n} tours reconstitués dont {s} du commercial", an_cont:"{n} tour contaminé", an_conts:"{n} tours contaminés",
+ an_transcript:"Transcription",
  an_b1:"Le diagnostic", an_scope:"Étape L uniquement — du premier geste de diagnostic à {a} · {d} → {f} · {n} sollicitations · registre lu sur la réponse du prospect",
  an_c_reg:"Registre", an_c_q:"Les questions posées, dans l’ordre", an_c_g:"◀ Douleur · Désir ▶", an_c_st:"État",
  an_noq:"aucune question posée", an_nq:"{n} question", an_nqs:"{n} questions", an_nhors:"{n} hors SPIN", an_horsdiag:"hors diagnostic",
@@ -2007,15 +2005,15 @@ Object.assign(DICT.fr,{
  an_asked:"Les questions posées — {n}", an_incl_hors:"dont {n} hors SPIN", an_outspin:"Hors SPIN",
  an_ty_gain:"effet", an_ty_zero:"effet nul", an_ty_hors:"hors SPIN", an_empty_reg:"Aucune question sur ce registre. Tout ce qui suit a été donné par le prospect.",
  an_gifts:"Sans question — ce que le prospect a donné", an_given:"donné sans question",
- an_b2:"Le profil du lead", an_b2_d:"Lu dans les mots du prospect, pas dans les questions du sales.",
- an_anx:"Anxiété", an_anx_d:"Porte sur lui · se traite par le cadre et la preuve", an_inert:"Inertie", an_inert_d:"Une raison de rester · se traite par une question d’implication", an_rule:"Règle de décision", an_rule_d:"Ne se traite pas · contraint ce que le sales peut dire",
+ an_b2:"Le profil du prospect", an_b2_d:"Lu dans les mots du prospect, pas dans les questions du commercial.",
+ an_anx:"Anxiété", an_anx_d:"Porte sur lui · se traite par le cadre et la preuve", an_inert:"Inertie", an_inert_d:"Une raison de rester · se traite par une question d’implication", an_rule:"Règle de décision", an_rule_d:"Ne se traite pas · contraint ce que le commercial peut dire",
  an_none:"Rien relevé", an_prof_none:"Rien relevé dans les mots du prospect.",
- an_b3:"Les objections", an_b3_d:"Une objection est une prise de parole du prospect ; l’AIC se code sur ce que le sales répond après.",
+ an_b3:"Les objections", an_b3_d:"Une objection est une prise de parole du prospect ; l’AIC se code sur ce que le commercial répond après.",
  an_o_obj:"Objection", an_o_vb:"Le verbatim du prospect", an_o_when:"Moment de l’appel", an_o_seq:"Séquence A · I · C",
- an_o_ok:"traitée", an_o_part:"partielle", an_o_open:"non traitée", an_missing:"geste manquant", an_said:"Le sales a dit :", an_obj_none:"Aucune objection dans cet appel.",
- an_b4:"Le gap à restituer", an_b4_d:"L’écart entre la situation et la vision, formulé avec les mots du prospect.",
- an_nogap:"Aucun gap restitué. L’étape L s’est fermée sur {a}. Le sales est passé de la découverte à l’offre sans restituer l’écart — c’est la configuration que l’item A1 sanctionne.",
- an_tr_title:"Transcript — {p}", an_tr_excerpt:"Extrait reconstitué : les tours liés au diagnostic et aux objections.", an_f_all:"Tout", an_f_L:"Étape L", an_f_q:"Sollicitations",
+ an_o_ok:"traitée", an_o_part:"partielle", an_o_open:"non traitée", an_missing:"geste manquant", an_said:"Le commercial a dit :", an_obj_none:"Aucune objection dans cet appel.",
+ an_b4:"L’écart à restituer", an_b4_d:"L’écart entre la situation et la vision, formulé avec les mots du prospect.",
+ an_nogap:"Aucun écart restitué. L’étape L s’est fermée sur {a}. Le commercial est passé de la découverte à l’offre sans restituer l’écart — c’est la configuration que l’item A1 sanctionne.",
+ an_tr_title:"Transcription — {p}", an_tr_excerpt:"Extrait reconstitué : les tours liés au diagnostic et aux objections.", an_f_all:"Tout", an_f_L:"Étape L", an_f_q:"Sollicitations",
  an_tr_start:"début de l’étape L · {t}", an_tr_end:"fin de L · {a}", an_tr_outL:"hors périmètre de L"
 });
 Object.assign(DICT.en,{
@@ -2048,11 +2046,6 @@ function renderSettings(){
   document.getElementById("v-settings").innerHTML=`
    <div class="head"><div><div class="crumb">${t("crumb_admin")}</div><h1>${t("set_title")}</h1><div class="sub">${t("set_sub")}</div></div></div>
    <div class="stack">
-    <div class="card"><div class="eyebrow">${t("set_lang")}</div><div class="sub" style="margin-top:4px">${t("set_lang_d")}</div>
-      <div class="lang-seg">
-        <button class="lang-opt ${S.lang==="fr"?'on':''}" data-act="lang" data-l="fr" aria-pressed="${S.lang==="fr"}"><span class="lc">FR</span><span><div class="ln">${t("lang_fr")}</div><div class="le">${t("lang_fr_d")} · 1 234,56 €</div></span></button>
-        <button class="lang-opt ${S.lang==="en"?'on':''}" data-act="lang" data-l="en" aria-pressed="${S.lang==="en"}"><span class="lc">EN</span><span><div class="ln">${t("lang_en")}</div><div class="le">${t("lang_en_d")} · €1,234.56</div></span></button>
-      </div></div>
     <div class="set-grid">
       <div class="card"><div class="eyebrow">${t("set_disp")}</div>
         <div class="set-row"><div><div class="st">${t("set_period")}</div><div class="sd">${t("set_period_d")}</div></div><div class="seg">${[7,30,56].map(p=>`<button class="${P.period===p?'on':''}" data-act="prefperiod" data-p="${p}">${t("p"+p)}</button>`).join("")}</div></div>
@@ -2092,7 +2085,7 @@ document.addEventListener("click",e=>{
     case "doalert": e.stopPropagation(); doAlert(el.dataset.id); break;
     case "defer": e.stopPropagation(); deferAlert(el.dataset.id); break;
     case "axis": S.axis=el.dataset.x; renderAlerts(); break;
-    case "lang": if(S.lang!==el.dataset.l){S.lang=el.dataset.l; lsSet("alk_lang_v2",S.lang); renderAll(); toast(t("toast_lang"));} break;
+
     case "pref": S.prefs[el.dataset.k]=!S.prefs[el.dataset.k]; renderSettings(); toast(t("toast_set")); break;
     case "prefperiod": S.prefs.period=+el.dataset.p; S.period=S.prefs.period; renderSettings(); renderDash(); toast(t("toast_set")); break;
     case "ruleinfo": openRuleInfo(el.dataset.c); break;
@@ -2116,7 +2109,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){const m=document.getElementById("cxMenu");if(!m.hidden){closeMenu();return}const l2=document.getElementById("layer2");if(l2.innerHTML){l2.innerHTML="";return}if(S.cx.mini&&S.cx.lead){S.cx.mini=null;renderLead();return}closeLayer();}
   if(e.key==="Enter"){const el=e.target.closest("tr[data-act],.al[data-act],.mini-al[data-act]"); if(el&&e.target===el)el.click();}
 });
-/* SKL OS: dashboard first; team rows open the SKL CRM filtered on that sales rep */
+/* LNP: dashboard first; team rows open the LNP CRM filtered on that sales rep */
 {const _rn=renderNav;renderNav=function(){_rn();const k=S.view==="dash";document.getElementById("sklKR").hidden=!k;document.getElementById("sklBack").hidden=k;};}
 document.addEventListener("click",e=>{const el=e.target.closest('[data-act="teamrow"]');if(!el)return;e.stopImmediatePropagation();e.preventDefault();try{parent.postMessage({skl:"crm",owner:el.dataset.id},"*")}catch(x){}},true);
 S.view="dash";renderAll();
