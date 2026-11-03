@@ -3,7 +3,7 @@
 Golden rule: the model answers closed questions with exact quotes; the code bounds episodes, decides levels and scores.
 
 Pipeline of `ObjectionsCompetence.run`:
-  1. inventory (code, OB-1 markers, OB-12 speakers, OB-26 doubtful turns) + model nomination of unmarked passages;
+  1. inventory, after the first price only (OB-27), (code, OB-1 markers, OB-12 speakers, OB-26 doubtful turns) + model nomination of unmarked passages;
   2. per candidate: `obj.resistance` (exclusions OB-2, doubt subjects -> nature by the code with the OB-3 order,
      OB-4 two natures, OB-24 denied nature, OB-25 external reason that also limits time, OB-26 label check);
   3. OB-5 merge (code); episode bounding (code, OB-6..OB-9) with `obj.topic` where the code cannot decide OB-8 (b)
@@ -762,9 +762,13 @@ class ObjectionsCompetence:
     # ------------------------------------------------------------------ stage 1-2: resistances
     def _resistances(self, ctx, runner, T: _Tasks, audit: dict) -> tuple[list[Resistance], list[dict], list[str]]:
         flags: list[str] = []
-        cands = {t.id: t for t in find_candidates(ctx)}
+        # OB-27 (Romain 2026-11-03): an objection is only read after the first price; nothing before it is an objection
+        pos = _pos(ctx)
+        fp = ctx.phases.first_price
+        after_price = (lambda t: fp is not None and pos[t.id] > pos[fp])
+        cands = {t.id: t for t in find_candidates(ctx) if after_price(t)}
         nom = T.nominate()
-        s = seq(ctx)
+        s = [t for t in seq(ctx) if after_price(t)]
         for k in range(0, len(s), NOMINATE_CHUNK):
             chunk = s[k:k + NOMINATE_CHUNK]
             if not any(t.role in (PROSPECT, OTHER) for t in chunk):
@@ -772,11 +776,10 @@ class ObjectionsCompetence:
             r = T.run(runner, ctx, nom, f"nominate:{chunk[0].id}", (chunk, [t.id for t in chunk if t.id in cands]))
             audit[r.status] = audit.get(r.status, 0) + 1
             for n in (r.answer or {}).get("nominations", []) or []:
-                if n["turn"] not in cands:
+                if n["turn"] not in cands and after_price(ctx.turn(n["turn"])):
                     cands[n["turn"]] = ctx.turn(n["turn"])
             if r.status == "to_review":
                 flags.append(f"to_review:nominate:{chunk[0].id}")
-        pos = _pos(ctx)
         res: list[Resistance] = []
         deadlines: list[dict] = []
         task = T.resistance()

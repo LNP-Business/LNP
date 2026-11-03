@@ -1,10 +1,10 @@
-STEP S4 · OBJECTIONS AFTER THE PITCH, AND PREVENTION (Objections annex OB-1 to OB-26, gestures A · I · E · M)
+STEP S4 · OBJECTIONS AFTER THE FIRST PRICE, AND PREVENTION (Objections annex OB-1 to OB-26, gestures A · I · E · M)
 {anchors}
 A resistance is a PROSPECT (or co-decider) passage that expresses a doubt or a reserve: an objection, an anxiety or an
 inertia. Not a resistance (OB-2): a request for information ("how long is it?"), a conditional acceptance ("if I can
 pay monthly, then yes"), a neutral fact about who decides, a delay with an external verifiable reason (a deadline; if
-it also limits their time, it is a time objection, OB-25). Read resistances from the pitch start to the end of the call
-only. List each DIFFERENT resistance ONCE: when the same doubt comes back later, add its quotes to the same item.
+it also limits their time, it is a time objection, OB-25). Read resistances ONLY in PROSPECT turns after the first
+price (anchor above) to the end of the call: nothing said before the first price is an objection (OB-27). List each DIFFERENT resistance ONCE: when the same doubt comes back later, add its quotes to the same item.
 For each resistance:
 - "subjects": what the doubt is about (OB-3), one or more of: price, money_available, offer_trust, offer_relevance,
   time, co_decider (the offer, its price or terms, the company, or a resource they lack), self_capability (themselves:

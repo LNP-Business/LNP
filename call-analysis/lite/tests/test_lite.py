@@ -101,12 +101,14 @@ def test_a_closing_tail_makes_the_question_out_agreement():
 
 
 # ------------------------------------------------------------------ objections
-def test_objections_before_the_pitch_are_dropped_and_repeats_merged():
+def test_objections_before_the_first_price_are_dropped_and_repeats_merged():
     rec, _ = run()
     d = rec["results"]["OBJECTIONS"]["details"]
     eps = d["episodes"]
     assert [(e["subtype"], e["resistance"]["turn"]) for e in eps] == [("price", "T028"), ("co_decider", "T036")]
-    assert rec["meta"]["steps"]["S4"]["reasons"]["quote:before_pitch"] == 1
+    # OB-27: before the pitch (T010) and during the pitch but before the first price (T024, price at T027): dropped
+    assert rec["meta"]["steps"]["S4"]["reasons"]["quote:before_price"] == 2
+    assert d["lite"]["scope"] == "after_first_price"
     money = eps[0]
     assert [q["turn"] for q in money["quotes"]] == ["T028", "T038"] and money["merged_items"] == 2
     assert money["recurs_later"] and next(i for i in money["items"] if i["id"] == "H5")["level"] == 0   # OB-11, X4

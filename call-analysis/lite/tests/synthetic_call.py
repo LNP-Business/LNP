@@ -1,7 +1,7 @@
 """A fictional sales call (no real person, no real data) and the answers a model could give to the five lite steps.
 
 The recorded answers also carry the mistakes the code must catch: an invented quote, a quote given to the wrong
-speaker, a question after the pitch start, an objection raised before the pitch, the same objection listed twice.
+speaker, a question after the pitch start, objections raised before the pitch and before the first price (OB-27), the same objection listed twice.
 """
 from alkimiy_callqa.core.foundation import parse_transcript
 from alkimiy_callqa.core.models import CallContext
@@ -175,6 +175,7 @@ S3 = {
 
 S4 = {"objections": [
     {"subjects": ["self_capability"], "quotes": [{"turn": "T010", "quote": "It makes me feel like a fraud"}]},  # before pitch
+    {"subjects": ["offer_trust"], "quotes": [{"turn": "T024", "quote": "So I would have a system"}]},  # pitch, before price
     {"subjects": ["price"], "quotes": [{"turn": "T028", "quote": "That's a lot of money for me right now"}],
      "topic_change": {"turn": "T035", "quote": "do you need to talk to anyone before deciding?"},
      "acknowledge": {"turn": "T029", "quote": "I hear you.", "receiving_marker": True},

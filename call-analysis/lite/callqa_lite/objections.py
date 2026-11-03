@@ -1,8 +1,8 @@
-"""S4 → Objections result (OBJ-1.1, lite reading): unique objections raised after the pitch start, A · I · E · M.
+"""S4 → Objections result (OBJ-1.1, lite reading): unique objections raised after the first price, A · I · E · M.
 
-Romain (2026-11-03): only the resistances raised after the pitch start count, and each objection appears once, with all
+Romain (2026-11-03): only the resistances raised after the first price count (OB-27; before: after the pitch start), and each objection appears once, with all
 its quotes. The code:
-- checks every quote (a PROSPECT or co-decider turn, exact passage, after the pitch start) and drops the others;
+- checks every quote (a PROSPECT or co-decider turn, exact passage, after the first price) and drops the others;
 - derives the nature from the subjects of the doubt with the boundary tests of OB-3 (`nature_of_subjects`, OB-24);
 - merges objections of the same nature and theme, or that share a quote, into one (with all their quotes);
 - bounds one episode per objection: response = sales turns from the first passage to the topic change (the model's,
@@ -26,7 +26,7 @@ STEP = "S4"
 
 
 def _valid_quotes(ctx: CallContext, o: dict, drops: Drops) -> list[dict]:
-    ps = ctx.phases.pitch_start
+    fp = ctx.phases.first_price
     out = []
     for q in o.get("quotes") or []:
         if not isinstance(q, dict):
@@ -36,8 +36,8 @@ def _valid_quotes(ctx: CallContext, o: dict, drops: Drops) -> list[dict]:
         if e:
             drops.add(STEP, f"quote:{e}", q)
             continue
-        if not ps or ctx.n(q["turn"]) <= ctx.n(ps):
-            drops.add(STEP, "quote:before_pitch", q)            # Romain 2026-11-03: after the pitch start only
+        if not fp or ctx.n(q["turn"]) <= ctx.n(fp):
+            drops.add(STEP, "quote:before_price", q)            # OB-27, Romain 2026-11-03: after the first price only
             continue
         out.append({"turn": q["turn"], "quote": q["quote"]})
     return sorted(out, key=lambda q: (ctx.n(q["turn"]), norm(ctx.turn(q["turn"]).text).find(norm(q["quote"]))))
@@ -62,7 +62,7 @@ def unique_objections(ctx: CallContext, s4: dict, drops: Drops) -> list[dict]:
             continue
         quotes = _valid_quotes(ctx, o, drops)
         if not quotes:
-            drops.add(STEP, "objection:no_valid_quote_after_pitch")
+            drops.add(STEP, "objection:no_valid_quote_after_price")
             continue
         denied = {O.SUBJECTS[s][1] for s in o.get("denied_subjects") or [] if s in O.SUBJECTS}
         subjects = [s for s in o.get("subjects") or [] if s in O.SUBJECTS and O.SUBJECTS[s][1] not in denied]
@@ -281,6 +281,6 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult
         "recurs_from_previous_call": recurring_prev,
         "diagnostics": O.diagnostics(ctx, eps, prevention),
         "unit_status": {"single_reading": len(eps)},
-        "lite": {"scope": "after_pitch_start", "unique": True, "dropped": drops.counts.get(STEP, {})},
+        "lite": {"scope": "after_first_price", "unique": True, "dropped": drops.counts.get(STEP, {})},
     }
     return out
