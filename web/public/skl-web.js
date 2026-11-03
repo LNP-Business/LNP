@@ -21,7 +21,7 @@
 
   var sb = null, ctx = null, settle;
   var ready = new Promise(function (r) { settle = r; });
-  window.claude = { web: true, use: function (name) { return ready.then(function (c) { return name === "db" ? DB : name === "user" ? USER : name === "assets" ? ASSETS : name === "crm" ? CRM : name === "planner" ? PLANNER : null; }); } };
+  window.claude = { web: true, use: function (name) { return ready.then(function (c) { return name === "db" ? DB : name === "user" ? USER : name === "assets" ? ASSETS : name === "crm" ? CRM : null; }); } };
 
   // ---------------- data: one cache per collection, kept live by Supabase Realtime ----------------
   var cols = {}, channel = null;
@@ -110,16 +110,6 @@
     if (!r.ok) { var err = new Error(j.error || "La demande de fichier a échoué."); err.code = r.status === 403 ? "not_granted" : "unavailable"; throw err; }
     return j;
   }
-  // Build › Claude planner: /api/planner builds the prompt and reads LNP with the person's own token (read only)
-  var PLANNER = {
-    ask: async function (body, signal) {
-      var s = await sb.auth.getSession();
-      var r = await fetch("/api/planner", { method: "POST", signal: signal, headers: { "Content-Type": "application/json", Authorization: "Bearer " + (s.data.session ? s.data.session.access_token : "") }, body: JSON.stringify(body) });
-      var j = await r.json().catch(function () { return {}; });
-      if (!r.ok) { var e = new Error(j.error || "La demande au planificateur a échoué."); e.code = j.code || (r.status === 429 ? "rate_limited" : "unavailable"); throw e; }
-      return j;
-    }
-  };
   var ASSETS = {
     upload: async function (file) {
       var t = await filesApi({ action: "upload", name: file.name, type: file.type, size: file.size });

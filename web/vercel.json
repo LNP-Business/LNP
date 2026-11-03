@@ -29,30 +29,6 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "skl-os-romain-8012.vercel.app"
-        }
-      ],
-      "destination": "https://skl-os.vercel.app/",
-      "permanent": false
-    },
-    {
-      "source": "/:path((?!api/|\\.well-known/).+)",
-      "has": [
-        {
-          "type": "host",
-          "value": "skl-os-romain-8012.vercel.app"
-        }
-      ],
-      "destination": "https://skl-os.vercel.app/:path+",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/.well-known/oauth-protected-resource",
@@ -87,10 +63,6 @@
     "api/mcp.js": {
       "maxDuration": 30,
       "includeFiles": "api/_kb.json"
-    },
-    "api/planner.js": {
-      "maxDuration": 60,
-      "includeFiles": "api/{_kb,_prompts}.json"
     }
   }
 }

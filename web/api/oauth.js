@@ -1,9 +1,9 @@
-// SKL OS connector for Claude: the small OAuth 2.1 authorization server (docs/crm/17-claude-connector.md §3, option 2).
+// LNP connector for Claude: the small OAuth 2.1 authorization server (docs/crm/17-claude-connector.md §3, option 2).
 // One function for every endpoint (vercel.json rewrites):
 //   /.well-known/oauth-protected-resource[/api/mcp]   → ?op=resource   RFC 9728
 //   /.well-known/oauth-authorization-server[/…]       → ?op=metadata   RFC 8414
 //   /api/oauth/register                               → ?op=register   RFC 7591 dynamic client registration
-//   /api/oauth/authorize                              → ?op=authorize  SKL OS sign-in + consent, one-time code (PKCE S256)
+//   /api/oauth/authorize                              → ?op=authorize  LNP sign-in + consent, one-time code (PKCE S256)
 //   /api/oauth/token                                  → ?op=token      code → the person's own Supabase tokens; refresh
 // The tokens Claude receives are the person's Supabase access and refresh tokens, from a sign-in made for Claude only
 // (its own session), so row-level security applies to every tool exactly as in the app, and removing a person in Team
@@ -12,7 +12,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { admin, anon, asUser, cors, origin, readJson } from "./_lib.js";
 import { accessOf } from "./_screens.js";
 
-const SCOPE = "skl.read";
+const SCOPE = "lnp.read";
 const CODE_TTL = 60;   // seconds
 // Claude's callbacks (claude.ai, and claude.com should the domain move) and local tools (MCP Inspector, Claude Code)
 export function redirectAllowed(uri) {
@@ -54,7 +54,7 @@ export function metadata(base) {
   };
 }
 export function resourceMetadata(base) {
-  return { resource: base + "/api/mcp", resource_name: "SKL OS", authorization_servers: [base], bearer_methods_supported: ["header"], scopes_supported: [SCOPE] };
+  return { resource: base + "/api/mcp", resource_name: "LNP", authorization_servers: [base], bearer_methods_supported: ["header"], scopes_supported: [SCOPE] };
 }
 
 // ---------------- dynamic client registration ----------------
@@ -65,7 +65,7 @@ async function register(req, res, sb) {
   const bad = uris.find(x => !redirectAllowed(x));
   if (bad) return json(res, 400, { error: "invalid_redirect_uri", error_description: "Redirect URI not allowed: " + bad });
   if (b.token_endpoint_auth_method && b.token_endpoint_auth_method !== "none") return json(res, 400, { error: "invalid_client_metadata", error_description: "Only public clients (token_endpoint_auth_method none, PKCE) are supported." });
-  const client_id = "skl_" + b64url(randomBytes(18));
+  const client_id = "lnp_" + b64url(randomBytes(18));
   const name = String(b.client_name || "MCP client").slice(0, 80);
   const { error } = await sb.from("mcp_oauth_clients").insert({ client_id, client_name: name, redirect_uris: uris });
   if (error) return json(res, 500, { error: "server_error", error_description: error.message });
@@ -74,59 +74,60 @@ async function register(req, res, sb) {
 }
 
 // ---------------- authorization: sign-in page and code ----------------
-const PAGE_CSS = "*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F6F4EF;color:#1B1B18;font-family:'IBM Plex Sans',system-ui,sans-serif;padding:24px}"
-  + ".card{width:min(440px,100%);background:#fff;border:1px solid #E3DFD5;border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:16px}"
-  + "h1{margin:0;font-family:Fraunces,Georgia,serif;font-weight:500;font-size:26px}.k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9A6614;font-weight:600}"
-  + "p{margin:0;font-size:14px;line-height:1.55;color:#5E5B53}label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}"
-  + "input{font:inherit;font-size:15px;padding:10px 12px;border:1px solid #D8D3C7;border-radius:10px}input:focus{outline:2px solid #D9B46A;border-color:#D9B46A}"
+// LNP's colours and font (edition.json "recolor" and "fonts", as in the app)
+const PAGE_CSS = "*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F7F8FB;color:#1E2A5E;font-family:Poppins,Arial,sans-serif;padding:24px}"
+  + ".card{width:min(440px,100%);background:#fff;border:1px solid #E3ECFB;border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:16px}"
+  + "h1{margin:0;font-family:Poppins,Arial,sans-serif;font-weight:600;font-size:26px}.k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#2B6CF5;font-weight:600}"
+  + "p{margin:0;font-size:14px;line-height:1.55;color:#5A6478}label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}"
+  + "input{font:inherit;font-size:15px;padding:10px 12px;border:1px solid #AECBF2;border-radius:10px}input:focus{outline:2px solid #5B8DF7;border-color:#5B8DF7}"
   + ".row{display:flex;gap:10px;justify-content:flex-end}button{font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:11px 18px;cursor:pointer}"
-  + ".ok{background:#1B1B18;color:#D9B46A;border:1px solid #1B1B18}.no{background:#fff;color:#1B1B18;border:1px solid #D8D3C7}"
-  + ".err{background:#FBEAEA;border:1px solid #E7B9B9;color:#8A2D3B;border-radius:10px;padding:10px 12px;font-size:13px}ul{margin:0;padding-left:18px;font-size:14px;color:#5E5B53;line-height:1.6}";
+  + ".ok{background:#1E2A5E;color:#fff;border:1px solid #1E2A5E}.no{background:#fff;color:#1E2A5E;border:1px solid #AECBF2}"
+  + ".err{background:#FBEAEA;border:1px solid #E7B9B9;color:#8A2D3B;border-radius:10px;padding:10px 12px;font-size:13px}ul{margin:0;padding-left:18px;font-size:14px;color:#5A6478;line-height:1.6}";
 function page(res, status, inner) {
   res.statusCode = status;
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; form-action 'self' https://claude.ai https://claude.com http://localhost:* http://127.0.0.1:*; frame-ancestors 'none'; base-uri 'none'");
-  res.end('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SKL OS · Connect Claude</title>'
-    + '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500&family=IBM+Plex+Sans:wght@400;600&display=swap">'
+  res.end('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LNP · Connecter Claude</title>'
+    + '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">'
     + "<style>" + PAGE_CSS + '</style></head><body><main class="card">' + inner + "</main></body></html>");
 }
-function problem(res, msg) { return page(res, 400, '<div class="k">SKL OS</div><h1>This link does not work</h1><p>' + esc(msg) + "</p><p>Remove the connector in Claude and add it again.</p>"); }
+function problem(res, msg) { return page(res, 400, '<div class="k">LNP</div><h1>Ce lien ne fonctionne pas</h1><p>' + esc(msg) + "</p><p>Retirez le connecteur dans Claude, puis ajoutez-le à nouveau.</p>"); }
 function form(res, p, clientName, err, email) {
   const hidden = ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state", "scope", "resource"]
     .map(k => p[k] != null ? '<input type="hidden" name="' + k + '" value="' + esc(p[k]) + '">' : "").join("");
-  return page(res, err ? 401 : 200, '<div class="k">SKL OS · ALKIMIY</div><h1>Connect ' + esc(clientName || "Claude") + "</h1>"
-    + "<p><strong>" + esc(clientName || "Claude") + "</strong> asks to <strong>read</strong> SKL OS with your rights: the leads, cycles, messages and figures you can see in the app. It cannot change anything.</p>"
+  return page(res, err ? 401 : 200, '<div class="k">LNP · Les Nouveaux Profs</div><h1>Connecter ' + esc(clientName || "Claude") + "</h1>"
+    + "<p><strong>" + esc(clientName || "Claude") + "</strong> demande à <strong>lire</strong> LNP avec vos droits : les prospects, cycles de vente, messages et chiffres que vous voyez dans l’application. Seuls les administrateurs peuvent aussi lui faire ajouter une note ou déclarer l’issue d’un appel, et Claude vous le demande avant chaque modification.</p>"
     + (err ? '<div class="err" role="alert">' + esc(err) + "</div>" : "")
     + '<form method="post" style="display:flex;flex-direction:column;gap:14px">' + hidden
-    + '<label>Email<input name="email" type="email" autocomplete="username" required value="' + esc(email || "") + '"></label>'
-    + '<label>Password<input name="password" type="password" autocomplete="current-password" required></label>'
-    + '<div class="row"><button class="no" type="submit" name="decision" value="deny" formnovalidate>Cancel</button><button class="ok" type="submit" name="decision" value="allow">Sign in and allow</button></div>'
-    + "</form><p>Use your SKL OS account. You can disconnect at any time in Claude (Settings › Connectors).</p>");
+    + '<label>E-mail<input name="email" type="email" autocomplete="username" required value="' + esc(email || "") + '"></label>'
+    + '<label>Mot de passe<input name="password" type="password" autocomplete="current-password" required></label>'
+    + '<div class="row"><button class="no" type="submit" name="decision" value="deny" formnovalidate>Annuler</button><button class="ok" type="submit" name="decision" value="allow">Se connecter et autoriser</button></div>'
+    + "</form><p>Utilisez votre compte LNP. Vous pouvez déconnecter Claude à tout moment (Paramètres › Connecteurs, dans Claude).</p>");
 }
 function back(res, redirectUri, params) {
   const u = new URL(redirectUri);
   Object.entries(params).forEach(([k, v]) => { if (v != null && v !== "") u.searchParams.set(k, v); });
   res.statusCode = 302; res.setHeader("Location", u.toString()); res.setHeader("Cache-Control", "no-store"); res.end();
 }
-// a signed-in account may use the connector: SKL OS member, CRM role, "claude" access key (read with the person's own token)
+// a signed-in account may use the connector: LNP member, CRM role, "claude" access key (read with the person's own token)
 export async function mayUseConnector(accessToken, user) {
   const sb = asUser(accessToken);
   const [{ data: mem }, { data: crm }] = await Promise.all([
     sb.from("members").select("role").eq("user_id", user.id).maybeSingle(),
     sb.from("crm_members").select("role,active").eq("id", user.id).maybeSingle()]);
-  if (!mem) return "This account is not a member of SKL OS.";
-  if (!crm || !crm.active) return "This account has no CRM role. Ask an admin.";
-  if (!accessOf(user, mem.role).includes("claude")) return "The Claude connector is not open for this account. Ask an admin to tick it in Settings › Access.";
+  if (!mem) return "Ce compte n’est pas membre de LNP.";
+  if (!crm || !crm.active) return "Ce compte n’a pas de rôle dans le CRM. Demandez-le à un administrateur.";
+  if (!accessOf(user, mem.role).includes("claude")) return "Le connecteur Claude n’est pas ouvert pour ce compte. Demandez à un administrateur de le cocher dans Paramètres › Accès.";
   return null;
 }
 
 async function authorize(req, res, sb) {
   const p = req.method === "POST" ? await readForm(req) : Object.fromEntries(new URL(req.url, "http://x").searchParams);
-  if (!p.client_id) return problem(res, "The request has no client_id.");
+  if (!p.client_id) return problem(res, "La demande n’a pas de client_id.");
   const { data: client } = await sb.from("mcp_oauth_clients").select("client_id,client_name,redirect_uris").eq("client_id", p.client_id).maybeSingle();
-  if (!client) return problem(res, "This connector registration is unknown (it may have been reset).");
-  if (!p.redirect_uri || !client.redirect_uris.includes(p.redirect_uri)) return problem(res, "The return address does not match the connector's registration.");
+  if (!client) return problem(res, "Cet enregistrement du connecteur est inconnu (il a peut-être été réinitialisé).");
+  if (!p.redirect_uri || !client.redirect_uris.includes(p.redirect_uri)) return problem(res, "L’adresse de retour ne correspond pas à l’enregistrement du connecteur.");
   // from here errors go back to the client, as OAuth asks
   if (p.response_type !== "code") return back(res, p.redirect_uri, { error: "unsupported_response_type", state: p.state });
   if (!p.code_challenge || p.code_challenge_method !== "S256") return back(res, p.redirect_uri, { error: "invalid_request", error_description: "PKCE with S256 is required.", state: p.state });
@@ -135,7 +136,7 @@ async function authorize(req, res, sb) {
   const email = String(p.email || "").trim().toLowerCase();
   const pub = anon();
   const { data, error } = await pub.auth.signInWithPassword({ email, password: String(p.password || "") });
-  if (error || !data || !data.session) return form(res, p, client.client_name, /invalid/i.test(error ? error.message : "") ? "Wrong email or password. Use the same password as the SKL OS web app; if you never chose one or forgot it, ask an admin for a link (Team access › Reset link, or New invite link for someone who never signed in)." : (error ? error.message : "Sign-in failed."), email);
+  if (error || !data || !data.session) return form(res, p, client.client_name, /invalid/i.test(error ? error.message : "") ? "E-mail ou mot de passe incorrect. Utilisez le même mot de passe que pour l’application LNP ; si vous n’en avez jamais choisi ou l’avez oublié, demandez un lien à un administrateur (Accès de l’équipe › Lien de réinitialisation, ou Nouveau lien d’invitation pour qui ne s’est jamais connecté)." : (error ? error.message : "La connexion a échoué."), email);
   const why = await mayUseConnector(data.session.access_token, data.user);
   if (why) { try { await pub.auth.signOut(); } catch (e) {} return form(res, p, client.client_name, why, email); }
   const code = b64url(randomBytes(32));
@@ -173,7 +174,7 @@ async function token(req, res, sb) {
     }
     const pub = anon();
     const { data, error } = await pub.auth.refreshSession({ refresh_token: String(b.refresh_token) });
-    if (error || !data || !data.session) return fail(400, "invalid_grant", "The SKL OS sign-in has ended. Connect again.");
+    if (error || !data || !data.session) return fail(400, "invalid_grant", "The LNP sign-in has ended. Connect again.");
     const why = await mayUseConnector(data.session.access_token, data.user);
     if (why) { try { await pub.auth.signOut(); } catch (e) {} return fail(400, "invalid_grant", why); }
     return json(res, 200, { access_token: data.session.access_token, token_type: "Bearer", expires_in: data.session.expires_in || 3600, refresh_token: data.session.refresh_token, scope: SCOPE });
