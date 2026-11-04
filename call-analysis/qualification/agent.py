@@ -10,6 +10,7 @@ listed in `verification`.
 """
 from __future__ import annotations
 
+import difflib
 import json
 import re
 import unicodedata
@@ -81,10 +82,40 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
+QUOTE_MIN_SHARE = 0.8      # share of the quote's words found in order at one place of the transcript (engineering value)
+
+
+def _part_found(part: str, transcript_norm: str) -> bool:
+    """A passage of the transcript, word for word, or with small corrections: the model writes « il y a » where Fathom
+    transcribed « il y », drops an « en fait »... At least QUOTE_MIN_SHARE of its words, in order, in one window of the
+    transcript of about its length. A quote that is not there at all never passes."""
+    p = _norm(part)
+    if not p:
+        return True
+    if p in transcript_norm:
+        return True
+    q = p.split()
+    if len(q) < 3:
+        return False
+    t = transcript_norm.split()
+    anchors = sorted(set(q), key=lambda w: (-len(w), w))[:3]
+    n = len(q)
+    for w in anchors:
+        o = q.index(w)
+        for i, x in enumerate(t):
+            if x != w:
+                continue
+            win = t[max(0, i - o - 4): i - o + n + 4]
+            m = sum(b.size for b in difflib.SequenceMatcher(None, q, win, autojunk=False).get_matching_blocks())
+            if m >= QUOTE_MIN_SHARE * n:
+                return True
+    return False
+
+
 def quote_found(quote: str, transcript_norm: str) -> bool:
     """Every part of the quote (parts cut on "...", "…" or " / ") is a passage of the transcript."""
     parts = [p for p in re.split(r"\.\.\.|…|\s/\s|\[|\]", str(quote or "")) if _norm(p)]
-    return bool(parts) and all(_norm(p) in transcript_norm for p in parts)
+    return bool(parts) and all(_part_found(p, transcript_norm) for p in parts)
 
 
 def verify(facts: dict, transcript: str) -> tuple[dict, list[str]]:
