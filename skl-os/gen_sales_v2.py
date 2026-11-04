@@ -53,7 +53,7 @@ js = js.replace('/* ---- 5. Cash at risk', r'''function krBox(){
 
 /* ---- 5. Cash at risk''')
 js = js.replace('  bindTips(el("pipe"));', '  bindTips(el("pipe"));\n  const kb=el("pipe").querySelector("[data-kr]"); if(kb) kb.onclick=()=>window.SKL&&SKL.openKr(kb.dataset.kr);')
-js = js.replace('const box=el("flow"), W=box.clientWidth, H=box.clientHeight;', 'const box=el("flow"), W=box.clientWidth, H=box.clientHeight;\n  if(W<200||H<120)return;')
+js = js.replace('const box=el("flow"), W=box.clientWidth, H=box.clientHeight-30;', 'const box=el("flow"), W=box.clientWidth, H=box.clientHeight-30;\n  if(W<200||H<120)return;')
 assert 'if(W<200' in js
 # no page fit: the host fills the cockpit; redraw when the size changes
 js = re.sub(r'/\* fit the 1440 × 900 screen.*$', '', js, flags=re.S)
@@ -71,10 +71,11 @@ function liveFig(o){const P=LIVE.has_payments,D=LIVE.has_deals;return {sales:+o.
   refund:P?rt(o.refunded,o.received)*100:NaN,aov:D?rt(o.signed,o.deals):NaN}}
 function liveK(p){const n=LIVE.periods[p].now,a=liveFig(n),z=liveFig(LIVE.periods[p].base);
   return {sales:[a.sales,z.sales],cash:[a.cash,z.cash],cpc:[a.cpc,z.cpc],show:[a.show,z.show],refund:[a.refund,z.refund],aov:[a.aov,z.aov],
+    signed:LIVE.has_deals?+n.signed:NaN,collected:LIVE.has_deals?+(n.collected||0):NaN,
     funnel:[+n.leads,+n.booked,+n.held,+n.won],pond:+LIVE.pipeline,close:rt(n.won,n.held)*100,upfront:LIVE.has_payments&&+n.signed?rt(n.cash,n.signed)*100:NaN,
     follow:rt(n.follow_done,n.follow_total)*100,velo:n.days_per_stage==null?NaN:+n.days_per_stage,noOutcome:+n.no_outcome||0}}
 function liveTeam(p){return LIVE.team[p].map((t,i)=>{const f=t.figures,nm=t.name&&t.name!=="Unassigned"?t.name:"Non attribué";return {id:t.id,name:nm,ini:nm.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase(),
-  color:PAL[i%PAL.length],calls:+f.held,won:+f.won,close:rt(f.won,f.held)*100,cpc:LIVE.has_payments?rt(f.cash,f.held):NaN,cash:LIVE.has_payments?+f.cash:0,show:(f.shown_leads!=null?rt(f.shown_leads,+f.shown_leads+ +f.no_show_leads):rt(f.held,+f.held+ +f.no_show))*100,booked:+f.booked}})
+  color:PAL[i%PAL.length],calls:+f.held,won:+f.won,close:rt(f.won,f.held)*100,cpc:LIVE.has_payments?rt(f.cash,f.held):NaN,cash:LIVE.has_payments?+f.cash:0,signed:+(f.signed||0),collected:+(f.collected||0),show:(f.shown_leads!=null?rt(f.shown_leads,+f.shown_leads+ +f.no_show_leads):rt(f.held,+f.held+ +f.no_show))*100,booked:+f.booked}})
   .filter(s=>s.calls||s.won||s.cash||s.booked)}
 // the few English words the SQL adds to the live alerts (overdue next move, stage name), shown in French
 const STG={Show:"Présence",Decision:"Décision",Cash:"Encaissement",Won:"Gagné",Lost:"Perdu"};

@@ -28,7 +28,8 @@ begin
   assert (select count(*) from crm_payments where source = 'iclosed') = 3, 'one payment per deal, once';
   assert (select count(*) from crm_events where source = 'iclosed' and type = 'payment_succeeded') = 3, 'one event per deal';
   assert (select amount_sold from crm_deals where cycle_id = cid) = 3000 and (select product from crm_deals where cycle_id = cid) = 'LNP 3000', 'deal from the call';
-  assert (select amount_sold from crm_deals where cycle_id = cid2) = 500, 'deposit via the contact id';
+  -- 041: a 500 € advance is an advance on the default offer (3 000 €), flagged to check
+  assert (select amount_sold from crm_deals where cycle_id = cid2) = 3000 and (select plan_match from crm_deals where cycle_id = cid2) = 'to_check', 'deposit via the contact id';
   assert (select method from crm_payments where iclosed_deal_id = 'd2') = 'deposit', 'deposit method';
   assert (select amount_sold from crm_deals where cycle_id = cid3) = 5000, 'an amount entered by hand stays';
   assert (select count(*) from crm_payments where cycle_id = cid3) = 1, 'its payment is still recorded';
@@ -36,6 +37,6 @@ begin
   assert (select closed_at from crm_cycles where id = cid) = '2026-10-20T10:00:00Z'::timestamptz, 'closed at the deal time';
   -- the cockpit counts them
   r := crm_sales_cockpit_window('2026-10-01'::timestamptz, '2026-11-01'::timestamptz, array[cid, cid2, cid3], true);
-  assert (r->>'received')::numeric = 5600 and (r->>'deals')::int = 3 and (r->>'signed')::numeric = 8500, 'cockpit money ' || r;
+  assert (r->>'received')::numeric = 5600 and (r->>'deals')::int = 3 and (r->>'signed')::numeric = 11000, 'cockpit money ' || r;
 end $$;
 select 'iclosed_deals_test ok';
