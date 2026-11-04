@@ -71,6 +71,8 @@ svg text{font-family:var(--sans)}
 /* team */
 .team{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .th,.tr{display:grid;grid-template-columns:150px minmax(0,1fr) 62px 62px;gap:12px;align-items:center}
+.colv{font-weight:600;color:var(--ink)}
+.colrow{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;font-size:11.5px;color:var(--mut);padding:6px 4px 0;border-top:1px solid var(--line2)}.colrow b{font-family:'IBM Plex Mono';font-size:14px;color:var(--ink);font-weight:600;margin-left:4px}
 .th{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut2);padding:0 0 6px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1;background:#FFFFFF}
 .th span:nth-child(n+3){text-align:right}
 .tr{flex:0 0 56px;border:0;border-bottom:1px solid var(--line2);background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0;min-height:0;border-radius:6px}
@@ -224,8 +226,10 @@ function header(C){
 
 /* ---- 1. From lead to cash: one flow that carries volumes, conversion rates, deals won and cash ---- */
 function flow(K,f,C){
-  const box=el("flow"), W=box.clientWidth, H=box.clientHeight;
+  const box=el("flow"), W=box.clientWidth, H=box.clientHeight-30;
   const fn=K.funnel.map(x=>x*f), cash=K.cash[0]*f, signed=cash/(K.upfront/100);
+  // signed, collected to date and still to collect on the sales of the period (Romain 2026-11-04)
+  const sg=K.signed!=null?K.signed*f:signed, co=K.collected!=null?K.collected*f:signed*.7, re=sg-co;
   const st=[
     {l:"Prospects",v:fn[0],fmt:nf(fn[0])},
     {l:"RDV pris",v:fn[1],fmt:nf(fn[1])},
@@ -275,6 +279,7 @@ function flow(K,f,C){
     }
   });
   s+=`</svg>`;
+  s+=`<div class="colrow" data-tip="Sur les ventes de la période : le chiffre d’affaires signé (prix de l’offre), ce qui a déjà été collecté à ce jour (échéances arrivées, estimé d’après l’échéancier tant que les paiements ne sont pas enregistrés) et ce qui reste à collecter."><span>CA signé<b>${moneyK(sg)}</b></span><span>CA collecté<b>${moneyK(co)}</b> <span class="num">(${pc(sg?co/sg*100:NaN)})</span></span><span>Reste à collecter<b>${moneyK(re)}</b></span></div>`;
   box.innerHTML=s; bindTips(box);
   el("flowq").textContent=`${PL[S.period]} · réf. marquée sur ventes, présence et encaissé`;
 }
@@ -317,11 +322,11 @@ function unit(C){
 function team(f){
   const t=SALES.slice().sort((a,b)=>b.cash-a.cash);
   const mx=Math.max(...t.map(s=>s.cash));
-  el("team").innerHTML=`<div class="th"><span>Commercial</span><span data-tip="Montant encaissé · ventes gagnées / appels">Encaissé</span><span data-tip="Taux de conversion">Conversion</span><span data-tip="Taux de présence">Présence</span></div>`+
+  el("team").innerHTML=`<div class="th"><span>Commercial</span><span data-tip="Montant encaissé · ventes gagnées / appels · collecté à ce jour / signé, sur les ventes de la période">Encaissé · collecté / signé</span><span data-tip="Taux de conversion">Conversion</span><span data-tip="Taux de présence">Présence</span></div>`+
    t.map(s=>{const w=s.cash/mx*100, cl=s.close>=32?"g":s.close>=28?"a":"r", sh=s.show>=72?"g":s.show>=65?"a":"r";
     return `<button class="tr" data-id="${s.id}" data-tip="${s.name} : ${money(s.cash*f)} encaissés, ${nf(s.won*f)} vente${pl(s.won*f)} gagnée${pl(s.won*f)} sur ${nf(s.calls*f)} appel${pl(s.calls*f)}">
       <span class="who"><i style="background:${s.color}">${s.ini}</i><div><b>${s.name}</b><small>${money(s.cpc)} par appel</small></div></span>
-      <span class="cbar"><i style="width:calc((100% - 62px) * ${w/100})"></i><span style="left:calc((100% - 62px) * ${w/100} + 6px)">${moneyK(s.cash*f)}</span><small>${nf(s.won*f)} gagnée${pl(s.won*f)} / ${nf(s.calls*f)} appel${pl(s.calls*f)}</small></span>
+      <span class="cbar"><i style="width:calc((100% - 62px) * ${w/100})"></i><span style="left:calc((100% - 62px) * ${w/100} + 6px)">${moneyK(s.cash*f)}</span><small>${nf(s.won*f)} gagnée${pl(s.won*f)} / ${nf(s.calls*f)} appel${pl(s.calls*f)} · <b class="colv" data-tip="${s.name} : ${money((s.collected!=null?s.collected:s.cash)*f)} collectés à ce jour sur ${money((s.signed!=null?s.signed:s.cash)*f)} signés">${moneyK((s.collected!=null?s.collected:s.cash)*f)} / ${moneyK((s.signed!=null?s.signed:s.cash)*f)}</b></small></span>
       <span class="pct ${cl} p${cl}">${pc(s.close)}</span><span class="pct ${sh} p${sh}">${pc(s.show)}</span>
     </button>`}).join("");
   el("team").querySelectorAll(".tr").forEach(b=>b.onclick=()=>toast("Ouvre le CRM filtré sur "+SALES.find(s=>s.id===b.dataset.id).name));
