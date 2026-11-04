@@ -3,7 +3,9 @@ STEP S2 · THE GAP PLAYED BACK (Gap annex GB-1 to GB-29)
 The four components only ever exist as the prospect's own words: PROBLEM (what is not working and keeps the prospect
 from the goal: a lack, a blocker, a fear, a past failure, a constraint), COST (what the problem costs, or what staying
 as they are costs: money, time, clients, family, health, self-belief, lost opportunity; never a current income, a
-price or a budget), A (where the prospect is today), B (where they want to go).
+price or a budget), A (where the prospect is today), B (where they want to go). A consequence the prospect lives because
+of the problem (depending on a parent, exhaustion, less time with the children, savings running out, feeling exploited)
+is a COST, not a PROBLEM; the PROBLEM is what keeps them from the goal.
 
 List every SALES passage, from the discovery start up to {limit}, that plays back what the prospect said: an opener
 ("so from what I'm hearing", "let me play that back", "if I understood correctly", "si je résume"), a long passage of
@@ -15,7 +17,8 @@ For each passage:
 - "clauses": every clause that restates one component: "component" (PROBLEM, COST, A or B); "sales_turn" and
   "sales_quote" (the exact sales words of the clause); "source_turn" (the earlier PROSPECT turn it restates, the one
   whose words the sales reuses; null when the prospect never said it); "key_expression" (the prospect's words that carry
-  the component, copied character for character from the SOURCE turn, that the sales repeats; never a generic phrase
+  the component, copied character for character from the SOURCE turn, that the sales repeats: only the words the sales
+  takes up (e.g. "10%", "dépendante"), not the prospect's whole sentence; never a generic phrase
   such as "you want to"; if the sales paraphrased, still copy the prospect's words: the code checks); "as_holding_back"
   (PROBLEM presented as what holds the prospect back); "other_person": true when the clause is about someone else (a
   former student, "most people", GB-6); "is_question": true when the clause is a question rather than a statement (a

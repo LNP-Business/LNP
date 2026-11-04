@@ -311,3 +311,15 @@ def test_cost_estimate_with_the_haiku_prices():
                       "cache_creation_input_tokens": 15600}}
     usd = estimate(usage)
     assert usd == pytest.approx(0.0009 + 0.015 + 0.00078 + 0.00195, abs=1e-6) and usd < 0.05
+
+
+def test_the_code_narrows_a_key_expression_copied_as_a_whole_sentence():
+    """GB-22 by the code: the model copied the prospect's whole sentence; the shared words count (Anastasia's call)."""
+    from callqa_lite.gap import shared_key_expression
+    src = "on gagne vraiment, je pense, quelques 10% de ce qui coûte"
+    sales = "tu te retrouves avec 10% de ce que coûte un cours"
+    k = shared_key_expression("quelques 10% de ce qui coûte", src, sales)
+    assert k and "10" in k and "quelques" not in k
+    assert shared_key_expression("je suis dépendante actuellement de l'aide de ma mère",
+                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "dépendante"
+    assert shared_key_expression("je suis vraiment", "je suis vraiment", "tu es là") is None       # generic only: none
