@@ -12,6 +12,7 @@ from typing import Any, Optional
 
 from alkimiy_callqa.competences import gap as G
 from alkimiy_callqa.core.models import CallContext, CompetenceResult, SALES
+from alkimiy_callqa.core.text import key_expression_ok
 
 from .shim import Drops, StepRunner
 from .spin import SpinFacts
@@ -52,11 +53,39 @@ def _passages(ctx: CallContext, s2: dict, drops: Drops) -> list[dict]:
     return out
 
 
-def _clause(c: dict) -> dict:
+def shared_key_expression(key_expression: str, source_text: str, sales_quote: str) -> Optional[str]:
+    """GB-22 checked by the code on the model's key expression: when the whole expression is not in the sales words (the
+    model copied the prospect's whole sentence, "quelques 10% de ce qui coûte" for "10% de ce que coûte"), the longest
+    run of its words that is in the source and in the sales clause (with GB-22's transformations) and is not generic
+    (GB-22 d) is taken instead. Only words of the model's expression are tried, so it still carries the component (c).
+    Romain 2026-11-03 (Anastasia's call)."""
+    ke = (key_expression or "").split()
+    if not ke or not source_text or key_expression_ok(key_expression, source_text, sales_quote)[0]:
+        return None
+    for n in range(len(ke) - 1, 0, -1):
+        for i in range(0, len(ke) - n + 1):
+            cand = " ".join(ke[i:i + n])
+            if key_expression_ok(cand, source_text, sales_quote)[0]:
+                return cand
+    return None
+
+
+def _clause(c: dict, ctx: Optional[CallContext] = None, drops: Optional[Drops] = None) -> dict:
     """The lite clause fields → the engine's gap.restitution clause (about_prospect, declarative default to true)."""
+    ke = c.get("key_expression")
+    if ctx is not None and ke and c.get("source_turn"):
+        try:
+            src = ctx.turn(c["source_turn"]).text
+        except KeyError:
+            src = ""
+        better = shared_key_expression(ke, src, c.get("sales_quote", ""))
+        if better:
+            ke = better
+            if drops is not None:
+                drops.add(STEP, "key_expression:narrowed_by_code")
     return {"component": c.get("component"), "sales_turn": c.get("sales_turn"), "sales_quote": c.get("sales_quote", ""),
             "about_prospect": not c.get("other_person"), "declarative": not c.get("is_question"),
-            "source_turn": c.get("source_turn"), "key_expression": c.get("key_expression"),
+            "source_turn": c.get("source_turn"), "key_expression": ke,
             "as_holding_back": bool(c.get("as_holding_back"))}
 
 
@@ -83,8 +112,8 @@ class LiteGap(G.GapCompetence):
 
 
 class GapAnswers:
-    def __init__(self, ctx: CallContext, passages: list[dict], s2: dict, facts: SpinFacts):
-        self.ctx, self.passages, self.facts = ctx, passages, facts
+    def __init__(self, ctx: CallContext, passages: list[dict], s2: dict, facts: SpinFacts, drops: Optional[Drops] = None):
+        self.ctx, self.passages, self.facts, self.drops = ctx, passages, facts, drops
         self.deadlines = [d for d in s2.get("deadlines") or [] if isinstance(d, dict)]
 
     def _passage(self, span) -> Optional[dict]:
@@ -96,7 +125,7 @@ class GapAnswers:
         if task_id == "gap.restitution":
             span, _ = unit
             sales = {t for t in span.turns if self.ctx.turn(t).role == SALES}
-            clauses = [_clause(c) for p in self.passages for c in p.get("clauses") or []
+            clauses = [_clause(c, self.ctx, self.drops) for p in self.passages for c in p.get("clauses") or []
                        if isinstance(c, dict) and c.get("sales_turn") in sales]
             p = next((p for p in self.passages if span.end in p["turns"]), None)
             ends = bool(p and p.get("ends_with_new_topic_question") and p.get("new_topic_question_quote"))
@@ -130,7 +159,7 @@ class GapAnswers:
 
 def run_gap(ctx: CallContext, s2: dict, facts: SpinFacts, drops: Drops) -> CompetenceResult:
     passages = _passages(ctx, s2, drops)
-    runner = StepRunner(GapAnswers(ctx, passages, s2, facts), drops, STEP)
+    runner = StepRunner(GapAnswers(ctx, passages, s2, facts, drops), drops, STEP)
     res = LiteGap(passages).run(ctx, runner)
     res.concordance = "single_reading"
     res.details = dict(res.details or {}, lite={"passages_listed": len(passages),

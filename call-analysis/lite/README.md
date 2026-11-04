@@ -14,7 +14,10 @@ Phase rules checked by the code (Romain, 2026-11-03, `phases.py`): the first pri
 offer**, with the quoted sales turn that explains that offer (`lnp_offer_price`, `offer_explained`); an offer mention
 followed by a quoted discovery question is a mention, not the pitch start (`next_discovery_question`); a valid price
 before the pitch start moves the pitch start to the offer's explanation. A call with no discovery question, no pitch and
-no price: Gap `not_applicable`.
+no price: Gap `not_applicable`. Key expressions (GB-22): when the model copies the prospect's whole sentence instead of the words the
+sales takes up, the code keeps the longest run of the model's words that is both in the source and in the sales clause
+and is not generic (`key_expression:narrowed_by_code`); the S2 prompt also says that a consequence lived because of the
+problem (depending on a parent, exhaustion…) is a COST, not a PROBLEM.
 
 1. Every question the sales asks **in the discovery**: until the gap is made (its validation), or before the pitch when no
    gap is made (SB-1, Romain 2026-11-03), with its **SPIN letter** and its
