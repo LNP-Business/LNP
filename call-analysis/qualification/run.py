@@ -17,6 +17,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "worker"))
+sys.path.insert(0, str(HERE.parent / "engine"))     # the gateway client reads alkimiy_callqa.core.llm
 
 from agent import qualify_call  # noqa: E402
 from callqa_worker.gateway import GatewayClient  # noqa: E402

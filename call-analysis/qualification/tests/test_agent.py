@@ -98,3 +98,10 @@ def test_a_gap_with_what_was_entered_in_iclosed_is_flagged():
 def test_an_unreadable_answer_is_asked_again():
     out = qualify_call(call(), Stub(["pas du json", json.dumps(FACTS), json.dumps(FACTS)]))
     assert out["status"] == "SQL GAGNÉ"
+
+
+def test_the_worker_script_imports():
+    r = subprocess.run([sys.executable, "-c", "import runpy, sys; sys.argv=['run.py']; "
+                        "import importlib.util as u; s=u.spec_from_file_location('r', %r); m=u.module_from_spec(s); s.loader.exec_module(m)"
+                        % str(HERE.parent / "run.py")], capture_output=True, text=True, env={"PATH": "/usr/bin:/bin"})
+    assert r.returncode == 0, r.stderr[-500:]
