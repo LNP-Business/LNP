@@ -10,7 +10,14 @@ Switch (per job, read by the worker from the claim): `update crm_ca_config set e
 
 ## What it measures (Romain, 2026-11-03)
 
-1. Every question the sales asks **in the discovery, before the pitch** (SB-34), with its **SPIN letter** and its
+Phase rules checked by the code (Romain, 2026-11-03, `phases.py`): the first price is the sales' price **for the
+offer**, with the quoted sales turn that explains that offer (`lnp_offer_price`, `offer_explained`); an offer mention
+followed by a quoted discovery question is a mention, not the pitch start (`next_discovery_question`); a valid price
+before the pitch start moves the pitch start to the offer's explanation. A call with no discovery question, no pitch and
+no price: Gap `not_applicable`.
+
+1. Every question the sales asks **in the discovery**: until the gap is made (its validation), or before the pitch when no
+   gap is made (SB-1, Romain 2026-11-03), with its **SPIN letter** and its
    **register** (Financial, Time & load, Identity & status, Mental & emotional, Other; SB-26 to SB-35), and the
    prospect's answer.
 2. The **gap** played back, with the Gap 1.3 methodology (absence gate, verbatim rule GB-22, formula GB-28 to GB-34).

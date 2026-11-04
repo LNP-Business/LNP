@@ -72,7 +72,8 @@ S0 = {"turns": [
     {"turn": "T019", "quote": "Let me share my screen and show you the program", "screen_share": True,
      "offer_description": True},
     {"turn": "T027", "quote": "The investment is 5,800, or six payments of 1,050", "price_for_offer": True,
-     "amount": 5800},
+     "amount": 5800, "lnp_offer_price": True,
+     "offer_explained": {"turn": "T019", "quote": "The program is a six-month mentorship with weekly calls"}},
     {"turn": "T039", "quote": "Are you ready to get started today?", "decision_request": True},
     {"turn": "T020", "quote": "Okay, I can see it", "offer_description": True},            # a prospect turn: dropped
 ]}
@@ -175,7 +176,6 @@ S3 = {
 
 S4 = {"objections": [
     {"subjects": ["self_capability"], "quotes": [{"turn": "T010", "quote": "It makes me feel like a fraud"}]},  # before pitch
-    {"subjects": ["offer_trust"], "quotes": [{"turn": "T024", "quote": "So I would have a system"}]},  # pitch, before price
     {"subjects": ["price"], "quotes": [{"turn": "T028", "quote": "That's a lot of money for me right now"}],
      "topic_change": {"turn": "T035", "quote": "do you need to talk to anyone before deciding?"},
      "acknowledge": {"turn": "T029", "quote": "I hear you.", "receiving_marker": True},
@@ -197,6 +197,7 @@ S4 = {"objections": [
      "reaction": {"reaction_kind": "agreement_only", "turn": "T038", "quote": "He would want to know it pays for itself"}},
     {"subjects": ["price"], "quotes": [{"turn": "T038", "quote": "the money is still a lot"}]},  # the same objection again
     {"subjects": ["price"], "quotes": [{"turn": "T037", "quote": "Totally fair"}]},              # a sales turn: dropped
+    {"subjects": ["offer_trust"], "quotes": [{"turn": "T024", "quote": "So I would have a system"}]},  # pitch, before price
 ], "prevention": {"influencers": {"turn": "T036", "quote": "we decide together"}}}
 
 ANSWERS = {"lite.s0_phases": S0, "lite.s1_discovery": S1, "lite.s2_gap": S2, "lite.s3_pitch": S3,

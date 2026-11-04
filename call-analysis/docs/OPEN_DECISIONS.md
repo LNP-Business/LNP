@@ -46,6 +46,10 @@ the methodology file, the memo, the engine constant or rule, and the tests.
   exclusion X7 needs rewording; "what if it doesn't work?" listed as anxiety · choice but boundary test 1 gives
   objection · trust; an anxiety stated in discovery may be scored in Gap/Pitch and Objections; how "two quotes for
   level 2" applies to yes/no items.
+- Phases (Romain 2026-11-03): SB-1 (the discovery ends at the validation of the gap that makes it present) and the PB-3
+  addition (the first price goes with the explanation of the offer; an introduction is never the pitch start) are applied
+  in the lite engine only; the reference engine still ends the discovery at the pitch start or price and decides the
+  price with its PB-18 plausibility band (offer reference not configured: crm_ca_offer is empty).
 - Objections, OB-27 (Romain 2026-11-03: only after the first price): the calibration cases (04_objections_C) and the
   Annex B tests whose resistance comes before the call's first price now open no episode and must be re-read; case 25
   (call 044) needs the call's first-price turn in its test. The objections memo needs the same update.

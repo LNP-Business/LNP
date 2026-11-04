@@ -4,7 +4,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 ## A1. Perimeter
 
-**SB-1 · Borders.** The perimeter starts at the first solicitation on the prospect's situation, goals or problems that is neither social, nor logistic, nor framing. It ends at the first pitch start or the first price (Pitch annex, PB-1 and PB-3). Restitutions of the gap inside this window do not end it.
+**SB-1 · Borders.** The perimeter starts at the first solicitation on the prospect's situation, goals or problems that is neither social, nor logistic, nor framing. It ends when the gap is made: at the prospect's validation of the restitution that makes the gap present (Gap annex, absence gate) (Romain, 2026-11-03). When no gap is made, it ends at the first pitch start or the first price (Pitch annex, PB-1 and PB-3). A restitution that does not make the gap present does not end it. (Lite engine: applied; reference engine: still ends at the pitch start or price, see OPEN_DECISIONS.)
 
 **SB-2 · Social and framing questions.** Never the perimeter start: where the prospect is calling from, how their day is, family small talk, "can you see and hear me?", "here is how the call will go, sound good?". A question about what made them book the call ("what were you hoping we could help you with?") **is** a valid start.
 
