@@ -1,0 +1,31 @@
+{
+  "meta": {"date_appel": "2026-11-04", "enregistrement_fathom": "oui"},
+  "appel": {"appel_tenu": {"valeur": "oui"}, "motif_non_tenu": {"valeur": null}},
+  "metier": {
+    "etudiant": {"valeur": "non", "preuve": "", "minutage": ""},
+    "a_enseigne_scolaire": {"valeur": "oui", "preuve": "prof de maths au collège depuis 12 ans", "minutage": "02:10"},
+    "cours_payants_actuels": {"valeur": "non", "preuve": "", "minutage": ""},
+    "matiere": {"valeur": "mathématiques", "categorie": "matiere_scolaire", "preuve": "prof de maths", "minutage": "02:10"}
+  },
+  "projet": {
+    "douleur": {"valeur": "usure", "preuve": "Je suis épuisée", "minutage": "05:00"},
+    "intention": {"valeur": "enseigner_autrement", "preuve": "je veux continuer à enseigner mais à mon compte", "minutage": "05:00"},
+    "revenu_vise_mensuel": {"valeur": 2500, "preuve": "Je vise 2 500 € par mois", "minutage": "09:00"},
+    "echeance": {"type": "date", "date": "2027-06-30", "delai_mois": null, "preuve": "d'ici juin", "minutage": "09:00"}
+  },
+  "financement": {
+    "ressources_citees": [{"type": "epargne", "preuve": "J'ai un peu d'épargne", "minutage": "62:10"}],
+    "objection_fonds": {"valeur": "non", "preuve": "", "minutage": ""},
+    "situation_bloquante": {"valeur": "aucune", "preuve": "", "minutage": ""}
+  },
+  "decision": {
+    "decideur": {"valeur": "seul", "preuve": "C'est moi qui décide", "minutage": "62:10"},
+    "second_rdv": {"propose": "sans_objet", "date": null, "accepte": null, "preuve": "", "minutage": ""},
+    "demarrage": {"type": "delai", "date": null, "delai_mois": 1, "preuve": "je peux commencer dès le mois prochain", "minutage": "62:10"}
+  },
+  "vente": {
+    "offre_presentee": {"valeur": "oui"}, "issue": {"valeur": "acompte"}, "refus_explicite": {"valeur": "non"},
+    "relance": {"date": null, "preuve": "", "minutage": ""}, "synthese_sales_presente": {"valeur": "oui"}
+  },
+  "contradictions": []
+}
