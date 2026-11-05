@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Qualification SQL des appels LNP — version 2.1 (5 novembre 2026).
+Qualification SQL des appels LNP — version 2.2 (5 novembre 2026).
 
-Étape 2 du pipeline : applique la règle des quatre portes (proposition du
-27 octobre 2026) aux faits extraits par le modèle (étape 1, prompt d'extraction).
+V2.2 (Romain, 5 novembre 2026) : la porte « Douleur et projet » est supprimée. Trois portes : Métier, Financement,
+Décision et timing (le document « Questions de qualification du lead » ne la pose plus).
+
+Étape 2 du pipeline : applique la règle des portes (proposition du
+27 octobre 2026, trois portes depuis la V2.2) aux faits extraits par le modèle (étape 1, prompt d'extraction).
 Le modèle ne décide rien : il extrait. Ce script décide, toujours de la même façon.
 
 Usage :
@@ -26,7 +29,7 @@ from datetime import date, timedelta
 # PARAMÈTRES — à valider par le Head of Sales et Samy (voir document V2, §6)
 # ---------------------------------------------------------------------------
 PARAMS = {
-    # Porte 4 : délai maximum de démarrage, en jours après l'appel (≈ 3 mois)
+    # Porte 3 : délai maximum de démarrage, en jours après l'appel (≈ 3 mois)
     "demarrage_max_jours": 92,
     # Relance : délai maximum, en jours après l'appel
     "relance_max_jours": 15,
@@ -38,26 +41,19 @@ PARAMS = {
     # Porte 1 : un étudiant qui vend déjà des cours particuliers est qualifié (V2.1)
     "etudiant_avec_cours_qualifie": True,
     # Solution aware (V2.1) : compare d'autres offres d'accompagnement ET a pris ou prévoit
-    # un rendez-vous avec une autre offre → qualifié d'office sur les quatre portes.
+    # un rendez-vous avec une autre offre → qualifié d'office sur toutes les portes.
     # "strict" = les deux conditions ; "large" = l'une OU l'autre suffit.
     "solution_aware_mode": "strict",
-    # Porte 2 : douleurs reconnues comme « précises »
-    "douleurs_precises": {"usure", "salaire", "mutation", "temps", "autre_precise"},
-    # Porte 2 : intentions qui ferment la porte
-    "intentions_fermantes": {"changer_de_metier", "pour_voir", "cherche_un_prix", "croit_plateforme"},
-    # Porte 3 : situations qui ferment la porte quand aucune ressource n'est citée
+    # Porte 2 : situations qui ferment la porte quand aucune ressource n'est citée
     "situations_bloquantes": {"rsa", "aucun_revenu", "dettes_bloquantes"},
-    # Échéance du projet (porte 2) : types acceptés
-    "echeance_types_valides": {"date", "delai"},
 }
 
 OUVERTE, FERMEE, NV = "OUVERTE", "FERMÉE", "NON VÉRIFIÉE"
-PORTES = ("metier", "douleur_projet", "financement", "decision_timing")
+PORTES = ("metier", "financement", "decision_timing")
 LIBELLES = {
     "metier": "Porte 1 — Métier",
-    "douleur_projet": "Porte 2 — Douleur et projet",
-    "financement": "Porte 3 — Financement",
-    "decision_timing": "Porte 4 — Décision et timing",
+    "financement": "Porte 2 — Financement",
+    "decision_timing": "Porte 3 — Décision et timing",
 }
 
 
@@ -113,7 +109,7 @@ def jours_depuis(appel, bloc):
 
 
 # ---------------------------------------------------------------------------
-# Les quatre portes — chaque fonction renvoie (statut, preuve, raisons)
+# Les trois portes — chaque fonction renvoie (statut, preuve, raisons)
 # ---------------------------------------------------------------------------
 def porte_metier(f):
     m = f.get("metier", {})
@@ -146,29 +142,6 @@ def porte_metier(f):
             return OUVERTE, p, []
         return NV, p, ["Matière non identifiée ou à classer"]
     return NV, p, ["Expérience d'enseignement ou cours payants non établis"]
-
-
-def porte_douleur_projet(f):
-    pj = f.get("projet", {})
-    intention = v(pj, "intention")
-    p = " / ".join(x for x in (preuve(pj, "douleur"), preuve(pj, "intention"),
-                                preuve(pj, "revenu_vise_mensuel"), preuve(pj, "echeance")) if x)
-    if intention in PARAMS["intentions_fermantes"]:
-        lib = {"changer_de_metier": "veut changer de métier", "pour_voir": "venu(e) « pour voir »",
-               "cherche_un_prix": "vient chercher un prix",
-               "croit_plateforme": "croit que LNP est une plateforme de mise en relation"}
-        return FERMEE, p, [lib.get(intention, intention)]
-    raisons = []
-    if intention != "enseigner_autrement":
-        raisons.append("Projet d'enseigner autrement non établi")
-    if v(pj, "douleur") not in PARAMS["douleurs_precises"]:
-        raisons.append("Pas de douleur précise nommée")
-    if v(pj, "revenu_vise_mensuel") is None:
-        raisons.append("Pas de revenu mensuel visé chiffré")
-    ech = pj.get("echeance") or {}
-    if ech.get("type") not in PARAMS["echeance_types_valides"]:
-        raisons.append("Pas d'échéance (date ou délai)")
-    return (OUVERTE, p, []) if not raisons else (NV, p, raisons)
 
 
 def porte_financement(f):
@@ -250,7 +223,6 @@ def evaluer_portes(f, date_appel):
     alertes = []
     res = {
         "metier": porte_metier(f),
-        "douleur_projet": porte_douleur_projet(f),
         "financement": porte_financement(f),
         "decision_timing": porte_decision_timing(f, date_appel, alertes),
     }
@@ -279,7 +251,7 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         if v(f, "vente", "offre_presentee") != v(lectures[1], "vente", "offre_presentee"):
             alertes.append("Désaccord entre lectures sur la présentation de l'offre")
 
-    # Solution aware (V2.1) : qualifié d'office sur les quatre portes
+    # Solution aware (V2.1) : qualifié d'office sur toutes les portes
     sa, sa_preuve = solution_aware(f)
     if len(lectures) > 1:
         sa2, _ = solution_aware(lectures[1])
@@ -334,7 +306,7 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
     for c in f.get("contradictions") or []:
         alertes.append(f"Contradiction du prospect : {c}")
     if v(f, "vente", "synthese_sales_presente") == "non":
-        alertes.append("Synthèse des quatre portes absente en fin de découverte")
+        alertes.append("Synthèse des portes absente en fin de découverte")
 
     # 3. Une porte fermée
     if fermees:
@@ -354,11 +326,11 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         out["confiance"] = "basse"
         return _finir(out, saisie_issue, saisie_outcome)
 
-    # 5. Quatre portes ouvertes, pas de pitch
+    # 5. Toutes les portes ouvertes, pas de pitch
     if offre != "oui":
         out["statut"] = "À REVOIR"
-        alertes.append("SQL manqué : quatre portes ouvertes sans présentation de l'offre")
-        base["motif"] = "Quatre portes ouvertes, offre non présentée"
+        alertes.append("SQL manqué : toutes les portes ouvertes sans présentation de l'offre")
+        base["motif"] = "Toutes les portes ouvertes, offre non présentée"
         out["confiance"] = "moyenne"
         return _finir(out, saisie_issue, saisie_outcome)
 
@@ -406,7 +378,7 @@ def _finir(out, saisie_issue, saisie_outcome):
 
 # ---------------------------------------------------------------------------
 def main():
-    ap = argparse.ArgumentParser(description="Qualification SQL LNP — règle des quatre portes")
+    ap = argparse.ArgumentParser(description="Qualification SQL LNP — règle des portes (V2.2 : trois portes)")
     ap.add_argument("lectures", nargs="+", help="1 ou 2 fichiers JSON produits par le prompt d'extraction")
     ap.add_argument("--date-appel")
     ap.add_argument("--fathom", choices=["oui", "non"])

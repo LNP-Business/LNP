@@ -40,22 +40,6 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
   coaching_formation_pro = coaching, formation d'adultes ou d'entreprise
   autre = tout le reste (décris-le dans valeur)
  
-## projet
-- douleur : usure | salaire | mutation | temps | autre_precise | aucune | inconnu. "autre_precise" = une douleur concrète qui n'est pas dans la liste (décris-la dans la preuve).
-- intention :
-  enseigner_autrement = veut continuer à enseigner, à son compte, en complément ou à la place de son poste
-  changer_de_metier = veut quitter l'enseignement pour faire autre chose
-  pour_voir = curiosité, pas de projet
-  cherche_un_prix = venu(e) surtout pour connaître le prix
-  croit_plateforme = croit que LNP fournit des élèves ou met en relation
-  ATTENTION : « quitter l'Éducation nationale » pour donner des cours à son compte, c'est enseigner_autrement. Quitter l'enseignement pour un autre métier, c'est changer_de_metier.
-- revenu_vise_mensuel : un nombre en euros par mois. Fourchette → borne basse. Montant annuel → divisé par 12. Rien de chiffré → null.
-- echeance : quand la personne veut atteindre ce revenu.
-  type "date" + date (« d'ici juin » → le 30 juin qui suit DATE_APPEL)
-  type "delai" + delai_mois (« dans 6 mois » → 6)
-  type "vague" (« rapidement », « un jour »)
-  type "absente"
- 
 ## financement
 - ressources_citees : liste des ressources que le prospect dit pouvoir mobiliser. type = salaire | epargne | pret | proche | autre. Une ressource au conditionnel compte (« je pourrais demander à ma sœur »). Une ressource suggérée par le sales et rejetée par le prospect ne compte pas.
 - objection_fonds : "oui" si le prospect dit ne pas avoir les fonds ou les moyens, à n'importe quel moment.
@@ -70,7 +54,7 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
 - second_rdv.propose : oui | non | sans_objet (sans_objet si décideur seul ou présent).
 - second_rdv.date : date du rendez-vous à deux fixée pendant l'appel, sinon null.
 - second_rdv.accepte : oui | non | null.
-- demarrage : quand la personne peut commencer l'accompagnement. Ne confonds pas avec l'échéance du revenu.
+- demarrage : quand la personne peut commencer l'accompagnement.
   type "date" + date (« à la rentrée » → le 1er septembre qui suit DATE_APPEL ; « en janvier » → le 1er janvier qui suit)
   type "delai" + delai_mois (« tout de suite », « dès que possible » → 0 ; « dans deux mois » → 2)
   type "vague" ou "absent"
@@ -85,7 +69,7 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
 - issue : paiement_complet | paiement_fractionne | acompte | aucun (paiement effectué pendant l'appel).
 - refus_explicite : "oui" si la personne refuse clairement l'offre.
 - relance.date : date de rappel fixée pendant l'appel, sinon null.
-- synthese_sales_presente : "oui" si le sales a reformulé métier, projet chiffré, financement et décision, et que le prospect a confirmé.
+- synthese_sales_presente : "oui" si le sales a reformulé métier, financement, décision et démarrage, et que le prospect a confirmé.
  
 # FORMAT DE SORTIE
 Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"valeur": ..., "preuve": "...", "minutage": "mm:ss"}.
@@ -98,12 +82,6 @@ Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"val
     "a_enseigne_scolaire": {"valeur": "oui|non|inconnu", "preuve": "", "minutage": ""},
     "cours_payants_actuels": {"valeur": "oui|non|inconnu", "preuve": "", "minutage": ""},
     "matiere": {"valeur": "", "categorie": "", "preuve": "", "minutage": ""}
-  },
-  "projet": {
-    "douleur": {"valeur": "", "preuve": "", "minutage": ""},
-    "intention": {"valeur": "", "preuve": "", "minutage": ""},
-    "revenu_vise_mensuel": {"valeur": null, "preuve": "", "minutage": ""},
-    "echeance": {"type": "date|delai|vague|absente", "date": null, "delai_mois": null, "preuve": "", "minutage": ""}
   },
   "financement": {
     "ressources_citees": [{"type": "", "preuve": "", "minutage": ""}],
@@ -142,8 +120,7 @@ Exemple 2 — Conjoint absent, rendez-vous à deux posé
 → "decideur": {"valeur": "decideur_absent", ...}
 → "second_rdv": {"propose": "oui", "date": "<jeudi qui suit DATE_APPEL>", "accepte": "oui", ...}
  
-Exemple 3 — Une reconversion qui ressemble à un projet
+Exemple 3 — Une reconversion hors enseignement
 « J'en ai marre de l'Éducation nationale, je voudrais me lancer dans le coaching de vie. »
-→ "intention": {"valeur": "changer_de_metier", ...}
 → "matiere": {"valeur": "coaching de vie", "categorie": "coaching_formation_pro", ...}
-À l'inverse : « Je veux quitter l'Éducation nationale et donner mes cours de maths à mon compte » → "enseigner_autrement", "matiere_scolaire".
+À l'inverse : « Je veux quitter l'Éducation nationale et donner mes cours de maths à mon compte » → "matiere_scolaire".

@@ -34,7 +34,7 @@ class DB:
 def test_an_r1_is_qualified_from_the_turns_of_the_analysis():
     c, client, db = claim(), Stub(json.dumps(FACTS)), DB()
     q = qualif.qualify(c, client, db)
-    assert q["status"] and q["prompt_version"].startswith("lnp-sql-v2.1") and q["rules_version"] == "qualification_lnp-v2.1"
+    assert q["status"] and q["prompt_version"].startswith("lnp-sql-v2.2") and q["rules_version"] == "qualification_lnp-v2.2"
     assert [x["tier"] for x in client.calls] == ["fast", "strong"], "two readings"
     prefix = client.calls[0]["prefix"]
     assert "SALES:" in prefix and "PROSPECT:" in prefix, "the analysis' speakers"

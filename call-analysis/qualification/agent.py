@@ -1,5 +1,6 @@
 """LNP lead qualification agent (« Qualification SQL des appels LNP » version 2, 4 November 2026; rules version 2.1 of
-5 November 2026: any Éducation nationale teacher, a student who already sells lessons, « solution aware » leads).
+5 November 2026: any Éducation nationale teacher, a student who already sells lessons, « solution aware » leads; rules
+2.2, same day: the « Douleur et projet » gate is removed, three gates).
 
 Step 1: the model reads the Fathom transcript of an R1 and extracts facts (prompts/extraction.md, kept as written in the
 document), twice (double reading). Step 2: qualification_lnp.py applies the four-gate rule to those facts and decides.
@@ -22,8 +23,8 @@ from typing import Any, Optional
 from qualification_lnp import PARAMS, qualifier
 
 HERE = Path(__file__).resolve().parent
-PROMPT_VERSION = "lnp-sql-v2.1-2026-11-05"
-RULES_VERSION = "qualification_lnp-v2.1"
+PROMPT_VERSION = "lnp-sql-v2.2-2026-11-05"
+RULES_VERSION = "qualification_lnp-v2.2"
 SALES_DOMAIN = "@lesnouveauxprofs.fr"
 
 

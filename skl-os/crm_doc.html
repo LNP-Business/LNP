@@ -2346,7 +2346,8 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
   // ------------------------------------------------------------------ the lead qualification of an R1 (046, rules 2.1)
   var QST = { "SQL GAGNÉ": ["SQL gagné", "tg"], "SQL OUVERT": ["SQL ouvert", "tb"], "SQL PERDU": ["SQL perdu", "to"], "NON SQL": ["Non SQL", "tr"],
     "À REVOIR": ["À revoir", "ty"], "MQL EN ATTENTE": ["MQL en attente", "tn"] };
-  var GATES = [["metier", "Métier"], ["douleur_projet", "Douleur et projet"], ["financement", "Financement"], ["decision_timing", "Décision et timing"]];
+  // rules 2.2 (Romain 2026-11-05): three gates, « Douleur et projet » is gone (an older qualification shows its three too)
+  var GATES = [["metier", "Métier"], ["financement", "Financement"], ["decision_timing", "Décision et timing"]];
   var GST = { "OUVERTE": ["Ouverte", "tg"], "FERMÉE": ["Fermée", "tr"], "NON VÉRIFIÉE": ["Non vérifiée", "ty"] };
   var RES = { salaire: "Salaire", epargne: "Épargne", pret: "Prêt", proche: "Un proche", autre: "Autre ressource" };
   function qTag(st) { var t = QST[st] || [st || "—", "tn"]; return '<span class="tag ' + t[1] + '">' + esc(t[0]) + "</span>"; }
@@ -2364,11 +2365,11 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
     }).join("");
     return '<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">' +
       sectionHead("Q", "Qualification du lead", qTag(q.status)) +
-      (r.solution_aware ? '<div class="ban" style="background:#E6EEF9;border-color:#B9CDEB;color:#24497F">Lead « solution aware » : il compare d’autres offres et a un rendez-vous avec l’une d’elles, il est qualifié d’office sur les quatre portes.</div>' : "") +
+      (r.solution_aware ? '<div class="ban" style="background:#E6EEF9;border-color:#B9CDEB;color:#24497F">Lead « solution aware » : il compare d’autres offres et a un rendez-vous avec l’une d’elles, il est qualifié d’office sur toutes les portes.</div>' : "") +
       (base || b.motif ? '<div style="font-size:14px;display:flex;flex-wrap:wrap;gap:4px 8px">' + base + (b.motif ? (base ? '<span class="muted"> · </span>' : "") + '<span><span class="muted">Motif : </span>' + esc(b.motif) + "</span>" : "") + "</div>" : "") +
       '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th class="th">Porte</th><th class="th">État</th><th class="th">Ce qui manque ou ferme</th><th class="th">Ce que le prospect a dit</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
       (al.length ? '<div style="display:flex;flex-direction:column;gap:4px"><div class="cap">Alertes</div><ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.5">' + al.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></div>" : "") +
-      '<div style="font-size:12px" class="muted">Le modèle extrait les faits en deux lectures, chaque citation est vérifiée dans la transcription, le code décide (règle des quatre portes' + (q.rules_version ? ", " + esc(String(q.rules_version).replace("qualification_lnp-", "")) : "") + ")" +
+      '<div style="font-size:12px" class="muted">Le modèle extrait les faits en deux lectures, chaque citation est vérifiée dans la transcription, le code décide (règle des portes' + (q.rules_version ? ", " + esc(String(q.rules_version).replace("qualification_lnp-", "")) : "") + ")" +
       (r.confiance ? " · confiance " + esc(r.confiance) : "") + (arr(q.verification).length ? " · " + arr(q.verification).length + " citation" + (arr(q.verification).length > 1 ? "s écartées" : " écartée") : "") + ".</div></div>";
   }
   function drawer(rec, ui) {
