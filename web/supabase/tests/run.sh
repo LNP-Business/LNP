@@ -102,6 +102,8 @@ run 041_crm_cockpit_collected.sql
 run 041_crm_cockpit_collected.sql
 run 042_crm_lead_qualification.sql
 run 042_crm_lead_qualification.sql
+run 043_crm_owners_hourly.sql
+run 043_crm_owners_hourly.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
