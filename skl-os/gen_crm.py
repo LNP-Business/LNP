@@ -28,11 +28,11 @@ info = f'''<sc-if value="{{{{info}}}}" hint-placeholder-val="{{{{false}}}}">
 <li><strong style="color: #1B1B18">L’encaissé, pas seulement les ventes.</strong> Les ventes gagnées montrent côte à côte le montant signé et le montant encaissé.</li></ul></section>
 <section><h3 style="{H3}"><span style="{NUM}">3</span>Comment l’utiliser</h3>
 <ol style="{TXT}; padding-left: 22px">
-<li>Pipeline : faites glisser une carte pour passer un prospect à sa nouvelle étape.</li>
+<li>Pipeline : faites glisser une carte dans une autre colonne pour mettre à jour le statut du prospect. S’il faut déclarer l’issue d’un appel (Absent, Gagné, Perdu, Disqualifié, tour suivant), le formulaire d’issue s’ouvre déjà rempli pour cette colonne ; si l’appel a déjà une issue, vous la corrigez. Un prospect sans appel se clôt avec un motif, un prospect clos se rouvre après confirmation. Les colonnes que le CRM calcule seul (Nouveau, Relance longue, un R2 pas encore réservé dans iClosed) vous disent pourquoi.</li>
 <li>Pipeline : un appel passé sans issue affiche « Déclarer l’issue » sur sa carte ; le même formulaire que dans Cycle de vente s’ouvre, sans quitter le Pipeline.</li>
 <li>Prospects : filtrez, triez, choisissez vos colonnes et agissez sur plusieurs prospects à la fois.</li>
 <li>Cycle de vente : une ligne par prospect en cours, du RDV pris au premier paiement Whop, face aux objectifs de présence, de décision et d’encaissement. Chaque matin, lisez Critique, puis Le commercial doit agir, de haut en bas ; Calendrier montre aujourd’hui et les prochains appels, Depuis le RDV compare la durée des cycles ; ouvrez une ligne pour lire chaque échange, ou la fiche prospect pour chaque message, appel et paiement.</li>
-<li>Cliquez sur un prospect pour ouvrir sa fiche : appels, prochaine action, note, transcriptions et analyse.</li>
+<li>Cliquez sur un prospect pour ouvrir sa fiche : à gauche son cycle de vente jour par jour (filtres Tous, Appels, Messages, Paiements), à droite « À faire » avec l’action du moment (déclarer l’issue, ou « Fait » avec ce que vous avez fait, enregistré en note), ses appels de vente et leur analyse. Son menu Statut déplace le prospect comme dans le Pipeline.</li>
 <li>Notez la prochaine action avant de fermer la fiche d’un prospect.</li></ol></section>
 <button type="button" onClick="{{{{closeInfo}}}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">J’ai compris</button>
 </div>
@@ -122,7 +122,7 @@ crm = crm.replace('</body>', ASK + '</body>', 1) if '</body>' in crm else crm + 
 # would vanish on reload. As a plain file or an Artifact nothing changes: the board stays empty.
 LIVE = ('<script>(function(){'
   'var LIVE=false,TIMER=null,DAY=864e5;'
-  'var WRITES={nxpick:1,nxclear:1,nxdone:1,warm:1,nsback:1,nslost:1,stnew:1,stedit:1,stdel:1,lstpick:1,rdvheld:1,rdvnoshow:1,cxnew:1,cxmock:1};'
+  'var WRITES={nxpick:1,nxclear:1,nxdone:1,warm:1,stnew:1,stedit:1,stdel:1,rdvheld:1,rdvnoshow:1,cxnew:1,cxmock:1};'
   'function day0(d){var x=new Date(d);x.setHours(0,0,0,0);return x}'
   'function dd(iso){return iso?Math.round((day0(iso)-day0(Date.now()))/DAY):null}'
   'function hm(iso){var d=new Date(iso);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}'
@@ -180,6 +180,10 @@ LIVE = ('<script>(function(){'
     '}catch(err){full=true;console.error(err);if(n===LOADS)loadMsg("Impossible de charger les prospects : "+String(err&&err.message||err),function(){load(C)})}'
     'function prep(r){r[0].forEach(function(m){keys[m.id]=m.member_key;if(!SALES.some(function(s){return s.id===m.member_key}))SALES.push({id:m.member_key,name:m.full_name,ini:(m.full_name||"?").charAt(0),color:"#5E5B53",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0})})}}'
   'window.sklCrmLive=function(C){LIVE=true;window.sklCrmDeclare=function(callId,p){return C.declareOutcome(callId,p).then(function(){return load(C)})};'
+  # moves of CRM › Pipeline with no call to declare (045, outcome_ui.js › sklMove), and the note of the lead record's « À faire »
+  'window.sklCrmClose=function(id,d,r,n){return C.closeCycle(id,d,r,n).then(function(){return load(C)})};'
+  'window.sklCrmReopen=function(id,quiet){return C.reopenCycle(id).then(function(){return quiet?null:load(C)})};'
+  'window.sklCrmNote=function(id,txt){return C.addNote(id,txt).then(function(){return load(C)})};'
   # Settings › Alerts saved the SLA settings (crm_settings.sla_rules): the Sales cycle applies them at once
   'try{parent.addEventListener("skl-sla-saved",function(e){if(window.sklScData&&e.detail){window.sklScData.sla=e.detail;if(typeof sklCyclePush==="function")sklCyclePush(true)}})}catch(_){}'
     'if(!SALES.some(function(s){return s.id==="none"}))SALES.push({id:"none",name:"Non attribué",ini:"?",color:"#8E8A80",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0});'
@@ -187,6 +191,8 @@ LIVE = ('<script>(function(){'
       # cash entered by hand (022, Romain 2026-10-26): the lead's Invoicing and payment opens the cash window (cash_ui.js)
       # the outcome of a call from the Pipeline card (Romain 2026-11-05, outcome_ui.js)
       'if(LIVE&&act==="outdecl"){if(e)e.stopPropagation();closeMenu();var ol=byD(el.dataset.id);if(!(window.sklOutcome&&sklOutcome.open(el.dataset.id,ol&&ol.a)))toast("Aucun appel passé sans issue pour ce prospect.");return true}'
+      'if(LIVE&&(act==="lstpick"||act==="nslost"||act==="nsback")){if(e)e.stopPropagation();closeMenu();var sl=byD(el.dataset.id||(S.cx.lead&&S.cx.lead.id));'
+        'if(sl&&window.sklMove)sklMove(sl,act==="lstpick"?el.dataset.s:act==="nslost"?"perdu":"planifie");return true}'
       'if(LIVE&&act==="ltr"){closeMenu();var lt=S.cx.lead&&byD(S.cx.lead.id),rw=lt&&typeof SKL_CA!=="undefined"?SKL_CA.latestRow(lt.id):null;'
         'if(rw)SKL_CA.open(rw.call_id,{person:lt.p,sales:byS(lt.o).name});else toast("Aucun appel R1 ou R2 passé à analyser pour ce prospect.");return true}'
       'if(LIVE&&act==="pay"){if(e)e.stopPropagation();closeMenu();var pl=byD(el&&el.dataset.id||(S.cx.lead&&S.cx.lead.id));'
@@ -203,8 +209,10 @@ LIVE = ('<script>(function(){'
       'if(LIVE&&act==="ownpick"){closeMenu();var cid=el.dataset.id,nm=el.textContent;C.reassignCycle(cid,el.dataset.m).then(function(){'
         'toast("Attribué à "+nm);load(C)},function(err){toast(String(err&&err.message||err))});return true}'
       'return _a(act,el,e)};'
-    'var _m=moveLead;moveLead=function(){if(LIVE){soon();renderAll();return}return _m.apply(this,arguments)};'
-    'var _c=moveToCol;moveToCol=function(){if(LIVE){soon();return}return _c.apply(this,arguments)};'
+    # Romain 2026-11-05: a lead moves for real (a Pipeline column, the lead record's status menu, the Leads list's status):
+    # outcome_ui.js › sklMove opens the outcome form, the closing form or the reopening, or says why the column is computed
+    'var _m=moveLead;moveLead=function(id,st){if(LIVE){var ml=byD(id);if(ml&&window.sklMove)sklMove(ml,st);renderAll();return}return _m.apply(this,arguments)};'
+    'var _c=moveToCol;moveToCol=function(id,c){if(LIVE){var ml=byD(id);if(ml&&window.sklMove&&colOf(ml)!==c)sklMove(ml,c);return}return _c.apply(this,arguments)};'
     'var _s=stepSave;stepSave=function(){if(LIVE){soon();return}return _s.apply(this,arguments)};'
     'C.me().then(function(m){window.sklCanAssign=!!m&&(m.role==="admin"||m.role==="sales_lead");renderAll()}).catch(function(){});'
     'return load(C).then(function(){C.subscribe(function(){clearTimeout(TIMER);TIMER=setTimeout(function(){load(C)},800)})})};'
@@ -522,6 +530,25 @@ crm = crm.replace('</body>', CASH + '</body>', 1) if '</body>' in crm else crm +
 # ---- the outcome of a call, declared from the Pipeline too (Romain 2026-11-05): the Sales cycle's form, same RPC (outcome_ui.js)
 OUTCOME = '<script>' + (ROOT / 'skl-os' / 'crm' / 'outcome_ui.js').read_text(encoding='utf-8') + '</script>'
 crm = crm.replace('</body>', OUTCOME + '</body>', 1) if '</body>' in crm else crm + OUTCOME
+# ---- the lead record (Romain 2026-11-05, the approach of the reference screenshots in LNP's design): on the left the lead's
+# sales cycle as a vertical feed by day with its filters, on the right « À faire » (lead_feed.js), its sales calls and the
+# call analysis (SKL_CA.leadView); the horizontal timeline stays in CRM › Sales cycle
+FEED = ('<script>' + (ROOT / 'skl-os' / 'crm' / 'lead_feed.js').read_text(encoding='utf-8') + '</script>'
+        '<script>function sklLfView(id){var d=window.sklScData;return d&&(d.leads||[]).find(function(z){return z.id===id})||null}'
+        'function sklRo(){var d=window.sklScData;return !d||d.role==="viewer"}'
+        'if(window.SKL_LEADFEED)SKL_LEADFEED.bind(document);'
+        'document.head.insertAdjacentHTML("beforeend","<style>.lf-grid{display:grid;grid-template-columns:minmax(340px,500px) minmax(0,1fr);gap:28px;align-items:start}'
+        '.lf-side{position:sticky;top:0;height:calc(100vh - 150px);min-height:420px;display:flex;flex-direction:column;background:#fff;border:1px solid #E3DFD5;border-radius:16px;padding:18px 16px 6px 20px}'
+        '.lf-side .lf{flex:1;min-height:0}.lf-side .lf-ls{flex:1;min-height:0}.lf-main{display:flex;flex-direction:column;gap:22px;min-width:0}'
+        '@media(max-width:1100px){.lf-grid{grid-template-columns:1fr}.lf-side{position:static;height:auto;max-height:560px}}</style>")</script>')
+crm = crm.replace('</body>', FEED + '</body>', 1) if '</body>' in crm else crm + FEED
+for a, b in [
+    ('    <div class="cx-mbody"><div class="cx-main">\n      <div class="cx-tl" id="cxTl"></div>',
+     '    <div class="cx-mbody"><div class="cx-main">\n      ${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?`<div class="lf-grid"><aside class="lf-side">${SKL_LEADFEED.feed(sklLfView(l.id),{newest:true})}</aside><div class="lf-main">${SKL_LEADFEED.todo(sklLfView(l.id),{ro:sklRo()})}`:`<div class="cx-tl" id="cxTl"></div>`}'),
+    ('      ${body}`}\n    </div></div>', '      ${body}`}${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?"</div></div>":""}\n    </div></div>'),
+    ('  sklTimeline(l);\n', '  sklTimeline(l);if(window.SKL_LEADFEED)SKL_LEADFEED.settle(document);\n')]:
+    assert crm.count(a) == 1, a[:60]
+    crm = crm.replace(a, b)
 for a, b in [
     ('    ${X.show.nx?nxHtml(l):""}\n    ${warm}',
      '    ${X.show.nx?nxHtml(l):""}\n    ${window.sklOutcome?sklOutcome.button(l):""}\n    ${warm}')]:

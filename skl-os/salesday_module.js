@@ -25,7 +25,9 @@
     ".kd{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--soft);color:#3D3A33}",
     ".kd b{font-family:'IBM Plex Mono',monospace;font-weight:600}.kd i{width:8px;height:8px;border-radius:50%;display:inline-block}",
     ".stage{display:flex;flex-direction:column;align-items:center;padding:12px 0 18px}",
-    ".deck{position:relative;width:min(600px,100%)}",
+    ".deck{position:relative;width:100%}",
+    // the lead's sales cycle in the card (lead_feed.js, Romain 2026-11-05)
+    ".cyc{border:1px solid var(--line);border-radius:14px;padding:16px 16px 4px 18px;background:#fff}",
     ".deck::before,.deck::after{content:'';position:absolute;left:16px;right:16px;bottom:-8px;height:20px;border-radius:0 0 18px 18px;background:#fff;border:1px solid var(--line);z-index:0}",
     ".deck::after{left:32px;right:32px;bottom:-16px;opacity:.6}",
     ".tc{position:relative;z-index:1;background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px rgba(27,27,24,.08);transition:transform .25s ease,opacity .25s ease;touch-action:pan-y}",
@@ -145,6 +147,7 @@
     html: '<div id="sd"><div class="card cover">Chargement de votre journée…</div></div>',
     mount: function (root, tip, toast) {
       var box = root.getElementById("sd");
+      if (window.SKL_LEADFEED) { var lfs = document.createElement("style"); lfs.textContent = window.SKL_LEADFEED.css; root.appendChild(lfs); }
       var C = window.SKL_CRM, S = { live: false, loading: true, error: "", me: null, members: [], reasons: DEMO_REASONS, cycles: [],
         who: "me", day: { done: [], snoozed: [] }, dayKey: dayKey(Date.now()), skipped: [], form: {}, busy: false, front: null, msg: "" };
       function say(m) { if (!toast) return; toast.textContent = m; toast.style.opacity = 1; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.opacity = 0; }, 2400); }
@@ -198,6 +201,9 @@
           (i.kind === "follow" && nextStep(c) ? " · " + nextStep(c) : "");
         var body = '<div class="act"><b>À faire</b><span>' + esc(act) + '</span></div><div class="facts">' +
           facts(i, now).map(function (f) { return '<div><b title="' + esc(f[0]) + '">' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span></div>'; }).join("") + '</div>';
+        // the lead's sales cycle, day by day, newest in view (the same feed as the CRM lead record)
+        var lv = window.SKL_LEADFEED && C && C.salesCycleView ? C.salesCycleView([c], S.members, now)[0] : null;
+        if (lv) body += '<div class="cyc">' + window.SKL_LEADFEED.feed(lv, { max: 300, newest: true }) + '</div>';
         var ro = S.live && S.me && S.me.role === "viewer";
         if (i.kind === "outcome") {
           var att = F.att, dec = F.dec, rs = S.reasons.filter(function (r) { return r.kind === (dec === "no" ? "lost" : "disqualified"); });
@@ -250,6 +256,7 @@
           '<div class="card"><h3>Fait aujourd\'hui</h3>' + (done || '<div class="empty">Rien pour l\'instant.</div>') + '</div>' +
           (L.snoozed.length ? '<div class="card"><h3>Demain</h3>' + L.snoozed.map(function (i) { return '<div class="li"><i style="background:' + KIND[i.kind].c + '"></i><span>' + esc(i.name) + '</span><button class="btn ln sm" data-unsnooze="' + esc(i.id) + '">Remettre aujourd\'hui</button></div>'; }).join("") + '</div>' : '') + '</div>';
         box.innerHTML = '<div class="wrap">' + main + side + '</div>';
+        if (window.SKL_LEADFEED) window.SKL_LEADFEED.settle(box);
         swipe();
       }
       // a finished card swipes away, then the next lead comes
@@ -330,7 +337,7 @@
       function swipe() {
         var el = root.getElementById("tc"); if (!el) return;
         var i = current(), x0 = null, dx = 0;
-        el.addEventListener("pointerdown", function (e) { if (e.target.closest("button,input,select,textarea")) return; x0 = e.clientX; dx = 0; el.classList.add("drag"); el.setPointerCapture(e.pointerId); });
+        el.addEventListener("pointerdown", function (e) { if (e.target.closest("button,input,select,textarea,.cyc")) return; x0 = e.clientX; dx = 0; el.classList.add("drag"); el.setPointerCapture(e.pointerId); });
         el.addEventListener("pointermove", function (e) { if (x0 == null) return; dx = e.clientX - x0; el.style.transform = "translateX(" + dx + "px) rotate(" + dx / 30 + "deg)"; });
         var up = function () {
           if (x0 == null) return; x0 = null; el.classList.remove("drag"); el.style.transform = "";
