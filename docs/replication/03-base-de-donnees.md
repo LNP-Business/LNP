@@ -214,7 +214,7 @@ Toutes `language sql stable security definer set search_path = public`.
 |---|---|---|
 | `my_role()` (001) | `text` | `members.role` de `auth.uid()`, `null` si la personne n'est pas membre. |
 | `crm_role()` (003) | `member_role` | `crm_members.role` de `auth.uid()` si `active`, sinon `null`. |
-| `crm_sees_all()` (003) | `boolean` | `crm_role()` ∈ {`admin`, `sales_lead`, `viewer`} (faux si `null`). |
+| `crm_sees_all()` (003, 048) | `boolean` | `crm_role() = 'admin'` (faux si `null`). Depuis 048 (Romain, 5 novembre 2026), seul un administrateur voit tous les prospects ; commercial, responsable commercial et lecteur ne voient que les cycles dont ils sont propriétaires. |
 | `crm_owns_cycle(c uuid)` (003) | `boolean` | Le cycle `c` a `owner_id = auth.uid()`. |
 | `crm_sees_person(p uuid)` (003) | `boolean` | `crm_sees_all()` ou la personne a un cycle dont l'appelant est propriétaire. |
 | `crm_ca_can_read(p_call uuid)` (020) | `boolean` | `crm_role() = 'admin'` ou l'appelant possède le cycle de l'appel. **Plus étroit** que `crm_sees_all()` : ni `sales_lead` ni `viewer` ne lisent l'analyse d'appel d'un cycle qui n'est pas le leur. |

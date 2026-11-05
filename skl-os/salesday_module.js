@@ -151,7 +151,8 @@
       var C = window.SKL_CRM, S = { live: false, loading: true, error: "", me: null, members: [], reasons: DEMO_REASONS, cycles: [],
         who: "me", day: { done: [], snoozed: [] }, dayKey: dayKey(Date.now()), skipped: [], form: {}, busy: false, front: null, msg: "" };
       function say(m) { if (!toast) return; toast.textContent = m; toast.style.opacity = 1; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.opacity = 0; }, 2400); }
-      function lead() { return S.me && ["admin", "sales_lead", "viewer"].indexOf(S.me.role) >= 0; }
+      // 048 (Romain 2026-11-05): only an admin sees every lead, so only an admin chooses « Toute l'équipe » or another rep
+      function lead() { return S.me && S.me.role === "admin"; }
       function saveDay() { if (C) C.setPref("salesday." + S.dayKey, S.day).catch(function () { say("La liste du jour n'a pas pu être enregistrée"); }); }
       function load() {
         S.loading = true; S.error = ""; render();
