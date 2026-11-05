@@ -9,6 +9,11 @@ particuliers est qualifié ; un lead « solution aware » (compare d'autres offr
 l'une d'elles) est qualifié d'office sur les quatre portes. La consigne d'extraction gagne le bloc `concurrence` et la
 catégorie `matiere_education_nationale` (prompt `lnp-sql-v2.1-2026-11-05`).
 
+**Version 2.2 (5 novembre 2026, Romain)** : la porte « Douleur et projet » est supprimée (douleur, intention, revenu visé,
+échéance ne sont plus extraits ni vérifiés). Trois portes : Métier, Financement, Décision et timing (prompt
+`lnp-sql-v2.2-2026-11-05`, règles `qualification_lnp-v2.2`, 29 cas). L'analyse reste lancée à la main (pas de mise en file
+automatique, Romain 2026-11-03 et 2026-11-05).
+
 **Dans l'analyse d'appel (046)** : chaque R1 analysé est qualifié par le worker de l'analyse
 (`call-analysis/worker/callqa_worker/qualif.py`), sur les mêmes répliques que l'analyse ; le résultat est gardé avec l'analyse
 et s'affiche dans l'écran d'analyse d'appel (section « Qualification du lead ») et sur la pastille du prospect. Le workflow
