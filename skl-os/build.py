@@ -81,7 +81,9 @@ if LANG == "en" and (HERE / "store.js").exists():
     STOREJS = ("<script>window.SKL_SEED = " + SEED.replace("</", "<\\/") + ";</script>\n"
                + "<script>" + (HERE / "store.js").read_text(encoding="utf-8") + "</script>\n"
                + "<script>" + (HERE / "kr_view.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>\n"
-               + "<script>" + (HERE / "crm" / "data.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>")
+               + "<script>" + (HERE / "crm" / "data.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
+               # the Sales cycle SLAs (one source with CRM › Sales cycle and sla-tick): the catalogue of Settings › Alerts
+               + "<script>" + (HERE.parent / "supabase" / "functions" / "_shared" / "sla_rules.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>")
 MECH = HERE.parent / "mechapp" / "dist" / "mech.js"
 CRMDOC = HERE / "crm_doc.html"
 CRMJS = ""

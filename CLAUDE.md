@@ -51,7 +51,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `skl-os/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
 - Ma journée : `skl-os/salesday_module.js` + `gen_salesday.py`.
 - CRM, Cycle de vente, encaissements : voir les fichiers figés ci-dessus ; règles SLA : `supabase/functions/_shared/sla_rules.js`
-  (une seule source pour l'écran et pour `sla-tick`).
+  (une seule source pour l'écran, pour `sla-tick` et pour le catalogue de Paramètres › Alertes ; réglages enregistrés dans
+  `crm_settings.sla_rules`, migration 044).
 - Analyse d'appel (écran) : `skl-os/crm/call_analysis.js`, `call_analysis_view.js`, `transcript_parse.js` ; les codes du moteur
   sont traduits à l'affichage, les citations restent mot pour mot.
 - Paramètres › Alertes : `skl-en/project/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/skl-web.js`.
