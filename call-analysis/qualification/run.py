@@ -19,7 +19,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "worker"))
 sys.path.insert(0, str(HERE.parent / "engine"))     # the gateway client reads alkimiy_callqa.core.llm
 
-from agent import qualify_call  # noqa: E402
+from agent import PROMPT_VERSION, qualify_call  # noqa: E402
 from callqa_worker.gateway import GatewayClient  # noqa: E402
 from callqa_worker.supabase import Supabase  # noqa: E402
 
@@ -36,7 +36,7 @@ def main() -> int:
     db = Supabase(url, key, timeout=180)
     cfg = (db.rpc("crm_qualif_config", {}) or {})
     client = GatewayClient(url.rstrip("/") + "/functions/v1/callqa-llm", key, cfg.get("tiers") or {}, passes=1)
-    calls = db.rpc("crm_qualif_candidates", {"p_limit": a.limit, "p_again": a.again}) or []
+    calls = db.rpc("crm_qualif_candidates", {"p_limit": a.limit, "p_again": a.again, "p_prompt_version": PROMPT_VERSION}) or []
     print(f"{len(calls)} lead(s) to qualify", flush=True)
     seen: Counter = Counter()
     for c in calls:

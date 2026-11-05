@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Qualification SQL des appels LNP — version 2.
+Qualification SQL des appels LNP — version 2.1 (5 novembre 2026).
 
 Étape 2 du pipeline : applique la règle des quatre portes (proposition du
 27 octobre 2026) aux faits extraits par le modèle (étape 1, prompt d'extraction).
@@ -30,10 +30,17 @@ PARAMS = {
     "demarrage_max_jours": 92,
     # Relance : délai maximum, en jours après l'appel
     "relance_max_jours": 15,
-    # Porte 1 : catégories de matière qui se vendent aux familles
-    "matieres_vendables": {"matiere_scolaire", "langue_enfants", "musique_arts"},
-    # Porte 1 : catégories exclues
+    # Porte 1 : un enseignant de l'Éducation nationale ouvre la porte quelle que soit sa matière (V2.1).
+    # Les listes ci-dessous ne servent que pour les personnes SANS expérience Éducation nationale
+    # (cours particuliers, étudiants qui vendent déjà des cours).
+    "matieres_vendables": {"matiere_education_nationale", "matiere_scolaire", "langue_enfants", "musique_arts"},
     "matieres_exclues": {"aide_devoirs_generale", "fle_adultes", "coaching_formation_pro"},
+    # Porte 1 : un étudiant qui vend déjà des cours particuliers est qualifié (V2.1)
+    "etudiant_avec_cours_qualifie": True,
+    # Solution aware (V2.1) : compare d'autres offres d'accompagnement ET a pris ou prévoit
+    # un rendez-vous avec une autre offre → qualifié d'office sur les quatre portes.
+    # "strict" = les deux conditions ; "large" = l'une OU l'autre suffit.
+    "solution_aware_mode": "strict",
     # Porte 2 : douleurs reconnues comme « précises »
     "douleurs_precises": {"usure", "salaire", "mutation", "temps", "autre_precise"},
     # Porte 2 : intentions qui ferment la porte
@@ -110,26 +117,35 @@ def jours_depuis(appel, bloc):
 # ---------------------------------------------------------------------------
 def porte_metier(f):
     m = f.get("metier", {})
-    raisons = []
-    if v(m, "etudiant") == "oui":
-        return FERMEE, preuve(m, "etudiant"), ["Étudiant(e)"]
     enseigne = v(m, "a_enseigne_scolaire")
     cours = v(m, "cours_payants_actuels")
     cat = v(m, "matiere", "categorie") or v(m, "matiere_categorie")
-    p = " / ".join(x for x in (preuve(m, "a_enseigne_scolaire"), preuve(m, "cours_payants_actuels"),
-                                preuve(m, "matiere")) if x)
+    p = " / ".join(x for x in (preuve(m, "etudiant"), preuve(m, "a_enseigne_scolaire"),
+                                preuve(m, "cours_payants_actuels"), preuve(m, "matiere")) if x)
+
+    # Enseignant de l'Éducation nationale : ouverte, quelle que soit la matière (V2.1)
+    if enseigne == "oui":
+        return OUVERTE, p, []
+
+    # Étudiant : qualifié seulement s'il vend déjà des cours particuliers (V2.1)
+    if v(m, "etudiant") == "oui":
+        if not (PARAMS["etudiant_avec_cours_qualifie"] and cours == "oui"):
+            if cours == "non" or not PARAMS["etudiant_avec_cours_qualifie"]:
+                return FERMEE, p, ["Étudiant(e) qui ne vend pas de cours particuliers"]
+            return NV, p, ["Étudiant(e) : vérifier s'il vend déjà des cours particuliers"]
+        # étudiant qui vend déjà des cours : traité comme un donneur de cours payants (ci-dessous)
+
     if enseigne == "non" and cours == "non":
         return FERMEE, p, ["N'a jamais enseigné dans le scolaire et ne donne pas de cours payants"]
-    if cat in PARAMS["matieres_exclues"]:
-        return FERMEE, p, [f"Matière non vendable aux familles ({cat})"]
-    experience = enseigne == "oui" or cours == "oui"
-    if experience and cat in PARAMS["matieres_vendables"]:
-        return OUVERTE, p, []
-    if not experience:
-        raisons.append("Expérience d'enseignement ou cours payants non établis")
-    if cat is None or cat == "autre":
-        raisons.append("Matière non identifiée ou à classer")
-    return NV, p, raisons
+
+    # Sans expérience Éducation nationale : la matière doit se vendre aux familles
+    if cours == "oui":
+        if cat in PARAMS["matieres_exclues"]:
+            return FERMEE, p, [f"Matière non vendable aux familles ({cat})"]
+        if cat in PARAMS["matieres_vendables"]:
+            return OUVERTE, p, []
+        return NV, p, ["Matière non identifiée ou à classer"]
+    return NV, p, ["Expérience d'enseignement ou cours payants non établis"]
 
 
 def porte_douleur_projet(f):
@@ -216,6 +232,20 @@ def porte_decision_timing(f, date_appel, alertes):
     return (OUVERTE, p, []) if not raisons else (NV, p, raisons)
 
 
+def solution_aware(f):
+    """Renvoie (True/False, preuve). Compare d'autres offres d'accompagnement ET a pris ou prévoit
+    un rendez-vous avec une autre offre (mode strict), ou l'un des deux (mode large)."""
+    c = f.get("concurrence", {})
+    compare = v(c, "compare_autres_offres") == "oui"
+    rdv = v(c, "rdv_autres_offres") in ("deja_pris", "prevu")
+    ok = (compare and rdv) if PARAMS["solution_aware_mode"] == "strict" else (compare or rdv)
+    p = " / ".join(x for x in (preuve(c, "compare_autres_offres"), preuve(c, "rdv_autres_offres")) if x)
+    offres = c.get("offres_citees") or []
+    if offres:
+        p = (p + " / " if p else "") + "offres citées : " + ", ".join(map(str, offres))
+    return ok, p
+
+
 def evaluer_portes(f, date_appel):
     alertes = []
     res = {
@@ -249,6 +279,21 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         if v(f, "vente", "offre_presentee") != v(lectures[1], "vente", "offre_presentee"):
             alertes.append("Désaccord entre lectures sur la présentation de l'offre")
 
+    # Solution aware (V2.1) : qualifié d'office sur les quatre portes
+    sa, sa_preuve = solution_aware(f)
+    if len(lectures) > 1:
+        sa2, _ = solution_aware(lectures[1])
+        if sa != sa2:
+            alertes.append("Désaccord entre lectures sur « solution aware » : règle non appliquée, portes évaluées normalement")
+            sa = False
+    if sa:
+        non_ouvertes = [k for k in PORTES if portes[k][0] != OUVERTE]
+        for k in non_ouvertes:
+            alertes.append(f"Solution aware : {LIBELLES[k]} qualifiée d'office (était {portes[k][0]} — "
+                           + "; ".join(portes[k][2]) + ")")
+            portes[k] = (OUVERTE, portes[k][1], ["Qualifiée d'office : lead solution aware"])
+        alertes.insert(0, "Lead solution aware" + (f" : {sa_preuve}" if sa_preuve else ""))
+
     statuts = {k: portes[k][0] for k in PORTES}
     vente = f.get("vente", {})
     offre = v(vente, "offre_presentee")
@@ -258,6 +303,7 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         "portes": {k: {"statut": portes[k][0], "preuve": portes[k][1], "raisons": portes[k][2]} for k in PORTES},
         "offre_presentee": {"oui": True, "non": False}.get(offre),
         "base": {"issue_r1": None, "outcome": None, "motif": "", "date_relance": None},
+        "solution_aware": bool(sa),
         "alertes": alertes,
         "confiance": None,
     }

@@ -177,6 +177,34 @@
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">' + tiles + "</div>" +
       '<div style="font-size:12px" class="muted">' + (rec.r.provisional ? "Scores provisoires tant que les seuils de fiabilité ne sont pas atteints · " : "") + (rules ? "Règles " + esc(rules) + " · " : "") + "le modèle cite, le code note · cliquez sur une lettre SPIN pour lire sa question et la réponse.</div></div>";
   }
+  // ------------------------------------------------------------------ the lead qualification of an R1 (046, rules 2.1)
+  var QST = { "SQL GAGNÉ": ["SQL gagné", "tg"], "SQL OUVERT": ["SQL ouvert", "tb"], "SQL PERDU": ["SQL perdu", "to"], "NON SQL": ["Non SQL", "tr"],
+    "À REVOIR": ["À revoir", "ty"], "MQL EN ATTENTE": ["MQL en attente", "tn"] };
+  var GATES = [["metier", "Métier"], ["douleur_projet", "Douleur et projet"], ["financement", "Financement"], ["decision_timing", "Décision et timing"]];
+  var GST = { "OUVERTE": ["Ouverte", "tg"], "FERMÉE": ["Fermée", "tr"], "NON VÉRIFIÉE": ["Non vérifiée", "ty"] };
+  var RES = { salaire: "Salaire", epargne: "Épargne", pret: "Prêt", proche: "Un proche", autre: "Autre ressource" };
+  function qTag(st) { var t = QST[st] || [st || "—", "tn"]; return '<span class="tag ' + t[1] + '">' + esc(t[0]) + "</span>"; }
+  function qualification(rec) {
+    var q = obj(rec.r.qualification);
+    if (!q.status && !q.result) return "";
+    var r = obj(q.result), b = obj(r.base), portes = obj(r.portes), al = arr(r.alertes);
+    var base = [["Issue du R1", b.issue_r1], ["Outcome", b.outcome], ["Relance", b.date_relance ? new Date(b.date_relance + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : null]]
+      .filter(function (x) { return x[1]; }).map(function (x) { return '<span><span class="muted">' + x[0] + " : </span><b>" + esc(x[1]) + "</b></span>"; }).join('<span class="muted"> · </span>');
+    var rows = GATES.map(function (g) {
+      var x = obj(portes[g[0]]), t = GST[x.statut] || ["—", "tn"], why = arr(x.raisons);
+      return '<tr><td class="td" style="white-space:nowrap;font-weight:600">' + g[1] + '</td><td class="td"><span class="tag ' + t[1] + '" style="white-space:nowrap">' + t[0] + "</span></td>" +
+        '<td class="td">' + (why.length ? esc(why.join(" ; ")) : '<span class="muted">—</span>') + "</td>" +
+        '<td class="td muted" style="font-size:13px">' + (x.preuve ? "“" + esc(String(x.preuve).replace(/(^|\/ )(salaire|epargne|pret|proche|autre) : /g, function (m, a, k) { return a + RES[k] + " : "; })) + "”" : "—") + "</td></tr>";
+    }).join("");
+    return '<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">' +
+      sectionHead("Q", "Qualification du lead", qTag(q.status)) +
+      (r.solution_aware ? '<div class="ban" style="background:#E6EEF9;border-color:#B9CDEB;color:#24497F">Lead « solution aware » : il compare d’autres offres et a un rendez-vous avec l’une d’elles, il est qualifié d’office sur les quatre portes.</div>' : "") +
+      (base || b.motif ? '<div style="font-size:14px;display:flex;flex-wrap:wrap;gap:4px 8px">' + base + (b.motif ? (base ? '<span class="muted"> · </span>' : "") + '<span><span class="muted">Motif : </span>' + esc(b.motif) + "</span>" : "") + "</div>" : "") +
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th class="th">Porte</th><th class="th">État</th><th class="th">Ce qui manque ou ferme</th><th class="th">Ce que le prospect a dit</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      (al.length ? '<div style="display:flex;flex-direction:column;gap:4px"><div class="cap">Alertes</div><ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.5">' + al.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></div>" : "") +
+      '<div style="font-size:12px" class="muted">Le modèle extrait les faits en deux lectures, chaque citation est vérifiée dans la transcription, le code décide (règle des quatre portes' + (q.rules_version ? ", " + esc(String(q.rules_version).replace("qualification_lnp-", "")) : "") + ")" +
+      (r.confiance ? " · confiance " + esc(r.confiance) : "") + (arr(q.verification).length ? " · " + arr(q.verification).length + " citation" + (arr(q.verification).length > 1 ? "s écartées" : " écartée") : "") + ".</div></div>";
+  }
   function drawer(rec, ui) {
     if (!ui.drawer) return "";
     return '<div class="card" id="cav-drawer" style="padding:18px 22px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div class="cap">Transcription · appel entier · ' + rec.turns.length + " prises de parole</div>" +
@@ -483,7 +511,7 @@
     if (!r) return "";
     var rec = new Rec(r);
     ui = ui || {};
-    return '<div class="cav">' + header(rec, ui) + drawer(rec, ui) + discovery(rec, ui) + gap(rec) + pitch(rec) + objections(rec, ui) + "</div>";
+    return '<div class="cav">' + header(rec, ui) + qualification(rec) + drawer(rec, ui) + discovery(rec, ui) + gap(rec) + pitch(rec) + objections(rec, ui) + "</div>";
   }
   function css() {
     if (document.getElementById("cav-css")) return;

@@ -108,6 +108,8 @@ run 044_crm_sla_settings.sql
 run 044_crm_sla_settings.sql
 run 045_crm_pipeline_moves.sql
 run 045_crm_pipeline_moves.sql
+run 046_crm_qualif_in_analysis.sql
+run 046_crm_qualif_in_analysis.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -141,3 +143,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_collected_test.sql | ta
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lead_qualification_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sla_settings_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/pipeline_moves_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/qualif_in_analysis_test.sql | tail -1

@@ -2343,6 +2343,34 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">' + tiles + "</div>" +
       '<div style="font-size:12px" class="muted">' + (rec.r.provisional ? "Scores provisoires tant que les seuils de fiabilité ne sont pas atteints · " : "") + (rules ? "Règles " + esc(rules) + " · " : "") + "le modèle cite, le code note · cliquez sur une lettre SPIN pour lire sa question et la réponse.</div></div>";
   }
+  // ------------------------------------------------------------------ the lead qualification of an R1 (046, rules 2.1)
+  var QST = { "SQL GAGNÉ": ["SQL gagné", "tg"], "SQL OUVERT": ["SQL ouvert", "tb"], "SQL PERDU": ["SQL perdu", "to"], "NON SQL": ["Non SQL", "tr"],
+    "À REVOIR": ["À revoir", "ty"], "MQL EN ATTENTE": ["MQL en attente", "tn"] };
+  var GATES = [["metier", "Métier"], ["douleur_projet", "Douleur et projet"], ["financement", "Financement"], ["decision_timing", "Décision et timing"]];
+  var GST = { "OUVERTE": ["Ouverte", "tg"], "FERMÉE": ["Fermée", "tr"], "NON VÉRIFIÉE": ["Non vérifiée", "ty"] };
+  var RES = { salaire: "Salaire", epargne: "Épargne", pret: "Prêt", proche: "Un proche", autre: "Autre ressource" };
+  function qTag(st) { var t = QST[st] || [st || "—", "tn"]; return '<span class="tag ' + t[1] + '">' + esc(t[0]) + "</span>"; }
+  function qualification(rec) {
+    var q = obj(rec.r.qualification);
+    if (!q.status && !q.result) return "";
+    var r = obj(q.result), b = obj(r.base), portes = obj(r.portes), al = arr(r.alertes);
+    var base = [["Issue du R1", b.issue_r1], ["Outcome", b.outcome], ["Relance", b.date_relance ? new Date(b.date_relance + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : null]]
+      .filter(function (x) { return x[1]; }).map(function (x) { return '<span><span class="muted">' + x[0] + " : </span><b>" + esc(x[1]) + "</b></span>"; }).join('<span class="muted"> · </span>');
+    var rows = GATES.map(function (g) {
+      var x = obj(portes[g[0]]), t = GST[x.statut] || ["—", "tn"], why = arr(x.raisons);
+      return '<tr><td class="td" style="white-space:nowrap;font-weight:600">' + g[1] + '</td><td class="td"><span class="tag ' + t[1] + '" style="white-space:nowrap">' + t[0] + "</span></td>" +
+        '<td class="td">' + (why.length ? esc(why.join(" ; ")) : '<span class="muted">—</span>') + "</td>" +
+        '<td class="td muted" style="font-size:13px">' + (x.preuve ? "“" + esc(String(x.preuve).replace(/(^|\/ )(salaire|epargne|pret|proche|autre) : /g, function (m, a, k) { return a + RES[k] + " : "; })) + "”" : "—") + "</td></tr>";
+    }).join("");
+    return '<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">' +
+      sectionHead("Q", "Qualification du lead", qTag(q.status)) +
+      (r.solution_aware ? '<div class="ban" style="background:#E6EEF9;border-color:#B9CDEB;color:#24497F">Lead « solution aware » : il compare d’autres offres et a un rendez-vous avec l’une d’elles, il est qualifié d’office sur les quatre portes.</div>' : "") +
+      (base || b.motif ? '<div style="font-size:14px;display:flex;flex-wrap:wrap;gap:4px 8px">' + base + (b.motif ? (base ? '<span class="muted"> · </span>' : "") + '<span><span class="muted">Motif : </span>' + esc(b.motif) + "</span>" : "") + "</div>" : "") +
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th class="th">Porte</th><th class="th">État</th><th class="th">Ce qui manque ou ferme</th><th class="th">Ce que le prospect a dit</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      (al.length ? '<div style="display:flex;flex-direction:column;gap:4px"><div class="cap">Alertes</div><ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.5">' + al.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></div>" : "") +
+      '<div style="font-size:12px" class="muted">Le modèle extrait les faits en deux lectures, chaque citation est vérifiée dans la transcription, le code décide (règle des quatre portes' + (q.rules_version ? ", " + esc(String(q.rules_version).replace("qualification_lnp-", "")) : "") + ")" +
+      (r.confiance ? " · confiance " + esc(r.confiance) : "") + (arr(q.verification).length ? " · " + arr(q.verification).length + " citation" + (arr(q.verification).length > 1 ? "s écartées" : " écartée") : "") + ".</div></div>";
+  }
   function drawer(rec, ui) {
     if (!ui.drawer) return "";
     return '<div class="card" id="cav-drawer" style="padding:18px 22px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div class="cap">Transcription · appel entier · ' + rec.turns.length + " prises de parole</div>" +
@@ -2649,7 +2677,7 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
     if (!r) return "";
     var rec = new Rec(r);
     ui = ui || {};
-    return '<div class="cav">' + header(rec, ui) + drawer(rec, ui) + discovery(rec, ui) + gap(rec) + pitch(rec) + objections(rec, ui) + "</div>";
+    return '<div class="cav">' + header(rec, ui) + qualification(rec) + drawer(rec, ui) + discovery(rec, ui) + gap(rec) + pitch(rec) + objections(rec, ui) + "</div>";
   }
   function css() {
     if (document.getElementById("cav-css")) return;
@@ -2868,12 +2896,20 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
     return recent.length ? recent[recent.length - 1] : null;
   }
   function dot(sc) { var x = obj(sc); if (x.status !== "scored" || x.score == null) return '<i style="color:#B7B2A6;font-style:normal">—</i>'; var l = level(x.score); if (x.verdict === "absent" || x.verdict === "non_compliant") l = ["", "tr"]; return '<span class="ca-tag ' + l[1] + '" style="padding:0 5px;font-size:11px">' + Math.round(x.score) + "</span>"; }
+  // the lead qualification of an R1 (046): its state, as a small tag
+  var QST = { "SQL GAGNÉ": ["SQL gagné", "tg"], "SQL OUVERT": ["SQL ouvert", "tb"], "SQL PERDU": ["SQL perdu", "to"], "NON SQL": ["Non SQL", "tr"],
+    "À REVOIR": ["Qualif. à revoir", "ty"], "MQL EN ATTENTE": ["MQL en attente", "tn"] };
+  function qtag(r) {
+    var q = obj(r && r.qualification), t = QST[q.status]; if (!t) return "";
+    return '<span class="ca-tag ' + t[1] + '" style="padding:0 6px;font-size:11px" title="Qualification du lead (R1)">' + t[0] + "</span>";
+  }
+  function r1Of(cycleId) { return rowsOf(cycleId).filter(function (x) { return x.round === 1 && x.qualification; }).pop() || null; }
   function chip(cycleId) {
     var r = leadRow(cycleId); if (!r) return "";
     var base = 'class="sklca-chip" data-ca="' + esc(r.call_id) + '" data-cycle="' + esc(cycleId) + '" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font:600 11.5px \'IBM Plex Sans\',sans-serif;border-radius:8px;padding:3px 8px;cursor:pointer;';
     if (r.status === "done" || r.done_job) {
       var s = obj(r.scores);
-      return "<button " + base + 'border:1px solid #E3DFD5;background:#fff;color:#1B1B18" title="Analyse d\'appel R' + r.round + ' · Découverte, Écart, Présentation de l\'offre, Objections">R' + r.round + " " + COMP.map(function (c) { return dot(s[c[0]]); }).join("") + "</button>";
+      return "<button " + base + 'border:1px solid #E3DFD5;background:#fff;color:#1B1B18" title="Analyse d\'appel R' + r.round + ' · Découverte, Écart, Présentation de l\'offre, Objections · qualification du lead">R' + r.round + " " + COMP.map(function (c) { return dot(s[c[0]]); }).join("") + qtag(r1Of(cycleId)) + "</button>";
     }
     if (r.status === "queued" || r.status === "running") return "<button " + base + 'border:1px solid #EAD9B3;background:#F7EEDC;color:#7A4B00">Analyse R' + r.round + " en cours…</button>";
     if (r.status === "failed") return "<button " + base + 'border:1px solid #F1B8B2;background:#FDECEA;color:#9B1C12">Échec de l\'analyse R' + r.round + "</button>";
@@ -2885,11 +2921,12 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
     var rows = rowsOf(cycleId);
     var head = '<div class="cx-panel"><h3>Analyse d\'appel</h3>';
     if (!rows.length) return head + '<p class="mut" style="margin:0">Aucun appel de vente R1 ou R2 passé à analyser pour ce prospect pour l\'instant (les appels d\'intégration et d\'étude de cas ne sont pas analysés). Seuls les administrateurs et le commercial attitré du prospect voient l\'analyse.</p></div>';
-    return head + '<p class="mut" style="margin:0 0 10px">Découverte · Écart · Présentation de l\'offre · Objections, notés à partir de la transcription. Ouvrez un appel pour voir son analyse, ou ajoutez sa transcription.</p>' +
+    return head + '<p class="mut" style="margin:0 0 10px">Découverte · Écart · Présentation de l\'offre · Objections, notés à partir de la transcription, et pour un R1 la qualification du lead. Ouvrez un appel pour voir son analyse, ou ajoutez sa transcription.</p>' +
       rows.map(function (r) {
         var st = r.status === "done" || r.done_job ? COMP.map(function (c) { return dot(obj(r.scores)[c[0]]); }).join(" ") :
           r.status === "queued" || r.status === "running" ? '<span class="ca-tag ty">Analyse en cours…</span>' :
           r.status === "failed" ? '<span class="ca-tag tr">Échec</span>' : '<span class="ca-tag tn">Sans transcription</span>';
+        st += qtag(r);
         var when = ""; try { when = new Date(r.start).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); } catch (e) {}
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #EFEBE3"><b class="ca-mono">R' + esc(r.round) + '</b><span class="mut">' + esc(when) + "</span>" + st +
           '<span style="flex:1"></span><button class="btn sm" data-ca="' + esc(r.call_id) + '" data-cycle="' + esc(cycleId) + '">' + (r.status === "done" || r.done_job ? "Ouvrir l'analyse" : r.status ? "Voir" : "Ajouter la transcription") + "</button></div>";
@@ -3349,6 +3386,8 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
   function hm(d) { return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
   function dayLbl(d) { return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined }); }
   var WHO = { p: "Prospect", s: "Commercial", a: "Automatique" };
+  // message statuses as Sendblue sends them, in French
+  var ST = { delivered: "Distribué", sent: "Envoyé", read: "Lu", failed: "Échec de l’envoi", error: "Échec de l’envoi", queued: "En attente", received: "Reçu", undelivered: "Non distribué" };
 
   // what one event of the lead model reads as: [group, title, who, extra class]
   function kind(e, l) {
@@ -3381,10 +3420,11 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
       var d = at(l, e.t), k = dayKey(d), K = kind(e, l);
       has[K[0]] = 1;
       if (!groups[k]) { groups[k] = { d: d, items: [] }; days.push(k); }
-      var meta = [K[2], e.st].filter(Boolean).join(" · ");
+      var meta = [K[2], ST[String(e.st || "").toLowerCase()] || e.st].filter(Boolean).join(" · ");
+      var txt = String(e.txt || "").replace(/^Issue déclarée · /, "");
       groups[k].items.push('<div class="lf-it' + (K[3] ? " " + K[3] : "") + '" data-g="' + K[0] + '" data-w="' + esc(e.w || "a") + '"' + (i === ev.length - 1 ? ' data-last="1"' : "") + '><i></i>'
         + '<div class="lf-c"><div class="lf-t"><b>' + esc(K[1]) + "</b>" + (meta ? "<span>" + esc(meta) + "</span>" : "") + "<time>" + hm(d) + "</time></div>"
-        + (e.txt ? '<div class="lf-x">' + esc(e.txt) + "</div>" : "") + "</div></div>");
+        + (txt ? '<div class="lf-x">' + esc(txt) + "</div>" : "") + "</div></div>");
     });
     var F = [["all", "Tous"], ["calls", "Appels"], ["msgs", "Messages"]].concat(has.mails ? [["mails", "E-mails"]] : []).concat([["pay", "Paiements"]]);
     var pick = "var r=this.closest('.lf');r.dataset.f=this.dataset.lff;r.querySelectorAll('[data-lff]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.lff===r.dataset.f))})";

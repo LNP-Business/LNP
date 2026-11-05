@@ -3,6 +3,17 @@
 Mise en œuvre du document « Qualification SQL des appels LNP — version 2 » (4 novembre 2026, d'après les critères MQL et
 SQL proposés par Samy Mkacher le 27 octobre 2026, à valider par Antoine et le Head of Sales).
 
+**Version 2.1 (5 novembre 2026)** : `qualification_lnp.py` et `tests/check_rules.py` sont ceux de Romain (28 cas). Un
+enseignant de l'Éducation nationale ouvre la porte Métier quelle que soit sa matière ; un étudiant qui vend déjà des cours
+particuliers est qualifié ; un lead « solution aware » (compare d'autres offres ET a pris ou prévoit un rendez-vous avec
+l'une d'elles) est qualifié d'office sur les quatre portes. La consigne d'extraction gagne le bloc `concurrence` et la
+catégorie `matiere_education_nationale` (prompt `lnp-sql-v2.1-2026-11-05`).
+
+**Dans l'analyse d'appel (046)** : chaque R1 analysé est qualifié par le worker de l'analyse
+(`call-analysis/worker/callqa_worker/qualif.py`), sur les mêmes répliques que l'analyse ; le résultat est gardé avec l'analyse
+et s'affiche dans l'écran d'analyse d'appel (section « Qualification du lead ») et sur la pastille du prospect. Le workflow
+`qualification.yml` reste pour requalifier à la main (`--again`).
+
 - **Étape 1, extraction** (`prompts/extraction.md`, la consigne du document, telle quelle) : le modèle lit la transcription
   Fathom du R1 et rapporte des faits avec verbatim et minutage. Il ne décide rien. Deux lectures : paliers `fast` puis
   `strong` de `crm_ca_config` (aujourd'hui le même modèle ; le document recommande deux modèles différents).
