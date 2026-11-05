@@ -29,6 +29,7 @@ info = f'''<sc-if value="{{{{info}}}}" hint-placeholder-val="{{{{false}}}}">
 <section><h3 style="{H3}"><span style="{NUM}">3</span>Comment l’utiliser</h3>
 <ol style="{TXT}; padding-left: 22px">
 <li>Pipeline : faites glisser une carte pour passer un prospect à sa nouvelle étape.</li>
+<li>Pipeline : un appel passé sans issue affiche « Déclarer l’issue » sur sa carte ; le même formulaire que dans Cycle de vente s’ouvre, sans quitter le Pipeline.</li>
 <li>Prospects : filtrez, triez, choisissez vos colonnes et agissez sur plusieurs prospects à la fois.</li>
 <li>Cycle de vente : une ligne par prospect en cours, du RDV pris au premier paiement Whop, face aux objectifs de présence, de décision et d’encaissement. Chaque matin, lisez Critique, puis Le commercial doit agir, de haut en bas ; Calendrier montre aujourd’hui et les prochains appels, Depuis le RDV compare la durée des cycles ; ouvrez une ligne pour lire chaque échange, ou la fiche prospect pour chaque message, appel et paiement.</li>
 <li>Cliquez sur un prospect pour ouvrir sa fiche : appels, prochaine action, note, transcriptions et analyse.</li>
@@ -180,6 +181,8 @@ LIVE = ('<script>(function(){'
     'if(!SALES.some(function(s){return s.id==="none"}))SALES.push({id:"none",name:"Non attribué",ini:"?",color:"#8E8A80",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0});'
     'var _a=cxAction;cxAction=function(act,el,e){if(LIVE&&WRITES[act]){closeMenu();soon();return true}'
       # cash entered by hand (022, Romain 2026-10-26): the lead's Invoicing and payment opens the cash window (cash_ui.js)
+      # the outcome of a call from the Pipeline card (Romain 2026-11-05, outcome_ui.js)
+      'if(LIVE&&act==="outdecl"){if(e)e.stopPropagation();closeMenu();var ol=byD(el.dataset.id);if(!(window.sklOutcome&&sklOutcome.open(el.dataset.id,ol&&ol.a)))toast("Aucun appel passé sans issue pour ce prospect.");return true}'
       'if(LIVE&&act==="ltr"){closeMenu();var lt=S.cx.lead&&byD(S.cx.lead.id),rw=lt&&typeof SKL_CA!=="undefined"?SKL_CA.latestRow(lt.id):null;'
         'if(rw)SKL_CA.open(rw.call_id,{person:lt.p,sales:byS(lt.o).name});else toast("Aucun appel R1 ou R2 passé à analyser pour ce prospect.");return true}'
       'if(LIVE&&act==="pay"){if(e)e.stopPropagation();closeMenu();var pl=byD(el&&el.dataset.id||(S.cx.lead&&S.cx.lead.id));'
@@ -512,6 +515,14 @@ for a, b in [
 # lead record (Invoicing and payment) or its card, in the web edition; Whop's payments come later on their own (phase 5)
 CASH = '<script>' + (ROOT / 'skl-os' / 'crm' / 'cash_ui.js').read_text(encoding='utf-8') + '</script>'
 crm = crm.replace('</body>', CASH + '</body>', 1) if '</body>' in crm else crm + CASH
+# ---- the outcome of a call, declared from the Pipeline too (Romain 2026-11-05): the Sales cycle's form, same RPC (outcome_ui.js)
+OUTCOME = '<script>' + (ROOT / 'skl-os' / 'crm' / 'outcome_ui.js').read_text(encoding='utf-8') + '</script>'
+crm = crm.replace('</body>', OUTCOME + '</body>', 1) if '</body>' in crm else crm + OUTCOME
+for a, b in [
+    ('    ${X.show.nx?nxHtml(l):""}\n    ${warm}',
+     '    ${X.show.nx?nxHtml(l):""}\n    ${window.sklOutcome?sklOutcome.button(l):""}\n    ${warm}')]:
+    assert crm.count(a) == 1, a[:60]
+    crm = crm.replace(a, b)
 for a, b in [
     # the panel shows for a won lead and, in the web edition, for any lead in the decision or cash stage or with cash already
     ('${l.st==="close"?`<div class="cx-panel cx-paypanel">',
