@@ -104,6 +104,8 @@ run 042_crm_lead_qualification.sql
 run 042_crm_lead_qualification.sql
 run 043_crm_owners_hourly.sql
 run 043_crm_owners_hourly.sql
+run 044_crm_sla_settings.sql
+run 044_crm_sla_settings.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -134,3 +136,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_audit_test.sql | tail -
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_rep_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_collected_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lead_qualification_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sla_settings_test.sql | tail -1

@@ -71,7 +71,13 @@
       var opened = Date.parse(c.opened_at), age = Math.max(0, (now - opened) / H), ev = [], rank = {};
       var t = function (iso) { return Math.max(0, (Date.parse(iso) - opened) / H); };
       (c.calls || []).forEach(function (k) { rank[k.id] = k.rank; });
-      var add = function (o) { ev.push(o); }, lastOut = null;
+      var add = function (o) { ev.push(o); }, lastOut = null, rec = {}, ana = {};
+      // SLAs DO-2 / DE-2 (supabase/functions/_shared/sla_rules.js): when each call got its Fathom recording and its analysis
+      (c.events || []).forEach(function (e) {
+        if (!e.call_id) return;
+        if (e.type === "call_recorded" && rec[e.call_id] === undefined) rec[e.call_id] = t(e.occurred_at);
+        if (e.type === "analysis_ready" && ana[e.call_id] === undefined) ana[e.call_id] = t(e.occurred_at);
+      });
       var stOf = function (x) { x = String(x || "").toLowerCase(); return x ? x.charAt(0).toUpperCase() + x.slice(1) : undefined; };
       (c.events || []).forEach(function (e) {
         var d = e.data || {}, r = rank[e.call_id] || 1, at = t(e.occurred_at), txt = e.content || "";
@@ -85,6 +91,7 @@
           case "phone_call_in": add({ t: at, w: "p", k: "call", txt: txt || "Appel téléphonique entrant" }); break;
           case "phone_call_out": add({ t: at, w: "s", k: "call", txt: txt || "Appel téléphonique sortant" }); break;
           case "note": add({ t: at, w: "s", k: "note", txt: txt }); break;
+          case "opt_out": add({ t: at, w: "a", k: "note", stop: 1, txt: "STOP : le prospect ne veut plus de messages automatiques" }); break;
           case "checkout_created": add({ t: at, w: "s", k: "paylink", txt: "Lien Whop envoyé" }); break;
           case "payment_succeeded": add({ t: at, w: "p", k: "paid", txt: "Paiement Whop" + (d.amount ? " · " + eur(d.amount) : "") }); break;
           case "cycle_won":
@@ -114,7 +121,7 @@
         var s = k.scheduled_start ? t(k.scheduled_start) : null, end = k.scheduled_end ? Date.parse(k.scheduled_end) : null;
         if (s == null || k.status === "canceled") return;
         var dur = end && k.scheduled_start ? Math.round((end - Date.parse(k.scheduled_start)) / 60e3) : undefined;
-        if (k.status === "held") add({ t: s, w: "s", k: "meet", r: k.rank, dur: dur, cid: k.id, txt: "R" + k.rank + " · Appel" });
+        if (k.status === "held") add({ t: s, w: "s", k: "meet", r: k.rank, dur: dur, cid: k.id, rec: rec[k.id], ana: ana[k.id], txt: "R" + k.rank + " · Appel" });
         else if (k.status === "no_show") add({ t: s, w: "p", k: "noshow", r: k.rank, cid: k.id, txt: "Absence R" + k.rank });
         // 030: an R2+ with no Fathom recording of 7 min is not a no-show: the lead stays in its round, to reschedule
         else if (k.status === "missed") add({ t: s, w: "a", k: "note", r: k.rank, cid: k.id, txt: "R" + k.rank + " non honoré (aucun enregistrement Fathom) · à replanifier" });
@@ -125,7 +132,7 @@
       var p = c.person || {}, nm = c.next_move && c.next_move.code;
       return { id: c.id, p: p.full_name || p.primary_email || p.primary_phone || "—", o: keys[c.owner_id] || "none",
         prod: (c.deal && c.deal.product) || "—", a: (c.deal && Number(c.deal.amount_sold)) || 0, ph: p.primary_phone || "—", em: p.primary_email || "—",
-        opened: c.opened_at, age: age, ev: ev,
+        opened: c.opened_at, age: age, ev: ev, rec: true,
         nx: lastOut && !ev.some(function (x) { return x.t > lastOut.t && x.t <= age && x.w === "s" && x.k !== "decision"; }) ? lastOut.nx
           : nm === "rebook" ? (c.next_move.missed ? { txt: "Replanifier l’appel", src: "R" + c.next_move.missed + " non honoré" } : { txt: "Reprendre un rendez-vous", src: "le dernier appel a été annulé" }) : null };
     });
@@ -199,6 +206,13 @@
       await ready();
       if (mode !== "live") return [];
       return rows(api.from("crm_reason_codes").select("code,kind,label,active,automatic").order("position"));
+    },
+    // the SLA settings saved in Settings › Alerts (crm_settings.sla_rules: sources connected, SLAs on, thresholds, places)
+    slaRules: async function () {
+      await ready();
+      if (mode !== "live") return null;
+      var r = await rows(api.from("crm_settings").select("value").eq("key", "sla_rules"));
+      return r[0] ? r[0].value : null;
     },
     getCycle: async function (id) {
       await ready();

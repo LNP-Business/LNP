@@ -1,5 +1,6 @@
 // sla-tick: every 5 minutes (pg_cron, 006_crm_cron.sql) the Sales cycle SLAs v3 of every active cycle (docs/crm/18). The rules are
-// _shared/sla_rules.js, the same file the Sales cycle screen runs; each new Late or Critical miss is posted once to Slack
+// _shared/sla_rules.js, the same file the Sales cycle screen runs, with the settings of Settings › Alerts (crm_settings.sla_rules,
+// through crm_sla_settings: sources, SLAs on or off, thresholds, Slack or not); each new Late or Critical miss is posted once to Slack
 // #sales-cycle (IDA workspace) through the incoming webhook in the secret SLACK_SALES_CYCLE_WEBHOOK_URL (028: crm_sla_notices,
 // crm_settings.sla_alerts). Takes no input; answers counts only, never names.
 import "../_shared/sla_rules.js";
@@ -12,17 +13,19 @@ const SLA = (globalThis as any).SKL_SLA;
 export async function tick(rpc: Rpc, post: (text: string) => Promise<boolean>, now = Date.now(), settings?: Record<string, unknown>) {
   const cfg = settings ?? {};
   const since = cfg.since ? Date.parse(String(cfg.since)) : now, maxAge = Number(cfg.max_age_hours ?? 6) * 3600e3;
+  // the settings saved in Settings › Alerts (crm_settings.sla_rules): sources connected, SLAs on, thresholds, Slack or not
+  SLA.configure(cfg.sla_rules || {});
   const cycles = (await rpc("crm_sla_snapshot", { p_days: 60 })) as Snap[];
   const items: Record<string, unknown>[] = [];
   for (const c of cycles || []) {
     const l = toLead(c, now);
-    for (const b of SLA.evaluate(l, { t0: l.opened, tz: cfg.window_tz || "America/New_York" })) {
+    for (const b of SLA.evaluate(l, { t0: l.opened, tz: cfg.window_tz || "America/New_York", surface: "slack" })) {
       if (!b.open || (b.level !== "late" && b.level !== "crit")) continue;
       const crossed = l.opened + b.at * 3600e3;
       if (crossed < since || now - crossed > maxAge) continue;
       items.push({ key: `${c.id}:${b.id}:${Math.round(b.start * 60)}:${b.level}`, cycle_id: c.id, sla: b.id, level: b.level,
         crossed_at: new Date(crossed).toISOString(), name: b.name, person: c.person || "un prospect", owner: c.owner || "sans commercial attitré",
-        elapsed: SLA.fmt(b.elapsed), extra: b.extra, target: b.target });
+        elapsed: SLA.said(b), extra: b.extra, target: b.target, kind: b.kind });
     }
   }
   if (!items.length) return { cycles: (cycles || []).length, new: 0, posted: false };

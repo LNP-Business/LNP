@@ -164,12 +164,14 @@ LIVE = ('<script>(function(){'
   'var LOADS=0;'
   'async function load(C){var n=++LOADS,full=false,keys={};if(!LEADS.length)loadMsg("Chargement des prospects…");'
     'var meta=Promise.all([C.listMembers(),C.listNoBooking(),Promise.resolve().then(function(){return C.me()}).catch(function(){return null}),'
-    'Promise.resolve().then(function(){return C.listReasons()}).catch(function(){return []})]);'
+    'Promise.resolve().then(function(){return C.listReasons()}).catch(function(){return []}),'
+    # the SLA settings of Settings › Alerts (crm_settings.sla_rules): the Sales cycle applies them (sla_rules.js configure)
+    'Promise.resolve().then(function(){return C.slaRules?C.slaRules():null}).catch(function(){return null})]);'
     'function paint(cycles,r){if(n!==LOADS)return;'
       'LEADS.length=0;cycles.forEach(function(c){var l=toLead(c,keys);projectCycle(l);LEADS.push(l)});r[1].forEach(function(p){LEADS.push(toNoBooking(p))});'
       'var PAL=["#7A4B00","#1F6A66","#6B4FA0","#2D5C9C","#8A2D3B"],reps={none:["Non attribué","#8E8A80"]};r[0].forEach(function(m,i){reps[m.member_key]=[m.full_name,PAL[i%PAL.length]]});'
       'var me=r[2]||{},rs=(r[3]||[]).filter(function(x){return x.active&&!x.automatic}),rl=function(k){return rs.filter(function(x){return x.kind===k}).map(function(x){return [x.code,C.reasonLabel?C.reasonLabel(x.code,x.label):x.label]})};'
-      'if(C.salesCycleView)window.sklScData={leads:C.salesCycleView(cycles,r[0],Date.now()),reps:reps,now:Date.now(),role:me.role||null,reasons:rs.length?{no:rl("lost"),dq:rl("disqualified")}:null};'
+      'if(C.salesCycleView)window.sklScData={leads:C.salesCycleView(cycles,r[0],Date.now()),reps:reps,now:Date.now(),role:me.role||null,reasons:rs.length?{no:rl("lost"),dq:rl("disqualified")}:null,sla:r[4]||{}};'
       'if(typeof sklCyclePush==="function")sklCyclePush(true);'
       'renderAll();if(S.cx.lead&&byD(S.cx.lead.id))renderLead()}'
     'try{'
@@ -178,6 +180,8 @@ LIVE = ('<script>(function(){'
     '}catch(err){full=true;console.error(err);if(n===LOADS)loadMsg("Impossible de charger les prospects : "+String(err&&err.message||err),function(){load(C)})}'
     'function prep(r){r[0].forEach(function(m){keys[m.id]=m.member_key;if(!SALES.some(function(s){return s.id===m.member_key}))SALES.push({id:m.member_key,name:m.full_name,ini:(m.full_name||"?").charAt(0),color:"#5E5B53",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0})})}}'
   'window.sklCrmLive=function(C){LIVE=true;window.sklCrmDeclare=function(callId,p){return C.declareOutcome(callId,p).then(function(){return load(C)})};'
+  # Settings › Alerts saved the SLA settings (crm_settings.sla_rules): the Sales cycle applies them at once
+  'try{parent.addEventListener("skl-sla-saved",function(e){if(window.sklScData&&e.detail){window.sklScData.sla=e.detail;if(typeof sklCyclePush==="function")sklCyclePush(true)}})}catch(_){}'
     'if(!SALES.some(function(s){return s.id==="none"}))SALES.push({id:"none",name:"Non attribué",ini:"?",color:"#8E8A80",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0});'
     'var _a=cxAction;cxAction=function(act,el,e){if(LIVE&&WRITES[act]){closeMenu();soon();return true}'
       # cash entered by hand (022, Romain 2026-10-26): the lead's Invoicing and payment opens the cash window (cash_ui.js)
@@ -327,7 +331,7 @@ for a, b in [
      'const paid=LIVE?(l.collected||0):rows.filter(e=>e.k==="paid"&&e.t<=l.age).length?3000:0;'),
     ('\nrender();\n</script>',
      '\n/* LNP web edition: real cycles from SKL_CRM.salesCycleView(), the real clock, the CRM team */\n'
-     'window.scLive=function(d){LIVE=true;NOW=d.now||Date.now();LEADS.splice(0,LEADS.length,...d.leads);'
+     'window.scLive=function(d){LIVE=true;NOW=d.now||Date.now();if(d.sla)SKL_SLA.configure(d.sla);LEADS.splice(0,LEADS.length,...d.leads);'
      'Object.keys(REPS).forEach(k=>delete REPS[k]);Object.assign(REPS,d.reps);if(!d.keep)S.open.clear();'
      'document.getElementById("scMock").hidden=true;const rs=document.getElementById("rep"),v=S.rep;'
      'rs.innerHTML=`<option value="">Tous les commerciaux</option>`+Object.entries(REPS).map(([k,x])=>`<option value="${k}">${x[0]}</option>`).join("");'
@@ -389,13 +393,13 @@ assert '</' not in SLA_JS
 for a, b in [
     ('/* ---------- derived state ---------- */', SLA_JS + '\n/* ---------- derived state ---------- */'),
     ('  return {segs,cur,closed,ball,ftLate,level,risk,past,fut};\n}',
-     '  const sla=SKL_SLA.evaluate(l,LIVE&&l.opened?{t0:Date.parse(l.opened)}:null),sw=SKL_SLA.worst(sla);\n'
+     '  const sla=SKL_SLA.evaluate(l,LIVE&&l.opened?{t0:Date.parse(l.opened),surface:"screen"}:{surface:"screen"}),sw=SKL_SLA.worst(sla);\n'
      '  level=sw==="warn"?"ok":sw;\n'
      '  return {segs,cur,closed,ball,ftLate,level,risk:!closed&&sw==="warn",past,fut,sla};\n}'),
     ('  return h;\n}\nfunction clusters(',
      '  (A.sla||[]).forEach(b=>{if(b.at>l.age+1e-6)return;const lv=b.level,word=lv==="crit"?"Critique":lv==="late"?"En retard":"Bientôt dû";\n'
-     '    if(b.open&&lv!=="warn")h+=`<div class="slab ${lv}" style="left:${x(b.late)}%;width:${Math.max(.3,x(l.age)-x(b.late))}%"></div>`;\n'
-     '    h+=`<span class="slam ${lv}${b.open?"":" done"}" style="left:${x(b.at)}%" data-tip="${b.id} · ${esc(b.name)}${b.open?"":" · résolu"}|${word} · ${SKL_SLA.fmt(b.elapsed)} ${esc(b.extra)} · objectif ${esc(b.target)}">${lv==="crit"?"!!":"!"}</span>`});\n'
+     '    if(b.open&&lv!=="warn"&&(b.kind||"sales")==="sales")h+=`<div class="slab ${lv}" style="left:${x(b.late)}%;width:${Math.max(.3,x(l.age)-x(b.late))}%"></div>`;\n'
+     '    h+=`<span class="slam ${lv}${b.open?"":" done"}" style="left:${x(b.at)}%" data-tip="${b.id} · ${esc(b.name)}${b.open?"":" · résolu"}|${word}${b.kind==="tech"?" (technique)":b.kind==="indicator"?" (indicateur)":""} · ${SKL_SLA.said(b)} ${esc(b.extra)} · objectif ${esc(b.target)}">${lv==="crit"?"!!":"!"}</span>`});\n'
      '  return h;\n}\nfunction clusters('),
     ('const K=[["all","Tous les prospects en cours",live.length,"var(--ink2)"],["crit","Critique",cnt.crit,"var(--crit)"],["late","En retard",cnt.late,"var(--late)"],["sales","Le commercial doit agir",cnt.salesOwes,"var(--ink)"],["calls","Appels sous 24 h",calls24,"var(--info)"],["wait","En attente du prospect",cnt.wait,"var(--sts)"]];',
      'const won=closed.filter(l=>A[l.id].closed==="won").length;\n'
