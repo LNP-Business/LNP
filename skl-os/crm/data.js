@@ -111,7 +111,11 @@
             add({ t: at, w: "s", k: "decision", no: 1, r: r, txt: "Issue déclarée · Honoré · " + (e.type === "outcome_no" ? "Non" : "Disqualifié") +
               " · motif : " + reasonLabel(d.reason_code) + (d.nurture && d.nurture !== "none" ? " · suivi long terme" : "") });
             lastOut = { t: at, nx: null }; break;
+          case "cycle_reopened": add({ t: at, w: "s", k: "note", txt: "Prospect rouvert dans le pipeline" }); break;
           case "cycle_lost": case "cycle_disqualified":
+            // 045: closed by hand from the Pipeline (a lead with no call to declare)
+            if (e.source === "manual") { add({ t: at, w: "s", k: "decision", no: 1, txt: "Clos à la main · " + (e.type === "cycle_lost" ? "Perdu" : "Disqualifié") +
+              " · motif : " + reasonLabel(d.reason) + (txt ? " · " + txt : "") }); break; }
             if (ev.some(function (x) { return x.k === "decision" && x.no; })) break;   // one closing step
             add({ t: at, w: "s", k: "decision", no: 1, txt: "Issue déclarée · " + (e.type === "cycle_lost" ? "Non" : "Disqualifié") +
               " · motif : " + reasonLabel(d.reason || c.close_reason) }); break;
@@ -266,6 +270,9 @@
       return r.data;
     },
     addNote: function (cycleId, text) { return call("crm_add_note", { p_cycle: cycleId, p_text: text }); },
+    // CRM › Pipeline moves with no call to declare (045): close a lead lost or disqualified with a reason; reopen a closed lead
+    closeCycle: function (cycleId, decision, reason, note) { return call("crm_close_cycle", { p_cycle: cycleId, p_decision: decision, p_reason: reason, p_note: note || null }); },
+    reopenCycle: function (cycleId) { return call("crm_reopen_cycle", { p_cycle: cycleId }); },
     reassignCycle: function (cycleId, memberId) { return call("crm_reassign_cycle", { p_cycle: cycleId, p_member: memberId }); },
     cancelAutoClose: function (cycleId) { return call("crm_cancel_auto_close", { p_cycle: cycleId }); },
     setNurture: function (personId, p) { return call("crm_set_nurture", { p_person: personId, p: p }); },

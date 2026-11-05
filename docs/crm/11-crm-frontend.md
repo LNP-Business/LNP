@@ -71,3 +71,26 @@ nurture, call quality. Filters: sales, product, origin, period. Exact definition
 `./build.sh` (with `web/build_web.py`) passes; every screen of the functional spec §13 opens with
 no console error; scenario tests with the date pinned (`window.SKL_TODAY`); the plain-file demo
 still runs; the functional specification is updated (§3, §9.3, §11, §12, §14).
+
+## Lead record, Ma journée and Pipeline moves (2026-11-05)
+
+- **Lead record** (web edition): on the left the lead's sales cycle as a vertical feed by day, oldest first, newest in view,
+  with the filters All · Calls · Messages · Payments (E-mails when there are some); on the right « À faire » (the outcome to
+  declare, the call to prepare, the reschedule or follow-up, with « Fait » saving what was done as a note), the sales calls
+  and the call analysis. One renderer: `skl-os/crm/lead_feed.js` (`SKL_LEADFEED.feed`, `.todo`), from
+  `SKL_CRM.salesCycleView`. The horizontal timeline stays in CRM › Sales cycle.
+- **Ma journée**: each card shows the same feed between its facts and its action.
+- **Pipeline moves** (`skl-os/crm/outcome_ui.js` › `sklMove`; the card drag and drop, the lead record's Status menu and the
+  Leads list's status all go through it):
+
+| Lead | Dropped on | What opens |
+|---|---|---|
+| a past call with no outcome | Absent, Won, Lost, Disqualified, next round | the outcome form, filled in for the column (`crm_declare_outcome`) |
+| a past call with an outcome | Absent, Won, Lost, Disqualified | the same form as a correction (the outcome is superseded) |
+| no past call | Lost, Disqualified | the closing form: reason of the list, note (`crm_close_cycle`, 045) |
+| lost or disqualified | an active column | a confirmation, then `crm_reopen_cycle` (045) |
+| won | anywhere | a message: a paid sale does not move |
+| any | New, Long follow-up, a round not booked yet, No booking | a message: the CRM computes that column |
+
+  Viewers move nothing. Test: `node skl-os/crm/pipeline_moves_live.js $PWD/skl-os/skl-os-en.html <dir>`.
+

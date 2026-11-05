@@ -26,6 +26,7 @@ INFO = info_popup('Ma journée', [
         "<strong>Le CRM reste juste.</strong> Une issue déclarée ici est la même que dans CRM › Cycle de vente ; « Fait » enregistre ce que vous avez fait en note sur le prospect."]),
     ('Comment l\'utiliser', 'ol', [
         "Commencez la journée ici. Choisissez Mes prospects (ou un commercial, pour les responsables).",
+        "Chaque carte montre le cycle de vente du prospect jour par jour (filtres Tous, Appels, Messages, Paiements), le plus récent en vue : relisez-le avant d'agir.",
         "Pour une issue : indiquez si l'appel a été honoré, puis la décision (et le motif d'un non), puis <em>Déclarer et suivant</em>.",
         "Pour les autres cartes : menez l'action, écrivez en une ligne ce que vous avez fait, puis <em>Fait</em> ou faites glisser la carte vers la droite.",
         "<em>Demain</em> met un prospect de côté pour aujourd'hui, <em>Passer</em> l'envoie en fin de file ; <em>À suivre</em> vous permet de choisir un autre prospect d'abord.",

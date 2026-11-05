@@ -106,6 +106,8 @@ run 043_crm_owners_hourly.sql
 run 043_crm_owners_hourly.sql
 run 044_crm_sla_settings.sql
 run 044_crm_sla_settings.sql
+run 045_crm_pipeline_moves.sql
+run 045_crm_pipeline_moves.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -129,6 +131,7 @@ run 036_crm_cockpit_active_team.sql
 run 039_crm_cockpit_audit.sql
 run 040_crm_cockpit_rep_by_fathom.sql
 run 041_crm_cockpit_collected.sql
+run 045_crm_pipeline_moves.sql   # and crm_recompute_cycle()
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_engine_choice_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/iclosed_deals_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_held_r1_test.sql | tail -1
@@ -137,3 +140,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_rep_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_collected_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lead_qualification_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sla_settings_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/pipeline_moves_test.sql | tail -1
