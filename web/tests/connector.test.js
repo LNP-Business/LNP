@@ -297,8 +297,8 @@ test("Settings › Access closes the matching tools", async () => {
   assert.ok((await c.callTool({ name: "alert_rules", arguments: {} })).isError, "Settings and CRM closed");
   await c.close();
   const { accessOf } = await import("../api/_screens.js");
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday"]);
-  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "crm", "settings", "claude"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement"]);   // Entraînement (2026-11-05) opens with the CRM
+  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "entrainement", "crm", "settings", "claude"]);
   DB.users.find(u => u.id === ids.valentino).app_metadata = { screens: ["salescockpit", "crm", "settings", "claude"] };
 });
 

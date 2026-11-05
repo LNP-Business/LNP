@@ -17,7 +17,7 @@ SYSTEMS = {
 }
 GROUPS = {
     "os": [("Operating System", [("Main.dc.html", "Cockpit", None), ("Build.dc.html", "Build", None), ("Execute.dc.html", "Execute", None), ("Decisions.dc.html", "Decisions", (5, "Decisions to act on: to decide and to review", "decisions")), ("Review.dc.html", "Weekly Review", (3, "Key results not checked in this week", "review"))])],
-    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None)])],
+    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None), ("Entrainement.dc.html", "Entraînement", None)])],
     "ks": [("Knowledge System", [("Bibliotheque.dc.html", "Library", None)]),
            ("Mechanisms", [("Mechanisms.dc.html", "Mechanism map", None),
                            ("MechPrecall.dc.html", "Pre-call", (fr.get("precall"), f"{fr.get('precall')} frictions", "") if fr.get("precall") else None),
@@ -44,7 +44,7 @@ if _ed.exists():
     if EDITION.get("settings"):
         GROUPS["settings"] = [(g, [it for it in items if it[0] in EDITION["settings"]]) for g, items in GROUPS["settings"]]
 SCREENS = {
-    "Main.dc.html": "os", "Review.dc.html": "os", "Build.dc.html": "os", "Execute.dc.html": "os", "Decisions.dc.html": "os", "CRM.dc.html": "ss", "SalesCockpit.dc.html": "ss", "SalesDay.dc.html": "ss",
+    "Main.dc.html": "os", "Review.dc.html": "os", "Build.dc.html": "os", "Execute.dc.html": "os", "Decisions.dc.html": "os", "CRM.dc.html": "ss", "SalesCockpit.dc.html": "ss", "SalesDay.dc.html": "ss", "Entrainement.dc.html": "ss",
     "Bibliotheque.dc.html": "ks", "Mechanisms.dc.html": "ks", "MechPrecall.dc.html": "ks", "MechSales.dc.html": "ks", "MechOS.dc.html": "ks", "CartoMap.dc.html": "ks", "CartoEvents.dc.html": "ks", "CartoWorks.dc.html": "ks", "CartoSim.dc.html": "ks", "CartoModel.dc.html": "ks",
     "AgentsOverview.dc.html": "as", "AgentsDecisions.dc.html": "as", "AgentsRegistry.dc.html": "as", "AgentsTriggers.dc.html": "as", "AgentsLog.dc.html": "as",
     "Settings.dc.html": "settings", "Registers.dc.html": "settings", "Account.dc.html": "settings", "Access.dc.html": "settings",
