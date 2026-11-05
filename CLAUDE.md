@@ -50,6 +50,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Barre latérale (groupes, entrées, logo) : `skl-os/nav.py` ; nom, logo, couleurs, polices : `edition.json`.
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `skl-os/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
 - Ma journée : `skl-os/salesday_module.js` + `gen_salesday.py`.
+- Entraînement (« Entraînement discovery », sous Ma journée) : l'application `skl-os/training/entrainement.html`, ses cas
+  `coup_lnp.json` et `lettre_lnp.json` (injectés par `build.py`), l'écran `gen_training.py` ; test :
+  `node skl-os/training/training_test.js $PWD/skl-os/skl-os-en.html <dossier>`.
 - CRM, Cycle de vente, encaissements : voir les fichiers figés ci-dessus ; règles SLA : `supabase/functions/_shared/sla_rules.js`
   (une seule source pour l'écran, pour `sla-tick` et pour le catalogue de Paramètres › Alertes ; réglages enregistrés dans
   `crm_settings.sla_rules`, migration 044).

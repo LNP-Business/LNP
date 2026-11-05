@@ -13,6 +13,7 @@ const has = p => existsSync(new URL(p, ROOT));
 // LNP's screens, in the order of the sidebar: file, access key, where it is (the labels the person sees)
 const SCREENS = [
   ["SalesCockpit", "salescockpit", "Ventes › Cockpit commercial", "the sales figures from lead to payment: funnel, show and close rates, money collected, pipeline, team"],
+  ["Entrainement", "entrainement", "Ventes › Entraînement", "discovery training for the sales reps: « Le coup suivant » (choose the next SPIN gesture L1 to L4, write the question, compare to the reference) and « La lettre imposée » (three implication questions in a row)"],
   ["SalesDay", "salesday", "Ventes › Ma journée", "the sales rep's day, one lead at a time: outcomes to declare, calls within 24 h, reschedules, no-shows, follow-ups"],
   ["CRM", "crm", "Ventes › CRM", "Pipeline, Leads, Sales cycle, the lead record, call analysis and the payment window"],
   ["Settings", "settings", "Paramètres › Alertes", "the alert rules: on or off, threshold, severity, who is told and how"],

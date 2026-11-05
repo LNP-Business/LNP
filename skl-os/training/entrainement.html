@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entraînement discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Literata:opsz,wght@7..72,400;7..72,500&amp;display=swap">
+<style>
+/* LNP · Entraînement discovery (Romain, 2026-11-05: cahier « Prompt Entraînement discovery », cas coup_lnp.json et
+   lettre_lnp.json tels quels). Fond clair, texte foncé, contrastes forts ; couleurs de la charte LNP. */
+:root{--ink:#0C1330;--ink2:#2A3352;--mut:#5A6478;--line:#D6DEF0;--soft:#EEF3FC;--bg:#F7F8FB;--card:#FFFFFF;--brand:#1E2A5E;--vif:#2B6CF5;
+  --ok:#137A4F;--oks:#E2F4EB;--mid:#B45309;--mids:#FDF0DC;--ko:#B42318;--kos:#FCE5E2;
+  --L1:#2B6CF5;--L2:#7A3FD1;--L3:#C2410C;--L4:#0F766E;--r:14px;--sans:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;--read:'Literata',Georgia,'Times New Roman',serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}button:disabled{cursor:default;opacity:.45}
+textarea{font:inherit}
+.top{position:fixed;inset:0 0 auto 0;height:58px;z-index:20;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.top .ttl{font-weight:700;font-size:16px;color:var(--brand);white-space:nowrap}
+.tabs{flex:1;display:flex;justify-content:center;gap:6px}
+.tabs button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 16px;font-weight:600;color:var(--ink2)}
+.tabs button[aria-current=page]{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;font-weight:600}
+.btn.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.sm{padding:5px 10px;font-size:13px}
+.view{position:fixed;inset:58px 0 0 0;display:none;grid-template-rows:auto minmax(0,1fr);gap:14px;padding:14px 20px 16px}
+.view.on{display:grid}
+.row1{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;min-height:0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
+.cap{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.win{background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.win>.hd{flex:none;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.win>.sc{flex:1;min-height:0;overflow:auto;padding:14px 16px}
+.win>.sc.stack{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.hd b{font-size:15px}.hd .m{font-size:12.5px;color:var(--mut)}.hd .sp{flex:1}
+.persona{flex-basis:100%;font-size:13px;color:var(--ink2)}
+.chrono{font:600 13px var(--sans);padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--brand)}.chrono.over{background:var(--kos);color:var(--ko)}
+/* séance */
+.sess{display:flex;flex-direction:column;gap:6px}
+.sess .l1{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.big{font-size:30px;font-weight:700;line-height:1;color:var(--brand)}
+.prog{position:relative;height:8px;border-radius:4px;background:var(--soft);overflow:visible;margin:4px 0}
+.prog i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ok)}
+.prog .goal{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--brand)}
+.leg{font-size:12px;color:var(--mut)}
+.dots{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--soft);border:1px solid var(--line);position:relative;flex:none}
+.dot.g{background:var(--ok);border-color:var(--ok)}.dot.o{background:var(--mid);border-color:var(--mid)}.dot.r{background:var(--ko);border-color:var(--ko)}
+.dot.cur{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--brand)}
+.dot.hint::after{content:'';position:absolute;inset:3px;border-radius:50%;border:2px solid #fff}
+.grp{display:flex;gap:3px;padding:2px 4px;border:1px solid var(--line);border-radius:999px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mut)}.legend span{display:inline-flex;align-items:center;gap:5px}.legend .dot{width:10px;height:10px}
+/* consigne */
+.cons p{margin:4px 0 8px;font-weight:600;color:var(--ink2)}
+.steps3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.steps3 div{background:var(--soft);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.4;color:var(--ink2)}.steps3 b{display:block;font-size:13px;color:var(--brand)}
+/* script */
+.line{display:flex;flex-direction:column;gap:2px;margin:0 0 12px}
+.who{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}.who span{font-weight:500;letter-spacing:0;text-transform:none}
+.txt{font:16px/1.6 var(--read);color:var(--ink)}
+.line.S .txt{color:var(--ink2)}
+.line.last{background:var(--soft);border-left:4px solid var(--brand);border-radius:0 10px 10px 0;padding:8px 12px}
+.said{font-size:12px;font-weight:700;color:var(--brand)}
+.yours{font-size:13px;color:var(--mut);margin-top:2px}
+.me{border:2px dashed var(--line);border-radius:12px;padding:10px 12px;margin-top:6px}
+.me .txt{min-height:1.6em}.me .empty{color:var(--mut);font:italic 14px var(--sans)}
+.hintbox{background:#FFF8E6;border:1px solid #F0D58C;border-radius:10px;padding:10px 12px;margin-bottom:12px}.hintbox .cap{color:#7A5400}
+/* tags */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;color:#fff;white-space:nowrap}
+.tag.L1{background:var(--L1)}.tag.L2{background:var(--L2)}.tag.L3{background:var(--L3)}.tag.L4{background:var(--L4)}.tag.I{background:var(--brand)}
+/* steps band */
+.band{display:flex;gap:6px;flex-wrap:wrap}
+.band span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-size:12.5px;font-weight:600;padding:6px 8px;border-radius:999px;background:var(--soft);color:var(--mut)}
+.band span.on{background:var(--brand);color:#fff}.band span.done{background:var(--oks);color:var(--ok)}
+.band3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+.band3 div{border:1px solid var(--line);border-radius:10px;padding:7px 10px;display:flex;flex-direction:column;gap:1px}
+.band3 b{font-size:13px;color:var(--brand)}.band3 span{font-size:12px;color:var(--ink2)}.band3 em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--mut)}
+.band3 .cur{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}.band3 .v em{color:var(--ok)}.band3 .x em{color:var(--ko)}
+h2{margin:0;font-size:18px;line-height:1.3}.sub{margin:-6px 0 0;color:var(--mut);font-size:13px}
+/* gestes */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{position:relative;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.card .c{font-weight:700;font-size:13px}.card .n{font-weight:700;font-size:16px}.card .d{font-size:13px;color:var(--ink2)}
+.card kbd{position:absolute;top:10px;right:12px;font:600 11px var(--sans);border:1px solid var(--line);border-radius:5px;padding:0 6px;color:var(--mut)}
+.card[aria-pressed=true]{border-color:var(--brand);background:var(--soft)}
+.seg{display:inline-flex;gap:4px;padding:3px;border-radius:10px;background:var(--soft)}
+.seg button{border:0;background:transparent;border-radius:8px;padding:5px 12px;font-weight:600;color:var(--ink2)}.seg button[aria-pressed=true]{background:var(--card);color:var(--brand);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.rowc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fb{border-radius:10px;padding:9px 12px;font-weight:600}.fb.good{background:var(--oks);color:var(--ok)}.fb.bad{background:var(--kos);color:var(--ko)}
+.etat{background:var(--soft);border-radius:10px;padding:9px 12px;color:var(--ink2)}
+.ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.ladder div{border:1px solid var(--line);border-radius:10px;padding:6px 8px;font-size:12.5px;display:flex;flex-direction:column;gap:2px}
+.ladder b{font-size:12.5px}.ladder em{font-style:normal;font-size:11px;font-weight:700;color:var(--mut)}
+.ladder .att{border-color:var(--brand);background:var(--soft)}.ladder .att em{color:var(--brand)}.ladder .bad em{color:var(--ko)}
+.test{border-left:3px solid var(--brand);padding:2px 0 2px 10px;color:var(--ink2);font-size:13.5px}
+.ins{font-size:14px;color:var(--ink2)}.ins b{color:var(--ink)}
+.exergue{border-left:4px solid var(--brand);background:var(--soft);border-radius:0 10px 10px 0;padding:9px 12px;font-weight:600;color:var(--brand)}
+textarea.q{width:100%;min-height:76px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:16px/1.5 var(--read);color:var(--ink);background:#fff}
+textarea.q:focus{outline:2px solid var(--vif);outline-offset:0;border-color:var(--vif)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--line);color:var(--mut);background:#fff}
+.chip.ok{border-color:#A7DCC3;background:var(--oks);color:var(--ok)}.chip.ko{border-color:#F2B8B0;background:var(--kos);color:var(--ko)}.chip.adv{border-color:#F1CF9A;background:var(--mids);color:var(--mid)}
+.gauge{display:flex;flex-direction:column;gap:3px}
+.gbar{position:relative;height:10px;border-radius:5px;background:var(--soft)}
+.gbar .zone{position:absolute;top:0;bottom:0;background:#BFE3D0;border-radius:3px}
+.gbar .lim{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ko)}
+.gbar .cur{position:absolute;top:-4px;width:4px;height:18px;margin-left:-2px;border-radius:2px;background:var(--brand)}
+.gline{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.fault{font-size:13px;color:var(--ko);font-weight:500}.fault.adv{color:var(--mid)}
+.acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.panel{border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:6px}
+.panel .qt{font:16px/1.5 var(--read)}.panel .why{font-size:13.5px;color:var(--ink2)}
+.panel.std{border-color:#A7DCC3;background:#F5FBF8}
+.ko-list{display:flex;flex-direction:column;gap:8px}
+.ko-list div{display:flex;flex-direction:column;gap:1px}
+.ko-list s{font:15px/1.45 var(--read);color:var(--ink2)}.ko-list span{font-size:13px;color:var(--ko)}
+.judge{border:1px solid var(--brand);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:8px}
+.judge .jq{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.judge .jq p{margin:0;flex:1;min-width:220px}
+.yn{display:inline-flex;gap:4px}.yn button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 12px;font-weight:600}
+.yn button[aria-pressed=true].y{background:var(--ok);border-color:var(--ok);color:#fff}.yn button[aria-pressed=true].n{background:var(--ko);border-color:var(--ko);color:#fff}
+.verdict{border-radius:12px;padding:11px 13px;font-weight:700;font-size:15px}
+.verdict.g{background:var(--oks);color:var(--ok)}.verdict.o{background:var(--mids);color:var(--mid)}.verdict.r{background:var(--kos);color:var(--ko)}.verdict.n{background:var(--soft);color:var(--mut);font-weight:500;font-size:13.5px}
+.verdict small{display:block;font-weight:500;font-size:13.5px;margin-top:3px}
+mark{background:#FFE8A3;color:inherit;border-radius:3px;padding:0 1px}
+.ends{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ends div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;font-size:13px}
+.ends b{color:var(--brand)}.ends .st.v{color:var(--ok);font-weight:700}.ends .st.x{color:var(--ko);font-weight:700}
+.ends .qt{font:14px/1.45 var(--read);color:var(--ink2)}
+/* bilan */
+.bilan{grid-row:2;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.score{font-size:52px;font-weight:700;line-height:1;color:var(--brand)}
+.figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.figs div{background:var(--soft);border-radius:12px;padding:10px 12px}.figs b{display:block;font-size:24px;color:var(--brand)}.figs span{font-size:12.5px;color:var(--ink2)}
+.analysis{font-size:14.5px;color:var(--ink2);margin:0}
+table.mx{border-collapse:collapse;font-size:13px}
+table.mx th,table.mx td{border:1px solid var(--line);padding:6px 10px;text-align:center}
+table.mx th{background:var(--soft);font-weight:600}
+table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td.er{background:var(--kos);color:var(--ko);font-weight:700}
+.redo{display:flex;flex-direction:column;gap:8px}
+.redo div{border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.redo .qt{font:15px/1.45 var(--read)}.redo .m{font-size:12.5px;color:var(--mut)}
+.bars{display:flex;flex-direction:column;gap:6px;max-width:520px}
+.bars div{display:grid;grid-template-columns:40px 70px minmax(0,1fr);align-items:center;gap:10px;font-size:13px}
+.bars i{display:block;height:10px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden}.bars i b{position:absolute;left:0;top:0;bottom:0;background:var(--ok)}
+/* modale */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(12,19,48,.45);display:flex;align-items:flex-start;justify-content:center;padding:60px 16px;overflow:auto}
+.modal{width:min(560px,100%);background:var(--card);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h2{font-size:20px}.modal .intro{margin:0;color:var(--ink2)}
+.opt{display:flex;flex-direction:column;gap:6px}.opt .ch{display:flex;flex-wrap:wrap;gap:6px}
+.opt .ch button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-weight:600;font-size:13px}
+.opt .ch button[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.info{font-size:13px;color:var(--mut)}.info.none{color:var(--ko);font-weight:600}
+@media (max-width:980px){
+  body{overflow:auto}
+  .view{position:static;margin-top:58px;display:none;grid-template-rows:auto}
+  .view.on{display:flex;flex-direction:column}
+  .row1,.row2{grid-template-columns:1fr}
+  .win,.win>.sc{overflow:visible}
+  .bilan{overflow:visible}
+  .steps3,.ends,.figs{grid-template-columns:1fr}
+  .ladder{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .top{position:fixed;flex-wrap:nowrap}.top .ttl{font-size:14px}.tabs button{padding:6px 10px;font-size:12.5px}
+}
+@media (max-width:620px){.top .ttl{display:none}.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="ttl">Entraînement discovery</div>
+  <nav class="tabs" aria-label="Entraînements">
+    <button type="button" data-tab="coup">Le coup suivant</button>
+    <button type="button" data-tab="lettre">La lettre imposée</button>
+  </nav>
+  <button type="button" class="btn p" id="newSession">Nouvelle séance</button>
+</header>
+<main class="view" id="view-coup"></main>
+<main class="view" id="view-lettre"></main>
+<div id="modalRoot"></div>
+<script>
+(function () {
+  "use strict";
+  var COUP = /*@COUP@*/[];
+  var LETTRE = /*@LETTRE@*/[];
+
+  // ------------------------------------------------------------------ communs
+  var REG = { F: "Financier", T: "Temps & charge", Id: "Identité & statut", M: "Mental & émotionnel" };
+  var GESTES = {
+    L1: { nom: "Situation", court: "Faire décrire les faits : volumes, prix, organisation.", long: "Faire décrire les faits : activité, volumes, prix, organisation.",
+      test: "Ta question réclame-t-elle un fait vérifiable : un nombre, une organisation, une manière de faire ? Si la réponse attendue est un ressenti, ce n’est pas L1." },
+    L2: { nom: "Problème", court: "Faire nommer, avec ses mots, ce qui coince.", long: "Faire nommer par le prospect lui-même ce qui coince.",
+      test: "La réponse attendue est-elle une difficulté formulée avec ses mots à lui ? Si c’est toi qui as posé le frein et qu’il acquiesce, le geste n’est pas fait." },
+    L3: { nom: "Impact", court: "Faire peser ou chiffrer la conséquence du problème.", long: "Faire peser ou chiffrer la conséquence du problème déjà nommé.",
+      test: "Le problème est-il nommé avant ta question ? Sinon tu pèses un problème qui n’existe pas encore. La réponse attendue est un montant, une durée, une fréquence ou un effet concret." },
+    L4: { nom: "Vision", court: "Faire projeter le prospect sur la situation résolue.", long: "Faire projeter le prospect sur la situation résolue.",
+      test: "L’impact est-il pesé avant ta question ? Et la réponse attendue est-elle une image que lui décrit, pas une solution que tu proposes ?" }
+  };
+  var GK = ["L1", "L2", "L3", "L4"];
+  var MAILLONS = [
+    { k: "I1", nom: "Le coût direct", cons: "Fais chiffrer ou peser ce que le frein qu’il vient de nommer lui coûte : de l’argent, du temps, des clients.", court: "Fais chiffrer ce que le frein lui coûte." },
+    { k: "I2", nom: "L’effet en chaîne", cons: "Pars de la perte qu’il vient de dire et fais dire ce qu’elle entraîne à son tour.", court: "Fais dire ce que cette perte entraîne." },
+    { k: "I3", nom: "Ce que ça lui fait", cons: "Fais dire ce que cette situation produit chez lui : un état, une image de soi, une relation.", court: "Fais dire ce que ça lui fait, à lui." }
+  ];
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function words(s) { return String(s || "").split(/[^\p{L}\p{N}%]+/u).filter(Boolean); }
+  function nWords(s) { return words(s).length; }
+  function norm(s) { return String(s || "").toLowerCase().replace(/[’`´]/g, "'").replace(/\s+/g, " ").trim(); }
+  function pad(n, k) { n = String(n); while (n.length < k) n = "0" + n; return n; }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function goalOf(n) { return Math.ceil(n * 0.8); }
+  function pct(a, b) { return b ? Math.round(a / b * 100) + " %" : "—"; }
+
+  // historique local, une clé par entraînement ; l'application marche aussi sans
+  function load(key) { try { var v = JSON.parse(window.localStorage.getItem(key) || "{}"); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } }
+  function store(key, v) { try { window.localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+  var KEY_COUP = "lnp-entrainement-coup-suivant", KEY_LETTRE = "lnp-entrainement-lettre-imposee";
+
+  // la jauge de longueur : 0 à 24 mots, zone cible, marque rouge à 18, curseur
+  function gauge(n, lo, hi) {
+    var w = function (x) { return Math.min(100, x / 24 * 100) + "%"; };
+    return '<div class="gauge"><div class="gbar"><span class="zone" style="left:' + w(lo) + ';width:calc(' + w(hi) + ' - ' + w(lo) + ')"></span>' +
+      '<span class="lim" style="left:' + w(18) + '"></span><span class="cur" style="left:' + w(Math.min(n, 24)) + '"></span></div>' +
+      '<div class="gline"><span>' + n + " mot" + (n > 1 ? "s" : "") + "</span><span>cible " + lo + " à " + hi + " · limite 18</span></div></div>";
+  }
+  function chipsHtml(res, empty) {
+    return '<div class="chips">' + res.map(function (r) {
+      var cls = empty ? "" : r.ok ? (r.adv ? "ok" : "ok") : (r.adv ? "adv" : "ko");
+      var mark = empty ? "" : r.ok ? "✓ " : (r.adv ? "~ " : "! ");
+      return '<span class="chip ' + cls + '">' + mark + esc(r.label) + "</span>";
+    }).join("") + "</div>";
+  }
+  function firstFault(res) {
+    var f = res.filter(function (r) { return !r.ok && !r.adv; })[0];
+    if (f) return '<div class="fault">' + esc(f.why) + "</div>";
+    var a = res.filter(function (r) { return !r.ok && r.adv; })[0];
+    return a ? '<div class="fault adv">' + esc(a.why) + "</div>" : "";
+  }
+
+  // ------------------------------------------------------------------ règles de forme
+  var INV_COUP = ["as", "es", "aurais", "serais", "penses", "crois", "veux", "peux", "dirais", "sais", "vois", "trouves", "sens"];
+  var INV_LETTRE = INV_COUP.concat(["regrettes", "préfères"]);
+  function hasInverted(t, list) { return new RegExp("(^|[^\\p{L}])(" + list.join("|") + ")-tu([^\\p{L}]|$)", "u").test(t); }
+  function hasWord(t, w) { return new RegExp("(^|[^\\p{L}])" + w + "([^\\p{L}]|$)", "u").test(t); }
+  function openRule(t, list) {
+    if (/^est-ce qu/.test(t)) return { ok: false, why: "« Est-ce que » appelle un oui ou un non." };
+    if (hasInverted(t, list)) return { ok: false, why: "La forme « …-tu » appelle un oui ou un non." };
+    return { ok: true };
+  }
+  function rulesCoup(q) {
+    var t = norm(q), n = nWords(q), out = [];
+    var o = openRule(t, INV_COUP); out.push({ label: "Ouverte", ok: o.ok, why: o.why });
+    var t2 = t.replace(/(^|[^\p{L}])ou bien quoi([^\p{L}]|$)/gu, "$1$2").replace(/(^|[^\p{L}])ou pas([^\p{L}]|$)/gu, "$1$2");
+    out.push({ label: "Sans choix A ou B", ok: !hasWord(t2, "ou"), why: "Un « ou » lui propose des cases : c’est à lui d’amener sa réponse." });
+    out.push({ label: "Sans « pourquoi »", ok: !/pourquoi/.test(t), why: "« Pourquoi » met sur la défensive : c’est la seule question interdite." });
+    out.push({ label: "Une seule question", ok: (t.match(/\?/g) || []).length < 2, why: "Deux points d’interrogation : une question à la fois." });
+    out.push({ label: "18 mots au plus", ok: n <= 18, why: "Elle fait " + n + " mots : 18 au maximum, 8 à 10 en médiane." });
+    out.push({ label: "Se termine par « ? »", ok: /\?$/.test(t), why: "Pas de point d’interrogation : vérifie que c’est bien une question." });
+    return out;
+  }
+  var OUTILS = ("quoi comment combien faire fait fais cette ces cet tout tous toute toutes quand avec pour dans plus moins mais être avoir elle elles ils lui leur leurs nous vous donc bien très même rien jamais alors aussi encore comme sans sous entre depuis chez quel quelle quels quelles parce était sont sera serait ferait coûte coûter coûté perdre perds perdu empêche empêcher empêchent risque oblige mener changer change voudrait dire aujourd concrètement exactement toujours vraiment chose choses peux veux dois vais").split(" ");
+  var OUT = {}; OUTILS.forEach(function (w) { OUT[w] = 1; });
+  function keyOf(w) { return w.toLowerCase().slice(0, 5); }
+  function prospectKeys(texts) {
+    var k = {};
+    texts.forEach(function (s) { words(s).forEach(function (w) { w = w.toLowerCase(); if (w.length >= 4) k[w.slice(0, 5)] = 1; }); });
+    return k;
+  }
+  // a word of the question taken from the prospect: 4 letters or more, not a tool word, its first 5 letters said by him
+  function reused(w, keys) { var l = w.toLowerCase(); return l.length >= 4 && !OUT[l] && /\p{L}/u.test(l) && !!keys[keyOf(l)]; }
+  function rulesLettre(q, keys) {
+    var t = norm(q), n = nWords(q), out = [];
+    var o = openRule(t, INV_LETTRE); out.push({ label: "Ouverte", ok: o.ok, why: o.why });
+    out.push({ label: "Sans choix A ou B", ok: !hasWord(t, "ou"), why: "Un « ou » lui propose des cases : c’est à lui de dire ce que ça coûte." });
+    out.push({ label: "Sans « pourquoi »", ok: !/pourquoi/.test(t), why: "« Pourquoi » le pousse à se justifier au lieu de dire la perte." });
+    out.push({ label: "Une seule question", ok: (t.match(/\?/g) || []).length < 2, why: "Deux points d’interrogation : une question à la fois." });
+    out.push({ label: "18 mots au plus", ok: n <= 18, why: "Elle fait " + n + " mots : 18 au maximum." });
+    var proj = /(^|[^\p{L}])si tu (avais|pouvais|n'avais|réglais|réussissais|arrivais|tenais|signais|facturais)([^\p{L}]|$)/u.test(t) || /imagin|idéal|ce serait|aimerais|rêve/.test(t);
+    out.push({ label: "Pas de projection", ok: !proj, why: "Elle part sur la situation résolue : c’est un V, pas un I." });
+    var sol = /pensé à|pourrais|devrais|(^|[^\p{L}])et si([^\p{L}]|$)|essayé|envisag/u.test(t);
+    out.push({ label: "Pas de solution", ok: !sol, why: "Elle propose une piste au lieu de faire peser le problème." });
+    var rep = words(q).some(function (w) { return reused(w, keys); });
+    out.push({ label: "Repart de ses mots", ok: rep, adv: true, why: "Conseil : aucun mot du prospect dans ta question. Reprendre son mot l’oblige à répondre sur sa perte à lui." });
+    return out;
+  }
+  function blocking(res) { return res.filter(function (r) { return !r.ok && !r.adv; }); }
+  function highlight(text, keys) {
+    return String(text || "").split(/([^\p{L}\p{N}%]+)/u).map(function (part) {
+      return part && /\p{L}/u.test(part) && reused(part, keys) ? "<mark>" + esc(part) + "</mark>" : esc(part);
+    }).join("");
+  }
+
+  // ------------------------------------------------------------------ la fenêtre « Nouvelle séance »
+  var modal = null;
+  function closeModal() { var r = document.getElementById("modalRoot"); r.innerHTML = ""; modal = null; }
+  function openModal(cfg) {
+    modal = cfg; renderModal();
+  }
+  function renderModal() {
+    var r = document.getElementById("modalRoot"); if (!modal) { r.innerHTML = ""; return; }
+    var m = modal, pool = m.pool(m.sel), n = Math.min(m.count(m.sel), pool.length);
+    r.innerHTML = '<div class="scrim" data-scrim="1"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mh"><h2 id="mh">Nouvelle séance</h2><p class="intro">' + esc(m.intro) + "</p>" +
+      m.groups.map(function (g) {
+        return '<div class="opt"><span class="cap">' + esc(g.label) + '</span><div class="ch">' + g.opts.map(function (o) {
+          return '<button type="button" data-mg="' + g.key + '" data-mv="' + esc(o[0]) + '" aria-pressed="' + (m.sel[g.key] === o[0]) + '">' + esc(o[1]) + "</button>";
+        }).join("") + "</div></div>";
+      }).join("") +
+      '<div class="info' + (pool.length ? "" : " none") + '">' + (pool.length ? n + " cas tirés sur " + pool.length + " disponibles" : "Aucun cas ne correspond") + "</div>" +
+      '<div class="acts"><button type="button" class="btn" data-mclose="1">Annuler</button><button type="button" class="btn p" data-mstart="1"' + (pool.length ? "" : " disabled") + ">Commencer</button></div></div></div>";
+  }
+  document.getElementById("modalRoot").addEventListener("click", function (e) {
+    if (!modal) return;
+    if (e.target.dataset && e.target.dataset.scrim) return closeModal();
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.mclose) return closeModal();
+    if (b.dataset.mstart) { var m = modal, pool = m.pool(m.sel); if (!pool.length) return; var pick = shuffle(pool).slice(0, m.count(m.sel)); closeModal(); m.start(pick, m.sel); return; }
+    if (b.dataset.mg) { modal.sel[b.dataset.mg] = b.dataset.mv; renderModal(); }
+  });
+
+  // ------------------------------------------------------------------ Entraînement 1 : « Le coup suivant »
+  var C = { cases: [], i: 0, res: [], step: 1, choice: null, sure: "sur", hint: false, q: "", qres: null, j1: null, j2: null, bilan: false,
+    sel: { nb: "20", geste: "all", reg: "all", quels: "all" } };
+  var viewC = document.getElementById("view-coup");
+  function startCoup(list) {
+    C.cases = list; C.i = 0; C.res = []; C.bilan = false; resetCoup(); renderCoup();
+  }
+  function resetCoup() { C.step = 1; C.choice = null; C.sure = "sur"; C.hint = false; C.q = ""; C.qres = null; C.j1 = null; C.j2 = null; }
+  function curC() { return C.cases[C.i]; }
+  function coupRecord(r) { // the outcome of one coup
+    var geste = r.choice === r.att, qok = !!r.q && r.qok;
+    return { geste: geste, qok: qok, juste: geste && qok && !r.hint };
+  }
+  function seanceCoup() {
+    var N = C.cases.length, justes = C.res.filter(function (r) { return coupRecord(r).juste; }).length, g = goalOf(N);
+    var dots = C.cases.map(function (c, k) {
+      var r = C.res[k], cls = "dot";
+      if (r) { var o = coupRecord(r); cls += o.geste && o.qok ? " g" : o.geste ? " o" : " r"; if (r.hint) cls += " hint"; }
+      if (k === C.i && !C.bilan) { cls += " cur"; if (C.hint) cls += " hint"; }
+      return '<span class="' + cls + '" title="Coup ' + (k + 1) + '"></span>';
+    }).join("");
+    return '<section class="box sess" aria-label="Séance"><div class="cap">Séance</div>' +
+      '<div class="l1"><span class="leg">coup ' + Math.min(C.i + 1, N) + " / " + N + '</span><span class="big">' + justes + '</span><span class="leg">coups justes</span></div>' +
+      '<div class="prog"><i style="width:' + (N ? justes / N * 100 : 0) + '%"></i><span class="goal" style="left:' + (N ? g / N * 100 : 0) + '%"></span></div>' +
+      '<div class="leg">0 · objectif ' + g + " · " + N + '</div><div class="dots">' + dots + "</div>" +
+      '<div class="legend"><span><i class="dot g"></i>juste</span><span><i class="dot o"></i>bon geste, question à revoir</span><span><i class="dot r"></i>mauvais geste</span><span><i class="dot cur"></i>coup en cours</span><span><i class="dot g hint"></i>joué avec l’indice</span></div></section>';
+  }
+  function consigneCoup() {
+    return '<section class="box cons" aria-label="Consigne"><div class="cap">Consigne</div><p>Lis l’extrait et joue le coup suivant du bloc L, en trois temps.</p>' +
+      '<div class="steps3"><div><b>1</b>Choisis le geste que la conversation appelle maintenant.</div><div><b>2</b>Écris la question exacte, comme en visio.</div><div><b>3</b>Compare à l’étalon et juge ta question.</div></div></section>';
+  }
+  function scriptCoup(c) {
+    var lastP = -1; c.tours.forEach(function (t, k) { if (t[0] === "P") lastP = k; });
+    var lines = c.tours.map(function (t, k) {
+      var who = t[0] === "S" ? "Sales" : "Prospect";
+      return '<div class="line ' + t[0] + (k === lastP ? " last" : "") + '">' + (k === lastP ? '<span class="said">Il vient de dire</span>' : "") +
+        '<span class="who">' + who + ' <span>· tour ' + (k + 1) + '</span></span><div class="txt">' + esc(t[1]) + "</div></div>";
+    }).join("");
+    var me = C.choice || C.q ? (C.choice ? '<span class="tag ' + C.choice + '">' + C.choice + " · " + GESTES[C.choice].nom + "</span> " : "") +
+      (C.q ? '<div class="txt" data-live>' + esc(C.q) + "</div>" : '<div class="txt" data-live></div>') : '<div class="empty" data-live>Ton coup s’affichera ici.</div>';
+    return lines + '<div class="me"><span class="who">Toi <span>· tour ' + (c.tours.length + 1) + "</span></span> " + me + "</div>";
+  }
+  function stepBand() {
+    var names = ["Le geste", "La question", "Le corrigé"];
+    return '<div class="band">' + names.map(function (n, k) { var s = k + 1; return '<span class="' + (s === C.step ? "on" : s < C.step ? "done" : "") + '">' + (s < C.step ? "✓ " : "") + s + " · " + n + "</span>"; }).join("") + "</div>";
+  }
+  function gesteFb(c) {
+    return C.choice === c.att ? '<div class="fb good">Bon geste : ' + c.att + " · " + GESTES[c.att].nom + "</div>"
+      : '<div class="fb bad">Le coup à jouer était ' + c.att + " · " + GESTES[c.att].nom + ", pas " + C.choice + " · " + GESTES[C.choice].nom + "</div>";
+  }
+  function step1() {
+    return "<h2>Quel geste la conversation appelle-t-elle maintenant ?</h2><p class=\"sub\">Ni celui d’avant, ni celui d’après : le cran suivant du bloc L.</p>" +
+      '<div class="cards">' + GK.map(function (k, j) {
+        return '<button type="button" class="card" data-geste="' + k + '" aria-pressed="' + (C.choice === k) + '" style="border-left:6px solid var(--' + k + ')"><kbd>' + (j + 1) + '</kbd><span class="c" style="color:var(--' + k + ')">' + k + '</span><span class="n">' + GESTES[k].nom + '</span><span class="d">' + GESTES[k].court + "</span></button>";
+      }).join("") + "</div>" +
+      '<div class="rowc"><span class="cap">Ton niveau de certitude</span><span class="seg"><button type="button" data-sure="sur" aria-pressed="' + (C.sure === "sur") + '">Sûr</button><button type="button" data-sure="hesite" aria-pressed="' + (C.sure === "hesite") + '">J’hésite</button></span></div>' +
+      '<div class="acts"><button type="button" class="btn p" data-do="valider"' + (C.choice ? "" : " disabled") + ">Valider le geste</button></div>";
+  }
+  function step2(c) {
+    var ai = GK.indexOf(c.att), ci = GK.indexOf(C.choice);
+    var ladder = '<div class="ladder">' + GK.map(function (k, j) {
+      var lab = j < ai ? "déjà fait" : j === ai ? "le coup à jouer" : (j === ci && ci !== ai ? "ton choix" : "");
+      if (j === ci && ci !== ai && j < ai) lab = "déjà fait · ton choix";
+      return '<div class="' + (j === ai ? "att" : j === ci && ci !== ai ? "bad" : "") + '"><b style="color:var(--' + k + ')">' + k + " · " + GESTES[k].nom + "</b><em>" + lab + "</em></div>";
+    }).join("") + "</div>";
+    var res = rulesCoup(C.q), empty = !C.q.trim();
+    return gesteFb(c) + '<div class="etat">' + esc(c.etat) + "</div>" + ladder + '<div class="test">' + esc(GESTES[c.att].test) + "</div>" +
+      '<p class="ins"><b>Écris la question ' + c.att + " que tu poses, mot pour mot.</b> " + esc(GESTES[c.att].long) + " Les règles se vérifient pendant que tu écris.</p>" +
+      '<textarea class="q" id="qC" placeholder="Comme tu la dirais en visio…" aria-label="Ta question">' + esc(C.q) + "</textarea>" +
+      '<div data-live-rules>' + chipsHtml(res, empty) + gauge(nWords(C.q), 8, 10) + (empty ? "" : firstFault(res)) + "</div>" +
+      '<div class="acts"><button type="button" class="btn" data-do="etalon">Je ne trouve pas, montre l’étalon</button><button type="button" class="btn p" data-do="comparer"' + (empty ? " disabled" : "") + ">Comparer à l’étalon</button></div>";
+  }
+  function coupVerdict(c) {
+    var geste = C.choice === c.att, wrote = !!C.q.trim(), formOk = wrote && !blocking(C.qres).length;
+    var qok = formOk && C.j1 === true && C.j2 === true;
+    if (geste && qok && !C.hint) return ["g", "Coup juste"];
+    if (geste && qok && C.hint) return ["o", "Bon coup, avec indice : non compté"];
+    if (geste) return ["o", "Bon geste, question à retravailler"];
+    return ["r", "Geste manqué"];
+  }
+  function step3(c) {
+    var wrote = !!C.q.trim(), faults = wrote ? blocking(C.qres).length : 0, judged = !wrote || (C.j1 !== null && C.j2 !== null);
+    var h = gesteFb(c);
+    h += '<div class="panel"><span class="cap">Ta question</span>' + (wrote ? '<div class="qt">' + esc(C.q) + "</div>" + chipsHtml(C.qres, false) : '<div class="why">Pas de question écrite.</div>') + "</div>";
+    h += '<div class="panel std"><span class="cap">La question étalon</span><div class="qt">' + esc(c.ok) + '</div><div class="why">' + esc(c.pq) + "</div></div>";
+    h += '<div class="panel"><span class="cap">Deux coups qui ratent</span><div class="ko-list">' + c.ko.map(function (k) { return "<div><s>" + esc(k[0]) + "</s><span>" + esc(k[1]) + "</span></div>"; }).join("") + "</div></div>";
+    if (wrote) {
+      h += '<div class="judge"><span class="cap">Juge ta question contre l’étalon</span><p class="sub" style="margin:0">Les deux règles qu’aucun contrôle automatique ne tranche.' + (faults ? " La forme a déjà " + faults + " faute" + (faults > 1 ? "s" : "") + "." : "") + "</p>" +
+        jq("j1", "Elle ne présuppose que ce qu’il a dit : aucun chiffre, aucun mot que tu lui prêtes.", C.j1) +
+        jq("j2", "Elle fait avancer d’un seul cran : la réponse attendue est celle du geste " + c.att + ".", C.j2) + "</div>";
+    }
+    if (judged) { var v = coupVerdict(c); h += '<div class="verdict ' + v[0] + '">' + v[1] + "</div>"; }
+    else h += '<div class="verdict n">Réponds aux deux questions ci-dessus pour enregistrer le coup.</div>';
+    var last = C.i === C.cases.length - 1;
+    h += '<div class="acts"><button type="button" class="btn p" data-do="suivant"' + (judged ? "" : " disabled") + ">" + (last ? "Voir le bilan" : "Coup suivant") + "</button></div>";
+    return h;
+  }
+  function jq(k, text, v) {
+    return '<div class="jq"><p>' + esc(text) + '</p><span class="yn"><button type="button" class="y" data-j="' + k + ':1" aria-pressed="' + (v === true) + '">Oui</button><button type="button" class="n" data-j="' + k + ':0" aria-pressed="' + (v === false) + '">Non</button></span></div>';
+  }
+  function renderCoup(keepFocus) {
+    if (C.bilan) { viewC.innerHTML = '<div class="row1">' + seanceCoup() + consigneCoup() + "</div>" + bilanCoup(); return; }
+    var c = curC(); if (!c) { viewC.innerHTML = ""; return; }
+    var hd = '<div class="hd"><b>Appel en cours</b><span class="m">Registre ' + REG[c.reg] + '</span><span class="m">cas ' + pad(c.n, 3) + '</span><span class="sp"></span>' +
+      (C.step === 1 ? '<button type="button" class="btn sm" data-do="indice"' + (C.hint ? " disabled" : "") + ">Indice</button>" : "") + "</div>";
+    var hint = C.hint ? '<div class="hintbox"><div class="cap">Indice · ce coup ne comptera pas dans le score</div>' + esc(c.etat) + "</div>" : "";
+    var ex = C.step === 1 ? step1() : C.step === 2 ? step2(c) : step3(c);
+    var old = document.getElementById("exC"), oldTop = old ? old.scrollTop : 0, key = C.i + ":" + C.step, same = renderCoup.key === key;
+    renderCoup.key = key;
+    viewC.innerHTML = '<div class="row1">' + seanceCoup() + consigneCoup() + "</div>" +
+      '<div class="row2"><section class="win" aria-label="L’appel">' + hd + '<div class="sc" id="scC">' + hint + scriptCoup(c) + "</div></section>" +
+      '<section class="win" aria-label="L’exercice"><div class="hd">' + stepBand() + '</div><div class="sc stack" id="exC">' + ex + "</div></section></div>";
+    var sc = document.getElementById("scC"); if (sc) sc.scrollTop = sc.scrollHeight;
+    var exs = document.getElementById("exC"); if (exs) exs.scrollTop = same ? oldTop : 0;
+    var ta = document.getElementById("qC"); if (ta && keepFocus) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }
+  function liveCoup() { // the question being typed: chips, gauge, the « Toi » slot, the compare button
+    var c = curC(), box = viewC.querySelector("[data-live-rules]"); if (!box) return;
+    var res = rulesCoup(C.q), empty = !C.q.trim();
+    box.innerHTML = chipsHtml(res, empty) + gauge(nWords(C.q), 8, 10) + (empty ? "" : firstFault(res));
+    var b = viewC.querySelector('[data-do="comparer"]'); if (b) b.disabled = empty;
+    var live = viewC.querySelector(".me [data-live]");
+    if (live) { live.className = C.q ? "txt" : "txt"; live.textContent = C.q; }
+    var sc = document.getElementById("scC"); if (sc) sc.scrollTop = sc.scrollHeight;
+  }
+  function toCorrige() { C.qres = rulesCoup(C.q); C.step = 3; renderCoup(); }
+  function nextCoup() {
+    var c = curC(), wrote = !!C.q.trim(), formOk = wrote && !blocking(C.qres).length, qok = formOk && C.j1 === true && C.j2 === true;
+    var r = { n: c.n, att: c.att, reg: c.reg, ok: c.ok, choice: C.choice, sure: C.sure, hint: C.hint, q: C.q.trim(), qok: qok };
+    C.res[C.i] = r;
+    var h = load(KEY_COUP), e = h[c.n] || { count: 0, last: null }; e.count++; e.last = r.choice === r.att && qok; h[c.n] = e; store(KEY_COUP, h);
+    if (C.i >= C.cases.length - 1) { C.bilan = true; renderCoup(); return; }
+    C.i++; resetCoup(); renderCoup();
+  }
+  function bilanCoup() {
+    var N = C.res.length, rs = C.res, justes = rs.filter(function (r) { return coupRecord(r).juste; }).length, g = goalOf(N);
+    var gj = rs.filter(function (r) { return r.choice === r.att; }).length;
+    var sure = rs.filter(function (r) { return r.sure === "sur"; }), hes = rs.filter(function (r) { return r.sure !== "sur"; });
+    var gs = sure.filter(function (r) { return r.choice === r.att; }).length, gh = hes.filter(function (r) { return r.choice === r.att; }).length;
+    var pairs = {}, ahead = 0, behind = 0;
+    rs.forEach(function (r) { if (r.choice !== r.att) { var k = r.att + ">" + r.choice; pairs[k] = (pairs[k] || 0) + 1; if (GK.indexOf(r.choice) > GK.indexOf(r.att)) ahead++; else behind++; } });
+    var top = Object.keys(pairs).sort(function (a, b) { return pairs[b] - pairs[a]; })[0], ana;
+    if (!top) ana = "Aucune confusion de geste sur cette séance. Ce qui reste à gagner se joue sur la formulation des questions.";
+    else {
+      var a = top.split(">")[0], b = top.split(">")[1];
+      ana = "Ta confusion la plus fréquente : jouer " + b + " (" + GESTES[b].nom + ") quand la conversation appelait " + a + " (" + GESTES[a].nom + "), " + pairs[top] + " fois.";
+      if (ahead > behind) ana += " Tu montes trop vite sur l’échelle (" + ahead + " coups en avance contre " + behind + " en retard) : vérifie que le cran précédent est vraiment acquis avant de poser la question suivante.";
+      else if (behind > ahead) ana += " Tu restes trop longtemps sur le même cran (" + behind + " coups en retard contre " + ahead + " en avance) : quand le prospect a livré la matière, passe au geste suivant.";
+    }
+    var mx = '<table class="mx"><thead><tr><th>Attendu \\ joué</th>' + GK.map(function (k) { return "<th>" + k + "</th>"; }).join("") + "<th>Justes</th></tr></thead><tbody>" +
+      GK.map(function (a) {
+        var row = rs.filter(function (r) { return r.att === a; });
+        return "<tr><th>" + a + " · " + GESTES[a].nom + "</th>" + GK.map(function (b) {
+          var n = row.filter(function (r) { return r.choice === b; }).length;
+          return '<td class="' + (n ? (a === b ? "dg" : "er") : "") + '">' + (n || "") + "</td>";
+        }).join("") + "<td>" + row.filter(function (r) { return coupRecord(r).juste; }).length + " / " + row.length + "</td></tr>";
+      }).join("") + "</tbody></table>";
+    var redo = rs.filter(function (r) { return !coupRecord(r).juste; });
+    var list = redo.map(function (r) {
+      var why = r.choice === r.att ? (r.qok ? "Bon geste" : "Bon geste, question à revoir") : "Joué " + r.choice + " au lieu de " + r.att;
+      if (r.hint) why += " · avec indice";
+      return '<div><span><span class="tag ' + r.att + '">' + r.att + " · " + GESTES[r.att].nom + '</span></span><span class="qt">' + esc(r.ok) + '</span><span class="m">' + esc(why) + " · cas " + pad(r.n, 3) + "</span></div>";
+    }).join("");
+    return '<section class="bilan" aria-label="Bilan de séance"><div class="score">' + justes + "/" + N + "</div><h2>" + (justes >= g ? "Objectif atteint" : "Objectif non atteint : " + g + " coups justes visés") + "</h2>" +
+      '<p class="analysis">' + gj + " gestes justes sur " + N + ". Un coup ne compte juste que si la question passe aussi toutes les règles.</p>" +
+      '<div class="figs"><div><b>' + pct(gj, N) + "</b><span>de gestes justes</span></div><div><b>" + pct(gs, sure.length) + "</b><span>de gestes justes quand tu étais sûr (" + sure.length + " coup" + (sure.length > 1 ? "s" : "") + ")</span></div><div><b>" + pct(gh, hes.length) + "</b><span>de gestes justes quand tu hésitais (" + hes.length + " coup" + (hes.length > 1 ? "s" : "") + ")</span></div></div>" +
+      '<p class="analysis">' + esc(ana) + "</p>" +
+      '<div class="cap">Où se trompe ton choix de geste</div>' + mx +
+      (redo.length ? '<div class="cap">Les coups à retravailler</div><div class="redo">' + list + "</div>" : "") +
+      '<div class="acts">' + (redo.length ? '<button type="button" class="btn" data-do="rejouer">Rejouer ces ' + redo.length + " cas</button>" : "") + '<button type="button" class="btn p" data-do="nouvelle">Nouvelle séance</button></div></section>';
+  }
+  function coupPool(sel) {
+    var h = load(KEY_COUP);
+    return COUP.filter(function (c) {
+      if (sel.geste !== "all" && c.att !== sel.geste) return false;
+      if (sel.reg !== "all" && c.reg !== sel.reg) return false;
+      if (sel.quels === "never" && h[c.n] && h[c.n].count) return false;
+      if (sel.quels === "errors" && !(h[c.n] && h[c.n].last === false)) return false;
+      return true;
+    });
+  }
+  function settingsCoup() {
+    openModal({ intro: "L’objectif d’atelier est 16 coups justes sur 20. Un coup est juste quand le geste est le bon et que la question passe toutes les règles.",
+      sel: Object.assign({}, C.sel),
+      groups: [
+        { key: "nb", label: "Nombre de coups", opts: [["10", "10"], ["20", "20"], ["40", "40"], ["100", "Les 100"]] },
+        { key: "geste", label: "Geste attendu", opts: [["all", "Les quatre"]].concat(GK.map(function (k) { return [k, k + " · " + GESTES[k].nom]; })) },
+        { key: "reg", label: "Registre", opts: [["all", "Tous"], ["F", REG.F], ["T", REG.T], ["Id", REG.Id], ["M", REG.M]] },
+        { key: "quels", label: "Quels cas", opts: [["all", "Tous"], ["never", "Jamais joués"], ["errors", "Mes erreurs"]] }],
+      pool: coupPool, count: function (s) { return +s.nb; }, start: function (pick, sel) { C.sel = sel; startCoup(pick); } });
+  }
+  viewC.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || b.disabled) return;
+    var c = curC();
+    if (b.dataset.geste) { C.choice = b.dataset.geste; renderCoup(); return; }
+    if (b.dataset.sure) { C.sure = b.dataset.sure; renderCoup(); return; }
+    if (b.dataset.j) { var kv = b.dataset.j.split(":"); C[kv[0]] = kv[1] === "1"; renderCoup(); return; }
+    var d = b.dataset.do;
+    if (d === "indice") { C.hint = true; renderCoup(); }
+    else if (d === "valider" && C.choice) { C.step = 2; renderCoup(); var ta = document.getElementById("qC"); if (ta) ta.focus(); }
+    else if (d === "etalon") { C.q = ""; toCorrige(); }
+    else if (d === "comparer") { if (C.q.trim()) toCorrige(); }
+    else if (d === "suivant") nextCoup();
+    else if (d === "rejouer") { var redo = C.res.filter(function (r) { return !coupRecord(r).juste; }).map(function (r) { return COUP.filter(function (x) { return x.n === r.n; })[0]; }); startCoup(shuffle(redo)); }
+    else if (d === "nouvelle") settingsCoup();
+  });
+  viewC.addEventListener("input", function (e) { if (e.target.id === "qC") { C.q = e.target.value; liveCoup(); } });
+
+  // ------------------------------------------------------------------ Entraînement 2 : « La lettre imposée »
+  var Lt = { cases: [], i: 0, chains: [], link: 0, phase: "write", q: "", qres: null, j1: null, j2: null, t0: null, bilan: false, timer: null,
+    sel: { nb: "5", reg: "all", quels: "all" } };
+  var viewL = document.getElementById("view-lettre");
+  function curL() { return Lt.cases[Lt.i]; }
+  function chainOf() { return Lt.chains[Lt.i] || (Lt.chains[Lt.i] = { n: curL().n, links: [] }); }
+  function startLettre(list) { Lt.cases = list; Lt.i = 0; Lt.chains = []; Lt.bilan = false; openLink(0); renderLettre(); }
+  function openLink(k) { Lt.link = k; Lt.phase = "write"; Lt.q = ""; Lt.qres = null; Lt.j1 = null; Lt.j2 = null; Lt.t0 = Date.now(); }
+  function prospectTexts(c, upto) { // what the prospect said before the link « upto »
+    var t = c.tours.filter(function (x) { return x[0] === "P"; }).map(function (x) { return x[1]; });
+    for (var k = 0; k < upto; k++) t.push(c.r[k].rep);
+    return t;
+  }
+  function linkValid(l) { return !!l && l.valid; }
+  function timed() { var all = []; Lt.chains.forEach(function (ch) { ch.links.forEach(function (l) { if (l.time != null) all.push(l.time); }); }); return all; }
+  function seanceLettre() {
+    var N = Lt.cases.length, valid = 0;
+    Lt.chains.forEach(function (ch) { ch.links.forEach(function (l) { if (l.valid) valid++; }); });
+    var tot = 3 * N, g = goalOf(tot), tm = timed();
+    var dots = Lt.cases.map(function (c, k) {
+      var ch = Lt.chains[k];
+      return '<span class="grp">' + [0, 1, 2].map(function (j) {
+        var l = ch && ch.links[j], cls = "dot" + (l ? (l.valid ? " g" : " r") : "");
+        if (k === Lt.i && j === Lt.link && !Lt.bilan && Lt.phase !== "end") cls += " cur";
+        return '<span class="' + cls + '"></span>';
+      }).join("") + "</span>";
+    }).join("");
+    var avg = tm.length ? Math.round(tm.reduce(function (a, b) { return a + b; }, 0) / tm.length) : null;
+    return '<section class="box sess" aria-label="Séance"><div class="cap">Séance</div>' +
+      '<div class="l1"><span class="leg">cas ' + Math.min(Lt.i + 1, N) + " / " + N + '</span><span class="big">' + valid + '</span><span class="leg">questions valides</span></div>' +
+      '<div class="prog"><i style="width:' + (tot ? valid / tot * 100 : 0) + '%"></i><span class="goal" style="left:' + (tot ? g / tot * 100 : 0) + '%"></span></div>' +
+      '<div class="leg">0 · objectif ' + g + " · " + tot + '</div><div class="dots">' + dots + "</div>" +
+      '<div class="legend"><span><i class="dot g"></i>valide</span><span><i class="dot r"></i>refusée</span><span><i class="dot cur"></i>question en cours</span>' +
+      (avg != null ? "<span>temps moyen " + avg + " s, cible sous 30 s</span>" : "") + "</div></section>";
+  }
+  function consigneLettre() {
+    return '<section class="box cons" aria-label="Consigne"><div class="cap">Consigne</div><p>Pose 3 questions d’implication d’affilée. Après chaque question, le prospect répond : repars de sa réponse.</p>' +
+      '<div class="steps3">' + MAILLONS.map(function (m) { return "<div><b>" + m.k + "</b>" + esc(m.court) + "</div>"; }).join("") + "</div></section>";
+  }
+  function scriptLettre(c) {
+    var ch = chainOf(), html = "", turn = 0, lines = [];
+    c.tours.forEach(function (t) { lines.push({ w: t[0], txt: t[1] }); });
+    for (var k = 0; k < ch.links.length && k < 3; k++) {
+      if (!ch.links[k].answered) break;
+      lines.push({ w: "S", txt: c.r[k].ok, link: MAILLONS[k].k, mine: ch.links[k].q });
+      lines.push({ w: "P", txt: c.r[k].rep });
+    }
+    var lastP = -1; lines.forEach(function (l, j) { if (l.w === "P") lastP = j; });
+    html = lines.map(function (l, j) {
+      turn++;
+      var who = l.w === "S" ? "Sales" + (l.link ? " · " + l.link : "") : "Prospect";
+      return '<div class="line ' + l.w + (j === lastP ? " last" : "") + '">' + (j === lastP ? '<span class="said">Il vient de répondre</span>' : "") +
+        '<span class="who">' + who + " <span>· tour " + turn + '</span></span><div class="txt">' + esc(l.txt) + "</div>" +
+        (l.link ? '<div class="yours">' + (l.mine ? "Ta version : " + esc(l.mine) : "Tu n’avais pas écrit de question.") + "</div>" : "") + "</div>";
+    }).join("");
+    if (Lt.phase !== "end") {
+      html += '<div class="me"><span class="who">Toi · ' + MAILLONS[Lt.link].k + " <span>· tour " + (turn + 1) + '</span></span> <span class="tag I">Implication imposée</span>' +
+        '<div class="txt" data-live>' + esc(Lt.q) + "</div>" + (Lt.q ? "" : '<div class="empty" data-live-empty>Ton coup s’affichera ici.</div>') + "</div>";
+    }
+    return html;
+  }
+  function band3() {
+    var ch = chainOf();
+    return '<div class="band3">' + MAILLONS.map(function (m, k) {
+      var l = ch.links[k], st = l && l.done ? (l.valid ? "valide" : "refusée") : (k === Lt.link && Lt.phase !== "end" ? "à toi" : "à venir");
+      var cls = l && l.done ? (l.valid ? "v" : "x") : (k === Lt.link && Lt.phase !== "end" ? "cur" : "");
+      return '<div class="' + cls + '"><b>' + m.k + "</b><span>" + esc(m.nom) + "</span><em>" + st + "</em></div>";
+    }).join("") + "</div>";
+  }
+  function writeL(c) {
+    var m = MAILLONS[Lt.link], keys = prospectKeys(prospectTexts(c, Lt.link)), res = rulesLettre(Lt.q, keys), empty = !Lt.q.trim();
+    return "<h2>Question d’implication " + (Lt.link + 1) + " sur 3 · " + esc(m.nom) + '</h2><p class="sub">La lettre est imposée : ce tour doit être un I, quoi que tu aies envie de poser.</p>' +
+      '<div class="exergue">' + esc(m.cons) + "</div>" +
+      '<textarea class="q" id="qL" placeholder="Écris-la mot pour mot, comme tu la dirais en visio…" aria-label="Ta question d’implication">' + esc(Lt.q) + "</textarea>" +
+      '<div data-live-rules>' + chipsHtml(res, empty) + gauge(nWords(Lt.q), 8, 12) + (empty ? "" : firstFault(res)) + "</div>" +
+      '<div class="acts"><button type="button" class="btn" data-do="seche">Je sèche, montre l’étalon</button><button type="button" class="btn p" data-do="comparer"' + (empty ? " disabled" : "") + ">Comparer à l’étalon</button></div>";
+  }
+  function lettreVerdict() {
+    var wrote = !!Lt.q.trim();
+    if (!wrote) return ["r", "Pas de question"];
+    var ok = !blocking(Lt.qres).length && Lt.j1 === true && Lt.j2 === true;
+    return ok ? ["g", "Question d’implication valide"] : ["r", "Question refusée"];
+  }
+  function correctL(c) {
+    var m = MAILLONS[Lt.link], r = c.r[Lt.link], keys = prospectKeys(prospectTexts(c, Lt.link)), wrote = !!Lt.q.trim();
+    var judged = !wrote || (Lt.j1 !== null && Lt.j2 !== null);
+    var h = '<div class="panel"><span class="cap">Ta question · ' + m.k + "</span>" + (wrote ? '<div class="qt">' + highlight(Lt.q, keys) + "</div>" + chipsHtml(Lt.qres, false) : '<div class="why">Pas de question écrite. Elle compte comme refusée.</div>') + "</div>";
+    h += '<div class="panel std"><span class="cap">L’étalon · ' + esc(m.nom) + '</span><div class="qt">' + highlight(r.ok, keys) + '</div><div class="why">Surligné : les mots repris au prospect. ' + esc(m.cons) + "</div></div>";
+    h += '<div class="panel"><span class="cap">Deux questions refusées à ce tour</span><div class="ko-list">' + r.ko.map(function (k) { return "<div><s>" + esc(k[0]) + "</s><span>" + esc(k[1]) + "</span></div>"; }).join("") + "</div></div>";
+    if (wrote) {
+      h += '<div class="judge"><span class="cap">Juge ta question contre l’étalon</span><p class="sub" style="margin:0">Elle fait dire ce que ça coûte : de l’argent, du temps, une relation, un état. Si la réponse n’est pas une perte, ce n’était pas une question d’implication. Et elle porte sur le frein déjà nommé, jamais sur un frein que tu supposes.</p>' +
+        jq("j1", "Sa réponse attendue est une perte : de l’argent, du temps, une relation ou un état.", Lt.j1) +
+        jq("j2", Lt.link === 0 ? "Elle porte sur le frein qu’il a nommé, pas sur un frein que tu supposes." : "Elle part de ce qu’il vient de répondre et va un cran plus loin.", Lt.j2) + "</div>";
+    }
+    if (judged) { var v = lettreVerdict(); h += '<div class="verdict ' + v[0] + '">' + v[1] + "</div>"; }
+    else h += '<div class="verdict n">Réponds aux deux questions ci-dessus pour faire répondre le prospect.</div>';
+    h += '<div class="acts"><button type="button" class="btn p" data-do="repondre"' + (judged ? "" : " disabled") + ">" + (Lt.link === 2 ? "Fin de la chaîne" : "Faire répondre le prospect") + "</button></div>";
+    return h;
+  }
+  function endL(c) {
+    var ch = chainOf(), valid = ch.links.filter(function (l) { return l.valid; }).length, h;
+    if (valid === 3) h = '<div class="verdict g">Chaîne tenue sur les trois tours<small>Le prospect est allé du chiffre à ce qu’il vit. C’est cette matière qui nourrit le gap.</small></div>';
+    else {
+      var k = ch.links.findIndex(function (l) { return !l.valid; }), m = MAILLONS[k];
+      h = '<div class="verdict r">' + (valid ? valid + " question" + (valid > 1 ? "s" : "") + " valide" + (valid > 1 ? "s" : "") + " sur 3" : "Aucune question d’implication valide") +
+        "<small>La chaîne a lâché en " + m.k + " (" + esc(m.nom) + "). Relis l’étalon de ce tour : il repart toujours d’un mot que le prospect vient de dire.</small></div>";
+    }
+    h += '<div class="ends">' + MAILLONS.map(function (m, k) {
+      var l = ch.links[k];
+      return "<div><b>" + m.k + " · " + esc(m.nom) + '</b><span class="st ' + (l.valid ? "v" : "x") + '">' + (l.valid ? "valide" : "refusée") + "</span><span>" + (l.time != null ? l.time + " s" : "—") + '</span><span class="qt">' + (l.q ? esc(l.q) : "Pas de question écrite.") + "</span></div>";
+    }).join("") + "</div>";
+    var last = Lt.i === Lt.cases.length - 1;
+    h += '<div class="acts"><button type="button" class="btn p" data-do="cas">' + (last ? "Voir le bilan" : "Cas suivant") + "</button></div>";
+    return h;
+  }
+  function renderLettre(keepFocus) {
+    clearInterval(Lt.timer); Lt.timer = null;
+    if (Lt.bilan) { viewL.innerHTML = '<div class="row1">' + seanceLettre() + consigneLettre() + "</div>" + bilanLettre(); return; }
+    var c = curL(); if (!c) { viewL.innerHTML = ""; return; }
+    var hd = '<div class="hd"><b>Appel en cours</b><span class="persona">' + esc(c.qui) + '</span><span class="m">Registre ' + REG[c.reg] + '</span><span class="m">cas ' + pad(c.n, 2) + "</span><span class=\"sp\"></span>" +
+      (Lt.phase === "write" ? '<span class="chrono" id="chrono">0 s</span>' : "") + "</div>";
+    var ex = Lt.phase === "write" ? writeL(c) : Lt.phase === "correct" ? correctL(c) : endL(c);
+    var old = document.getElementById("exL"), oldTop = old ? old.scrollTop : 0, key = Lt.i + ":" + Lt.link + ":" + Lt.phase, same = renderLettre.key === key;
+    renderLettre.key = key;
+    viewL.innerHTML = '<div class="row1">' + seanceLettre() + consigneLettre() + "</div>" +
+      '<div class="row2"><section class="win" aria-label="L’appel">' + hd + '<div class="sc" id="scL">' + scriptLettre(c) + "</div></section>" +
+      '<section class="win" aria-label="L’exercice"><div class="hd">' + band3() + '</div><div class="sc stack" id="exL">' + ex + "</div></section></div>";
+    var sc = document.getElementById("scL"); if (sc) sc.scrollTop = sc.scrollHeight;
+    var exs = document.getElementById("exL"); if (exs) exs.scrollTop = same ? oldTop : 0;
+    if (Lt.phase === "write") { tick(); Lt.timer = setInterval(tick, 1000); var ta = document.getElementById("qL"); if (ta && keepFocus !== false) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }
+  }
+  function tick() { var el = document.getElementById("chrono"); if (!el || Lt.t0 == null) return; var s = Math.floor((Date.now() - Lt.t0) / 1000); el.textContent = s + " s"; el.classList.toggle("over", s > 30); }
+  function liveLettre() {
+    var c = curL(), box = viewL.querySelector("[data-live-rules]"); if (!box) return;
+    var res = rulesLettre(Lt.q, prospectKeys(prospectTexts(c, Lt.link))), empty = !Lt.q.trim();
+    box.innerHTML = chipsHtml(res, empty) + gauge(nWords(Lt.q), 8, 12) + (empty ? "" : firstFault(res));
+    var b = viewL.querySelector('[data-do="comparer"]'); if (b) b.disabled = empty;
+    var live = viewL.querySelector(".me [data-live]"); if (live) live.textContent = Lt.q;
+    var em = viewL.querySelector(".me [data-live-empty]"); if (em) em.style.display = Lt.q ? "none" : "";
+    var sc = document.getElementById("scL"); if (sc) sc.scrollTop = sc.scrollHeight;
+  }
+  function toCorrigeL() {
+    var c = curL(), ch = chainOf();
+    Lt.qres = rulesLettre(Lt.q, prospectKeys(prospectTexts(c, Lt.link)));
+    ch.links[Lt.link] = { q: Lt.q.trim(), time: Lt.q.trim() ? Math.round((Date.now() - Lt.t0) / 1000) : null, res: Lt.qres, done: false, answered: false };
+    Lt.phase = "correct"; renderLettre();
+  }
+  function answerL() { // records the link, adds the étalon and the prospect's answer, opens the next link
+    var ch = chainOf(), l = ch.links[Lt.link], wrote = !!Lt.q.trim();
+    var formOk = wrote && !blocking(Lt.qres).length;
+    l.valid = formOk && Lt.j1 === true && Lt.j2 === true; l.formOk = formOk; l.judgedNo = formOk && !l.valid; l.done = true; l.answered = true;
+    l.faults = wrote ? blocking(Lt.qres).map(function (r) { return r.label; }) : [];
+    if (Lt.link < 2) { openLink(Lt.link + 1); renderLettre(); return; }
+    Lt.phase = "end";
+    var c = curL(), score = ch.links.filter(function (x) { return x.valid; }).length;
+    var h = load(KEY_LETTRE), e = h[c.n] || { count: 0, last: null, best: 0 }; e.count++; e.last = score; e.best = Math.max(e.best || 0, score); h[c.n] = e; store(KEY_LETTRE, h);
+    renderLettre();
+  }
+  function nextCas() {
+    if (Lt.i >= Lt.cases.length - 1) { Lt.bilan = true; renderLettre(); return; }
+    Lt.i++; openLink(0); renderLettre();
+  }
+  function bilanLettre() {
+    var N = Lt.chains.length, tot = 3 * N, g = goalOf(tot), all = [], held = 0;
+    Lt.chains.forEach(function (ch) { var v = 0; ch.links.forEach(function (l, k) { all.push({ k: k, l: l, n: ch.n }); if (l.valid) v++; }); if (v === 3) held++; });
+    var valid = all.filter(function (x) { return x.l.valid; }).length, tm = timed();
+    var avg = tm.length ? Math.round(tm.reduce(function (a, b) { return a + b; }, 0) / tm.length) + " s" : "—";
+    var per = [0, 1, 2].map(function (k) { var xs = all.filter(function (x) { return x.k === k; }); return { k: k, v: xs.filter(function (x) { return x.l.valid; }).length, t: xs.length }; });
+    var weak = per.slice().sort(function (a, b) { return (a.v / (a.t || 1)) - (b.v / (b.t || 1)) || a.k - b.k; })[0];
+    var counts = {}; all.forEach(function (x) { (x.l.faults || []).forEach(function (f) { counts[f] = (counts[f] || 0) + 1; }); });
+    var topRule = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+    var judgedNo = all.filter(function (x) { return x.l.judgedNo; }).length;
+    var m = MAILLONS[weak.k];
+    var ana = "Ton maillon le plus faible : " + m.k + " · " + m.nom + " (" + weak.v + "/" + weak.t + "). " + m.cons;
+    if (topRule) ana += " La règle que tu enfreins le plus : « " + topRule + " » (" + counts[topRule] + " fois).";
+    if (judgedNo) ana += " " + judgedNo + " question" + (judgedNo > 1 ? "s passaient" : " passait") + " la forme mais pas ton propre jugement : c’est le fond qu’il faut travailler.";
+    var bars = '<div class="bars">' + per.map(function (p) { return "<div><b>" + MAILLONS[p.k].k + "</b><span>" + p.v + " / " + p.t + '</span><i><b style="width:' + (p.t ? p.v / p.t * 100 : 0) + '%"></b></i></div>'; }).join("") + "</div>";
+    var refused = all.filter(function (x) { return !x.l.valid; }).map(function (x) {
+      var c = LETTRE.filter(function (z) { return z.n === x.n; })[0];
+      return '<div><span><span class="tag I">' + MAILLONS[x.k].k + " · " + esc(MAILLONS[x.k].nom) + '</span></span><span class="qt">' + esc(c.r[x.k].ok) + '</span><span class="m">' + (x.l.q ? "Ta version : " + esc(x.l.q) : "Tu n’avais pas écrit de question.") +
+        (x.l.faults && x.l.faults.length ? " · règles en faute : " + esc(x.l.faults.join(", ")) : "") + " · cas " + pad(x.n, 2) + "</span></div>";
+    }).join("");
+    var incomplete = Lt.chains.filter(function (ch) { return ch.links.filter(function (l) { return l.valid; }).length < 3; });
+    return '<section class="bilan" aria-label="Bilan de séance"><div class="score">' + valid + "/" + tot + "</div><h2>" + (valid >= g ? "Objectif atteint" : "Objectif non atteint : " + g + " questions valides visées") + "</h2>" +
+      '<p class="analysis">Questions d’implication valides sur ' + N + " cas. Une question est valide quand elle passe les sept règles de forme et tes deux jugements.</p>" +
+      '<div class="figs"><div><b>' + held + " / " + N + "</b><span>chaînes tenues</span></div><div><b>" + pct(valid, tot) + "</b><span>de questions valides</span></div><div><b>" + avg + "</b><span>temps moyen par question (cible sous 30 s)</span></div></div>" +
+      '<p class="analysis">' + esc(ana) + "</p>" +
+      '<div class="cap">Réussite selon la place dans la chaîne</div>' + bars +
+      (refused ? '<div class="cap">Les questions refusées</div><div class="redo">' + refused + "</div>" : "") +
+      '<div class="acts">' + (incomplete.length ? '<button type="button" class="btn" data-do="rejouer">Rejouer les ' + incomplete.length + " cas incomplets</button>" : "") + '<button type="button" class="btn p" data-do="nouvelle">Nouvelle séance</button></div></section>';
+  }
+  function lettrePool(sel) {
+    var h = load(KEY_LETTRE);
+    return LETTRE.filter(function (c) {
+      if (sel.reg !== "all" && c.reg !== sel.reg) return false;
+      if (sel.quels === "never" && h[c.n] && h[c.n].count) return false;
+      if (sel.quels === "incomplete" && !(h[c.n] && h[c.n].count && h[c.n].last < 3)) return false;
+      return true;
+    });
+  }
+  function settingsLettre() {
+    openModal({ intro: "Chaque cas impose trois questions d’implication de suite. L’objectif est 80 % de questions valides.",
+      sel: Object.assign({}, Lt.sel),
+      groups: [
+        { key: "nb", label: "Nombre de cas", opts: [["3", "3 cas · 9 questions"], ["5", "5 cas · 15"], ["10", "10 cas · 30"], ["20", "Les 20"]] },
+        { key: "reg", label: "Registre", opts: [["all", "Tous"], ["F", REG.F], ["T", REG.T], ["Id", REG.Id], ["M", REG.M]] },
+        { key: "quels", label: "Quels cas", opts: [["all", "Tous"], ["never", "Jamais joués"], ["incomplete", "Chaînes incomplètes"]] }],
+      pool: lettrePool, count: function (s) { return +s.nb; }, start: function (pick, sel) { Lt.sel = sel; startLettre(pick); } });
+  }
+  viewL.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || b.disabled) return;
+    if (b.dataset.j) { var kv = b.dataset.j.split(":"); Lt[kv[0]] = kv[1] === "1"; renderLettre(false); return; }
+    var d = b.dataset.do;
+    if (d === "seche") { Lt.q = ""; toCorrigeL(); }
+    else if (d === "comparer") { if (Lt.q.trim()) toCorrigeL(); }
+    else if (d === "repondre") answerL();
+    else if (d === "cas") nextCas();
+    else if (d === "rejouer") { var inc = Lt.chains.filter(function (ch) { return ch.links.filter(function (l) { return l.valid; }).length < 3; }).map(function (ch) { return LETTRE.filter(function (x) { return x.n === ch.n; })[0]; }); startLettre(shuffle(inc)); }
+    else if (d === "nouvelle") settingsLettre();
+  });
+  viewL.addEventListener("input", function (e) { if (e.target.id === "qL") { Lt.q = e.target.value; liveLettre(); } });
+
+  // ------------------------------------------------------------------ navigation, URL, clavier
+  var TABS = { coup: "coup-suivant", lettre: "lettre-imposee" }, current = "coup";
+  function show(tab, fromHash) {
+    current = tab;
+    document.querySelectorAll(".tabs button").forEach(function (b) { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    viewC.classList.toggle("on", tab === "coup"); viewL.classList.toggle("on", tab === "lettre");
+    if (!fromHash) { try { history.replaceState(null, "", "#" + TABS[tab]); } catch (e) { try { location.hash = TABS[tab]; } catch (e2) {} } }
+    if (tab === "lettre" && Lt.phase === "write" && !Lt.bilan) { var ta = document.getElementById("qL"); if (ta) ta.focus(); }
+  }
+  function fromHash() { var h = (location.hash || "").replace("#", ""); return h === TABS.lettre ? "lettre" : "coup"; }
+  document.querySelector(".tabs").addEventListener("click", function (e) { var b = e.target.closest("[data-tab]"); if (b) show(b.dataset.tab); });
+  window.addEventListener("hashchange", function () { show(fromHash(), true); });
+  document.getElementById("newSession").addEventListener("click", function () { if (current === "coup") settingsCoup(); else settingsLettre(); });
+  function inField(t) { return t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.isContentEditable); }
+  function visible() { return document.visibilityState !== "hidden"; }
+  document.addEventListener("keydown", function (e) {
+    if (modal) { if (e.key === "Escape") { e.preventDefault(); closeModal(); } return; }
+    if (!visible()) return;
+    var t = e.target, ctrlEnter = e.key === "Enter" && (e.metaKey || e.ctrlKey);
+    if (current === "coup" && !C.bilan) {
+      if (ctrlEnter && C.step === 2) { e.preventDefault(); if (C.q.trim()) toCorrige(); return; }
+      if (inField(t)) return;
+      if (C.step === 1) {
+        var k = "1234".indexOf(e.key);
+        if (k >= 0) { e.preventDefault(); C.choice = GK[k]; renderCoup(); return; }
+        if (e.key === "Enter" && C.choice) { e.preventDefault(); C.step = 2; renderCoup(); var ta = document.getElementById("qC"); if (ta) ta.focus(); return; }
+      } else if (C.step === 3) {
+        var wrote = !!C.q.trim();
+        if (wrote && (e.key === "o" || e.key === "O" || e.key === "n" || e.key === "N")) {
+          e.preventDefault(); var yes = e.key.toLowerCase() === "o";
+          if (C.j1 === null) C.j1 = yes; else if (C.j2 === null) C.j2 = yes; renderCoup(); return;
+        }
+        if (e.key === "Enter" && (!wrote || (C.j1 !== null && C.j2 !== null))) { e.preventDefault(); nextCoup(); return; }
+      }
+    } else if (current === "lettre" && !Lt.bilan) {
+      if (ctrlEnter && Lt.phase === "write") { e.preventDefault(); if (Lt.q.trim()) toCorrigeL(); return; }
+      if (inField(t)) return;
+      if (Lt.phase === "correct") {
+        var w = !!Lt.q.trim();
+        if (w && (e.key === "o" || e.key === "O" || e.key === "n" || e.key === "N")) {
+          e.preventDefault(); var y = e.key.toLowerCase() === "o";
+          if (Lt.j1 === null) Lt.j1 = y; else if (Lt.j2 === null) Lt.j2 = y; renderLettre(false); return;
+        }
+        if (e.key === "Enter" && (!w || (Lt.j1 !== null && Lt.j2 !== null))) { e.preventDefault(); answerL(); return; }
+      } else if (Lt.phase === "end" && e.key === "Enter") { e.preventDefault(); nextCas(); return; }
+    }
+  });
+
+  // au chargement : une séance de 20 coups et une séance de 5 cas démarrent directement
+  startCoup(shuffle(COUP).slice(0, 20));
+  startLettre(shuffle(LETTRE).slice(0, 5));
+  show(fromHash(), !location.hash);
+  window.LNP_TRAINING = { C: C, L: Lt, rulesCoup: rulesCoup, rulesLettre: rulesLettre, nWords: nWords, prospectKeys: prospectKeys };
+})();
+</script>
+</body>
+</html>

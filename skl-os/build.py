@@ -10,7 +10,7 @@ _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
 TITLE = EDITION.get("title", TITLE)
 # screens kept by the edition: its systems' screens and its Settings screens (None = every screen)
-_SYS = {"os": ["cockpit", "review", "build", "execute", "decisions"], "ss": ["salescockpit", "salesday", "crm"]}
+_SYS = {"os": ["cockpit", "review", "build", "execute", "decisions"], "ss": ["salescockpit", "salesday", "entrainement", "crm"]}
 EDITION_KEEP = (sum((_SYS.get(x, []) for x in EDITION.get("systems", [])), []) + [f.replace(".dc.html", "").lower() for f in EDITION.get("settings", [])]) if EDITION else None
 
 SCREENS = [
@@ -41,6 +41,7 @@ SCREENS = [
     ("account", "Account"),
     ("salescockpit", "SalesCockpit"),
     ("salesday", "SalesDay"),
+    ("entrainement", "Entrainement"),
 ]
 
 # LNP (2026-11-03): only the screens of the edition are in the page (the Operating, Knowledge and Agent screens are gone)
@@ -91,6 +92,14 @@ CRMDOC = HERE / "crm_doc.html"
 CRMJS = ""
 if LANG == "en" and CRMDOC.exists():
     CRMJS = "<script>window.SKL_CRM_DOC = " + json.dumps(CRMDOC.read_text(encoding="utf-8")).replace("</", "<\\/") + ";</script>"
+    # Ventes › Entraînement (Romain 2026-11-05): « Entraînement discovery », its own document in a frame, with the cases of
+    # skl-os/training/coup_lnp.json and lettre_lnp.json as they are
+    TR = HERE / "training"
+    if (TR / "entrainement.html").exists():
+        trdoc = ((TR / "entrainement.html").read_text(encoding="utf-8")
+                 .replace("/*@COUP@*/[]", (TR / "coup_lnp.json").read_text(encoding="utf-8").strip().replace("</", "<\\/"))
+                 .replace("/*@LETTRE@*/[]", (TR / "lettre_lnp.json").read_text(encoding="utf-8").strip().replace("</", "<\\/")))
+        CRMJS += "\n<script>window.SKL_TRAINING_DOC = " + json.dumps(trdoc).replace("</", "<\\/") + ";</script>"
     CV2 = HERE / "cockpit_v2.json"
     if OS_MODULES and CV2.exists():
         cv = json.loads(CV2.read_text(encoding="utf-8"))
@@ -397,11 +406,11 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 
   // ALKIMIY Lite screens run in their own frames, kept alive outside the re-rendered app so their state survives.
   var frames = {{}};
-  var FRAME_DOCS = {{ crm: window.SKL_CRM_DOC }};
+  var FRAME_DOCS = {{ crm: window.SKL_CRM_DOC, training: window.SKL_TRAINING_DOC }};
   function frameFor(key, bg) {{
     if (!frames[key] && FRAME_DOCS[key]) {{
       var f = document.createElement("iframe");
-      f.title = key === "crm" ? "CRM" : "Tableau de bord commercial";
+      f.title = key === "crm" ? "CRM" : key === "training" ? "Entraînement discovery" : "Tableau de bord commercial";
       f.setAttribute("srcdoc", FRAME_DOCS[key]);
       f.style.cssText = "position: fixed; border: 0; z-index: 1; background: " + bg + ";";
       document.body.appendChild(f);
@@ -426,6 +435,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   }}
   function placeCrm() {{
     placeOne("crm", "[data-crm]", "#F6F4EF", false);
+    placeOne("training", "[data-training]", "#F7F8FB", true);
     mountDash();
   }}
 

@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 echo "1/3 Screens and modules"
 ( cd skl-os
-  for s in harmonize gen_access gen_salescockpit gen_salesday nav; do
+  for s in harmonize gen_access gen_salescockpit gen_salesday gen_training nav; do
     python3 "$s.py" > /dev/null
   done
   echo "2/3 Single-page assembly"
