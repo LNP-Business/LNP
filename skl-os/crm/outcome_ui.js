@@ -121,9 +121,11 @@
     if (d2 === "no" || d2 === "disqualified") { if (!F.reason) return render("Choisissez un motif."); p.reason_code = F.reason; }
     if (d2 === "no") p.nurture = F.nur === "y" ? "standard" : "none";
     SAVING = true; render();
-    var cid = F.call.cid;
+    var cid = F.call.cid, then = F.then, id2 = F.id;
+    // a move to the next round or to Relance longue: the outcome first, then the move (crm_move_cycle, 047)
     Promise.resolve().then(function () { return window.sklCrmDeclare(cid, p); })
-      .then(done("Issue enregistrée · l’étape, la prochaine étape et les alertes sont recalculées"), fail);
+      .then(function () { return then && typeof window.sklCrmMove === "function" ? window.sklCrmMove(id2, then) : null; })
+      .then(done(then ? "Issue enregistrée · prospect déplacé en « " + (COL[then] || then) + " »" : "Issue enregistrée · l’étape, la prochaine étape et les alertes sont recalculées"), fail);
   }
   function mount() {
     css(); close();
@@ -150,7 +152,7 @@
     if (!canWrite() || !call) return false;
     mount();
     F = { id: id, call: call, res: opts.res || "held", dec: opts.dec || "fu", amt: opts.amount || "", inst: "1", reason: "", nur: "y", step: "",
-      why: opts.why || "", correction: !!opts.correction };
+      why: opts.why || "", correction: !!opts.correction, then: opts.then || null };
     render();
     return true;
   }
@@ -163,52 +165,97 @@
     return true;
   }
 
-  // ---- a move: lead = the board's lead (st: nouveau, planifie, realise, noshow, longfu, close, perdu, disq, nobook; tour);
-  // to = a Pipeline column (nouveau, r1, r2, r3, noshow, longfu, close, perdu, disq, nobook) or a status (planifie, realise)
+  // ---- a move (Romain, 2026-11-05: « un popup s'ouvre pour mettre à jour l'action associée s'il y a une action à faire ;
+  // s'il n'y a pas d'action, on déplace le lead sans rien ; impossible de passer d'un lead R2 à R1 »)
+  // lead = the board's lead (st: nouveau, planifie, realise, noshow, longfu, close, perdu, disq, nobook; tour);
+  // to = a Pipeline column (nouveau, r1, r2, r3, noshow, longfu, close, perdu, disq, nobook) or a status (planifie, realise).
+  // Rules (the same as crm_move_cycle, 047, which checks them again):
+  //   - a won lead never moves; a contact with no booking enters the pipeline with its first booking (iClosed);
+  //   - never back to a round already reached (R2 → R1), never a round skipped (R1 → R3), never « Nouveau » once a call exists;
+  //   - the next round: the current call must be over — an outcome to declare opens its form (Honoré, Relance) and the
+  //     lead moves once it is saved; a call ahead or a no-show blocks it; nothing to declare → the lead moves at once;
+  //   - Absent and Gagné declare (or correct) the outcome of the last call; Perdu and Disqualifié declare the outcome of a
+  //     call to declare, otherwise close the lead with a reason (crm_close_cycle, 045);
+  //   - Relance longue: at once (after the outcome of a call to declare); a closed lead comes back after a confirmation.
   var PRESET = { close: ["held", "yes"], perdu: ["held", "no"], disq: ["held", "dq"], noshow: ["noshow", null], realise: ["held", "fu"] };
+  function fail2(e) { say("Non déplacé : " + String(e && e.message || e)); }
+  function moveNow(id, to, msg) {
+    if (typeof window.sklCrmMove !== "function") return say("Ce déplacement n’est pas disponible ici.");
+    Promise.resolve().then(function () { return window.sklCrmMove(id, to); }).then(function () { say(msg); }, fail2);
+    return true;
+  }
   function move(lead, to) {
     if (!lead || !to) return false;
     var d = data();
     if (!d) return say("Le pipeline n’est pas encore chargé.");
     if (!canWrite()) return say("Lecture seule : votre rôle ne permet pas de déplacer un prospect.");
-    var l = view(lead.id), name = lead.p || (l && l.p) || "ce prospect", where = "« " + (COL[to] || to) + " »";
-    if (!l) return say("Ce contact n’a pas encore de cycle de vente : il apparaîtra dans le pipeline dès qu’il réservera un appel.");
+    if (lead.st === "nobook") return say("Ce contact n’a jamais réservé d’appel : il entre dans le pipeline dès qu’il réserve son R1 dans iClosed.");
+    if (to === "nobook") return say("« Sans rendez-vous » regroupe les contacts qui n’ont jamais réservé d’appel : un prospect n’y retourne pas.");
+    var l = view(lead.id), name = lead.p || (l && l.p) || "ce prospect";
+    if (!l) return say("Ce prospect n’a pas encore de cycle de vente.");
     if (lead.st === "close") return say("Ce prospect a payé : une vente ne se déplace pas. Un remboursement se saisit dans sa fenêtre d’encaissement.");
-    var due = (l.ev || []).find(function (e) { return e.k === "meetdue" && e.cid; }), last = lastCall(l), call = due || last;
-    var future = (l.ev || []).find(function (e) { return e.k === "meet" && e.t > l.age; });
-    var round = /^r(\d)$/.exec(to), closed = lead.st === "perdu" || lead.st === "disq";
-    var form = function (c, pre, why) {
-      return open(lead.id, { call: c, res: pre[0], dec: pre[1] || "fu", correction: c.k !== "meetdue", why: why +
+    var ev = l.ev || [], calls = ev.filter(function (e) { return e.cid && (e.k === "meet" || e.k === "meetdue" || e.k === "noshow"); });
+    var due = ev.filter(function (e) { return e.k === "meetdue" && e.cid; })[0], last = lastCall(l);
+    var ahead = ev.filter(function (e) { return e.k === "meet" && e.t > l.age; })[0];
+    var cur = Math.min(3, calls.length ? Math.max.apply(null, calls.map(function (e) { return e.r || 1; }).concat([lead.st === "nouveau" ? 0 : lead.tour || 1])) : (lead.st === "nouveau" ? 0 : lead.tour || 0));
+    var heldCur = ev.some(function (e) { return e.k === "meet" && e.t <= l.age && (e.r || 1) >= cur; });
+    var where = "« " + (COL[to] || to) + " »";
+    var form = function (c, pre, why, then) {
+      return open(lead.id, { call: c, res: pre[0], dec: pre[1] || "fu", correction: c.k !== "meetdue", then: then, why: why +
         (c.k !== "meetdue" ? " L’issue déjà déclarée pour le R" + (c.r || 1) + " sera remplacée." : "") });
     };
-    if (closed) {
+    // the statuses of the lead record and of the Leads list, as columns
+    if (to === "planifie") to = lead.st === "realise" ? "r" + Math.min(3, cur + 1) : lead.st === "nouveau" ? "r1" : "r" + Math.max(1, cur);
+    if (to === "realise") {
+      if (due) return form(due, ["held", "fu"], "Pour passer en « Appel honoré », déclarez l’issue du R" + (due.r || 1) + ".");
+      return say(lead.st === "realise" ? "L’appel est déjà honoré." : "« Appel honoré » se déclare sur un appel passé : son issue n’est pas encore à déclarer.");
+    }
+    var round = /^r(\d)$/.exec(to), n = round ? +round[1] : null;
+    // a closed lead
+    if (lead.st === "perdu" || lead.st === "disq") {
       if (to === "perdu" || to === "disq") {
         if (to === lead.st) return true;
-        if (last) return form(last, PRESET[to], "Pour passer en " + where + ", corrigez l’issue du R" + (last.r || 1) + ".");
-        return closeForm(lead.id, to === "perdu" ? "no" : "dq", { reopen: true, why: "Le prospect passe en " + where + " avec un nouveau motif." });
+        return closeForm(lead.id, to === "perdu" ? "no" : "dq", { reopen: true, why: "Le prospect passe en " + where + " avec un motif de la liste." });
       }
       if (to === "close") return say("Une vente se déclare sur l’issue d’un appel tenu : rouvrez d’abord le prospect, puis déclarez l’issue de son appel.");
+      if (n != null && n < cur) return say("Ce prospect a déjà atteint le R" + cur + " : il ne revient pas en R" + n + ".");
+      if (to === "nouveau" && calls.length) return say("Ce prospect a déjà eu un appel : il ne revient pas en « Nouveau ».");
       var ask = window.sklAsk || function (t, x, ok, fn) { if (window.confirm(t + "\n" + x)) fn(); };
       ask("Rouvrir le prospect ?", name + " revient dans le pipeline, à l’étape que donnent ses appels. Sa clôture reste dans l’historique.", "Rouvrir", function () {
-        Promise.resolve().then(function () { return window.sklCrmReopen(lead.id); })
+        Promise.resolve().then(function () { return window.sklCrmReopen(lead.id, to === "longfu"); })
+          .then(function () { return to === "longfu" ? window.sklCrmMove(lead.id, "longfu") : null; })
           .then(function () { say("Prospect rouvert"); }, function (e) { say("Non enregistré : " + String(e && e.message || e)); });
       });
       return true;
     }
-    if (PRESET[to]) {
-      if (call) return form(call, PRESET[to], "Pour passer en " + where + ", " + (call.k === "meetdue" ? "déclarez l’issue du R" + (call.r || 1) + "." : "corrigez l’issue du R" + (call.r || 1) + "."));
-      if (to === "perdu" || to === "disq") return closeForm(lead.id, to === "perdu" ? "no" : "dq", { why: "Aucun appel à déclarer : le prospect est clos avec un motif." });
-      return say(future ? "Le R" + (future.r || 1) + " n’a pas encore eu lieu : son issue se déclare après l’heure prévue." : "Aucun appel n’a eu lieu : l’issue se déclare après un appel.");
+    // an active lead
+    if (to === "nouveau") return say(calls.length || cur > 0 ? "Ce prospect a déjà un appel : il ne revient pas en « Nouveau »." : "Ce prospect est déjà en « Nouveau ».");
+    if (n != null) {
+      if (n < cur) return say("Ce prospect est déjà en R" + cur + " : il ne revient pas en R" + n + ". Mettez plutôt à jour son statut (issue de l’appel, relance, perte).");
+      if (n > cur + 1) return say("Un prospect passe par chaque tour : pas de R" + n + " avant le R" + (cur + 1) + ".");
+      if (n === cur) {
+        if (lead.st === "longfu" || lead.st === "noshow") return moveNow(lead.id, to, "Prospect remis en R" + n + (lead.st === "noshow" ? " : à replanifier dans iClosed" : ""));
+        return true;
+      }
+      // the next round
+      if (due) return form(due, ["held", "fu"], "Pour passer en R" + n + ", déclarez d’abord l’issue du R" + (due.r || 1) + " (Honoré, puis Relance).", to);
+      if (ahead) return say("Le R" + (ahead.r || cur) + " n’a pas encore eu lieu : le prospect passe en R" + n + " après lui.");
+      if (cur > 0 && !heldCur) return say("Le R" + cur + " n’a pas été honoré : le prospect ne passe pas en R" + n + ". Replanifiez son R" + cur + " ou clôturez-le.");
+      return moveNow(lead.id, to, "Prospect déplacé en R" + n + " : réservez son rendez-vous dans iClosed");
     }
-    if (round) {
-      var n = +round[1];
-      if (due && n > (due.r || 1)) return form(due, ["held", "fu"], "Pour passer en R" + n + ", déclarez d’abord l’issue du R" + (due.r || 1) + " (Honoré, puis Relance). Le prospect arrive en R" + n + " dès que ce rendez-vous est réservé dans iClosed.");
-      return say("Le R" + n + " se réserve dans iClosed : le prospect passera dans cette colonne dès la réservation.");
+    if (to === "longfu") {
+      if (due) return form(due, ["held", "fu"], "Avant la relance longue, déclarez l’issue du R" + (due.r || 1) + ".", "longfu");
+      return moveNow(lead.id, "longfu", "Prospect mis en relance longue");
     }
-    if (to === "planifie") return say("Un rendez-vous se réserve dans iClosed : le prospect passera en RDV planifié dès la réservation.");
-    if (to === "nouveau") return say("« Nouveau » se calcule seul : un prospect sans appel réservé.");
-    if (to === "longfu") return say("« Relance longue » se calcule seule : 14 jours sans nouvelles et aucun appel prévu.");
-    if (to === "nobook") return say("« Sans rendez-vous » regroupe les contacts qui n’ont jamais réservé d’appel.");
+    if (to === "noshow" || to === "close") {
+      var c = due || last;
+      if (!c) return say(ahead ? "Le R" + (ahead.r || 1) + " n’a pas encore eu lieu : son issue se déclare après l’heure prévue." : "Aucun appel n’a eu lieu : l’issue se déclare après un appel.");
+      return form(c, PRESET[to], "Pour passer en " + where + ", " + (c.k === "meetdue" ? "déclarez l’issue du R" + (c.r || 1) + "." : "corrigez l’issue du R" + (c.r || 1) + "."));
+    }
+    if (to === "perdu" || to === "disq") {
+      if (due) return form(due, PRESET[to], "Pour passer en " + where + ", déclarez l’issue du R" + (due.r || 1) + ".");
+      return closeForm(lead.id, to === "perdu" ? "no" : "dq", { why: "Le prospect est clos avec un motif de la liste ; l’issue de ses appels ne change pas." });
+    }
     return say("Ce déplacement n’est pas possible.");
   }
   window.sklOutcome = { button: button, open: open, close: closeForm, _dueCall: dueCall, _lastCall: lastCall };
