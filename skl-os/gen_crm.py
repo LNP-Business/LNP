@@ -32,7 +32,7 @@ info = f'''<sc-if value="{{{{info}}}}" hint-placeholder-val="{{{{false}}}}">
 <li>Pipeline : un appel passé sans issue affiche « Déclarer l’issue » sur sa carte ; le même formulaire que dans Cycle de vente s’ouvre, sans quitter le Pipeline.</li>
 <li>Prospects : filtrez, triez, choisissez vos colonnes et agissez sur plusieurs prospects à la fois.</li>
 <li>Cycle de vente : une ligne par prospect en cours, du RDV pris au premier paiement Whop, face aux objectifs de présence, de décision et d’encaissement. Chaque matin, lisez Critique, puis Le commercial doit agir, de haut en bas ; Calendrier montre aujourd’hui et les prochains appels, Depuis le RDV compare la durée des cycles ; ouvrez une ligne pour lire chaque échange, ou la fiche prospect pour chaque message, appel et paiement.</li>
-<li>Cliquez sur un prospect pour ouvrir sa fiche : à gauche son cycle de vente jour par jour (filtres Tous, Appels, Messages, Paiements), à droite « À faire » avec l’action du moment (déclarer l’issue, ou « Fait » avec ce que vous avez fait, enregistré en note), ses appels de vente et leur analyse. Son menu Statut déplace le prospect comme dans le Pipeline.</li>
+<li>Cliquez sur un prospect pour ouvrir sa fiche : à gauche son cycle de vente jour par jour (filtres Tous, Messages, Paiements), à droite « À faire » avec l’action du moment (déclarer l’issue, ou « Fait » avec ce que vous avez fait, enregistré en note), ses appels de vente et leur analyse. Son menu Statut déplace le prospect comme dans le Pipeline.</li>
 <li>Notez la prochaine action avant de fermer la fiche d’un prospect.</li></ol></section>
 <button type="button" onClick="{{{{closeInfo}}}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">J’ai compris</button>
 </div>
@@ -544,7 +544,7 @@ FEED = ('<script>' + (ROOT / 'skl-os' / 'crm' / 'lead_feed.js').read_text(encodi
 crm = crm.replace('</body>', FEED + '</body>', 1) if '</body>' in crm else crm + FEED
 for a, b in [
     ('    <div class="cx-mbody"><div class="cx-main">\n      <div class="cx-tl" id="cxTl"></div>',
-     '    <div class="cx-mbody"><div class="cx-main">\n      ${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?`<div class="lf-grid"><aside class="lf-side">${SKL_LEADFEED.feed(sklLfView(l.id),{newest:true})}</aside><div class="lf-main">${SKL_LEADFEED.todo(sklLfView(l.id),{ro:sklRo()})}`:`<div class="cx-tl" id="cxTl"></div>`}'),
+     '    <div class="cx-mbody"><div class="cx-main">\n      ${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?`<div class="lf-grid"><aside class="lf-side">${SKL_LEADFEED.feed(sklLfView(l.id),{newest:true,calls:false})}</aside><div class="lf-main">${SKL_LEADFEED.todo(sklLfView(l.id),{ro:sklRo()})}`:`<div class="cx-tl" id="cxTl"></div>`}'),
     ('      ${body}`}\n    </div></div>', '      ${body}`}${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?"</div></div>":""}\n    </div></div>'),
     ('  sklTimeline(l);\n', '  sklTimeline(l);if(window.SKL_LEADFEED)SKL_LEADFEED.settle(document);\n')]:
     assert crm.count(a) == 1, a[:60]

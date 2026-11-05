@@ -1355,7 +1355,7 @@ function renderLead(){const Lx=S.cx.lead;if(!Lx)return;const l=byD(Lx.id),past=r
       <div style="min-width:0"><h2 id="lT">${esc(l.p)}</h2><div class="cx-mm"><span class="cx-stc" style="--c:${STC[l.st]}">${stLabel(l.st)}</span><span>${esc(prodName(l))}</span><span>· ${window.sklCanAssign&&String(l.id).indexOf("p-")!==0?`<button class="cx-own" data-act="ownmenu" data-id="${l.id}" title="Changer le commercial">${esc(s.name)} ▾</button>`:esc(s.name)}</span><span class="cx-rb">↻ R${l.tour}</span></div></div>
       <div class="cx-mhr"><button class="btn sm" data-act="stmenu" data-id="${l.id}">${t("cx_status")} ▾</button><button class="x" data-act="close" aria-label="${t("cx_close")}">×</button></div></div>
     <div class="cx-mbody"><div class="cx-main">
-      ${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?`<div class="lf-grid"><aside class="lf-side">${SKL_LEADFEED.feed(sklLfView(l.id),{newest:true})}</aside><div class="lf-main">${SKL_LEADFEED.todo(sklLfView(l.id),{ro:sklRo()})}`:`<div class="cx-tl" id="cxTl"></div>`}
+      ${l.live&&window.SKL_LEADFEED&&sklLfView(l.id)?`<div class="lf-grid"><aside class="lf-side">${SKL_LEADFEED.feed(sklLfView(l.id),{newest:true,calls:false})}</aside><div class="lf-main">${SKL_LEADFEED.todo(sklLfView(l.id),{ro:sklRo()})}`:`<div class="cx-tl" id="cxTl"></div>`}
       ${l.live&&typeof SKL_CA!=="undefined"?"":`<div class="cx-callrow">${IC.phone} ${callchip}<span>${t(l.tour>1?"cx_calls":"cx_call",{n:l.tour})}</span></div>`}
       ${(l.st==="close"||(l.live&&(l.a||l.col||l.stg==="decision"||l.stg==="cash")))?`<div class="cx-panel cx-paypanel"><div class="spread" style="align-items:center"><h3>${t("cx_pay_t")}</h3><button class="btn sm gold" data-act="pay" data-id="${l.id}">${t("cx_pay_edit")}</button></div>
         <div class="cx-payg"><div><dt>${t("cx_signed")}</dt><dd>${money(l.a)}</dd></div>${l.live?"":`<div><dt>${t("cx_inv")}</dt><dd>${money(l.inv)}</dd></div>`}<div><dt>${t("cx_col")}</dt><dd class="cx-colv">${money(l.col)}</dd></div></div>
@@ -3337,7 +3337,7 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
    Messages · Paiements (E-mails only when there are some), then the events by day, oldest first: what it is, who (Prospect,
    Commercial, Automatique), the message status, the time and the text. lead = a lead of SKL_CRM.salesCycleView (opened, age,
    ev: [{t (hours since the cycle opened), w: s | p | a, k, r, txt, st}]). opts.max = the height of the scrolling list
-   (px), opts.newest = scroll to the latest event.
+   (px), opts.newest = scroll to the latest event, opts.calls = false leaves out the « Appels » filter.
    window.SKL_LEADFEED.todo(lead, opts) → html: what the sales rep must do now (an outcome to declare, a call to prepare, a
    reschedule, a follow-up…) with its action: the outcome form (window.sklOutcome) or « Qu'avez-vous fait ? » saved as a note
    on the lead (window.sklCrmNote). opts.ro = read only. window.SKL_LEADFEED.css: the styles (also for a shadow root).
@@ -3426,7 +3426,8 @@ window.sklCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
         + '<div class="lf-c"><div class="lf-t"><b>' + esc(K[1]) + "</b>" + (meta ? "<span>" + esc(meta) + "</span>" : "") + "<time>" + hm(d) + "</time></div>"
         + (txt ? '<div class="lf-x">' + esc(txt) + "</div>" : "") + "</div></div>");
     });
-    var F = [["all", "Tous"], ["calls", "Appels"], ["msgs", "Messages"]].concat(has.mails ? [["mails", "E-mails"]] : []).concat([["pay", "Paiements"]]);
+    // opts.calls === false: no « Appels » filter (the lead record lists the sales calls and their analysis on the right)
+    var F = [["all", "Tous"]].concat(opts.calls === false ? [] : [["calls", "Appels"]]).concat([["msgs", "Messages"]]).concat(has.mails ? [["mails", "E-mails"]] : []).concat([["pay", "Paiements"]]);
     var pick = "var r=this.closest('.lf');r.dataset.f=this.dataset.lff;r.querySelectorAll('[data-lff]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.lff===r.dataset.f))})";
     var list = days.map(function (k) {
       return '<div class="lf-day"><div class="lf-dh">' + esc(dayLbl(groups[k].d)) + "</div>" + groups[k].items.join("") + "</div>";

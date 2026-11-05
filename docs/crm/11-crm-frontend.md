@@ -75,7 +75,8 @@ still runs; the functional specification is updated (§3, §9.3, §11, §12, §1
 ## Lead record, Ma journée and Pipeline moves (2026-11-05)
 
 - **Lead record** (web edition): on the left the lead's sales cycle as a vertical feed by day, oldest first, newest in view,
-  with the filters All · Calls · Messages · Payments (E-mails when there are some); on the right « À faire » (the outcome to
+  with the filters All · Messages · Payments (E-mails when there are some; no Calls filter there since 2026-11-05: the
+  sales calls and their analysis are on the right; Ma journée keeps it); on the right « À faire » (the outcome to
   declare, the call to prepare, the reschedule or follow-up, with « Fait » saving what was done as a note), the sales calls
   and the call analysis. One renderer: `skl-os/crm/lead_feed.js` (`SKL_LEADFEED.feed`, `.todo`), from
   `SKL_CRM.salesCycleView`. The horizontal timeline stays in CRM › Sales cycle.
