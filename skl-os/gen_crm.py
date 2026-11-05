@@ -222,7 +222,8 @@ LIVE = ('<script>(function(){'
     'var _m=moveLead;moveLead=function(id,st){if(LIVE){var ml=byD(id);if(ml&&window.sklMove)sklMove(ml,st);renderAll();return}return _m.apply(this,arguments)};'
     'var _c=moveToCol;moveToCol=function(id,c){if(LIVE){var ml=byD(id);if(ml&&window.sklMove&&colOf(ml)!==c)sklMove(ml,c);return}return _c.apply(this,arguments)};'
     'var _s=stepSave;stepSave=function(){if(LIVE){soon();return}return _s.apply(this,arguments)};'
-    'C.me().then(function(m){window.sklCanAssign=!!m&&(m.role==="admin"||m.role==="sales_lead");renderAll()}).catch(function(){});'
+    # 048: only an admin sees every lead, so only an admin gives a lead to another rep
+    'C.me().then(function(m){window.sklCanAssign=!!m&&m.role==="admin";renderAll()}).catch(function(){});'
     'return load(C).then(function(){C.subscribe(function(){clearTimeout(TIMER);TIMER=setTimeout(function(){load(C)},800)})})};'
   'try{var C=window.parent&&window.parent!==window&&window.parent.SKL_CRM;if(C)C.ready().then(function(){if(C.mode()==="live")window.sklCrmLive(C)})}catch(e){}'
   '})();</script>')
@@ -351,7 +352,7 @@ for a, b in [
      'Object.keys(REPS).forEach(k=>delete REPS[k]);Object.assign(REPS,d.reps);if(!d.keep)S.open.clear();'
      'document.getElementById("scMock").hidden=true;const rs=document.getElementById("rep"),v=S.rep;'
      'rs.innerHTML=`<option value="">Tous les commerciaux</option>`+Object.entries(REPS).map(([k,x])=>`<option value="${k}">${x[0]}</option>`).join("");'
-     'if(REPS[v])rs.value=v;else S.rep="";rs.hidden=d.role==="sales";document.body.classList.toggle("ro",d.role==="viewer");'
+     'if(REPS[v])rs.value=v;else S.rep="";rs.hidden=d.role!=="admin";document.body.classList.toggle("ro",d.role==="viewer");'
      'if(d.reasons){REASON_CODE={};OF_REASONS.no=d.reasons.no.map(x=>(REASON_CODE[x[1]]=x[0],x[1]));OF_REASONS.dq=d.reasons.dq.map(x=>(REASON_CODE[x[1]]=x[0],x[1]))}'
      'render()};\n'
      '/* phase 3: the outcome form saves through crm_declare_outcome (the CRM document holds the Supabase client), then reloads */\n'

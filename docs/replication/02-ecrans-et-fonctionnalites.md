@@ -91,8 +91,8 @@ Deux niveaux de rôles (détail : `web/supabase/001_init.sql`, `003_crm_core.sql
 | Rôle de l'équipe (`members.role`, libellé « Accès de l’équipe ») | Rôle CRM créé automatiquement (`crm_members.role`) | Données partagées (`docs`) | CRM : voit | CRM : écrit |
 |---|---|---|---|---|
 | `admin` « Administrateur · gère l’équipe » | `admin` | lit, écrit | tout | tout (RPC `crm_require`) ; seul à voir/ajouter une analyse d'appel sans être le commercial attitré |
-| `member` « Membre · lit et modifie » | `sales_lead` | lit, écrit | tout (`crm_sees_all`) | tout sauf analyse d'appel d'un prospect qu'il n'a pas |
-| `viewer` « Lecteur · lit seulement » | `viewer` | lit (écritures ignorées, `SKL.readOnly`) | tout | rien |
+| `member` « Membre · lit et modifie » | `sales_lead` | lit, écrit | ses prospects seulement (048 : seul `admin` voit tout) | tout sauf analyse d'appel d'un prospect qu'il n'a pas |
+| `viewer` « Lecteur · lit seulement » | `viewer` | lit (écritures ignorées, `SKL.readOnly`) | ses prospects seulement (048) | rien |
 | — (posé à la main) | `sales` | — | ses cycles seulement (RLS `owner_id = auth.uid()`) | ses cycles seulement |
 
 Le trigger `members_to_crm` (`011`) crée la ligne `crm_members` à l'invitation : `member_key` = partie locale de l'e-mail
