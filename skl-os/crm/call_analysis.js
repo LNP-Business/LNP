@@ -205,12 +205,20 @@
     return recent.length ? recent[recent.length - 1] : null;
   }
   function dot(sc) { var x = obj(sc); if (x.status !== "scored" || x.score == null) return '<i style="color:#B7B2A6;font-style:normal">—</i>'; var l = level(x.score); if (x.verdict === "absent" || x.verdict === "non_compliant") l = ["", "tr"]; return '<span class="ca-tag ' + l[1] + '" style="padding:0 5px;font-size:11px">' + Math.round(x.score) + "</span>"; }
+  // the lead qualification of an R1 (046): its state, as a small tag
+  var QST = { "SQL GAGNÉ": ["SQL gagné", "tg"], "SQL OUVERT": ["SQL ouvert", "tb"], "SQL PERDU": ["SQL perdu", "to"], "NON SQL": ["Non SQL", "tr"],
+    "À REVOIR": ["Qualif. à revoir", "ty"], "MQL EN ATTENTE": ["MQL en attente", "tn"] };
+  function qtag(r) {
+    var q = obj(r && r.qualification), t = QST[q.status]; if (!t) return "";
+    return '<span class="ca-tag ' + t[1] + '" style="padding:0 6px;font-size:11px" title="Qualification du lead (R1)">' + t[0] + "</span>";
+  }
+  function r1Of(cycleId) { return rowsOf(cycleId).filter(function (x) { return x.round === 1 && x.qualification; }).pop() || null; }
   function chip(cycleId) {
     var r = leadRow(cycleId); if (!r) return "";
     var base = 'class="sklca-chip" data-ca="' + esc(r.call_id) + '" data-cycle="' + esc(cycleId) + '" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font:600 11.5px \'IBM Plex Sans\',sans-serif;border-radius:8px;padding:3px 8px;cursor:pointer;';
     if (r.status === "done" || r.done_job) {
       var s = obj(r.scores);
-      return "<button " + base + 'border:1px solid #E3DFD5;background:#fff;color:#1B1B18" title="Analyse d\'appel R' + r.round + ' · Découverte, Écart, Présentation de l\'offre, Objections">R' + r.round + " " + COMP.map(function (c) { return dot(s[c[0]]); }).join("") + "</button>";
+      return "<button " + base + 'border:1px solid #E3DFD5;background:#fff;color:#1B1B18" title="Analyse d\'appel R' + r.round + ' · Découverte, Écart, Présentation de l\'offre, Objections · qualification du lead">R' + r.round + " " + COMP.map(function (c) { return dot(s[c[0]]); }).join("") + qtag(r1Of(cycleId)) + "</button>";
     }
     if (r.status === "queued" || r.status === "running") return "<button " + base + 'border:1px solid #EAD9B3;background:#F7EEDC;color:#7A4B00">Analyse R' + r.round + " en cours…</button>";
     if (r.status === "failed") return "<button " + base + 'border:1px solid #F1B8B2;background:#FDECEA;color:#9B1C12">Échec de l\'analyse R' + r.round + "</button>";
@@ -222,11 +230,12 @@
     var rows = rowsOf(cycleId);
     var head = '<div class="cx-panel"><h3>Analyse d\'appel</h3>';
     if (!rows.length) return head + '<p class="mut" style="margin:0">Aucun appel de vente R1 ou R2 passé à analyser pour ce prospect pour l\'instant (les appels d\'intégration et d\'étude de cas ne sont pas analysés). Seuls les administrateurs et le commercial attitré du prospect voient l\'analyse.</p></div>';
-    return head + '<p class="mut" style="margin:0 0 10px">Découverte · Écart · Présentation de l\'offre · Objections, notés à partir de la transcription. Ouvrez un appel pour voir son analyse, ou ajoutez sa transcription.</p>' +
+    return head + '<p class="mut" style="margin:0 0 10px">Découverte · Écart · Présentation de l\'offre · Objections, notés à partir de la transcription, et pour un R1 la qualification du lead. Ouvrez un appel pour voir son analyse, ou ajoutez sa transcription.</p>' +
       rows.map(function (r) {
         var st = r.status === "done" || r.done_job ? COMP.map(function (c) { return dot(obj(r.scores)[c[0]]); }).join(" ") :
           r.status === "queued" || r.status === "running" ? '<span class="ca-tag ty">Analyse en cours…</span>' :
           r.status === "failed" ? '<span class="ca-tag tr">Échec</span>' : '<span class="ca-tag tn">Sans transcription</span>';
+        st += qtag(r);
         var when = ""; try { when = new Date(r.start).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); } catch (e) {}
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #EFEBE3"><b class="ca-mono">R' + esc(r.round) + '</b><span class="mut">' + esc(when) + "</span>" + st +
           '<span style="flex:1"></span><button class="btn sm" data-ca="' + esc(r.call_id) + '" data-cycle="' + esc(cycleId) + '">' + (r.status === "done" || r.done_job ? "Ouvrir l'analyse" : r.status ? "Voir" : "Ajouter la transcription") + "</button></div>";

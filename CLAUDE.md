@@ -90,6 +90,8 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 Le moteur (`call-analysis/`) a ses propres règles : lire `call-analysis/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
 le code décide et note. Les consignes envoyées au modèle (`call-analysis/engine/alkimiy_callqa/prompts/*.md`) restent en anglais :
 les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/call-analysis.yml`.
+Qualification du lead (règle des quatre portes 2.1, `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
+worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier
 (phases, questions de découverte, écart, présentation de l'offre, objections après la présentation), le code vérifie
 chaque citation et calcule les notes avec les fonctions du moteur de référence. Choix par analyse :

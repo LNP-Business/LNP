@@ -26,11 +26,12 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
 - motif_non_tenu : trop_court | replay_non_vu | a_recaler | null.
  
 ## metier
-- etudiant : "oui" si la personne est actuellement étudiante (un enseignant en formation continue n'est pas étudiant).
+- etudiant : "oui" si la personne est actuellement étudiante (un enseignant en formation continue n'est pas étudiant). Un étudiant qui vend déjà des cours particuliers : etudiant "oui" ET cours_payants_actuels "oui".
 - a_enseigne_scolaire : "oui" si elle a enseigné en classe en primaire, collège ou lycée (en poste, ancien enseignant, retraité, contractuel ou remplaçant).
 - cours_payants_actuels : "oui" si elle donne aujourd'hui des cours payés (particuliers, plateforme, structure).
 - matiere.valeur : la matière en clair.
 - matiere.categorie :
+  matiere_education_nationale = matière enseignée en classe à l'Éducation nationale qui n'est dans aucune autre catégorie (EPS, technologie, éco-gestion, professeur des écoles sans matière précise…)
   matiere_scolaire = matière du programme scolaire (maths, français, physique-chimie, SVT, anglais scolaire, histoire…), y compris quand elle est enseignée dans le supérieur, si elle se vend aux familles (prépa, remise à niveau, bac)
   langue_enfants = langue pour enfants ou ados hors programme
   musique_arts = instrument, chant, dessin
@@ -74,6 +75,11 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
   type "delai" + delai_mois (« tout de suite », « dès que possible » → 0 ; « dans deux mois » → 2)
   type "vague" ou "absent"
  
+## concurrence (solution aware)
+- compare_autres_offres : "oui" si le prospect dit regarder ou comparer d'autres offres d'accompagnement pour se lancer à son compte (formations, coachs, programmes pour enseignants indépendants). Une plateforme de cours où il donne déjà des cours n'en est pas une.
+- rdv_autres_offres : deja_pris (il a déjà eu un appel ou un rendez-vous avec une autre offre) | prevu (un rendez-vous est prévu) | non | inconnu.
+- offres_citees : les noms des autres offres cités par le prospect, tels qu'il les dit (liste vide sinon).
+
 ## vente
 - offre_presentee : "oui" si le sales a présenté l'offre ou le prix.
 - issue : paiement_complet | paiement_fractionne | acompte | aucun (paiement effectué pendant l'appel).
@@ -108,6 +114,11 @@ Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"val
     "decideur": {"valeur": "", "preuve": "", "minutage": ""},
     "second_rdv": {"propose": "oui|non|sans_objet", "date": null, "accepte": null, "preuve": "", "minutage": ""},
     "demarrage": {"type": "date|delai|vague|absent", "date": null, "delai_mois": null, "preuve": "", "minutage": ""}
+  },
+  "concurrence": {
+    "compare_autres_offres": {"valeur": "oui|non|inconnu", "preuve": "", "minutage": ""},
+    "rdv_autres_offres": {"valeur": "deja_pris|prevu|non|inconnu", "preuve": "", "minutage": ""},
+    "offres_citees": []
   },
   "vente": {
     "offre_presentee": {"valeur": "oui|non"},

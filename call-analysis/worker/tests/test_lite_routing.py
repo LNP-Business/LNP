@@ -83,7 +83,7 @@ def test_loop_stores_a_lite_record_with_the_lite_version(monkeypatch):
     monkeypatch.setattr(loop, "GatewayClient", FakeClient)
     monkeypatch.setattr("sys.argv", ["run.py"])
     assert loop.main() == 0
-    name, args = stored[0]
+    name, args = [x for x in stored if x[0] == "crm_ca_store"][0]   # an R1: crm_qualif_context comes first (046)
     assert name == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.0"
     assert args["p_record"]["meta"]["engine"] == "lite"
     assert args["p_usage"]["engine"] == "lite" and args["p_usage"]["effort"] == "low"

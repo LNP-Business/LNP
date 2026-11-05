@@ -22,8 +22,10 @@ begin
   assert not exists (select 1 from jsonb_array_elements(j) x where x->>'call_id' = k2::text), 'team test records left out';
   perform crm_qualif_store(k1, 'NON SQL', '{"statut":"NON SQL"}', '[]', '[]', '{}', 'lnp-sql-v2-2026-11-04', 'v2');
   assert (select status from crm_lead_qualifications where call_id = k1) = 'NON SQL', 'stored';
-  j := crm_qualif_candidates(50, false);
+  j := crm_qualif_candidates(50, false, 'lnp-sql-v2-2026-11-04');
   assert not exists (select 1 from jsonb_array_elements(j) x where x->>'call_id' = k1::text), 'already qualified with this version';
+  j := crm_qualif_candidates(50, false);
+  assert exists (select 1 from jsonb_array_elements(j) x where x->>'call_id' = k1::text), 'a new prompt version (2.1, 046) qualifies it again';
   j := crm_qualif_candidates(50, true);
   assert exists (select 1 from jsonb_array_elements(j) x where x->>'call_id' = k1::text), 'again on request';
   assert not has_function_privilege('authenticated', 'crm_qualif_candidates(int, boolean, text)', 'execute'), 'service role only';

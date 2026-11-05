@@ -164,7 +164,7 @@ def test_loop_stores_or_fails(monkeypatch):
     monkeypatch.setattr(loop, "GatewayClient", FakeClient)
     monkeypatch.setattr("sys.argv", ["run.py"])
     assert loop.main() == 0
-    assert calls == ["crm_ca_claim", "crm_ca_store", "crm_ca_claim"]
+    assert calls == ["crm_ca_claim", "crm_qualif_context", "crm_ca_store", "crm_ca_claim"]  # an R1: qualified too (046)
     calls.clear()
 
     def boom(*a, **k):

@@ -55,3 +55,21 @@ and what the screen reads. The per-competence output contracts are defined in ea
 score, 95 % interval (Student), item level-2 rates with Wilson intervals, level with the floor rule, delta vs the
 comparison window ("stable" when within half the interval), status counts; `bottleneck(periods)` names the weakest
 competence. Windows: `7d`, `month`, `all`, in the sales' time zone (Part C, C5–C6).
+
+## Lead qualification of an R1 (046, 2026-11-05)
+
+An analysed R1 also carries the qualification of its lead (call-analysis/qualification, rules « Qualification SQL des appels
+LNP » 2.1): the worker runs it after the engine (`callqa_worker/qualif.py`, on the same turns), stores it in
+`crm_lead_qualifications` with the job (`crm_qualif_store(…, p_job)`), and `crm_ca_record(job)` returns it as
+`qualification`:
+
+```
+{"status": "SQL GAGNÉ | SQL OUVERT | SQL PERDU | NON SQL | MQL EN ATTENTE | À REVOIR",
+ "result": {"statut", "portes": {"metier" | "douleur_projet" | "financement" | "decision_timing": {"statut": "OUVERTE | FERMÉE | NON VÉRIFIÉE", "preuve", "raisons"}},
+            "offre_presentee", "base": {"issue_r1", "outcome", "motif", "date_relance"}, "solution_aware", "alertes", "confiance"},
+ "verification": ["quotes set aside: not found in the transcript"], "prompt_version", "rules_version", "created_at"}
+```
+
+The extracted facts (two readings) stay in the table, never on the screen. `crm_ca_board()` adds `qualification:
+{status, solution_aware}` to each R1 row. A qualification that fails never stops the analysis (no row, the worker logs it).
+

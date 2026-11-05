@@ -1,6 +1,7 @@
 """Worker loop: python3 run.py [--once] [--budget-min 300]
 
-Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (GitHub secret). The model gateway is $SUPABASE_URL/functions/v1/callqa-llm.
+Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (GitHub secret). An R1 is also qualified (callqa_worker/qualif.py, 046): the
+lead qualification of call-analysis/qualification is part of its analysis. The model gateway is $SUPABASE_URL/functions/v1/callqa-llm.
 crm_ca_config.engine = 'lite' runs call-analysis/lite instead of the reference engine (effort: CALLQA_LITE_EFFORT,
 default low). Takes queued jobs one by one until none is left or the time budget is spent; a failed job is retried by the database
 (crm_ca_fail: twice, 10 minutes apart). Logs job ids, status, scores and token counts only.
@@ -20,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from callqa_worker.gateway import GatewayClient, GatewayError  # noqa: E402
 from callqa_worker.job import ModelErrors, engine_of, engine_version, run_job, summary  # noqa: E402
 from callqa_worker.prefetch import TooLong  # noqa: E402
+from callqa_worker.qualif import qualify, store as store_qualif  # noqa: E402
 from callqa_worker.supabase import Supabase  # noqa: E402
 
 
@@ -47,11 +49,19 @@ def main() -> int:
                                    passes=int(cfg.get("passes") or 3))
             started = time.time()
             record = run_job(claim, client, rounds=True, workers=24, budget_s=90 * 60, log=lambda m: print(f"job {job}: {m}", flush=True))
+            # an R1: the lead qualification is part of its analysis (046); a failure never stops the analysis
+            qual = qualify(claim, client, db, log=lambda m: print(f"job {job}: {m}", flush=True))
             usage = {"tiers": client.usage, "seconds": round(time.time() - started), "effort": getattr(client, "effort", None),
                      "engine": engine_of(claim)}
             if engine_of(claim) == "lite":
                 usage["effort"] = (record.get("meta") or {}).get("effort")
+            if qual:
+                usage["qualification"] = qual.get("usage") or {"error": qual.get("error")}
             db.rpc("crm_ca_store", {"p_job": job, "p_record": record, "p_usage": usage, "p_engine": engine_version(claim)})
+            try:
+                store_qualif(db, claim, job, qual)
+            except Exception as e:  # noqa: BLE001 - the analysis is stored; the qualification can be run again
+                print(f"job {job}: qualification not stored ({type(e).__name__}: {str(e)[:200]})", flush=True)
             print(f"job {job}: done in {usage['seconds']} s · {summary(record)} · usage {client.usage}", flush=True)
             done += 1
         except ModelErrors as e:   # never retried as is: the model questions fail, the record would be empty
