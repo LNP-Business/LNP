@@ -110,6 +110,8 @@ run 045_crm_pipeline_moves.sql
 run 045_crm_pipeline_moves.sql
 run 046_crm_qualif_in_analysis.sql
 run 046_crm_qualif_in_analysis.sql
+run 047_crm_pipeline_stage_moves.sql
+run 047_crm_pipeline_stage_moves.sql
 run 048_crm_admin_only_sees_all.sql
 run 048_crm_admin_only_sees_all.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
@@ -146,4 +148,5 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/lead_qualification_test.sql | t
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sla_settings_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/pipeline_moves_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/qualif_in_analysis_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/stage_moves_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/access_scope_test.sql | tail -1

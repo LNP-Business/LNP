@@ -28,7 +28,8 @@ info = f'''<sc-if value="{{{{info}}}}" hint-placeholder-val="{{{{false}}}}">
 <li><strong style="color: #1B1B18">L’encaissé, pas seulement les ventes.</strong> Les ventes gagnées montrent côte à côte le montant signé et le montant encaissé.</li></ul></section>
 <section><h3 style="{H3}"><span style="{NUM}">3</span>Comment l’utiliser</h3>
 <ol style="{TXT}; padding-left: 22px">
-<li>Pipeline : faites glisser une carte dans une autre colonne pour mettre à jour le statut du prospect. S’il faut déclarer l’issue d’un appel (Absent, Gagné, Perdu, Disqualifié, tour suivant), le formulaire d’issue s’ouvre déjà rempli pour cette colonne ; si l’appel a déjà une issue, vous la corrigez. Un prospect sans appel se clôt avec un motif, un prospect clos se rouvre après confirmation. Les colonnes que le CRM calcule seul (Nouveau, Relance longue, un R2 pas encore réservé dans iClosed) vous disent pourquoi.</li>
+<li>Pipeline : faites glisser une carte dans une autre colonne pour faire avancer le prospect. S’il y a une action à faire, une fenêtre s’ouvre : l’issue de l’appel à déclarer (déjà remplie pour la colonne : Absent, Gagné, Perdu, Disqualifié, tour suivant), ou le motif d’une perte. S’il n’y a rien à déclarer, le prospect est déplacé tout de suite (ex. R1 honoré et déclaré → R2, à réserver ensuite dans iClosed ; Relance longue).</li>
+<li>Ce qui est refusé : revenir à un tour déjà atteint (un prospect en R2 ne revient pas en R1), sauter un tour (R1 → R3), passer au tour suivant avant que l’appel prévu ait eu lieu ou après une absence, remettre en « Nouveau » un prospect qui a eu un appel, déplacer une vente payée. Un prospect clos se rouvre après confirmation.</li>
 <li>Pipeline : un appel passé sans issue affiche « Déclarer l’issue » sur sa carte ; le même formulaire que dans Cycle de vente s’ouvre, sans quitter le Pipeline.</li>
 <li>Prospects : filtrez, triez, choisissez vos colonnes et agissez sur plusieurs prospects à la fois.</li>
 <li>Cycle de vente : une ligne par prospect en cours, du RDV pris au premier paiement Whop, face aux objectifs de présence, de décision et d’encaissement. Chaque matin, lisez Critique, puis Le commercial doit agir, de haut en bas ; Calendrier montre aujourd’hui et les prochains appels, Depuis le RDV compare la durée des cycles ; ouvrez une ligne pour lire chaque échange, ou la fiche prospect pour chaque message, appel et paiement.</li>
@@ -128,6 +129,7 @@ LIVE = ('<script>(function(){'
   'function hm(iso){var d=new Date(iso);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}'
   'function soon(){toast("Déclarez l’issue d’un appel dans CRM › Cycle de vente ; les autres modifications ici arriveront plus tard.")}'
   'var LOSS={price:"budget",timing:"timing",trust:"trust",unreachable:"noshow_unreach",dq_off_target:"offtarget",dq_budget:"nomoney"};'
+  'var STAGEDATA={call_booked:1,call_rescheduled:1,call_canceled:1,call_missed:1,call_recorded:1,outcome_held:1,outcome_no_show:1,outcome_yes:1,outcome_follow_up:1,outcome_no:1,outcome_disqualified:1,cycle_reopened:1,cycle_won:1,cycle_lost:1,cycle_disqualified:1,payment_succeeded:1};'
   'var EVST={call_booked:"planifie",call_rescheduled:"planifie",outcome_no_show:"noshow",outcome_held:"realise",cycle_won:"close",cycle_lost:"perdu",cycle_disqualified:"disq"};'
   'function toLead(c,keys){'
     'var calls=(c.calls||[]).filter(function(x){return x.status!=="canceled"}),all=c.calls||[],last=all[all.length-1]||null;'
@@ -138,6 +140,11 @@ LIVE = ('<script>(function(){'
     # Long follow-up (Romain 2026-10-31): refused, no-show or silent leads with no news for over 14 days and no call ahead
     'var quiet=dd(c.last_event_at||c.opened_at)<-14,ahead=calls.some(function(x){return x.status==="scheduled"&&x.scheduled_start&&Date.parse(x.scheduled_start)>Date.now()});'
     'if(quiet&&!ahead&&(st==="noshow"||st==="nouveau"||st==="planifie"||st==="realise"||(st==="perdu"&&c.close_reason!=="refunded")))st="longfu";'
+    # 047 (Romain 2026-11-05): a move with nothing to declare (stage_moved) puts the lead in its column until newer data about
+    # its calls (a booking, an outcome, a recording, a closing) says where it is
+    'var MVT=0,MV=null,MVN=null;(c.events||[]).forEach(function(e){if(STAGEDATA[e.type]){var x=Date.parse(e.occurred_at);if(x>MVT)MVT=x}});'
+    '(c.events||[]).forEach(function(e){if(e.type==="stage_moved"&&Date.parse(e.occurred_at)>MVT&&(!MV||Date.parse(e.occurred_at)>=Date.parse(MV.occurred_at)))MV=e});'
+    'if(MV&&c.status==="active"){var mto=(MV.data||{}).to;if(mto==="longfu")st="longfu";else if(/^r[1-3]$/.test(mto)){st="planifie";MVN=+mto.charAt(1)}}'
     'var p=c.person||{},o=keys[c.owner_id]||"none",loss=c.close_reason?(LOSS[c.close_reason]||c.close_reason):undefined;'
     'if(loss&&!REASON_L[loss]){var rlb=loss;try{rlb=window.parent.SKL_CRM.reasonLabel(loss)}catch(e){}REASON_L[loss]={fr:rlb,en:loss}}'
     'var byCall={};all.forEach(function(x){byCall[x.id]=x.rank});'
@@ -146,8 +153,8 @@ LIVE = ('<script>(function(){'
     'var nmk=c.next_move&&c.next_move.code,nx=nmk==="rebook"?{k:"resched",d:0}:nmk==="follow_up"?{k:"relance",d:0}:null;'
     'var l={id:c.id,p:p.full_name||p.primary_email||p.primary_phone||"—",em:p.primary_email||"",o:o,st:st,prod:null,'
       'a:c.deal&&c.deal.amount_sold?Number(c.deal.amount_sold):0,age:Math.max(0,-dd(c.stage_entered_at||c.opened_at)),'
-      'born:dd(p.first_seen_at||c.opened_at),last:dd(c.last_event_at||c.opened_at),tour:Math.max(1,(call&&call.rank)||all.length||1),ns:c.no_shows||0,loss:loss,tent:0,rel:{n:0},'
-      'rdv:call&&call.scheduled_start?{d:dd(call.scheduled_start),h:hm(call.scheduled_start)}:null,'
+      'born:dd(p.first_seen_at||c.opened_at),last:dd(c.last_event_at||c.opened_at),tour:MVN||Math.max(1,(call&&call.rank)||all.length||1),mv:MV?(MV.data||{}).to:null,ns:c.no_shows||0,loss:loss,tent:0,rel:{n:0},'
+      'rdv:!MVN&&call&&call.scheduled_start?{d:dd(call.scheduled_start),h:hm(call.scheduled_start)}:null,'
       'warm:[false,false,false],nx:nx,note:((c.events||[]).filter(function(e){return e.type==="note"}).pop()||{}).content||"",inv:c.deal&&c.deal.amount_sold?Number(c.deal.amount_sold):0,cur:c.deal&&c.deal.currency||"EUR",plan:c.deal&&c.deal.payment_plan||"",sched:c.deal&&c.deal.schedule||null,col:(c.payments||[]).reduce(function(s,x){return s+Number(x.amount||0)-Number(x.refunded_amount||0)},0),pays:c.payments||[],stg:c.current_stage||null,hist:hist,tr:held||(call&&dd(call.scheduled_start)<0)?"none":undefined,live:true};'
     'return l}'
   # people who never booked (no cycle): status "No booking", their iClosed status as the note; nothing to save for them
@@ -184,6 +191,7 @@ LIVE = ('<script>(function(){'
   'window.sklCrmClose=function(id,d,r,n){return C.closeCycle(id,d,r,n).then(function(){return load(C)})};'
   'window.sklCrmReopen=function(id,quiet){return C.reopenCycle(id).then(function(){return quiet?null:load(C)})};'
   'window.sklCrmNote=function(id,txt){return C.addNote(id,txt).then(function(){return load(C)})};'
+  'window.sklCrmMove=function(id,to){return C.moveCycle(id,to).then(function(){return load(C)})};'
   # Settings › Alerts saved the SLA settings (crm_settings.sla_rules): the Sales cycle applies them at once
   'try{parent.addEventListener("skl-sla-saved",function(e){if(window.sklScData&&e.detail){window.sklScData.sla=e.detail;if(typeof sklCyclePush==="function")sklCyclePush(true)}})}catch(_){}'
     'if(!SALES.some(function(s){return s.id==="none"}))SALES.push({id:"none",name:"Non attribué",ini:"?",color:"#8E8A80",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0});'

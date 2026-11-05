@@ -54,7 +54,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (une seule source pour l'écran, pour `sla-tick` et pour le catalogue de Paramètres › Alertes ; réglages enregistrés dans
   `crm_settings.sla_rules`, migration 044).
 - Fiche prospect et Ma journée : le cycle de vente en fil vertical et « À faire » (`skl-os/crm/lead_feed.js`) ; déplacements du
-  Pipeline et formulaire d'issue (`skl-os/crm/outcome_ui.js`, `sklMove` ; clôture et réouverture : migration 045).
+  Pipeline et formulaire d'issue (`skl-os/crm/outcome_ui.js`, `sklMove` ; clôture et réouverture : migration 045 ;
+  déplacement sans action et règles des tours : migration 047, `crm_move_cycle`).
 - Analyse d'appel (écran) : `skl-os/crm/call_analysis.js`, `call_analysis_view.js`, `transcript_parse.js` ; les codes du moteur
   sont traduits à l'affichage, les citations restent mot pour mot.
 - Paramètres › Alertes : `skl-en/project/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/skl-web.js`.

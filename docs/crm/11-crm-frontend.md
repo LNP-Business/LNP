@@ -94,4 +94,9 @@ still runs; the functional specification is updated (§3, §9.3, §11, §12, §1
 | any | New, Long follow-up, a round not booked yet, No booking | a message: the CRM computes that column |
 
   Viewers move nothing. Test: `node skl-os/crm/pipeline_moves_live.js $PWD/skl-os/skl-os-en.html <dir>`.
+- **Rounds (047, Romain 2026-11-05)**: a move with nothing to declare happens at once and is kept as an event `stage_moved`
+  (`crm_move_cycle(cycle, 'r1' | 'r2' | 'r3' | 'longfu')`); the board shows the lead there until newer data about its calls
+  (booking, outcome, recording, closing) says where it is. Never back to a round reached (R2 → R1), never a round skipped
+  (R1 → R3), never the next round before the current call is over (a call ahead, a no-show, an outcome to declare: its form
+  opens and the lead moves once it is saved), never « New » once a call exists; the server checks the same rules.
 
