@@ -1,8 +1,8 @@
 """Sales System › Sales Day (Romain 2026-10-31): the sales rep's day, one lead at a time, like Execute in the Operating System.
 The page holds a [data-salesday] slot; build.py mounts the SKL_SALESDAY module (salesday_module.js) in it.
 LNP (Romain 2026-11-03): every text of the screen is in French ("Ma journée"; the Page method is the "Mode d'emploi")."""
-from shell import write_screen, info_popup, INFO_BTN
-from gen_access import bar, CTX
+from shell import write_screen, info_popup
+
 
 
 def fr(html):
@@ -13,9 +13,10 @@ def fr(html):
     return html
 
 
+# Romain 2026-11-05: no top bar and no « i » button, so the day's card starts higher (more room); the Page method stays in
+# the page for the Claude connector (web/kb/build_kb.mjs), with no button to open it
 MAIN = ('<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px; position: relative">\n'
-        + bar('', f'<span style="{CTX}; max-width: 560px">Un prospect à la fois : d\'abord les issues à déclarer, puis les appels, les replanifications et les relances.</span>')
-        + '\n<div data-salesday="1" style="width: 100%"></div>\n</main>')
+        + '<div data-salesday="1" style="width: 100%"></div>\n</main>')
 INFO = info_popup('Ma journée', [
     ('À quoi sert cette page', 'p', "La journée du commercial dans le CRM, un prospect à la fois : chaque prospect qui a besoin de vous aujourd'hui "
      "arrive sous forme de carte, dans l'ordre qui protège l'encaissé. D'abord les issues à déclarer (un appel est terminé et rien n'est déclaré), "
@@ -32,4 +33,4 @@ INFO = info_popup('Ma journée', [
         "<em>Demain</em> met un prospect de côté pour aujourd'hui, <em>Passer</em> l'envoie en fin de file ; <em>À suivre</em> vous permet de choisir un autre prospect d'abord.",
         "Votre liste du jour (fait, mis de côté) n'est conservée que pour vous."])
 ])
-write_screen('SalesDay.dc.html', 'Ma journée', MAIN, fr(INFO) + '\n' + fr(INFO_BTN), 'roadmap2_logic.js', info=False)
+write_screen('SalesDay.dc.html', 'Ma journée', MAIN, fr(INFO), 'roadmap2_logic.js', info=False)
