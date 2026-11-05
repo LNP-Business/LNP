@@ -99,6 +99,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   const feed = await cf.$eval('.lf', e => e.innerText).catch(() => '');
   check('the lead record shows the sales cycle feed', /Cycle de vente/.test(feed) && /événements/.test(feed) && /Messages/.test(feed), feed.slice(0, 120));
   check('« À faire »: the outcome to declare', /Déclarer l’issue du R2/.test(await cf.$eval('.lt', e => e.innerText).catch(() => '')), null);
+  check('no « Appels » filter in the lead record (its calls and their analysis are on the right)', !(await cf.$('.lf [data-lff="calls"]')), null);
   await cf.click('[data-lff="msgs"]'); await p.waitForTimeout(100);
   const vis = await cf.$$eval('.lf-it', a => a.filter(x => x.offsetParent).map(x => x.dataset.g));
   check('the Messages filter shows messages only', vis.length > 0 && vis.every(g => g === 'msgs'), vis);

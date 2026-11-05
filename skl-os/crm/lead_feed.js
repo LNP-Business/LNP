@@ -4,7 +4,7 @@
    Messages · Paiements (E-mails only when there are some), then the events by day, oldest first: what it is, who (Prospect,
    Commercial, Automatique), the message status, the time and the text. lead = a lead of SKL_CRM.salesCycleView (opened, age,
    ev: [{t (hours since the cycle opened), w: s | p | a, k, r, txt, st}]). opts.max = the height of the scrolling list
-   (px), opts.newest = scroll to the latest event.
+   (px), opts.newest = scroll to the latest event, opts.calls = false leaves out the « Appels » filter.
    window.SKL_LEADFEED.todo(lead, opts) → html: what the sales rep must do now (an outcome to declare, a call to prepare, a
    reschedule, a follow-up…) with its action: the outcome form (window.sklOutcome) or « Qu'avez-vous fait ? » saved as a note
    on the lead (window.sklCrmNote). opts.ro = read only. window.SKL_LEADFEED.css: the styles (also for a shadow root).
@@ -93,7 +93,8 @@
         + '<div class="lf-c"><div class="lf-t"><b>' + esc(K[1]) + "</b>" + (meta ? "<span>" + esc(meta) + "</span>" : "") + "<time>" + hm(d) + "</time></div>"
         + (txt ? '<div class="lf-x">' + esc(txt) + "</div>" : "") + "</div></div>");
     });
-    var F = [["all", "Tous"], ["calls", "Appels"], ["msgs", "Messages"]].concat(has.mails ? [["mails", "E-mails"]] : []).concat([["pay", "Paiements"]]);
+    // opts.calls === false: no « Appels » filter (the lead record lists the sales calls and their analysis on the right)
+    var F = [["all", "Tous"]].concat(opts.calls === false ? [] : [["calls", "Appels"]]).concat([["msgs", "Messages"]]).concat(has.mails ? [["mails", "E-mails"]] : []).concat([["pay", "Paiements"]]);
     var pick = "var r=this.closest('.lf');r.dataset.f=this.dataset.lff;r.querySelectorAll('[data-lff]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.lff===r.dataset.f))})";
     var list = days.map(function (k) {
       return '<div class="lf-day"><div class="lf-dh">' + esc(dayLbl(groups[k].d)) + "</div>" + groups[k].items.join("") + "</div>";
