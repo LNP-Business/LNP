@@ -112,6 +112,7 @@
               " · motif : " + reasonLabel(d.reason_code) + (d.nurture && d.nurture !== "none" ? " · suivi long terme" : "") });
             lastOut = { t: at, nx: null }; break;
           case "cycle_reopened": add({ t: at, w: "s", k: "note", txt: "Prospect rouvert dans le pipeline" }); break;
+          case "stage_moved": add({ t: at, w: "s", k: "note", txt: "Déplacé dans le pipeline · " + ({ r1: "R1", r2: "R2", r3: "R3 et plus", longfu: "Relance longue" }[d.to] || d.to) }); break;
           case "cycle_lost": case "cycle_disqualified":
             // 045: closed by hand from the Pipeline (a lead with no call to declare)
             if (e.source === "manual") { add({ t: at, w: "s", k: "decision", no: 1, txt: "Clos à la main · " + (e.type === "cycle_lost" ? "Perdu" : "Disqualifié") +
@@ -273,6 +274,8 @@
     // CRM › Pipeline moves with no call to declare (045): close a lead lost or disqualified with a reason; reopen a closed lead
     closeCycle: function (cycleId, decision, reason, note) { return call("crm_close_cycle", { p_cycle: cycleId, p_decision: decision, p_reason: reason, p_note: note || null }); },
     reopenCycle: function (cycleId) { return call("crm_reopen_cycle", { p_cycle: cycleId }); },
+    // a move with nothing to declare (047): the next round, the same round after a no-show, Relance longue
+    moveCycle: function (cycleId, to) { return call("crm_move_cycle", { p_cycle: cycleId, p_to: to }); },
     reassignCycle: function (cycleId, memberId) { return call("crm_reassign_cycle", { p_cycle: cycleId, p_member: memberId }); },
     cancelAutoClose: function (cycleId) { return call("crm_cancel_auto_close", { p_cycle: cycleId }); },
     setNurture: function (personId, p) { return call("crm_set_nurture", { p_person: personId, p: p }); },
