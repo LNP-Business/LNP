@@ -55,6 +55,10 @@ def test_quote_check_normalises_but_never_invents():
     assert quote_found("prof de maths au collège", tn)
     assert quote_found("je suis épuisée ... à mon compte", tn)
     assert not quote_found("j'ai un prêt de ma banque", tn)
+    # small corrections of the transcription pass (a word added or dropped), another sentence does not
+    assert quote_found("Je suis prof de maths au collège depuis 12 ans", tn)
+    assert quote_found("je suis vraiment prof de maths au collège depuis 12 ans", tn)
+    assert not quote_found("je suis prof de français au lycée depuis 3 ans", tn)
 
 
 def test_a_fact_without_its_quote_goes_back_to_unknown():
@@ -98,3 +102,10 @@ def test_a_gap_with_what_was_entered_in_iclosed_is_flagged():
 def test_an_unreadable_answer_is_asked_again():
     out = qualify_call(call(), Stub(["pas du json", json.dumps(FACTS), json.dumps(FACTS)]))
     assert out["status"] == "SQL GAGNÉ"
+
+
+def test_the_worker_script_imports():
+    r = subprocess.run([sys.executable, "-c", "import runpy, sys; sys.argv=['run.py']; "
+                        "import importlib.util as u; s=u.spec_from_file_location('r', %r); m=u.module_from_spec(s); s.loader.exec_module(m)"
+                        % str(HERE.parent / "run.py")], capture_output=True, text=True, env={"PATH": "/usr/bin:/bin"})
+    assert r.returncode == 0, r.stderr[-500:]
