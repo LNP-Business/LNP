@@ -9,15 +9,16 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
   await p.goto(FILE); await p.waitForTimeout(1500);
   const nav = await p.$$eval('nav a', a => a.map(x => x.textContent.trim()).filter(Boolean));
-  const iJ = nav.indexOf('Ma journée'), iE = nav.indexOf('Entraînement');
-  check('the tab « Entraînement » is right under « Ma journée »', iJ >= 0 && iE === iJ + 1, nav);
-  await p.click('nav a:has-text("Entraînement")'); await p.waitForTimeout(1200);
+  const iJ = nav.indexOf('Ma journée'), iE = nav.indexOf('Découverte');
+  check('« Entraînement › Découverte » comes right after « Ma journée »', iJ >= 0 && iE === iJ + 1 && nav[iE + 1] === 'Maîtrise de l’offre'.replace('’', "'") && nav[iE + 2] === 'Mes résultats', nav);
+  check('« Suivi des commerciaux » is for admins only', !(await p.isVisible('nav a:has-text("Suivi des commerciaux")')), null);
+  await p.click('nav a:has-text("Découverte")'); await p.waitForTimeout(1200);
   const fr = p.frames().find(f => f.url().startsWith('about:srcdoc') && f.name() === '' && f !== p.mainFrame() && f.parentFrame() === p.mainFrame() && f.url());
   let tf = null; for (const f of p.frames()) { try { if (await f.$('#view-coup')) { tf = f; break; } } catch (e) {} }
   check('the training shows in its frame', !!tf, null);
-  const box = await p.evaluate(() => { const f = [...document.querySelectorAll('iframe')].find(x => x.title === 'Entraînement discovery'); if (!f) return null; const r = f.getBoundingClientRect(); return { w: r.width, h: r.height, d: getComputedStyle(f).display }; });
+  const box = await p.evaluate(() => { const f = [...document.querySelectorAll('iframe')].find(x => x.title === 'Découverte'); if (!f) return null; const r = f.getBoundingClientRect(); return { w: r.width, h: r.height, d: getComputedStyle(f).display }; });
   check('the frame fills the screen', box && box.d === 'block' && box.w > 1000 && box.h > 700, box);
-  check('top bar: title, two trainings, « Nouvelle séance »', (await tf.textContent('.top')).replace(/\s+/g, ' ').includes('Entraînement discovery Le coup suivant La lettre imposée Nouvelle séance'), null);
+  check('top bar: title, two trainings, « Nouvelle séance »', (await tf.evaluate(() => [...document.querySelectorAll('.top > :not(.sync)')].map(x => x.textContent).join(' '))).replace(/\s+/g, ' ').includes('Entraînement discovery Le coup suivant La lettre imposée Nouvelle séance'), null);
   check('a session of 20 coups starts at once', /coup 1 \/ 20/.test(await tf.textContent('#view-coup .sess')), null);
   await p.screenshot({ path: OUT + '/coup-step1.png' });
   // coup 1: the right gesture, then a question that passes the rules

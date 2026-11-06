@@ -10,7 +10,7 @@ _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
 TITLE = EDITION.get("title", TITLE)
 # screens kept by the edition: its systems' screens and its Settings screens (None = every screen)
-_SYS = {"os": ["cockpit", "review", "build", "execute", "decisions"], "ss": ["salescockpit", "salesday", "entrainement", "crm"]}
+_SYS = {"os": ["cockpit", "review", "build", "execute", "decisions"], "ss": ["salescockpit", "salesday", "entrainement", "academie", "resultats", "suivi", "crm"]}
 EDITION_KEEP = (sum((_SYS.get(x, []) for x in EDITION.get("systems", [])), []) + [f.replace(".dc.html", "").lower() for f in EDITION.get("settings", [])]) if EDITION else None
 
 SCREENS = [
@@ -42,6 +42,9 @@ SCREENS = [
     ("salescockpit", "SalesCockpit"),
     ("salesday", "SalesDay"),
     ("entrainement", "Entrainement"),
+    ("academie", "Academie"),
+    ("resultats", "Resultats"),
+    ("suivi", "SuiviCommerciaux"),
 ]
 
 # LNP (2026-11-03): only the screens of the edition are in the page (the Operating, Knowledge and Agent screens are gone)
@@ -95,11 +98,30 @@ if LANG == "en" and CRMDOC.exists():
     # Ventes › Entraînement (Romain 2026-11-05): « Entraînement discovery », its own document in a frame, with the cases of
     # skl-os/training/coup_lnp.json and lettre_lnp.json as they are
     TR = HERE / "training"
+    # Entraînement (Romain 2026-11-06): every exercise is kept on the account (results_log.js, migration 049), read back in
+    # « Mes résultats » and, for admins, « Suivi des commerciaux » (resultats.html, two modes); Maîtrise de l'offre is the
+    # « Académie sales LNP » with academie_contenu.json as it is
+    RES = (TR / "results_log.js").read_text(encoding="utf-8").replace("</", "<\\/") if (TR / "results_log.js").exists() else ""
+    def tr_doc(name, subs):
+        d = (TR / name).read_text(encoding="utf-8").replace("/*@RESULTS@*/", RES)
+        for a, z in subs:
+            assert a in d, (name, a)
+            d = d.replace(a, z)
+        return d
     if (TR / "entrainement.html").exists():
-        trdoc = ((TR / "entrainement.html").read_text(encoding="utf-8")
-                 .replace("/*@COUP@*/[]", (TR / "coup_lnp.json").read_text(encoding="utf-8").strip().replace("</", "<\\/"))
-                 .replace("/*@LETTRE@*/[]", (TR / "lettre_lnp.json").read_text(encoding="utf-8").strip().replace("</", "<\\/")))
+        coup, lettre = (TR / "coup_lnp.json").read_text(encoding="utf-8").strip(), (TR / "lettre_lnp.json").read_text(encoding="utf-8").strip()
+        acad = (TR / "academie_contenu.json").read_text(encoding="utf-8").strip()
+        trdoc = tr_doc("entrainement.html", [("/*@COUP@*/[]", coup.replace("</", "<\\/")), ("/*@LETTRE@*/[]", lettre.replace("</", "<\\/"))])
         CRMJS += "\n<script>window.SKL_TRAINING_DOC = " + json.dumps(trdoc).replace("</", "<\\/") + ";</script>"
+        acdoc = tr_doc("academie.html", [("/*@ACADEMIE@*/{}", acad.replace("</", "<\\/"))])
+        CRMJS += "\n<script>window.SKL_ACADEMIE_DOC = " + json.dumps(acdoc).replace("</", "<\\/") + ";</script>"
+        # the case labels of the history: Maîtrise de l'offre titles, the expected move of a coup, the prospect of a lettre
+        cat = {"a": {c["id"]: c["titre"] for c in json.loads(acad)["cas"]}, "c": {c["n"]: c["att"] for c in json.loads(coup)},
+               "l": {c["n"]: c["qui"].split(",")[0] for c in json.loads(lettre)}}
+        catjs = json.dumps(cat, ensure_ascii=False).replace("</", "<\\/")
+        for key, mode in (("RESULTATS", "moi"), ("SUIVI", "equipe")):
+            rdoc = tr_doc("resultats.html", [('/*@MODE@*/"moi"', json.dumps(mode)), ("/*@CATALOGUE@*/{ a: {}, c: {}, l: {} }", catjs)])
+            CRMJS += "\n<script>window.SKL_" + key + "_DOC = " + json.dumps(rdoc).replace("</", "<\\/") + ";</script>"
     CV2 = HERE / "cockpit_v2.json"
     if OS_MODULES and CV2.exists():
         cv = json.loads(CV2.read_text(encoding="utf-8"))
@@ -406,11 +428,12 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 
   // ALKIMIY Lite screens run in their own frames, kept alive outside the re-rendered app so their state survives.
   var frames = {{}};
-  var FRAME_DOCS = {{ crm: window.SKL_CRM_DOC, training: window.SKL_TRAINING_DOC }};
+  var FRAME_DOCS = {{ crm: window.SKL_CRM_DOC, training: window.SKL_TRAINING_DOC, academie: window.SKL_ACADEMIE_DOC, resultats: window.SKL_RESULTATS_DOC, suivi: window.SKL_SUIVI_DOC }};
+  var FRAME_TITLES = {{ crm: "CRM", training: "Découverte", academie: "Maîtrise de l’offre", resultats: "Mes résultats", suivi: "Suivi des commerciaux" }};
   function frameFor(key, bg) {{
     if (!frames[key] && FRAME_DOCS[key]) {{
       var f = document.createElement("iframe");
-      f.title = key === "crm" ? "CRM" : key === "training" ? "Entraînement discovery" : "Tableau de bord commercial";
+      f.title = FRAME_TITLES[key] || "Tableau de bord commercial";
       f.setAttribute("srcdoc", FRAME_DOCS[key]);
       f.style.cssText = "position: fixed; border: 0; z-index: 1; background: " + bg + ";";
       document.body.appendChild(f);
@@ -436,6 +459,9 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   function placeCrm() {{
     placeOne("crm", "[data-crm]", "#F6F4EF", false);
     placeOne("training", "[data-training]", "#F7F8FB", true);
+    placeOne("academie", "[data-academie]", "#F7F8FB", true);
+    placeOne("resultats", "[data-resultats]", "#F7F8FB", true);
+    placeOne("suivi", "[data-suivi]", "#F7F8FB", true);
     mountDash();
   }}
 

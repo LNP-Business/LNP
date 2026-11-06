@@ -17,7 +17,10 @@ SYSTEMS = {
 }
 GROUPS = {
     "os": [("Operating System", [("Main.dc.html", "Cockpit", None), ("Build.dc.html", "Build", None), ("Execute.dc.html", "Execute", None), ("Decisions.dc.html", "Decisions", (5, "Decisions to act on: to decide and to review", "decisions")), ("Review.dc.html", "Weekly Review", (3, "Key results not checked in this week", "review"))])],
-    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None), ("Entrainement.dc.html", "Entraînement", None)])],
+    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None)]),
+           # Entraînement, its own group (Romain 2026-11-06)
+           ("Training", [("Entrainement.dc.html", "Découverte", None), ("Academie.dc.html", "Maîtrise de l'offre", None),
+                         ("Resultats.dc.html", "Mes résultats", None), ("SuiviCommerciaux.dc.html", "Suivi des commerciaux", None)])],
     "ks": [("Knowledge System", [("Bibliotheque.dc.html", "Library", None)]),
            ("Mechanisms", [("Mechanisms.dc.html", "Mechanism map", None),
                            ("MechPrecall.dc.html", "Pre-call", (fr.get("precall"), f"{fr.get('precall')} frictions", "") if fr.get("precall") else None),
@@ -31,7 +34,7 @@ GROUPS = {
 }
 # LNP is in French (Romain 2026-11-03): the group titles shown; the fold keys (data-navgrp, also read by web/public/skl-web.js)
 # keep the English names
-GROUP_LABEL = {"Sales System": "Ventes", "Settings": "Paramètres"}
+GROUP_LABEL = {"Sales System": "Ventes", "Training": "Entraînement", "Settings": "Paramètres"}
 # the footer note under the groups, in French (the week of the quarter is rewritten by the shell, build.py decorate)
 FOOT_FR = [("Q4 2026 · week ", "T4 2026 · semaine "), ("Weekly review: Saturday", "Revue hebdomadaire : samedi")]
 # Edition (LNP, 2026-11-02): edition.json at the repository root keeps only some systems in the sidebar (LNP = the Sales System:
@@ -44,13 +47,13 @@ if _ed.exists():
     if EDITION.get("settings"):
         GROUPS["settings"] = [(g, [it for it in items if it[0] in EDITION["settings"]]) for g, items in GROUPS["settings"]]
 SCREENS = {
-    "Main.dc.html": "os", "Review.dc.html": "os", "Build.dc.html": "os", "Execute.dc.html": "os", "Decisions.dc.html": "os", "CRM.dc.html": "ss", "SalesCockpit.dc.html": "ss", "SalesDay.dc.html": "ss", "Entrainement.dc.html": "ss",
+    "Main.dc.html": "os", "Review.dc.html": "os", "Build.dc.html": "os", "Execute.dc.html": "os", "Decisions.dc.html": "os", "CRM.dc.html": "ss", "SalesCockpit.dc.html": "ss", "SalesDay.dc.html": "ss", "Entrainement.dc.html": "ss", "Academie.dc.html": "ss", "Resultats.dc.html": "ss", "SuiviCommerciaux.dc.html": "ss",
     "Bibliotheque.dc.html": "ks", "Mechanisms.dc.html": "ks", "MechPrecall.dc.html": "ks", "MechSales.dc.html": "ks", "MechOS.dc.html": "ks", "CartoMap.dc.html": "ks", "CartoEvents.dc.html": "ks", "CartoWorks.dc.html": "ks", "CartoSim.dc.html": "ks", "CartoModel.dc.html": "ks",
     "AgentsOverview.dc.html": "as", "AgentsDecisions.dc.html": "as", "AgentsRegistry.dc.html": "as", "AgentsTriggers.dc.html": "as", "AgentsLog.dc.html": "as",
     "Settings.dc.html": "settings", "Registers.dc.html": "settings", "Account.dc.html": "settings", "Access.dc.html": "settings",
 }
 
-ADMIN_ONLY = {"Access.dc.html"}  # shown only to admins of the web edition (html.skl-admin)
+ADMIN_ONLY = {"Access.dc.html", "SuiviCommerciaux.dc.html"}  # shown only to admins of the web edition (html.skl-admin)
 ITEM = 'display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; '
 SEG = 'display: block; padding: 7px 12px; border-radius: 9px; text-decoration: none; text-align: left; font-size: 13px; line-height: 1.3; '
 GEAR = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'

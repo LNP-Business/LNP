@@ -50,9 +50,16 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Barre latérale (groupes, entrées, logo) : `skl-os/nav.py` ; nom, logo, couleurs, polices : `edition.json`.
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `skl-os/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
 - Ma journée : `skl-os/salesday_module.js` + `gen_salesday.py`.
-- Entraînement (« Entraînement discovery », sous Ma journée) : l'application `skl-os/training/entrainement.html`, ses cas
-  `coup_lnp.json` et `lettre_lnp.json` (injectés par `build.py`), l'écran `gen_training.py` ; test :
-  `node skl-os/training/training_test.js $PWD/skl-os/skl-os-en.html <dossier>`.
+- Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `skl-os/training/` injectées
+  par `build.py`) :
+  - Découverte : `entrainement.html`, ses cas `coup_lnp.json` et `lettre_lnp.json` ; test `training_test.js`.
+  - Maîtrise de l'offre (« Académie sales LNP ») : `academie.html` et ses 100 cas `academie_contenu.json` (copiés dans
+    `web/api/_academie.json` par `build.sh`) ; correction par Claude : `web/api/academie.js` et `_academie.js` (consigne du
+    cahier, côté serveur), progression `crm_academy_progress` ; test `academie_test.js`.
+  - Résultats : chaque exercice terminé est gardé dans `crm_training_results` (migration 049 : ajout seulement, jamais modifié
+    ni effacé ; une note de Claude n'est écrite que par le serveur) via `results_log.js` ; « Mes résultats » et « Suivi des
+    commerciaux » (administrateurs) sont `resultats.html` en deux modes, sur `crm_training_dashboard(p_days)` ; test `results_test.js`.
+  - Tests : `node skl-os/training/<test>.js $PWD/skl-os/skl-os-en.html <dossier>`.
 - CRM, Cycle de vente, encaissements : voir les fichiers figés ci-dessus ; règles SLA : `supabase/functions/_shared/sla_rules.js`
   (une seule source pour l'écran, pour `sla-tick` et pour le catalogue de Paramètres › Alertes ; réglages enregistrés dans
   `crm_settings.sla_rules`, migration 044).
@@ -69,8 +76,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - `web/api/` : `config.js` (URL publique et clé anonyme), `me.js`, `team.js` (administrateurs : inviter, changer un rôle, lien de
   réinitialisation, retirer ; les liens sont rendus à l'administrateur au format `/#skl-link=…`), `files.js`, `bootstrap.js`
   (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
-- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salesday`, `crm`, `settings`, `claude`
-  (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte.
+- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salesday`, `entrainement`, `academie`, `crm`,
+  `settings`, `claude` (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte ; `resultats` suit les
+  entraînements ouverts, `suivi` (Suivi des commerciaux) et `access` sont réservés aux administrateurs (`web/api/me.js`).
 - **Connecteur Claude** (`web/api/mcp.js`, OAuth `web/api/oauth.js`, doc `docs/crm/17-claude-connector.md`) : 10 outils de lecture
   (prospects, pipeline, préparation et analyse d'appel, performance, modes d'emploi, règles d'alerte) et 2 outils d'écriture pour les
   administrateurs (note sur un prospect, issue d'un appel), toujours avec le jeton de la personne (RLS). Ne jamais renvoyer une
