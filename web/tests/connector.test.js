@@ -297,8 +297,12 @@ test("Settings › Access closes the matching tools", async () => {
   assert.ok((await c.callTool({ name: "alert_rules", arguments: {} })).isError, "Settings and CRM closed");
   await c.close();
   const { accessOf } = await import("../api/_screens.js");
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement"]);   // Entraînement (2026-11-05) opens with the CRM
-  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "entrainement", "crm", "settings", "claude"]);
+  // Entraînement (2026-11-05) opens with the CRM, Maîtrise de l'offre (2026-11-06) with Entraînement, Mes résultats with either
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement", "academie", "resultats"]);
+  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "entrainement", "academie", "crm", "settings", "claude", "resultats"]);
+  // a list saved after 2026-11-06 carries the mark: a training closed on purpose stays closed
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "salesday", "entrainement", "resultats"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm"]);
   DB.users.find(u => u.id === ids.valentino).app_metadata = { screens: ["salescockpit", "crm", "settings", "claude"] };
 });
 

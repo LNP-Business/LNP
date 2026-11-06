@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Académie sales LNP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+/* LNP · Entraînement › Maîtrise de l'offre (« Académie sales LNP », Romain 2026-11-06 : cahier « Prompt de reconstruction »,
+   contenu lnp_academie_contenu.json tel quel). Un seul écran, deux panneaux, rien ne défile sur ordinateur. */
+:root{--ink:#0C1330;--ink2:#2A3352;--mut:#5A6478;--line:#D6DEF0;--soft:#EEF3FC;--bg:#F7F8FB;--card:#FFFFFF;--brand:#1E2A5E;--vif:#2B6CF5;
+  --ok:#137A4F;--oks:#E2F4EB;--mid:#B45309;--mids:#FDF0DC;--ko:#B42318;--kos:#FCE5E2;--sales:#1E2A5E;--salest:#FFFFFF;--pro:#FFFFFF;--prot:#0C1330;
+  --sans:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);overflow:hidden;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;cursor:pointer}button:disabled{cursor:default;opacity:.4}
+.bar{flex:none;display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--card);border-bottom:1px solid var(--line);min-height:50px}
+.brand{line-height:1.1;margin-right:6px}.brand b{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--brand)}.brand span{font-size:13px;font-weight:600;color:var(--ink2)}
+.nav{display:flex;align-items:center;gap:4px}
+.bb{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:5px 10px;font-weight:600;font-size:13px;white-space:nowrap}
+.bb.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.sp{flex:1}
+.prog{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);white-space:nowrap}
+.pbar{width:90px;height:7px;border-radius:4px;background:var(--soft);overflow:hidden}.pbar i{display:block;height:100%;background:var(--ok)}
+.sync{font-size:11px;color:var(--mut);max-width:190px;line-height:1.25}
+.split{flex:1;min-height:0;display:grid;grid-template-columns:55fr 45fr;gap:10px;padding:10px 12px 12px}
+.split.wide{grid-template-columns:35fr 65fr}
+.pane{--fs:16.5px;font-size:var(--fs);min-height:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:14px;position:relative}
+.inner{padding:.9em 1em;display:flex;flex-direction:column;gap:.55em}
+#right .inner{height:100%}
+.pills{display:flex;flex-wrap:wrap;gap:.35em}
+.pill{font-size:.72em;font-weight:600;border-radius:999px;padding:.15em .7em;background:var(--soft);color:var(--brand);white-space:nowrap}
+.pill.ok{background:var(--oks);color:var(--ok)}.pill.mid{background:var(--mids);color:var(--mid)}.pill.fmtB{background:#F0E9FB;color:#5B2DA8}
+h1{margin:0;font-size:1.15em;line-height:1.25}
+.orig{font-style:italic;color:var(--mut);font-size:.8em;margin-top:-.25em}
+.ctx{background:var(--soft);border-radius:.6em;padding:.45em .7em;display:grid;grid-template-columns:auto minmax(0,1fr);gap:.15em .7em;font-size:.8em}
+.ctx dt{font-weight:600;color:var(--brand)}.ctx dd{margin:0;color:var(--ink2)}
+.rec{display:flex;align-items:center;gap:.45em;font-size:.72em;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);padding-bottom:.25em}
+.rec i{width:.6em;height:.6em;border-radius:50%;background:#E11D48;box-shadow:0 0 0 .2em #FDE2E7}
+.dlg{display:flex;flex-direction:column;gap:.4em}
+.msg{display:flex;align-items:flex-end;gap:.45em;max-width:92%}
+.msg.p{align-self:flex-start}.msg.s{align-self:flex-end;flex-direction:row-reverse}
+.av{flex:none;width:1.75em;height:1.75em;border-radius:50%;background:#DCE6FA;color:var(--brand);font-size:.72em;font-weight:700;display:flex;align-items:center;justify-content:center}
+.msg.s .av{background:var(--brand);color:#fff}
+.bub{border-radius:.9em;padding:.4em .7em;font-size:.86em;line-height:1.4}
+.msg.p .bub{background:var(--pro);color:var(--prot);border:1px solid var(--line);border-bottom-left-radius:.25em}
+.msg.s .bub{background:var(--sales);color:var(--salest);border-bottom-right-radius:.25em}
+.bub .h{font-size:.92em}.bub .h b{font-weight:700}.bub .h span{opacity:.72;font-weight:500}.bub .ln{font-weight:700;margin-right:.35em;opacity:.85}
+.note{font-style:italic;color:var(--mut);font-size:.82em;text-align:center;padding:0 1em}
+.mission{background:#FFF8E6;border:1px solid #F0D58C;border-radius:.6em;padding:.5em .75em;font-size:.86em}.mission b{color:#7A5400}
+.tabs{display:flex;gap:.3em;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:transparent;padding:.4em .7em;font-weight:600;font-size:.82em;color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand)}
+.tbody{flex:1;min-height:0;display:flex;flex-direction:column;gap:.5em}
+.lab{font-weight:600;font-size:.82em}.help{font-size:.74em;color:var(--mut);margin-top:-.3em}
+textarea{flex:1;min-height:70px;width:100%;resize:none;border:1px solid var(--line);border-radius:.6em;padding:.55em .7em;font:inherit;font-size:.86em;line-height:1.45;color:var(--ink);background:#fff}
+textarea:focus{outline:2px solid var(--vif);border-color:var(--vif)}
+.zone{flex:1;min-height:0;display:flex;flex-direction:column;gap:.3em}
+.acts{display:flex;align-items:center;gap:.45em;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;border-radius:.55em;padding:.4em .8em;font-weight:600;font-size:.8em}
+.btn.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.chrono{font-weight:700;font-size:.86em;font-variant-numeric:tabular-nums;min-width:3.4em}.chrono.neg{color:var(--ko)}
+.status{margin-left:auto;font-size:.74em;color:var(--mut);text-align:right}
+.status.err{color:var(--ko)}
+.score{display:flex;align-items:center;gap:.6em;flex-wrap:wrap}
+.score .n{font-size:1.9em;font-weight:700;color:var(--brand);line-height:1}
+.how{font-size:.74em;color:var(--mut)}
+.elim{background:var(--kos);color:var(--ko);border-radius:.5em;padding:.35em .65em;font-weight:600;font-size:.8em}
+.crit{display:grid;grid-template-columns:4.1em minmax(0,1fr);gap:.1em .6em;font-size:.8em;padding:.3em 0;border-top:1px solid var(--line)}
+.crit .pt{font-weight:700;border-radius:.4em;text-align:center;padding:.1em 0;height:max-content}
+.crit .pt.full{background:var(--oks);color:var(--ok)}.crit .pt.part{background:var(--mids);color:var(--mid)}.crit .pt.zero{background:var(--kos);color:var(--ko)}
+.crit .cm{grid-column:2;color:var(--mut);font-size:.95em}
+.fb{font-size:.8em}.fb b{color:var(--brand)}
+.self .chk{display:flex;gap:.5em;align-items:flex-start;font-size:.8em;padding:.25em 0;border-top:1px solid var(--line)}
+.self .chk input{margin-top:.25em}.self .chk em{font-style:normal;font-weight:700;white-space:nowrap;color:var(--brand)}
+.self .chk.red{color:var(--ko)}.self .chk.red em{color:var(--ko)}
+.cor{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.8em;align-items:start}
+.cor .col{display:flex;flex-direction:column;gap:.45em;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:.76em}th,td{border-top:1px solid var(--line);padding:.3em .4em;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}
+td.pt{font-weight:700;white-space:nowrap}
+.h3{font-weight:700;font-size:.8em;color:var(--brand)}.h3.red{color:var(--ko)}
+ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
+.model{background:#EAF6EF;border-radius:.6em;padding:.45em}
+.src{font-size:.72em;color:var(--mut)}.nf{font-style:italic;font-size:.78em;color:var(--ink2)}
+.tx{font-size:.8em}
+/* modales */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(12,19,48,.45);display:flex;justify-content:center;align-items:flex-start;padding:30px 14px;overflow:auto}
+.modal{width:min(980px,100%);max-height:calc(100vh - 60px);overflow:auto;background:var(--card);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mh{display:flex;justify-content:space-between;align-items:center;gap:10px}.mh h2{margin:0;font-size:18px}
+.x{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px;line-height:1}
+.filters{display:flex;gap:14px;flex-wrap:wrap}.filters .g{display:flex;gap:4px;flex-wrap:wrap}
+.filters button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
+.filters button[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.explain{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.explain div{background:var(--soft);border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--ink2)}.explain b{display:block;color:var(--brand);margin-bottom:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.tile{text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.tile .t1{display:flex;justify-content:space-between;gap:6px;font-weight:700;color:var(--brand)}.tile .tt{color:var(--ink2);line-height:1.3}
+.tile.cur{box-shadow:0 0 0 2px var(--vif);border-color:var(--vif)}
+.memo{display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:8px 16px;font-size:13.5px}.memo b{color:var(--brand)}.memo b.red{color:var(--ko)}
+.team{font-size:12.5px}.team td,.team th{white-space:nowrap}
+.sq{display:flex;flex-wrap:wrap;gap:2px;max-width:420px}.sq button{width:9px;height:9px;padding:0;border:0;border-radius:2px;background:#E4E9F4}
+.sq button.v{background:var(--ok)}.sq button.o{background:#E89B2C}
+.detail{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:13px;white-space:pre-wrap}
+@media (max-width:900px){
+  body{overflow:auto;display:block}.bar{flex-wrap:wrap}
+  .split,.split.wide{display:flex;flex-direction:column}
+  .pane{overflow:visible;--fs:15px}#right .inner{height:auto}textarea{min-height:140px}
+  .cor,.explain,.memo{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><b>LES NOUVEAUX PROFS</b><span>Académie sales</span></div>
+  <div class="nav">
+    <button type="button" class="bb" id="prev" aria-label="Cas précédent">←</button>
+    <button type="button" class="bb" id="grid" aria-haspopup="dialog"></button>
+    <button type="button" class="bb" id="next" aria-label="Cas suivant">→</button>
+    <button type="button" class="bb" id="todo">Prochain à faire</button>
+  </div>
+  <span class="sp"></span>
+  <div class="prog"><span id="pv"></span><span class="pbar"><i id="pb"></i></span><span id="avg"></span></div>
+  <button type="button" class="bb" id="memo" aria-haspopup="dialog">Fiche mémo</button>
+  <button type="button" class="bb" id="coach" aria-haspopup="dialog" hidden>Formateur</button>
+  <div class="sync" id="sync" role="status"></div>
+</header>
+<main class="split" id="split">
+  <section class="pane" id="left" aria-label="Le script de l’appel"><div class="inner" id="L"></div></section>
+  <section class="pane" id="right" aria-label="Répondre"><div class="inner" id="R"></div></section>
+</main>
+<div id="modalRoot"></div>
+<script>/*@RESULTS@*/</script>
+<script>
+(function () {
+  "use strict";
+  var D = /*@ACADEMIE@*/{};
+  var CAS = D.cas || [], MEMO = D.fiche_memo || [], POINTS = D.points_a_trancher || [];
+  var CFG = D.config || { note_validation: 8, note_max: 10, chrono_format_A_secondes: 90 };
+  var VALID = CFG.note_validation, MAX = CFG.note_max, CHRONO = CFG.chrono_format_A_secondes;
+  var IDX = {}; CAS.forEach(function (c, i) { IDX[c.id.toLowerCase()] = i; });
+  // every attempt is also kept on the account, never deleted (Entraînement › Mes résultats, migration 049); a mark by Claude
+  // is written there by web/api/academie.js
+  var R = window.LNP_RESULTS || { mark: function () { return 0; }, since: function () { return 0; }, add: function () {}, newId: function () { return "r" + Date.now() + Math.random().toString(36).slice(2, 10); }, onChange: function () {}, pending: function () { return 0; } };
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function num(n) { return String(Math.round(Number(n) * 10) / 10).replace(".", ","); }       // 6,5 · au plus une décimale
+  function stars(n) { return "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n); }
+  function initials(s) { return String(s || "?").split(/[\s-]+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join(""); }
+  function half(x) { return Math.round(Number(x) * 2) / 2; }
+
+  // ------------------------------------------------------------------ données : copie locale, compte, brouillons
+  var KEY = "lnp-academie-progression", KD = "lnp-academie-brouillons", KL = "lnp-academie-dernier-cas";
+  function lget(k, d) { try { var v = JSON.parse(window.localStorage.getItem(k) || "null"); return v == null ? d : v; } catch (e) { return d; } }
+  function lset(k, v) { try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  var REC = lget(KEY, { exos: {}, updatedAt: null }); if (!REC.exos) REC = { exos: {}, updatedAt: null };
+  var DRAFTS = lget(KD, {});
+  var P = (function () { try { return window.parent !== window && window.parent.claude && window.parent.claude.web ? window.parent : null; } catch (e) { return null; } })();
+  var ACC = { crm: null, uid: null, admin: false, ok: false, writing: false, again: false, canClaude: !!P };
+  var SYNC = "";
+  function syncText(t) { if (t != null) SYNC = t; var q = R.online ? R.pending() : 0; document.getElementById("sync").textContent = SYNC + (q ? " · " + q + " résultat" + (q > 1 ? "s" : "") + " en attente d’envoi." : ""); }
+
+  function stateOf(id) { var e = REC.exos[id]; return !e || !e.tries ? "todo" : e.best >= VALID ? "ok" : "redo"; }
+  function merge(remote) { // case by case, the most recent attempt wins; true when the local copy had something newer
+    var newer = false, all = {};
+    Object.keys(REC.exos).concat(Object.keys(remote || {})).forEach(function (k) { all[k] = 1; });
+    Object.keys(all).forEach(function (k) {
+      var a = REC.exos[k], b = (remote || {})[k];
+      if (!a) { REC.exos[k] = b; return; }
+      if (!b) { newer = true; return; }
+      if (String(a.at || "") > String(b.at || "")) newer = true; else REC.exos[k] = b;
+    });
+    return newer;
+  }
+  function saveLocal() { REC.updatedAt = new Date().toISOString(); lset(KEY, REC); }
+  function writeAccount() { // one write at a time, only after an attempt
+    if (!ACC.ok) return;
+    if (ACC.writing) { ACC.again = true; return; }
+    ACC.writing = true;
+    Promise.resolve(ACC.crm.from("crm_academy_progress").upsert({ user_id: ACC.uid, exos: REC.exos, updated_at: new Date().toISOString() }, { onConflict: "user_id" }))
+      .then(function (r) { if (r && r.error) throw r.error; syncText("Progression synchronisée avec ton compte."); },
+        function () { syncText("Compte injoignable : progression enregistrée sur cet appareil."); })
+      .then(function () { ACC.writing = false; if (ACC.again) { ACC.again = false; writeAccount(); } });
+  }
+  function connect() {
+    if (!P) { syncText("Progression enregistrée sur cet appareil."); return; }
+    syncText("Connexion à ton compte…");
+    var done = false, to = setTimeout(function () { if (!done) { done = true; syncText("Compte injoignable : progression enregistrée sur cet appareil."); } }, 10000);
+    Promise.all([P.claude.use("crm"), P.claude.use("user")]).then(function (r) {
+      var crm = r[0], user = r[1];
+      return Promise.all([user.id(), crm.me ? crm.me().catch(function () { return null; }) : null]).then(function (x) {
+        ACC.crm = crm; ACC.uid = x[0]; ACC.admin = !!(x[1] && x[1].role === "admin");
+        return crm.from("crm_academy_progress").select("exos").eq("user_id", ACC.uid).maybeSingle();
+      });
+    }).then(function (q) {
+      if (done) return; done = true; clearTimeout(to);
+      if (q && q.error) throw q.error;
+      ACC.ok = true;
+      var newer = merge(q && q.data ? q.data.exos : {});
+      saveLocal(); syncText("Progression synchronisée avec ton compte.");
+      document.getElementById("coach").hidden = !ACC.admin;
+      if (newer) writeAccount();
+      render();
+    }).catch(function () { if (!done) { done = true; clearTimeout(to); } syncText("Compte injoignable : progression enregistrée sur cet appareil."); });
+  }
+
+  // ------------------------------------------------------------------ état de l'écran
+  var S = { i: 0, tab: "rep", self: false, justDone: false, msg: "", err: false, busy: false, chrono: null, left: CHRONO, chronoEnd: false, m: 0 };
+  R.onChange(function () { if (document.getElementById("sync")) syncText(null); });
+  function cur() { return CAS[S.i]; }
+  function draft(id) { return DRAFTS[id] || { a: "", b: "" }; }
+  var draftT = null;
+  function saveDraft() { clearTimeout(draftT); draftT = setTimeout(function () { lset(KD, DRAFTS); lset(KL, cur().id); }, 500); }
+  function stopChrono() { if (S.chrono) clearInterval(S.chrono); S.chrono = null; S.left = CHRONO; S.chronoEnd = false; }
+  function go(i, keepTab) {
+    if (i < 0 || i >= CAS.length) return;
+    stopChrono();
+    S.i = i; S.m = R.mark(); S.tab = "rep"; S.self = false; S.justDone = false; S.msg = ""; S.err = false;
+    lset(KL, cur().id);
+    var hh = "#" + cur().id.toLowerCase();
+    try { history.replaceState(null, "", hh); } catch (e) { try { if (location.hash !== hh) location.hash = hh; } catch (e2) {} }   // a frame (srcdoc) refuses replaceState
+    render();
+  }
+  function nextTodo() { for (var k = 1; k <= CAS.length; k++) { var j = (S.i + k) % CAS.length; if (stateOf(CAS[j].id) !== "ok") return go(j); } }
+
+  // ------------------------------------------------------------------ la barre
+  function renderBar() {
+    var c = cur(), n = CAS.length;
+    document.getElementById("grid").textContent = "Cas " + c.id + " · " + (S.i + 1) + " / " + n + " ▾";
+    document.getElementById("prev").disabled = S.i === 0; document.getElementById("next").disabled = S.i === n - 1;
+    var ids = Object.keys(REC.exos).filter(function (k) { return REC.exos[k] && REC.exos[k].tries; });
+    var v = ids.filter(function (k) { return REC.exos[k].best >= VALID; }).length;
+    document.getElementById("pv").textContent = v + " / " + n + " validés";
+    document.getElementById("pb").style.width = (v / n * 100) + "%";
+    document.getElementById("avg").textContent = "Moyenne " + (ids.length ? num(ids.reduce(function (s, k) { return s + REC.exos[k].best; }, 0) / ids.length) : "–");
+  }
+
+  // ------------------------------------------------------------------ panneau de gauche
+  function bubbles(list, numbered, ts) {
+    return '<div class="dlg">' + list.map(function (d, k) {
+      if (d.r === "note") return '<div class="note">' + esc(d.x) + "</div>";
+      var head = (numbered ? '<span class="ln">L' + (k + 1) + "</span>" : "") + '<span class="h"><b>' + esc(d.s) + "</b> <span>" + (d.r === "s" ? "sales" : "prospect") + (ts && d.t ? " · " + esc(d.t) : "") + "</span></span> ";
+      return '<div class="msg ' + d.r + '"><span class="av" aria-hidden="true">' + esc(initials(d.s)) + '</span><div class="bub">' + head + esc(d.x) + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function renderLeft() {
+    var c = cur(), e = REC.exos[c.id], st = "";
+    if (e && e.tries) st = e.best >= VALID ? '<span class="pill ok">Validé · ' + num(e.best) + "/10</span>" : '<span class="pill mid">Meilleure note ' + num(e.best) + "/10</span>";
+    var h = '<div class="pills">' + (c.fmt === "A" ? '<span class="pill">Format A · À toi de répondre</span><span class="pill">' + esc(c.theme) + "</span>" : '<span class="pill fmtB">Format B · Trouve l’erreur</span>') +
+      '<span class="pill" aria-label="Niveau ' + c.niveau + ' sur 3">' + stars(c.niveau) + "</span>" + st + "</div>";
+    h += "<h1>" + esc(c.id) + " · " + esc(c.titre) + "</h1>";
+    if (c.fmt === "B" && c.origine) h += '<div class="orig">' + esc(c.origine) + "</div>";
+    h += '<dl class="ctx">' + (c.contexte || []).map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join("") + "</dl>";
+    h += '<div class="rec"><i></i>' + (c.fmt === "A" ? "L’appel en visio" : "L’extrait, lignes numérotées") + "</div>";
+    h += bubbles(c.dialogue || [], c.fmt === "B", c.fmt === "A");
+    document.getElementById("L").innerHTML = h;
+  }
+
+  // ------------------------------------------------------------------ panneau de droite
+  function lastSpeaker(c) { var d = c.dialogue || [], l = d[d.length - 1]; return l ? l.s : ""; }
+  function chronoText() { var s = S.left, neg = s < 0, a = Math.abs(s); return (neg ? "-" : "") + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0"); }
+  function tabAnswer(c) {
+    var d = draft(c.id), h;
+    if (c.fmt === "A") {
+      h = '<div class="zone"><div class="lab">Ce que tu dis à ' + esc(lastSpeaker(c)) + '</div><div class="help">Écris-le comme tu le dirais en visio. Pour l’oral, lance le chrono et réponds à voix haute d’abord.</div>' +
+        '<textarea id="ta" maxlength="4000" placeholder="Ta réponse…" aria-label="Ta réponse">' + esc(d.a) + "</textarea></div>";
+    } else {
+      h = '<div class="zone"><div class="lab">Les erreurs que tu repères</div><div class="help">Une par ligne : le numéro de ligne, l’erreur, la règle enfreinte.</div>' +
+        '<textarea id="ta" maxlength="4000" placeholder="L2 : …" aria-label="Les erreurs que tu repères">' + esc(d.a) + "</textarea></div>" +
+        '<div class="zone"><div class="lab">Ta réécriture des répliques fautives</div><textarea id="tb" maxlength="4000" placeholder="Ce que le sales aurait dû dire…" aria-label="Ta réécriture des répliques fautives">' + esc(d.b) + "</textarea></div>";
+    }
+    h += '<div class="acts">' + (ACC.canClaude ? '<button type="button" class="btn p" data-do="claude"' + (S.busy ? " disabled" : "") + ">Faire corriger par Claude</button>" : "") +
+      '<button type="button" class="btn" data-do="self">M’auto-évaluer</button>' +
+      (c.fmt === "A" ? '<button type="button" class="btn" data-do="chrono">' + (S.chrono || S.chronoEnd ? "Relancer" : "Chrono 90 s") + '</button><span class="chrono' + (S.left < 0 ? " neg" : "") + '" id="chr">' + chronoText() + "</span>" : "") +
+      '<span class="status' + (S.err ? " err" : "") + '" role="status">' + esc(S.msg) + "</span></div>";
+    return h;
+  }
+  function selfForm(c) {
+    var sum = 0, el = !!S.selfElim;
+    c.attendus.forEach(function (a, k) { if (S.checks[k]) sum += a[0]; });
+    var score = el ? 0 : Math.min(MAX, sum);
+    return '<div class="self"><div class="score"><span class="n">' + num(score) + " / 10</span></div>" +
+      '<div class="tx">Coche ce que ta réponse contient vraiment.</div><div class="acts"><button type="button" class="btn p" data-do="saveself">Enregistrer ma note</button></div>' +
+      c.attendus.map(function (a, k) { return '<label class="chk"><input type="checkbox" data-chk="' + k + '"' + (S.checks[k] ? " checked" : "") + "><em>" + num(a[0]) + " pt</em><span>" + esc(a[1]) + "</span></label>"; }).join("") +
+      (c.fmt === "A" && (c.eliminatoire || []).length ? '<label class="chk red"><input type="checkbox" data-chk="elim"' + (el ? " checked" : "") + "><span>J’ai utilisé une formulation éliminatoire : " + esc(c.eliminatoire.join(" · ")) + "</span></label>" : "") + "</div>";
+  }
+  function tabResult(c) {
+    if (S.self) return selfForm(c);
+    var e = REC.exos[c.id]; if (!e || !e.tries) return "";
+    var f = e.feedback || {}, sc = e.last;
+    var h = '<div class="score"><span class="n">' + num(sc) + " / 10</span>" + (sc >= VALID ? '<span class="pill ok">Validé</span>' : '<span class="pill mid">À retravailler · objectif 8/10</span>') +
+      '<span class="how">' + (S.justDone ? "Correction · " : "Dernière tentative · ") + esc(e.mode || f.mode || "") + "</span>" +
+      '<span class="sp"></span><button type="button" class="btn" data-do="retry">Réessayer</button><button type="button" class="btn" data-do="seecor">Voir le corrigé</button></div>';
+    if (f.eliminatoire && f.eliminatoire.declenche) h += '<div class="elim">Note ramenée à 0 : ' + esc(f.eliminatoire.raison || "formulation éliminatoire") + "</div>";
+    h += (f.criteres || []).map(function (k, j) {
+      var att = c.attendus[j] || [k.max, ""], max = att[0], cls = k.points >= max ? "full" : k.points > 0 ? "part" : "zero";
+      return '<div class="crit"><span class="pt ' + cls + '">' + num(k.points) + " / " + num(max) + "</span><span>" + esc(att[1]) + "</span>" + (k.commentaire ? '<span class="cm">' + esc(k.commentaire) + "</span>" : "") + "</div>";
+    }).join("");
+    if (f.points_forts) h += '<div class="fb"><b>Ce qui marche :</b> ' + esc(f.points_forts) + "</div>";
+    if (f.a_corriger) h += '<div class="fb"><b>À corriger :</b> ' + esc(f.a_corriger) + "</div>";
+    if (f.phrase_a_retenir) h += '<div class="fb"><b>La phrase à retenir :</b> ' + esc(f.phrase_a_retenir) + "</div>";
+    return h;
+  }
+  function tabCorrige(c) {
+    if (c.fmt === "A") {
+      return '<div class="cor"><div class="col"><table><thead><tr><th>Pts</th><th>Ce qu’on attend</th></tr></thead><tbody>' +
+        c.attendus.map(function (a) { return '<tr><td class="pt">' + num(a[0]) + "</td><td>" + esc(a[1]) + "</td></tr>"; }).join("") + "</tbody></table>" +
+        ((c.eliminatoire || []).length ? '<div class="h3 red">Note à 0 si…</div><ul class="l">' + c.eliminatoire.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") + "</div>" +
+        '<div class="col"><div class="h3">Réponse modèle</div><div class="model">' + bubbles(c.modele || [], false, false) + "</div>" +
+        ((c.pieges || []).length ? '<div class="h3">Pièges</div><ul class="l">' + c.pieges.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
+        (c.sources ? '<div class="src">Sources : ' + esc(c.sources) + "</div>" : "") + "</div></div>";
+    }
+    return '<div class="cor"><div class="col"><table><thead><tr><th>Ligne</th><th>L’erreur</th><th>La règle</th><th>Ce qu’il fallait faire</th></tr></thead><tbody>' +
+      (c.erreurs || []).map(function (x) { return '<tr><td class="pt">' + x.lignes.map(function (l) { return "L" + l; }).join(", ") + "</td><td>" + esc(x.erreur) + "</td><td>" + esc(x.regle) + "</td><td>" + esc(x.correction) + "</td></tr>"; }).join("") + "</tbody></table></div>" +
+      '<div class="col">' + (c.bienFait ? '<div class="fb"><b>Ce qui était bien :</b> ' + esc(c.bienFait) + "</div>" : "") + (c.bonus ? '<div class="fb"><b>Bonus :</b> ' + esc(c.bonus) + "</div>" : "") +
+      '<div class="h3">Réécriture modèle</div><div class="model">' + bubbles(c.reecriture || [], false, false) + "</div>" +
+      (c.note ? '<div class="nf">' + esc(c.note) + "</div>" : "") + (c.sources ? '<div class="src">Sources : ' + esc(c.sources) + "</div>" : "") + "</div></div>";
+  }
+  function renderRight() {
+    var c = cur(), e = REC.exos[c.id], tried = !!(e && e.tries);
+    var h = '<div class="mission"><b>Ta mission.</b> ' + esc(c.consigne) + "</div>";
+    h += '<div class="tabs" role="tablist"><button type="button" role="tab" data-tab="rep" aria-selected="' + (S.tab === "rep") + '">Ta réponse</button>' +
+      '<button type="button" role="tab" data-tab="res" aria-selected="' + (S.tab === "res") + '"' + (tried || S.self ? "" : " disabled") + ">Résultat" + (tried ? " · " + num(e.last) : "") + "</button>" +
+      '<button type="button" role="tab" data-tab="cor" aria-selected="' + (S.tab === "cor") + '"' + (tried ? "" : " disabled") + ">Corrigé</button></div>";
+    h += '<div class="tbody">' + (S.tab === "rep" ? tabAnswer(c) : S.tab === "res" ? tabResult(c) : tabCorrige(c)) + "</div>";
+    document.getElementById("R").innerHTML = h;
+    document.getElementById("split").classList.toggle("wide", S.tab === "cor");
+  }
+
+  // ------------------------------------------------------------------ tenir à l'écran : 16,5 px, puis -0,5 px, jusqu'à 10,5 px
+  function fitPane(pane, inner) {
+    if (window.innerWidth < 901) { pane.style.removeProperty("--fs"); return; }
+    var fs = 16.5; pane.style.setProperty("--fs", fs + "px");
+    while (fs > 10.5 && (inner.scrollHeight > pane.clientHeight + 1 || pane.scrollHeight > pane.clientHeight + 1)) { fs -= 0.5; pane.style.setProperty("--fs", fs + "px"); }
+  }
+  function fit() { fitPane(document.getElementById("left"), document.getElementById("L")); fitPane(document.getElementById("right"), document.getElementById("R")); }
+  function render() { renderBar(); renderLeft(); renderRight(); fit(); }
+
+  // ------------------------------------------------------------------ tentatives
+  function record(c, score, feedback, mode) {
+    var d = draft(c.id), e = REC.exos[c.id] || { best: 0, last: 0, tries: 0 };
+    e.best = e.tries ? Math.max(e.best, score) : score; e.last = score; e.tries = (e.tries || 0) + 1; e.mode = mode;
+    e.answer = String(d.a || "").slice(0, 4000); e.answer2 = c.fmt === "B" ? String(d.b || "").slice(0, 4000) : "";
+    feedback.mode = mode; e.feedback = feedback; e.at = new Date().toISOString();
+    REC.exos[c.id] = e; saveLocal(); writeAccount();
+    S.m = R.mark();
+  }
+  function answered(c) { var d = draft(c.id); return String(d.a || "").trim().length > 20 || String(d.b || "").trim().length > 20; }
+  function normalize(c, o) {
+    var crit = c.attendus.map(function (a, k) {
+      var x = (o.criteres || []).filter(function (z) { return Number(z.index) === k + 1; })[0] || {}, p = half(x.points);
+      if (!isFinite(p)) p = 0;
+      return { index: k + 1, points: Math.max(0, Math.min(a[0], p)), max: a[0], commentaire: String(x.commentaire || "").slice(0, 500) };
+    });
+    var el = c.fmt === "A" && o.eliminatoire && o.eliminatoire.declenche === true ? { declenche: true, raison: String(o.eliminatoire.raison || "").slice(0, 500) } : { declenche: false, raison: "" };
+    var score = Math.min(MAX, crit.reduce(function (s, k) { return s + k.points; }, 0)); if (el.declenche) score = 0;
+    return { score: half(score), f: { criteres: crit, eliminatoire: el, points_forts: String(o.points_forts || "").slice(0, 500), a_corriger: String(o.a_corriger || "").slice(0, 500), phrase_a_retenir: String(o.phrase_a_retenir || "").slice(0, 350) } };
+  }
+  function correctByClaude() {
+    var c = cur();
+    if (!answered(c)) { S.msg = "Écris d’abord ta réponse, quelques phrases au moins."; S.err = true; return renderRight(), fit(); }
+    S.busy = true; S.msg = "Claude corrige avec la grille du formateur…"; S.err = false; renderRight(); fit();
+    var d = draft(c.id);
+    Promise.resolve().then(function () { return P.claude.use("crm"); }).then(function (crm) { return crm.token ? crm.token() : null; }).then(function (tok) {
+      return fetch(P.location.origin + "/api/academie", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + (tok || "") },
+        body: JSON.stringify({ id: c.id, answer: d.a || "", answer2: d.b || "", cid: R.newId(), duration_s: R.since(S.m) }) });
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (b) { return { status: r.status, b: b }; });
+    }).then(function (x) {
+      S.busy = false;
+      if (cur() !== c) return;
+      if (x.status === 401 || x.status === 403) { ACC.canClaude = false; S.msg = "Correction par Claude indisponible ici : auto-évalue-toi."; S.err = true; return render(); }
+      if (x.status === 429) { S.msg = "Trop de corrections d’affilée : réessaie dans une minute."; S.err = true; return render(); }
+      if (x.status !== 200 || !x.b.feedback || !Array.isArray(x.b.feedback.criteres)) { S.msg = "La correction n’a pas abouti. Réessaie, ou auto-évalue-toi."; S.err = true; return render(); }
+      var n = normalize(c, x.b.feedback);
+      record(c, n.score, n.f, "Claude");
+      S.msg = ""; S.err = false; S.tab = "res"; S.justDone = true; render();
+    }, function () { S.busy = false; S.msg = "La correction n’a pas abouti. Réessaie, ou auto-évalue-toi."; S.err = true; render(); });
+  }
+  function startSelf() {
+    var c = cur();
+    if (!answered(c)) { S.msg = "Écris d’abord ta réponse : c’est elle que tu vas évaluer."; S.err = true; return renderRight(), fit(); }
+    S.self = true; S.checks = {}; S.selfElim = false; S.tab = "res"; S.msg = ""; S.err = false; render();
+  }
+  function saveSelf() {
+    var c = cur(), crit = c.attendus.map(function (a, k) { return { index: k + 1, points: S.checks[k] ? a[0] : 0, max: a[0], commentaire: "" }; });
+    var el = c.fmt === "A" && S.selfElim;
+    var score = el ? 0 : Math.min(MAX, crit.reduce(function (s, k) { return s + k.points; }, 0));
+    var d = draft(c.id), secs = R.since(S.m);
+    record(c, half(score), { criteres: crit, eliminatoire: el ? { declenche: true, raison: "formulation éliminatoire" } : { declenche: false, raison: "" }, points_forts: "", a_corriger: "", phrase_a_retenir: "" }, "Auto-évaluation");
+    R.add({ module: "academie", case_id: c.id, score: half(score), max: 10, mode: "auto", duration_s: secs,
+      details: { format: c.fmt, criteres: crit.map(function (k) { return k.points; }), eliminatoire: !!el, reponse: String(d.a || "").slice(0, 4000), reponse2: c.fmt === "B" ? String(d.b || "").slice(0, 4000) : "" } });
+    S.self = false; S.justDone = true; S.tab = "res"; render();
+  }
+  function chrono() {
+    stopChrono(); S.chronoEnd = false;
+    S.chrono = setInterval(function () {
+      S.left--;
+      if (S.left <= -60) { clearInterval(S.chrono); S.chrono = null; S.chronoEnd = true; }
+      var el = document.getElementById("chr"); if (el) { el.textContent = chronoText(); el.classList.toggle("neg", S.left < 0); }
+      if (!S.chrono) { renderRight(); fit(); }
+    }, 1000);
+    renderRight(); fit();
+  }
+
+  // ------------------------------------------------------------------ événements
+  document.getElementById("R").addEventListener("click", function (e) {
+    var b = e.target.closest("button,input"); if (!b || b.disabled) return;
+    if (b.dataset.tab) { if (b.dataset.tab !== "res") S.self = false; S.tab = b.dataset.tab; S.justDone = false; S.msg = ""; renderRight(); fit(); return; }
+    if (b.dataset.chk !== undefined) { if (b.dataset.chk === "elim") S.selfElim = b.checked; else S.checks[+b.dataset.chk] = b.checked; renderRight(); fit(); return; }
+    var d = b.dataset.do;
+    if (d === "claude") correctByClaude();
+    else if (d === "self") startSelf();
+    else if (d === "saveself") saveSelf();
+    else if (d === "chrono") chrono();
+    else if (d === "retry") { S.tab = "rep"; S.justDone = false; renderRight(); fit(); }
+    else if (d === "seecor") { S.tab = "cor"; renderRight(); fit(); }
+  });
+  document.getElementById("R").addEventListener("input", function (e) {
+    var c = cur(), d = DRAFTS[c.id] || (DRAFTS[c.id] = { a: "", b: "" });
+    if (e.target.id === "ta") d.a = e.target.value; else if (e.target.id === "tb") d.b = e.target.value; else return;
+    saveDraft();
+  });
+  document.getElementById("prev").addEventListener("click", function () { go(S.i - 1); });
+  document.getElementById("next").addEventListener("click", function () { go(S.i + 1); });
+  document.getElementById("todo").addEventListener("click", nextTodo);
+
+  // fenêtres : ✕, Échap ou un clic à côté ; le focus revient au bouton qui l'a ouverte
+  var M = null;
+  function openModal(kind, opener) { M = { kind: kind, opener: opener, fmt: "all", st: "all", pick: null, team: null, teamMsg: "" }; renderModal(); var x = document.querySelector(".modal .x"); if (x) x.focus(); if (kind === "coach") loadTeam(); }
+  function closeModal() { var o = M && M.opener; M = null; document.getElementById("modalRoot").innerHTML = ""; if (o) o.focus(); }
+  function frame(title, body) { return '<div class="scrim" data-scrim="1"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="mh"><h2 id="mt">' + esc(title) + '</h2><button type="button" class="x" data-close="1" aria-label="Fermer">✕</button></div>' + body + "</div></div>"; }
+  function renderModal() {
+    var root = document.getElementById("modalRoot"); if (!M) { root.innerHTML = ""; return; }
+    if (M.kind === "grid") {
+      var v = CAS.filter(function (c) { return stateOf(c.id) === "ok"; }).length;
+      var list = CAS.filter(function (c) { if (M.fmt !== "all" && c.fmt !== M.fmt) return false; var s = stateOf(c.id); return M.st === "all" || s === M.st; });
+      var f = function (k, opts) { return '<div class="g">' + opts.map(function (o) { return '<button type="button" data-f="' + k + ":" + o[0] + '" aria-pressed="' + (M[k] === o[0]) + '">' + o[1] + "</button>"; }).join("") + "</div>"; };
+      root.innerHTML = frame("Les 100 cas", '<div class="filters">' + f("fmt", [["all", "Tous"], ["A", "Format A"], ["B", "Format B"]]) + f("st", [["all", "Tous"], ["todo", "À faire"], ["redo", "À retravailler"], ["ok", "Validés"]]) + "</div>" +
+        '<div class="explain"><div><b>Format A · À toi de répondre</b>Le prospect pose sa question : tu écris ce que tu lui dirais en visio. Chrono de 90 s pour l’oral.</div>' +
+        '<div><b>Format B · Trouve l’erreur</b>Un extrait d’appel réel (prénoms modifiés) ou simulé : tu repères chaque erreur, la règle enfreinte, et tu réécris.</div>' +
+        "<div><b>Validation</b>Claude te note sur 10 avec la grille du formateur. Un cas est validé à 8/10. Tu en as validé " + v + " sur 100.</div></div>" +
+        (list.length ? '<div class="grid">' + list.map(function (c) {
+          var e = REC.exos[c.id], s = stateOf(c.id), pill = s === "todo" ? '<span class="pill">À faire</span>' : '<span class="pill ' + (s === "ok" ? "ok" : "mid") + '">' + num(e.best) + "/10</span>";
+          return '<button type="button" class="tile' + (c === cur() ? " cur" : "") + '" data-open="' + IDX[c.id.toLowerCase()] + '"><span class="t1"><span>' + esc(c.id) + " · " + stars(c.niveau) + "</span>" + pill + '</span><span class="tt">' + esc(c.titre) + "</span></button>";
+        }).join("") + "</div>" : "<p>Aucun cas dans ce filtre.</p>"));
+    } else if (M.kind === "memo") {
+      root.innerHTML = frame("Fiche mémo : ce qui ne bouge pas", '<div class="memo">' + MEMO.map(function (m) { return "<b>" + esc(m.titre) + "</b><div>" + esc(m.texte) + "</div>"; }).join("") + "</div>");
+    } else {
+      var body = "";
+      if (!M.team) body = "<p>" + esc(M.teamMsg || "Chargement des résultats…") + "</p>";
+      else if (!M.team.length) body = "<p>Aucun sales n’a encore enregistré de tentative.</p>";
+      else {
+        body = '<div style="overflow:auto"><table class="team"><thead><tr><th>Sales</th><th>Validés</th><th>Moyenne</th><th>Moyenne A</th><th>Moyenne B</th><th>Les 100 cas</th></tr></thead><tbody>' + M.team.map(function (t, ti) {
+          var ids = Object.keys(t.exos).filter(function (k) { return t.exos[k] && t.exos[k].tries; }), av = function (f) { var x = ids.filter(f); return x.length ? num(x.reduce(function (s, k) { return s + t.exos[k].best; }, 0) / x.length) : "–"; };
+          var val = ids.filter(function (k) { return t.exos[k].best >= VALID; }).length;
+          return "<tr><td>" + esc(t.name) + "</td><td>" + val + "/100</td><td>" + av(function () { return true; }) + "</td><td>" + av(function (k) { return k.charAt(0) === "A"; }) + "</td><td>" + av(function (k) { return k.charAt(0) === "B"; }) +
+            '</td><td><div class="sq">' + CAS.map(function (c) { var e = t.exos[c.id], cls = !e || !e.tries ? "" : e.best >= VALID ? "v" : "o"; return '<button type="button" class="' + cls + '" title="' + esc(c.id) + (e && e.tries ? " : " + num(e.best) + "/10" : "") + '"' + (cls ? ' data-sq="' + ti + ":" + c.id + '"' : " disabled") + "></button>"; }).join("") + "</div></td></tr>";
+        }).join("") + "</tbody></table></div>";
+        if (M.pick) {
+          var tt = M.team[M.pick[0]], cc = CAS[IDX[M.pick[1].toLowerCase()]], ee = tt.exos[cc.id];
+          body += '<div class="detail"><b>' + esc(tt.name) + " · " + esc(cc.id) + " · " + esc(cc.titre) + "</b>\nMeilleure " + num(ee.best) + "/10 · dernière " + num(ee.last) + "/10 · " + ee.tries + " tentative" + (ee.tries > 1 ? "s" : "") + " · " + esc(ee.mode || "") +
+            "\n\n" + (cc.fmt === "B" ? esc(ee.answer || "") + "\n\n" + esc(ee.answer2 || "") : esc(ee.answer || "")) + (ee.feedback && ee.feedback.a_corriger ? "\n\nÀ corriger : " + esc(ee.feedback.a_corriger) : "") + "</div>";
+        }
+      }
+      body += '<div class="h3" style="font-size:15px;margin-top:6px">Avant de diffuser : 11 points à faire trancher</div><div class="memo">' + POINTS.map(function (m) { return '<b class="red">' + esc(m.titre) + "</b><div>" + esc(m.texte) + "</div>"; }).join("") + "</div>";
+      root.innerHTML = frame("Espace formateur", body);
+    }
+  }
+  function loadTeam() {
+    if (!ACC.ok || !ACC.admin) { M.teamMsg = "Les résultats de l’équipe ne sont pas joignables depuis cette vue."; return renderModal(); }
+    Promise.all([ACC.crm.from("crm_academy_progress").select("user_id,exos"), ACC.crm.from("crm_members").select("id,full_name")]).then(function (r) {
+      if (r[0].error) throw r[0].error;
+      var names = {}; (r[1].data || []).forEach(function (m) { names[m.id] = m.full_name; });
+      M.team = (r[0].data || []).filter(function (x) { return x.exos && Object.keys(x.exos).length; }).map(function (x) { return { name: names[x.user_id] || "Sales", exos: x.exos }; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name, "fr"); });
+      if (M) renderModal();
+    }, function () { if (M) { M.teamMsg = "Les résultats de l’équipe ne sont pas joignables depuis cette vue."; renderModal(); } });
+  }
+  document.getElementById("modalRoot").addEventListener("click", function (e) {
+    if (!M) return;
+    if (e.target.dataset && e.target.dataset.scrim) return closeModal();
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.close) return closeModal();
+    if (b.dataset.f) { var kv = b.dataset.f.split(":"); M[kv[0]] = kv[1]; return renderModal(); }
+    if (b.dataset.open) { var i = +b.dataset.open; closeModal(); return go(i); }
+    if (b.dataset.sq) { var p = b.dataset.sq.split(":"); M.pick = [+p[0], p[1]]; return renderModal(); }
+  });
+  document.getElementById("grid").addEventListener("click", function (e) { openModal("grid", e.currentTarget); });
+  document.getElementById("memo").addEventListener("click", function (e) { openModal("memo", e.currentTarget); });
+  document.getElementById("coach").addEventListener("click", function (e) { openModal("coach", e.currentTarget); });
+  document.addEventListener("keydown", function (e) {
+    if (M) { if (e.key === "Escape") { e.preventDefault(); closeModal(); } return; }
+    var t = e.target; if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT")) return;
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(S.i - 1); } else if (e.key === "ArrowRight") { e.preventDefault(); go(S.i + 1); }
+  });
+  window.addEventListener("resize", fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener("hashchange", function () { var i = IDX[(location.hash || "").replace("#", "").toLowerCase()]; if (i != null && i !== S.i) go(i); });
+
+  // au chargement : le cas de l'adresse, sinon le dernier consulté, sinon A1
+  var start = IDX[(location.hash || "").replace("#", "").toLowerCase()];
+  if (start == null) start = IDX[String(lget(KL, "") || "").toLowerCase()];
+  go(start == null ? 0 : start);
+  connect();
+  window.LNP_ACADEMIE = { S: S, REC: REC, CAS: CAS, go: go, fit: fit };
+})();
+</script>
+</body>
+</html>

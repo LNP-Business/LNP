@@ -130,6 +130,8 @@
       return r.data;
     },
     me: async function () { var r = await sb.from("crm_members").select("*").eq("id", ctx.user.id).maybeSingle(); return r.data || null; },
+    // the signed-in person's token, for the LNP routes that act as them (web/api/academie.js: the correction by Claude)
+    token: async function () { var r = await sb.auth.getSession(); return r.data && r.data.session ? r.data.session.access_token : null; },
     subscribe: function (tables, fn) {
       var ch = sb.channel("crm-" + Math.random().toString(36).slice(2));
       tables.forEach(function (t) { ch.on("postgres_changes", { event: "*", schema: "public", table: t }, function (p) { fn(t, p); }); });
@@ -315,7 +317,7 @@
   // ---------------- screens each person may open (Settings › Access) ----------------
   var AREAS = [
     { key: "os", name: "Operating System", home: "cockpit", groups: [["Operating System", [["cockpit", "Cockpit"], ["build", "Build"], ["execute", "Execute"], ["decisions", "Decisions"], ["review", "Weekly Review"]]]] },
-    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salesday", "Ma journée"], ["entrainement", "Entraînement"], ["crm", "CRM"]], "Ventes"]] },
+    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salesday", "Ma journée"], ["crm", "CRM"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["academie", "Maîtrise de l’offre"]], "Entraînement"]] },
     { key: "ks", name: "Knowledge System", home: "bibliotheque", groups: [["Knowledge System", [["bibliotheque", "Library"]]], ["Mechanisms", [["mechanisms", "Mechanism map"], ["mechprecall", "Pre-call"], ["mechsales", "Sales"], ["mechos", "Operating System"]]], ["LNP Map", [["cartomap", "Journey"], ["cartoevents", "Events"], ["cartoworks", "Build order"], ["cartosim", "Simulator"], ["cartomodel", "Model"]]]] },
     { key: "as", name: "Agent System", home: "agentsoverview", groups: [["Pilot", [["agentsoverview", "Overview"], ["agentsdecisions", "Decisions"], ["agentsregistry", "Agents"], ["agentstriggers", "Triggers"], ["agentslog", "Log"]]]] },
     { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes"], ["registers", "Registres"]], "Paramètres"]] },

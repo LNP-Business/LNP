@@ -18,6 +18,7 @@ button{font:inherit;color:inherit;cursor:pointer}button:disabled{cursor:default;
 textarea{font:inherit}
 .top{position:fixed;inset:0 0 auto 0;height:58px;z-index:20;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line)}
 .top .ttl{font-weight:700;font-size:16px;color:var(--brand);white-space:nowrap}
+.top .sync{margin-left:auto;min-width:0;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tabs{flex:1;display:flex;justify-content:center;gap:6px}
 .tabs button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 16px;font-weight:600;color:var(--ink2)}
 .tabs button[aria-current=page]{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -173,11 +174,13 @@ table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td
     <button type="button" data-tab="coup">Le coup suivant</button>
     <button type="button" data-tab="lettre">La lettre imposée</button>
   </nav>
+  <span class="sync" id="sync" role="status"></span>
   <button type="button" class="btn p" id="newSession">Nouvelle séance</button>
 </header>
 <main class="view" id="view-coup"></main>
 <main class="view" id="view-lettre"></main>
 <div id="modalRoot"></div>
+<script>/*@RESULTS@*/</script>
 <script>
 (function () {
   "use strict";
@@ -215,6 +218,8 @@ table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td
   // historique local, une clé par entraînement ; l'application marche aussi sans
   function load(key) { try { var v = JSON.parse(window.localStorage.getItem(key) || "{}"); return v && typeof v === "object" ? v : {}; } catch (e) { return {}; } }
   function store(key, v) { try { window.localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+  var R = window.LNP_RESULTS || { mark: function () { return 0; }, since: function () { return 0; }, add: function () {}, onChange: function () {} };
+  R.onChange(function (t) { var el = document.getElementById("sync"); if (el) { el.textContent = t; el.title = t; } });
   var KEY_COUP = "lnp-entrainement-coup-suivant", KEY_LETTRE = "lnp-entrainement-lettre-imposee";
 
   // la jauge de longueur : 0 à 24 mots, zone cible, marque rouge à 18, curseur
@@ -325,7 +330,7 @@ table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td
   function startCoup(list) {
     C.cases = list; C.i = 0; C.res = []; C.bilan = false; resetCoup(); renderCoup();
   }
-  function resetCoup() { C.step = 1; C.choice = null; C.sure = "sur"; C.hint = false; C.q = ""; C.qres = null; C.j1 = null; C.j2 = null; }
+  function resetCoup() { C.m = R.mark(); C.step = 1; C.choice = null; C.sure = "sur"; C.hint = false; C.q = ""; C.qres = null; C.j1 = null; C.j2 = null; }
   function curC() { return C.cases[C.i]; }
   function coupRecord(r) { // the outcome of one coup
     var geste = r.choice === r.att, qok = !!r.q && r.qok;
@@ -449,6 +454,9 @@ table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td
     var r = { n: c.n, att: c.att, reg: c.reg, ok: c.ok, choice: C.choice, sure: C.sure, hint: C.hint, q: C.q.trim(), qok: qok };
     C.res[C.i] = r;
     var h = load(KEY_COUP), e = h[c.n] || { count: 0, last: null }; e.count++; e.last = r.choice === r.att && qok; h[c.n] = e; store(KEY_COUP, h);
+    // kept on the account (Entraînement › Mes résultats), never deleted
+    R.add({ module: "coup", case_id: String(c.n), score: coupRecord(r).juste ? 1 : 0, max: 1, mode: "regles", duration_s: R.since(C.m),
+      details: { attendu: c.att, joue: r.choice, sur: r.sure, indice: !!r.hint, question: r.q.slice(0, 500), question_ok: qok } });
     if (C.i >= C.cases.length - 1) { C.bilan = true; renderCoup(); return; }
     C.i++; resetCoup(); renderCoup();
   }
@@ -533,7 +541,7 @@ table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td
   function curL() { return Lt.cases[Lt.i]; }
   function chainOf() { return Lt.chains[Lt.i] || (Lt.chains[Lt.i] = { n: curL().n, links: [] }); }
   function startLettre(list) { Lt.cases = list; Lt.i = 0; Lt.chains = []; Lt.bilan = false; openLink(0); renderLettre(); }
-  function openLink(k) { Lt.link = k; Lt.phase = "write"; Lt.q = ""; Lt.qres = null; Lt.j1 = null; Lt.j2 = null; Lt.t0 = Date.now(); }
+  function openLink(k) { if (k === 0) Lt.m = R.mark(); Lt.link = k; Lt.phase = "write"; Lt.q = ""; Lt.qres = null; Lt.j1 = null; Lt.j2 = null; Lt.t0 = Date.now(); }
   function prospectTexts(c, upto) { // what the prospect said before the link « upto »
     var t = c.tours.filter(function (x) { return x[0] === "P"; }).map(function (x) { return x[1]; });
     for (var k = 0; k < upto; k++) t.push(c.r[k].rep);
@@ -682,6 +690,8 @@ table.mx td.dg{background:var(--oks);color:var(--ok);font-weight:700}table.mx td
     Lt.phase = "end";
     var c = curL(), score = ch.links.filter(function (x) { return x.valid; }).length;
     var h = load(KEY_LETTRE), e = h[c.n] || { count: 0, last: null, best: 0 }; e.count++; e.last = score; e.best = Math.max(e.best || 0, score); h[c.n] = e; store(KEY_LETTRE, h);
+    R.add({ module: "lettre", case_id: String(c.n), score: score, max: 3, mode: "regles", duration_s: R.since(Lt.m),
+      details: { liens: ch.links.map(function (l) { return { valide: !!l.valid, question: String(l.q || "").slice(0, 500), fautes: l.faults || [], temps_s: l.time }; }) } });
     renderLettre();
   }
   function nextCas() {

@@ -11,6 +11,6 @@
     "zod": "4.6.7"
   },
   "scripts": {
-    "test": "node --import ./tests/register.mjs --test tests/connector.test.js"
+    "test": "node --import ./tests/register.mjs --test tests/connector.test.js tests/academie.test.js"
   }
 }

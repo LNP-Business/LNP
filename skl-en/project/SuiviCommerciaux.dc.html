@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LNP — Suivi des commerciaux</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#9A6614}a:hover{color:#7A4B00}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 1180px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 11px; padding: 0 8px 20px"><img src="data:image/png;base64,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" alt="" width="38" height="38" style="width: 38px; height: 38px; border-radius: 10px; flex: none; display: block"><div style="font-family: Poppins, Arial, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .09em; text-transform: uppercase; line-height: 1.2; color: #F7F8FB">Les <span style="color: #5B8DF7">Nouveaux</span> Profs<div style="font-size: 10.5px; letter-spacing: .16em; font-weight: 600; color: #AECBF2; margin-top: 3px">Ventes</div></div></div>
+<button type="button" data-navgrp="ss-sales-system" aria-expanded="true" title="Replier ou déplier Ventes" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Ventes</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="ss-sales-system" style="display: flex; flex-direction: column; gap: 4px">
+<a href="SalesCockpit.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Cockpit commercial</span></a>
+<a href="CRM.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>CRM</span></a>
+<a href="SalesDay.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Ma journée</span></a>
+</div>
+<button type="button" data-navgrp="ss-training" aria-expanded="true" title="Replier ou déplier Entraînement" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Entraînement</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="ss-training" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Entrainement.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Découverte</span></a>
+<a href="Academie.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Maîtrise de l'offre</span></a>
+<a href="Resultats.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Mes résultats</span></a>
+<a href="SuiviCommerciaux.dc.html" aria-current="page" data-admin-only style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><span>Suivi des commerciaux</span></a>
+</div>
+<div style="flex-grow: 1"></div>
+<a href="Settings.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7; border: 1px solid #34322C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Paramètres</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 24px 32px 0; display: flex; flex-direction: column; position: relative">
+<div data-suivi="1" style="width: 100%; height: 720px; border-radius: 14px"></div>
+</main>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 32px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Mode d'emploi</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Suivi des commerciaux</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Fermer" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>À quoi sert cette page</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">Pour les administrateurs : le suivi de l'entraînement de chaque commercial, mis en face de ses ventes. Une ligne par personne : son score d'entraînement, les exercices faits, le temps passé, la date du dernier entraînement, puis ses appels réalisés, ses ventes, le chiffre d'affaires signé, l'encaissé et le chiffre d'affaires par appel.</p>
+</section>
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>Ce que disent les chiffres</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong>Score :</strong> sur 100, depuis le début (le même que dans Mes résultats).</li>
+<li><strong>Exercices, temps, réussite :</strong> sur la période choisie ; le temps est le temps actif.</li>
+<li><strong>Appels réalisés :</strong> les appels tenus (R1, R2…) des prospects de la personne.</li>
+<li><strong>CA signé :</strong> le prix des ventes conclues sur la période ; <strong>encaissé :</strong> ce que ces ventes ont rapporté à ce jour.</li>
+</ul>
+</section>
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>Comment l'utiliser</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Choisissez la période en haut. Cliquez sur un titre de colonne pour trier.</li>
+<li>Cliquez sur une personne pour voir son score détaillé, son temps par jour et l'historique de ses exercices.</li>
+<li>Les résultats ne peuvent être ni modifiés ni effacés, par personne.</li>
+</ol>
+</section>
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Compris</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { info: false };
+  }
+  renderVals() {
+    return { info: !!this.state.info, openInfo: () => this.setState({ info: true }), closeInfo: () => this.setState({ info: false }) };
+  }
+}
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 // app itself (#skl-link=<token hash>&type=…); the one-time token is spent only when the person saves a password, so
 // link previews (Slack, mail scanners) that open the link first cannot use it up.
 import { admin, send, caller, origin, readJson } from "./_lib.js";
-import { SCREENS, DEFAULT_ACCESS, defaultAccess, accessOf } from "./_screens.js";
+import { SCREENS, DEFAULT_ACCESS, MARK, defaultAccess, accessOf } from "./_screens.js";
 
 const ROLES = ["admin", "member", "viewer"];
 
@@ -67,10 +67,10 @@ export default async function handler(req, res) {
     const { data: cur, error: e0 } = await sb.auth.admin.getUserById(t.user_id);
     if (e0) return send(res, 500, { error: e0.message });
     const meta = Object.assign({}, (cur.user && cur.user.app_metadata) || {});
-    if (screens === null) delete meta.screens; else meta.screens = screens;
+    if (screens === null) delete meta.screens; else meta.screens = screens.concat([MARK]);
     const { error } = await sb.auth.admin.updateUserById(t.user_id, { app_metadata: meta });
     if (error) return send(res, 500, { error: error.message });
-    return send(res, 200, { access: screens === null ? defaultAccess(t.role) : screens });
+    return send(res, 200, { access: accessOf({ app_metadata: meta }, t.role) });
   }
   if (b.action === "reset") {
     const t = await target(b.user_id);
