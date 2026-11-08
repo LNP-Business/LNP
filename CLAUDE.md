@@ -76,6 +76,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - `web/api/` : `config.js` (URL publique et clé anonyme), `me.js`, `team.js` (administrateurs : inviter, changer un rôle, lien de
   réinitialisation, retirer ; les liens sont rendus à l'administrateur au format `/#skl-link=…`), `files.js`, `bootstrap.js`
   (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
+- Version de la page : `web/build_web.py` inscrit un identifiant de build dans `index.html` (`SKL_BUILD`) et dans
+  `web/public/version.json` ; `skl-web.js` recharge une page restée en cache d'un navigateur (une fois, puis bandeau « Recharger »).
 - Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salesday`, `entrainement`, `academie`, `crm`,
   `settings`, `claude` (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte ; `resultats` suit les
   entraînements ouverts, `suivi` (Suivi des commerciaux) et `access` sont réservés aux administrateurs (`web/api/me.js`).
