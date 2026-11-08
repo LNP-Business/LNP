@@ -53,11 +53,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `skl-os/training/` injectées
   par `build.py`) :
   - Découverte : `entrainement.html`, ses cas `coup_lnp.json` et `lettre_lnp.json` ; test `training_test.js`.
-  - Maîtrise de l'offre (« Académie sales LNP ») : `academie.html` et ses 100 cas `academie_contenu.json` (copiés dans
-    `web/api/_academie.json` par `build.sh`) ; correction par Claude : `web/api/academie.js` et `_academie.js` (consigne du
-    cahier, côté serveur), progression `crm_academy_progress` ; test `academie_test.js`.
+  - Maîtrise de l'offre (« Académie sales LNP ») : `academie.html` et ses 100 cas `academie_contenu.json` ; pas de correction
+    par Claude (Romain, 2026-11-08) : la réponse est validée puis auto-corrigée avec la grille et le corrigé ; progression
+    `crm_academy_progress` ; test `academie_test.js`.
   - Résultats : chaque exercice terminé est gardé dans `crm_training_results` (migration 049 : ajout seulement, jamais modifié
-    ni effacé ; une note de Claude n'est écrite que par le serveur) via `results_log.js` ; « Mes résultats » et « Suivi des
+    ni effacé) via `results_log.js` ; « Mes résultats » et « Suivi des
     commerciaux » (administrateurs) sont `resultats.html` en deux modes, sur `crm_training_dashboard(p_days)` ; test `results_test.js`.
   - Tests : `node skl-os/training/<test>.js $PWD/skl-os/skl-os-en.html <dossier>`.
 - CRM, Cycle de vente, encaissements : voir les fichiers figés ci-dessus ; règles SLA : `supabase/functions/_shared/sla_rules.js`
@@ -76,6 +76,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - `web/api/` : `config.js` (URL publique et clé anonyme), `me.js`, `team.js` (administrateurs : inviter, changer un rôle, lien de
   réinitialisation, retirer ; les liens sont rendus à l'administrateur au format `/#skl-link=…`), `files.js`, `bootstrap.js`
   (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
+- Version de la page : `web/build_web.py` inscrit un identifiant de build dans `index.html` (`SKL_BUILD`) et dans
+  `web/public/version.json` ; `skl-web.js` recharge une page restée en cache d'un navigateur (une fois, puis bandeau « Recharger »).
 - Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salesday`, `entrainement`, `academie`, `crm`,
   `settings`, `claude` (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte ; `resultats` suit les
   entraînements ouverts, `suivi` (Suivi des commerciaux) et `access` sont réservés aux administrateurs (`web/api/me.js`).

@@ -49,19 +49,20 @@ INFO_A = info_popup("Maîtrise de l'offre", [
      "Format B : relire un extrait d'appel et dire ce qui ne va pas, puis ce qu'il fallait dire."),
     ('Ce que vous y gagnez', 'ul', [
         "<strong>Des réponses justes sur l'offre.</strong> Chaque cas a sa grille de correction, ses formulations éliminatoires et un corrigé.",
-        "<strong>Une correction tout de suite.</strong> Par Claude avec la grille du formateur, ou par vous-même en cochant la grille.",
+        "<strong>Une auto-correction honnête.</strong> Vous validez d'abord votre réponse, elle est figée ; puis vous la comparez à la grille du formateur et au corrigé, et vous cochez ce qu'elle contient vraiment.",
         "<strong>Une progression qui vous suit.</strong> Validé à 8/10 ; la meilleure note de chaque cas est gardée sur votre compte."]),
     ("Comment l'utiliser", 'ol', [
         "Choisissez un cas avec ← et →, la grille des 100 cas ou « Prochain à faire ».",
-        "Écrivez votre réponse, puis « Faire corriger par Claude » ou « M'auto-évaluer ». Le chrono de 90 secondes est facultatif.",
+        "Écrivez votre réponse, puis « Valider ma réponse ». Le chrono de 90 secondes est facultatif.",
+        "Auto-correction : votre réponse validée est affichée à côté de la grille ; l'onglet Corrigé montre aussi la réponse modèle. Cochez ce que votre réponse contient, puis « Enregistrer ma note ».",
         "Lisez le résultat critère par critère, puis le corrigé. La fiche mémo résume l'offre en une page.",
-        "Chaque correction est enregistrée sur votre compte (Entraînement › Mes résultats) et ne peut pas être effacée."])
+        "Chaque note est enregistrée sur votre compte (Entraînement › Mes résultats) et ne peut pas être effacée."])
 ])
 write_screen('Academie.dc.html', "Maîtrise de l'offre", frame_main('data-academie'), fr(INFO_A), 'roadmap2_logic.js', info=False)
 
 INFO_R = info_popup('Mes résultats', [
     ('À quoi sert cette page', 'p', "Vos résultats d'entraînement, enregistrés sur votre compte : chaque coup du « Coup suivant », "
-     "chaque cas de « La lettre imposée » et chaque correction de « Maîtrise de l'offre », avec la note, le temps passé et le détail. "
+     "chaque cas de « La lettre imposée » et chaque note de « Maîtrise de l'offre », avec la note, le temps passé et le détail. "
      "Ils ne peuvent pas être effacés : ils montrent ce que vous avez travaillé."),
     ('Le score, sur 100', 'ul', [
         "<strong>Le coup suivant :</strong> les coups justes parmi vos 50 derniers coups, sur 50.",

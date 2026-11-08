@@ -24,6 +24,33 @@
       "headers": [
         {
           "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/version.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/skl-web.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
           "value": "no-cache"
         }
       ]
@@ -63,10 +90,6 @@
     "api/mcp.js": {
       "maxDuration": 30,
       "includeFiles": "api/_kb.json"
-    },
-    "api/academie.js": {
-      "maxDuration": 60,
-      "includeFiles": "api/_academie.json"
     }
   }
 }

@@ -1,7 +1,7 @@
 // node skl-os/training/results_test.js $PWD/skl-os/skl-os-en.html <screenshot dir> — Entraînement (Romain 2026-11-06): every
 // exercise kept on the account (results_log.js), « Mes résultats » and « Suivi des commerciaux » (resultats.html). The training
 // documents are taken from the built page and run in frames under a test page that plays the web edition (window.claude, a
-// fake account in memory: crm_training_results, crm_training_dashboard, /api/academie).
+// fake account in memory: crm_training_results, crm_training_dashboard).
 const { chromium } = require('playwright');
 const fs = require('fs');
 const HTML = fs.readFileSync(process.argv[2], 'utf8'), OUT = process.argv[3];
@@ -70,13 +70,8 @@ function mount(key, srcdoc) { var f = document.createElement("iframe"); f.id = k
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1180, height: 860 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text())) errs.push(m.text()); });
   const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
-  let posted = null;
   await p.route('http://lnp.test/**', async (r) => {
     const u = r.request().url();
-    if (u.endsWith('/api/academie')) {
-      posted = JSON.parse(r.request().postData());
-      return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ feedback: { score: 9, criteres: [], eliminatoire: { declenche: false, raison: '' }, points_forts: 'Clair.', a_corriger: '', phrase_a_retenir: 'Le seuil, c’est ce que tu as investi.', mode: 'Claude' } }) });
-    }
     if (/fonts\.g/.test(u)) return r.abort();
     return r.fulfill({ status: 200, contentType: 'text/html', body: HOST });
   });
@@ -108,24 +103,20 @@ function mount(key, srcdoc) { var f = document.createElement("iframe"); f.id = k
   const idle = await tf.evaluate(() => { const m = LNP_RESULTS.mark(); return new Promise(res => setTimeout(() => res(LNP_RESULTS.since(m)), 2300)); });
   check('active time counts while the person works', idle >= 1 && idle <= 3, idle);
 
-  // Maîtrise de l'offre: a self-evaluation is kept (auto); a correction by Claude is written by the server, not the page
+  // Maîtrise de l'offre: the answer validated, then self-corrected, is kept (mode auto)
   const af = await frame('academie');
   await af.evaluate(() => LNP_ACADEMIE.go(0));
   await af.fill('#ta', 'Le seuil de la garantie, c’est ce que tu as investi, et on le regarde ensemble au bout des 4 mois.');
-  await af.click('[data-do="self"]');
+  await af.click('[data-do="validate"]');
   const nCrit = (await af.$$('[data-chk]:not([data-chk="elim"])')).length;
   for (let k = 0; k < nCrit; k++) await af.click(`[data-chk="${k}"]`);
   await af.click('[data-do="saveself"]'); await p.waitForTimeout(400);
   db = await DB();
   const ra = db.rows[2] || {};
   check('a self-evaluation is kept (mode auto, its marks and the answer)', db.rows.length === 3 && ra.module === 'academie' && ra.case_id === 'A1' && ra.mode === 'auto' && ra.score === 10 && Array.isArray(ra.details.criteres) && /seuil/.test(ra.details.reponse), ra);
-  await af.click('[data-tab="rep"]');
-  await af.click('[data-do="claude"]'); await p.waitForTimeout(600);
-  db = await DB();
-  check('Claude: the page sends the case, the time and a result id', posted && posted.id === 'A1' && /^[A-Za-z0-9-]{8,64}$/.test(posted.cid) && Number.isInteger(posted.duration_s), posted);
-  check('Claude: the page writes no result itself', db.rows.length === 3, db.rows.length);
-  // the server would keep it: add it as web/api/academie.js does
-  await p.evaluate(() => { window.DB.rows.push({ id: ++window.DB.seq, user_id: 'u1', cid: 'srv-1', module: 'academie', case_id: 'A2', score: 7.5, max: 10, mode: 'claude', duration_s: 95, details: { format: 'A', criteres: [2, 2, 1.5, 2], eliminatoire: false, reponse: 'Ma réponse' }, created_at: new Date().toISOString() });
+  check('no correction by Claude', !(await af.$('[data-do="claude"]')), null);
+  // a second attempt (A2) and a rep's lettre, as the account would hold them
+  await p.evaluate(() => { window.DB.rows.push({ id: ++window.DB.seq, user_id: 'u1', cid: 'u1-a2', module: 'academie', case_id: 'A2', score: 7.5, max: 10, mode: 'auto', duration_s: 95, details: { format: 'A', criteres: [2, 2, 1.5, 2], eliminatoire: false, reponse: 'Ma réponse' }, created_at: new Date().toISOString() });
     window.DB.rows.push({ id: ++window.DB.seq, user_id: 'u2', cid: 'u2-1', module: 'lettre', case_id: '3', score: 2, max: 3, mode: 'regles', duration_s: 300, details: { liens: [{ valide: true, question: 'Ça te coûte combien ?', fautes: [] }, { valide: true, question: 'Et ensuite ?', fautes: [] }, { valide: false, question: '', fautes: [] }] }, created_at: new Date().toISOString() }); });
 
   // Mes résultats: the score, the figures of the period, the history (never deleted), the detail of a row

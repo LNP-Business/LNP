@@ -130,8 +130,6 @@
       return r.data;
     },
     me: async function () { var r = await sb.from("crm_members").select("*").eq("id", ctx.user.id).maybeSingle(); return r.data || null; },
-    // the signed-in person's token, for the LNP routes that act as them (web/api/academie.js: the correction by Claude)
-    token: async function () { var r = await sb.auth.getSession(); return r.data && r.data.session ? r.data.session.access_token : null; },
     subscribe: function (tables, fn) {
       var ch = sb.channel("crm-" + Math.random().toString(36).slice(2));
       tables.forEach(function (t) { ch.on("postgres_changes", { event: "*", schema: "public", table: t }, function (p) { fn(t, p); }); });
@@ -150,6 +148,8 @@
 
   // ---------------- screens: sign in, set a password, no access ----------------
   var CSS = ''
+    + '.skl-newver{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483001;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;background:#1E2A5E;color:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(12,19,48,.25);font:14px/1.4 Poppins,system-ui,sans-serif}'
+    + '.skl-newver button{font:inherit;font-weight:600;border:0;border-radius:9px;padding:6px 14px;background:#fff;color:#1E2A5E;cursor:pointer}'
     + '#skl-gate{position:fixed;inset:0;z-index:2147483000;background:#F7F8FB;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Poppins",system-ui,sans-serif;color:#1E2A5E}'
     + '#skl-gate .card{width:min(420px,100%);background:#fff;border:1px solid #E3ECFB;border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}'
     + '#skl-gate .logo{font-family:Poppins,Arial,sans-serif;font-size:30px;font-weight:600}#skl-gate .logo span{color:#5B8DF7}'
@@ -522,8 +522,39 @@
     draw();
   }
 
+  // ---------------- the version of the page (2026-11-08) ----------------
+  // A browser can show a page it kept in its cache, such as a tab it reopens when it starts: an older version than the one
+  // deployed, without the newer screens. The page carries its build id (web/build_web.py) and compares it with
+  // /version.json: at the opening it reloads once by itself; later (when the person comes back to the tab, at most every
+  // 10 min) it offers to reload, so nothing typed is lost.
+  var verAt = 0, verBar = null;
+  function newer(cb) {
+    var mine = window.SKL_BUILD; if (!mine || !window.fetch) return;
+    verAt = Date.now();
+    fetch("/version.json?t=" + verAt, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (v) { if (v && v.build && v.build !== mine) cb(v.build); }, function () {});
+  }
+  function offerReload() {
+    if (verBar || !document.body) return;
+    verBar = h("div", { "class": "skl-newver", role: "status" }, [
+      h("span", { text: "Une nouvelle version de LNP est disponible." }),
+      h("button", { type: "button", text: "Recharger", onclick: function () { location.reload(); } })]);
+    document.body.appendChild(verBar);
+  }
+  function watchVersion() {
+    newer(function (b) {
+      var k = "skl-reloaded-for", done = null;
+      try { done = sessionStorage.getItem(k); sessionStorage.setItem(k, b); } catch (e) {}
+      if (done === b) offerReload(); else location.reload();   // once only: never a reload loop
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && Date.now() - verAt > 600000) newer(offerReload);
+    });
+  }
+
   // ---------------- start ----------------
   function boot() {
+    watchVersion();
     var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
     if (!cfg.url || !cfg.anonKey || !window.supabase) return showGate("config");
     sb = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" } });
