@@ -90,10 +90,6 @@
     "api/mcp.js": {
       "maxDuration": 30,
       "includeFiles": "api/_kb.json"
-    },
-    "api/academie.js": {
-      "maxDuration": 60,
-      "includeFiles": "api/_academie.json"
     }
   }
 }

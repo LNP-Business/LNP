@@ -13,7 +13,6 @@ echo "1/3 Screens and modules"
 
 echo "3/3 Web edition (Vercel)"
 python3 web/build_web.py > /dev/null
-cp skl-os/training/academie_contenu.json web/api/_academie.json   # the 100 cases of Maîtrise de l'offre, for web/api/academie.js
 node web/kb/build_kb.mjs > /dev/null   # the page content the Claude connector reads (web/api/_kb.json)
 
 # Reference check: only meaningful while the sources are unchanged

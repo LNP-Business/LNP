@@ -28,9 +28,23 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   check('no trainer button for someone who is not an admin', await af.$eval('#coach', e => e.hidden), null);
   await p.screenshot({ path: OUT + '/academie-a1.png' });
 
-  // self-evaluation: 6.5 out of 10 (criteria ticked until 6.5)
-  await af.fill('#ta', 'Le seuil de la garantie, c’est le montant que tu as investi, pas un chiffre fixe : on le regarde ensemble.');
-  await af.click('[data-do="self"]');
+  // no correction by Claude: the answer is validated, then self-corrected (Romain 2026-11-08)
+  check('no correction by Claude', !(await af.$('[data-do="claude"]')) && !/Claude/.test(await af.textContent('#R')), null);
+  await af.click('[data-do="validate"]'); await p.waitForTimeout(50);
+  check('nothing written: « Valider » asks for an answer first', /Écris d’abord ta réponse/.test(await af.textContent('#R')) && !(await af.$('[data-tab="auto"]')), null);
+  const ANS = 'Le seuil de la garantie, c’est le montant que tu as investi, pas un chiffre fixe : on le regarde ensemble.';
+  await af.fill('#ta', ANS);
+  check('the Corrigé is closed before the answer is validated', await af.$eval('[data-tab="cor"]', e => e.disabled), null);
+  await af.click('[data-do="validate"]'); await p.waitForTimeout(50);
+  check('« Valider ma réponse » opens the auto-correction', (await af.getAttribute('[data-tab="auto"]', 'aria-selected')) === 'true', null);
+  check('the answer validated is shown beside the grid, not editable', (await af.textContent('.autoc .mine')).trim() === ANS && !(await af.$('#ta')) && (await af.$$('.autoc [data-chk]')).length >= 3, null);
+  await p.screenshot({ path: OUT + '/academie-auto.png' });
+  await af.click('[data-tab="rep"]'); await p.waitForTimeout(50);
+  check('the answer tab: locked, « Modifier ma réponse » offered', /Ta réponse est validée/.test(await af.textContent('#R')) && !!(await af.$('[data-do="edit"]')) && !(await af.$('#ta')), null);
+  await af.click('[data-tab="cor"]'); await p.waitForTimeout(50);
+  check('the Corrigé shows the answer to compare with the model', (await af.textContent('.cor .mine')).trim() === ANS && /Réponse modèle/.test(await af.textContent('.cor')), null);
+  await af.click('[data-tab="auto"]'); await p.waitForTimeout(50);
+  // self-evaluation: criteria ticked up to 6.5
   const maxes = await af.evaluate(() => LNP_ACADEMIE.CAS[0].attendus.map(a => a[0]));
   let sum = 0; for (let k = 0; k < maxes.length && sum < 6.5; k++) { if (sum + maxes[k] <= 6.5) { await af.click(`[data-chk="${k}"]`); sum += maxes[k]; } }
   await af.click('[data-do="saveself"]'); await p.waitForTimeout(200);
@@ -66,7 +80,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   check('it stops at −1:00 and offers « Relancer »', /Relancer/.test(await af.textContent('[data-do="chrono"]')), await af.textContent('[data-do="chrono"]'));
   await p.close();
 
-  // the 100 cases fit on one screen, answer and corrigé, at three sizes
+  // the 100 cases fit on one screen: answer, auto-correction and corrigé, at three sizes
   for (const [w, h] of [[1440, 900], [1366, 768], [1280, 720]]) {
     const { p: q, af: f } = await open(w, h);
     const res = await f.evaluate(async () => {
@@ -74,8 +88,9 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
       const over = (pane, inner) => inner.scrollHeight > pane.clientHeight + 1 || pane.scrollHeight > pane.clientHeight + 1;
       A.CAS.forEach(c => { A.REC.exos[c.id] = { best: 5, last: 5, tries: 1, mode: 'Auto-évaluation', at: '2026-11-06T10:00:00Z', feedback: { criteres: c.attendus.map((a, k) => ({ index: k + 1, points: 0, max: a[0], commentaire: '' })), eliminatoire: { declenche: false, raison: '' }, points_forts: '', a_corriger: '', phrase_a_retenir: '' } }; });
       for (let i = 0; i < A.CAS.length; i++) {
-        for (const tab of ['rep', 'cor']) {
+        for (const tab of ['rep', 'cor', 'auto']) {
           A.go(i); if (tab === 'cor') document.querySelector('[data-tab="cor"]').click();
+          if (tab === 'auto') { document.getElementById('ta').value = 'x'.repeat(600); document.getElementById('ta').dispatchEvent(new Event('input', { bubbles: true })); if (document.getElementById('tb')) { document.getElementById('tb').value = 'y'.repeat(600); document.getElementById('tb').dispatchEvent(new Event('input', { bubbles: true })); } document.querySelector('[data-do="validate"]').click(); }
           const L = document.getElementById('left'), R = document.getElementById('right');
           if (over(L, document.getElementById('L')) || over(R, document.getElementById('R'))) out.push(A.CAS[i].id + ':' + tab);
         }
@@ -83,7 +98,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
       const doc = document.documentElement; if (doc.scrollHeight > doc.clientHeight + 1) out.push('page');
       return out;
     });
-    check(`${w}×${h}: the 100 cases fit, answer and corrigé (${res.length} overflow)`, res.length === 0, res.slice(0, 12));
+    check(`${w}×${h}: the 100 cases fit, answer, auto-correction and corrigé (${res.length} overflow)`, res.length === 0, res.slice(0, 12));
     await q.close();
   }
   check('no console error', errs.length === 0, errs);

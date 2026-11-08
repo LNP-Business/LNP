@@ -14,7 +14,7 @@ const has = p => existsSync(new URL(p, ROOT));
 const SCREENS = [
   ["SalesCockpit", "salescockpit", "Ventes › Cockpit commercial", "the sales figures from lead to payment: funnel, show and close rates, money collected, pipeline, team"],
   ["Entrainement", "entrainement", "Entraînement › Découverte", "discovery training for the sales reps: « Le coup suivant » (choose the next SPIN gesture L1 to L4, write the question, compare to the reference) and « La lettre imposée » (three implication questions in a row)"],
-  ["Academie", "academie", "Entraînement › Maîtrise de l'offre", "the offer training (« Académie sales LNP »): 100 cases from real calls, answer the prospect (format A, 90 s) or review an excerpt (format B), marked by Claude or self-evaluated against the trainer's grid, validated at 8/10"],
+  ["Academie", "academie", "Entraînement › Maîtrise de l'offre", "the offer training (« Académie sales LNP »): 100 cases from real calls, answer the prospect (format A, 90 s) or review an excerpt (format B), the rep validates their answer, then self-corrects it against the trainer's grid and the corrigé, validated at 8/10"],
   ["Resultats", "resultats", "Entraînement › Mes résultats", "each person's training results, kept on their account and never deleted: training score out of 100, exercises, active time, history"],
   ["SuiviCommerciaux", "suivi", "Entraînement › Suivi des commerciaux", "admins only: per sales rep, the training score, exercises and time spent, next to their calls held, sales, revenue signed and collected"],
   ["SalesDay", "salesday", "Ventes › Ma journée", "the sales rep's day, one lead at a time: outcomes to declare, calls within 24 h, reschedules, no-shows, follow-ups"],

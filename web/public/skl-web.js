@@ -130,8 +130,6 @@
       return r.data;
     },
     me: async function () { var r = await sb.from("crm_members").select("*").eq("id", ctx.user.id).maybeSingle(); return r.data || null; },
-    // the signed-in person's token, for the LNP routes that act as them (web/api/academie.js: the correction by Claude)
-    token: async function () { var r = await sb.auth.getSession(); return r.data && r.data.session ? r.data.session.access_token : null; },
     subscribe: function (tables, fn) {
       var ch = sb.channel("crm-" + Math.random().toString(36).slice(2));
       tables.forEach(function (t) { ch.on("postgres_changes", { event: "*", schema: "public", table: t }, function (p) { fn(t, p); }); });

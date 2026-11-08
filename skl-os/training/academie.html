@@ -72,6 +72,11 @@ textarea:focus{outline:2px solid var(--vif);border-color:var(--vif)}
 .crit .pt.full{background:var(--oks);color:var(--ok)}.crit .pt.part{background:var(--mids);color:var(--mid)}.crit .pt.zero{background:var(--kos);color:var(--ko)}
 .crit .cm{grid-column:2;color:var(--mut);font-size:.95em}
 .fb{font-size:.8em}.fb b{color:var(--brand)}
+.mine{background:var(--soft);border:1px solid var(--line);border-radius:.6em;padding:.5em .7em;font-size:.82em;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink)}
+.mine.empty{color:var(--mut);font-style:italic}
+.cor .mine{max-height:5.2em;overflow:auto}.autoc .mine{max-height:24em;overflow:auto}
+.autoc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:.8em;align-items:start}
+.autoc .col{display:flex;flex-direction:column;gap:.45em;min-width:0}
 .self .chk{display:flex;gap:.5em;align-items:flex-start;font-size:.8em;padding:.25em 0;border-top:1px solid var(--line)}
 .self .chk input{margin-top:.25em}.self .chk em{font-style:normal;font-weight:700;white-space:nowrap;color:var(--brand)}
 .self .chk.red{color:var(--ko)}.self .chk.red em{color:var(--ko)}
@@ -107,7 +112,7 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
   body{overflow:auto;display:block}.bar{flex-wrap:wrap}
   .split,.split.wide{display:flex;flex-direction:column}
   .pane{overflow:visible;--fs:15px}#right .inner{height:auto}textarea{min-height:140px}
-  .cor,.explain,.memo{grid-template-columns:1fr}
+  .cor,.explain,.memo,.autoc{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -140,8 +145,7 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
   var CFG = D.config || { note_validation: 8, note_max: 10, chrono_format_A_secondes: 90 };
   var VALID = CFG.note_validation, MAX = CFG.note_max, CHRONO = CFG.chrono_format_A_secondes;
   var IDX = {}; CAS.forEach(function (c, i) { IDX[c.id.toLowerCase()] = i; });
-  // every attempt is also kept on the account, never deleted (Entraînement › Mes résultats, migration 049); a mark by Claude
-  // is written there by web/api/academie.js
+  // every attempt is also kept on the account, never deleted (Entraînement › Mes résultats, migration 049)
   var R = window.LNP_RESULTS || { mark: function () { return 0; }, since: function () { return 0; }, add: function () {}, newId: function () { return "r" + Date.now() + Math.random().toString(36).slice(2, 10); }, onChange: function () {}, pending: function () { return 0; } };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -157,7 +161,7 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
   var REC = lget(KEY, { exos: {}, updatedAt: null }); if (!REC.exos) REC = { exos: {}, updatedAt: null };
   var DRAFTS = lget(KD, {});
   var P = (function () { try { return window.parent !== window && window.parent.claude && window.parent.claude.web ? window.parent : null; } catch (e) { return null; } })();
-  var ACC = { crm: null, uid: null, admin: false, ok: false, writing: false, again: false, canClaude: !!P };
+  var ACC = { crm: null, uid: null, admin: false, ok: false, writing: false, again: false };
   var SYNC = "";
   function syncText(t) { if (t != null) SYNC = t; var q = R.online ? R.pending() : 0; document.getElementById("sync").textContent = SYNC + (q ? " · " + q + " résultat" + (q > 1 ? "s" : "") + " en attente d’envoi." : ""); }
 
@@ -262,6 +266,8 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
   function chronoText() { var s = S.left, neg = s < 0, a = Math.abs(s); return (neg ? "-" : "") + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0"); }
   function tabAnswer(c) {
     var d = draft(c.id), h;
+    if (S.self) return '<div class="lab">Ta réponse est validée</div><div class="help">Elle est figée le temps de ton auto-correction.</div>' + mine(c, d) +
+      '<div class="acts"><button type="button" class="btn p" data-do="toauto">Continuer l’auto-correction</button><button type="button" class="btn" data-do="edit">Modifier ma réponse</button></div>';
     if (c.fmt === "A") {
       h = '<div class="zone"><div class="lab">Ce que tu dis à ' + esc(lastSpeaker(c)) + '</div><div class="help">Écris-le comme tu le dirais en visio. Pour l’oral, lance le chrono et réponds à voix haute d’abord.</div>' +
         '<textarea id="ta" maxlength="4000" placeholder="Ta réponse…" aria-label="Ta réponse">' + esc(d.a) + "</textarea></div>";
@@ -270,23 +276,28 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
         '<textarea id="ta" maxlength="4000" placeholder="L2 : …" aria-label="Les erreurs que tu repères">' + esc(d.a) + "</textarea></div>" +
         '<div class="zone"><div class="lab">Ta réécriture des répliques fautives</div><textarea id="tb" maxlength="4000" placeholder="Ce que le sales aurait dû dire…" aria-label="Ta réécriture des répliques fautives">' + esc(d.b) + "</textarea></div>";
     }
-    h += '<div class="acts">' + (ACC.canClaude ? '<button type="button" class="btn p" data-do="claude"' + (S.busy ? " disabled" : "") + ">Faire corriger par Claude</button>" : "") +
-      '<button type="button" class="btn" data-do="self">M’auto-évaluer</button>' +
+    h += '<div class="acts"><button type="button" class="btn p" data-do="validate">Valider ma réponse</button>' +
       (c.fmt === "A" ? '<button type="button" class="btn" data-do="chrono">' + (S.chrono || S.chronoEnd ? "Relancer" : "Chrono 90 s") + '</button><span class="chrono' + (S.left < 0 ? " neg" : "") + '" id="chr">' + chronoText() + "</span>" : "") +
       '<span class="status' + (S.err ? " err" : "") + '" role="status">' + esc(S.msg) + "</span></div>";
     return h;
+  }
+  // the answer as written (validated, or of the last attempt), to compare with the grid and the corrigé
+  function mine(c, d) {
+    var one = function (lab, t) { t = String(t || "").trim(); return (lab ? '<div class="lab">' + lab + "</div>" : "") + '<div class="mine' + (t ? "" : " empty") + '">' + (t ? esc(t) : "Rien d’écrit.") + "</div>"; };
+    return c.fmt === "A" ? one("", d.a) : one("Les erreurs que tu as repérées", d.a) + one("Ta réécriture", d.b);
   }
   function selfForm(c) {
     var sum = 0, el = !!S.selfElim;
     c.attendus.forEach(function (a, k) { if (S.checks[k]) sum += a[0]; });
     var score = el ? 0 : Math.min(MAX, sum);
-    return '<div class="self"><div class="score"><span class="n">' + num(score) + " / 10</span></div>" +
-      '<div class="tx">Coche ce que ta réponse contient vraiment.</div><div class="acts"><button type="button" class="btn p" data-do="saveself">Enregistrer ma note</button></div>' +
+    return '<div class="autoc"><div class="col"><div class="lab">Ta réponse validée</div>' + mine(c, draft(c.id)) +
+      '<div class="help">Compare-la à la grille, et au corrigé si besoin (onglet Corrigé).</div></div>' +
+      '<div class="col self"><div class="score"><span class="n">' + num(score) + ' / 10</span><span class="sp"></span><button type="button" class="btn p" data-do="saveself">Enregistrer ma note</button></div>' +
+      '<div class="tx">Coche ce que ta réponse contient vraiment.</div>' +
       c.attendus.map(function (a, k) { return '<label class="chk"><input type="checkbox" data-chk="' + k + '"' + (S.checks[k] ? " checked" : "") + "><em>" + num(a[0]) + " pt</em><span>" + esc(a[1]) + "</span></label>"; }).join("") +
-      (c.fmt === "A" && (c.eliminatoire || []).length ? '<label class="chk red"><input type="checkbox" data-chk="elim"' + (el ? " checked" : "") + "><span>J’ai utilisé une formulation éliminatoire : " + esc(c.eliminatoire.join(" · ")) + "</span></label>" : "") + "</div>";
+      (c.fmt === "A" && (c.eliminatoire || []).length ? '<label class="chk red"><input type="checkbox" data-chk="elim"' + (el ? " checked" : "") + "><span>J’ai utilisé une formulation éliminatoire : " + esc(c.eliminatoire.join(" · ")) + "</span></label>" : "") + "</div></div>";
   }
   function tabResult(c) {
-    if (S.self) return selfForm(c);
     var e = REC.exos[c.id]; if (!e || !e.tries) return "";
     var f = e.feedback || {}, sc = e.last;
     var h = '<div class="score"><span class="n">' + num(sc) + " / 10</span>" + (sc >= VALID ? '<span class="pill ok">Validé</span>' : '<span class="pill mid">À retravailler · objectif 8/10</span>') +
@@ -303,17 +314,24 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
     return h;
   }
   function tabCorrige(c) {
+    var e = REC.exos[c.id], d = S.self ? draft(c.id) : e && e.tries ? { a: e.answer, b: e.answer2 } : null;
+    // one compact box (it scrolls inside when long), so the corrigé still holds on one screen
+    var both = d ? (c.fmt === "A" ? esc(String(d.a || "").trim()) : [["Erreurs", d.a], ["Réécriture", d.b]].filter(function (x) { return String(x[1] || "").trim(); })
+      .map(function (x) { return "<b>" + x[0] + " :</b> " + esc(String(x[1]).trim()); }).join("\n")) : "";
+    var yours = d ? '<div class="lab">' + (S.self ? "Ta réponse validée" : "Ta dernière réponse") + '</div><div class="mine' + (both ? "" : " empty") + '">' + (both || "Rien d’écrit.") + "</div>" : "";
     if (c.fmt === "A") {
-      return '<div class="cor"><div class="col"><table><thead><tr><th>Pts</th><th>Ce qu’on attend</th></tr></thead><tbody>' +
+      return '<div class="cor"><div class="col">' + yours + '<table><thead><tr><th>Pts</th><th>Ce qu’on attend</th></tr></thead><tbody>' +
         c.attendus.map(function (a) { return '<tr><td class="pt">' + num(a[0]) + "</td><td>" + esc(a[1]) + "</td></tr>"; }).join("") + "</tbody></table>" +
         ((c.eliminatoire || []).length ? '<div class="h3 red">Note à 0 si…</div><ul class="l">' + c.eliminatoire.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") + "</div>" +
         '<div class="col"><div class="h3">Réponse modèle</div><div class="model">' + bubbles(c.modele || [], false, false) + "</div>" +
         ((c.pieges || []).length ? '<div class="h3">Pièges</div><ul class="l">' + c.pieges.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
         (c.sources ? '<div class="src">Sources : ' + esc(c.sources) + "</div>" : "") + "</div></div>";
     }
-    return '<div class="cor"><div class="col"><table><thead><tr><th>Ligne</th><th>L’erreur</th><th>La règle</th><th>Ce qu’il fallait faire</th></tr></thead><tbody>' +
+    // format B: the answer goes on top of the shorter column
+    var len1 = JSON.stringify(c.erreurs || []).length, len2 = JSON.stringify([c.bienFait, c.bonus, c.reecriture, c.note]).length, y1 = len1 <= len2 ? yours : "", y2 = y1 ? "" : yours;
+    return '<div class="cor"><div class="col">' + y1 + '<table><thead><tr><th>Ligne</th><th>L’erreur</th><th>La règle</th><th>Ce qu’il fallait faire</th></tr></thead><tbody>' +
       (c.erreurs || []).map(function (x) { return '<tr><td class="pt">' + x.lignes.map(function (l) { return "L" + l; }).join(", ") + "</td><td>" + esc(x.erreur) + "</td><td>" + esc(x.regle) + "</td><td>" + esc(x.correction) + "</td></tr>"; }).join("") + "</tbody></table></div>" +
-      '<div class="col">' + (c.bienFait ? '<div class="fb"><b>Ce qui était bien :</b> ' + esc(c.bienFait) + "</div>" : "") + (c.bonus ? '<div class="fb"><b>Bonus :</b> ' + esc(c.bonus) + "</div>" : "") +
+      '<div class="col">' + y2 + (c.bienFait ? '<div class="fb"><b>Ce qui était bien :</b> ' + esc(c.bienFait) + "</div>" : "") + (c.bonus ? '<div class="fb"><b>Bonus :</b> ' + esc(c.bonus) + "</div>" : "") +
       '<div class="h3">Réécriture modèle</div><div class="model">' + bubbles(c.reecriture || [], false, false) + "</div>" +
       (c.note ? '<div class="nf">' + esc(c.note) + "</div>" : "") + (c.sources ? '<div class="src">Sources : ' + esc(c.sources) + "</div>" : "") + "</div></div>";
   }
@@ -321,11 +339,12 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
     var c = cur(), e = REC.exos[c.id], tried = !!(e && e.tries);
     var h = '<div class="mission"><b>Ta mission.</b> ' + esc(c.consigne) + "</div>";
     h += '<div class="tabs" role="tablist"><button type="button" role="tab" data-tab="rep" aria-selected="' + (S.tab === "rep") + '">Ta réponse</button>' +
-      '<button type="button" role="tab" data-tab="res" aria-selected="' + (S.tab === "res") + '"' + (tried || S.self ? "" : " disabled") + ">Résultat" + (tried ? " · " + num(e.last) : "") + "</button>" +
-      '<button type="button" role="tab" data-tab="cor" aria-selected="' + (S.tab === "cor") + '"' + (tried ? "" : " disabled") + ">Corrigé</button></div>";
-    h += '<div class="tbody">' + (S.tab === "rep" ? tabAnswer(c) : S.tab === "res" ? tabResult(c) : tabCorrige(c)) + "</div>";
+      (S.self ? '<button type="button" role="tab" data-tab="auto" aria-selected="' + (S.tab === "auto") + '">Auto-correction</button>' : "") +
+      '<button type="button" role="tab" data-tab="res" aria-selected="' + (S.tab === "res") + '"' + (tried ? "" : " disabled") + ">Résultat" + (tried ? " · " + num(e.last) : "") + "</button>" +
+      '<button type="button" role="tab" data-tab="cor" aria-selected="' + (S.tab === "cor") + '"' + (tried || S.self ? "" : " disabled") + ">Corrigé</button></div>";
+    h += '<div class="tbody">' + (S.tab === "rep" ? tabAnswer(c) : S.tab === "auto" && S.self ? selfForm(c) : S.tab === "res" ? tabResult(c) : tabCorrige(c)) + "</div>";
     document.getElementById("R").innerHTML = h;
-    document.getElementById("split").classList.toggle("wide", S.tab === "cor");
+    document.getElementById("split").classList.toggle("wide", S.tab === "cor" || S.tab === "auto");
   }
 
   // ------------------------------------------------------------------ tenir à l'écran : 16,5 px, puis -0,5 px, jusqu'à 10,5 px
@@ -347,41 +366,12 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
     S.m = R.mark();
   }
   function answered(c) { var d = draft(c.id); return String(d.a || "").trim().length > 20 || String(d.b || "").trim().length > 20; }
-  function normalize(c, o) {
-    var crit = c.attendus.map(function (a, k) {
-      var x = (o.criteres || []).filter(function (z) { return Number(z.index) === k + 1; })[0] || {}, p = half(x.points);
-      if (!isFinite(p)) p = 0;
-      return { index: k + 1, points: Math.max(0, Math.min(a[0], p)), max: a[0], commentaire: String(x.commentaire || "").slice(0, 500) };
-    });
-    var el = c.fmt === "A" && o.eliminatoire && o.eliminatoire.declenche === true ? { declenche: true, raison: String(o.eliminatoire.raison || "").slice(0, 500) } : { declenche: false, raison: "" };
-    var score = Math.min(MAX, crit.reduce(function (s, k) { return s + k.points; }, 0)); if (el.declenche) score = 0;
-    return { score: half(score), f: { criteres: crit, eliminatoire: el, points_forts: String(o.points_forts || "").slice(0, 500), a_corriger: String(o.a_corriger || "").slice(0, 500), phrase_a_retenir: String(o.phrase_a_retenir || "").slice(0, 350) } };
-  }
-  function correctByClaude() {
-    var c = cur();
-    if (!answered(c)) { S.msg = "Écris d’abord ta réponse, quelques phrases au moins."; S.err = true; return renderRight(), fit(); }
-    S.busy = true; S.msg = "Claude corrige avec la grille du formateur…"; S.err = false; renderRight(); fit();
-    var d = draft(c.id);
-    Promise.resolve().then(function () { return P.claude.use("crm"); }).then(function (crm) { return crm.token ? crm.token() : null; }).then(function (tok) {
-      return fetch(P.location.origin + "/api/academie", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + (tok || "") },
-        body: JSON.stringify({ id: c.id, answer: d.a || "", answer2: d.b || "", cid: R.newId(), duration_s: R.since(S.m) }) });
-    }).then(function (r) {
-      return r.json().catch(function () { return {}; }).then(function (b) { return { status: r.status, b: b }; });
-    }).then(function (x) {
-      S.busy = false;
-      if (cur() !== c) return;
-      if (x.status === 401 || x.status === 403) { ACC.canClaude = false; S.msg = "Correction par Claude indisponible ici : auto-évalue-toi."; S.err = true; return render(); }
-      if (x.status === 429) { S.msg = "Trop de corrections d’affilée : réessaie dans une minute."; S.err = true; return render(); }
-      if (x.status !== 200 || !x.b.feedback || !Array.isArray(x.b.feedback.criteres)) { S.msg = "La correction n’a pas abouti. Réessaie, ou auto-évalue-toi."; S.err = true; return render(); }
-      var n = normalize(c, x.b.feedback);
-      record(c, n.score, n.f, "Claude");
-      S.msg = ""; S.err = false; S.tab = "res"; S.justDone = true; render();
-    }, function () { S.busy = false; S.msg = "La correction n’a pas abouti. Réessaie, ou auto-évalue-toi."; S.err = true; render(); });
-  }
+  // « Valider ma réponse »: the answer is locked, then the auto-correction (Romain 2026-11-08: no correction by Claude)
   function startSelf() {
     var c = cur();
-    if (!answered(c)) { S.msg = "Écris d’abord ta réponse : c’est elle que tu vas évaluer."; S.err = true; return renderRight(), fit(); }
-    S.self = true; S.checks = {}; S.selfElim = false; S.tab = "res"; S.msg = ""; S.err = false; render();
+    if (!answered(c)) { S.msg = "Écris d’abord ta réponse, quelques phrases au moins : c’est elle que tu vas corriger."; S.err = true; return renderRight(), fit(); }
+    stopChrono(); lset(KD, DRAFTS);
+    S.self = true; S.checks = {}; S.selfElim = false; S.tab = "auto"; S.msg = ""; S.err = false; render();
   }
   function saveSelf() {
     var c = cur(), crit = c.attendus.map(function (a, k) { return { index: k + 1, points: S.checks[k] ? a[0] : 0, max: a[0], commentaire: "" }; });
@@ -407,11 +397,12 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
   // ------------------------------------------------------------------ événements
   document.getElementById("R").addEventListener("click", function (e) {
     var b = e.target.closest("button,input"); if (!b || b.disabled) return;
-    if (b.dataset.tab) { if (b.dataset.tab !== "res") S.self = false; S.tab = b.dataset.tab; S.justDone = false; S.msg = ""; renderRight(); fit(); return; }
+    if (b.dataset.tab) { S.tab = b.dataset.tab; S.justDone = false; S.msg = ""; renderRight(); fit(); return; }
     if (b.dataset.chk !== undefined) { if (b.dataset.chk === "elim") S.selfElim = b.checked; else S.checks[+b.dataset.chk] = b.checked; renderRight(); fit(); return; }
     var d = b.dataset.do;
-    if (d === "claude") correctByClaude();
-    else if (d === "self") startSelf();
+    if (d === "validate") startSelf();
+    else if (d === "toauto") { S.tab = "auto"; renderRight(); fit(); }
+    else if (d === "edit") { S.self = false; S.tab = "rep"; renderRight(); fit(); }
     else if (d === "saveself") saveSelf();
     else if (d === "chrono") chrono();
     else if (d === "retry") { S.tab = "rep"; S.justDone = false; renderRight(); fit(); }
@@ -440,7 +431,7 @@ ul.l{margin:0;padding-left:1.1em;font-size:.78em}ul.l li{margin:.1em 0}
       root.innerHTML = frame("Les 100 cas", '<div class="filters">' + f("fmt", [["all", "Tous"], ["A", "Format A"], ["B", "Format B"]]) + f("st", [["all", "Tous"], ["todo", "À faire"], ["redo", "À retravailler"], ["ok", "Validés"]]) + "</div>" +
         '<div class="explain"><div><b>Format A · À toi de répondre</b>Le prospect pose sa question : tu écris ce que tu lui dirais en visio. Chrono de 90 s pour l’oral.</div>' +
         '<div><b>Format B · Trouve l’erreur</b>Un extrait d’appel réel (prénoms modifiés) ou simulé : tu repères chaque erreur, la règle enfreinte, et tu réécris.</div>' +
-        "<div><b>Validation</b>Claude te note sur 10 avec la grille du formateur. Un cas est validé à 8/10. Tu en as validé " + v + " sur 100.</div></div>" +
+        "<div><b>Validation</b>Tu valides ta réponse, puis tu la corriges toi-même avec la grille du formateur et le corrigé. Un cas est validé à 8/10. Tu en as validé " + v + " sur 100.</div></div>" +
         (list.length ? '<div class="grid">' + list.map(function (c) {
           var e = REC.exos[c.id], s = stateOf(c.id), pill = s === "todo" ? '<span class="pill">À faire</span>' : '<span class="pill ' + (s === "ok" ? "ok" : "mid") + '">' + num(e.best) + "/10</span>";
           return '<button type="button" class="tile' + (c === cur() ? " cur" : "") + '" data-open="' + IDX[c.id.toLowerCase()] + '"><span class="t1"><span>' + esc(c.id) + " · " + stars(c.niveau) + "</span>" + pill + '</span><span class="tt">' + esc(c.titre) + "</span></button>";
