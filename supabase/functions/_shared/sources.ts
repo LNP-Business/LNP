@@ -46,6 +46,14 @@ export const whatsapp: IngestOptions = {
   },
 };
 
+// Funnel leads (quiz, VSL, webinar; any tool, Zapier, Make): long random token in the address (k=) or in the header x-lnp-token.
+export const funnel: IngestOptions = {
+  source: "funnel",
+  check: async (req, _raw, url) =>
+    await tokenMatches(req.headers.get("x-lnp-token"), env("FUNNEL_INBOUND_TOKEN")) ||
+    await tokenMatches(url.searchParams.get("k"), env("FUNNEL_INBOUND_TOKEN")),
+};
+
 // Whop: Standard Webhooks, HMAC-SHA256, 5-minute window.
 export const whop: IngestOptions = {
   source: "whop",

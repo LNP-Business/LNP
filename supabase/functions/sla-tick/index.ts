@@ -1,7 +1,8 @@
 // sla-tick: every 5 minutes (pg_cron, 006_crm_cron.sql) the Sales cycle SLAs v3 of every active cycle (docs/crm/18). The rules are
 // _shared/sla_rules.js, the same file the Sales cycle screen runs, with the settings of Settings › Alerts (crm_settings.sla_rules,
 // through crm_sla_settings: sources, SLAs on or off, thresholds, CRM and Slack).
-// 1. The CRM first (053, Romain 2026-11-09): every open miss (Bientôt dû, En retard, Critique) becomes an alert of the CRM
+// 1. The CRM first (053, Romain 2026-11-09): every open miss (Bientôt dû, En retard, Critique) becomes an alert of the CRM, and
+//    each late action of a setter (054, SE-1 … SE-10) an alert for that setter
 //    (crm_sync_sla_alerts): opened, moved up a level, closed by itself when the SLA stops. The sales rep sees the alerts of the
 //    cycles they own, an admin all of them (Alertes screen, badge, Ma journée).
 // 2. Slack, only for the SLAs switched on for Slack (off by default) and only when the secret SLACK_SALES_CYCLE_WEBHOOK_URL is
@@ -30,6 +31,16 @@ export async function tick(rpc: Rpc, post: ((text: string) => Promise<boolean>) 
       const iso = (h: number) => new Date(l.opened + h * 3600e3).toISOString();
       alerts.push({ key: `${c.id}:${b.id}:${Math.round(b.start * 60)}`, cycle_id: c.id, sla: b.id, kind: b.kind, level: b.level, name: b.name,
         detail: b.extra || null, target: b.target || null, started_at: iso(b.start), crossed_at: iso(b.at) });
+    }
+  }
+  // the setter's alerts (054): each lead in a setter status, its SE alerts, addressed to its setter (admins see them too)
+  const leads = ((await rpc("crm_setting_snapshot", {})) as Record<string, unknown>[]) || [];
+  for (const p of leads) {
+    const ms = (v: unknown) => (v ? Date.parse(String(v)) : NaN);
+    for (const b of SLA.setting({ status: p.status, due: ms(p.due_at), last: ms(p.last_at) }, now)) {
+      alerts.push({ key: `p:${p.id}:${b.id}:${Math.round(b.start / 60e3)}`, person_id: p.id, cycle_id: p.cycle_id || null, owner_id: p.setter_id || null,
+        sla: b.id, kind: b.kind, level: b.level, name: b.name, detail: SLA.SETTING[String(p.status)] || null, target: b.target || null,
+        started_at: new Date(b.start).toISOString(), crossed_at: new Date(b.at).toISOString() });
     }
   }
   const crm = await rpc("crm_sync_sla_alerts", { p_items: alerts });

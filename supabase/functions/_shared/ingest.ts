@@ -1,7 +1,7 @@
 // Ingestion: store the raw request in crm_webhook_log and answer fast (docs/crm/04-event-pipeline.md §1).
 // No parsing, mapping or matching here: the worker process-inbox (phase 2) does that from the stored row.
 
-export type Source = "iclosed" | "fathom" | "whatsapp" | "whop";
+export type Source = "iclosed" | "fathom" | "whatsapp" | "whop" | "funnel";
 
 export type LogRow = {
   source: Source;

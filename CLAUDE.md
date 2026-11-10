@@ -58,6 +58,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   prospects, un administrateur celles de toute l'équipe (`crm_sla_alerts_open`). Écran, pastille, bandeau et notification du
   navigateur : `app/alerts_module.js` + `gen_alertes.py` ; rappel en tête de Ma journée : `build.py` (`decorate`). Slack n'est
   qu'une copie facultative, éteinte par défaut (`sla_rules.js`). Test `node app/alertes_test.js $PWD/app/lnp.html <dossier>`.
+- Suivi du setter (Romain, 2026-11-09, `docs/crm/19-setting.md`, migration 054) : un statut setter par lead, gardé sur la
+  personne (`crm_people.setting_*`) ; actions `crm_setter_action`, réactions à iClosed par un déclencheur sur `crm_calls`, leads
+  des funnels par la fonction `lead-in` (`mappers/funnel.ts`, `crm_apply_leads`) ou « + Nouveau prospect » (`crm_create_lead`) ;
+  rôle `setter` ; alertes SE-1 à SE-10 (`sla_rules.js`, `sla-tick`). Écran Prospects et fiche : `app/crm/setting_ui.js` ; test
+  `node app/crm/setting_live.js $PWD/app/lnp.html <dossier>`.
 - Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `app/training/` injectées
   par `build.py`) :
   - Découverte : `entrainement.html`, ses cas `coup_lnp.json` et `lettre_lnp.json` ; test `training_test.js`.
@@ -99,7 +104,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données du CRM sont dans les tables `crm_*`
 (`web/supabase/003_crm_core.sql` et suivants), les écritures du navigateur passent par les fonctions `crm_*` (`004_crm_rpc.sql`).
 - Fonctions Edge (`supabase/functions/`, `verify_jwt = false`, chacune vérifie son jeton ou sa signature) : `iclosed-in`,
-  `fathom-in`, `whatsapp-in`, `whop-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
+  `fathom-in`, `whatsapp-in`, `whop-in`, `lead-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
   `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes du CRM toutes les 5 min, copie Slack en option), `callqa-llm`.
 - Messages : **WhatsApp Business seulement** (Romain, 2026-11-09 : pas de Sendblue). API officielle en coexistence,
   `whatsapp-in` + `mappers/whatsapp.ts` (`docs/crm/07-integration-whatsapp.md`, migration 052) ; le numéro WhatsApp Business de

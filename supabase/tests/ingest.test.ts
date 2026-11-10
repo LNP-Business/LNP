@@ -2,7 +2,7 @@
 import { verifyStandardWebhook } from "../functions/_shared/verify/standard-webhooks.ts";
 import { tokenMatches } from "../functions/_shared/verify/token.ts";
 import { LogRow, makeHandler, MAX_BODY } from "../functions/_shared/ingest.ts";
-import { iclosed, metaSignatureOk, whatsapp, whop } from "../functions/_shared/sources.ts";
+import { funnel, iclosed, metaSignatureOk, whatsapp, whop } from "../functions/_shared/sources.ts";
 
 function eq<T>(a: T, b: T, msg = "") {
   if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg} expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
@@ -106,6 +106,17 @@ Deno.test("whatsapp-in: token in the query string or Meta's signature, Meta's ad
   const ok = await handler(new Request("https://x/whatsapp-in?hub.mode=subscribe&hub.verify_token=wa-secret&hub.challenge=42", { method: "GET" }));
   eq([ok.status, await ok.text()], [200, "42"]);
   eq((await handler(new Request("https://x/whatsapp-in?hub.mode=subscribe&hub.verify_token=nope&hub.challenge=42", { method: "GET" }))).status, 403);
+});
+
+Deno.test("lead-in: token in the address or in x-lnp-token, never stored", async () => {
+  Deno.env.set("FUNNEL_INBOUND_TOKEN", "fn-secret");
+  const db = memory();
+  const handler = makeHandler(funnel, db);
+  eq((await handler(post("https://x/lead-in?k=fn-secret", '{"email":"a@x.com"}'))).status, 200);
+  eq((await handler(post("https://x/lead-in", '{"email":"a@x.com"}', { "x-lnp-token": "fn-secret" }))).status, 200);
+  eq((await handler(post("https://x/lead-in?k=nope", "{}"))).status, 401);
+  eq(JSON.stringify(db.rows).includes("fn-secret"), false);
+  eq(db.rows[0].source, "funnel");
 });
 
 Deno.test("whop-in: Standard Webhooks signature", async () => {

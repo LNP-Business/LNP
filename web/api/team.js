@@ -24,10 +24,10 @@ export default async function handler(req, res) {
       if (users.length < 200) break;
     }
     // the WhatsApp Business number of each person (crm_members, migration 052): it links their messages to them
-    const { data: crm } = await sb.from("crm_members").select("id, whatsapp_number");
-    const wa = {}; (crm || []).forEach(c => { wa[c.id] = c.whatsapp_number || ""; });
+    const { data: crm } = await sb.from("crm_members").select("id, whatsapp_number, role");
+    const wa = {}, fn = {}; (crm || []).forEach(c => { wa[c.id] = c.whatsapp_number || ""; fn[c.id] = c.role; });
     return send(res, 200, { me: me.id, screens: SCREENS, defaultAccess: DEFAULT_ACCESS, members: rows.map(r => { const s = seen[r.user_id] || {};
-      return Object.assign({}, r, { lastSignIn: s.lastSignIn, confirmed: s.confirmed, access: accessOf(s.user, r.role), whatsapp: wa[r.user_id] ?? null }); }) });
+      return Object.assign({}, r, { lastSignIn: s.lastSignIn, confirmed: s.confirmed, access: accessOf(s.user, r.role), whatsapp: wa[r.user_id] ?? null, crm_role: fn[r.user_id] ?? null }); }) });
   }
   if (req.method !== "POST") return send(res, 405, { error: "Méthode non autorisée." });
 
@@ -81,6 +81,14 @@ export default async function handler(req, res) {
     const { data, error } = await sb.rpc("crm_set_member_whatsapp", { p_member: t.user_id, p_number: String(b.number ?? "") });
     if (error) return send(res, 400, { error: /P0002/.test(error.code || "") ? "Cette personne n’a pas encore de fiche dans le CRM." : error.message });
     return send(res, 200, { whatsapp: data || "" });
+  }
+  if (b.action === "crmrole") {
+    // the person's job in the CRM (054): sales rep or setter; a setter sees the leads given to them and their setter alerts
+    const t = await target(b.user_id);
+    if (!t) return send(res, 404, { error: "Membre inconnu." });
+    const { data, error } = await sb.rpc("crm_set_member_role", { p_member: t.user_id, p_role: String(b.crm_role || "") });
+    if (error) return send(res, 400, { error: error.message });
+    return send(res, 200, { crm_role: data });
   }
   if (b.action === "reset") {
     const t = await target(b.user_id);

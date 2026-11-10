@@ -196,9 +196,51 @@
     { id: "DO-5", name: "Source silencieuse", stage: "Données et fiabilité", kind: "tech", needs: [], eval: false, unit: "h",
       start: "Aucune donnée d’une source qui devrait en envoyer", stop: "Une donnée de cette source", target: "aucun silence anormal", warn: null, late: 6, crit: null,
       esc: "Alerte à Romain (ex. 6 h sans événement iClosed un jour ouvré)", pending: "Mesure côté serveur à brancher.",
-      why: "Une source muette fausse tous les SLA qui en dépendent." }
+      why: "Une source muette fausse tous les SLA qui en dépendent." },
+
+    // ---------------- Setting · from the lead's arrival to the R1 held (054, brief setter Quiz & VSL). The clock starts at the
+    // deadline of the setter's current action (crm_people.setting_due_at, computed by the CRM for each status: 5 min within the
+    // setter's hours, the follow-up cadence, the day itself…); late and crit are the time allowed past that deadline.
+    { id: "SE-1", name: "Premier appel du setter", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "min", setting: ["a_contacter"],
+      start: "Lead reçu (quiz, VSL, quiz abandonné, webinaire), dans les heures du setter", stop: "Premier appel du setter", target: "5 min", warn: null, late: 10 * M, crit: 55 * M,
+      esc: "Au-delà de 1 h : critique", why: "Appelé dans les 5 minutes, un lead convertit plusieurs fois mieux ; après 30 minutes il est retourné à sa vie." },
+    { id: "SE-2", name: "WhatsApp après un appel sans réponse", stage: "Setting", kind: "sales", needs: ["messages"], eval: false, unit: "min",
+      start: "Appel du setter sans réponse", stop: "Message WhatsApp du setter", target: "dans la minute", warn: null, late: 15 * M, crit: null,
+      esc: "—", pending: "Mesurée quand les messages WhatsApp arriveront dans le CRM ; le setter note « Message de relance envoyé » en attendant.",
+      why: "Le prospect qui n’a pas décroché voit tout de suite qui l’appelle et pourquoi." },
+    { id: "SE-3", name: "Relance due", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["relance"],
+      start: "Heure de la tentative suivante (T0+2 h, fin de journée, J+1, J+2, J+4)", stop: "Tentative suivante notée", target: "à l’heure de la cadence", warn: null, late: 2, crit: 24,
+      esc: "Au-delà de 24 h : critique", why: "Six tentatives à des heures variées : la plupart des leads se joignent entre la 2e et la 5e." },
+    { id: "SE-4", name: "Six tentatives sans contact", stage: "Setting", kind: "form", needs: [], eval: false, applied: true, unit: "min",
+      start: "6e appel sans réponse", stop: "Lead classé injoignable, en nurture", target: "automatique", warn: null, late: null, crit: null,
+      esc: "—", pending: "Appliquée : le CRM classe le lead injoignable à la 6e tentative ; il n’est jamais supprimé et peut être repris.",
+      why: "Un lead n’est jamais abandonné avant 6 tentatives, et jamais perdu de vue après." },
+    { id: "SE-5", name: "Quiz abandonné", stage: "Setting", kind: "form", needs: [], eval: false, applied: true, unit: "h",
+      start: "Lead d’un quiz abandonné", stop: "WhatsApp et 2 appels sur 48 h", target: "48 h", warn: null, late: null, crit: null,
+      esc: "—", pending: "Appliquée : pour un quiz abandonné, la cadence est de 2 appels sur 48 h, puis le lead est classé injoignable.",
+      why: "Un lead tiède mérite un essai court, pas la cadence complète." },
+    { id: "SE-6", name: "Confirmation d’un RDV auto-booké", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["rdv_a_confirmer", "appel_confirmation"],
+      start: "RDV réservé seul (quiz, VSL, webinaire)", stop: "Appel de confirmation fait ou « OK » reçu", target: "1 h", warn: null, late: 1, crit: 3,
+      esc: "Au-delà de 4 h après la réservation : critique", why: "Un RDV non confirmé, c’est 40 à 50 % d’absences." },
+    { id: "SE-7", name: "Issue de l’appel setter notée", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["qualification"],
+      start: "Lead joint au téléphone", stop: "RDV posé ou non qualifié", target: "le jour même (21 h)", warn: null, late: 0, crit: 24,
+      esc: "Au-delà du lendemain : critique", why: "Chaque lead touché a son statut le jour même : le CRM dit vrai." },
+    { id: "SE-8", name: "Lead sans action", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["a_contacter", "relance", "qualification", "rdv_a_confirmer", "appel_confirmation", "rdv_pose", "reconfirmation", "a_replanifier", "absent_rattrapage"], from: "last",
+      start: "Dernière action du setter", stop: "Nouvelle action", target: "24 h", warn: null, late: 24, crit: 48,
+      esc: "Au-delà de 48 h : critique, aux administrateurs aussi", why: "Règle du brief : aucun lead sans action plus de 24 h ouvrées." },
+    { id: "SE-9", name: "Pas de « OK » à J−1", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["rdv_pose", "reconfirmation"],
+      start: "J−1 sans « OK », ou re-confirmation à faire", stop: "« OK » reçu ou appel de re-confirmation fait", target: "le jour même", warn: null, late: 0, crit: 2,
+      esc: "Au-delà de 2 h : critique", why: "Un lead silencieux la veille vient rarement : un appel le jour même le fait venir." },
+    { id: "SE-10", name: "RDV replanifié ou annulé", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["a_replanifier"],
+      start: "RDV annulé ou déplacé", stop: "Nouveau RDV posé en direct", target: "le jour même (21 h)", warn: null, late: 0, crit: 24,
+      esc: "Au-delà du lendemain : critique", why: "Re-booké le jour même, en direct, un RDV annulé se rattrape ; par lien, rarement." }
   ];
-  var STAGES = ["Présence", "Décision", "Encaissement", "Conversation", "Clôture et suivi long terme", "Données et fiabilité"];
+  // the setter's statuses (crm_people.setting_status, 054), as the CRM shows them
+  var SETTING = { a_contacter: "Lead à contacter", relance: "Relance", qualification: "Appel de qualification", rdv_a_confirmer: "RDV à confirmer",
+    appel_confirmation: "Appel de confirmation", rdv_pose: "RDV posé · OK attendu", rdv_confirme: "RDV confirmé", reconfirmation: "Re-confirmation",
+    a_replanifier: "À replanifier", absent_rattrapage: "Absent · rattrapage", transmis: "RDV tenu · au commercial", injoignable: "Injoignable · nurture",
+    non_qualifie: "Non qualifié · nurture" };
+  var STAGES = ["Setting", "Présence", "Décision", "Encaissement", "Conversation", "Clôture et suivi long terme", "Données et fiabilité"];
   var BY = {}, BASE = {};
   DEFS.forEach(function (d) {
     // the CRM is the base of the alerts (053); Slack is a copy, off by default (Romain 2026-11-09)
@@ -403,6 +445,22 @@
   function fmt(h) { return (h < 1 ? Math.round(h * 60) + " min" : h < 72 ? (Math.round(h * 10) / 10) + " h" : Math.round(h / 24 * 10) / 10 + " j").replace(".", ","); }
   // what a miss reads as: its own label (a count, a time before the call) or the time elapsed
   function said(b) { return b.label || fmt(b.elapsed); }
+  // the setter's alerts of one lead: p = {status, due (ms), last (ms)}; each SE switched on whose status matches and whose time
+  // past its start reaches its late threshold (crit after). start = the deadline of the current action, or the last action (SE-8).
+  function setting(p, now) {
+    var out = [];
+    if (!p || !p.status) return out;
+    DEFS.forEach(function (d) {
+      if (!d.setting || d.setting.indexOf(p.status) < 0 || !active(d.id, "screen")) return;
+      var start = d.from === "last" ? p.last : p.due;
+      if (start == null || isNaN(start)) return;
+      var el = (now - start) / 3600e3, lv = d.crit != null && el >= d.crit ? "crit" : d.late != null && el >= d.late ? "late" : null;
+      if (!lv) return;
+      out.push({ id: d.id, name: d.name, kind: d.kind, target: d.target, level: lv, start: start, at: start + (lv === "crit" ? d.crit : d.late) * 3600e3 });
+    });
+    return out;
+  }
   root.LNP_SLA = { DEFS: DEFS, BY: BY, BASE: BASE, STAGES: STAGES, SOURCES: SOURCES, get sources() { return Object.assign({}, SRC); },
-    configure: configure, active: active, status: status, evaluate: evaluate, worst: worst, fmt: fmt, said: said, RANK: RANK };
+    configure: configure, active: active, status: status, evaluate: evaluate, worst: worst, fmt: fmt, said: said, RANK: RANK,
+    SETTING: SETTING, setting: setting };
 })(typeof window !== "undefined" ? window : globalThis);

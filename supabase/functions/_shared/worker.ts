@@ -2,15 +2,16 @@
 import { MapResult } from "./canonical.ts";
 import { mapIclosed } from "./mappers/iclosed.ts";
 import { mapWhatsapp } from "./mappers/whatsapp.ts";
+import { mapFunnel } from "./mappers/funnel.ts";
 import { mapFathom } from "./mappers/fathom.ts";
 
 type Row = { id: number; source: string; body: string; auth_ok: boolean | null; received_at: string };
 export type Rpc = (fn: string, args: Record<string, unknown>) => Promise<unknown>;
 
 // sources with a mapper; the others stay "received" until their phase
-export const MAPPERS: Record<string, (raw: string, receivedAt: string) => MapResult> = { iclosed: mapIclosed, whatsapp: mapWhatsapp, fathom: mapFathom };
+export const MAPPERS: Record<string, (raw: string, receivedAt: string) => MapResult> = { iclosed: mapIclosed, whatsapp: mapWhatsapp, fathom: mapFathom, funnel: mapFunnel };
 // the database function that applies each source's items (005 for bookings, 052 for WhatsApp messages, 025 for recordings)
-export const APPLY: Record<string, string> = { iclosed: "crm_apply_items", whatsapp: "crm_apply_messages", fathom: "crm_apply_recordings" };
+export const APPLY: Record<string, string> = { iclosed: "crm_apply_items", whatsapp: "crm_apply_messages", fathom: "crm_apply_recordings", funnel: "crm_apply_leads" };
 // item types with their own database function, whatever the source (023: an iClosed lead's new name, email or phone)
 export const APPLY_TYPE: Record<string, string> = { contact_updated: "crm_apply_contact" };
 

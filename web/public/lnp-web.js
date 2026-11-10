@@ -392,12 +392,12 @@
       });
       card.appendChild(h("div", { "class": "inv" }, [h("label", { style: "flex:1" }, ["E-mail", em]), h("label", {}, ["Rôle", rs]), inv]));
       if (flash) card.appendChild(flash);
-      var tbl = h("table", {}, [h("thead", {}, [h("tr", {}, [h("th", { text: "Membre" }), h("th", { text: "Rôle" }), h("th", { text: "WhatsApp Business" }), h("th", { text: "" })])])]);
+      var tbl = h("table", {}, [h("thead", {}, [h("tr", {}, [h("th", { text: "Membre" }), h("th", { text: "Rôle" }), h("th", { text: "Fonction" }), h("th", { text: "WhatsApp Business" }), h("th", { text: "" })])])]);
       var tb = h("tbody", {}); tbl.appendChild(tb);
       card.appendChild(tbl);
-      tb.appendChild(h("tr", {}, [h("td", { colspan: "4", "class": "q", text: "Chargement…" })]));
+      tb.appendChild(h("tr", {}, [h("td", { colspan: "5", "class": "q", text: "Chargement…" })]));
       var data;
-      try { data = await api("GET"); } catch (e) { tb.textContent = ""; tb.appendChild(h("tr", {}, [h("td", { colspan: "4" }, [h("div", { "class": "err", text: e.message })])])); return; }
+      try { data = await api("GET"); } catch (e) { tb.textContent = ""; tb.appendChild(h("tr", {}, [h("td", { colspan: "5" }, [h("div", { "class": "err", text: e.message })])])); return; }
       tb.textContent = "";
       data.members.forEach(function (m) {
         var self = m.user_id === data.me;
@@ -418,10 +418,18 @@
           try { var j = await api("POST", { action: "whatsapp", user_id: m.user_id, number: wa.value }); wa.value = j.whatsapp || ""; m.whatsapp = wa.value; }
           catch (e) { draw(e.message); }
         });
+        // the job in the CRM (054): sales rep or setter; an admin stays admin
+        var fnc;
+        if (m.crm_role === "sales" || m.crm_role === "setter") {
+          fnc = h("select", { "aria-label": "Fonction de " + m.email }, [h("option", { value: "sales", text: "Commercial" }), h("option", { value: "setter", text: "Setter" })]);
+          fnc.value = m.crm_role;
+          fnc.addEventListener("change", async function () { try { await api("POST", { action: "crmrole", user_id: m.user_id, crm_role: fnc.value }); m.crm_role = fnc.value; } catch (e) { draw(e.message); } });
+        } else fnc = h("span", { "class": "s", text: m.crm_role === "admin" ? "Administrateur" : m.crm_role ? "Lecteur" : "—" });
         var last = m.lastSignIn ? "Dernière connexion le " + new Date(m.lastSignIn).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "Invité · ne s’est pas encore connecté";
         tb.appendChild(h("tr", {}, [
           h("td", {}, [h("div", { text: m.email + (self ? " (vous)" : "") }), h("div", { "class": "s", text: last })]),
           h("td", {}, [sel]),
+          h("td", {}, [fnc]),
           h("td", {}, [wa]),
           h("td", { style: "text-align:right;white-space:nowrap" }, self ? [] : [reset, " ", rm])]));
       });

@@ -281,7 +281,7 @@ test("LNP's screens and Settings: Page methods and alert rules", async () => {
   assert.match(await t("page_method", { screen: "CRM" }), /Page method · Ventes › CRM\n[\s\S]{40,}/);
   assert.match(await t("page_method", { screen: "Sales Day" }), /Ventes › Ma journée/);
   const bad = await c.callTool({ name: "page_method", arguments: { screen: "Weekly Review" } }); assert.ok(bad.isError); assert.match(text(bad), /No screen 'Weekly Review'/);
-  const al = await t("alert_rules"); assert.match(al, /41 SLAs on of 42/); assert.match(al, /SH-2 \| Premier contact du commercial \| Présence \| on \| measured \| 5 min \| 30 min \| 1 h \| CRM \|/);
+  const al = await t("alert_rules"); assert.match(al, /51 SLAs on of 52/); assert.match(al, /SE-1 \| Premier appel du setter \| Setting \| on \| measured/); assert.match(al, /SE-4 \| .+ \| applied by the CRM/); assert.match(al, /SH-2 \| Premier contact du commercial \| Présence \| on \| measured \| 5 min \| 30 min \| 1 h \| CRM \|/);
   assert.ok(!/CO-1 \|/.test(al), "SLAs switched off are left out by default"); assert.match(al, /DE-1 \| .+ \| CRM \+ Slack \|/); assert.match(al, /CA-1 \| .+ waiting for Liens et paiements Whop/);
   const all = await t("alert_rules", { include_off: true }); assert.match(all, /CO-1 \| Réponse à un message du prospect \| Conversation \| off/);
   for (const gone of ["os_overview", "okrs", "tasks", "my_day", "lnp_map", "task_create"]) assert.ok((await c.callTool({ name: gone, arguments: {} })).isError, gone + " is gone");

@@ -121,7 +121,7 @@ Deno.test("worker: maps, applies, ignores, rejects and fails per row", async () 
   const s = await processPending(rpc);
   eq(s, { rows: 5, processed: 2, ignored: 1, rejected: 1, failed: 1 });
   eq(calls.find((c) => c[0] === "crm_apply_contact")![1].p_inbox, 5, "a contact update goes to crm_apply_contact:");
-  eq(calls[0], ["crm_inbox_pending", { p_sources: ["iclosed", "whatsapp", "fathom"], p_limit: 50 }]);
+  eq(calls[0], ["crm_inbox_pending", { p_sources: ["iclosed", "whatsapp", "fathom", "funnel"], p_limit: 50 }]);
   const apply = calls.find((c) => c[0] === "crm_apply_items")!;
   eq(apply[1].p_inbox, 1);
   const marks = calls.filter((c) => c[0] === "crm_inbox_mark").map((c) => [c[1].p_inbox, c[1].p_status]);
@@ -156,3 +156,18 @@ Deno.test("whatsapp: received, sent from the app, statuses, history, STOP, ignor
   const im = mapWhatsapp(JSON.stringify(img), "2026-11-09T09:00:05Z");
   eq("items" in im && [im.items[0].content, im.items[0].data.kind], ["ma fiche de paie", "image"]);
 });
+
+import { funnelPhone, funnelSource, mapFunnel } from "../functions/_shared/mappers/funnel.ts";
+Deno.test("funnel: a lead of the quiz, the VSL, an abandoned quiz or a webinar, whatever the tool's field names", () => {
+  const q = mapFunnel(JSON.stringify({ source: "Quiz LNP", email: "Lea@X.com", telephone: "06 12 34 56 78", prenom: "Léa", nom: "Martin",
+    answers: { matiere: "SVT" }, id: "sub_1", submitted_at: "2026-11-10T09:00:00Z" }), "2026-11-10T09:00:05Z");
+  if (!("items" in q)) throw new Error("not mapped");
+  eq([q.items[0].type, q.items[0].source_id, q.items[0].identity, q.items[0].data.source, (q.items[0].data.answers as Record<string, string>).matiere, q.items[0].occurred_at],
+     ["lead_in", "funnel:quiz:sub_1", { email: "lea@x.com", phone: "+33612345678", name: "Léa Martin" }, "quiz", "SVT", "2026-11-10T09:00:00.000Z"]);
+  eq([funnelSource("VSL opt-in"), funnelSource("quiz abandonné"), funnelSource("Webinar"), funnelSource("")], ["vsl", "quiz_abandon", "webinaire", "quiz"]);
+  eq(funnelPhone("0033612345678"), "+33612345678");
+  const two = mapFunnel(JSON.stringify([{ email: "a@x.com", booked: "oui", funnel: "vsl" }, { name: "no contact" }]), "2026-11-10T09:00:00Z");
+  eq("items" in two && [two.items.length, two.items[0].data.booked, two.items[0].source_id], [1, true, "funnel:vsl:a@x.com:2026-11-10"]);
+  eq("ignored" in mapFunnel('{"name":"nobody"}', "2026-11-10T09:00:00Z"), true);
+});
+

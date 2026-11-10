@@ -45,7 +45,7 @@ const screens = SCREENS.map(([file, key, where, about]) => ({ screen: file, key,
 await import(new URL("supabase/functions/_shared/sla_rules.js", ROOT).href);
 const L = globalThis.LNP_SLA;
 const sla = L.DEFS.map(d => ({ id: d.id, name: d.name, stage: d.stage, kind: d.kind, target: d.target, warn: d.warn, late: d.late, crit: d.crit,
-  needs: d.needs || [], measured: !!d.eval, pending: d.pending || "" }));
+  needs: d.needs || [], measured: !!d.eval, applied: !!d.applied, pending: d.pending || "" }));
 const sources = L.SOURCES.map(s => ({ id: s.id, name: s.name }));
 const kb = { built_from: "LNP sources (build.sh stage 4)", screens, sla, sources };
 writeFileSync(new URL("web/api/_kb.json", ROOT), JSON.stringify(kb));

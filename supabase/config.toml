@@ -30,3 +30,7 @@ verify_jwt = false
 # Sales cycle SLAs to Slack (028): called every 5 minutes by pg_cron, takes no input, answers counts only.
 [functions.sla-tick]
 verify_jwt = false
+
+# Funnel leads (quiz, VSL, webinar) for the setter: checks its own token (054).
+[functions.lead-in]
+verify_jwt = false

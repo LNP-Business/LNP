@@ -141,6 +141,7 @@ Deno.test("sla-tick: every open miss becomes an alert of the CRM; Slack only for
   let synced: any[] = [];
   const rpc = (fn: string, args: Record<string, unknown>) => {
     if (fn === "crm_sla_snapshot") return Promise.resolve([snap]);
+    if (fn === "crm_setting_snapshot") return Promise.resolve(leads);
     // deno-lint-ignore no-explicit-any
     if (fn === "crm_sync_sla_alerts") { synced = args.p_items as any[]; return Promise.resolve({ opened: synced.length }); }
     // deno-lint-ignore no-explicit-any
@@ -149,11 +150,15 @@ Deno.test("sla-tick: every open miss becomes an alert of the CRM; Slack only for
   };
   const post = (t: string) => { posts.push(t); return Promise.resolve(true); };
   const now = Date.parse("2026-10-30T06:00:00Z");
+  // a setter's lead: to call since 20 min past its deadline (SE-1 late), no action for 30 h (SE-8 late)
+  const leads = [{ id: "p1", setter_id: "s1", status: "a_contacter", due_at: "2026-10-30T05:40:00Z", last_at: "2026-10-29T00:00:00Z", cycle_id: null }];
   // the CRM: SH-2 (no personal message after 1 h, critical) and CO-5 (the automatic message left at 06:01 in Paris)
   const out = await tick(rpc, null, now, { since: "2026-10-30T07:00:00Z", sla_rules: {} });
   eq([out.posted, posts.length], [false, 0], "no Slack without a webhook:");
   const sh2 = synced.find((x) => x.sla === "SH-2"), co5 = synced.find((x) => x.sla === "CO-5");
   eq([sh2?.level, sh2?.kind, sh2?.key, sh2?.started_at, co5?.kind], ["crit", "sales", `${snap.id}:SH-2:0`, snap.opened_at.replace("Z", ".000Z"), "tech"]);
+  const se1 = synced.find((x) => x.sla === "SE-1"), se8 = synced.find((x) => x.sla === "SE-8");
+  eq([se1?.level, se1?.owner_id, se1?.person_id, se1?.detail, se8?.level], ["late", "s1", "p1", "Lead à contacter", "late"], "the setter's alerts:");
   // Slack is off by default: nothing posted, even with a webhook
   eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, alerts: { opened: synced.length }, new: 0, posted: false }, "Slack off by default:");
   const on = { rules: { "SH-2": { slack: true }, "CO-5": { slack: true } } };

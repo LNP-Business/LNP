@@ -175,7 +175,7 @@
               '<b><span class="code">' + esc(x.sla) + '</span> · ' + esc(x.name) + '</b>' +
               '<span class="meta">' + esc(since ? since + " " + (x.detail || "") : x.detail || "") + (x.target ? " · objectif " + esc(x.target) : "") +
               (all ? " · " + esc(x.owner || "sans commercial attitré") : "") + '</span></div>' +
-              (x.kind === "tech" ? "<span></span>" : '<button type="button" data-open="' + esc(x.cycle_id) + '">Ouvrir la fiche</button>') + '</div>';
+              (x.kind === "tech" ? "<span></span>" : '<button type="button" data-open="' + esc(x.cycle_id || ("p-" + x.person_id)) + '">Ouvrir la fiche</button>') + '</div>';
           });
           h += '</section>';
         });

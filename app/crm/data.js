@@ -144,7 +144,7 @@
   }
 
   var CYCLE_COLS = "id,status,origin,opened_at,closed_at,close_reason,current_stage,stage_entered_at,calls_held,no_shows," +
-    "sales_attempts,last_prospect_at,last_sales_at,last_event_at,next_move,owner_id,person:crm_people(id,full_name,primary_email,primary_phone,first_seen_at)";
+    "sales_attempts,last_prospect_at,last_sales_at,last_event_at,next_move,owner_id,person:crm_people(id,full_name,primary_email,primary_phone,first_seen_at,setter_id,lead_source,quiz,setting_status,setting_since,setting_last_action,setting_last_at,setting_due_at,setting_attempts)";
 
   window.LNP_CRM = {
     mode: function () { return mode; },
@@ -192,7 +192,7 @@
       await ready();
       if (mode !== "live") return [];
       return all(function () {
-        return api.from("crm_people_without_cycle").select("id,full_name,primary_email,primary_phone,created_at,iclosed_status,last_event_at,first_seen_at")
+        return api.from("crm_people_without_cycle").select("id,full_name,primary_email,primary_phone,created_at,iclosed_status,last_event_at,first_seen_at,setter_id,lead_source,quiz,setting_status,setting_since,setting_last_action,setting_last_at,setting_due_at,setting_attempts")
           .order("first_seen_at", { ascending: false }).order("id");
       });
     },
@@ -257,6 +257,10 @@
     salesCockpit: function () { return call("crm_sales_cockpit", {}); },
     // Cockpit commercial › Exécution, Qualité, Impact (050_crm_sales_execution.sql): the delays, reactivation, interactions,
     // quality and impact of a period (7 to 365 days), for every visible cycle or one sales rep's
+    // the setter's follow-up of a lead (054): an action of the setter, the setter of a lead (admins), a lead entered by hand
+    setterAction: function (personId, action, note) { return call("crm_setter_action", { p_person: personId, p_action: action, p_note: note || null }); },
+    setSetter: function (personId, memberId) { return call("crm_set_setter", { p_person: personId, p_member: memberId || null }); },
+    createLead: function (name, email, phone, source) { return call("crm_create_lead", { p_name: name || "", p_email: email || "", p_phone: phone || "", p_source: source || "manuel" }); },
     // the alerts of the CRM (053): the open ones the person may see, and the count closed today
     slaAlerts: function (owner) { return call("crm_sla_alerts_open", { p_owner: owner || null }); },
     // live changes of the alerts (Realtime); returns an unsubscribe function

@@ -23,7 +23,7 @@ export function pageMethod(u, ctx, { screen }) {
 }
 
 // ---------------- Settings › Alerts ----------------
-// The 42 Sales cycle SLAs (catalogue in _kb.json, from supabase/functions/_shared/sla_rules.js) with the settings Settings ›
+// The Sales cycle SLAs, the setter's included (catalogue in _kb.json, from supabase/functions/_shared/sla_rules.js) with the settings Settings ›
 // Alerts saves (crm_settings.sla_rules, 044: sources connected, per SLA on, warn / late / crit in hours, app = alerts of the CRM,
 // slack = copy to Slack, off by default since 053). The alerts open now are in clocks_running.
 const hrs = h => h == null ? "—" : h < 1 ? Math.round(h * 60) + " min" : h < 48 ? (Math.round(h * 10) / 10) + " h" : Math.round(h / 24) + " d";
@@ -34,7 +34,7 @@ export async function alertRules(u, ctx, { include_off }) {
   const all = (KB.sla || []).map(d => {
     const r = rules[d.id] || {}, on = r.on === undefined ? true : !!r.on;
     const missing = (d.needs || []).filter(n => !src[n]);
-    const state = !d.measured ? (d.kind === "indicator" ? "indicator (Cockpit)" : "not measured yet") : missing.length ? "waiting for " + missing.map(n => srcName[n] || n).join(", ") : "measured";
+    const state = d.applied ? "applied by the CRM" : !d.measured ? (d.kind === "indicator" ? "indicator (Cockpit)" : "not measured yet") : missing.length ? "waiting for " + missing.map(n => srcName[n] || n).join(", ") : "measured";
     const v = k => (r[k] != null ? Number(r[k]) : d[k]);
     const where = [(r.app === undefined ? true : !!r.app) ? "CRM" : "", r.slack ? "Slack" : ""].filter(Boolean).join(" + ") || "nowhere";
     return { id: d.id, name: d.name, stage: d.stage, on, state, target: d.target || "—", late: hrs(v("late")), crit: hrs(v("crit")), where };

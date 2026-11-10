@@ -123,7 +123,7 @@ crm = crm.replace('</body>', ASK + '</body>', 1) if '</body>' in crm else crm + 
 # would vanish on reload. As a plain file or an Artifact nothing changes: the board stays empty.
 LIVE = ('<script>(function(){'
   'var LIVE=false,TIMER=null,DAY=864e5;'
-  'var WRITES={nxpick:1,nxclear:1,nxdone:1,warm:1,stnew:1,stedit:1,stdel:1,rdvheld:1,rdvnoshow:1,cxnew:1,cxmock:1};'
+  'var WRITES={nxpick:1,nxclear:1,nxdone:1,warm:1,stnew:1,stedit:1,stdel:1,rdvheld:1,rdvnoshow:1,cxmock:1};'
   'function day0(d){var x=new Date(d);x.setHours(0,0,0,0);return x}'
   'function dd(iso){return iso?Math.round((day0(iso)-day0(Date.now()))/DAY):null}'
   'function hm(iso){var d=new Date(iso);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}'
@@ -151,14 +151,14 @@ LIVE = ('<script>(function(){'
     'var hist=[{st:"nouveau",d:dd(c.opened_at),src:"bookings",r:null}];'
     '(c.events||[]).forEach(function(e){var h=EVST[e.type];if(!h)return;hist.push({st:h,d:dd(e.occurred_at),src:e.source==="iclosed"?"bookings":"sales",r:e.call_id?byCall[e.call_id]||null:null})});'
     'var nmk=c.next_move&&c.next_move.code,nx=nmk==="rebook"?{k:"resched",d:0}:nmk==="follow_up"?{k:"relance",d:0}:null;'
-    'var l={id:c.id,p:p.full_name||p.primary_email||p.primary_phone||"—",em:p.primary_email||"",o:o,st:st,prod:null,'
+    'var l={id:c.id,set:window.lnpSetOf?lnpSetOf(c.person):null,p:p.full_name||p.primary_email||p.primary_phone||"—",em:p.primary_email||"",o:o,st:st,prod:null,'
       'a:c.deal&&c.deal.amount_sold?Number(c.deal.amount_sold):0,age:Math.max(0,-dd(c.stage_entered_at||c.opened_at)),'
       'born:dd(p.first_seen_at||c.opened_at),last:dd(c.last_event_at||c.opened_at),tour:MVN||Math.max(1,(call&&call.rank)||all.length||1),mv:MV?(MV.data||{}).to:null,ns:c.no_shows||0,loss:loss,tent:0,rel:{n:0},'
       'rdv:!MVN&&call&&call.scheduled_start?{d:dd(call.scheduled_start),h:hm(call.scheduled_start)}:null,'
       'warm:[false,false,false],nx:nx,note:((c.events||[]).filter(function(e){return e.type==="note"}).pop()||{}).content||"",inv:c.deal&&c.deal.amount_sold?Number(c.deal.amount_sold):0,cur:c.deal&&c.deal.currency||"EUR",plan:c.deal&&c.deal.payment_plan||"",sched:c.deal&&c.deal.schedule||null,col:(c.payments||[]).reduce(function(s,x){return s+Number(x.amount||0)-Number(x.refunded_amount||0)},0),pays:c.payments||[],stg:c.current_stage||null,hist:hist,tr:held||(call&&dd(call.scheduled_start)<0)?"none":undefined,live:true};'
     'return l}'
   # people who never booked (no cycle): status "No booking", their iClosed status as the note; nothing to save for them
-  'function toNoBooking(p){return{id:"p-"+p.id,p:p.full_name||p.primary_email||p.primary_phone||"—",em:p.primary_email||"",o:"none",st:"nobook",prod:null,'
+  'function toNoBooking(p){return{id:"p-"+p.id,set:window.lnpSetOf?lnpSetOf(p):null,p:p.full_name||p.primary_email||p.primary_phone||"—",em:p.primary_email||"",o:"none",st:"nobook",prod:null,'
     'a:0,age:Math.max(0,-dd(p.first_seen_at||p.created_at)),born:dd(p.first_seen_at||p.created_at),last:dd(p.first_seen_at||p.created_at),tour:1,ns:0,tent:0,rel:{n:0},rdv:null,warm:[false,false,false],nx:null,'
     'note:p.iclosed_status?"iClosed : "+p.iclosed_status:"",inv:0,col:0,hist:[{st:"nobook",d:dd(p.first_seen_at||p.created_at),src:"import",r:null}],tr:"none",live:true}}'
   # the board draws the cycles as soon as they are in (calls, messages and events follow: a slow connection took minutes,
@@ -177,7 +177,7 @@ LIVE = ('<script>(function(){'
     'function paint(cycles,r){if(n!==LOADS)return;'
       'LEADS.length=0;cycles.forEach(function(c){var l=toLead(c,keys);projectCycle(l);LEADS.push(l)});r[1].forEach(function(p){LEADS.push(toNoBooking(p))});'
       'var PAL=["#7A4B00","#1F6A66","#6B4FA0","#2D5C9C","#8A2D3B"],reps={none:["Non attribué","#8E8A80"]};r[0].forEach(function(m,i){reps[m.member_key]=[m.full_name,PAL[i%PAL.length]]});'
-      'var me=r[2]||{},rs=(r[3]||[]).filter(function(x){return x.active&&!x.automatic}),rl=function(k){return rs.filter(function(x){return x.kind===k}).map(function(x){return [x.code,C.reasonLabel?C.reasonLabel(x.code,x.label):x.label]})};'
+      'var me=r[2]||{};window.LNP_SETCTX={me:me,members:r[0]||[]};var rs=(r[3]||[]).filter(function(x){return x.active&&!x.automatic}),rl=function(k){return rs.filter(function(x){return x.kind===k}).map(function(x){return [x.code,C.reasonLabel?C.reasonLabel(x.code,x.label):x.label]})};'
       'if(C.salesCycleView)window.lnpScData={leads:C.salesCycleView(cycles,r[0],Date.now()),reps:reps,now:Date.now(),role:me.role||null,reasons:rs.length?{no:rl("lost"),dq:rl("disqualified")}:null,sla:r[4]||{}};'
       'if(typeof lnpCyclePush==="function")lnpCyclePush(true);'
       'renderAll();if(S.cx.lead&&byD(S.cx.lead.id))renderLead()}'
@@ -186,7 +186,7 @@ LIVE = ('<script>(function(){'
       'var r=await meta;prep(r);var cycles=await board;full=true;paint(cycles,r);if(n===LOADS)loadMsg(null)'
     '}catch(err){full=true;console.error(err);if(n===LOADS)loadMsg("Impossible de charger les prospects : "+String(err&&err.message||err),function(){load(C)})}'
     'function prep(r){r[0].forEach(function(m){keys[m.id]=m.member_key;if(!SALES.some(function(s){return s.id===m.member_key}))SALES.push({id:m.member_key,name:m.full_name,ini:(m.full_name||"?").charAt(0),color:"#5E5B53",camp:"atlas",email:"",calls:0,won:0,close:0,cpc:0,cash:0,show:0})})}}'
-  'window.lnpCrmLive=function(C){LIVE=true;window.lnpCrmDeclare=function(callId,p){return C.declareOutcome(callId,p).then(function(){return load(C)})};'
+  'window.lnpCrmLive=function(C){LIVE=true;window.lnpCrmC=C;window.lnpCrmReload=function(){return load(C)};window.lnpCrmDeclare=function(callId,p){return C.declareOutcome(callId,p).then(function(){return load(C)})};'
   # moves of CRM › Pipeline with no call to declare (045, outcome_ui.js › lnpMove), and the note of the lead record's « À faire »
   'window.lnpCrmClose=function(id,d,r,n){return C.closeCycle(id,d,r,n).then(function(){return load(C)})};'
   'window.lnpCrmReopen=function(id,quiet){return C.reopenCycle(id).then(function(){return quiet?null:load(C)})};'
@@ -251,7 +251,7 @@ for a, b in [('const STG=["nouveau","planifie","noshow","realise","close","perdu
              ('  const count=`<span class="cx-count">',
               '  const born=`<select class="sel" id="cxBorn" data-act="cxborn" aria-label="${t("cx_born_all")}">${["all","7","30"].map(v=>`<option value="${v}" ${X.born===v?"selected":""}>${t("cx_born_"+v)}</option>`).join("")}</select>`;\n  const count=`<span class="cx-count">'),
              ('${search}${reps}${acts}${count}', '${search}${reps}${born}${acts}${count}'),
-             ('${search}${reps}${st}${tr}', '${search}${reps}${born}${st}${tr}'),
+             ('${search}${reps}${st}${tr}', '${search}${reps}${window.lnpSetFilter?lnpSetFilter(X.setf):""}${born}${st}${tr}'),
              ('    if(X.owner!=="all"&&l.o!==X.owner)return false;\n',
               '    if(X.owner!=="all"&&l.o!==X.owner)return false;\n    if(X.born!=="all"&&!(l.born!=null&&l.born>=-Number(X.born)))return false;\n'),
              ('  if(a==="cxowner"){X.owner=el.value; renderCRM();}', '  if(a==="cxowner"){X.owner=el.value; renderCRM();}\n  if(a==="cxborn"){X.born=el.value; renderCRM();}'),
@@ -503,7 +503,7 @@ for a, b in [
     ('${C.nx?th("nx",t("cx_th_nx")):""}</tr></thead>', '${C.nx?th("nx",t("cx_th_nx")):""}<th class="cx-th">Analyse</th></tr></thead>'),
     ('${C.nx?`<td class="cx-tdnx">${nxHtml(l)}</td>`:""}</tr>`).join("");',
      '${C.nx?`<td class="cx-tdnx">${nxHtml(l)}</td>`:""}<td>${typeof LNP_CA!=="undefined"?LNP_CA.chip(l.id):""}</td></tr>`).join("");'),
-    ('<td colspan="11" class="empty">', '<td colspan="12" class="empty">'),
+    ('<td colspan="11" class="empty">', '<td colspan="15" class="empty">'),
     # the lead record (Romain 2026-10-26): its Prospect analysis tab lists the lead's R1 / R2 calls and opens their analysis
     ('  const body=Lx.tab==="analyse"\n    ?(hasTr?renderAnalysis(l)',
      '  const body=Lx.tab==="analyse"\n    ?(l.live&&typeof LNP_CA!=="undefined"?LNP_CA.leadPanel(l.id):hasTr?renderAnalysis(l)'),
@@ -551,11 +551,16 @@ FEED = ('<script>' + (ROOT / 'app' / 'crm' / 'lead_feed.js').read_text(encoding=
         '.lf-side .lf{flex:1;min-height:0}.lf-side .lf-ls{flex:1;min-height:0}.lf-main{display:flex;flex-direction:column;gap:22px;min-width:0}'
         '@media(max-width:1100px){.lf-grid{grid-template-columns:1fr}.lf-side{position:static;height:auto;max-height:560px}}</style>")</script>')
 crm = crm.replace('</body>', FEED + '</body>', 1) if '</body>' in crm else crm + FEED
+# ---- the setter's follow-up of each lead (054, Romain 2026-11-09): Prospects shows the setter step, the last action and the
+# current action with its deadline, with a filter; the lead record has a « Setting » panel with the status's actions (setting_ui.js)
+SETTING = '<script>' + (ROOT / 'app' / 'crm' / 'setting_ui.js').read_text(encoding='utf-8') + '</script>'
+crm = crm.replace('</body>', SETTING + '</body>', 1) if '</body>' in crm else crm + SETTING
 for a, b in [
     ('    <div class="cx-mbody"><div class="cx-main">\n      <div class="cx-tl" id="cxTl"></div>',
      '    <div class="cx-mbody"><div class="cx-main">\n      ${l.live&&window.LNP_LEADFEED&&lnpLfView(l.id)?`<div class="lf-grid"><aside class="lf-side">${LNP_LEADFEED.feed(lnpLfView(l.id),{newest:true,calls:false})}</aside><div class="lf-main">${LNP_LEADFEED.todo(lnpLfView(l.id),{ro:lnpRo()})}`:`<div class="cx-tl" id="cxTl"></div>`}'),
     ('      ${body}`}\n    </div></div>', '      ${body}`}${l.live&&window.LNP_LEADFEED&&lnpLfView(l.id)?"</div></div>":""}\n    </div></div>'),
-    ('  lnpTimeline(l);\n', '  lnpTimeline(l);if(window.LNP_LEADFEED)LNP_LEADFEED.settle(document);\n')]:
+    ('  lnpTimeline(l);\n', '  lnpTimeline(l);if(window.LNP_LEADFEED)LNP_LEADFEED.settle(document);\n'),
+    ('    <div class="cx-mbody"><div class="cx-main">\n      ${l.live&&window.LNP_LEADFEED', '    <div class="cx-mbody"><div class="cx-main">\n      ${l.live&&window.lnpSetPanel?lnpSetPanel(l):""}${l.live&&window.LNP_LEADFEED')]:
     assert crm.count(a) == 1, a[:60]
     crm = crm.replace(a, b)
 for a, b in [

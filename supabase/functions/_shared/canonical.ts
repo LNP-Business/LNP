@@ -1,6 +1,6 @@
 // The canonical item every mapper produces (docs/crm/04-event-pipeline.md §2).
 export type Canonical = {
-  source: "iclosed" | "fathom" | "whatsapp" | "whop";
+  source: "iclosed" | "fathom" | "whatsapp" | "whop" | "funnel";
   source_id: string;
   type: string;
   occurred_at: string;

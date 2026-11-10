@@ -820,7 +820,7 @@ Object.assign(DICT.fr,{
  cx_attach:"Rattacher les commerciaux", cx_newlead:"Nouveau prospect",
  cx_all_st:"Tous les statuts", cx_tr_all:"Transcription : toutes", cx_tr_yes:"Transcription : disponible", cx_tr_no:"Transcription : absente",
  cx_views:"Vues", cx_cols:"Colonnes", cx_export:"Exporter en CSV", cx_selall:"Tout sélectionner",
- cx_th_p:"Prospect", cx_th_rep:"Commercial", cx_th_tr:"Transcription", cx_th_rdv:"Prochain RDV", cx_th_prix:"Prix proposé", cx_th_tour:"Tour", cx_th_st:"Statut", cx_th_nx:"Prochaine action",
+ cx_th_p:"Prospect", cx_th_set:"Étape setter", cx_th_slast:"Dernière action", cx_th_snow:"Action actuelle", cx_th_rep:"Commercial", cx_th_tr:"Transcription", cx_th_rdv:"Prochain RDV", cx_th_prix:"Prix proposé", cx_th_tour:"Tour", cx_th_st:"Statut", cx_th_nx:"Prochaine action",
  cx_tr_notyet:"Pas encore", cx_tr_none:"Aucune",
  cx_status:"Statut", cx_change_st:"Changer le statut", cx_call:"{n} appel", cx_calls:"{n} appels", cx_upcoming:"à venir", cx_past:"passé", cx_close:"Fermer",
  cx_tab_an:"Analyse du prospect", cx_tab_next:"Prochain appel", cx_rdvhist:"Rendez-vous et historique", cx_add_tr:"Ajouter la transcription",
@@ -872,7 +872,7 @@ Object.assign(DICT.en,{
  cx_attach:"Link sales reps", cx_newlead:"New lead",
  cx_all_st:"All statuses", cx_tr_all:"Transcript: all", cx_tr_yes:"Transcript: available", cx_tr_no:"Transcript: missing",
  cx_views:"Views", cx_cols:"Columns", cx_export:"Export CSV", cx_selall:"Select all",
- cx_th_p:"Prospect", cx_th_rep:"Sales rep", cx_th_tr:"Transcript", cx_th_rdv:"Next call", cx_th_prix:"Price offered", cx_th_tour:"Round", cx_th_st:"Status", cx_th_nx:"Next action",
+ cx_th_p:"Prospect", cx_th_set:"Setter step", cx_th_slast:"Last action", cx_th_snow:"Current action", cx_th_rep:"Sales rep", cx_th_tr:"Transcript", cx_th_rdv:"Next call", cx_th_prix:"Price offered", cx_th_tour:"Round", cx_th_st:"Status", cx_th_nx:"Next action",
  cx_tr_notyet:"Not yet", cx_tr_none:"None",
  cx_status:"Status", cx_change_st:"Change status", cx_call:"{n} call", cx_calls:"{n} calls", cx_upcoming:"upcoming", cx_past:"past", cx_close:"Close",
  cx_tab_an:"Prospect analysis", cx_tab_next:"Next call", cx_rdvhist:"Calls and history", cx_add_tr:"Add transcript",
@@ -897,7 +897,7 @@ function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const S = {
   lang:"fr",  /* LNP: French only (Romain 2026-11-03) */
   view:"dash", camp:"all", period:30,
-  cx:{an:{open:null,fam:null,obj:null,om:null},anTr:"all",tab:"pipeline",q:"",owner:"all",act:"all",quick:null,show:{rep:true,nx:true,prod:true,amt:true},lst:"all",ltr:"all",sort:null,dir:1,cols:{rep:true,tr:true,rdv:true,prix:true,inv:true,col:true,tour:true,st:true,nx:true},sel:new Set(),lead:null,mini:null},
+  cx:{an:{open:null,fam:null,obj:null,om:null},anTr:"all",tab:"pipeline",q:"",owner:"all",act:"all",quick:null,show:{rep:true,nx:true,prod:true,amt:true},lst:"all",ltr:"all",setf:"all",sort:null,dir:1,cols:{rep:true,tr:true,rdv:true,prix:true,inv:true,col:true,tour:true,st:true,nx:true,set:true,slast:true,snow:true},sel:new Set(),lead:null,mini:null},
   axis:"decision",
   prefs:{period:30,camp:"all",digest:true,push:true,monday:true,escal:false}
 };
@@ -1216,6 +1216,7 @@ function cxFiltered(mode){const X=S.cx,q=X.q.trim().toLowerCase();
     if(X.owner!=="all"&&l.o!==X.owner)return false;
     if(q&&!(l.p+" "+l.em+" "+byS(l.o).name+" "+prodName(l)).toLowerCase().includes(q))return false;
     if(mode==="leads"){
+      if(window.lnpSetMatch&&!lnpSetMatch(l,X.setf))return false;
       if(X.lst!=="all"&&l.st!==X.lst)return false;
       const tr=/^R\d/.test(trState(l));
       if(X.ltr==="yes"&&!tr)return false; if(X.ltr==="no"&&tr)return false;
@@ -1325,6 +1326,7 @@ function cxLeads(){const X=S.cx;let list=cxFiltered("leads");
   const rows=list.map(l=>`<tr>
     <td><input type="checkbox" aria-label="${esc(l.p)}" data-act="cxsel" data-id="${l.id}" ${X.sel.has(l.id)?"checked":""}></td>
     <td><button class="cx-pn" data-act="lead" data-id="${l.id}">${esc(l.p)}</button><div class="cx-em">${esc(l.em)}</div></td>
+    ${C.set&&window.lnpSetCell?`<td>${lnpSetCell(l)}</td>`:""}${C.slast&&window.lnpSetLast?`<td class="mut">${lnpSetLast(l)}</td>`:""}${C.snow&&window.lnpSetNow?`<td>${lnpSetNow(l)}</td>`:""}
     ${C.rep?`<td class="mut">${byS(l.o).email}</td>`:""}
     ${C.tr?`<td>${trChip(l)}</td>`:""}
     ${C.rdv?`<td class="num">${l.rdv?dfmt(l.rdv.d):"—"}</td>`:""}
@@ -1335,7 +1337,7 @@ function cxLeads(){const X=S.cx;let list=cxFiltered("leads");
     ${C.st?`<td><select class="cx-st" data-act="cxst" data-id="${l.id}" style="--c:${STC[l.st]}" aria-label="${t("cx_th_st")}">${STG.map(s=>`<option value="${s}" ${s===l.st?"selected":""}>${stLabel(s)}</option>`).join("")}</select></td>`:""}
     ${C.nx?`<td class="cx-tdnx">${nxHtml(l)}</td>`:""}</tr>`).join("");
   const all=list.length&&list.every(l=>X.sel.has(l.id));
-  return cxBar("leads",list.length)+`<div class="cx-tbl"><div class="tbl-wrap"><table><thead><tr><th><input type="checkbox" data-act="cxselall" aria-label="${t("cx_selall")}" ${all?"checked":""}></th>${th("p",t("cx_th_p"))}${C.rep?th("o",t("cx_th_rep")):""}${C.tr?th("tr",t("cx_th_tr")):""}${C.rdv?th("rdv",t("cx_th_rdv")):""}${C.prix?th("a",t("cx_th_prix"),"r"):""}${C.inv?th("inv",t("cx_inv"),"r"):""}${C.col?th("col",t("cx_col"),"r"):""}${C.tour?th("tour",t("cx_th_tour")):""}${C.st?th("st",t("cx_th_st")):""}${C.nx?th("nx",t("cx_th_nx")):""}</tr></thead><tbody>${rows||`<tr><td colspan="11" class="empty">${t("cx_empty")}</td></tr>`}</tbody></table></div></div>`;
+  return cxBar("leads",list.length)+`<div class="cx-tbl"><div class="tbl-wrap"><table><thead><tr><th><input type="checkbox" data-act="cxselall" aria-label="${t("cx_selall")}" ${all?"checked":""}></th>${th("p",t("cx_th_p"))}${C.set&&window.lnpSetCell?`<th>${t("cx_th_set")}</th>`:""}${C.slast&&window.lnpSetLast?`<th>${t("cx_th_slast")}</th>`:""}${C.snow&&window.lnpSetNow?`<th>${t("cx_th_snow")}</th>`:""}${C.rep?th("o",t("cx_th_rep")):""}${C.tr?th("tr",t("cx_th_tr")):""}${C.rdv?th("rdv",t("cx_th_rdv")):""}${C.prix?th("a",t("cx_th_prix"),"r"):""}${C.inv?th("inv",t("cx_inv"),"r"):""}${C.col?th("col",t("cx_col"),"r"):""}${C.tour?th("tour",t("cx_th_tour")):""}${C.st?th("st",t("cx_th_st")):""}${C.nx?th("nx",t("cx_th_nx")):""}</tr></thead><tbody>${rows||`<tr><td colspan="11" class="empty">${t("cx_empty")}</td></tr>`}</tbody></table></div></div>`;
 }
 
 function renderCRM(){const X=S.cx,el=document.getElementById("v-crm");
@@ -1370,7 +1372,7 @@ function nxMenu(btn,id){const l=byD(id);
 function stMenu(btn,id){const l=byD(id);
   openMenu(btn,`<div class="mh">${t("cx_change_st")}</div>`+STG.map(s=>`<button data-act="lstpick" data-id="${id}" data-s="${s}" ${s===l.st?"disabled":""}>${stLabel(s)}</button>`).join(""));}
 function colsMenu(btn){const C=S.cx.cols;
-  openMenu(btn,`<div class="mh">${t("cx_cols")}</div>`+[["rep","cx_th_rep"],["tr","cx_th_tr"],["rdv","cx_th_rdv"],["prix","cx_th_prix"],["inv","cx_inv"],["col","cx_col"],["tour","cx_th_tour"],["st","cx_th_st"],["nx","cx_th_nx"]].map(([k,lb])=>`<label><input type="checkbox" data-act="colt" data-k="${k}" ${C[k]?"checked":""}> ${t(lb)}</label>`).join(""));}
+  openMenu(btn,`<div class="mh">${t("cx_cols")}</div>`+[["set","cx_th_set"],["slast","cx_th_slast"],["snow","cx_th_snow"],["rep","cx_th_rep"],["tr","cx_th_tr"],["rdv","cx_th_rdv"],["prix","cx_th_prix"],["inv","cx_inv"],["col","cx_col"],["tour","cx_th_tour"],["st","cx_th_st"],["nx","cx_th_nx"]].map(([k,lb])=>`<label><input type="checkbox" data-act="colt" data-k="${k}" ${C[k]?"checked":""}> ${t(lb)}</label>`).join(""));}
 
 /* changements d'étape */
 function moveLead(id,st,extra){const l=byD(id);if(!l||st===l.st)return;
@@ -1544,7 +1546,7 @@ function cxAction(act,el,e){const X=S.cx,id=el.dataset.id,l=id?byD(id):null;
     case "notesave": l.note=document.getElementById("noteTa").value.trim(); X.lead.edit=false; renderLead(); toast(t("cx_note_saved")); return true;
     case "minicancel": X.mini=null; renderLead(); return true;
     case "cxreps": toast(t("cx_reps_done")); return true;
-    case "cxnew": openMini("new"); return true;
+    case "cxnew": if(window.lnpNewLead&&window.lnpNewLead())return true; openMini("new"); return true;
     case "cxmock": toast(t("cx_mock")); return true;
     case "pay": e.stopPropagation(); openMini("pay",id,"close"); return true;
   }
