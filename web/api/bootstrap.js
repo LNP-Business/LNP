@@ -1,7 +1,6 @@
 // One-time setup: creates the first admin and returns their invitation link.
 // Works only while the BOOTSTRAP_TOKEN environment variable is set and the team has no admin yet.
 import { admin, send, origin, readJson } from "./_lib.js";
-import { BUCKET, ensureBucket } from "./files.js";
 
 export default async function handler(req, res) {
   const token = process.env.BOOTSTRAP_TOKEN;
@@ -16,27 +15,6 @@ export default async function handler(req, res) {
     const { error: e2 } = await sb.from("members").upsert({ user_id: data.user.id, email: b0.email, role });
     if (e2) return send(res, 500, { error: e2.message });
     return send(res, 200, { id: data.user.id });
-  }
-  // one-time import of files shipped with the repository (for example the KR memos) into the Library bucket
-  if (b0.action === "storefile") {
-    const e = await ensureBucket(sb); if (e) return send(res, 500, { error: e.message });
-    const body = Buffer.from(String(b0.base64 || ""), "base64");
-    const { error } = await sb.storage.from(BUCKET).upload(String(b0.path), body, { contentType: b0.contentType || "application/octet-stream", upsert: true });
-    return error ? send(res, 500, { error: error.message }) : send(res, 200, { path: b0.path, size: body.length });
-  }
-  // one-time data load (same rows as web/supabase/002_q4_okrs.sql): upsert, or insert only when absent
-  if (b0.action === "upsert") {
-    const rows = (Array.isArray(b0.rows) ? b0.rows : []).filter(r => r && r.col && r.id && r.body);
-    let n = 0;
-    for (const r of rows) {
-      const q = sb.from("docs").upsert({ col: String(r.col), id: String(r.id), body: r.body }, { onConflict: "col,id", ignoreDuplicates: !!r.ifAbsent });
-      const { error } = await q; if (error) return send(res, 500, { error: error.message, done: n }); n++;
-    }
-    return send(res, 200, { done: n });
-  }
-  if (b0.action === "removefile") {
-    const { error } = await sb.storage.from(BUCKET).remove([String(b0.path || "")]);
-    return error ? send(res, 500, { error: error.message }) : send(res, 200, { ok: true });
   }
   if (b0.action === "deleteuser") {
     const { data } = await sb.from("members").select("user_id, role").eq("email", String(b0.email || "")).maybeSingle();

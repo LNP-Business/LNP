@@ -39,20 +39,10 @@ js = js.replace('b.onclick=()=>toast("Ouvre le CRM filtré sur "+SALES.find(s=>s
 js = js.replace('''<button class="lnk" onclick="toast('Ouvre toutes les alertes dans le CRM')">Voir toutes les alertes →</button>''',
                 '''<button class="lnk" data-allalerts>Voir toutes les alertes →</button>''')
 js = js.replace('  bindTips(el("al"));', '  bindTips(el("al"));\n  const aa=el("al").querySelector("[data-allalerts]"); if(aa) aa.onclick=()=>window.postMessage({skl:"crm",view:"alerts"},"*");')
-# the key result comes from the shared database (Roadmap), owned by Sales
+# no key result box (an Operating System object)
 old_kr = js[js.index('    <div class="kr" data-tip='):js.index('</div></div>`;\n  bindTips(el("pipe"));')] + '</div></div>`;'
-new_kr = '''    ${krBox()}`;'''
+new_kr = '''`;'''
 js = js.replace(old_kr, new_kr)
-js = js.replace('/* ---- 5. Cash at risk', r'''function krBox(){
-  const SK=window.SKL; if(!SK) return "";
-  const k=SK.list("krs").find(x=>x.owner==="sales"); if(!k) return "";
-  const v=SK.krView(k), fm=x=>SK.fmtVal(x,k.unit), span=(Number(k.target)-Number(k.baseline))||1;
-  const w=Math.max(0,Math.min(100,(Number(k.current)-Number(k.baseline))/span*100)), e=Math.max(0,Math.min(100,(Number(k.expected)-Number(k.baseline))/span*100));
-  return `<div class="kr" data-kr="${k.id}" style="cursor:pointer" data-tip="Résultat clé commercial : ${fm(k.current)} sur ${fm(k.target)}. Attendu à date : ${fm(k.expected)}. Cliquer pour l’ouvrir."><div class="l"><span>Résultat clé</span><b>${v.label} · ${v.ratio}</b></div><div class="v">${k.name} : <strong>${fm(k.current)}</strong> <span style="color:#C9C4B7">· attendu ${fm(k.expected)}</span></div><div class="krbar"><i style="width:${w}%"></i><u style="left:${e}%"></u></div></div>`;
-}
-
-/* ---- 5. Cash at risk''')
-js = js.replace('  bindTips(el("pipe"));', '  bindTips(el("pipe"));\n  const kb=el("pipe").querySelector("[data-kr]"); if(kb) kb.onclick=()=>window.SKL&&SKL.openKr(kb.dataset.kr);')
 js = js.replace('const box=el("flow"), W=box.clientWidth, H=box.clientHeight-30;', 'const box=el("flow"), W=box.clientWidth, H=box.clientHeight-30;\n  if(W<200||H<120)return;')
 assert 'if(W<200' in js
 # no page fit: the host fills the cockpit; redraw when the size changes
@@ -60,7 +50,7 @@ js = re.sub(r'/\* fit the 1440 × 900 screen.*$', '', js, flags=re.S)
 js = ('(function(R,TIP,TOAST){\n' + js + '\nrender();\nif(document.fonts)document.fonts.ready.then(render);\n'
       'let rw=0;new ResizeObserver(()=>{const w=R.host.clientWidth+"x"+R.host.clientHeight;if(w!==rw){rw=w;render()}}).observe(R.host);\n'
       'return {render};\n})')
-for must in ['R.getElementById', 'krBox()', 'postMessage({skl:"crm",owner', 'view:"alerts"']:
+for must in ['R.getElementById', 'postMessage({skl:"crm",owner', 'view:"alerts"']:
     assert must in js, must
 # ---- live figures (web edition): crm_sales_cockpit() through SKL_CRM.salesCockpit(); the sample stays for the Artifact and demo ----
 LIVE = r"""

@@ -49,26 +49,20 @@ write_screen('Access.dc.html', 'Access', MAIN, INFO, 'roadmap2_logic.js')
 
 
 # ---- Settings › Account: who uses LNP here, sign-in and sign-out, Team access (Romain, 2026-10-26: out of the sidebar)
-# [data-me] is filled by the shell (build.py: the "You are" choice and where the data is saved); [data-account] by
-# web/public/skl-web.js in the web edition (signed-in person, Sign out, Team access for admins).
+# [data-account] is filled by web/public/skl-web.js in the web edition (signed-in person, Sign out, Team access for admins).
 AMAIN = ('<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px; position: relative">\n'
          + bar(settings_seg('Account.dc.html'),
-               f'<span style="{CTX}; max-width: 520px">Qui utilise LNP ici, comment se déconnecter, et qui fait partie de l’équipe.</span>')
-         + f'\n<section style="{CARD}; padding: 28px; display: flex; flex-direction: column; gap: 14px; max-width: 760px">'
-           f'<h2 style="{H2}">Qui utilise LNP ici</h2>'
-           '<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #5E5B53">Les écrans montrent le travail de la personne choisie ici : ses tâches, ses alertes et ses suivis.</p>'
-           '<div data-me style="display: flex; flex-direction: column; gap: 10px; max-width: 420px"></div></section>'
+               f'<span style="{CTX}; max-width: 520px">Votre compte, comment se déconnecter, et qui fait partie de l’équipe.</span>')
          + f'\n<div data-account style="display: flex; flex-direction: column; gap: 28px; max-width: 980px"><section style="{CARD}; padding: 28px; display: flex; flex-direction: column; gap: 8px">'
            f'<h2 style="{H2}">Connexion et équipe</h2>'
            '<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #5E5B53">Dans la version web de LNP, c’est ici que vous voyez le compte avec lequel vous êtes connecté, que vous vous déconnectez et, si vous êtes administrateur, que vous invitez l’équipe et choisissez les rôles.</p>'
            '</section></div>\n</main>')
 AINFO = info_popup('Compte', [
-    ('À quoi sert cette page', 'p', 'Qui utilise LNP ici : la personne dont les écrans montrent le travail, le compte connecté et l’équipe.'),
+    ('À quoi sert cette page', 'p', 'Le compte connecté et l’équipe.'),
     ('En quoi elle aide', 'ul', [
         'Le menu ne garde que les écrans ; votre compte et l’équipe sont réunis au même endroit.',
         'Les administrateurs invitent des personnes et choisissent leur rôle sans quitter les Paramètres.']),
     ('Comment l’utiliser', 'ol', [
-        '<strong>Vous êtes</strong> : choisissez votre nom pour que les écrans montrent votre propre travail.',
         'Dans la version web, <strong>Se déconnecter</strong> met fin à votre session sur ce navigateur.',
         'Administrateurs : <strong>Accès de l’équipe</strong> invite quelqu’un (envoyez-lui le lien obtenu), change un rôle, donne un lien de réinitialisation ou retire une personne. Les écrans que chacun peut ouvrir se règlent dans l’onglet Accès.'])
 ])

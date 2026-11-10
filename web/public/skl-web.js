@@ -1,6 +1,5 @@
-/* LNP on the web: sign-in, team access, and the same `window.claude.use("db" | "user")` interface the
-   app uses inside a claude.ai Artifact, served by Supabase. Loaded before the app, so the app itself is
-   unchanged: store.js and the LNP Map wait for `use()`, which resolves once the person is signed in. */
+/* LNP on the web: sign-in, team access, and the `window.claude.use("user" | "crm")` interface the page reads its data
+   through, served by Supabase. Loaded before the page: `use()` resolves once the person is signed in. */
 (function () {
   "use strict";
   var cfg = window.SKL_WEB_CONFIG || {};
@@ -21,104 +20,8 @@
 
   var sb = null, ctx = null, settle;
   var ready = new Promise(function (r) { settle = r; });
-  window.claude = { web: true, use: function (name) { return ready.then(function (c) { return name === "db" ? DB : name === "user" ? USER : name === "assets" ? ASSETS : name === "crm" ? CRM : null; }); } };
+  window.claude = { web: true, use: function (name) { return ready.then(function (c) { return name === "user" ? USER : name === "crm" ? CRM : null; }); } };
 
-  // ---------------- data: one cache per collection, kept live by Supabase Realtime ----------------
-  var cols = {}, channel = null;
-  function col(name) {
-    if (!cols[name]) cols[name] = { map: new Map(), subs: [], loaded: false, loading: null };
-    return cols[name];
-  }
-  function snapshot(c) {
-    var docs = [];
-    c.map.forEach(function (body, id) { docs.push({ id: id, data: function () { return JSON.parse(JSON.stringify(body)); } }); });
-    return { docs: docs, size: docs.length, empty: docs.length === 0 };
-  }
-  function emit(name) { var c = col(name), s = snapshot(c); c.subs.forEach(function (fn) { try { fn(s); } catch (e) { console.error(e); } }); }
-  function load(name) {
-    var c = col(name);
-    if (c.loading) return c.loading;
-    c.loading = (async function () {
-      var from = 0, size = 1000;
-      for (;;) {
-        var r = await sb.from("docs").select("id, body").eq("col", name).range(from, from + size - 1);
-        if (r.error) throw r.error;
-        r.data.forEach(function (row) { c.map.set(row.id, row.body); });
-        if (r.data.length < size) break;
-        from += size;
-      }
-      c.loaded = true;
-    })();
-    return c.loading;
-  }
-  function live() {
-    if (channel) return;
-    channel = sb.channel("skl-docs").on("postgres_changes", { event: "*", schema: "public", table: "docs" }, function (p) {
-      var row = p.eventType === "DELETE" ? p.old : p["new"];
-      if (!row || !row.col || !cols[row.col]) return;
-      var c = cols[row.col];
-      if (p.eventType === "DELETE") c.map.delete(row.id); else c.map.set(row.id, row.body);
-      emit(row.col);
-    }).subscribe();
-  }
-  function fail(e) {
-    var err = new Error((e && e.message) || "Échec de l’enregistrement");
-    var denied = e && (e.code === "42501" || /row-level security|permission/i.test(e.message || ""));
-    err.code = denied ? "invalid_argument" : "unavailable";
-    return err;
-  }
-  function docRef(name, id) {
-    return {
-      id: id,
-      get: async function () { await load(name); var b = col(name).map.get(id); return { id: id, exists: b !== undefined, data: function () { return b === undefined ? undefined : JSON.parse(JSON.stringify(b)); } }; },
-      set: async function (body) {
-        var clean = JSON.parse(JSON.stringify(body));
-        var r = await sb.from("docs").upsert({ col: name, id: id, body: clean });
-        if (r.error) throw fail(r.error);
-        col(name).map.set(id, clean); emit(name);
-      },
-      update: async function (patch) { var cur = col(name).map.get(id) || {}; return this.set(Object.assign({}, cur, patch)); },
-      "delete": async function () {
-        var r = await sb.from("docs").delete().eq("col", name).eq("id", id);
-        if (r.error) throw fail(r.error);
-        col(name).map.delete(id); emit(name);
-      }
-    };
-  }
-  function collectionRef(name) {
-    return {
-      doc: function (id) { return docRef(name, id); },
-      get: async function () { await load(name); return snapshot(col(name)); },
-      onSnapshot: function (fn, onErr) {
-        var c = col(name);
-        c.subs.push(fn);
-        live();
-        load(name).then(function () { fn(snapshot(c)); }, function (e) { if (onErr) onErr(e); else console.error(e); });
-        return function () { c.subs = c.subs.filter(function (x) { return x !== fn; }); };
-      }
-    };
-  }
-  var DB = {
-    collection: collectionRef,
-    doc: function (path) { var i = path.lastIndexOf("/"); return docRef(path.slice(0, i), path.slice(i + 1)); }
-  };
-  // Library files: private Supabase Storage, through short-lived signed URLs issued by /api/files
-  async function filesApi(body) {
-    var s = await sb.auth.getSession();
-    var r = await fetch("/api/files", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + (s.data.session ? s.data.session.access_token : "") }, body: JSON.stringify(body) });
-    var j = await r.json().catch(function () { return {}; });
-    if (!r.ok) { var err = new Error(j.error || "La demande de fichier a échoué."); err.code = r.status === 403 ? "not_granted" : "unavailable"; throw err; }
-    return j;
-  }
-  var ASSETS = {
-    upload: async function (file) {
-      var t = await filesApi({ action: "upload", name: file.name, type: file.type, size: file.size });
-      var up = await sb.storage.from("library").uploadToSignedUrl(t.path, t.token, file, { contentType: file.type || "application/octet-stream" });
-      if (up.error) { var e = new Error(up.error.message); e.code = "unavailable"; throw e; }
-      return { id: t.path, name: file.name, contentType: file.type || "", sizeBytes: file.size };
-    },
-    open: async function (id, opts) { return (await filesApi({ action: "url", path: id, download: opts && opts.download ? opts.download : "" })).url; }
-  };
   // CRM (docs/crm): relational crm_* tables on the same client. Row-level security decides what each person reads;
   // writes go only through the crm_* functions of web/supabase/004_crm_rpc.sql. Used by skl-os/crm/data.js.
   var CRM = {

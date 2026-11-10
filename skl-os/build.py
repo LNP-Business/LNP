@@ -10,47 +10,25 @@ _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
 TITLE = EDITION.get("title", TITLE)
 # screens kept by the edition: its systems' screens and its Settings screens (None = every screen)
-_SYS = {"os": ["cockpit", "review", "build", "execute", "decisions"], "ss": ["salescockpit", "salesday", "entrainement", "academie", "resultats", "suivi", "crm"]}
+_SYS = {"ss": ["salescockpit", "salesday", "entrainement", "academie", "resultats", "suivi", "crm"]}
 EDITION_KEEP = (sum((_SYS.get(x, []) for x in EDITION.get("systems", [])), []) + [f.replace(".dc.html", "").lower() for f in EDITION.get("settings", [])]) if EDITION else None
 
 SCREENS = [
-    ("cockpit", "Main"),
-    ("review", "Review"),
-    ("build", "Build"),
-    ("execute", "Execute"),
-    ("decisions", "Decisions"),
-    ("crm", "CRM"),
-    ("bibliotheque", "Bibliotheque"),
-    ("mechanisms", "Mechanisms"),
-    ("settings", "Settings"),
-    ("registers", "Registers"),
-    ("mechprecall", "MechPrecall"),
-    ("mechsales", "MechSales"),
-    ("mechos", "MechOS"),
-    ("cartomap", "CartoMap"),
-    ("cartoevents", "CartoEvents"),
-    ("cartoworks", "CartoWorks"),
-    ("cartosim", "CartoSim"),
-    ("cartomodel", "CartoModel"),
-    ("agentsoverview", "AgentsOverview"),
-    ("agentsdecisions", "AgentsDecisions"),
-    ("agentsregistry", "AgentsRegistry"),
-    ("agentstriggers", "AgentsTriggers"),
-    ("agentslog", "AgentsLog"),
-    ("access", "Access"),
-    ("account", "Account"),
     ("salescockpit", "SalesCockpit"),
     ("salesday", "SalesDay"),
+    ("crm", "CRM"),
     ("entrainement", "Entrainement"),
     ("academie", "Academie"),
     ("resultats", "Resultats"),
     ("suivi", "SuiviCommerciaux"),
+    ("settings", "Settings"),
+    ("account", "Account"),
+    ("access", "Access"),
 ]
 
-# LNP (2026-11-03): only the screens of the edition are in the page (the Operating, Knowledge and Agent screens are gone)
+# only the screens of the edition are in the page
 if EDITION_KEEP is not None:
     SCREENS = [s for s in SCREENS if s[0] in EDITION_KEEP]
-OS_MODULES = EDITION_KEEP is None  # the Operating / Knowledge / Agent modules, only in the full LNP build
 
 templates, classes = [], []
 SHELL_ARIA = [('aria-label="Main navigation"', 'aria-label="Navigation principale"'), ('aria-label="Switch system"', 'aria-label="Changer de système"'),
@@ -80,17 +58,12 @@ for sid, fname in SCREENS:
 
 STOREJS = ""
 if LANG == "en" and (HERE / "store.js").exists():
-    # LNP: no Operating System sample data (key results, tasks, memos of ALKIMIY) in the page
-    SEED = (HERE / "seed.json").read_text(encoding="utf-8") if OS_MODULES else json.dumps({"krs": [], "tasks": [], "decisions": [], "reviews": [], "deliverables": []})
-    STOREJS = ("<script>window.SKL_SEED = " + SEED.replace("</", "<\\/") + ";</script>\n"
-               + "<script>" + (HERE / "store.js").read_text(encoding="utf-8") + "</script>\n"
-               + "<script>" + (HERE / "kr_view.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>\n"
+    STOREJS = ("<script>" + (HERE / "store.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>\n"
                + "<script>" + (HERE / "crm" / "data.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
                # the Sales cycle SLAs (one source with CRM › Sales cycle and sla-tick): the catalogue of Settings › Alerts
                + "<script>" + (HERE.parent / "supabase" / "functions" / "_shared" / "sla_rules.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
                # the lead's sales cycle feed and « À faire » (CRM lead record and Ma journée)
                + "<script>" + (HERE / "crm" / "lead_feed.js").read_text(encoding="utf-8").replace("</", "<\\/") + "</script>")
-MECH = HERE.parent / "mechapp" / "dist" / "mech.js"
 CRMDOC = HERE / "crm_doc.html"
 CRMJS = ""
 if LANG == "en" and CRMDOC.exists():
@@ -122,33 +95,9 @@ if LANG == "en" and CRMDOC.exists():
         for key, mode in (("RESULTATS", "moi"), ("SUIVI", "equipe")):
             rdoc = tr_doc("resultats.html", [('/*@MODE@*/"moi"', json.dumps(mode)), ("/*@CATALOGUE@*/{ a: {}, c: {}, l: {} }", catjs)])
             CRMJS += "\n<script>window.SKL_" + key + "_DOC = " + json.dumps(rdoc).replace("</", "<\\/") + ";</script>"
-    CV2 = HERE / "cockpit_v2.json"
-    if OS_MODULES and CV2.exists():
-        cv = json.loads(CV2.read_text(encoding="utf-8"))
-        for key, name in (("ov", "SKL_OV"), ("kr", "SKL_KRROOM"), ("mkt", "SKL_MKT"), ("fin", "SKL_FIN")):
-            m = cv[key]
-            CRMJS += ("\n<script>window." + name + " = {css: " + json.dumps(m["css"]).replace("</", "<\\/") + ", html: " + json.dumps(m["html"]).replace("</", "<\\/")
-                      + ", mount: " + m["js"].replace("</", "<\\/") + "};</script>")
-    # Build and Execute: one core (window.SKL_OS2), two modules (gen_build.py, gen_execute.py)
-    for fname, name in (("build.json", "SKL_BUILD"), ("execute.json", "SKL_EXECUTE")):
-        MJ = HERE / fname
-        if OS_MODULES and MJ.exists():
-            m = json.loads(MJ.read_text(encoding="utf-8"))
-            if m.get("core"):
-                CRMJS += "\n<script>" + m["core"].replace("</", "<\\/") + "</script>"
-            CRMJS += ("\n<script>window." + name + " = {css: " + json.dumps(m["css"]).replace("</", "<\\/") + ", html: " + json.dumps(m["html"]).replace("</", "<\\/")
-                      + ", mount: " + m["js"].replace("</", "<\\/") + "};</script>")
     SDJ = HERE / "salesday_module.js"
     if SDJ.exists():
         CRMJS += "\n<script>" + SDJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
-    AGJ = HERE / "agents_module.js"
-    if OS_MODULES and AGJ.exists():
-        CRMJS += "\n<script>" + AGJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
-    CJ = HERE / "carto.json"
-    if OS_MODULES and CJ.exists():
-        m = json.loads(CJ.read_text(encoding="utf-8"))
-        CRMJS += ("\n<script>window.SKL_CARTO = {css: " + json.dumps(m["css"]).replace("</", "<\\/") + ", html: " + json.dumps(m["html"]).replace("</", "<\\/")
-                  + ", mount: " + m["js"].replace("</", "<\\/") + "};</script>")
     # Cockpit commercial › Exécution, Qualité, Impact (2026-11-09): the module of SKL OS, in French (sales_exec_module.js)
     SXJ = HERE / "sales_exec_module.js"
     if SXJ.exists():
@@ -158,7 +107,6 @@ if LANG == "en" and CRMDOC.exists():
         sv = json.loads(SALESV2.read_text(encoding="utf-8"))
         CRMJS += ("\n<script>window.SKL_SALES = {css: " + json.dumps(sv["css"]).replace("</", "<\\/") + ", html: " + json.dumps(sv["html"]).replace("</", "<\\/")
                   + ", mount: " + sv["js"].replace("</", "<\\/") + "};</script>")
-MECHJS = ("<script>" + MECH.read_text(encoding="utf-8") + "</script>") if (LANG == "en" and OS_MODULES and MECH.exists()) else ""
 page = f"""<title>{TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -194,7 +142,6 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
 {chr(10).join(templates)}
 
 {STOREJS}
-{MECHJS}
 {CRMJS}
 <script>
 (function () {{
@@ -317,7 +264,6 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
     renderNodes(tpl.content.childNodes, vals, frag);
     app.replaceChildren(frag);
     fit();
-    if (window.SKLMech) {{ try {{ window.SKLMech.mount(app); }} catch (err) {{ console.error(err); }} }}
     placeCrm();
     decorate();
     focusBack(keep);
@@ -344,7 +290,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
     try {{ el.focus({{ preventScroll: true }}); if (k.s !== null && typeof el.setSelectionRange === "function") el.setSelectionRange(k.s, k.e); }} catch (err) {{}}
   }}
 
-  // Shared data: badges in the sidebar, who is using the OS, and whether the data is shared
+  // a field being typed in: a redraw waits until it loses the focus
   function fieldFocused() {{
     var a = deepActive(), top = document.activeElement;
     return !!(a && top && app.contains(top) && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)));
@@ -397,37 +343,6 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   }});
   function decorate() {{
     applyNav();
-    var S = window.SKL; if (!S) return;
-    // the week of the quarter in the sidebar footer follows the OS clock (French: ISO week "S45", T4 = the fourth quarter)
-    app.querySelectorAll("nav div").forEach(function (el) {{
-      var t = el.firstChild;
-      if (t && t.nodeType === 3 && /^T4 2026 · semaine \d+\/13/.test(t.nodeValue)) t.nodeValue = t.nodeValue.replace(/semaine \d+\/13/, S.wl(S.week).replace(/^W/, "S") + " · semaine " + S.week + "/13");
-    }});
-    var b = S.badges();
-    app.querySelectorAll("[data-badge]").forEach(function (el) {{
-      var key = el.getAttribute("data-badge");
-      var n = key === "agentdec" ? (window.__sklAgentsPending || 0) : (b[key] || 0);
-      el.textContent = String(n); el.style.display = n ? "" : "none";
-    }});
-    var box = app.querySelector("[data-me]"); if (!box) return;
-    var ROLE_FR = {{ "Content Lead": "Responsable contenu", "Sales": "Commercial" }};   // shown only: the roles stay as stored
-    box.textContent = "";
-    var lab = document.createElement("label");
-    lab.style.cssText = "display: flex; flex-direction: column; gap: 6px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53";
-    lab.appendChild(document.createTextNode("Vous êtes"));
-    var sel = document.createElement("select");
-    sel.style.cssText = "font: inherit; font-size: 15px; letter-spacing: 0; text-transform: none; padding: 10px 12px; border-radius: 10px; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18";
-    var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choisissez qui vous êtes…"; sel.appendChild(o0);
-    S.members.forEach(function (m) {{ var o = document.createElement("option"); o.value = m.id; o.textContent = m.name + " · " + (ROLE_FR[m.role] || m.role); if (S.me === m.id) o.selected = true; sel.appendChild(o); }});
-    sel.addEventListener("change", function () {{ if (sel.value) S.setMe(sel.value); }});
-    lab.appendChild(sel); box.appendChild(lab);
-    var st = document.createElement("div");
-    st.style.cssText = "display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5E5B53";
-    var dot = document.createElement("span");
-    dot.style.cssText = "width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: " + (S.mode === "shared" ? (S.readOnly ? "#D9B46A" : "#2E7D4F") : "#8E8A80");
-    st.appendChild(dot);
-    st.appendChild(document.createTextNode(S.mode === "shared" ? (S.readOnly ? "Données partagées · lecture seule" : "Données partagées · enregistrées pour l’équipe") : S.mode === "loading" ? "Connexion…" : "Données de démonstration · non enregistrées"));
-    box.appendChild(st);
   }}
 
   // ALKIMIY Lite screens run in their own frames, kept alive outside the re-rendered app so their state survives.
@@ -509,21 +424,13 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   function mountDash() {{
     mountModule("[data-dash]", "SKL_SALES");
     mountModule("[data-salesexec]", "SKL_SALESEXEC");
-    mountModule("[data-ov]", "SKL_OV");
-    mountModule("[data-krroom]", "SKL_KRROOM");
-    mountModule("[data-mkt]", "SKL_MKT");
-    mountModule("[data-fin]", "SKL_FIN");
-    mountModule("[data-build]", "SKL_BUILD");
-    mountModule("[data-execute]", "SKL_EXECUTE");
-    mountModule("[data-carto]", "SKL_CARTO");
-    mountModule("[data-agents]", "SKL_AGENTS");
     mountModule("[data-salesday]", "SKL_SALESDAY");
     if (modTip) modTip.style.opacity = 0;
   }}
   // A team row on the sales dashboard opens the CRM filtered on that sales rep
   window.addEventListener("message", function (e) {{
     var d = e.data || {{}};
-    if (d.skl === "go" && typeof d.screen === "string") {{ go(d.screen); return; }}   // e.g. CRM › Sales cycle → Execute, Build ↔ Execute
+    if (d.skl === "go" && typeof d.screen === "string") {{ go(d.screen); return; }}
     if (d.skl !== "crm") return;
     go("crm");
     var f = frames.crm;
@@ -553,10 +460,9 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
     root.style.setProperty("--screen-h", h);
   }}
 
-  // My Day and Roadmap were replaced by Execute and Build (2026-10-30): their old links and #hashes land on the new screens
-  var MOVED = {{ monjour: "execute", inbox: "execute", roadmap: "build" }};
+  var MOVED = {{}};
   // edition.json (LNP: the Sales System only): the home screen, and every screen outside the edition lands on it
-  var HOME = {json.dumps(EDITION.get("home", "cockpit"))}, KEEP = {json.dumps(EDITION_KEEP)};
+  var HOME = {json.dumps(EDITION.get("home", "salescockpit"))}, KEEP = {json.dumps(EDITION_KEEP)};
   if (KEEP) Object.keys(SCREENS).forEach(function (id) {{ if (KEEP.indexOf(id) < 0) MOVED[id] = HOME; }});
   window.SKL_EDITION = {{ home: HOME, keep: KEEP }};   // read by web/public/skl-web.js (Settings › Access lists only these screens)
   function go(id) {{
@@ -571,7 +477,6 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   document.querySelectorAll("template[data-file]").forEach(function (t) {{
     fileToScreen[t.getAttribute("data-file")] = t.id.replace("tpl-", "");
   }});
-  fileToScreen["MonJour.dc.html"] = "execute"; fileToScreen["Roadmap.dc.html"] = "build";   // links written before Build and Execute
 
   app.addEventListener("click", function (e) {{
     var a = e.target.closest ? e.target.closest("a[href]") : null;
