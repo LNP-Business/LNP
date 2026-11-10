@@ -19,7 +19,7 @@ export async function tick(rpc: Rpc, post: (text: string) => Promise<boolean>, n
   const items: Record<string, unknown>[] = [];
   for (const c of cycles || []) {
     const l = toLead(c, now);
-    for (const b of SLA.evaluate(l, { t0: l.opened, tz: cfg.window_tz || "America/New_York", surface: "slack" })) {
+    for (const b of SLA.evaluate(l, { t0: l.opened, tz: cfg.window_tz || "Europe/Paris", surface: "slack" })) {
       if (!b.open || (b.level !== "late" && b.level !== "crit")) continue;
       const crossed = l.opened + b.at * 3600e3;
       if (crossed < since || now - crossed > maxAge) continue;

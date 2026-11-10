@@ -45,75 +45,6 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 </div>
 </header>
 
-<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
-<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1">{{onCount}} / {{total}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">alertes activées</div></div>
-<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1">23</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">notifications envoyées · 7 derniers jours</div></div>
-<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1; color: #9B1C12">4</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">critiques · toutes prises en compte</div></div>
-<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 18px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1">3,1 h</div><div style="font-size: 13px; color: #5E5B53; margin-top: 6px">délai moyen de prise en compte</div></div>
-</div>
-
-<section aria-labelledby="delivery" style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 22px 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 340px; gap: 18px; align-items: stretch">
-<div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline"><h2 id="delivery" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Règles d’envoi</h2><span style="font-size: 13px; color: #5E5B53">Comment et quand les notifications arrivent</span></div>
-
-<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 10px; background: #F6F4EF">
-<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px"><span style="font-size: 14px; font-weight: 600">Heures calmes</span><button type="button" role="switch" aria-checked="{{quiet.on}}" aria-label="Heures calmes" onClick="{{quiet.toggle}}" style="{{quiet.sw}}"><span style="{{quiet.knob}}"></span></button></div>
-<div style="font-size: 13px; line-height: 1.5; color: #3D3A33">Aucune notification de <strong>20 h</strong> à <strong>8 h</strong>, à l’heure locale de chacun. Les alertes critiques passent quand même.</div>
-</div>
-
-<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 10px; background: #F6F4EF">
-<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px"><span style="font-size: 14px; font-weight: 600">Résumé quotidien</span><button type="button" role="switch" aria-checked="{{digest.on}}" aria-label="Résumé quotidien" onClick="{{digest.toggle}}" style="{{digest.sw}}"><span style="{{digest.knob}}"></span></button></div>
-<div style="font-size: 13px; line-height: 1.5; color: #3D3A33">Les alertes de gravité basse sont regroupées en un seul message à <strong>8 h 30</strong> au lieu d’être envoyées une par une.</div>
-</div>
-
-<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 10px; background: #F6F4EF">
-<span style="font-size: 14px; font-weight: 600">Escalade</span>
-<div style="font-size: 13px; line-height: 1.5; color: #3D3A33">Une alerte critique ou haute qui n’est pas prise en compte dans le délai ci-dessous est envoyée à Romain.</div>
-<div style="display: flex; align-items: center; gap: 6px">
-<button type="button" onClick="{{esc.minus}}" aria-label="Raccourcir le délai d’escalade" style="width: 34px; height: 34px; border: 1px solid #D8D3C7; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 16px; cursor: pointer">−</button>
-<span style="min-width: 64px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 14px">{{esc.label}}</span>
-<button type="button" onClick="{{esc.plus}}" aria-label="Allonger le délai d’escalade" style="width: 34px; height: 34px; border: 1px solid #D8D3C7; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 16px; cursor: pointer">+</button>
-</div>
-</div>
-
-<div style="display: flex; flex-direction: column; gap: 8px">
-<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Exemple de notification</span>
-<div style="flex-grow: 1; display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #1B1B18; color: #F6F4EF">
-<span style="width: 10px; height: 10px; border-radius: 50%; background: #E0503F; flex-shrink: 0; margin-top: 5px"></span>
-<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
-<span style="font-size: 12px; color: #C9C4B7">LNP · Tâche en retard · Haute</span>
-<span style="font-size: 14px; font-weight: 600; line-height: 1.35">Brief de tournage — masterclass n° 3 : 4 h de retard sur sa date d’engagement (jeu. 15).</span>
-<span style="font-size: 12px; color: #C9C4B7">À : Hugo Petit · Ouvrir dans l’application</span>
-</div>
-</div>
-</div>
-</section>
-
-<section aria-labelledby="alerts" style="display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px">
-<h2 id="alerts" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Alertes</h2>
-<span style="font-size: 13px; color: #5E5B53">Cliquez sur une alerte pour régler son seuil, sa gravité, ses destinataires et ses canaux</span>
-</div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start">
-<sc-for list="{{groups}}" as="grp" hint-placeholder-count="4">
-<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 8px 8px 6px">
-<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 12px 8px">
-<span style="font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">{{grp.label}}</span>
-<span style="font-size: 12px; color: #5E5B53">{{grp.count}}</span>
-</div>
-<sc-for list="{{grp.items}}" as="al" hint-placeholder-count="3">
-<div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-top: 1px solid #EFEBE3">
-<button type="button" onClick="{{al.open}}" aria-haspopup="dialog" style="{{al.rowStyle}}">
-<span style="flex-grow: 1; min-width: 0">{{al.name}}</span>
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E8A80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
-</button>
-<button type="button" role="switch" aria-checked="{{al.on}}" aria-label="{{al.switchLabel}}" onClick="{{al.toggle}}" style="{{al.sw}}"><span style="{{al.knob}}"></span></button>
-</div>
-</sc-for>
-</div>
-</sc-for>
-</div>
-</section>
-
 <section aria-labelledby="sla" style="display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap">
 <h2 id="sla" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Gestion des prospects · SLA du cycle de vente</h2>
@@ -156,70 +87,6 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 </section>
 
 </main>
-
-<sc-if value="{{hasEdit}}" hint-placeholder-val="{{false}}">
-<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 56px; overflow: auto; z-index: 50">
-<div role="dialog" aria-modal="true" aria-labelledby="edit-title" style="width: 620px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
-<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
-<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Alerte · {{ed.group}}</div><h2 id="edit-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 500">{{ed.name}}</h2></div>
-<button type="button" onClick="{{closeEdit}}" aria-label="Fermer" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
-</div>
-
-<div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 12px; background: #F6F4EF">
-<div><div style="font-size: 15px; font-weight: 600">{{ed.stateLabel}}</div><div style="font-size: 13px; color: #5E5B53; margin-top: 2px">{{ed.stateHint}}</div></div>
-<button type="button" role="switch" aria-checked="{{ed.on}}" aria-label="{{ed.switchLabel}}" onClick="{{ed.toggle}}" style="{{ed.sw}}"><span style="{{ed.knob}}"></span></button>
-</div>
-
-<div style="{{ed.dim}}; display: flex; flex-direction: column; gap: 22px">
-<div style="display: flex; flex-direction: column; gap: 10px">
-<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Condition</span>
-<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 15px; line-height: 1.5">
-<span>{{ed.before}}</span>
-<sc-if value="{{ed.hasValue}}" hint-placeholder-val="{{true}}">
-<span style="display: inline-flex; align-items: center; gap: 2px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FAF8F3">
-<button type="button" onClick="{{ed.minus}}" aria-label="Baisser le seuil" style="width: 40px; height: 40px; border: 0; background: transparent; font: inherit; font-size: 18px; cursor: pointer">−</button>
-<span style="min-width: 76px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500">{{ed.valueLabel}}</span>
-<button type="button" onClick="{{ed.plus}}" aria-label="Relever le seuil" style="width: 40px; height: 40px; border: 0; background: transparent; font: inherit; font-size: 18px; cursor: pointer">+</button>
-</span>
-</sc-if>
-<span>{{ed.after}}</span>
-</div>
-<span style="font-size: 12px; color: #5E5B53">{{ed.defaultHint}}</span>
-</div>
-
-<div style="display: flex; flex-direction: column; gap: 10px">
-<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Gravité</span>
-<div role="group" aria-label="Gravité" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
-<sc-for list="{{ed.sevs}}" as="sv" hint-placeholder-count="4"><button type="button" onClick="{{sv.pick}}" aria-pressed="{{sv.on}}" style="{{sv.style}}">{{sv.label}}</button></sc-for>
-</div>
-<span style="font-size: 12px; color: #5E5B53">{{ed.sevHint}}</span>
-</div>
-
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
-<div style="display: flex; flex-direction: column; gap: 10px">
-<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Prévenir</span>
-<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ed.who}}" as="w" hint-placeholder-count="3"><button type="button" onClick="{{w.toggle}}" aria-pressed="{{w.on}}" style="{{w.style}}">{{w.label}}</button></sc-for></div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 10px">
-<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Canaux</span>
-<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ed.ch}}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{c.toggle}}" aria-pressed="{{c.on}}" style="{{c.style}}">{{c.label}}</button></sc-for></div>
-</div>
-</div>
-
-<div style="padding: 14px 16px; border-radius: 12px; background: #1B1B18; color: #F6F4EF; font-size: 14px; line-height: 1.5"><span style="display: block; font-size: 12px; color: #C9C4B7; margin-bottom: 4px">Quand elle se déclenche</span>{{ed.summary}}</div>
-</div>
-
-<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
-<button type="button" onClick="{{ed.restore}}" style="min-height: 44px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Rétablir la valeur par défaut</button>
-<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end">
-<span role="status" style="font-size: 13px; color: {{saveColor}}">{{saveText}}</span>
-<button type="button" onClick="{{save}}" style="{{saveBtn}}">Enregistrer</button>
-<button type="button" onClick="{{closeEdit}}" style="min-height: 44px; padding: 0 22px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Terminé</button>
-</div>
-</div>
-</div>
-</div>
-</sc-if>
 
 <sc-if value="{{hasSla}}" hint-placeholder-val="{{false}}">
 <div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 56px; overflow: auto; z-index: 50">
@@ -294,30 +161,26 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 
 <section>
 <h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>À quoi sert cette page</h3>
-<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">C’est ici que se règle le système d’alertes. Chaque alerte surveille une condition, par exemple une tâche en retard, un résultat clé qui passe au rouge ou une décision qui dépasse son échéance. Pour chaque alerte, vous choisissez le seuil, la gravité, qui est prévenu et par quel canal. Les règles d’envoi décident quand les notifications arrivent et ce qui se passe quand personne ne réagit.</p>
-<p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #3D3A33">La section « Gestion des prospects » reprend les 42 SLA du cycle de vente (référentiel v3) : de la prise de RDV au premier paiement, plus la conversation, la clôture et la fiabilité des données. Chaque SLA indique s’il est mesuré, en attente d’une source de données, une règle de formulaire ou un indicateur lu dans Performance. Ses seuils réglés ici s’appliquent au CRM › Cycle de vente et aux alertes Slack #sales-cycle.</p>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">C’est ici que se règlent les alertes du cycle de vente de LNP : les 42 SLA, de la prise de RDV au premier paiement, plus la conversation, la clôture et la fiabilité des données. Chaque SLA est un engagement de délai : un événement démarre l’horloge, un résultat l’arrête ; au-delà du seuil, le prospect passe « Bientôt dû », « En retard » ou « Critique ».</p>
+<p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #3D3A33">Chaque SLA indique s’il est mesuré, en attente d’une source de données, une règle de formulaire ou un indicateur lu dans le Cockpit commercial. Ses seuils s’appliquent au CRM › Cycle de vente et aux alertes Slack #sales-cycle. Les heures sont celles de Paris.</p>
 </section>
 
 <section>
 <h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>En quoi elle rend chacun plus efficace</h3>
 <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
-<li><strong style="color: #1B1B18">Le système prévient, personne n’a à vérifier.</strong> Un écart arrive à la bonne personne au moment où il se produit, pas à la réunion suivante.</li>
-<li><strong style="color: #1B1B18">La bonne personne, pas tout le monde.</strong> Chaque alerte va d’abord au responsable. Romain ne reçoit que ce qui a besoin de lui, ou ce que personne n’a traité à temps.</li>
-<li><strong style="color: #1B1B18">Pas de bruit.</strong> La gravité, les heures calmes et le résumé quotidien évitent que des alertes peu utiles interrompent le travail de fond.</li>
-<li><strong style="color: #1B1B18">Des règles qui suivent votre façon de travailler.</strong> Les seuils reprennent les règles de travail (tâches de 8 h, 3 tâches en cours, décisions en 48 h) et s’ajustent à mesure que l’équipe progresse.</li>
+<li><strong style="color: #1B1B18">Le système prévient, personne n’a à vérifier.</strong> Un retard arrive au commercial au moment où il se produit, pas à la réunion suivante.</li>
+<li><strong style="color: #1B1B18">Un seul référentiel.</strong> Les mêmes seuils servent au Cycle de vente, aux alertes Slack et au Cockpit commercial (Exécution, Impact).</li>
+<li><strong style="color: #1B1B18">Pas de fausse alerte.</strong> Une source non reliée (Sendblue, Whop, analyse automatique) met ses SLA en attente au lieu de mettre des prospects en retard à tort.</li>
 </ul>
 </section>
 
 <section>
 <h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>Comment l’utiliser</h3>
 <ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
-<li>Activez ou désactivez une alerte avec l’interrupteur de sa ligne.</li>
-<li>Cliquez sur le nom de l’alerte pour ouvrir ses réglages.</li>
-<li>Dans la fenêtre, ajustez le seuil avec − et +, par exemple le nombre d’heures après la date d’engagement à partir duquel une tâche est en retard.</li>
-<li>Choisissez la gravité (les alertes de gravité basse vont dans le résumé quotidien), qui est prévenu et les canaux. Le cadre foncé montre exactement ce qui sera envoyé.</li>
-<li>Réglez les règles d’envoi : heures calmes, résumé quotidien et délai d’escalade.</li>
-<li>Pour un SLA de la gestion des prospects : réglez l’alerte préventive, le retard et le seuil critique, puis choisissez s’il apparaît dans le Cycle de vente, dans Slack ou les deux. Une source de données non reliée (messages, Whop, analyse automatique) met ses SLA en attente.</li>
-<li>Enregistrez avec « Enregistrer » dans la fenêtre, à côté de « Terminé », ou avec « Enregistrer les modifications » en haut de la page. Seuls un administrateur et le responsable commercial peuvent enregistrer les SLA. Revoyez les réglages à chaque planification trimestrielle : une alerte sur laquelle personne n’agit doit être ajustée ou désactivée.</li>
+<li>Indiquez d’abord les sources reliées : tant qu’une source ne l’est pas, ses SLA restent en attente.</li>
+<li>Activez ou désactivez un SLA avec l’interrupteur de sa ligne.</li>
+<li>Cliquez sur un SLA pour régler l’alerte préventive, le retard et le seuil critique, puis choisir s’il apparaît dans le Cycle de vente, dans Slack ou les deux.</li>
+<li>Enregistrez avec « Enregistrer » dans la fenêtre ou « Enregistrer les modifications » en haut de la page ; « Rétablir les réglages par défaut » remet les valeurs du référentiel. Seuls un administrateur et le responsable commercial enregistrent.</li>
 </ol>
 </section>
 
@@ -331,7 +194,7 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = Object.assign({ info: false, edit: null, dirty: false, saved: false, slaEdit: null, slaCfg: null, slaDirty: false, saving: false, err: '' }, this.defaults());
+    this.state = { info: false, dirty: false, saved: false, slaEdit: null, slaCfg: null, slaDirty: false, saving: false, err: '' };
     this.loadSla();
   }
   // Sales cycle SLAs (catalogue: supabase/functions/_shared/sla_rules.js, window.SKL_SLA): the settings live in
@@ -432,68 +295,8 @@ class Component extends DCLogic {
       se: cur || {}, hasSla: !!cur
     };
   }
-  catalog() {
-    // id, group, name, text before the threshold, text after, default value, step, min, max, unit
-    const A = (id, group, name, before, after, value, step, min, max, unit) => ({ id, group, name, before, after, value, step, min, max, unit });
-    return [
-      A('a1', 'Tâches', 'Tâche en retard', 'Une tâche dépasse sa date d’engagement de plus de', '', 0, 2, 0, 48, 'h'),
-      A('a2', 'Tâches', 'Tâche bloquée trop longtemps', 'Une tâche reste bloquée plus de', '', 24, 4, 4, 96, 'h'),
-      A('a3', 'Tâches', 'Tâche trop grosse', 'Une estimation dépasse', 'et doit être découpée', 8, 1, 4, 16, 'h'),
-      A('a4', 'Tâches', 'Trop de travail en cours', 'Une personne a plus de', 'tâches en cours', 3, 1, 1, 6, ''),
-      A('a5', 'Résultats clés', 'Résultat clé hors trajectoire (rouge)', 'Au rythme récent, le résultat clé finit sous', 'de sa cible', 0.9, 0.05, 0.5, 1, 'ratio'),
-      A('a6', 'Résultats clés', 'Résultat clé à risque ou en rattrapage (orange)', 'Le résultat clé finit sous sa cible, ou le réel ÷ attendu passe sous', '', 0.9, 0.05, 0.7, 1, 'ratio'),
-      A('a7', 'Résultats clés', 'Point d’avancement manquant', 'Aucun point d’avancement du résultat clé depuis', '', 7, 1, 3, 14, 'd'),
-      A('a8', 'Décisions', 'Décision réversible en retard', 'Aucune décision après', '', 48, 12, 12, 120, 'h'),
-      A('a9', 'Décisions', 'Décision irréversible en retard', 'Aucune décision après', '', 7, 1, 2, 21, 'd'),
-      A('a10', 'Décisions', 'Revue de décision à faire', 'Une revue à 30 ou 90 jours a un retard de', '', 0, 1, 0, 14, 'd'),
-      A('a11', 'Explorations', 'Temps imparti épuisé', 'Une exploration atteint', 'de son temps imparti', 100, 5, 50, 100, '%'),
-      A('a12', 'Explorations', 'Temps imparti bientôt épuisé', 'Une exploration atteint', 'de son temps imparti sans résultat pour l’instant', 75, 5, 25, 95, '%'),
-      A('a15', 'Bibliothèque et propriété intellectuelle', 'Cession de droits manquante', 'Un contenu réalisé par un indépendant n’a pas de cession de droits', '', null),
-      A('a16', 'Bibliothèque et propriété intellectuelle', 'Guide de méthode à revoir', 'Un guide de méthode n’a pas été revu depuis', '', 6, 1, 1, 12, 'months'),
-      A('a17', 'Finances', 'Dépassement de budget', 'Un pôle dépense plus de', 'au-delà de son budget mensuel', 10, 5, 0, 50, '%'),
-      A('a18', 'Finances', 'Trésorerie trop courte', 'L’autonomie de trésorerie passe sous', '', 6, 1, 2, 18, 'months')
-    ];
-  }
-  defaults() {
-    // on, severity, who [owner, lead, romain], channels [app, slack, email]
-    const D = (on, sev, who, ch) => ({ on, sev, who, ch });
-    const alerts = {
-      a1: D(true, 'High', [1, 1, 0], [1, 1, 0]),
-      a2: D(true, 'High', [1, 1, 0], [1, 1, 0]),
-      a3: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
-      a4: D(true, 'Low', [1, 0, 0], [1, 0, 0]),
-      a5: D(true, 'Critical', [1, 0, 1], [1, 1, 1]),
-      a6: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
-      a7: D(true, 'High', [1, 0, 1], [1, 1, 0]),
-      a8: D(true, 'High', [1, 0, 0], [1, 1, 0]),
-      a9: D(true, 'High', [1, 0, 1], [1, 1, 0]),
-      a10: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
-      a11: D(true, 'High', [1, 1, 0], [1, 1, 0]),
-      a12: D(true, 'Medium', [1, 0, 0], [1, 0, 0]),
-      a15: D(true, 'High', [0, 1, 0], [1, 0, 1]),
-      a16: D(true, 'Low', [1, 0, 0], [0, 0, 1]),
-      a17: D(false, 'High', [0, 1, 1], [1, 0, 1]),
-      a18: D(true, 'Critical', [0, 0, 1], [1, 0, 1])
-    };
-    const values = {};
-    this.catalog().forEach(a => { values[a.id] = a.value; });
-    return { alerts, values, quietOn: true, digestOn: true, escH: 24 };
-  }
   change(patch) {
     this.setState(Object.assign({ dirty: true, saved: false }, patch));
-  }
-  updateAlert(id, fn) {
-    const alerts = Object.assign({}, this.state.alerts);
-    alerts[id] = fn(Object.assign({}, alerts[id]));
-    this.change({ alerts });
-  }
-  fmt(v, unit) {
-    // French formats: 0,90 · 75 % · 6 mois · 24 h · 7 j (the units stay as stored: h, d, months, %, ratio)
-    if (unit === 'ratio') return v.toFixed(2).replace('.', ',');
-    if (unit === '%') return Math.round(v) + '\u00a0%';
-    if (unit === 'months') return v + ' mois';
-    if (unit === '') return String(v).replace('.', ',');
-    return String(v).replace('.', ',') + ' ' + (unit === 'd' ? 'j' : unit);
   }
   swStyle(on) {
     return 'position: relative; width: 44px; height: 26px; flex-shrink: 0; border: 0; border-radius: 999px; cursor: pointer; padding: 0; background: ' + (on ? '#2E7D4F' : '#B7B2A6') + ';';
@@ -507,121 +310,19 @@ class Component extends DCLogic {
   }
   renderVals() {
     const S = window.SKL;
-    // The saved rules come from the shared database, unless you are in the middle of editing them
-    if (S && !this.state.dirty) {
-      const c = S.get('config', 'alerts');
-      const d = this.defaults();
-      if (c) Object.assign(this.state, { alerts: Object.assign({}, d.alerts, c.alerts || {}), values: Object.assign({}, d.values, c.values || {}),
-        quietOn: c.quietOn !== undefined ? c.quietOn : d.quietOn, digestOn: c.digestOn !== undefined ? c.digestOn : d.digestOn, escH: c.escH || d.escH });
-    }
     const s = this.state;
-    const cat = this.catalog();
-    const sevs = ['Low', 'Medium', 'High', 'Critical'];
-    const SEV = { Low: 'Basse', Medium: 'Moyenne', High: 'Haute', Critical: 'Critique' };   // shown only: the severities stay as stored
-    const sevLook = {
-      Low: ['#8E8A80', 'background: #F6F4EF; color: #5E5B53;'],
-      Medium: ['#B45309', 'background: #FDF1E3; color: #8A3F06;'],
-      High: ['#B42318', 'background: #FDECEA; color: #9B1C12;'],
-      Critical: ['#FFFFFF', 'background: #9B1C12; color: #FFFFFF;']
-    };
-    const whoLabels = ['Responsable', 'Chef de pôle', 'Romain'];
-    const chLabels = ['Dans l’application', 'Slack', 'E-mail'];
-    const order = ['Tâches', 'Résultats clés', 'Décisions', 'Explorations', 'Bibliothèque et propriété intellectuelle', 'Finances'];
-    const round = (x) => Math.round(x * 100) / 100;
-
-    const rows = cat.map(a => {
-      const cfg = s.alerts[a.id];
-      const v = s.values[a.id];
-      const setV = (nv) => { const values = Object.assign({}, s.values); values[a.id] = round(Math.min(a.max, Math.max(a.min, nv))); this.change({ values }); };
-      return {
-        id: a.id, raw: a, cfg,
-        group: a.group, name: a.name, before: a.before, after: a.after,
-        on: cfg.on, switchLabel: 'Alerte : ' + a.name,
-        open: () => this.setState({ edit: a.id }),
-        rowStyle: 'display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; min-height: 48px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer; color: ' + (cfg.on ? '#1B1B18' : '#8E8A80') + ';',
-        restore: () => {
-          const d = this.defaults();
-          const alerts = Object.assign({}, s.alerts); alerts[a.id] = d.alerts[a.id];
-          const values = Object.assign({}, s.values); values[a.id] = d.values[a.id];
-          this.change({ alerts, values });
-        },
-        defaultHint: a.value === null || a.value === undefined ? 'Cette alerte n’a pas de seuil.' : 'Par défaut : ' + this.fmt(a.value, a.unit),
-        sw: this.swStyle(cfg.on), knob: this.knobStyle(cfg.on),
-        toggle: () => this.updateAlert(a.id, c => { c.on = !c.on; return c; }),
-        dim: cfg.on ? 'opacity: 1' : 'opacity: 0.45',
-        hasValue: a.value !== null && a.value !== undefined,
-        valueLabel: a.value === null || a.value === undefined ? '' : this.fmt(v, a.unit),
-        minus: () => setV(v - a.step), plus: () => setV(v + a.step),
-        minusLabel: 'Baisser le seuil de ' + a.name, plusLabel: 'Relever le seuil de ' + a.name,
-        sev: cfg.sev, sevDot: sevLook[cfg.sev][0], sevLabel: 'Gravité ' + SEV[cfg.sev].toLowerCase() + ' pour ' + a.name + '. Cliquez pour la changer.',
-        sevStyle: 'justify-self: start; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 0 10px; border: 0; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; ' + (cfg.on ? '' : 'opacity: 0.45; ') + sevLook[cfg.sev][1],
-        cycleSev: () => this.updateAlert(a.id, c => { c.sev = sevs[(sevs.indexOf(c.sev) + 1) % sevs.length]; return c; }),
-        who: whoLabels.map((label, i) => ({
-          label, on: !!cfg.who[i], style: this.chip(!!cfg.who[i]),
-          toggle: () => this.updateAlert(a.id, c => { c.who = c.who.slice(); c.who[i] = c.who[i] ? 0 : 1; return c; })
-        })),
-        ch: chLabels.map((label, i) => ({
-          label, on: !!cfg.ch[i], style: this.chip(!!cfg.ch[i]),
-          toggle: () => this.updateAlert(a.id, c => { c.ch = c.ch.slice(); c.ch[i] = c.ch[i] ? 0 : 1; return c; })
-        }))
-      };
-    });
-    const groups = order.map(g => {
-      const items = rows.filter(r => r.group === g);
-      const on = items.filter(r => r.on).length;
-      return { label: g, items, count: on + ' sur ' + items.length + (on > 1 ? ' activées' : ' activée') };
-    });
-    const onCount = rows.filter(r => r.on).length;
-
-    // The alert being edited in the popup
-    const sevHints = {
-      Low: 'Les alertes de gravité basse attendent le résumé quotidien.',
-      Medium: 'Les alertes de gravité moyenne partent tout de suite, en dehors des heures calmes.',
-      High: 'Les alertes de gravité haute partent tout de suite et remontent à Romain si personne ne les prend en compte.',
-      Critical: 'Les alertes critiques passent outre les heures calmes et remontent à Romain si personne ne les prend en compte.'
-    };
-    const list = (arr) => arr.length === 0 ? 'personne' : arr.length === 1 ? arr[0] : arr.slice(0, -1).join(', ') + ' et ' + arr[arr.length - 1];
-    const cur = rows.find(r => r.id === s.edit);
-    let ed = {};
-    if (cur) {
-      const who = whoLabels.filter((_, i) => cur.cfg.who[i]);
-      const ch = chLabels.filter((_, i) => cur.cfg.ch[i]);
-      ed = Object.assign({}, cur, {
-        stateLabel: cur.on ? 'Alerte activée' : 'Alerte désactivée',
-        stateHint: cur.on ? 'Les notifications partent quand la condition est remplie.' : 'Rien n’est envoyé. Les réglages ci-dessous sont gardés.',
-        sevs: sevs.map(label => ({
-          label: SEV[label], on: label === cur.cfg.sev,
-          style: 'min-height: 44px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; ' +
-            (label === cur.cfg.sev ? 'border: 2px solid #1B1B18; ' + sevLook[label][1] : 'border: 1px solid #D8D3C7; background: #FFFFFF; color: #5E5B53;'),
-          pick: () => this.updateAlert(cur.id, c => { c.sev = label; return c; })
-        })),
-        sevHint: sevHints[cur.cfg.sev],
-        summary: !cur.on ? 'Cette alerte est désactivée : aucune notification n’est envoyée.'
-          : (who.length === 0 || ch.length === 0) ? 'Personne ne sera prévenu : choisissez au moins une personne et un canal.'
-          : 'Gravité ' + SEV[cur.cfg.sev].toLowerCase() + ' · prévenus : ' + list(who) + ' · canaux : ' + list(ch) + (cur.cfg.sev === 'Low' ? ' · regroupée dans le résumé de 8 h 30.' : '.')
-      });
-    }
-
     const SL = this.slaView(s);
     return {
-      hasEdit: !!cur,
-      ed,
-      closeEdit: () => this.setState({ edit: null }),
       sla: SL.sla, se: SL.se, hasSla: SL.hasSla,
       closeSla: () => this.setState({ slaEdit: null }),
       info: !!s.info,
       openInfo: () => this.setState({ info: true }),
       closeInfo: () => this.setState({ info: false }),
-      groups, onCount, total: rows.length,
-      quiet: { on: s.quietOn, sw: this.swStyle(s.quietOn), knob: this.knobStyle(s.quietOn), toggle: () => this.change({ quietOn: !s.quietOn }) },
-      digest: { on: s.digestOn, sw: this.swStyle(s.digestOn), knob: this.knobStyle(s.digestOn), toggle: () => this.change({ digestOn: !s.digestOn }) },
-      esc: { label: s.escH + ' h', minus: () => this.change({ escH: Math.max(2, s.escH - 2) }), plus: () => this.change({ escH: Math.min(72, s.escH + 2) }) },
       saveText: s.saving ? 'Enregistrement…' : s.err ? 'Non enregistré : ' + s.err : s.dirty ? 'Modifications non enregistrées' : (s.saved ? (S && S.mode === 'shared' ? 'Enregistré pour toute l’équipe' : 'Enregistré pour cette session du navigateur seulement') : 'À jour'),
       saveColor: s.err ? '#9B1C12' : s.dirty || s.saving ? '#8A3F06' : '#1E5E38',
       saveBtn: 'min-height: 44px; padding: 0 20px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; ' + (s.dirty && !s.saving ? 'background: #1B1B18; color: #D9B46A;' : 'background: #D8D3C7; color: #5E5B53;'),
       save: () => {
         if (!s.dirty || s.saving) return;
-        if (S) S.save('config', { id: 'alerts', alerts: s.alerts, values: s.values, quietOn: s.quietOn, digestOn: s.digestOn, escH: s.escH });
         if (!s.slaDirty) return this.setState({ dirty: false, saved: true, err: '' });
         // the SLA settings: crm_save_sla_rules (044, admin or sales lead); CRM › Sales cycle takes them at once
         this.setState({ saving: true, err: '' });
@@ -631,8 +332,8 @@ class Component extends DCLogic {
           try { window.dispatchEvent(new CustomEvent('skl-sla-saved', { detail: cfg })); } catch (e) {}
         }, e => this.setState({ saving: false, err: String(e && e.message || e) }));
       },
-      reset: () => this.setState(Object.assign({ dirty: true, saved: false, slaDirty: true,
-        slaCfg: { sources: Object.assign({}, (s.slaCfg || this.slaDefault()).sources), rules: {} } }, this.defaults()))
+      reset: () => this.setState({ dirty: true, saved: false, slaDirty: true,
+        slaCfg: { sources: Object.assign({}, (s.slaCfg || this.slaDefault()).sources), rules: {} } })
     };
   }
 }

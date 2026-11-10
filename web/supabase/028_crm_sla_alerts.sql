@@ -17,7 +17,7 @@ alter table crm_sla_notices enable row level security;   -- service role only (n
 create index if not exists crm_sla_notices_cycle on crm_sla_notices(cycle_id);
 
 insert into crm_settings (key, value, is_proposal)
-values ('sla_alerts', jsonb_build_object('since', now(), 'channel', '#sales-cycle', 'max_age_hours', 6, 'window_tz', 'America/New_York'), true)
+values ('sla_alerts', jsonb_build_object('since', now(), 'channel', '#sales-cycle', 'max_age_hours', 6, 'window_tz', 'Europe/Paris'), true)
 on conflict (key) do nothing;
 
 -- the active cycles with what the rules read (events of the last p_days, calls); no message text, no transcript

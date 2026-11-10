@@ -24,8 +24,8 @@ Deno.test("CO-1: reply within 15 min; a burst counts once; a held call answers; 
   eq(ids({ age: 11.5, ev }), ["CO-1:late:open"]);
   eq(ids({ age: 15, ev }), ["CO-1:crit:open"]);
   eq(ids({ age: 15, ev: ev.concat([{ t: 10.2, w: "s", k: "im" }]) }), [], "answered within 15 min:");
-  // written at 23:00 New York (03:00 UTC): the clock starts at 08:00, so at 08:30 it is only late, not critical
-  const t0 = Date.parse("2026-10-29T03:00:00Z");
+  // written at 23:00 Paris (22:00 UTC): the clock starts at 08:00, so at 08:30 it is only due, not late
+  const t0 = Date.parse("2026-10-28T22:00:00Z");
   eq(ids({ age: 9.5, ev: [{ t: 0, w: "p", k: "im" }] }, { t0 }), ["CO-1:warn:open"]);
 });
 
@@ -100,9 +100,9 @@ Deno.test("Encaissement, conversation, closing: CA-1, CA-5, CL-1, CL-3, CO-4, CO
   eq(ids({ age: 680, ev: [{ t: 0, w: "p", k: "im" }].concat(tries.slice(0, 3)) }, undefined, ["CL-1"]), [], "3 attempts only:");
   eq(ids({ age: 21.5, ev: [{ t: 1, w: "s", k: "decision", no: 1 }, { t: 20, w: "p", k: "im" }] }, undefined, ["CL-3", "CO-1"]), ["CL-3:late:open"], "a message after a no:");
   eq(ids({ age: 5, ev: [{ t: 1, w: "a", k: "note", stop: 1 }, { t: 2, w: "a", k: "remind" }] }, undefined, ["CO-4"]), ["CO-4:crit:open"]);
-  // sent at 23:30 UTC = 19:30 New York (in the range), at 03:00 UTC = 23:00 New York (outside)
-  eq(ids({ age: 10, ev: [{ t: 0, w: "a", k: "remind" }] }, { t0: Date.parse("2026-10-29T23:30:00Z") }, ["CO-5"]), []);
-  eq(ids({ age: 10, ev: [{ t: 0, w: "a", k: "remind" }] }, { t0: Date.parse("2026-10-29T03:00:00Z") }, ["CO-5"]), ["CO-5:crit:open"]);
+  // sent at 18:30 UTC = 19:30 Paris (in the range), at 22:00 UTC = 23:00 Paris (outside)
+  eq(ids({ age: 10, ev: [{ t: 0, w: "a", k: "remind" }] }, { t0: Date.parse("2026-10-29T18:30:00Z") }, ["CO-5"]), []);
+  eq(ids({ age: 10, ev: [{ t: 0, w: "a", k: "remind" }] }, { t0: Date.parse("2026-10-29T22:00:00Z") }, ["CO-5"]), ["CO-5:crit:open"]);
 });
 
 Deno.test("settings: a source not connected, an SLA off, a threshold changed, a place left out", () => {
@@ -125,12 +125,12 @@ Deno.test("settings: a source not connected, an SLA off, a threshold changed, a 
   } finally { SLA.configure({}); }
 });
 
-const snap: Snap = { id: "c1", opened_at: "2026-10-30T10:00:00Z", person: "Test Lead", owner: "Valentino",
-  events: [{ type: "call_booked", at: "2026-10-30T10:00:00Z", call_id: "k1" }, { type: "message_out", at: "2026-10-30T10:01:00Z", actor: "auto" }],
+const snap: Snap = { id: "c1", opened_at: "2026-10-30T05:00:00Z", person: "Test Lead", owner: "Valentino",
+  events: [{ type: "call_booked", at: "2026-10-30T05:00:00Z", call_id: "k1" }, { type: "message_out", at: "2026-10-30T05:01:00Z", actor: "auto" }],
   calls: [{ id: "k1", rank: 1, status: "scheduled", start: "2026-11-02T15:00:00Z", end: "2026-11-02T15:45:00Z" }] };
 
 Deno.test("the model of a cycle: kinds of the screen", () => {
-  const l = toLead(snap, Date.parse("2026-10-30T11:00:00Z"));
+  const l = toLead(snap, Date.parse("2026-10-30T06:00:00Z"));
   eq(l.ev.map((e) => `${e.w}${e.k}`), ["pbooked", "aremind", "smeet"]);
   eq(Math.round(l.age * 10) / 10, 1);
 });
@@ -144,9 +144,9 @@ Deno.test("sla-tick: posts each new miss once, never the past, never before the 
     return Promise.resolve(keys);
   };
   const post = (t: string) => { posts.push(t); return Promise.resolve(true); };
-  const now = Date.parse("2026-10-30T11:00:00Z");
-  eq(await tick(rpc, post, now, { since: "2026-10-30T12:00:00Z", sla_rules: {} }), { cycles: 1, new: 0, posted: false }, "before since:");
-  // SH-2 (no personal message after 1 h) and CO-5 (the automatic message left at 06:01 in New York)
+  const now = Date.parse("2026-10-30T06:00:00Z");
+  eq(await tick(rpc, post, now, { since: "2026-10-30T07:00:00Z", sla_rules: {} }), { cycles: 1, new: 0, posted: false }, "before since:");
+  // SH-2 (no personal message after 1 h) and CO-5 (the automatic message left at 06:01 in Paris)
   eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, new: 2, posted: true });
   if (!/Critique\* · SH-2 .+ · \*Test Lead\* \(Valentino\)/.test(posts[0]) || !/Critique\* \(technique\) · CO-5 /.test(posts[0])) throw new Error(posts[0]);
   eq(await tick(rpc, post, now + 60e3, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, new: 0, posted: false }, "twice:");

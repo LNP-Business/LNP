@@ -4,7 +4,7 @@
 // A lead is the screen's model: {age, ev: [{t (hours since the cycle opened), w: s|p|a, k, r, dur (min), rec, ana, stop}]}
 // (rec / ana on a call: hours of its Fathom recording / of its call analysis, l.rec = the model carries them; stop on a note:
 // the prospect's STOP);
-// opt.t0 = the cycle's opening (ms) turns on the sales window of CO-1 / CO-2 (08:00-22:00, opt.tz, default America/New_York);
+// opt.t0 = the cycle's opening (ms) turns on the sales window of CO-1 / CO-2 (08:00-22:00, opt.tz, default Europe/Paris);
 // opt.surface = "screen" | "slack" leaves out the SLAs switched off for that place.
 // Each SLA: a start event, a stop event, thresholds in hours (DE-8: calls; SH-4: hours before the R1): warn (preventive),
 // late (missed), crit (critical); null = no such threshold.
@@ -235,7 +235,7 @@
   function status(id) {
     var d = BY[id], miss = d.needs.filter(function (s) { return !SRC[s]; });
     if (d.kind === "form") return { k: d.applied ? "form" : "todo", label: d.applied ? "Règle de formulaire · appliquée" : "Règle de formulaire · à appliquer", note: d.pending || "" };
-    if (!d.eval) return { k: d.kind === "indicator" ? "ind" : "todo", label: d.kind === "indicator" ? "Indicateur · Performance" : "Pas encore mesurée", note: d.pending || "" };
+    if (!d.eval) return { k: d.kind === "indicator" ? "ind" : "todo", label: d.kind === "indicator" ? "Indicateur · Cockpit commercial" : "Pas encore mesurée", note: d.pending || "" };
     if (miss.length) return { k: "wait", label: "En attente de données", note: "Source non reliée : " + miss.map(function (s) { return SOURCES.filter(function (x) { return x.id === s; })[0].name; }).join(", ") + "." };
     return { k: "on", label: d.kind === "indicator" ? "Mesurée · indicateur" : d.kind === "tech" ? "Mesurée · technique" : "Mesurée", note: "" };
   }
@@ -258,7 +258,7 @@
   // CO-2: a message received outside 08:00-22:00 starts the clock at the next 08:00
   function windowStart(t, opt) {
     if (!opt || !opt.t0 || !active("CO-2")) return t;
-    var h = hourAt(t, opt, opt.tz || "America/New_York");
+    var h = hourAt(t, opt, opt.tz || "Europe/Paris");
     return h < 8 ? t + (8 - h) : h >= 22 ? t + (24 - h + 8) : t;
   }
 
@@ -358,7 +358,7 @@
       if (e.w === "a" && e.k === "remind") {
         var stop4 = first(ev, function (z) { return z.stop && z.t < e.t; });
         if (stop4 && on("CO-4")) push("CO-4", "crit", { open: true, start: e.t, elapsed: e.t - stop4.t, at: e.t, extra: "message automatique après un STOP", label: "après un STOP" });
-        if (opt.t0 && on("CO-5")) { var hh = hourAt(e.t, opt, opt.tz || "America/New_York");
+        if (opt.t0 && on("CO-5")) { var hh = hourAt(e.t, opt, opt.tz || "Europe/Paris");
           if (hh < 9 || hh >= 20) push("CO-5", "crit", { open: true, start: e.t, elapsed: 0, at: e.t, extra: "message automatique hors 09:00-20:00", label: "envoyé à " + Math.floor(hh) + " h" }); }
       }
     });
