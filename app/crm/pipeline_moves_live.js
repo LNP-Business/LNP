@@ -15,7 +15,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
     await cf.evaluate(async (role) => {
       const H = 3600e3, iso = (h) => new Date(Date.now() + h * H).toISOString();
       const cyc = (id, name, status, calls, events, extra) => Object.assign({ id, status, opened_at: iso(-200), owner_id: 'u-r', person: { full_name: name, primary_email: id + '@x.com', primary_phone: '+1555000' + id.length, first_seen_at: iso(-200) }, calls, events, deal: null, no_shows: 0 }, extra || {});
-      const msg = (h, actor, type, content, ch) => ({ type, occurred_at: iso(h), actor, channel: ch || 'imessage', content, data: { status: 'delivered' } });
+      const msg = (h, actor, type, content, ch) => ({ type, occurred_at: iso(h), actor, channel: ch || 'whatsapp', content, data: { status: 'delivered' } });
       window.__declared = []; window.__rpc = [];
       const fake = {
         listMembers: async () => [{ id: 'u-r', member_key: 'romain', full_name: 'Romain' }, { id: 'u-c', member_key: 'colin', full_name: 'Colin' }],

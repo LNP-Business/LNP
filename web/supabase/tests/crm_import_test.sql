@@ -134,29 +134,29 @@ do $$ declare u uuid := '30000000-0000-0000-0000-0000000000b1'; v uuid := '30000
   assert (select count(*) from crm_members where id = u) = 1, 'run again: no duplicate';
 end $$;
 
--- 012: Sendblue messages on the right cycle, statuses on one handle, unknown numbers kept, STOP
+-- 012 / 052: WhatsApp messages on the right cycle, statuses on one handle, unknown numbers kept, STOP
 do $$ declare pid uuid; cid uuid; r jsonb; inbox bigint; begin
   select person_id into pid from crm_person_identities where value = 'ok@ex.com';
   insert into crm_person_identities (person_id, kind, value, source) values (pid, 'phone', '+33611111111', 'import');
   select id into cid from crm_cycles where person_id = pid;
   r := crm_import_messages('[
-    {"type":"message_in","source_id":"sendblue:h1","occurred_at":"2026-03-05T10:00:00Z","actor":"prospect","channel":"imessage","content":"Hello","identity":{"phone":"+33611111111"},"data":{"status":"RECEIVED"}},
-    {"type":"message_out","source_id":"sendblue:h2","occurred_at":"2026-03-05T10:05:00Z","actor":"sales","channel":"imessage","content":"Hi!","identity":{"phone":"+33611111111"},"data":{"status":"SENT"}},
-    {"type":"message_in","source_id":"sendblue:h3","occurred_at":"2026-03-05T11:00:00Z","actor":"prospect","channel":"sms","content":"Who?","identity":{"phone":"+33699999999"},"data":{}}]', true);
+    {"type":"message_in","source_id":"whatsapp:h1","occurred_at":"2026-03-05T10:00:00Z","actor":"prospect","channel":"whatsapp","content":"Hello","identity":{"phone":"+33611111111"},"data":{"status":"RECEIVED"}},
+    {"type":"message_out","source_id":"whatsapp:h2","occurred_at":"2026-03-05T10:05:00Z","actor":"sales","channel":"whatsapp","content":"Hi!","identity":{"phone":"+33611111111"},"data":{"status":"SENT"}},
+    {"type":"message_in","source_id":"whatsapp:h3","occurred_at":"2026-03-05T11:00:00Z","actor":"prospect","channel":"sms","content":"Who?","identity":{"phone":"+33699999999"},"data":{}}]', true);
   assert (r->>'new')::int = 3 and (r->>'new_people')::int = 1 and (r->>'no_cycle')::int = 1, 'dry counts: ' || r;
-  assert not exists (select 1 from crm_events where source = 'sendblue'), 'dry run wrote nothing';
+  assert not exists (select 1 from crm_events where source = 'whatsapp'), 'dry run wrote nothing';
   r := crm_import_messages('[
-    {"type":"message_in","source_id":"sendblue:h1","occurred_at":"2026-03-05T10:00:00Z","actor":"prospect","channel":"imessage","content":"Hello","identity":{"phone":"+33611111111"},"data":{"status":"RECEIVED"}},
-    {"type":"message_out","source_id":"sendblue:h2","occurred_at":"2026-03-05T10:05:00Z","actor":"sales","channel":"imessage","content":"Hi!","identity":{"phone":"+33611111111"},"data":{"status":"SENT"}},
-    {"type":"message_in","source_id":"sendblue:h3","occurred_at":"2026-03-05T11:00:00Z","actor":"prospect","channel":"sms","content":"Who?","identity":{"phone":"+33699999999"},"data":{}}]', false);
-  assert (select count(*) from crm_events where source = 'sendblue' and cycle_id = cid) = 2, 'both messages on the cycle';
+    {"type":"message_in","source_id":"whatsapp:h1","occurred_at":"2026-03-05T10:00:00Z","actor":"prospect","channel":"whatsapp","content":"Hello","identity":{"phone":"+33611111111"},"data":{"status":"RECEIVED"}},
+    {"type":"message_out","source_id":"whatsapp:h2","occurred_at":"2026-03-05T10:05:00Z","actor":"sales","channel":"whatsapp","content":"Hi!","identity":{"phone":"+33611111111"},"data":{"status":"SENT"}},
+    {"type":"message_in","source_id":"whatsapp:h3","occurred_at":"2026-03-05T11:00:00Z","actor":"prospect","channel":"sms","content":"Who?","identity":{"phone":"+33699999999"},"data":{}}]', false);
+  assert (select count(*) from crm_events where source = 'whatsapp' and cycle_id = cid) = 2, 'both messages on the cycle';
   assert exists (select 1 from crm_people p join crm_person_identities i on i.person_id = p.id where i.value = '+33699999999'), 'unknown number kept as a person';
-  insert into crm_webhook_log (source, headers, body, auth_ok) values ('sendblue', '{}', '{}', true) returning id into inbox;
-  assert crm_apply_messages(inbox, '[{"type":"message_out","source_id":"sendblue:h2","occurred_at":"2026-03-05T10:05:00Z","actor":"sales","channel":"imessage","content":"Hi!","identity":{"phone":"+33611111111"},"data":{"status":"READ","error_code":null}}]') = 'processed', 'webhook applied';
-  assert (select count(*) from crm_events where source_id = 'sendblue:h2') = 1 and (select data->>'status' from crm_events where source_id = 'sendblue:h2') = 'READ', 'status updated on the same message';
+  insert into crm_webhook_log (source, headers, body, auth_ok) values ('whatsapp', '{}', '{}', true) returning id into inbox;
+  assert crm_apply_messages(inbox, '[{"type":"message_out","source_id":"whatsapp:h2","occurred_at":"2026-03-05T10:05:00Z","actor":"sales","channel":"whatsapp","content":"Hi!","identity":{"phone":"+33611111111"},"data":{"status":"READ","error_code":null}}]') = 'processed', 'webhook applied';
+  assert (select count(*) from crm_events where source_id = 'whatsapp:h2') = 1 and (select data->>'status' from crm_events where source_id = 'whatsapp:h2') = 'READ', 'status updated on the same message';
   assert (select status from crm_webhook_log where id = inbox) = 'processed', 'inbox row processed';
-  insert into crm_webhook_log (source, headers, body, auth_ok) values ('sendblue', '{}', '{}', true) returning id into inbox;
-  perform crm_apply_messages(inbox, '[{"type":"opt_out","source_id":"sendblue:optout:h9","occurred_at":"2026-03-06T10:00:00Z","actor":"prospect","channel":"imessage","identity":{"phone":"+33611111111"},"data":{}}]');
+  insert into crm_webhook_log (source, headers, body, auth_ok) values ('whatsapp', '{}', '{}', true) returning id into inbox;
+  perform crm_apply_messages(inbox, '[{"type":"opt_out","source_id":"whatsapp:optout:h9","occurred_at":"2026-03-06T10:00:00Z","actor":"prospect","channel":"whatsapp","identity":{"phone":"+33611111111"},"data":{}}]');
   assert (select opted_out_at from crm_people where id = pid) is not null, 'STOP sets opted_out_at';
 end $$;
 

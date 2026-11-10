@@ -30,7 +30,7 @@ create type decision         as enum ('yes', 'no', 'follow_up', 'disqualified');
 create type nurture_choice   as enum ('none', 'standard', 'light');
 create type nurture_status   as enum ('active', 'reactivated', 'archived', 'opted_out', 'removed');
 create type actor_kind       as enum ('sales', 'prospect', 'auto', 'system');
-do $$ begin create type event_source as enum ('iclosed', 'fathom', 'sendblue', 'whop', 'crm', 'claude', 'rules', 'import'); exception when duplicate_object then null; end $$;  -- also in 003a (phase 0)
+do $$ begin create type event_source as enum ('iclosed', 'fathom', 'sendblue', 'whop', 'crm', 'claude', 'rules', 'import', 'whatsapp'); exception when duplicate_object then null; end $$;  -- also in 003a (phase 0)
 create type reason_kind      as enum ('lost', 'disqualified');
 create type alert_severity   as enum ('low', 'medium', 'high', 'critical');   -- same scale as Settings › Alerts
 do $$ begin create type inbox_status as enum ('received', 'processed', 'ignored', 'failed', 'unmatched', 'rejected'); exception when duplicate_object then null; end $$;  -- also in 003a (phase 0)
@@ -50,12 +50,12 @@ create table crm_members (
   lead_id          uuid references crm_members(id),   -- escalation lead (Valentino -> Romain, Romain -> Amin)
   iclosed_email    citext,            -- email of the member's iClosed account
   fathom_email     citext,            -- email used to record in Fathom
-  sendblue_number  text,              -- E.164 Sendblue line of this member
+  whatsapp_number  text,              -- E.164 WhatsApp Business number of this member (052)
   timezone         text not null default 'Asia/Dubai',
   active           boolean not null default true,
   created_at       timestamptz not null default now()
 );
-create unique index team_members_sendblue_uq on crm_members(sendblue_number) where sendblue_number is not null;
+create unique index team_members_whatsapp_uq on crm_members(whatsapp_number) where whatsapp_number is not null;
 
 -- ───────────────────────── people ─────────────────────────
 create table crm_people (
@@ -205,7 +205,7 @@ create table crm_events (
   received_at   timestamptz not null default now(),
   actor         actor_kind not null,
   member_id     uuid references crm_members(id),
-  channel       text not null,     -- booking, video, imessage, sms, phone, payment, crm, analysis
+  channel       text not null,     -- booking, video, whatsapp, payment, crm, analysis
   type          text not null,     -- canonical type, see 04-event-pipeline.md
   content       text,
   data          jsonb not null default '{}'::jsonb,
@@ -280,7 +280,7 @@ create table crm_outbound_messages (
   to_number          text not null,
   from_number        text,
   status             outbound_status not null default 'queued',
-  sendblue_message_handle text unique,
+  whatsapp_message_id text unique,
   error              text,
   requested_at       timestamptz not null default now(),
   sent_at            timestamptz
@@ -529,7 +529,7 @@ insert into crm_settings (key, value) values ('alert_rule_defaults', '[
   {"id":"c14","name":"Perte automatique demain","severity":"medium","threshold":{"notice_hours":24},"to":["owner"]},
   {"id":"c15","name":"Retour de maturation à faire","severity":"medium","threshold":{},"to":["owner"]},
   {"id":"c16","name":"Éléments non rattachés en attente","severity":"low","threshold":{"after_hours":2},"to":["lead"]},
-  {"id":"c17","name":"Une source ne répond plus","severity":"critical","threshold":{"iclosed_hours":6,"sendblue_hours":6,"fathom_missed_calls":2},"to":["romain"]},
+  {"id":"c17","name":"Une source ne répond plus","severity":"critical","threshold":{"iclosed_hours":6,"whatsapp_hours":6,"fathom_missed_calls":2},"to":["romain"]},
   {"id":"c18","name":"Écart de rapprochement","severity":"critical","threshold":{},"to":["romain"]}
 ]');
 

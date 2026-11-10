@@ -2,7 +2,7 @@
 import { verifyStandardWebhook } from "../functions/_shared/verify/standard-webhooks.ts";
 import { tokenMatches } from "../functions/_shared/verify/token.ts";
 import { LogRow, makeHandler, MAX_BODY } from "../functions/_shared/ingest.ts";
-import { iclosed, sendblue, whop } from "../functions/_shared/sources.ts";
+import { iclosed, metaSignatureOk, whatsapp, whop } from "../functions/_shared/sources.ts";
 
 function eq<T>(a: T, b: T, msg = "") {
   if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg} expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
@@ -87,15 +87,25 @@ Deno.test("iclosed-in: native webhook with the token in the address", async () =
   eq(db.rows[0].delivery_id, null);
 });
 
-Deno.test("sendblue-in: token in the query string, URL never stored", async () => {
-  Deno.env.set("SENDBLUE_INBOUND_TOKEN", "sb-secret");
+Deno.test("whatsapp-in: token in the query string or Meta's signature, Meta's address check, URL never stored", async () => {
+  Deno.env.set("WHATSAPP_INBOUND_TOKEN", "wa-secret");
+  Deno.env.set("WHATSAPP_APP_SECRET", "app-secret");
   const db = memory();
-  const handler = makeHandler(sendblue, db);
-  eq((await handler(post("https://x/sendblue-in?k=sb-secret", '{"message_handle":"m1"}'))).status, 200);
-  eq((await handler(post("https://x/sendblue-in?k=sb-secret", '{"message_handle":"m1"}'))).status, 200);
-  eq(db.rows.length, 2, "no delivery id for Sendblue:");
-  eq(JSON.stringify(db.rows).includes("sb-secret"), false);
-  eq((await handler(post("https://x/sendblue-in", "{}"))).status, 401);
+  const handler = makeHandler(whatsapp, db);
+  const body = '{"object":"whatsapp_business_account","entry":[]}';
+  eq((await handler(post("https://x/whatsapp-in?k=wa-secret", body))).status, 200);
+  eq((await handler(post("https://x/whatsapp-in?k=wa-secret", body))).status, 200);
+  eq(db.rows.length, 2, "no delivery id for WhatsApp (each message is found again by its id):");
+  eq(JSON.stringify(db.rows).includes("wa-secret"), false);
+  eq((await handler(post("https://x/whatsapp-in", body))).status, 401);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode("app-secret"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const hex = Array.from(new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body))), (x) => x.toString(16).padStart(2, "0")).join("");
+  eq(await metaSignatureOk("sha256=" + hex, body, "app-secret"), true);
+  eq((await handler(post("https://x/whatsapp-in", body, { "x-hub-signature-256": "sha256=" + hex }))).status, 200);
+  eq((await handler(post("https://x/whatsapp-in", body, { "x-hub-signature-256": "sha256=00" }))).status, 401);
+  const ok = await handler(new Request("https://x/whatsapp-in?hub.mode=subscribe&hub.verify_token=wa-secret&hub.challenge=42", { method: "GET" }));
+  eq([ok.status, await ok.text()], [200, "42"]);
+  eq((await handler(new Request("https://x/whatsapp-in?hub.mode=subscribe&hub.verify_token=nope&hub.challenge=42", { method: "GET" }))).status, 403);
 });
 
 Deno.test("whop-in: Standard Webhooks signature", async () => {
@@ -120,14 +130,14 @@ Deno.test("whop-in: Standard Webhooks signature", async () => {
 
 Deno.test("method and size limits", async () => {
   const db = memory();
-  const handler = makeHandler(sendblue, db);
-  eq((await handler(new Request("https://x/sendblue-in", { method: "GET" }))).status, 405);
-  eq((await handler(post("https://x/sendblue-in?k=sb-secret", "x".repeat(MAX_BODY + 1)))).status, 413);
+  const handler = makeHandler(whatsapp, db);
+  eq((await handler(new Request("https://x/whatsapp-in", { method: "GET" }))).status, 405);
+  eq((await handler(post("https://x/whatsapp-in?k=wa-secret", "x".repeat(MAX_BODY + 1)))).status, 413);
   eq(db.rows.length, 0);
 });
 
 Deno.test("a storage failure answers 500 so the provider retries", async () => {
-  Deno.env.set("SENDBLUE_INBOUND_TOKEN", "sb-secret");
-  const handler = makeHandler(sendblue, { insert: () => Promise.resolve("error" as const) });
-  eq((await handler(post("https://x/sendblue-in?k=sb-secret", "{}"))).status, 500);
+  Deno.env.set("WHATSAPP_INBOUND_TOKEN", "wa-secret");
+  const handler = makeHandler(whatsapp, { insert: () => Promise.resolve("error" as const) });
+  eq((await handler(post("https://x/whatsapp-in?k=wa-secret", "{}"))).status, 500);
 });

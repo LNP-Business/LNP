@@ -1,7 +1,8 @@
 # 03 — Base de données (Supabase / Postgres)
 
 Ce chapitre décrit tout le back end Postgres de LNP tel que le définissent les fichiers `web/supabase/001_init.sql` et
-`web/supabase/003_crm_core.sql` à `web/supabase/034_lnp_fr_labels.sql` (il n'y a plus de `002`). Il suffit pour recréer la base
+`web/supabase/003_crm_core.sql` à `web/supabase/034_lnp_fr_labels.sql` (il n'y a plus de `002`), plus, pour les messages,
+`web/supabase/052_crm_whatsapp.sql` (WhatsApp Business à la place de Sendblue, décision de Romain du 9 novembre 2026). Il suffit pour recréer la base
 et la comprendre sans lire le SQL d'abord ; chaque fait renvoie au fichier qui le pose. Quand une migration redéfinit une
 fonction écrite plus tôt, la colonne « définition finale » donne le fichier dont le texte fait foi.
 
@@ -77,7 +78,7 @@ par un ancien `003a`, sont protégés). Les tests (§15) appliquent 004 et 007 �
 | `009_crm_import_calls.sql` | `crm_import_calls` (cycles et appels R1, R2… à partir de l'historique iClosed) ; vue `crm_people_without_cycle`. |
 | `010_crm_first_seen.sql` | Colonne `crm_people.first_seen_at` (remplie), déclencheur `crm_events_first_seen`, vue redéfinie avec la colonne. |
 | `011_access_everyone.sql` | Efface `app_metadata.screens` de chaque compte ; `crm_member_from_team` et le déclencheur `members_to_crm` (chaque membre de l'application devient membre du CRM) ; rattrapage pour les membres existants. |
-| `012_crm_messages.sql` | Messages et appels Sendblue : `crm_apply_message_item`, `crm_apply_messages`, `crm_import_messages`. |
+| `012_crm_messages.sql` | Messages et appels (écrits pour Sendblue, abandonné le 9 novembre 2026) : `crm_apply_message_item`, `crm_apply_messages`, `crm_import_messages` ; définition finale dans 052. |
 | `013_crm_reclassify.sql` | `crm_reclassify_imported` : relit les cycles importés avec les règles corrigées (gagné, disqualifié, en cours, perdu). |
 | `014_mcp.sql` | Tables `mcp_oauth_clients`, `mcp_oauth_codes` ; index `crm_audit_log_actor_at` ; `crm_mcp_call`, `crm_mcp_done` (audit et limite de 60 appels par minute). |
 | `015_crm_owners.sql` | `crm_assign_owners_from_hosts`, déclencheur `crm_members_take_leads` ; rattrapage immédiat. |
@@ -100,6 +101,7 @@ par un ancien `003a`, sont protégés). Les tests (§15) appliquent 004 et 007 �
 | `032_crm_fathom_closest.sql` | Réglage `fathom_close_minutes` ; règle `booking_closest` ; `crm_call_has_ambiguous_recording` ; `crm_apply_no_show_rule` (définition finale) ; remise en « issue à déclarer » des fausses absences ; `no_show_rule.min_minutes` passe à 30 ; `crm_call_is_reschedule` ; fenêtre du cockpit comptée en prospects. |
 | `033_crm_noshow_audit.sql` | Règle `booking_declared` ; `crm_fathom_person` (définition finale) ; `crm_sales_cockpit_window` (définition finale : un cycle gagné compte comme présent). |
 | `034_lnp_fr_labels.sql` | Passe en français les libellés déjà chargés d'une base construite en anglais (sans toucher un libellé modifié à la main) et recrée, à l'identique des fichiers 004 à 031, chaque fonction qui renvoie ou lève du texte. |
+| `052_crm_whatsapp.sql` | WhatsApp Business, seul canal de messages : valeur `whatsapp` d'`event_source` ; `crm_members.sendblue_number` renommée `whatsapp_number` (index `team_members_whatsapp_uq`) ; `crm_outbound_messages.sendblue_message_handle` renommée `whatsapp_message_id` ; `crm_admin_set_member` recréée avec `p_whatsapp_number` ; `crm_set_member_whatsapp` ; `crm_apply_message_item`, `crm_apply_messages`, `crm_import_messages` (définition finale : la source vient de chaque élément, membre de l'équipe rattaché) ; tâche `crm-process-inbox` replanifiée sur `whatsapp`. Rejouable sans danger. Pas encore appliquée en production. |
 
 **À propos de 034.** Ses redéfinitions sont des copies exactes de la dernière définition de chaque fonction (vérifié en comparant
 les textes : identiques pour les 30 fonctions qu'il recrée). Sur une base neuve, 034 ne change donc que les données de la partie 1,
@@ -179,7 +181,7 @@ Tous créés par 003, sauf mention.
 | `nurture_choice` | `none`, `standard`, `light` | Intensité de maturation. |
 | `nurture_status` | `active`, `reactivated`, `archived`, `opted_out`, `removed` | `archived` et `opted_out` ne sont écrits par aucune fonction. |
 | `actor_kind` | `sales`, `prospect`, `auto`, `system` | Qui a produit l'événement. |
-| `event_source` | `iclosed`, `fathom`, `sendblue`, `whop`, `crm`, `claude`, `rules`, `import` | Créé avec garde `duplicate_object` (aussi en phase 0). |
+| `event_source` | `iclosed`, `fathom`, `sendblue`, `whop`, `crm`, `claude`, `rules`, `import`, `whatsapp` | Créé avec garde `duplicate_object` (aussi en phase 0) ; `whatsapp` est dans la liste de 003 et ajouté par 052 à une base existante (`add value if not exists`). `sendblue` reste dans l'énumération mais n'est plus écrit (Sendblue abandonné, aucune ligne). |
 | `reason_kind` | `lost`, `disqualified` | Nature d'un motif. |
 | `alert_severity` | `low`, `medium`, `high`, `critical` | Même échelle que Paramètres › Alertes. |
 | `inbox_status` | `received`, `processed`, `ignored`, `failed`, `unmatched`, `rejected` | Créé avec garde `duplicate_object`. |
@@ -348,7 +350,7 @@ Une ligne par compte qui prend part aux ventes. `member_key` est l'identifiant d
 | `lead_id` | `uuid` | non | | FK `crm_members(id)` (responsable d'escalade) |
 | `iclosed_email` | `citext` | non | | e-mail du compte iClosed |
 | `fathom_email` | `citext` | non | | e-mail d'enregistrement Fathom |
-| `sendblue_number` | `text` | non | | ligne Sendblue (E.164) ; index unique partiel `team_members_sendblue_uq` `where sendblue_number is not null` |
+| `whatsapp_number` | `text` | non | | numéro WhatsApp Business de la personne (E.164, `+33612345678`) : rattache ses messages (`crm_events.member_id`) ; index unique partiel `team_members_whatsapp_uq` `where whatsapp_number is not null` ; créée sous ce nom par 003 (une base plus ancienne avait `sendblue_number`, renommée par 052) ; écrite par `crm_set_member_whatsapp` (Paramètres › Compte › Accès de l'équipe) |
 | `timezone` | `text` | oui | `'Asia/Dubai'` | |
 | `active` | `boolean` | oui | `true` | |
 | `created_at` | `timestamptz` | oui | `now()` | |
@@ -611,7 +613,7 @@ Reconstruite à chaque passage du projecteur.
 | `received_at` | `timestamptz` | oui | `now()` | |
 | `actor` | `actor_kind` | oui | | |
 | `member_id` | `uuid` | non | | FK `crm_members(id)` |
-| `channel` | `text` | oui | | `booking`, `video`, `imessage`, `sms`, `phone`, `payment`, `crm`, `analysis` |
+| `channel` | `text` | oui | | `booking`, `video`, `whatsapp`, `payment`, `crm`, `analysis` (`imessage`, `sms`, `phone` restent possibles mais plus aucune source ne les écrit) |
 | `type` | `text` | oui | | type canonique (§11.3) ; index `events_type` |
 | `content` | `text` | non | | texte (message, note) |
 | `data` | `jsonb` | oui | `'{}'` | |
@@ -703,7 +705,7 @@ Messages qu'enverrait le CRM. Aucune fonction SQL ni Edge Function du dépôt ne
 | `to_number` | `text` | oui | | |
 | `from_number` | `text` | non | | |
 | `status` | `outbound_status` | oui | `'queued'` | |
-| `sendblue_message_handle` | `text` | non | | unique |
+| `whatsapp_message_id` | `text` | non | | unique ; créée sous ce nom par 003 (une base plus ancienne avait `sendblue_message_handle`, renommée par 052) |
 | `error` | `text` | non | | |
 | `requested_at` | `timestamptz` | oui | `now()` | |
 | `sent_at` | `timestamptz` | non | | |
@@ -760,7 +762,7 @@ attribué à une autre personne » (023) ; « Enregistrement Fathom : plusieurs 
 | `source` | `event_source` | oui | | `import` dans le code (`_shared/import_run.ts`) |
 | `dry_run` | `boolean` | oui | | |
 | `status` | `text` | oui | `'running'` | `check (status in ('running', 'done', 'failed'))` |
-| `cursor` | `jsonb` | oui | `'{}'` | où reprendre (par exemple `{"skip": 300}`, `{"source": "sendblue"}`) |
+| `cursor` | `jsonb` | oui | `'{}'` | où reprendre (par exemple `{"skip": 300}`, `{"source": "fathom"}`) |
 | `stats` | `jsonb` | oui | `'{}'` | comptes seulement, jamais de donnée personnelle |
 | `error` | `text` | non | | |
 | `started_at` | `timestamptz` | oui | `now()` | |
@@ -1088,7 +1090,7 @@ par `call-analysis/worker/run.py`.
 
 | Fonction | Droits | Contrôle | Ce qu'elle fait et écrit | Appelants | Définition finale |
 |---|---|---|---|---|---|
-| `crm_admin_set_member(p_email, p_member_key, p_full_name, p_role member_role, p_lead_key default null, p_iclosed_email default null, p_fathom_email default null, p_sendblue_number default null, p_active default true) → uuid` | auth, service | administrateur d'application ou du CRM | Retrouve le compte dans `members` par e-mail (erreur s'il n'existe pas : « invitez d'abord la personne »), résout le responsable par sa clé (erreur s'il est inconnu ou s'il s'agit de la personne elle-même), insère ou met à jour `crm_members`, audit `set_member`. | Aucun dans le code (éditeur SQL). | 004 (copie 034) |
+| `crm_admin_set_member(p_email, p_member_key, p_full_name, p_role member_role, p_lead_key default null, p_iclosed_email default null, p_fathom_email default null, p_whatsapp_number default null, p_active default true) → uuid` | auth, service | administrateur d'application ou du CRM | Retrouve le compte dans `members` par e-mail (erreur s'il n'existe pas : « invitez d'abord la personne »), résout le responsable par sa clé (erreur s'il est inconnu ou s'il s'agit de la personne elle-même), insère ou met à jour `crm_members`, audit `set_member`. | Aucun dans le code (éditeur SQL). | 004 (copie 034) |
 | `crm_declare_outcome(p_call uuid, p jsonb) → uuid` | auth, service | `crm_require(['admin','sales_lead'], cycle)` | Voir §12.5. Écrit `crm_call_outcomes` (remplace l'issue courante), `crm_calls.status`, les événements `outcome_<présence>` et `outcome_<décision>`, la vente si « oui », l'audit, puis recalcule le cycle. | `data.js` `declareOutcome` (fiche prospect du CRM, Ma journée `app/salesday_module.js`) ; connecteur `web/api/_write.js` (outil « issue d'un appel »). | 027 (copie 034) |
 | `crm_add_note(p_cycle uuid, p_text text) → bigint` | auth, service | idem | Refuse une note vide ; événement `note` (`content` = texte, `source_id` `crm:note:<uuid>`) ; audit `add_note`. Renvoie l'id de l'événement. | `data.js` `addNote` (CRM, Ma journée) ; `web/api/_write.js` (outil « note sur un prospect »). | 004 (copie 034) |
 | `crm_reassign_cycle(p_cycle uuid, p_member uuid) → void` | auth, service | `crm_require(['admin','sales_lead'])` | Le nouveau commercial doit être actif et pas `viewer` ; change `owner_id` du cycle et des alertes ouvertes (`owner_id`, `owner_key`) ; audit. | `data.js` `reassignCycle` (CRM, `gen_crm.py`). | 004 (copie 034) |
@@ -1116,8 +1118,9 @@ par `call-analysis/worker/run.py`.
 | `crm_inbox_mark(p_inbox bigint, p_status inbox_status, p_error text default null) → void` | service | Pose le statut, l'erreur (2 000 caractères max), `processed_at` ; +1 tentative si `failed`. | `worker.ts`. | 005 |
 | `crm_apply_items(p_inbox bigint, p_items jsonb) → text` | service | Rendez-vous iClosed (§11.2). | `worker.ts` (source `iclosed`). | 005 (copie 034) |
 | `crm_apply_contact(p_inbox bigint, p_items jsonb) → text` | service | iClosed « Contact updated » (§12.13). | `worker.ts` (type `contact_updated`, quelle que soit la source). | 023 (copie 034) |
-| `crm_apply_messages(p_inbox bigint, p_items jsonb) → text` | service | Messages et appels Sendblue d'une ligne brute (§12.12) ; numéro partagé → non rattaché. | `worker.ts` (source `sendblue`). | 012 (copie 034) |
-| `crm_apply_message_item(it jsonb) → uuid` | interne | Un message : personne, cycle, événement (§12.12). Renvoie le cycle. | `crm_apply_messages`, `crm_import_messages`. | 012 |
+| `crm_apply_messages(p_inbox bigint, p_items jsonb) → text` | service | Messages WhatsApp d'une ligne brute (§12.12) ; numéro partagé → non rattaché (source de l'élément). | `worker.ts` (source `whatsapp`). | 052 |
+| `crm_apply_message_item(it jsonb) → uuid` | interne | Un message : personne, cycle, membre de l'équipe, événement (§12.12). Renvoie le cycle. | `crm_apply_messages`, `crm_import_messages`. | 052 |
+| `crm_set_member_whatsapp(p_member uuid, p_number text) → text` | service | Numéro WhatsApp Business d'une personne de l'équipe : chiffres et `+` gardés, `00` → `+`, format `^\+[1-9][0-9]{7,14}$` sinon `22023` « Numéro WhatsApp invalide : écrivez-le avec l'indicatif, par exemple +33 6 12 34 56 78 » ; déjà pris → `23505` « Ce numéro est déjà celui de <nom> » ; membre inconnu → `P0002` ; vide → effacé. Renvoie le numéro gardé. | `web/api/team.js` (`action:"whatsapp"`, après contrôle administrateur). | 052 |
 | `crm_apply_recordings(p_inbox bigint, p_items jsonb) → text` | service | Enregistrements Fathom d'une ligne brute : `linked` → `processed`, `ambiguous` → `unmatched`, sinon `ignored` avec une note FL-1 / FL-3 dans `error`. | `worker.ts` (source `fathom`, si un webhook existe). | 025 (copie 034) |
 | `crm_apply_recording_item(it jsonb, p_queue boolean) → jsonb` | service | Un enregistrement (§12.7). | `crm_apply_recordings`, `crm_import_recordings`. | 025 |
 | `crm_people_for(p_identity jsonb) → uuid[]` | service | Personnes (après fusion) désignées par `{kind: valeur}` parmi `iclosed_contact_id`, `phone`, `email`, `whop_user_id`, `whop_member_id`. `sql stable`. | Fonctions d'application. | 005 |
@@ -1135,7 +1138,7 @@ par `call-analysis/worker/run.py`.
 | `crm_import_save(p_run uuid, p_cursor jsonb, p_stats jsonb, p_status text, p_error text default null) → void` | service | Met à jour le curseur, les compteurs, le statut et `finished_at` d'un `crm_import_runs`. `sql`. | `import_run.ts`. | 007 |
 | `crm_import_iclosed_disqualified(p_dry boolean default true) → jsonb` | service | §12.15. `{created, already_had_a_cycle, dry}`. | Aucun (manuel). | 008 |
 | `crm_import_calls(p_items jsonb, p_dry boolean) → jsonb` | service | §12.15. | `import_run.ts` (`?source=iclosed_calls`). | 009 |
-| `crm_import_messages(p_items jsonb, p_dry boolean) → jsonb` | service | Historique Sendblue par lots ; `{items, new, known, new_people, no_cycle, conflicts}`. | `import_run.ts` (`?source=sendblue`). | 012 |
+| `crm_import_messages(p_items jsonb, p_dry boolean) → jsonb` | service | Lot de messages déjà lus ; `{items, new, known, new_people, no_cycle, conflicts}`. | Aucun dans le code depuis le retrait de l'import Sendblue (tests SQL seulement ; l'historique WhatsApp arrive par webhook). | 052 |
 | `crm_import_recordings(p_items jsonb, p_dry boolean, p_queue boolean default false) → jsonb` | service | Historique Fathom par lots de 10 ; compte par statut et par règle (`rule_<règle>`), `queued`, `speakers_unmapped`. `p_queue` (tâche horaire) met en file les analyses R1/R2 ; un import d'historique non. | `import_run.ts` (`?source=fathom`, tâche `crm-fathom-hourly` avec `queue=1`). | 025 |
 | `crm_reclassify_imported(p_dry boolean default true) → jsonb` | service | §12.16. Renvoie les mouvements `"ancien → nouveau": n`. | Aucun (manuel). | 013 |
 | `crm_assign_owners_from_hosts(p_dry boolean, p_member uuid default null) → jsonb` | interne | §12.4. | Déclencheur `crm_members_take_leads` ; 015 à l'application. | 015 |
@@ -1229,13 +1232,13 @@ La condition `pg_trigger_depth() < 1` empêche la renumérotation de se relancer
 ```
 fournisseur ──HTTP──▶ Edge Function *-in ──insert──▶ crm_webhook_log (status received, auth_ok)
                                                             │
-pg_cron chaque minute (si des lignes iclosed / sendblue / fathom attendent) ──▶ process-inbox
+pg_cron chaque minute (si des lignes iclosed / whatsapp / fathom attendent) ──▶ process-inbox
                                                             │
              crm_inbox_pending ──▶ mapper de la source (TS) ──▶ éléments canoniques
                                                             │
      auth_ok faux → crm_inbox_mark(rejected) · rien à faire → ignored · exception → failed (+1 tentative)
                                                             │
-   crm_apply_items (iclosed) · crm_apply_messages (sendblue) · crm_apply_recordings (fathom) · crm_apply_contact (contact_updated)
+   crm_apply_items (iclosed) · crm_apply_messages (whatsapp) · crm_apply_recordings (fathom) · crm_apply_contact (contact_updated)
                                                             │
          personne (identités) → cycle (crm_open_cycle) → appel → crm_events (on conflict do nothing)
                                                             │
@@ -1244,7 +1247,7 @@ pg_cron chaque minute (si des lignes iclosed / sendblue / fathom attendent) ─�
                      crm_webhook_log.status = processed / unmatched / ignored (même transaction)
 ```
 
-- **File** (`crm_inbox_pending`, 005) : lignes des sources demandées (les sources qui ont un mapper : `iclosed`, `sendblue`,
+- **File** (`crm_inbox_pending`, 005) : lignes des sources demandées (les sources qui ont un mapper : `iclosed`, `whatsapp`,
   `fathom` ; `worker.ts`), avec moins de 8 tentatives, au statut `received`, ou `failed` après un délai de 2^(tentatives − 1)
   minutes compté depuis `coalesce(processed_at, received_at)` (1, 2, 4… minutes) ; triées par `id`, 50 par défaut.
 - Les lignes `whop` restent `received` (pas de mapper ; phase 5).
@@ -1293,7 +1296,7 @@ Types traités : `call_booked`, `call_rescheduled`, `call_canceled` (les autres 
 | `nurture_reactivated`, `cycle_reopened` | `crm_open_cycle` | crm | system / crm | `cycle_reopened` remet le cycle en cours |
 | `cycle_won`, `cycle_lost`, `cycle_disqualified` | projecteur ; `crm_import_iclosed_disqualified`, `crm_import_calls`, `crm_reclassify_imported` | crm / import | system / crm | ceux de source `import` ferment le cycle (règle 4 du §11.5) ; un `cycle_lost` de source `rules` aussi (règle 5) |
 | `imported` | `crm_import_people` | import | system / crm | sur la personne, sans cycle |
-| `message_in`, `message_out`, `phone_call_in`, `phone_call_out`, `opt_out` | `crm_apply_message_item` | sendblue | élément / élément | compteurs de tentatives et derniers contacts |
+| `message_in`, `message_out`, `opt_out` (`phone_call_in`, `phone_call_out` acceptés mais plus reçus) | `crm_apply_message_item` | whatsapp (celle de l'élément) | élément / élément (`whatsapp` ; `member_id` = le membre dont c'est le numéro) | compteurs de tentatives et derniers contacts |
 | `payment_succeeded` | `crm_add_payment` | crm | sales / payment | le premier gagne le cycle |
 | `payment_refunded` | `crm_add_refund` | crm | sales / payment | date de la perte « Remboursé » |
 | `transcript_added` | `crm_ca_add_transcript` | crm | sales / analysis | — |
@@ -1318,7 +1321,7 @@ Types traités : `call_booked`, `call_rescheduled`, `call_canceled` (les autres 
 | `transcript:<travail>` | `crm_ca_add_transcript` |
 | `analysis:<travail>` | `crm_ca_store` |
 | `noshow:<appel>` (source `rules`) | `crm_apply_no_show_rule` |
-| celui de l'élément (`sendblue:<handle>` pour un message ; celui du mapper pour iClosed et Fathom) | `crm_apply_items`, `crm_apply_message_item`, `crm_apply_recording_item` |
+| celui de l'élément (`whatsapp:<wamid>` pour un message, `whatsapp:optout:<wamid>` pour un STOP ; celui du mapper pour iClosed et Fathom) | `crm_apply_items`, `crm_apply_message_item`, `crm_apply_recording_item` |
 
 ### 11.5 Le projecteur `crm_recompute_cycle` (définition finale : 030, recopiée par 034)
 
@@ -1502,14 +1505,19 @@ futur ; augmente `refunded_amount` ; événement `payment_refunded` (`data.full`
 Un cycle dont **tous** les paiements sont remboursés est perdu avec le motif automatique `refunded` (§11.5, règle 1). Le montant
 encaissé du cockpit est toujours net des remboursements.
 
-### 12.12 Messages Sendblue (012)
+### 12.12 Messages WhatsApp (012, définition finale 052)
 
-Types : `message_in`, `message_out`, `phone_call_in`, `phone_call_out`, `opt_out`. La personne est trouvée par ses identifiants ;
-un numéro inconnu crée une personne (règle d'équipe : une ligne Sendblue ne sert qu'avec des prospects), donc aucun message n'est
-perdu ; un numéro partagé par plusieurs personnes lève `P0M02` (non rattaché « Plusieurs personnes ont ce numéro de téléphone » en
-direct, compteur `conflicts` en import). `opt_out` pose `opted_out_at`. Cycle : le dernier ouvert avant le message, sinon le premier.
-Un message est un seul événement retrouvé par son `source_id` : un webhook ultérieur fusionne `data` (sans les `null`) et ne garde
-le nouveau contenu que s'il n'est pas vide (envoyé → distribué → lu).
+Types : `message_in`, `message_out`, `opt_out` (la fonction accepte encore `phone_call_in` et `phone_call_out`, que plus aucune
+source n'envoie). La source est celle de l'élément (`whatsapp` par défaut). La personne est trouvée par ses identifiants ; un
+numéro inconnu crée une personne, avec le nom de son profil WhatsApp s'il est connu (règle d'équipe : le WhatsApp Business déclaré
+ne sert qu'avec des prospects), donc aucun message n'est perdu ; un numéro partagé par plusieurs personnes lève `P0M02` (non
+rattaché « Plusieurs personnes ont ce numéro de téléphone » en direct, compteur `conflicts` en import). `opt_out` pose
+`opted_out_at`. La personne de l'équipe est celle dont `crm_members.whatsapp_number` vaut `data.line` (le numéro WhatsApp Business
+du message) : elle va dans `crm_events.member_id`. Cycle : le dernier ouvert avant le message, sinon le premier.
+Un message est un seul événement retrouvé par son `source_id` (`whatsapp:<wamid>`) : un webhook ultérieur fusionne `data` (sans
+les `null`), ne garde le nouveau contenu que s'il n'est pas vide (envoyé → distribué → lu), garde la date la plus ancienne et le
+premier membre trouvé ; l'acteur devient `sales` dès qu'une des livraisons vaut `sales` (un message vu d'abord par son seul
+statut, donc envoyé par l'API et `auto`, devient « commercial » quand l'écho de l'application arrive).
 
 ### 12.13 Mise à jour de contact iClosed (023)
 
@@ -1634,7 +1642,7 @@ dans Slack.
 
 | Clé | Posée par | Valeur par défaut | Sens | Lue par |
 |---|---|---|---|---|
-| `alert_rule_defaults` | 003 | Tableau des règles c1 à c18 : `{id, name, severity, threshold, to}` (noms français ; seuils : c1 `after_minutes` 0, c2 `hours` 2, c3 `silence_hours` 48, c4 `hours` 2, c5/c6 étapes, c7 `hours` 48, c13 `silence_days` 30 / `attempts_below` 4, c14 `notice_hours` 24, c16 `after_hours` 2, c17 `iclosed_hours` 6 / `sendblue_hours` 6 / `fathom_missed_calls` 2) | Définitions par défaut des alertes du CRM | `crm_merge_alert_defaults`, `web/api/_os.js` |
+| `alert_rule_defaults` | 003 | Tableau des règles c1 à c18 : `{id, name, severity, threshold, to}` (noms français ; seuils : c1 `after_minutes` 0, c2 `hours` 2, c3 `silence_hours` 48, c4 `hours` 2, c5/c6 étapes, c7 `hours` 48, c13 `silence_days` 30 / `attempts_below` 4, c14 `notice_hours` 24, c16 `after_hours` 2, c17 `iclosed_hours` 6 / `whatsapp_hours` 6 / `fathom_missed_calls` 2) | Définitions par défaut des alertes du CRM | `crm_merge_alert_defaults`, `web/api/_os.js` |
 | `team_email_domains` | 003 | `["lesnouveauxprofs.fr"]` | Domaines internes (invités internes / externes) | Aucun code |
 | `default_owner` | 003 | `"sales"` | Clé du membre propriétaire quand l'hôte iClosed est inconnu | `crm_owner_for` |
 | `whop_plans` | 003 | `{}` | Produit → identifiant de plan Whop | Aucun code |
@@ -1659,7 +1667,7 @@ et ne partent que si `crm_settings.functions_url` existe ; elles appellent l'Edg
 
 | Nom | Planning | Action | Condition / délai |
 |---|---|---|---|
-| `crm-process-inbox` | `* * * * *` (chaque minute) | `POST <functions_url>/process-inbox`, corps `{}` | seulement s'il existe une ligne `iclosed`, `sendblue` ou `fathom` au statut `received` ou `failed` avec moins de 8 tentatives ; délai 30 s |
+| `crm-process-inbox` | `* * * * *` (chaque minute) | `POST <functions_url>/process-inbox`, corps `{}` | seulement s'il existe une ligne `iclosed`, `whatsapp` ou `fathom` au statut `received` ou `failed` avec moins de 8 tentatives ; délai 30 s |
 | `crm-fathom-hourly` | `23 * * * *` (minute 23) | `POST <functions_url>/crm-import?source=fathom&queue=1` | enregistrements des deux derniers jours, analyses R1/R2 mises en file ; un import déjà en cours fait sauter l'heure ; demande `FATHOM_API_KEY` ; délai 120 s |
 | `crm-sla-tick` | `*/5 * * * *` (toutes les 5 min) | `POST <functions_url>/sla-tick` | délai 60 s |
 | `crm-no-show-hourly` | `35 * * * *` (minute 35, après l'import Fathom) | `select public.crm_no_show_tick()` en SQL direct | ne fait rien tant que `no_show_rule.enabled` est faux |
@@ -1714,6 +1722,7 @@ Déroulé :
 | `fathom_closest_test.sql` | Parmi des rendez-vous rapprochés, le plus proche l'emporte (`booking_closest`) ; une égalité reste ambiguë et ne crée pas de fausse absence ; comptes de prospects du cockpit (présent, absent, en attente). Sa dernière ligne affichée est « cockpit lead counts SQL checks: all passed ». |
 | `noshow_audit_test.sql` | Une égalité va au prospect dont l'appel a été déclaré honoré (`booking_declared`) ; un prospect gagné compte comme présent. |
 | `lnp_fr_labels_test.sql` | Une base aux libellés anglais reçoit les libellés français (étape, motifs, description de règle, nom d'alerte, prochaine action, échéancier, raison d'élément non rattaché) ; un libellé modifié à la main reste ; le canal Slack reste ; les fonctions sont recréées et appelables ; un second passage ne change rien. |
+| `whatsapp_test.sql` | 052 : numéro WhatsApp normalisé (`+33 6 12 34 56 78`, `0033…`), invalide ou pris deux fois refusé, effacé ; message d'un numéro inconnu → nouveau prospect avec le nom de son profil ; statut seul puis écho de l'application → un seul événement, acteur `sales`, membre rattaché, contenu et statut à jour ; envoyé par l'API seulement → reste `auto` ; STOP retenu ; ligne brute traitée. |
 
 Autres tests qui touchent la base : `deno test --allow-env --allow-read supabase/tests` (fonctions, dont `pipeline.test.ts` et
 `fathom.test.ts` qui appellent `crm_apply_items`, `crm_apply_contact`, `crm_apply_recordings`), `node app/crm/data.test.js`
@@ -1728,8 +1737,8 @@ Le code fait foi. Écarts relevés avec la spécification `docs/crm/` :
 - **`002_q4_okrs.sql`** est encore cité par `docs/crm/01-architecture.md` et par l'en-tête de `003_crm_core.sql`, mais le fichier
   n'existe plus ; rien dans 003 à 034 n'en dépend.
 - **Le projecteur est en SQL** (`crm_recompute_cycle`), pas dans `_shared/projector.ts` comme l'annonce `docs/crm/01-architecture.md`.
-  Les Edge Functions `rules-tick`, `nurture-tick`, `reconcile`, `sendblue-send`, `whop-checkout`, `claude-analyze` décrites là
-  n'existent pas dans `supabase/functions/` (présentes : `iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in`, `process-inbox`,
+  Les Edge Functions `rules-tick`, `nurture-tick`, `reconcile`, `sendblue-send` (Sendblue abandonné le 9 novembre 2026), `whop-checkout`, `claude-analyze` décrites là
+  n'existent pas dans `supabase/functions/` (présentes : `iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`, `process-inbox`,
   `crm-import`, `sla-tick`, `callqa-llm`).
 - En conséquence, **`crm_alerts`, `crm_outbound_messages`, `crm_reconciliation_runs` et `crm_agent_runs` ne reçoivent aucune
   ligne** ; les règles `crm_rules` autres que `next_move.reopen_days` et `snooze_days` ne sont lues par aucun code ; aucun

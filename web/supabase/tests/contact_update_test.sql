@@ -17,7 +17,7 @@ begin
   assert not exists (select 1 from crm_events where person_id = pid), 'no event in the story';
   -- a phone that belongs to someone else is not moved
   insert into crm_people (full_name, primary_phone) values ('Someone Else', '+33600000099') returning id into pid2;
-  perform crm_add_identities(pid2, '{"phone":"+33600000099"}', 'sendblue');
+  perform crm_add_identities(pid2, '{"phone":"+33600000099"}', 'whatsapp');
   insert into crm_webhook_log (source, headers, body, auth_ok) values ('iclosed', '{}', '{}', true) returning id into inbox;
   r := crm_apply_contact(inbox, '[{"type":"contact_updated","identity":{"iclosed_contact_id":"9100","phone":"+33600000099"},"data":{"changed":["phone"]}}]');
   assert r = 'unmatched', 'conflict goes to review';

@@ -380,7 +380,7 @@
     async function draw(err) {
       card.textContent = "";
       card.appendChild(h("div", { style: "display:flex;flex-direction:column;gap:4px" }, [h("h2", { text: "Accès de l’équipe" }),
-        h("div", { "class": "q", text: "Qui peut ouvrir LNP, et ce que chacun peut faire. Invitez quelqu’un, puis envoyez-lui son lien. Les écrans que chacun ouvre : l’onglet Accès." })]));
+        h("div", { "class": "q", text: "Qui peut ouvrir LNP, et ce que chacun peut faire. Invitez quelqu’un, puis envoyez-lui son lien. Les écrans que chacun ouvre : l’onglet Accès. Le numéro WhatsApp Business de chacun rattache ses messages aux prospects." })]));
       if (err) card.appendChild(h("div", { "class": "err", text: err }));
       var em = h("input", { type: "email", placeholder: "nom@exemple.fr", style: "min-width:240px" });
       var rs = roleSel("member");
@@ -392,12 +392,12 @@
       });
       card.appendChild(h("div", { "class": "inv" }, [h("label", { style: "flex:1" }, ["E-mail", em]), h("label", {}, ["Rôle", rs]), inv]));
       if (flash) card.appendChild(flash);
-      var tbl = h("table", {}, [h("thead", {}, [h("tr", {}, [h("th", { text: "Membre" }), h("th", { text: "Rôle" }), h("th", { text: "" })])])]);
+      var tbl = h("table", {}, [h("thead", {}, [h("tr", {}, [h("th", { text: "Membre" }), h("th", { text: "Rôle" }), h("th", { text: "WhatsApp Business" }), h("th", { text: "" })])])]);
       var tb = h("tbody", {}); tbl.appendChild(tb);
       card.appendChild(tbl);
-      tb.appendChild(h("tr", {}, [h("td", { colspan: "3", "class": "q", text: "Chargement…" })]));
+      tb.appendChild(h("tr", {}, [h("td", { colspan: "4", "class": "q", text: "Chargement…" })]));
       var data;
-      try { data = await api("GET"); } catch (e) { tb.textContent = ""; tb.appendChild(h("tr", {}, [h("td", { colspan: "3" }, [h("div", { "class": "err", text: e.message })])])); return; }
+      try { data = await api("GET"); } catch (e) { tb.textContent = ""; tb.appendChild(h("tr", {}, [h("td", { colspan: "4" }, [h("div", { "class": "err", text: e.message })])])); return; }
       tb.textContent = "";
       data.members.forEach(function (m) {
         var self = m.user_id === data.me;
@@ -412,10 +412,17 @@
           if (!window.lnpConfirm) { if (rm.dataset.sure !== "1") { rm.dataset.sure = "1"; rm.textContent = "Confirmer le retrait"; return; } return go(); }
           window.lnpConfirm({ title: "Retirer cette personne ?", body: m.email + " ne pourra plus se connecter à LNP. Son travail reste dans les données partagées.", ok: "Retirer l’accès", onOk: go });
         });
+        // the WhatsApp Business number links this person's messages to them (saved when the field is left)
+        var wa = h("input", { type: "tel", value: m.whatsapp || "", placeholder: "+33 6 12 34 56 78", "aria-label": "Numéro WhatsApp Business de " + m.email, style: "width:170px" });
+        wa.addEventListener("change", async function () {
+          try { var j = await api("POST", { action: "whatsapp", user_id: m.user_id, number: wa.value }); wa.value = j.whatsapp || ""; m.whatsapp = wa.value; }
+          catch (e) { draw(e.message); }
+        });
         var last = m.lastSignIn ? "Dernière connexion le " + new Date(m.lastSignIn).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "Invité · ne s’est pas encore connecté";
         tb.appendChild(h("tr", {}, [
           h("td", {}, [h("div", { text: m.email + (self ? " (vous)" : "") }), h("div", { "class": "s", text: last })]),
           h("td", {}, [sel]),
+          h("td", {}, [wa]),
           h("td", { style: "text-align:right;white-space:nowrap" }, self ? [] : [reset, " ", rm])]));
       });
     }

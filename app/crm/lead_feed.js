@@ -53,7 +53,7 @@
   function hm(d) { return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
   function dayLbl(d) { return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined }); }
   var WHO = { p: "Prospect", s: "Commercial", a: "Automatique" };
-  // message statuses as Sendblue sends them, in French
+  // message statuses as WhatsApp sends them (sent, delivered, read, failed), in French
   var ST = { delivered: "Distribué", sent: "Envoyé", read: "Lu", failed: "Échec de l’envoi", error: "Échec de l’envoi", queued: "En attente", received: "Reçu", undelivered: "Non distribué" };
 
   // what one event of the lead model reads as: [group, title, who, extra class]
@@ -66,7 +66,7 @@
       case "noshow": return ["calls", "Absence", WHO.p, "due"];
       case "decision": return ["calls", "Issue déclarée", WHO.s, e.yes ? "ok" : ""];
       case "call": return ["calls", e.w === "p" ? "Appel téléphonique entrant" : "Appel téléphonique", WHO[e.w] || "", ""];
-      case "im": return ["msgs", "iMessage", WHO[e.w] || "", ""];
+      case "im": return ["msgs", "WhatsApp", WHO[e.w] || "", ""];
       case "sms": return ["msgs", "SMS", WHO[e.w] || "", ""];
       case "email": return ["mails", "E-mail", WHO[e.w] || "", ""];
       case "remind": return ["msgs", "Message automatique", WHO.a, ""];

@@ -21,7 +21,7 @@ The SQL is in `web/supabase/003_crm_core.sql`. This file explains it.
 
 | Table | Kind | Purpose |
 |---|---|---|
-| `crm_members` | master | CRM profile of a signed-in account: `member_key` (LNP member id: `sales`, `romain`…), CRM role (sales, sales_lead, admin, viewer), `lead_id` (escalation: Valentino → Romain → Amin), iClosed / Fathom emails, Sendblue line. App roles stay in `members`. |
+| `crm_members` | master | CRM profile of a signed-in account: `member_key` (LNP member id: `sales`, `romain`…), CRM role (sales, sales_lead, admin, viewer), `lead_id` (escalation: Valentino → Romain → Amin), iClosed / Fathom emails, WhatsApp Business number (`whatsapp_number`, E.164: links the person's messages, `crm_events.member_id`; set in Paramètres › Compte › Accès de l'équipe). App roles stay in `members`. |
 | `crm_people` | master | Prospect; `opted_out_at` blocks all automated messages forever |
 | `crm_person_identities` | master | Every normalised identifier pointing to a person; unique `(kind, value)` |
 | `crm_cycles` | master + derived columns | Status, origin, owner (master); stage, counters, `next_move` (derived) |
@@ -31,7 +31,7 @@ The SQL is in `web/supabase/003_crm_core.sql`. This file explains it.
 | `crm_deals` | master | Amount sold, Whop checkout for this cycle |
 | `crm_payments` | master | Whop payments, upserted by `whop_payment_id` |
 | `crm_nurture_tracks` | master | A stay in nurture; one `active` per person |
-| `crm_outbound_messages` | master | Every message the CRM asks Sendblue to send; used to tag outbound webhooks as `auto` |
+| `crm_outbound_messages` | master | Every message the CRM would send itself (`whatsapp_message_id`); unused today: the CRM sends no WhatsApp message (07 §4) |
 | `crm_stage_history` | derived | Entry/exit per stage, hours |
 | `crm_alerts` | derived | Instances of CRM alerts c1–c18, one open row per `dedupe_key`; shown and managed by the existing alert engine (life state in `inbox`, key `crm:<id>`) |
 | `crm_stage_definitions`, `crm_reason_codes`, `crm_rules`, `crm_settings` | config | DEFERRED business rules |
@@ -54,21 +54,20 @@ The SQL is in `web/supabase/003_crm_core.sql`. This file explains it.
 | `call_recorded` | sales | fathom | Evidence only |
 | `outcome_held` / `outcome_no_show` | sales | crm | From `crm_call_outcomes.attendance` |
 | `outcome_yes` / `outcome_no` / `outcome_follow_up` / `outcome_disqualified` | sales | crm | From `crm_call_outcomes.decision` |
-| `message_in` | prospect | sendblue | iMessage or SMS |
-| `message_out` | sales or auto | sendblue | `auto` when matched to `crm_outbound_messages` |
-| `message_status` | system | sendblue | Delivered / failed updates (not a touch) |
-| `phone_call_out` / `phone_call_in` | sales / prospect | sendblue | |
+| `message_in` | prospect | whatsapp | WhatsApp message from the prospect |
+| `message_out` | sales or auto | whatsapp | `sales` when typed in the WhatsApp Business app (echo), `auto` when sent through the API (status only, e.g. automatic reminders); the delivery status updates the same event |
+| `phone_call_out` / `phone_call_in` | sales / prospect | — | Not captured: WhatsApp does not pass calls to the CRM |
 | `checkout_created` | system | crm | Whop link created for the deal |
 | `payment_succeeded` / `payment_failed` / `payment_pending` / `payment_requires_action` | prospect | whop | |
 | `refund` / `dispute` | prospect | whop | |
 | `membership_activated` | prospect | whop | Hand-over to delivery |
 | `cycle_won` / `cycle_lost` / `cycle_disqualified` / `cycle_reopened` | system | rules or crm | Written by the projector when status changes |
 | `auto_close_notice` | system | rules | Warning before an automatic close |
-| `nurture_entered` / `nurture_message` / `nurture_reactivated` / `nurture_archived` / `opt_out` | auto or system | rules / sendblue | |
+| `nurture_entered` / `nurture_message` / `nurture_reactivated` / `nurture_archived` / `opt_out` | auto or system | rules / whatsapp (`opt_out`: STOP) | |
 | `analysis_ready` | auto | claude | |
 | `note` | sales | crm | |
 
-`channel` values: `booking`, `video`, `imessage`, `sms`, `phone`, `payment`, `crm`, `analysis`.
+`channel` values: `booking`, `video`, `whatsapp`, `payment`, `crm`, `analysis`.
 
 ## 4. Derived columns on `crm_cycles`
 

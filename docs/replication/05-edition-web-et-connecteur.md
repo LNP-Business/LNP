@@ -137,10 +137,11 @@ Rôles : `admin`, `member`, `viewer`.
 
 | Méthode, `action` | Entrée | Sortie et règles |
 |---|---|---|
-| `GET` | — | `{me, screens, defaultAccess, members: [{user_id, email, role, created_at, lastSignIn, confirmed, access}]}` ; les comptes Auth sont lus par pages de 200 (20 pages au plus) |
+| `GET` | — | `{me, screens, defaultAccess, members: [{user_id, email, role, created_at, lastSignIn, confirmed, access, whatsapp}]}` ; les comptes Auth sont lus par pages de 200 (20 pages au plus) ; `whatsapp` = `crm_members.whatsapp_number` (migration 052, `null` sans fiche CRM) |
 | `POST invite` | `{email, role}` | E-mail invalide → `400`. `generateLink({type: "invite"})` ; si le compte existe déjà → lien `recovery`. Upsert `members {user_id, email, role}` (rôle par défaut `member`). Réponse `{email, role, link}` |
 | `POST role` | `{user_id, role}` | Inconnu → `404` ; rôle invalide → `400` ; retirer le dernier administrateur → `400 « Gardez au moins un administrateur. »` |
 | `POST access` | `{user_id, access: [clés] \| null}` | Changer ses propres accès → `400` ; liste filtrée sur `SCREENS` ; `null` retire `app_metadata.screens` (retour aux accès par défaut). Écrit par `auth.admin.updateUserById`. Réponse `{access}` |
+| `POST whatsapp` | `{user_id, number}` | Inconnu → `404` ; `crm_set_member_whatsapp(p_member, p_number)` (052) : numéro ramené au format E.164, vide = effacé ; invalide ou déjà pris par une autre personne → `400` avec le message de la base ; pas de fiche CRM → `400 « Cette personne n’a pas encore de fiche dans le CRM. »`. Réponse `{whatsapp}` |
 | `POST reset` | `{user_id}` | Lien `recovery` ; réponse `{email, link}` |
 | `POST remove` | `{user_id}` | Se retirer soi-même ou retirer le dernier administrateur → `400` ; `auth.admin.deleteUser` (la ligne `members` part en cascade). Réponse `{ok: true}` |
 | autre | — | `400 « Action inconnue. »` ; autre méthode → `405` |

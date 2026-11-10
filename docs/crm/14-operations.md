@@ -43,7 +43,7 @@ Admin "Reliability" screen: list `crm_webhook_log` rows with `failed`, `rejected
 | Recordings unmatched | Prospect joined with another email | Resolve in unmatched inbox (adds identity) |
 | Collected cash ≠ Whop | Missing payment or refund | Run reconciliation, check unmatched |
 | Wrong stages everywhere | Config change | Fix `crm_stage_definitions`, `recompute_all()` |
-| Nurture messages not sent | `nurture_sending_enabled = false`, opt-out, Sendblue error | Check settings, `crm_outbound_messages.error` |
+| Nurture messages not sent | `nurture_sending_enabled = false`, opt-out, WhatsApp sending error | Check settings, `crm_outbound_messages.error` |
 
 ## 6. Daily / weekly / monthly routine
 

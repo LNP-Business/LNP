@@ -1,4 +1,4 @@
-// Team access, for admins only: list members, invite, change a role, send a password reset link, remove.
+// Team access, for admins only: list members, invite, change a role, set a WhatsApp number, send a password reset link, remove.
 // Invitation and reset links are returned to the admin, who sends them (no email server needed). A link opens the
 // app itself (#lnp-link=<token hash>&type=…); the one-time token is spent only when the person saves a password, so
 // link previews (Slack, mail scanners) that open the link first cannot use it up.
@@ -23,8 +23,11 @@ export default async function handler(req, res) {
       users.forEach(u => { seen[u.id] = { lastSignIn: u.last_sign_in_at, confirmed: !!(u.email_confirmed_at || u.last_sign_in_at), user: u }; });
       if (users.length < 200) break;
     }
+    // the WhatsApp Business number of each person (crm_members, migration 052): it links their messages to them
+    const { data: crm } = await sb.from("crm_members").select("id, whatsapp_number");
+    const wa = {}; (crm || []).forEach(c => { wa[c.id] = c.whatsapp_number || ""; });
     return send(res, 200, { me: me.id, screens: SCREENS, defaultAccess: DEFAULT_ACCESS, members: rows.map(r => { const s = seen[r.user_id] || {};
-      return Object.assign({}, r, { lastSignIn: s.lastSignIn, confirmed: s.confirmed, access: accessOf(s.user, r.role) }); }) });
+      return Object.assign({}, r, { lastSignIn: s.lastSignIn, confirmed: s.confirmed, access: accessOf(s.user, r.role), whatsapp: wa[r.user_id] ?? null }); }) });
   }
   if (req.method !== "POST") return send(res, 405, { error: "Méthode non autorisée." });
 
@@ -71,6 +74,13 @@ export default async function handler(req, res) {
     const { error } = await sb.auth.admin.updateUserById(t.user_id, { app_metadata: meta });
     if (error) return send(res, 500, { error: error.message });
     return send(res, 200, { access: accessOf({ app_metadata: meta }, t.role) });
+  }
+  if (b.action === "whatsapp") {
+    const t = await target(b.user_id);
+    if (!t) return send(res, 404, { error: "Membre inconnu." });
+    const { data, error } = await sb.rpc("crm_set_member_whatsapp", { p_member: t.user_id, p_number: String(b.number ?? "") });
+    if (error) return send(res, 400, { error: /P0002/.test(error.code || "") ? "Cette personne n’a pas encore de fiche dans le CRM." : error.message });
+    return send(res, 200, { whatsapp: data || "" });
   }
   if (b.action === "reset") {
     const t = await target(b.user_id);

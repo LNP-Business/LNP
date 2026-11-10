@@ -94,8 +94,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données du CRM sont dans les tables `crm_*`
 (`web/supabase/003_crm_core.sql` et suivants), les écritures du navigateur passent par les fonctions `crm_*` (`004_crm_rpc.sql`).
 - Fonctions Edge (`supabase/functions/`, `verify_jwt = false`, chacune vérifie son jeton ou sa signature) : `iclosed-in`,
-  `fathom-in`, `sendblue-in`, `whop-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
+  `fathom-in`, `whatsapp-in`, `whop-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
   `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes SLA vers Slack toutes les 5 min), `callqa-llm`.
+- Messages : **WhatsApp Business seulement** (Romain, 2026-11-09 : pas de Sendblue). API officielle en coexistence,
+  `whatsapp-in` + `mappers/whatsapp.ts` (`docs/crm/07-integration-whatsapp.md`, migration 052) ; le numéro WhatsApp Business de
+  chaque commercial et setter (Paramètres › Compte › Accès de l'équipe) rattache ses messages.
 - Libellés en base (étapes, motifs, règles d'alerte, prochaines actions) : en français ; `034_lnp_fr_labels.sql` met à jour une
   base existante.
 - Tests SQL sur un Postgres local : `web/supabase/tests/run.sh` ; données : `node app/crm/data.test.js` ; Cycle de vente :

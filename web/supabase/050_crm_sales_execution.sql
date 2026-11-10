@@ -10,7 +10,7 @@
 --   DE-9, CA-2, CA-6, CO-1) ; l'appel après un R1 sans décision reste une bonne pratique ;
 -- · la plage d'un commercial pour répondre est 8 h – 22 h, heure de Paris ;
 -- · un contact commercial = un message, un e-mail ou un appel envoyé par une personne de l'équipe (acteur 'sales'), jamais un texte
---   automatique. Sans Sendblue branché, ces délais restent vides.
+--   automatique. Sans WhatsApp branché, ces délais restent vides.
 -- crm_sales_execution(p_days, p_owner) : security definer, refuse une personne sans rôle CRM, ne lit que les cycles que la personne
 -- voit (tous pour un administrateur, sinon les siens, 048). Chaque taux vient avec son effectif ; l'écran marque « indicatif » un taux
 -- calculé sur moins de 20 prospects. Impact = corrélation, jamais preuve. Peut être rejoué.

@@ -1,7 +1,7 @@
 # CRM phase 0 — setup guide
 
 This guide is for Romain. It says, step by step, where to paste each secret and what to set in
-Supabase, GitHub, iClosed, Fathom, Sendblue and Whop, so that the four "inbox" functions
+Supabase, GitHub, iClosed, Fathom, WhatsApp Business and Whop, so that the four "inbox" functions
 start receiving real data.
 
 Everything stays in one place (decision D13): the **existing Supabase project `LNP`** and the
@@ -50,7 +50,7 @@ The functions are deployed by GitHub, from the branch `main` only. GitHub needs 
 
 3. Merge the phase 0 pull request into `main` (it changes nothing in the app). GitHub then runs
    **Actions › CRM functions** by itself; when its job *deploy* is green, Supabase › **Edge Functions** lists
-   `iclosed-in`, `fathom-in`, `sendblue-in` and `whop-in`. If you added the secrets after the merge, open
+   `iclosed-in`, `fathom-in`, `whatsapp-in` and `whop-in`. If you added the secrets after the merge, open
    **Actions › CRM functions** › **Run workflow** (branch `main`).
    After that, every change to the functions merged into `main` redeploys them by itself.
 
@@ -60,14 +60,14 @@ The addresses of the functions (not secret):
 |---|---|
 | iClosed | `https://<ref>.supabase.co/functions/v1/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>` |
 | Fathom | `https://<ref>.supabase.co/functions/v1/fathom-in` |
-| Sendblue | `https://<ref>.supabase.co/functions/v1/sendblue-in?k=<SENDBLUE_INBOUND_TOKEN>` |
+| WhatsApp | `https://<ref>.supabase.co/functions/v1/whatsapp-in?k=<WHATSAPP_INBOUND_TOKEN>` |
 | Whop | `https://<ref>.supabase.co/functions/v1/whop-in` |
 
 ## Step 3 — Make the two tokens and where to paste secrets
 
-Two secrets are ours (we invent them): `ICLOSED_INBOUND_TOKEN` and `SENDBLUE_INBOUND_TOKEN`.
+Two secrets are ours (we invent them): `ICLOSED_INBOUND_TOKEN` and `WHATSAPP_INBOUND_TOKEN`.
 Make each one with your password manager's generator: **48 characters, letters and digits only**
-(no symbols: the Sendblue one goes in a web address).
+(no symbols: they go in a web address).
 
 **Where every secret goes:** Supabase › `LNP` › **Edge Functions** › **Secrets** › **Add new secret**
 (name exactly as written, value pasted, then **Save**). The functions read them at once, no redeploy needed.
@@ -75,11 +75,11 @@ Make each one with your password manager's generator: **48 characters, letters a
 | Secret name | Where it comes from | Used in phase |
 |---|---|---|
 | `ICLOSED_INBOUND_TOKEN` | you generate it (step 3) | 0 |
-| `SENDBLUE_INBOUND_TOKEN` | you generate it (step 3) | 0 |
+| `WHATSAPP_INBOUND_TOKEN` | you generate it (step 3) | 0 |
 | `FATHOM_WEBHOOK_SECRET` | Fathom, when you create the webhook (step 5) | 0 |
 | `WHOP_WEBHOOK_SECRET` | Whop sandbox, when you create the webhook (step 7) | 0 |
 | `FATHOM_API_KEY` | Fathom › Settings › API Access (step 5) | 4 (can wait) |
-| `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET` | Sendblue dashboard › API keys (step 6) | 7 (can wait) |
+| `WHATSAPP_APP_SECRET` | Meta app › Settings › Basic › App secret (step 6), only when Meta sends the webhooks directly | 7 |
 | `WHOP_API_KEY`, `WHOP_COMPANY_ID` | Whop sandbox › Developer (step 7) | 5 (can wait) |
 | `CLOSE_API_KEY` | Close › Settings › Developer › API Keys › New API Key | import of existing leads |
 | `ICLOSED_API_KEY` | iClosed › Settings › Developers › API | import of existing leads (iClosed) |
@@ -127,17 +127,19 @@ If one day a Zap is needed after all, it posts the JSON contract of `05-integrat
    call, ambiguous), shows you the recordings left unlinked, then runs it without `dry`. The key must see Valentino's
    recordings: create it from Valentino's Fathom account, or from an admin account of the team that sees them.
 
-## Step 6 — Sendblue (iMessage, SMS, calls)
+## Step 6 — WhatsApp Business (messages of the sales reps and setters)
 
-1. Sendblue dashboard › **API** (or **Settings › API keys**): copy the **API key id** and **API secret**, paste them in
-   Supabase as `SENDBLUE_API_KEY_ID` and `SENDBLUE_API_SECRET` (used in phase 7; they can wait).
-2. Sendblue dashboard › **Webhooks**: for each of these types, set the URL to the Sendblue address of step 2
-   (with `?k=` followed by your `SENDBLUE_INBOUND_TOKEN`):
-   **receive**, **outbound**, **call_log**, **inbound_call**. Leave the other types empty.
-3. Test: from your own phone, text the Sendblue line; reply from Sendblue; if calls are on, make a short call.
-   Rows appear with `source = sendblue`.
-4. Write down in the checklist every **automation** set up in Sendblue (automatic messages, sequences,
-   auto-replies): what triggers it, what it sends, to whom (question Q5).
+Details: `docs/crm/07-integration-whatsapp.md`.
+
+1. Meta Business portfolio of LNP, verified (business.facebook.com › Security Centre › Business verification).
+2. Each sales rep and setter: the WhatsApp Business app on their phone, with their professional number.
+3. Provider (360dialog recommended): onboarding « number already used in the WhatsApp Business app » (coexistence), link
+   LNP's Meta Business portfolio, scan the QR code from the person's app, accept sharing the chat history.
+4. Webhook at the provider: the WhatsApp address of step 2 (with `?k=` followed by your `WHATSAPP_INBOUND_TOKEN`), events
+   **messages**, **smb_message_echoes** and **history**.
+5. LNP › Paramètres › Compte › Accès de l'équipe: each person's number in the column « WhatsApp Business » (+33…).
+6. Test: from your own phone, write to a team number; answer from the WhatsApp Business app. Rows appear with
+   `source = whatsapp`, the answer attached to the right person.
 
 ## Step 7 — Whop (payments) — sandbox only
 
@@ -187,7 +189,7 @@ The Sales cycle SLAs (docs/crm/18) post each new Late or Critical miss to Slack 
 |---|---|---|
 | Q2 | Does your Fathom plan show API Access and Webhooks? | |
 | Q5 | Automations in iClosed (reminders, follow-ups, workflows): trigger, message, recipient | |
-| Q5 | Automations in Sendblue: trigger, message, recipient | |
+| Q5 | Automatic WhatsApp messages (confirmation, reminders): who sends them, which templates | |
 | Q9 | Region of `LNP`: ap-southeast-2 (Sydney). Origin of the leads (US / EU) to confirm later | |
 | Q10 | Done? Supabase `LNP` › Authentication › URL Configuration: Site URL = `https://lnp-sales.vercel.app`, Redirect URLs include `https://lnp-sales.vercel.app/**` | |
 | Q10 | Done? Supabase `LNP` › Authentication › Sign In / Providers › Email: Email OTP Expiration = `86400` | |

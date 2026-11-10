@@ -25,7 +25,7 @@ POST https://api.whop.com/api/v1/checkout_configurations
 
 Whop documents that payments and memberships created from a checkout **inherit its metadata**.
 Store `crm_deals.whop_checkout_id` and `crm_deals.whop_purchase_url`, write a `checkout_created` event,
-and show the link to the sales (copy button) to send through Sendblue.
+and show the link to the sales (copy button) to send through WhatsApp.
 
 The mapping `product → Whop plan id` lives in `crm_settings.whop_plans` (to fill in phase 0).
 

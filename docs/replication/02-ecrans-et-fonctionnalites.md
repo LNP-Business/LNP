@@ -651,9 +651,9 @@ signé, `ph`, `em`, `opened`, `age` (heures depuis l'ouverture), `ev` événemen
 |---|---|
 | `call_booked` / `call_rescheduled` | `booked` · p · « RDV R<n> pris[ · <type d'événement>] » / « RDV R<n> reporté » |
 | `call_canceled` | `note` · a · « R<n> annulé[ · motif] » |
-| `message_in` | `im` ou `sms` · p |
-| `message_out` | automatique → `remind` · a ; sinon `im` / `sms` · s ; statut de remise Sent / Delivered / Read |
-| `phone_call_in` / `_out` | `call` · p / s (« Appel téléphonique entrant / sortant ») |
+| `message_in` | `im` (libellé « WhatsApp ») · p ; `sms` seulement pour un événement de canal `sms` |
+| `message_out` | automatique (envoyé par l'API WhatsApp) → `remind` · a ; sinon `im` / `sms` · s ; statut de remise Sent / Delivered / Read / Failed (statut WhatsApp, initiale en majuscule) |
+| `phone_call_in` / `_out` | `call` · p / s (« Appel téléphonique entrant / sortant ») ; non reçus (WhatsApp ne transmet pas les appels) |
 | `note` | `note` · s |
 | `checkout_created` | `paylink` · « Lien Whop envoyé » |
 | `payment_succeeded` | `paid` · « Paiement Whop · <montant> » |
@@ -779,10 +779,10 @@ commercial x après la prise de RDV (au-delà de 1 h)] » ; actions rapides ; «
   (pointillé or, rouge si lent).
 - **Tableau** : du plus ancien au plus récent, colonnes heure, qui, canal (« · prévu »), texte, temps de réponse.
 
-Actions rapides (ligne et fiche) : « Déclarer l’issue » (un `meetdue` passé) ; « Répondre par iMessage » (non clos) ;
+Actions rapides (ligne et fiche) : « Déclarer l’issue » (un `meetdue` passé) ; « Répondre sur WhatsApp » (non clos) ;
 « Copier le lien Whop » (oui sans paiement) ; « Planifier le prochain appel » (non clos, pas d'appel à venir). En direct,
-iMessage, Whop et iClosed ne sont pas reliés : « L’envoi d’iMessages depuis le CRM arrivera plus tard : répondez depuis
-Sendblue pour l’instant. » / « Ce lien arrivera plus tard (liens Whop et iClosed). »
+l'envoi de messages, Whop et iClosed ne sont pas reliés : « L’envoi de messages depuis le CRM arrivera plus tard : répondez
+depuis WhatsApp Business pour l’instant. » / « Ce lien arrivera plus tard (liens Whop et iClosed). »
 
 #### 7.5.7 Formulaire d'issue (« Déclarer l’issue »)
 
@@ -814,11 +814,11 @@ téléphone, e-mail ; puces d'étapes « Décision 9,8 j / 72 h +x » ; « cycle
 Colonne principale : **résumé** en 3 lignes (« Résumé · à partir des événements » en direct : appels, dernière issue ou
 prochain appel, gagné ou dernier mot du prospect ≤ 80 caractères) ; filtres « Tout / Messages / Appels / Paiements / RDV et
 issues » avec compteurs, « Plus anciens d’abord ⇅ » ; conversation par jour (bulles, cartes d'appel « Honoré / Absence /
-Issue non déclarée / Prévu » avec « Analyse d’appel » et « Enregistrement dans Fathom ↗ », lignes système iClosed, Sendblue,
-Whop, issues « déclarée par … », notes), séparateur « Maintenant » ; zone d'écriture « Écrire à <prénom>… » + « Envoyer »
+Issue non déclarée / Prévu » avec « Analyse d’appel » et « Enregistrement dans Fathom ↗ », lignes système iClosed,
+Whop, appels téléphoniques, issues « déclarée par … », notes), séparateur « Maintenant » ; zone d'écriture « Écrire à <prénom>… » + « Envoyer »
 (non clos). Colonne latérale : « Qui doit agir », « Échanges » (messages du prospect, du commercial, automatiques, réponse
 médiane du commercial, appels honorés · absences), « Appels » (« Analyse » / « absence » / « sans issue » / « prévu »),
-« Montants » (« Vendu », « Encaissé (Whop) »), pied « Tout ce qui figure sur cette page vient d’iClosed, de Sendblue, de
+« Montants » (« Vendu », « Encaissé (Whop) »), pied « Tout ce qui figure sur cette page vient d’iClosed, de WhatsApp, de
 Fathom, de Whop et des formulaires d’issue. Les transcriptions des appels restent dans Fathom. »
 
 Analyse d'appel depuis le Cycle de vente : en direct, ouvre l'analyse réelle (`parent.LNP_CA.open`, § 8) ; la fenêtre de
@@ -1004,7 +1004,7 @@ enregistrées », « Enregistrement… », « Non enregistré : … », « Enreg
 réglages par défaut », « Enregistrer les modifications ».
 
 Section « Gestion des prospects · SLA du cycle de vente » : le résumé (SLA activés, mesurés, en attente), « Sources de données »
-(Sendblue, Whop, analyse automatique : interrupteur ; une source non reliée met en attente les SLA qui en ont besoin), puis les
+(« Messages WhatsApp de l’équipe », Whop, analyse automatique : interrupteur ; une source non reliée met en attente les SLA qui en ont besoin), puis les
 SLA par étape : code (SH-2, DE-1, CO-1…), nom, état (mesuré, en attente d'une source, règle de formulaire, « Indicateur ·
 Cockpit commercial »), objectif, interrupteur.
 
@@ -1035,7 +1035,10 @@ Carte : « Connecté », e-mail, « <rôle> » (+ « · lecture seule » pour un
 ### 10.3 « Accès de l’équipe » (administrateurs, web)
 
 `GET /api/team` (admin seulement : 403 « Seuls les administrateurs gèrent les accès de l’équipe. ») liste `members`
-(`user_id, email, role, created_at`) avec la dernière connexion et l'état confirmé de chaque compte Auth.
+(`user_id, email, role, created_at`) avec la dernière connexion, l'état confirmé de chaque compte Auth et le numéro WhatsApp
+Business de chacun (`whatsapp`, lu dans `crm_members.whatsapp_number`, migration 052). Phrase d'introduction : « Qui peut
+ouvrir LNP, et ce que chacun peut faire. Invitez quelqu’un, puis envoyez-lui son lien. Les écrans que chacun ouvre : l’onglet
+Accès. Le numéro WhatsApp Business de chacun rattache ses messages aux prospects. »
 
 - Formulaire « E-mail » (`nom@exemple.fr`) + « Rôle » (Administrateur · gère l’équipe / Membre · lit et modifie / Lecteur · lit
   seulement ; défaut Membre) + « Inviter » → `POST {action:"invite"}` : e-mail validé (« Saisissez une adresse e-mail
@@ -1046,6 +1049,10 @@ Carte : « Connecté », e-mail, « <rôle> » (+ « · lecture seule » pour un
   « Copier le lien » (→ « Copié »).
 - Tableau « Membre » (e-mail, « (vous) », « Dernière connexion le 3 nov. » ou « Invité · ne s’est pas encore connecté ») /
   « Rôle » (sélecteur, désactivé pour soi ; changement → `{action:"role"}` ; « Gardez au moins un administrateur. ») /
+  « WhatsApp Business » (champ téléphone `+33 6 12 34 56 78`, enregistré quand on quitte le champ → `{action:"whatsapp",
+  user_id, number}` → `crm_set_member_whatsapp` : numéro ramené au format +33612345678, vide = effacé ; erreurs « Numéro
+  WhatsApp invalide : écrivez-le avec l'indicatif, par exemple +33 6 12 34 56 78 », « Ce numéro est déjà celui de <nom> »,
+  « Cette personne n’a pas encore de fiche dans le CRM. ») /
   actions (pas pour soi) : « Lien de réinitialisation » (compte confirmé) ou « Nouveau lien d’invitation » → `{action:"reset"}`
   (lien `type=recovery` dans le même encadré) ; « Retirer » → confirmation `lnpConfirm` « Retirer cette personne ? » · « <e-mail>
   ne pourra plus se connecter à LNP. Son travail reste dans les données partagées. » · « Retirer l’accès » → `{action:"remove"}`
@@ -1056,7 +1063,8 @@ Carte : « Connecté », e-mail, « <rôle> » (+ « · lecture seule » pour un
 
 Le compte connecté et l’équipe ; le menu ne garde que les écrans, compte et équipe sont réunis ; usage : « Se
 déconnecter », et pour les administrateurs « Accès de l’équipe » (inviter, changer un rôle, lien de réinitialisation, retirer) ;
-les écrans de chacun se règlent dans Accès.
+les écrans de chacun se règlent dans Accès ; la colonne « WhatsApp Business » garde le numéro de chaque commercial et de chaque
+setter, avec l’indicatif : c’est lui qui rattache ses messages WhatsApp aux prospects et aux alertes.
 
 ---
 
@@ -1129,7 +1137,7 @@ fermer un écran le cache, pas ses données.
 - `docs/crm/16-sales-cycle-screen.md` : six cartes KPI et un bouton « Ma journée › Besoin de vous » → huit cartes (avec
   Bientôt dû et Clos) et une pastille Slack non cliquable ; le niveau d'un prospect vient des SLA v3, plus de la durée d'étape ;
   filtres Activité et Étape en plus ; modalités de paiement 1 / 2 / 3 / 4 / 6 au lieu de 1 / 2 / 3 ; durées en jours au-delà de
-  72 h ; pas de bouton « i » propre ; envoi d'iMessage, lien Whop et lien iClosed non branchés en direct ; la fenêtre d'analyse
+  72 h ; pas de bouton « i » propre ; envoi de messages WhatsApp, lien Whop et lien iClosed non branchés en direct ; la fenêtre d'analyse
   à 5 sections n'existe qu'en démo.
 - `call-analysis/docs/SCREEN_SPEC.md` : pas de « carte de l'appel » (frise des jalons) dans le rendu ; les gestes sont
   A · I · E · M (pas A · I · C) ; la découverte est par registre SPIN v1.2, pas par domaine ; l'analyse s'affiche dans la fiche

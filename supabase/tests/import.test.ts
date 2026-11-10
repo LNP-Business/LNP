@@ -130,25 +130,6 @@ Deno.test("iclosed calls: call status and the cycle status the history gives", a
   eq(items[0].identity, { email: ["a@x.com"], phone: [], iclosed_contact_id: "5" });
 });
 
-Deno.test("sendblue history: pages by offset until hasMore is false, same mapping as the webhooks", async () => {
-  const { sendblueAllMessages, sendblueHistoryItems, sendblueReport } = await import("../functions/_shared/importers/sendblue.ts");
-  const msg = (h: string, out: boolean) => ({ message_handle: h, is_outbound: out, number: "+33611111111", content: "x", date_sent: "2026-10-01T10:00:00Z", service: "iMessage", status: out ? "DELIVERED" : "RECEIVED", sendblue_number: "+15550000001" });
-  const urls: string[] = [];
-  const fetchFn = (async (url: string, init: any) => {
-    if (!init.headers["sb-api-key-id"] || !init.headers["sb-api-secret-key"]) throw new Error("no auth");
-    urls.push(url); const off = Number(new URL(url).searchParams.get("offset"));
-    const data = off === 0 ? [msg("a", false), msg("b", true)] : off === 2 ? [msg("c", true), { ...msg("g", false), group_id: "g1" }] : [];
-    return new Response(JSON.stringify({ status: "OK", data, pagination: { total: 4, limit: 2, offset: off, hasMore: off === 0 } }));
-  }) as unknown as typeof fetch;
-  const all = await sendblueAllMessages("id", "secret", fetchFn, 2);
-  eq(urls.map((u) => new URL(u).searchParams.get("offset")), ["0", "2"]);
-  eq(all.length, 4);
-  const { items, ignored } = sendblueHistoryItems(all);
-  eq([items.length, ignored], [3, 1], "the group message is ignored");
-  eq(items.map((i: any) => i.type), ["message_in", "message_out", "message_out"]);
-  eq((sendblueReport(all) as any).direction, { in: 2, out: 2 });
-});
-
 Deno.test("iClosed deals: one item each, time read as UTC, value and product kept", async () => {
   const { iclosedDealsToItems, dealsReport } = await import("../functions/_shared/importers/iclosed.ts");
   const deals = [

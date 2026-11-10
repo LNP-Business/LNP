@@ -121,29 +121,38 @@ Deno.test("worker: maps, applies, ignores, rejects and fails per row", async () 
   const s = await processPending(rpc);
   eq(s, { rows: 5, processed: 2, ignored: 1, rejected: 1, failed: 1 });
   eq(calls.find((c) => c[0] === "crm_apply_contact")![1].p_inbox, 5, "a contact update goes to crm_apply_contact:");
-  eq(calls[0], ["crm_inbox_pending", { p_sources: ["iclosed", "sendblue", "fathom"], p_limit: 50 }]);
+  eq(calls[0], ["crm_inbox_pending", { p_sources: ["iclosed", "whatsapp", "fathom"], p_limit: 50 }]);
   const apply = calls.find((c) => c[0] === "crm_apply_items")!;
   eq(apply[1].p_inbox, 1);
   const marks = calls.filter((c) => c[0] === "crm_inbox_mark").map((c) => [c[1].p_inbox, c[1].p_status]);
   eq(marks, [[2, "ignored"], [3, "rejected"], [4, "failed"]]);
 });
 
-import { mapSendblue } from "../functions/_shared/mappers/sendblue.ts";
-Deno.test("sendblue: received and sent messages, statuses on one handle, STOP, groups and calls", () => {
-  const rec = Deno.readTextFileSync(new URL("../../docs/crm/fixtures/sendblue-receive.json", import.meta.url));
-  const out = Deno.readTextFileSync(new URL("../../docs/crm/fixtures/sendblue-outbound.json", import.meta.url));
-  const a = mapSendblue(rec, "2026-10-24T10:01:02Z"), b = mapSendblue(out, "2026-10-24T10:05:04Z");
+import { mapWhatsapp } from "../functions/_shared/mappers/whatsapp.ts";
+// fixtures built from Meta's documented payloads (Cloud API, coexistence): replace them with captured requests once connected
+Deno.test("whatsapp: received, sent from the app, statuses, history, STOP, ignored kinds", () => {
+  const fx = (f: string) => Deno.readTextFileSync(new URL(`../../docs/crm/fixtures/${f}`, import.meta.url));
+  const a = mapWhatsapp(fx("whatsapp-messages.json"), "2026-11-09T09:00:05Z"), b = mapWhatsapp(fx("whatsapp-echo.json"), "2026-11-09T09:05:05Z");
   if (!("items" in a) || !("items" in b)) throw new Error("not mapped");
-  eq([a.items[0].type, a.items[0].actor, a.items[0].channel, a.items[0].identity.phone], ["message_in", "prospect", "imessage", "+33600000001"]);
-  eq([b.items[0].type, b.items[0].actor, b.items[0].source_id, b.items[0].data.status], ["message_out", "sales", "sendblue:msg_handle_0002", "DELIVERED"]);
-  eq(a.items[0].occurred_at, "2026-10-24T10:01:00.000Z");
-  const wf = mapSendblue(JSON.stringify({ ...JSON.parse(out), source: "workflow" }), "2026-10-24T10:05:04Z");
-  eq("items" in wf && wf.items[0].actor, "auto", "a Sendblue workflow message is automatic:");
-  const stop = mapSendblue(JSON.stringify({ ...JSON.parse(rec), content: " Stop ", message_handle: "h9" }), "2026-10-24T10:01:00Z");
+  eq([a.items[0].type, a.items[0].actor, a.items[0].channel, a.items[0].identity, a.items[0].source_id, a.items[0].data.line],
+     ["message_in", "prospect", "whatsapp", { phone: "+33655555555", name: "Léa Prospect" }, "whatsapp:wamid.IN0001", "+33612345678"]);
+  eq(a.items[0].occurred_at, "2025-11-09T09:00:00.000Z");
+  eq([b.items[0].type, b.items[0].actor, b.items[0].identity.phone, b.items[0].content, b.items[0].source_id],
+     ["message_out", "sales", "+33655555555", "Parfait, à demain 10 h !", "whatsapp:wamid.OUT0002"]);
+  const st = mapWhatsapp(fx("whatsapp-status.json"), "2026-11-09T09:10:00Z");
+  eq("items" in st && [st.items[0].type, st.items[0].actor, st.items[0].source_id, st.items[0].data.status], ["message_out", "auto", "whatsapp:wamid.OUT0002", "read"],
+     "a status alone is an automatic message, upgraded to the sales rep by the echo (052):");
+  const h = mapWhatsapp(fx("whatsapp-history.json"), "2026-11-09T09:00:00Z");
+  eq("items" in h && h.items.map((i) => [i.type, i.actor, i.data.status, i.data.history]), [["message_in", "prospect", "read", true], ["message_out", "sales", "delivered", true]]);
+  const msg = JSON.parse(fx("whatsapp-messages.json")), first = msg.entry[0].changes[0].value.messages[0];
+  first.text.body = " Stop ";
+  const stop = mapWhatsapp(JSON.stringify(msg), "2026-11-09T09:00:05Z");
   eq("items" in stop && stop.items.map((i) => i.type), ["message_in", "opt_out"]);
-  eq("ignored" in mapSendblue(JSON.stringify({ ...JSON.parse(rec), group_id: "g1" }), "2026-10-24T10:01:00Z"), true);
-  eq("ignored" in mapSendblue('{"type":"typing_indicator"}', "2026-10-24T10:01:00Z"), true);
-  const call = mapSendblue(JSON.stringify({ call_id: "c1", direction: "outbound", from_number: "+15550000001", to_number: "+33600000001",
-    sendblue_number: "+15550000001", created_at: "2026-10-24T11:00:00Z", duration: 60 }), "2026-10-24T11:01:00Z");
-  eq("items" in call && [call.items[0].type, call.items[0].identity.phone, call.items[0].source_id], ["phone_call_out", "+33600000001", "sendblue:call:c1"]);
+  first.type = "reaction";
+  eq("ignored" in mapWhatsapp(JSON.stringify(msg), "2026-11-09T09:00:05Z"), true, "a reaction is not a message:");
+  eq("ignored" in mapWhatsapp('{"object":"whatsapp_business_account","entry":[{"changes":[{"field":"smb_app_state_sync","value":{}}]}]}', "2026-11-09T09:00:00Z"), true);
+  const img = JSON.parse(fx("whatsapp-messages.json")), m2 = img.entry[0].changes[0].value.messages[0];
+  m2.type = "image"; delete m2.text; m2.image = { id: "MEDIA", caption: "ma fiche de paie" };
+  const im = mapWhatsapp(JSON.stringify(img), "2026-11-09T09:00:05Z");
+  eq("items" in im && [im.items[0].content, im.items[0].data.kind], ["ma fiche de paie", "image"]);
 });

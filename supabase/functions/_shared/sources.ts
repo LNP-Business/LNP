@@ -24,11 +24,26 @@ export const fathom: IngestOptions = {
   deliveryId: (req) => req.headers.get("webhook-id"),
 };
 
-// Sendblue: long random token in the query string (k=) until a signature is confirmed (Q4).
-// A message handle is not a delivery id (status updates reuse it), so no duplicate check here.
-export const sendblue: IngestOptions = {
-  source: "sendblue",
-  check: (_req, _raw, url) => tokenMatches(url.searchParams.get("k"), env("SENDBLUE_INBOUND_TOKEN")),
+// WhatsApp Business (docs/crm/07): a provider (360dialog) forwards Meta's payload to an address holding a long random token
+// (k=); Meta directly signs the body (X-Hub-Signature-256, HMAC-SHA256 with the app secret) and first checks the address with a
+// GET (hub.verify_token = the same token). No delivery id: a payload holds several messages, each found again by its id.
+export async function metaSignatureOk(header: string | null, raw: string, secret: string): Promise<boolean> {
+  if (!header || !secret || !header.startsWith("sha256=")) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw)));
+  const hex = Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
+  return tokenMatches(header.slice(7).toLowerCase(), hex);
+}
+export const whatsapp: IngestOptions = {
+  source: "whatsapp",
+  check: async (req, raw, url) =>
+    await tokenMatches(url.searchParams.get("k"), env("WHATSAPP_INBOUND_TOKEN")) ||
+    await metaSignatureOk(req.headers.get("x-hub-signature-256"), raw, env("WHATSAPP_APP_SECRET")),
+  verifyGet: async (url) => {
+    if (url.searchParams.get("hub.mode") !== "subscribe") return null;
+    const ok = await tokenMatches(url.searchParams.get("hub.verify_token"), env("WHATSAPP_INBOUND_TOKEN"));
+    return ok ? new Response(url.searchParams.get("hub.challenge") ?? "", { status: 200 }) : new Response("Forbidden", { status: 403 });
+  },
 };
 
 // Whop: Standard Webhooks, HMAC-SHA256, 5-minute window.

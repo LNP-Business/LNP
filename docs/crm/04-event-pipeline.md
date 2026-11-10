@@ -8,11 +8,11 @@ provider ──HTTP──► <source>-in ──► crm_webhook_log (raw) ──t
                                               crm_unmatched_inbox ◄──────┘ (when no match)
 ```
 
-## 1. Ingestion functions (`iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in`)
+## 1. Ingestion functions (`iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`)
 
 Each function:
 
-1. Accepts `POST` only; rejects bodies above 2 MB.
+1. Accepts `POST` only (`whatsapp-in` also answers Meta's `GET` address check, 07 §1); rejects bodies above 2 MB.
 2. Reads the **raw body as text** (never parse first: signatures are computed on raw bytes).
 3. Performs the cheap auth check of its source (token header, or signature — see each
    integration file) and records the result in `auth_ok`. A failed check still stores the row with
@@ -36,7 +36,7 @@ For one row:
 2. **Map** with `mappers/<source>.ts` into zero or more canonical items:
    ```ts
    type Canonical = {
-     source: 'iclosed'|'fathom'|'sendblue'|'whop';
+     source: 'iclosed'|'fathom'|'whatsapp'|'whop';
      source_id: string;           // stable id of this fact at the source (see each integration)
      type: string;                // canonical type (02-data-model.md §3)
      occurred_at: string;         // ISO time of the fact at the source, not reception time
@@ -46,7 +46,7 @@ For one row:
      identity: { email?: string; phone?: string; iclosed_contact_id?: string;
                  whop_user_id?: string; whop_member_id?: string; name?: string };
      refs?: { iclosed_call_id?: string; fathom_recording_id?: number; whop_payment_id?: string;
-              cycle_id?: string; sendblue_message_handle?: string; member_email?: string;
+              cycle_id?: string; whatsapp_message_id?: string; member_email?: string;
               member_number?: string };
      data: Record<string, unknown>;   // the fields the projector or the UI need
    };
@@ -89,7 +89,7 @@ The projector is pure with respect to its inputs: running it twice gives the sam
 |---|---|
 | iClosed | `iclosed:<event>:<call_id>:<occurred_at>` (Zapier gives no delivery id) |
 | Fathom | `fathom:recorded:<recording_id>` |
-| Sendblue | `sendblue:<message_handle>` for messages; `sendblue:status:<message_handle>:<status>`; `sendblue:call:<call_id>` |
+| WhatsApp | `whatsapp:<wamid>` for a message (one event per message: a later status or delivery updates it); `whatsapp:optout:<wamid>` for a STOP |
 | Whop | `whop:<event type>:<object id>` (+ `:<updated_at>` for `*.updated` events) |
 | CRM | `crm:<table>:<row id>` |
 | Rules | `crm_rules:<rule_key>:<cycle_id>:<window>` |

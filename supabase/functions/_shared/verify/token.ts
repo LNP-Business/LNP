@@ -1,4 +1,4 @@
-// Constant-time comparison of a shared token (iClosed via Zapier, Sendblue until a signature is confirmed).
+// Constant-time comparison of a shared token (iClosed, WhatsApp through a provider).
 // An unset or empty secret never matches.
 
 const enc = new TextEncoder();

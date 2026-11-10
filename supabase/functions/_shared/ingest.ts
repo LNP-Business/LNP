@@ -1,7 +1,7 @@
 // Ingestion: store the raw request in crm_webhook_log and answer fast (docs/crm/04-event-pipeline.md §1).
 // No parsing, mapping or matching here: the worker process-inbox (phase 2) does that from the stored row.
 
-export type Source = "iclosed" | "fathom" | "sendblue" | "whop";
+export type Source = "iclosed" | "fathom" | "whatsapp" | "whop";
 
 export type LogRow = {
   source: Source;
@@ -22,6 +22,8 @@ export type IngestOptions = {
   deliveryId?: (req: Request, rawBody: string) => string | null;
   // Extra header names holding a secret, stored as "<redacted>".
   secretHeaders?: string[];
+  // A GET the provider sends to check the address (Meta: hub.challenge); null = not such a request.
+  verifyGet?: (url: URL) => Promise<Response | null>;
 };
 
 export type Deps = {
@@ -45,6 +47,10 @@ const text = (status: number, body: string) =>
 
 export function makeHandler(opts: IngestOptions, deps: Deps = { insert: restInsert }) {
   return async (req: Request): Promise<Response> => {
+    if (req.method === "GET" && opts.verifyGet) {
+      const r = await opts.verifyGet(new URL(req.url)).catch(() => null);
+      if (r) return r;
+    }
     if (req.method !== "POST") return text(405, "POST only");
     const len = Number(req.headers.get("content-length") || 0);
     if (len > MAX_BODY) return text(413, "Body too large");
@@ -75,7 +81,7 @@ export function makeHandler(opts: IngestOptions, deps: Deps = { insert: restInse
       auth_ok: ok,
       status: ok ? "received" : "rejected",
     });
-    // Never log the URL: Sendblue's token is in the query string.
+    // Never log the URL: a token is in the query string (iClosed, WhatsApp).
     if (res === "error") {
       console.error(`${opts.source}-in: could not store the request`);
       return text(500, "Not stored, retry later");

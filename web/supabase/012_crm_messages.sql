@@ -1,4 +1,5 @@
--- LNP CRM — Sendblue messages and calls (web/supabase/012_crm_messages.sql), after 011. docs/crm/07.
+-- LNP CRM — messages (web/supabase/012_crm_messages.sql), after 011. Written for Sendblue, abandoned on 2026-11-09: every
+-- function below is redefined for WhatsApp by 052_crm_whatsapp.sql (docs/crm/07-integration-whatsapp.md).
 -- Every iMessage / SMS of the sales' Sendblue lines becomes an event on the prospect (found by phone number), attached to
 -- the prospect's cycle (the latest one opened before the message), so the Sales cycle shows 100 % of the conversation. A message is
 -- one event, found again by its handle (source_id "sendblue:<handle>"): a later webhook only updates its status

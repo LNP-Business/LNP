@@ -11,7 +11,7 @@ begin
   insert into crm_calls (cycle_id, rank, scheduled_start, status) values (cid, 2, now() - interval '2 days', 'no_show') returning id into k2;
   insert into crm_events (person_id, cycle_id, call_id, occurred_at, actor, channel, type, data, source, source_id)
   values (pid, cid, k1, now() - interval '4 days', 'prospect', 'booking', 'call_booked', '{}', 'import', 'import:cockpit:1'),
-         (pid, cid, k1, now() - interval '3 days' + interval '2 hours', 'sales', 'imessage', 'message_out', '{}', 'sendblue', 'sendblue:cockpit:1');
+         (pid, cid, k1, now() - interval '3 days' + interval '2 hours', 'sales', 'whatsapp', 'message_out', '{}', 'whatsapp', 'whatsapp:cockpit:1');
   insert into crm_deals (cycle_id, product, amount_sold, currency, yes_at) values (cid, 'Atlas', 4000, 'EUR', now() - interval '1 day');
   insert into crm_payments (deal_id, cycle_id, whop_payment_id, amount, refunded_amount, status, paid_at)
   select id, cid, 'pay_cockpit_1', 2000, 100, 'paid', now() - interval '1 day' from crm_deals where cycle_id = cid;

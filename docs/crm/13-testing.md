@@ -29,7 +29,7 @@ this pack are only a starting point and are marked `"_illustrative": true`.
 | # | Action | Expected |
 |---|---|---|
 | 1 | Book R1 in iClosed | person + cycle, stage Show, call scheduled |
-| 2 | Prospect texts, sales replies via Sendblue | `message_in`, `message_out` (sales), reply time computed |
+| 2 | Prospect writes on WhatsApp, sales replies from the WhatsApp Business app | `message_in`, `message_out` (sales, from the echo), reply time computed |
 | 3 | Reschedule in iClosed | call time updated |
 | 4 | Let the call time pass without outcome | alert c1 in My Day › Needs you |
 | 5 | Declare no-show | `no_show` count 1, still Show, next move "re-engage" |

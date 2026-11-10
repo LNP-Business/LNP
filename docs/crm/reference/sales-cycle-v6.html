@@ -381,7 +381,7 @@ const SLA={first:1,reply:2,atRisk:4,follow:48}; // first sales message ≤ 1 h a
 const IDEAL=[];STAGES.reduce((a,s)=>{IDEAL.push(a+s.tgt);return a+s.tgt},0);
 const REPS={lea:["Léa Moreau","#7A4B00"],karim:["Karim Benali","#1F6A66"],ines:["Inès Fabre","#6B4FA0"],malik:["Malik Sy","#2D5C9C"],sofia:["Sofia Marchetti","#8A2D3B"]};
 /* ---------- sample leads (illustrative). t = hours since the call was booked; age = hours since booking.
-   w: s = sales, p = prospect, a = automatic · k: booked (iClosed), im (iMessage), sms, call (phone, Sendblue), remind (auto iMessage),
+   w: s = sales, p = prospect, a = automatic · k: booked (iClosed), im (WhatsApp message), sms, call (phone), remind (automatic WhatsApp),
    meet (video call, recorded in Fathom), meetdue (call time passed, no outcome), noshow, decision (outcome declared in the CRM),
    paylink (Whop link sent), paid (Whop payment), note. Events with t > age are scheduled. ---------- */
 const E=(t,w,k,txt,x)=>Object.assign({t,w,k,txt},x||{});
@@ -428,7 +428,7 @@ const LEADS=[
   E(26,"a","remind","Rappel : votre appel avec Sofia a lieu demain à 18:00.",{st:"Delivered"}),
   E(50,"s","meet","R1 · Appel stratégique",{r:1,dur:55}),
   E(51,"s","decision","Issue déclarée · Honoré · Oui · 6 000 € · 3 échéances",{yes:1}),
-  E(52,"s","paylink","Lien de paiement Whop envoyé par iMessage · Elite Coaching · 3 × 2 000 €"),
+  E(52,"s","paylink","Lien de paiement Whop envoyé par WhatsApp · Elite Coaching · 3 × 2 000 €"),
   E(70,"p","im","Merci Sofia, je règle ça ce week-end."),
   E(100,"s","im","Bonjour Amine, petit rappel pour le lien de paiement. Besoin d'aide ?",{st:"Delivered"})]},
  {id:"om",p:"Olivier Masson",o:"karim",prod:"Elite Coaching",a:6000,age:230,nx:{txt:"Envoyer l’étude de cas du T1 promise au R2",src:"d’après l’issue du R2"},ph:"+33 6 40 18 92 65",em:"o.masson@example.com",ev:[
@@ -449,7 +449,7 @@ const LEADS=[
   E(56,"a","remind","Rappel : votre appel avec Karim a lieu demain à 16:00.",{st:"Delivered"}),
   E(79,"a","remind","Votre appel commence dans 1 heure.",{st:"Delivered"}),
   E(80,"s","meetdue","R1 · Appel stratégique · heure passée, issue non déclarée",{r:1})]},
- {id:"nb",p:"Nadia Benz",o:"lea",prod:"Elite Coaching",a:6000,age:70,nx:{txt:"Répondre à sa question : peut-elle payer en 3 échéances ?",src:"son iMessage"},ph:"+33 6 03 64 85 12",em:"nadia.b@example.com",ev:[
+ {id:"nb",p:"Nadia Benz",o:"lea",prod:"Elite Coaching",a:6000,age:70,nx:{txt:"Répondre à sa question : peut-elle payer en 3 échéances ?",src:"son message WhatsApp"},ph:"+33 6 03 64 85 12",em:"nadia.b@example.com",ev:[
   E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
   E(.2,"s","im","Bonjour Nadia, Léa de LNP. Merci et à très vite !",{st:"Read"}),
   E(40,"s","meet","R1 · Appel stratégique",{r:1,dur:48}),
@@ -491,7 +491,7 @@ const LEADS=[
   E(.4,"s","im","Bonjour Kevin, Karim de LNP. À lundi !",{st:"Read"}),
   E(60,"s","meet","R1 · Appel stratégique",{r:1,dur:52}),
   E(61,"s","decision","Issue déclarée · Honoré · Oui · 6 000 € · 2 échéances",{yes:1}),
-  E(62,"s","paylink","Lien de paiement Whop envoyé par iMessage · Elite Coaching · 2 × 3 000 €"),
+  E(62,"s","paylink","Lien de paiement Whop envoyé par WhatsApp · Elite Coaching · 2 × 3 000 €"),
   E(90,"p","paid","Paiement Whop · 3 000 € · première échéance")]},
  {id:"ht",p:"Hakim Touré",o:"sofia",prod:"Elite Coaching",a:6000,age:90,ph:"+33 6 08 47 63 15",em:"hakim.t@example.com",ev:[
   E(0,"p","booked","RDV R1 pris · Appel stratégique (45 min)",{r:1}),
@@ -549,7 +549,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2);
 function stepFor(span){const c=[1,2,3,6,12,24,48,72,96,168];return c.find(s=>span/s<=12)||168}
 const ICON={call:"☎",im:"✉",sms:"✉",booked:"◷",remind:"⏰",meet:"●",meetdue:"!",noshow:"✕",decision:"✓",paylink:"€",paid:"€",note:"✐"};
-const CH={call:"Appel téléphonique",im:"iMessage",sms:"SMS",booked:"RDV iClosed",remind:"iMessage · auto",meet:"Visio",meetdue:"Visio",noshow:"Absence",decision:"Issue",paylink:"Lien Whop",paid:"Paiement Whop",note:"Note"};
+const CH={call:"Appel téléphonique",im:"WhatsApp",sms:"SMS",booked:"RDV iClosed",remind:"WhatsApp · auto",meet:"Visio",meetdue:"Visio",noshow:"Absence",decision:"Issue",paylink:"Lien Whop",paid:"Paiement Whop",note:"Note"};
 const STL={Delivered:"Distribué",Read:"Lu",Sent:"Envoyé",Queued:"En file",Failed:"Échec",Error:"Erreur",Received:"Reçu",Pending:"En attente",Accepted:"Accepté",Declined:"Refusé"};
 
 function laneHTML(l,A){
@@ -652,7 +652,7 @@ function detailHTML(l,A){
 }
 function quickActs(l,A,big){const c=big?"btn":"btn sm",out=[];
   if(A.past.some(e=>e.k==="meetdue"))out.push(`<button class="${c} p" data-act="outcome" data-id="${l.id}">Déclarer l’issue</button>`);
-  if(!A.closed)out.push(`<button class="${c}" data-act="reply" data-id="${l.id}">Répondre par iMessage</button>`);
+  if(!A.closed)out.push(`<button class="${c}" data-act="reply" data-id="${l.id}">Répondre sur WhatsApp</button>`);
   if(A.past.some(e=>e.k==="decision"&&e.yes)&&!A.past.some(e=>e.k==="paid"))out.push(`<button class="${c}" data-act="whop" data-id="${l.id}">Copier le lien Whop</button>`);
   if(!A.closed&&!A.fut.some(e=>e.k==="meet"))out.push(`<button class="${c}" data-act="book" data-id="${l.id}">Planifier le prochain appel</button>`);
   return out.join("")}
@@ -795,14 +795,14 @@ function itemHTML(l,e,i,R){
   const fut=e.t>l.age,who=e.w==="s"?REPS[l.o][0].split(" ")[0]:e.w==="p"?l.p.split(" ")[0]:"Auto",time=timeOf(l,e.t),h=`<span class="hc mono">h ${fmtH(e.t).replace(" h","")}</span>`;
   const r=R[i]?`<span class="rt2 ${R[i].bad?"bad":""}">${R[i].txt}</span>`:"";
   if(e.k==="im"||e.k==="sms"||e.k==="remind"){
-    const side=e.w==="p"?"pin":"pout",ch=e.k==="sms"?"SMS":"iMessage";
+    const side=e.w==="p"?"pin":"pout",ch=e.k==="sms"?"SMS":"WhatsApp";
     return `<div class="msg ${side} ${e.w==="a"?"auto":""}"><div class="bub">${esc(e.txt)}</div><div class="mm">${esc(who)} · ${ch}${e.w==="a"?" · automatique":""} · ${time}${e.st&&side==="pout"?" · "+(STL[e.st]||e.st):""} ${h} ${r}</div></div>`}
   if(e.k==="meet"||e.k==="meetdue"||e.k==="noshow"){
     const st=e.k==="noshow"?["Absence","crit"]:e.k==="meetdue"?["Issue non déclarée","late"]:fut?["Prévu","info"]:["Honoré","ok"];
     const btn=e.k==="meet"&&!fut?`<button class="btn p sm" data-an="${l.id}:${i}">Analyse d’appel</button><span class="fl">Enregistrement dans Fathom ↗</span>`:e.k==="meetdue"?`<button class="btn p sm">Déclarer l’issue</button>`:e.k==="noshow"?"":`<span class="fl">Rappels et mise en condition prévus</span>`;
     return `<div class="callc ${st[1]}"><div class="cl1"><span class="cico">${e.k==="noshow"?"✕":"●"}</span><b>${esc(e.k==="noshow"?"R"+(e.r||1)+" · Absence":e.txt.split(" · ").slice(0,2).join(" · "))}</b><span class="pill ${st[1]}">${st[0]}</span></div>
       <div class="cl2 mut">Visio · ${dayOf(l,e.t)} · ${time}${e.dur&&!fut?" · "+e.dur+" min":""} · ${esc(REPS[l.o][0])} ${h}</div><div class="cl3">${btn}</div></div>`}
-  if(e.k==="call")return `<div class="sysr"><span class="si">☎</span><span>${esc(e.txt)} · ${esc(who)} · Sendblue</span><span class="mut">${time}</span>${h}</div>`;
+  if(e.k==="call")return `<div class="sysr"><span class="si">☎</span><span>${esc(e.txt)} · ${esc(who)}</span><span class="mut">${time}</span>${h}</div>`;
   if(e.k==="paylink"||e.k==="paid")return `<div class="sysr pay ${e.k==="paid"?"ok":""}"><span class="si">€</span><span>${esc(e.txt)}</span><span class="mut">${time}</span>${h}</div>`;
   if(e.k==="decision")return `<div class="sysr dec"><span class="si">✓</span><span>${esc(e.txt.replace("Issue déclarée · ",""))}</span><span class="mut">déclarée par ${esc(who)} · ${time}</span>${h}</div>`;
   if(e.k==="note")return `<div class="sysr note"><span class="si">✐</span><span>Note · ${esc(e.txt)}</span><span class="mut">${esc(who)} · ${time}</span>${h}</div>`;
@@ -838,7 +838,7 @@ function renderPop(){
       <div class="rtool"><div class="fchips" role="group" aria-label="Filtre">${FILTERS.map(f=>`<button data-flt="${f[0]}" aria-pressed="${flt===f[0]}">${f[1]} <span>${cnt[f[0]]||0}</span></button>`).join("")}</div>
         <button class="btn sm" data-order="1">${S.order==="new"?"Plus récents d’abord":"Plus anciens d’abord"} ⇅</button></div>
       <div class="convo">${feed||`<p class="mut">Rien dans ce filtre.</p>`}</div>
-      ${A.closed?"":`<div class="comp"><div class="row"><textarea class="cta" id="cmp" rows="1" placeholder="Écrire à ${esc(l.p.split(" ")[0])}…" aria-label="Message à ${esc(l.p)}"></textarea><button class="btn p" data-send="${l.id}">Envoyer</button></div><span class="mut sm2">iMessage via Sendblue, depuis le numéro de ${esc(rp[0])} · ${esc(l.ph)} · il apparaît dans la conversation et dans les temps de réponse.</span></div>`}
+      ${A.closed?"":`<div class="comp"><div class="row"><textarea class="cta" id="cmp" rows="1" placeholder="Écrire à ${esc(l.p.split(" ")[0])}…" aria-label="Message à ${esc(l.p)}"></textarea><button class="btn p" data-send="${l.id}">Envoyer</button></div><span class="mut sm2">WhatsApp, depuis le numéro de ${esc(rp[0])} · ${esc(l.ph)} · il apparaît dans la conversation et dans les temps de réponse.</span></div>`}
     </div>
     <aside class="rside">
       <div class="sbox dark"><span class="pk">Qui doit agir</span><b>${A.ball?esc(A.ball.txt):won?"Gagné · passer la main à l’accompagnement":lost?"Perdu":"—"}</b>${A.ball&&A.ball.who==="s"&&A.ball.over>0?`<span class="od">en retard de ${fmtH(A.ball.over)}</span>`:""}</div>
@@ -846,7 +846,7 @@ function renderPop(){
         <div class="kv2"><span>Messages du prospect</span><b class="mono">${inN}</b><span>Messages du commercial</span><b class="mono">${outN}</b><span>Messages automatiques</span><b class="mono">${autoN}</b><span>Réponse médiane du commercial</span><b class="mono">${med!=null?fmtH(med):"—"}</b><span>Appels honorés · absences</span><b class="mono">${calls.filter(([e])=>e.k==="meet"&&e.t<=l.age).length} · ${calls.filter(([e])=>e.k==="noshow").length}</b></div></div>
       <div class="sbox"><span class="pk">Appels</span>${calls.length?calls.map(([e,i])=>`<div class="cr"><span><b>R${e.r||1}</b> · ${dayOf(l,e.t)} ${timeOf(l,e.t)}</span>${e.k==="meet"&&e.t<=l.age?`<button class="lnk" data-an="${l.id}:${i}">Analyse</button>`:`<span class="mut">${e.k==="noshow"?"absence":e.k==="meetdue"?"sans issue":"prévu"}</span>`}</div>`).join(""):`<span class="mut">Aucun appel pour l’instant.</span>`}</div>
       <div class="sbox"><span class="pk">Montants</span><div class="kv2"><span>Vendu</span><b class="mono">${rows.some(e=>e.k==="decision"&&e.yes)?eur(l.a):"—"}</b><span>Encaissé (Whop)</span><b class="mono">${eur(paid)}</b></div></div>
-      <p class="mut sm2">Tout ce qui figure sur cette page vient d’iClosed, de Sendblue, de Fathom, de Whop et des formulaires d’issue. Les transcriptions des appels restent dans Fathom.</p>
+      <p class="mut sm2">Tout ce qui figure sur cette page vient d’iClosed, de WhatsApp, de Fathom, de Whop et des formulaires d’issue. Les transcriptions des appels restent dans Fathom.</p>
     </aside>
    </div></div></div>${S.an?anHTML(LEADS.find(z=>z.id===S.an.split(":")[0]),+S.an.split(":")[1]):""}`;
 }
@@ -871,7 +871,7 @@ function renderModal(){const box=document.getElementById("modal");
   if(S.method){box.innerHTML=`<div class="scrim2" data-mclose="1"><div class="adlg meth" role="dialog" aria-modal="true" aria-labelledby="mh"><div class="dh"><div><div class="kick">Mode d’emploi</div><h2 id="mh">Cycle de vente</h2></div><button class="x" data-mclose="1" aria-label="Fermer">×</button></div>
     <div class="abody">
      <section><h4>À quoi il sert</h4><p>Suivre chaque prospect en cours, du RDV pris au premier paiement Whop, et voir qui doit agir maintenant.</p></section>
-     <section><h4>Ce qu’il apporte</h4><ul><li>Une ligne par prospect : le temps passé dans l’étape face à son objectif, la prochaine étape notée dans la dernière issue et le prochain appel.</li><li>Ouvrez une ligne pour lire chaque échange dans l’ordre ; ouvrez la fiche prospect pour 100 % des messages, appels et paiements, et l’analyse d’appel.</li><li>Agissez depuis la ligne : déclarer une issue, répondre par iMessage, copier le lien Whop, planifier le prochain appel.</li></ul></section>
+     <section><h4>Ce qu’il apporte</h4><ul><li>Une ligne par prospect : le temps passé dans l’étape face à son objectif, la prochaine étape notée dans la dernière issue et le prochain appel.</li><li>Ouvrez une ligne pour lire chaque échange dans l’ordre ; ouvrez la fiche prospect pour 100 % des messages, appels et paiements, et l’analyse d’appel.</li><li>Agissez depuis la ligne : déclarer une issue, répondre sur WhatsApp, copier le lien Whop, planifier le prochain appel.</li></ul></section>
      <section><h4>Comment l’utiliser</h4><ul><li>Chaque matin : <b>Critique</b>, puis <b>Le commercial doit agir</b>, de haut en bas.</li><li><b>Calendrier</b> montre aujourd’hui et les appels des prochains jours ; <b>Depuis le RDV</b> compare la durée des cycles.</li><li><b>Ligne : Simple</b> garde les lignes lisibles ; survolez une ligne, ou choisissez <b>Complet</b>, pour voir chaque échange.</li><li>Les alertes ne sont pas répétées ici.</li></ul></section>
     </div></div></div>`;return}
   const l=LEADS.find(z=>z.id===S.ofm);if(!l){box.innerHTML="";return}
@@ -925,7 +925,7 @@ document.addEventListener("click",e=>{
     if(a==="book")return toast("Planifiez le prochain appel dans iClosed avec l’adresse e-mail du prospect : l’appel rejoint ce cycle");}
   if(t.dataset.send){const l=LEADS.find(z=>z.id===t.dataset.send),c=document.getElementById("cmp"),v=c&&c.value.trim();if(!v){c&&c.focus();return}
     const k=l.ev.findIndex(z=>z.t>l.age),ev=E(l.age,"s","im",v,{st:"Sent"});k<0?l.ev.push(ev):l.ev.splice(k,0,ev);if(l.nx&&l.nx.due==null)l.nx=null;else if(l.nx&&l.nx.due<=l.age+2)l.nx=null;
-    toast("Envoyé par iMessage via Sendblue (maquette : rien ne quitte cette page)");render();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight;return}
+    toast("Envoyé sur WhatsApp (maquette : rien ne quitte cette page)");render();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight;return}
   if(t.dataset.axis){if(S.axis!==t.dataset.axis){S.axis=t.dataset.axis;S.view=VIEWS[S.axis]}return render()}
   if(t.dataset.rowd){S.rowd=t.dataset.rowd;return render()}
   if(t.dataset.needs)return toast("Dans l’application, ceci ouvre les alertes du CRM (c1 à c18), avec toutes les autres alertes.");

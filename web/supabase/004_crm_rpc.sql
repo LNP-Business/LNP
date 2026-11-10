@@ -32,7 +32,7 @@ $$;
 create or replace function crm_admin_set_member(
   p_email text, p_member_key text, p_full_name text, p_role member_role,
   p_lead_key text default null, p_iclosed_email text default null, p_fathom_email text default null,
-  p_sendblue_number text default null, p_active boolean default true
+  p_whatsapp_number text default null, p_active boolean default true
 ) returns uuid language plpgsql security definer set search_path = public as $$
 declare uid uuid; lead uuid; before jsonb; actor uuid;
 begin
@@ -47,11 +47,11 @@ begin
     if lead = uid then raise exception 'Un membre ne peut pas être son propre responsable'; end if;
   end if;
   select to_jsonb(m) into before from crm_members m where id = uid;
-  insert into crm_members (id, member_key, full_name, email, role, lead_id, iclosed_email, fathom_email, sendblue_number, active)
-  values (uid, p_member_key, p_full_name, lower(trim(p_email)), p_role, lead, p_iclosed_email, p_fathom_email, p_sendblue_number, p_active)
+  insert into crm_members (id, member_key, full_name, email, role, lead_id, iclosed_email, fathom_email, whatsapp_number, active)
+  values (uid, p_member_key, p_full_name, lower(trim(p_email)), p_role, lead, p_iclosed_email, p_fathom_email, p_whatsapp_number, p_active)
   on conflict (id) do update set member_key = excluded.member_key, full_name = excluded.full_name, email = excluded.email,
     role = excluded.role, lead_id = excluded.lead_id, iclosed_email = excluded.iclosed_email,
-    fathom_email = excluded.fathom_email, sendblue_number = excluded.sendblue_number, active = excluded.active;
+    fathom_email = excluded.fathom_email, whatsapp_number = excluded.whatsapp_number, active = excluded.active;
   select id into actor from crm_members where id = auth.uid();
   perform crm_audit(actor, 'set_member', 'crm_members', uid::text, before, (select to_jsonb(m) from crm_members m where id = uid));
   return uid;

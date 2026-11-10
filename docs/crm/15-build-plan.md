@@ -14,10 +14,10 @@ at the end of phase 6 every cycle is traced from booking to won / lost / disqual
 | 4 | `crm-4-fathom` | Fathom webhook, verifier, mapper, call matching, consistency checks (c11, not-recorded flag) | ≥ 95 % of held calls matched automatically; each mismatch case alerts |
 | 5 | `crm-5-whop` | Checkout per cycle, Whop verifier and mapper, sold vs collected, c7–c10 | Sandbox: failed then paid → c8 then won; refund corrects collected cash |
 | 6 | `crm-6-rules` | `rules-tick`, c1–c6 and c12–c18 instances, store.js merge into the alert engine, Settings › Alerts "Sales (CRM)" group, auto-close with notice and cancel, reconciliation, source silence, Reliability and Settings › Sales rules screens | CRM alerts appear in Needs you with Take it / Snooze / Handled / escalation working; each rule tested; 7 clean reconciliation nights |
-| 7 | `crm-7-sendblue` | Sendblue inbound, `sendblue-send`, auto vs sales tagging, attempts, STOP, warming steps, rebuild inventoried automations (Lead follow-ups agent, approval in Agent System › Decisions), then switch old ones off | Test messages land in < 2 min; reply times match a manual check; STOP blocks sending |
+| 7 | `crm-7-whatsapp` | WhatsApp Business inbound (`whatsapp-in`, Cloud API in coexistence, team numbers in `crm_members.whatsapp_number`), auto vs sales tagging (API status vs app echo), attempts, STOP, warming steps; automatic confirmation and reminders need WhatsApp template messages (approved by Meta, paid): who sends them is still to decide (Sendblue, abandoned 2026-11-09) | Test messages land in < 2 min; reply times match a manual check; STOP is kept on the person |
 | 8 | `crm-8-nurture` | Nurture tracks, cadence, c15, reactivation, archive; sending flag off until legal sign-off | lost → nurture → reply → new linked cycle with no manual action |
 | 9 | `crm-9-insights` | Post-call analyst (Claude) with `crm_agent_runs`, analysis tabs, `crm_kpi_*` views, Cockpit › Sales live | Analyses pass the evidence validator; KPIs match a manual count over one week; Agent System Log shows real runs |
-| 10 | — | Pilot with Valentino, fixes, one-page user guide, Vercel plan checked (Q7) | No lost event, clean reconciliation, Valentino no longer opens iClosed / Fathom / Sendblue / Whop to know where a lead stands |
+| 10 | — | Pilot with Valentino, fixes, one-page user guide, Vercel plan checked (Q7) | No lost event, clean reconciliation, Valentino no longer opens iClosed / Fathom / WhatsApp / Whop to know where a lead stands |
 
 ## Prompts for Claude Code
 
@@ -31,9 +31,9 @@ PR; do not merge."*
 Read docs/crm README, 00, 01, 04, 05-08, 13. Branch "crm-0-capture".
 Create the supabase/ CLI workdir for Edge Functions only, and a minimal SQL file
 web/supabase/003a_crm_webhook_log.sql with crm_webhook_log as defined in 003_crm_core.sql.
-Implement the four ingestion functions (iclosed-in, fathom-in, sendblue-in, whop-in) per 04 §1:
+Implement the four ingestion functions (iclosed-in, fathom-in, whatsapp-in, whop-in) per 04 §1:
 raw body stored, cheap auth check, 200 fast, nothing else. Write docs/crm/setup.md telling Romain
-exactly what to paste in Zapier, Fathom, Sendblue and Whop. Add a script that exports captured
+exactly what to paste in Zapier, Fathom, WhatsApp Business and Whop. Add a script that exports captured
 rows as anonymised fixtures. Read web/supabase/001_init.sql and record the members table columns,
 the Supabase region and the pending web settings in 00-decisions.md (Q8-Q10).
 ```
@@ -91,10 +91,12 @@ silence, and the Reliability and Settings › Sales rules screens. All values fr
 
 ### Phase 7
 ```
-Read docs/crm 07, 10 §3. Branch "crm-7-sendblue". Implement sendblue-in, auto vs sales tagging
-through crm_outbound_messages, touches and attempts, STOP, warming steps, sendblue-send with
-retries and the approval flow (pending_approval -> Agent System › Decisions). Rebuild the
-inventoried automations behind a flag, then switch the old ones off with Romain.
+Read docs/crm 07, 10 §3. Branch "crm-7-whatsapp". Implement whatsapp-in (token or Meta signature,
+Meta's address check), the WhatsApp mapper (messages, statuses, app echoes, history), auto vs sales
+tagging (a status alone is auto, the app echo of the same message is sales), the team member from
+crm_members.whatsapp_number, touches and attempts, STOP, warming steps. The CRM sends no WhatsApp
+message: confirmations and reminders need Meta-approved template messages, sender still to decide
+with Romain.
 ```
 
 ### Phase 8

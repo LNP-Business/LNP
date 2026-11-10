@@ -21,7 +21,8 @@ ou un projet de LNP.
 ## 2. Supabase
 
 1. Créer un compte et un projet Supabase (région proche des utilisateurs ; LNP : `eu-central-1`). Noter la réf. du projet.
-2. Appliquer, dans l'ordre, `web/supabase/001_init.sql` puis `003` … `034` (éditeur SQL, ou CLI, ou API de gestion
+2. Appliquer, dans l'ordre, `web/supabase/001_init.sql` puis `003` … `034` et les suivantes jusqu'à `052_crm_whatsapp.sql`
+   (messages WhatsApp) (éditeur SQL, ou CLI, ou API de gestion
    `POST /v1/projects/{ref}/database/migrations` pour qu'elles soient tracées). Il n'y a pas de `002`.
    - Avant `019_crm_sales_team.sql`, ou après dans la table : les commerciaux de NOUVEAU (`insert into crm_sales_team (rep, name) …` ;
      `rep` = la partie avant `@` de leur e-mail d'hôte iClosed, ou leur clé de membre CRM).
@@ -40,7 +41,7 @@ ou un projet de LNP.
    (la clé **secret** du projet, `sb_secret_…`, Project Settings › API Keys : la fonction `callqa-llm` refuse l'ancienne clé
    `service_role` en `eyJ…`) ; variable `SUPABASE_URL` = `https://<ref>.supabase.co`.
 2. GitHub › Actions › « CRM functions » › Run workflow sur `main` : les 8 fonctions sont déployées (`--no-verify-jwt --yes`).
-   Contrôle : Supabase › Edge Functions montre `iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in`, `process-inbox`, `crm-import`,
+   Contrôle : Supabase › Edge Functions montre `iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`, `process-inbox`, `crm-import`,
    `sla-tick`, `callqa-llm`.
 3. Activer les tâches planifiées :
    ```sql
@@ -49,7 +50,8 @@ ou un projet de LNP.
    on conflict (key) do update set value = excluded.value;
    ```
 4. Secrets des fonctions (Supabase › Edge Functions › Secrets), comptes de NOUVEAU : `ICLOSED_API_KEY`, `ICLOSED_INBOUND_TOKEN`,
-   `FATHOM_API_KEY`, `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET`, `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY`,
+   `FATHOM_API_KEY`, `WHATSAPP_INBOUND_TOKEN` (et `WHATSAPP_APP_SECRET` si Meta envoie directement les webhooks),
+   `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY`,
    `SLACK_SALES_CYCLE_WEBHOOK_URL`. Sans un secret, la fonction concernée répond une erreur claire et n'écrit rien.
 
 ## 4. Vercel
@@ -79,12 +81,16 @@ ou un projet de LNP.
 
 1. iClosed : webhook vers `https://<ref>.supabase.co/functions/v1/iclosed-in` (RDV pris, reporté, annulé, contact modifié) avec le
    jeton `ICLOSED_INBOUND_TOKEN`.
-2. Sendblue : webhook vers `…/functions/v1/sendblue-in`.
+2. WhatsApp Business : portefeuille Meta Business de NOUVEAU, un numéro WhatsApp Business par commercial et par setter, relié en
+   coexistence par un fournisseur (360dialog conseillé), historique partagé à la connexion ; webhook vers
+   `…/functions/v1/whatsapp-in?k=<WHATSAPP_INBOUND_TOKEN>`, événements `messages`, `smb_message_echoes`, `history` (Meta
+   directement : même adresse sans `k=`, jeton de vérification `WHATSAPP_INBOUND_TOKEN`, secret `WHATSAPP_APP_SECRET`). Puis le
+   numéro de chacun dans Paramètres › Compte › Accès de l'équipe, colonne « WhatsApp Business » (il rattache ses messages).
 3. Fathom : rien à brancher, la tâche `crm-fathom-hourly` lit l'API toutes les heures (`FATHOM_API_KEY`).
 4. Whop : webhook vers `…/functions/v1/whop-in` (stocké brut ; les encaissements se saisissent à la main en attendant son traitement).
 5. Slack : webhook entrant du canal des alertes dans `SLACK_SALES_CYCLE_WEBHOOK_URL`.
-6. Historique : `crm-import` avec `?source=iclosed&dry=1`, puis sans `dry` ; idem `close`, `iclosed_calls`, `sendblue`, `fathom`
-   (`&since=`) ; toujours un essai à blanc d'abord.
+6. Historique : `crm-import` avec `?source=iclosed&dry=1`, puis sans `dry` ; idem `close`, `iclosed_calls`, `fathom`
+   (`&since=`) ; l'historique WhatsApp arrive par le webhook à la connexion des numéros ; toujours un essai à blanc d'abord.
 
 ## 7. Analyse d'appel
 

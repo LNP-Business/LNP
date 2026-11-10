@@ -85,6 +85,6 @@ jobs:
       - name: Deploy the ingestion functions and the worker
         if: steps.ready.outputs.go == 'true'
         run: |
-          for f in iclosed-in fathom-in sendblue-in whop-in process-inbox crm-import callqa-llm sla-tick; do
+          for f in iclosed-in fathom-in whatsapp-in whop-in process-inbox crm-import callqa-llm sla-tick; do
             supabase functions deploy "$f" --remote="$PROJECT_REF" --no-verify-jwt --yes
           done

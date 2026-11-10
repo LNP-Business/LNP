@@ -12,7 +12,7 @@
 |---|---|
 | iClosed (Zapier) | `x-lnp-token` header, constant-time compare |
 | Fathom | `webhook-id` / `webhook-timestamp` / `webhook-signature`, 5-minute window |
-| Sendblue | token in query string until a signature is confirmed (Q4) |
+| WhatsApp | token in the query string `?k=` (through a provider such as 360dialog), or Meta's `X-Hub-Signature-256` HMAC-SHA256 with `WHATSAPP_APP_SECRET` (Meta directly), constant-time compare |
 | Whop | Standard Webhooks HMAC-SHA256, 5-minute window |
 
 Unauthenticated requests are stored with `status = 'rejected'` and answered `401`; an alert is

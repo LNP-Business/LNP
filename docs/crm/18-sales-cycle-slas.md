@@ -25,7 +25,7 @@ Added on 2026-11-05 (044, Settings › Alerts):
 
 | ID | SLA | Starts | Stops | Due soon | Late | Critical |
 |---|---|---|---|---|---|---|
-| SH-1 | Automatic confirmation (tech) | booking | first automatic message | — | 5 min | 15 min |
+| SH-1 | Automatic confirmation (tech) | booking | first automatic WhatsApp message (a Meta-approved template: sender still to decide) | — | 5 min | 15 min |
 | SH-3 | Time to the R1 (indicator) | booking | planned R1 | — | 72 h | 96 h |
 | SH-4 | Exchange before the call | booking | a sales message then a prospect reply, before the R1 | 12 h before the R1 | 3 h before | — |
 | SH-9 | New slot after a no-show | no-show | a new booking (or a later call already planned) | 12 h | 24 h | 2nd no-show |
@@ -43,7 +43,7 @@ Added on 2026-11-05 (044, Settings › Alerts):
 
 CO-2 (the night window) is a switch on CO-1. Not measured (no data yet, listed in Settings with the reason): SH-5, SH-7,
 SH-10, SH-12 (indicator), DE-3 (form rule, not applied: the outcome form asks no date), DE-6, CA-3, CA-4, CA-6, CA-7,
-CO-3, CL-2 (form rule, applied: a reason is required), CL-4, DO-1, DO-3, DO-4, DO-5.
+CO-3 (missed call: WhatsApp does not pass missed calls to the CRM), CL-2 (form rule, applied: a reason is required), CL-4, DO-1, DO-3, DO-4, DO-5.
 
 A lead's level on the screen is its worst open **sales** SLA (Critical, Late; Due soon = preventive): tech and indicator
 SLAs show a mark on the lane but never set the level. A closed lead stops every clock. Decisions applied (doc §9): sales
@@ -58,7 +58,7 @@ reference has; they stay in order), where it shows (CRM › Sales cycle, Slack #
 or sales lead; shape checked, audited) into `crm_settings.sla_rules = {sources, rules}`. `LNP_SLA.configure()` applies it on
 the screen (`LNP_CRM.slaRules`, and at once after a save) and in `sla-tick` (`crm_sla_settings().sla_rules`).
 
-Sources: `messages` (Sendblue iMessage, SMS, phone), `whop`, `analysis` (automatic analysis of every recording). On
+Sources: `messages` (« Messages WhatsApp de l’équipe »: the WhatsApp Business messages of the sales reps and setters; since 2026-11-09, Sendblue abandoned), `whop`, `analysis` (automatic analysis of every recording). On
 2026-11-05 none reaches the CRM, so 044 stores them as not connected and their SLAs wait: before, all 171 active leads were
 Critical (SH-2 and DE-1 waited for messages that never come). An admin switches a source on in Settings once it is wired.
 

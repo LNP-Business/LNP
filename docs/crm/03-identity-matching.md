@@ -37,7 +37,7 @@ Results:
 | `call_booked` | The person's `active` cycle if any (add a call, next `rank`); otherwise open a new cycle (see §4) |
 | `call_rescheduled`, `call_canceled` | The cycle of the call with that `iclosed_call_id`; if unknown, treat a reschedule as a booking and log a warning |
 | `call_recorded` | The call whose `scheduled_start` is within ±90 min of `recording_start` for that person (VERIFY window on real data); else the active cycle; else unmatched |
-| Sendblue messages and calls | The person's active cycle; if none, attach to the person only (`cycle_id = null`) — this still counts as a nurture signal |
+| WhatsApp messages | The person's active cycle; if none, attach to the person only (`cycle_id = null`) — this still counts as a nurture signal. The team member is the one whose `crm_members.whatsapp_number` is the message's WhatsApp Business number (`crm_events.member_id`) |
 | Whop payment | `metadata.cycle_id`; else the person's cycle in `cash` stage; else the most recent cycle with a `yes`; else unmatched |
 
 ## 4. Opening a cycle

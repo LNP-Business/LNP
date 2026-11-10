@@ -24,7 +24,7 @@
 | D5 | Automatic loss after **30 days without a prospect reply and at least 4 contact attempts** (attempt definition DEFERRED). |
 | D6 | **Nurture** track for people who say no today; archived after **6 months without signal**. |
 | D7 | **Calendar hours**. |
-| D8 | No WhatsApp: prospects use iMessage (Sendblue covers iMessage and SMS). |
+| D8 | ~~No WhatsApp: prospects use iMessage~~ — reversed (Romain, 9 Nov 2026): **WhatsApp Business is the only messaging channel of the CRM** (official Cloud API in coexistence: the team keeps the WhatsApp Business app on their phone; `07-integration-whatsapp.md`). Sendblue is not used (Sendblue, abandoned 2026-11-09; it never delivered any data). |
 | D9 | A person can have several cycles (person ≠ cycle). |
 | D10 | **Sales lead = Romain**: CRM escalations for Valentino go to Romain; Romain's go to Amin (existing lead rule). |
 | D11 | CRM data lives in dedicated relational tables prefixed `crm_` — a deliberate exception to the "everything in `docs`" convention (idempotency, real per-sales isolation, volume). |
@@ -53,8 +53,8 @@
 | Q1 | ~~Does iClosed offer native webhooks?~~ — answered (Romain, 24 Oct 2026): **yes**. No Zapier: iClosed posts to `iclosed-in?k=<token>` (header `x-lnp-token` also accepted). The mapper reads iClosed's own payload, captured in phase 0 | — |
 | Q2 | Does each sales' Fathom plan include API and webhooks? | Phase 4 |
 | Q3 | Are Whop checkout metadata included in `payment.*` webhook payloads? | Phase 5 |
-| Q4 | How does Sendblue authenticate its webhooks? | Phase 7 |
-| Q5 | Inventory of automations in iClosed, Sendblue and CRM LNP (warming steps) to rebuild | Phase 7 |
+| Q4 | ~~How does Sendblue authenticate its webhooks?~~ — obsolete (Sendblue, abandoned 2026-11-09). WhatsApp: a token in the query string `?k=` (through a provider such as 360dialog) or Meta's `X-Hub-Signature-256` signature (Meta directly) | — |
+| Q5 | Inventory of automations in iClosed and CRM LNP (warming steps) to rebuild. Automatic confirmation (SH-1) and reminders (SH-5) now need WhatsApp template messages (approved by Meta, paid): who sends them is still to decide | Phase 7 |
 | Q6 | Legal sign-off: recording notice, nurture messages, retention period | Phases 4 and 8 |
 | Q7 | **Vercel plan**: the Hobby plan is, as far as known, for personal non-commercial use. Check Vercel's terms for an internal company tool; upgrade if needed. | Before go-live |
 | Q8 | ~~Columns of `members`~~ — answered: `user_id`, `email`, `role` (admin/member/viewer); `crm_members.id` references `members(user_id)` | — |
@@ -92,37 +92,37 @@ specification §14 (Site URL still the old domain, OTP expiry probably 1 h).
 | CRM LNP | Next-action suggestions | Suggested next actions by status (new: call / book / follow up; scheduled: call, D-1 and day-of warming, prep, reschedule; no-show: re-engage, reschedule, call; held: follow up, proposal, next call, objection, alternative, nurture; won: track payment) | Feeds `crm_rules.next_move` (F4) |
 | CRM LNP | Alert 2.2 "Missing warming" | Tomorrow's call with no warming logged | Candidate CRM rule (phase 6) |
 | iClosed | to fill by Romain (`setup.md` checklist) | | |
-| Sendblue | to fill by Romain (`setup.md` checklist) | | |
 
 ### Built in phase 0
 
 - `supabase/` CLI workdir (functions only; `verify_jwt = false`: providers send no Supabase JWT).
 - `web/supabase/003a_crm_webhook_log.sql`: the two enums and `crm_webhook_log`, same definition as `003`, re-runnable
   (folded into `003_crm_core.sql` in phase 1, whose three matching statements are idempotent).
-- `iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in` per 04 §1: POST only, 2 MB limit, raw text body stored,
-  cheap check (iClosed `x-lnp-token`, Sendblue `?k=`, Fathom and Whop Standard Webhooks with a 5-minute window),
+- `iclosed-in`, `fathom-in`, `sendblue-in` (Sendblue, abandoned 2026-11-09; replaced by `whatsapp-in`), `whop-in` per 04 §1: POST only, 2 MB limit, raw text body stored,
+  cheap check (iClosed `x-lnp-token`, a `?k=` token, Fathom and Whop Standard Webhooks with a 5-minute window),
   rejected requests stored with `status = 'rejected'` and **no delivery id** (a forged request cannot block the
   genuine delivery as a duplicate) and answered 401, duplicate deliveries answered 200, storage failure 500 (the
-  provider retries). Secret headers stored as `<redacted>`; the URL (Sendblue token) is never stored or logged.
+  provider retries). Secret headers stored as `<redacted>`; the URL (it may hold a token) is never stored or logged.
 - Tests: `deno test --allow-env supabase/tests` (Standard Webhooks specification example, token, handler).
 - `.github/workflows/crm-functions.yml`: tests on every change; deploys to `LNP` from `main` only, when the GitHub
   secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` exist.
 - `supabase/scripts/export_fixtures.py`: captured rows → anonymised `fixtures/<source>-<event>.json`.
-- `setup.md`: what Romain configures (Supabase, GitHub, Zapier, Fathom, Sendblue, Whop sandbox).
+- `setup.md`: what Romain configures (Supabase, GitHub, Zapier, Fathom, WhatsApp Business, Whop sandbox).
 
 ### Still VERIFY (needs a captured request)
 
 - Whop secret encoding: a `ws_…` secret is used as raw bytes (as Whop's SDK does); `whsec_…` is base64-decoded.
 - Fathom signed content and secret format (06 §3): a mismatch shows as `auth_ok = false` with the body kept.
 - iClosed fields offered by Zapier, notably the time of the action (`occurred_at`) and the contact id (05 §3).
-- Sendblue webhook authentication (Q4) and the exact type names in its dashboard.
+- WhatsApp payloads: the fixtures `fixtures/whatsapp-*.json` are built from Meta's documented payloads; replace them with
+  captured requests once the numbers are connected (07 §5).
 
 ### Definition of done of phase 0 — state
 
 Code done. Applied to `LNP` through the Supabase connector (24 Oct 2026): `003a` migration, the four functions
 deployed (`verify_jwt = false`) and checked (a request without token is stored as `rejected` and answered 401).
 **Pending Romain's setup** (`setup.md`): one real payload per event type in `fixtures/` and the
-checklist answers (Q2, Q5 for iClosed and Sendblue, Q9, Q10).
+checklist answers (Q2, Q5 for iClosed, Q9, Q10).
 
 ## Phase 1 — findings (branch `crm-1-schema`)
 

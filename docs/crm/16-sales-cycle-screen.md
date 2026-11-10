@@ -113,10 +113,10 @@ One **adapter** builds this structure from the CRM tables (or from sample data i
 | `k` | Label (channel) | Source | Actor |
 |---|---|---|---|
 | `booked` | iClosed booking | `call_booked` (R1 and later calls) | p |
-| `remind` | iMessage · auto | automatic outbound message (warming steps, confirmations) | a |
-| `im` | iMessage | `message_in` / `message_out` with channel iMessage | p / s |
-| `sms` | SMS | same, channel SMS | p / s |
-| `call` | Phone call | Sendblue call log (incoming / outgoing, answered or not) | s / p |
+| `remind` | WhatsApp · auto | automatic outbound message sent through the WhatsApp API (warming steps, confirmations) | a |
+| `im` | WhatsApp | `message_in` / `message_out` with channel `whatsapp` (sales: typed in the WhatsApp Business app) | p / s |
+| `sms` | SMS | same, channel `sms` (no source writes it today) | p / s |
+| `call` | Phone call | `phone_call_in` / `phone_call_out` (not captured: WhatsApp does not pass calls to the CRM) | s / p |
 | `meet` | Video call | call held (outcome "Held", Fathom recording attached). Future `meet` = scheduled call | s |
 | `meetdue` | Video call | **derived**: scheduled call whose end time passed with no outcome declared | s |
 | `noshow` | No-show | outcome "No-show" | p |
@@ -132,7 +132,7 @@ Icons: booked ◷ · remind ⏰ · im/sms ✉ · call ☎ · meet ● · meetdue
 | Field | Meaning | Example |
 |---|---|---|
 | `txt` | the concrete action, imperative | "Call Yassine for the decision promised on Monday" |
-| `src` | where it comes from | "from the R2 outcome", "her iMessage", "rule: 2 no-shows", "yes on R1, link not paid" |
+| `src` | where it comes from | "from the R2 outcome", "her WhatsApp message", "rule: 2 no-shows", "yes on R1, link not paid" |
 | `due` | optional, hours since booking | when set, the action is due at that time even if the last message came from the sales |
 
 Written by: the outcome form (§10.1, "Next step"), the rules engine (`crm_rules.next_move`, F4), or the
@@ -346,7 +346,7 @@ Clicking a cluster badge on the lane opens the row in Story and selects that eve
 
 ## 7. Lead record (dialog, 1180 px)
 
-Opened by "Open lead record", "Reply by iMessage", or a call-analysis link. Closed by ×, a click outside, or Esc.
+Opened by "Open lead record", "Reply on WhatsApp", or a call-analysis link. Closed by ×, a click outside, or Esc.
 
 ### 7.1 Header
 
@@ -364,15 +364,15 @@ quick actions (§9) as normal-size buttons.
    oldest-first order with the "All" filter, a gold separator "Now · Sun, 25 Oct 08:51" sits between past and
    scheduled items.
    - **Messages** as bubbles: prospect left (white, border); sales right (dark blue `#1F3B5C`, white text); automatic
-     right (light blue, dashed). Under each: who · iMessage/SMS · "automatic" · time · delivery status · "h 251" ·
+     right (light blue, dashed). Under each: who · WhatsApp · "automatic" · time · delivery status · "h 251" ·
      response chip.
    - **Calls** as cards with a left colour border: Held (green) · No-show (red) · Outcome not declared (orange, with
      "Declare the outcome" button) · Scheduled (blue, "Reminders and warming steps planned"). Line 2: "Video call ·
      day · time · duration · sales". Held: "Call analysis" button + "Recording in Fathom ↗" (link to the recording).
-   - **System rows** (centred pills): bookings "· iClosed", phone calls "· Sendblue", outcomes "declared by Malik",
+   - **System rows** (centred pills): bookings "· iClosed", phone calls, outcomes "declared by Malik",
      Whop link and payments (green), notes (dashed).
-4. **Composer** (not for closed cycles): text area "Write to Yassine…", **Send** button, line "iMessage through
-   Sendblue, from {sales}'s number · {phone} · it appears in the conversation and in the response times."
+4. **Composer** (not for closed cycles): text area "Write to Yassine…", **Send** button, line "WhatsApp, from
+   {sales}'s number · {phone} · it appears in the conversation and in the response times."
 
 ### 7.3 Side column (300 px)
 
@@ -381,7 +381,7 @@ quick actions (§9) as normal-size buttons.
   no-shows.
 - **Calls**: "R1 · Thu, 15 Oct 12:51" + "Analysis" link (held) or "no-show" / "no outcome" / "scheduled".
 - **Money**: Sold (amount of the yes, else —) · Collected (Whop) (sum of succeeded payments − refunds).
-- Footer: "Everything on this page comes from iClosed, Sendblue, Fathom, Whop and the outcome forms. Call transcripts
+- Footer: "Everything on this page comes from iClosed, WhatsApp, Fathom, Whop and the outcome forms. Call transcripts
   stay in Fathom."
 
 ---
@@ -415,7 +415,7 @@ Open question for Romain: keep the short evidence quotes, or show only the time 
 | Button | Shown when | Effect |
 |---|---|---|
 | **Declare the outcome** (primary) | a `meetdue` exists | opens the outcome form (§10.1) |
-| **Reply by iMessage** | cycle not closed | opens the lead record, focuses the composer, scrolls the conversation to the end |
+| **Reply on WhatsApp** | cycle not closed | opens the lead record, focuses the composer, scrolls the conversation to the end |
 | **Copy the Whop link** | a yes exists and no payment yet | copies the checkout URL of the deal (`crm_deals.whop_purchase_url`); toast "Whop link copied · paste it in the conversation; the payment will be matched to this cycle" |
 | **Book the next call** | not closed and no future call | copies the iClosed booking link carrying the cycle id; toast "iClosed link copied · the call it books joins this cycle" |
 | **Open lead record** | always (row toolbar) | §7 |
@@ -454,9 +454,13 @@ Buttons: Cancel · **Save the outcome**. Effects:
 
 ### 10.2 Sending a message
 
-Send → `crm_send_message` (Sendblue, from the owner's number) → `message_out` event at now with status `Sent`, then
-`Delivered` / `Read` from the Sendblue webhooks. Empty text: focus the field, do nothing. Clears the next step as in
-§3.3. Toast "Sent by iMessage through Sendblue". Blocked if the person replied STOP (show why).
+Mock-up: Send adds a `message_out` event at now with status `Sent`; empty text: focus the field, do nothing; clears
+the next step as in §3.3; toast "Sent on WhatsApp (mock-up: nothing leaves this page)".
+
+Live: the CRM sends no WhatsApp message (07 §4). The sales replies from the WhatsApp Business app; the app's echo reaches
+`whatsapp-in` as a `message_out` (sales), then its statuses (`delivered`, `read`) update the same event. Send shows a
+toast saying that sending from the CRM comes later and to reply from WhatsApp Business for now. STOP is kept on the
+person (`opted_out_at`).
 
 ---
 
@@ -469,7 +473,7 @@ Bottom centre, dark, 3.8 s, one at a time, `role="status"`.
 - **What it is for**: Follow every live lead from the booked call to the first Whop payment, and see who must act now.
 - **How it helps**: one line per lead (time in the stage against its target, the next step written in the last
   outcome, the next call); open a line to read every interaction in order; open the lead record for 100 % of the
-  messages, calls and payments, and the call analysis; act from the line (declare an outcome, reply by iMessage, copy
+  messages, calls and payments, and the call analysis; act from the line (declare an outcome, reply on WhatsApp, copy
   the Whop link, book the next call).
 - **How to use it**: each morning, Critical then Sales must act, top to bottom; Calendar shows today and the calls of
   the next days, Since booking compares cycle lengths; Row: Simple keeps lines readable, hover a line or choose Full

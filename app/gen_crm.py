@@ -312,7 +312,7 @@ for a, b in [
      '  const anb=e.target.closest("[data-an]");if(LIVE&&anb){const [li,ix]=anb.dataset.an.split(":"),ll=LEADS.find(z=>z.id===li),ev=ll&&ll.ev[+ix];'
      'if(ev&&ev.cid){try{parent.LNP_CA.open(ev.cid,{person:ll.p,round:ev.r})}catch(_){}}return}\n'
      '  const lw=e.target.closest("[data-send],[data-act=whop],[data-act=book]");'
-     'if(LIVE&&lw)return toast(lw.dataset.send?"L’envoi d’iMessages depuis le CRM arrivera plus tard : répondez depuis Sendblue pour l’instant.":"Ce lien arrivera plus tard (liens Whop et iClosed).");\n'
+     'if(LIVE&&lw)return toast(lw.dataset.send?"L’envoi de messages depuis le CRM arrivera plus tard : répondez depuis WhatsApp Business pour l’instant.":"Ce lien arrivera plus tard (liens Whop et iClosed).");\n'
      '  const ofs=e.target.closest("[data-ofsave]");if(LIVE&&ofs){saveLive(LEADS.find(z=>z.id===ofs.dataset.ofsave));return}'),
     ('  if(t.dataset.needs)return toast(',
      '  if(t.dataset.needs&&LIVE){try{parent.parent.postMessage({lnp:"go",screen:"salesday"},"*")}catch(_){}return}\n  if(t.dataset.needs)return toast('),

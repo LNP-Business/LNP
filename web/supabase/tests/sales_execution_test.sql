@@ -14,8 +14,8 @@ begin
   values (c1, 1, now() - interval '30 days', now() - interval '30 days' + interval '45 minutes', 'held', now() - interval '30 days' + interval '45 minutes', 990001) returning id into k1;
   insert into crm_events (person_id, cycle_id, call_id, occurred_at, actor, channel, type, data, source, source_id) values
     (p1, c1, k1, now() - interval '40 days', 'prospect', 'booking', 'call_booked', '{}', 'import', 'import:sx:1'),
-    (p1, c1, null, now() - interval '40 days' + interval '2 minutes', 'sales', 'imessage', 'message_out', '{}', 'sendblue', 'sendblue:sx:1'),
-    (p1, c1, null, now() - interval '30 days' + interval '75 minutes', 'sales', 'imessage', 'message_out', '{}', 'sendblue', 'sendblue:sx:2');
+    (p1, c1, null, now() - interval '40 days' + interval '2 minutes', 'sales', 'whatsapp', 'message_out', '{}', 'whatsapp', 'whatsapp:sx:1'),
+    (p1, c1, null, now() - interval '30 days' + interval '75 minutes', 'sales', 'whatsapp', 'message_out', '{}', 'whatsapp', 'whatsapp:sx:2');
   insert into crm_deals (cycle_id, product, amount_sold, currency, yes_at) values (c1, 'Accompagnement 4 mois', 3000, 'EUR', now() - interval '28 days') returning id into d1;
   insert into crm_payments (deal_id, cycle_id, whop_payment_id, amount, refunded_amount, status, paid_at)
   values (d1, c1, 'pay_sx_1', 850, 0, 'paid', now() - interval '27 days');

@@ -45,7 +45,7 @@ function median(a) {
 function pct(n, d) { return d ? Math.round(100 * n / d) + "%" : "—"; }
 function escLike(q) { return q.replace(/[\\%_]/g, m => "\\" + m); }
 
-const CHANNEL = { imessage: "iMessage", sms: "SMS", booking: "booking", crm: "CRM", email: "email", call: "call" };
+const CHANNEL = { whatsapp: "WhatsApp", sms: "SMS", booking: "booking", crm: "CRM", email: "email", call: "call" };
 const STATUS = { active: "live", won: "won", lost: "lost", disqualified: "disqualified", nurture: "nurture" };
 
 // ---------------- data access (caller's client) ----------------

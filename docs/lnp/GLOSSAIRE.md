@@ -2,7 +2,7 @@
 
 L'application LNP est entièrement en français (décision de Romain, 2026-11-03). Ce glossaire fixe les termes : un même mot anglais
 se traduit partout de la même façon. Pas d'anglicisme quand un mot français courant existe. Restent tels quels : les noms propres
-(LNP, Les Nouveaux Profs, Fathom, iClosed, Sendblue, Whop, Close, Slack, Claude, Supabase), les sigles CRM, KPI, SLA, CA, R1, R2, R3+,
+(LNP, Les Nouveaux Profs, Fathom, iClosed, WhatsApp, Whop, Close, Slack, Claude, Supabase), les sigles CRM, KPI, SLA, CA, R1, R2, R3+,
 les unités et les montants.
 
 Ne jamais écrire « closer » (ni « closing ») : toujours « commercial » / « conclure » / « vente ».

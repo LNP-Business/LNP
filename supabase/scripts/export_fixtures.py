@@ -100,12 +100,9 @@ def event_of(source, body):
         return str(body.get("type") or body.get("action") or "unknown").replace(".", "_")
     if source == "fathom":
         return str(body.get("type") or body.get("event") or "new_meeting_content_ready").replace(".", "_")
-    if source == "sendblue":
-        if "call_id" in body:
-            return "call_log" if ("sent_by" in body or "recording_url" in body) else "inbound_call"
-        if "is_outbound" in body:
-            return "outbound" if body.get("is_outbound") else "receive"
-        return str(body.get("type") or "unknown")
+    if source == "whatsapp":
+        changes = [c for e in body.get("entry") or [] for c in e.get("changes") or []]
+        return str(changes[0].get("field") if changes else "unknown")
     return "unknown"
 
 

@@ -64,6 +64,7 @@ AINFO = info_popup('Compte', [
         'Les administrateurs invitent des personnes et choisissent leur rôle sans quitter les Paramètres.']),
     ('Comment l’utiliser', 'ol', [
         'Dans la version web, <strong>Se déconnecter</strong> met fin à votre session sur ce navigateur.',
-        'Administrateurs : <strong>Accès de l’équipe</strong> invite quelqu’un (envoyez-lui le lien obtenu), change un rôle, donne un lien de réinitialisation ou retire une personne. Les écrans que chacun peut ouvrir se règlent dans l’onglet Accès.'])
+        'Administrateurs : <strong>Accès de l’équipe</strong> invite quelqu’un (envoyez-lui le lien obtenu), change un rôle, donne un lien de réinitialisation ou retire une personne. Les écrans que chacun peut ouvrir se règlent dans l’onglet Accès.',
+        'Administrateurs : la colonne <strong>WhatsApp Business</strong> garde le numéro de chaque commercial et de chaque setter, avec l’indicatif (+33…). C’est ce numéro qui rattache ses messages WhatsApp aux prospects et aux alertes.'])
 ])
 write_screen('Account.dc.html', 'Account', AMAIN, AINFO, 'roadmap2_logic.js')

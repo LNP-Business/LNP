@@ -4,7 +4,7 @@
 -- here what an admin changes; the Sales cycle screen (app/crm/data.js › slaRules) and sla-tick (crm_sla_settings) both
 -- apply it through LNP_SLA.configure:
 --   crm_settings.sla_rules = {sources: {messages, whop, analysis}, rules: {"SH-2": {on, warn, late, crit, app, slack}, …}}
--- sources: the data an SLA needs beyond iClosed and Fathom. On 2026-11-05 no message (Sendblue), no Whop link and no automatic
+-- sources: the data an SLA needs beyond iClosed and Fathom. On 2026-11-05 no message (WhatsApp), no Whop link and no automatic
 -- analysis reaches the CRM: their SLAs are off until an admin marks the source connected (otherwise every lead was Critical:
 -- 171 of 171, SH-2 « no first message » and DE-1 « no recap » on every lead). Thresholds in hours (DE-8: calls).
 -- Idempotent.

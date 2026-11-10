@@ -1,8 +1,7 @@
 // crm-import: brings the leads that already exist in Close and iClosed into the CRM, without duplicates
-// (web/supabase/007_crm_import.sql). POST ?source=close|iclosed|iclosed_calls|iclosed_deals|sendblue|fathom&dry=1 for a dry run (counts only, nothing written), without dry
+// (web/supabase/007_crm_import.sql). POST ?source=close|iclosed|iclosed_calls|iclosed_deals|fathom&dry=1 for a dry run (counts only, nothing written), without dry
 // for the import; ?run=<id> continues a run that stopped on the time budget. Answers counts only, never personal data.
-import { importClose, importFathom, importIclosed, importIclosedCalls, importIclosedDeals, importSendblue } from "../_shared/import_run.ts";
-import { sendblueAllMessages, sendblueReport } from "../_shared/importers/sendblue.ts";
+import { importClose, importFathom, importIclosed, importIclosedCalls, importIclosedDeals } from "../_shared/import_run.ts";
 import { restRpc } from "../_shared/worker.ts";
 import { callsReport, statusReport } from "../_shared/importers/report.ts";
 import { dealsReport, iclosedAllDeals } from "../_shared/importers/iclosed.ts";
@@ -44,20 +43,6 @@ Deno.serve(async (req) => {
     // read-only counts over iClosed's deals (transaction types, products, amounts by month), to map them onto crm_deals / crm_payments
     try { return Response.json(dealsReport(await iclosedAllDeals(Deno.env.get("ICLOSED_API_KEY") ?? ""))); }
     catch (e) { return Response.json({ error: String((e as Error)?.message ?? e).slice(0, 300) }, { status: 500 }); }
-  }
-  if (u.searchParams.get("report") === "sendblue") {
-    // read-only counts over Sendblue's message history (directions, services, statuses, sources, months)
-    try { return Response.json(sendblueReport(await sendblueAllMessages(Deno.env.get("SENDBLUE_API_KEY_ID") ?? "", Deno.env.get("SENDBLUE_API_SECRET") ?? ""))); }
-    catch (e) { return Response.json({ error: String((e as Error)?.message ?? e).slice(0, 300) }, { status: 500 }); }
-  }
-  if (u.searchParams.get("source") === "sendblue") {
-    try {
-      const out = await importSendblue({ rpc: restRpc(), rest: restTable, apiKey: Deno.env.get("SENDBLUE_API_KEY_ID") ?? "",
-        secret: Deno.env.get("SENDBLUE_API_SECRET") ?? "", dry: u.searchParams.get("dry") === "1", run: null });
-      return Response.json(out, { status: out.error ? 409 : 200 });
-    } catch (e) {
-      return Response.json({ error: String((e as Error)?.message ?? e).slice(0, 300) }, { status: 500 });
-    }
   }
   if (u.searchParams.get("source") === "fathom") {
     // Fathom recordings (025): ?since=YYYY-MM-DD (default: 2 days ago, the hourly job of 006), &until=, &queue=1 (queue the

@@ -30,10 +30,10 @@ GitHub Actions :07 ──► call-analysis/worker/run.py ──► crm_ca_claim 
 |---|---|---|---|
 | `iclosed-in` | Stocke le webhook iClosed brut | Webhook natif iClosed (ou Zap) | Jeton `ICLOSED_INBOUND_TOKEN` en `?k=` ou en en-tête `x-lnp-token` |
 | `fathom-in` | Stocke le webhook Fathom brut | Webhook Fathom (non utilisé en production, voir §6.3) | Signature Standard Webhooks, secrets `FATHOM_WEBHOOK_SECRETS` / `FATHOM_WEBHOOK_SECRET` |
-| `sendblue-in` | Stocke le webhook Sendblue brut | Webhooks Sendblue `receive`, `outbound`, `call_log`, `inbound_call` | Jeton `SENDBLUE_INBOUND_TOKEN` en `?k=` |
+| `whatsapp-in` | Stocke le webhook WhatsApp Business brut ; répond à la vérification d'adresse de Meta (`GET`) | Webhooks WhatsApp Business (API officielle en coexistence) `messages`, `smb_message_echoes`, `history`, relayés par un fournisseur (360dialog) ou envoyés par Meta | Jeton `WHATSAPP_INBOUND_TOKEN` en `?k=` (fournisseur) ou signature Meta `X-Hub-Signature-256` (HMAC-SHA256, secret `WHATSAPP_APP_SECRET`) |
 | `whop-in` | Stocke le webhook Whop brut | Webhooks Whop | Signature Standard Webhooks, secret `WHOP_WEBHOOK_SECRET` |
 | `process-inbox` | Transforme les lignes brutes en faits du CRM | pg_cron chaque minute (`crm-process-inbox`) | Aucune (ne prend aucune entrée) |
-| `crm-import` | Imports (Close, iClosed, Sendblue, Fathom), rapports, sondes | pg_cron minute 23 (`crm-fathom-hourly`) et appels manuels | Aucune ; noms dans un rapport seulement avec `x-lnp-token` = `CRM_REPORT_TOKEN` |
+| `crm-import` | Imports (Close, iClosed, Fathom), rapports, sondes | pg_cron minute 23 (`crm-fathom-hourly`) et appels manuels | Aucune ; noms dans un rapport seulement avec `x-lnp-token` = `CRM_REPORT_TOKEN` |
 | `sla-tick` | Alertes SLA du cycle de vente vers Slack | pg_cron toutes les 5 min (`crm-sla-tick`) | Aucune (ne prend aucune entrée) |
 | `callqa-llm` | Passerelle de modèle du worker d'analyse | Appels du worker (GitHub Actions) | Bearer = clé service role (`SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY`) |
 
@@ -57,7 +57,7 @@ ne prend aucune entrée.
 - Job `sql` : Postgres 16 en service, `web/supabase/tests/run.sh` puis `node app/crm/data.test.js`.
 - Job `connector` : Node 22, `cd web && npm ci && npm test` (chapitre 05).
 - Job `deploy` (après `test` et `sql`, sur `main` hors PR) : ignoré tant que les secrets GitHub `SUPABASE_ACCESS_TOKEN` et
-  `SUPABASE_PROJECT_REF` manquent ; sinon, pour chaque fonction `iclosed-in fathom-in sendblue-in whop-in process-inbox
+  `SUPABASE_PROJECT_REF` manquent ; sinon, pour chaque fonction `iclosed-in fathom-in whatsapp-in whop-in process-inbox
   crm-import callqa-llm sla-tick` : `supabase functions deploy "$f" --remote="$PROJECT_REF" --no-verify-jwt --yes`.
 
 ### 2.3 Variables fournies par Supabase
@@ -72,13 +72,13 @@ ne prend aucune entrée.
 | Secret | Lu par | Origine |
 |---|---|---|
 | `ICLOSED_INBOUND_TOKEN` | `iclosed-in` (`sources.ts`) | Généré par nous (48 caractères alphanumériques, `docs/crm/setup.md` étape 3) |
-| `SENDBLUE_INBOUND_TOKEN` | `sendblue-in` | Généré par nous (alphanumérique : il va dans une URL) |
+| `WHATSAPP_INBOUND_TOKEN` | `whatsapp-in` (`?k=` et `hub.verify_token` de la vérification de Meta) | Généré par nous (48 lettres et chiffres : il va dans une URL) |
+| `WHATSAPP_APP_SECRET` | `whatsapp-in` (signature `X-Hub-Signature-256`) | Meta › application › secret de l'application ; seulement si Meta envoie directement les webhooks (sans fournisseur) |
 | `FATHOM_WEBHOOK_SECRET` ou `FATHOM_WEBHOOK_SECRETS` | `fathom-in` | Fathom, à la création du webhook ; `…SECRETS` = objet JSON `id → secret` ou tableau JSON |
 | `WHOP_WEBHOOK_SECRET` | `whop-in` | Whop, à la création du webhook (`ws_…`) |
 | `FATHOM_API_KEY` | `crm-import ?source=fathom` | Fathom › Settings › API Access |
 | `ICLOSED_API_KEY` | `crm-import ?source=iclosed|iclosed_calls`, sondes, rapports | iClosed › Settings › Developers › API (préfixe `iclosed_` ajouté s'il manque) |
 | `CLOSE_API_KEY` | `crm-import ?source=close`, `?report=statuses` | Close › Settings › Developer › API Keys |
-| `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET` | `crm-import ?source=sendblue`, `?report=sendblue` | Tableau de bord Sendblue › API |
 | `CRM_REPORT_TOKEN` | `crm-import ?report=statuses` (noms dans la réponse) | Généré par nous, 32 caractères au moins |
 | `SLACK_SALES_CYCLE_WEBHOOK_URL` | `sla-tick` | Slack, webhook entrant du canal `#sales-cycle` |
 | `ANTHROPIC_API_KEY` | `callqa-llm` | console.anthropic.com |
@@ -93,7 +93,7 @@ n'appelle rien.
 
 | Tâche | Horaire | Appel | Condition |
 |---|---|---|---|
-| `crm-process-inbox` | `* * * * *` | `POST <functions_url>/process-inbox`, corps `{}`, délai 30 s | Il existe une ligne `crm_webhook_log` de source `iclosed`, `sendblue` ou `fathom`, au statut `received` ou `failed`, avec `attempts < 8` |
+| `crm-process-inbox` | `* * * * *` | `POST <functions_url>/process-inbox`, corps `{}`, délai 30 s | Il existe une ligne `crm_webhook_log` de source `iclosed`, `whatsapp` ou `fathom`, au statut `received` ou `failed`, avec `attempts < 8` |
 | `crm-fathom-hourly` | `23 * * * *` | `POST <functions_url>/crm-import?source=fathom&queue=1`, délai 120 s | Toujours (si `functions_url` existe) |
 | `crm-sla-tick` | `*/5 * * * *` | `POST <functions_url>/sla-tick`, délai 60 s | Toujours |
 | `crm-no-show-hourly` | `35 * * * *` | SQL `select public.crm_no_show_tick()` (pas de fonction Edge) | Ne fait rien tant que `crm_settings.no_show_rule.enabled` n'est pas vrai (030) |
@@ -108,7 +108,9 @@ Le script désinscrit d'abord chaque tâche par son nom (`cron.unschedule`), il 
 
 `makeHandler(opts)` (commun aux quatre) :
 
-1. Méthode autre que `POST` → `405 POST only` (texte).
+1. `GET` d'une source qui vérifie son adresse (`opts.verifyGet`, WhatsApp seulement) : `hub.mode=subscribe` et `hub.verify_token`
+   égal à `WHATSAPP_INBOUND_TOKEN` → `200` avec le texte de `hub.challenge` ; mauvais jeton → `403 Forbidden` ; rien n'est
+   stocké. Sinon, une méthode autre que `POST` → `405 POST only` (texte).
 2. Corps de plus de 2 Mio (`MAX_BODY = 2 * 1024 * 1024`, vérifié sur `content-length` puis sur les octets lus) → `413 Body too large`.
 3. Lit le corps **brut** en texte (les signatures portent sur les octets bruts), puis appelle `opts.check(req, raw, url)` ;
    une exception vaut échec.
@@ -120,7 +122,7 @@ Le script désinscrit d'abord chaque tâche par son nom (`cron.unschedule`), il 
 6. Réponses : échec d'écriture → `500 Not stored, retry later` (le fournisseur réessaie) ; vérification échouée →
    `401 Unauthorized` (la ligne est quand même gardée, pour audit) ; doublon (HTTP 409 ou code `23505` de PostgREST) →
    `200 Duplicate, already stored` ; sinon `200 Stored`.
-7. L'URL n'est jamais journalisée (le jeton Sendblue est dans la chaîne de requête).
+7. L'URL n'est jamais journalisée (un jeton est dans la chaîne de requête : iClosed, WhatsApp).
 
 L'insertion passe par PostgREST avec la clé service role (`restInsert`, `prefer: return=minimal`). `crm_webhook_log` n'a
 aucune politique RLS : seul le rôle de service y lit et écrit.
@@ -130,7 +132,7 @@ aucune politique RLS : seul le rôle de service y lit et écrit.
 | Colonne | Type | Rôle |
 |---|---|---|
 | `id` | `bigint` identité | Clé |
-| `source` | `event_source` (`iclosed`, `fathom`, `sendblue`, `whop`, `crm`, `claude`, `rules`, `import`) | Source |
+| `source` | `event_source` (`iclosed`, `fathom`, `whatsapp`, `whop`, `crm`, `claude`, `rules`, `import` ; `sendblue` reste dans le type, jamais écrit) | Source |
 | `delivery_id` | `text` | Identifiant de livraison du fournisseur ; index unique `(source, delivery_id)` quand non nul |
 | `received_at` | `timestamptz` | Réception |
 | `headers` | `jsonb` | En-têtes, secrets masqués |
@@ -147,7 +149,7 @@ aucune politique RLS : seul le rôle de service y lit et écrit.
 |---|---|---|
 | iClosed | `tokenMatches(x-lnp-token, ICLOSED_INBOUND_TOKEN)` **ou** `tokenMatches(?k=, ICLOSED_INBOUND_TOKEN)` | `zap.task_id` du contrat Zap s'il existe, sinon aucun |
 | Fathom | `verifyStandardWebhook(secretList("FATHOM_WEBHOOK_SECRETS", "FATHOM_WEBHOOK_SECRET"), …)` | En-tête `webhook-id` |
-| Sendblue | `tokenMatches(?k=, SENDBLUE_INBOUND_TOKEN)` | Aucun : un `message_handle` revient à chaque changement de statut, ce n'est pas un identifiant de livraison |
+| WhatsApp | `tokenMatches(?k=, WHATSAPP_INBOUND_TOKEN)` (fournisseur, par exemple 360dialog) **ou** `metaSignatureOk(X-Hub-Signature-256, corps brut, WHATSAPP_APP_SECRET)` (Meta directement : `sha256=<hex>`, HMAC-SHA256 du corps brut, comparé en temps constant) ; `GET` de vérification d'adresse : voir §3.1 | Aucun : une requête porte plusieurs messages, chacun retrouvé par son identifiant WhatsApp (`wamid`) |
 | Whop | `verifyStandardWebhook(secretList("WHOP_WEBHOOK_SECRET"), …)` | En-tête `webhook-id` |
 
 - `verify/token.ts` : `tokenMatches` hache les deux valeurs en SHA-256 puis compare en temps constant ; un secret vide ne
@@ -165,15 +167,15 @@ aucune politique RLS : seul le rôle de service y lit et écrit.
 
 Appelé chaque minute par pg_cron, il ne lit rien de la requête. `processPending(rpc, limit = 50)` :
 
-1. `crm_inbox_pending(p_sources := ['iclosed','sendblue','fathom'], p_limit := 50)` (`005_crm_pipeline.sql`) renvoie, par
+1. `crm_inbox_pending(p_sources := ['iclosed','whatsapp','fathom'], p_limit := 50)` (les clés de `MAPPERS`) (`005_crm_pipeline.sql`) renvoie, par
    `id` croissant, les lignes de ces sources avec `attempts < 8` et soit `status = 'received'`, soit `status = 'failed'`
    dont `coalesce(processed_at, received_at) + 2^(max(attempts-1,0))` minutes est passé (attente 1, 2, 4… minutes).
 2. Pour chaque ligne :
    - `auth_ok` faux → `crm_inbox_mark(id, 'rejected', 'failed its token or signature check')` ;
-   - le mapper de la source (`MAPPERS = { iclosed: mapIclosed, sendblue: mapSendblue, fathom: mapFathom }`) renvoie
+   - le mapper de la source (`MAPPERS = { iclosed: mapIclosed, whatsapp: mapWhatsapp, fathom: mapFathom }`) renvoie
      `{ ignored: raison }` → `crm_inbox_mark(id, 'ignored', raison)` ;
    - sinon `{ items }` : la fonction SQL est `APPLY_TYPE[items[0].type]` (`contact_updated` → `crm_apply_contact`), sinon
-     `APPLY[source]` (`iclosed` → `crm_apply_items`, `sendblue` → `crm_apply_messages`, `fathom` → `crm_apply_recordings`).
+     `APPLY[source]` (`iclosed` → `crm_apply_items`, `whatsapp` → `crm_apply_messages`, `fathom` → `crm_apply_recordings`).
      Elle écrit tout dans une transaction, met à jour la ligne (`processed`, `unmatched` ou `ignored`) et renvoie ce statut ;
    - exception (JSON illisible, champ obligatoire absent, erreur SQL) → `crm_inbox_mark(id, 'failed', message)`, qui
      incrémente `attempts` (au plus 8 tentatives, puis la ligne reste `failed`).
@@ -189,12 +191,12 @@ Chaque mapper produit des éléments de cette forme (ou `{ ignored }`, ou lève 
 
 | Champ | Contenu |
 |---|---|
-| `source` | `iclosed`, `fathom`, `sendblue`, `whop` |
+| `source` | `iclosed`, `fathom`, `whatsapp`, `whop` |
 | `source_id` | Identifiant stable du fait chez la source (clé d'idempotence : `crm_events` a `on conflict (source, source_id)`) |
 | `type` | Type canonique (`call_booked`, `message_in`, `call_recorded`…) |
 | `occurred_at` | Heure ISO du fait chez la source (pas l'heure de réception) |
 | `actor` | `sales`, `prospect`, `auto`, `system` |
-| `channel` | `booking`, `sms`, `imessage`, `phone`, `video`… |
+| `channel` | `booking`, `whatsapp`, `video`… |
 | `content` | Texte éventuel |
 | `identity` | `email`, `phone`, `iclosed_contact_id`, `whop_user_id`, `whop_member_id`, `name`, `emails[]` (Fathom) |
 | `refs` | Références (`iclosed_call_id`, `fathom_recording_id`, `recorder_email`…) |
@@ -292,35 +294,50 @@ jamais repris). Identifiant de contact obligatoire. Élément `type = contact_up
 nouveau devient principal ; un nouvel e-mail ou téléphone qui appartient déjà à quelqu'un d'autre n'est pas déplacé (ligne
 en `crm_unmatched_inbox`) ; aucun événement n'est écrit.
 
-### 5.2 Sendblue (iMessage, SMS, appels) · `_shared/mappers/sendblue.ts`
+### 5.2 WhatsApp Business (messages de l'équipe) · `_shared/mappers/whatsapp.ts`
 
-Champs lus (vérifiés sur des webhooks capturés, fixtures `sendblue-receive.json`, `sendblue-outbound.json`) : `content`,
-`is_outbound`, `status`, `message_handle`, `date_sent`, `date_updated`, `from_number`, `to_number`, `number`,
-`sendblue_number`, `service`, `message_type`, `media_url`, `opted_out`, `group_id`, `source`, `error_code`,
-`error_message` ; pour un appel : `call_id`, `direction`, `status`, `answered`, `duration`, `created_at`.
+Décision de Romain (9 novembre 2026) : WhatsApp Business est le seul canal de messages du CRM ; Sendblue n'est pas utilisé
+(il n'a jamais envoyé de données à LNP). Chaque commercial et chaque setter écrit aux prospects depuis son numéro WhatsApp
+Business, relié à l'API officielle (WhatsApp Business Platform, Cloud API) **en coexistence** : la personne garde l'application
+WhatsApp Business sur son téléphone, et le CRM reçoit ce qu'elle reçoit et ce qu'elle envoie depuis l'application. Spécification :
+`docs/crm/07-integration-whatsapp.md`.
 
-Règles (`sendblueItems`) :
+Une requête = la charge utile de Meta `{object: "whatsapp_business_account", entry: [{changes: [{field, value}]}]}`, relayée
+telle quelle par le fournisseur (360dialog) ou envoyée par Meta, avec parfois plusieurs messages. Le numéro de l'équipe est
+`value.metadata.display_phone_number` (`data.line`). Les numéros WhatsApp arrivent sans `+` : le mapper l'ajoute avant
+`normPhone`.
 
-1. `group_id` présent → ignoré (pas de règle pour les groupes).
-2. `call_id` présent → appel téléphonique : sortant si `direction = outbound` ou si `from_number` = la ligne Sendblue ;
-   numéro du prospect = `to_number` (sortant) ou `from_number` (entrant), sinon `number` ; aucun → ignoré.
-   `type = phone_call_out | phone_call_in`, `source_id = sendblue:call:<call_id>`, `actor = sales | prospect`,
-   `channel = phone`, `data {status, answered, duration, sendblue_number}`.
-3. Sinon `message_handle` obligatoire (sans lui : ignoré, événement de ligne, de saisie ou de contact).
-   Sortant si `is_outbound` vaut `true` ou `"true"`. Numéro = `number`, sinon `to_number` / `from_number`. Aucun → ignoré.
-   `type = message_out | message_in`, `source_id = sendblue:<handle>`, `occurred_at = date_sent`,
-   `actor` = `prospect` (entrant), `auto` si `source` ∈ {`workflow`, `automation`, `api`}, sinon `sales` ;
-   `channel = sms` si `service` = `SMS`, sinon `imessage` ; `data {handle, status, service, origin, media_url,
-   sendblue_number, error_code, error_message}`.
-4. `opted_out = true`, ou message entrant dont tout le texte est `stop`, `arret`, `arrêt` ou `unsubscribe` (casse ignorée) →
-   élément supplémentaire `type = opt_out`, `source_id = sendblue:optout:<handle>`.
+| `field` | Partie lue | Type canonique | `actor` |
+|---|---|---|---|
+| `messages` | `value.messages[]` (message du prospect ; nom de son profil lu dans `value.contacts[]`) | `message_in` | `prospect` |
+| `messages` | `value.statuses[]` (message envoyé par l'API, par exemple un rappel automatique : `sent`, `delivered`, `read`, `failed`) | `message_out` (contenu vide, `data.status`, `error_code`, `error_message`) | `auto` |
+| `smb_message_echoes` | `value.message_echoes[]` (message écrit dans l'application par le commercial ou le setter) | `message_out` (`data.status = sent`) | `sales` |
+| `history` | `value.history[].threads[].messages[]` (conversations partagées à la connexion ; sortant si `from` = le numéro de l'équipe) | `message_in` / `message_out` (`data.history = true`) | `prospect` / `sales` |
 
-Application (`crm_apply_messages` → `crm_apply_message_item`, `012_crm_messages.sql`, redéfinie dans 034) : la personne est
+Règles (`whatsappItems`) :
+
+1. `channel = whatsapp`, `source = whatsapp`, `source_id = whatsapp:<wamid>` : **un événement par message**. Un statut ou une
+   seconde livraison du même identifiant le met à jour ; un message vu d'abord par son seul statut (donc envoyé par l'API,
+   `auto`) devient `sales` quand l'écho de l'application arrive.
+2. Contenu (`textOf`) : le texte, la réponse à un bouton ou à une liste, ou la légende (sinon le nom de fichier) d'un média ;
+   `data.kind` garde le type du message. `occurred_at` = `timestamp` (secondes), sinon l'heure de réception.
+3. Ignorés : messages de groupe (`group_id`), réactions, messages `unsupported` et `system`, statuts inconnus, synchronisation
+   des contacts et tout autre `field`. Une requête sans rien à garder → `{ ignored }`.
+4. Message entrant dont tout le texte est `stop`, `arret`, `arrêt` ou `unsubscribe` (casse ignorée) → élément supplémentaire
+   `type = opt_out`, `source_id = whatsapp:optout:<wamid>`.
+5. Les appels téléphoniques ne sont pas reçus : WhatsApp ne les transmet pas au CRM (aucun `phone_call_in` / `phone_call_out`).
+
+Application (`crm_apply_messages` → `crm_apply_message_item`, définition finale `052_crm_whatsapp.sql`) : la personne est
 trouvée par téléphone ; plusieurs personnes → `crm_unmatched_inbox` (« Plusieurs personnes ont ce numéro de téléphone ») ;
-aucune → nouvelle personne (règle d'équipe : une ligne Sendblue ne sert qu'avec des prospects, aucun message n'est perdu).
+aucune → nouvelle personne, avec le nom du profil WhatsApp (règle d'équipe : le WhatsApp Business déclaré ne sert qu'avec des
+prospects, aucun message n'est perdu). La personne de l'équipe est celle dont `crm_members.whatsapp_number` vaut `data.line`
+(`crm_events.member_id`) : ce numéro se saisit dans Paramètres › Compte › Accès de l'équipe, colonne « WhatsApp Business ».
 `opt_out` remplit `crm_people.opted_out_at`. Le cycle est le dernier ouvert avant le message, sinon le premier. Un message
-est **un** événement : `on conflict (source, source_id) do update` fusionne `data` (le statut SENT → DELIVERED → READ) et
-garde le texte.
+est **un** événement : `on conflict (source, source_id) do update` fusionne `data` (le statut sent → delivered → read), garde
+le texte non vide, la date la plus ancienne et le premier membre trouvé, et passe l'acteur à `sales` dès qu'une livraison le dit.
+
+Envoi : le CRM n'envoie pas de message WhatsApp. La confirmation automatique après une prise de RDV (SH-1) et les rappels
+(SH-5) demandent des modèles de message WhatsApp (approuvés par Meta, payants) : qui les envoie reste à décider.
 
 ### 5.3 Fathom (enregistrements) · `_shared/mappers/fathom.ts`
 
@@ -409,16 +426,15 @@ et écrit la base par PostgREST avec la clé service role (`restRpc` pour les RP
 | `?source=close[&dry=1][&run=<id>]` | Prospects Close → `crm_import_people`, par page de 100 |
 | `?source=iclosed[&dry=1][&run=<id>]` | Contacts iClosed → `crm_import_people` |
 | `?source=iclosed_calls[&dry=1]` | Appels iClosed → cycles et appels (`crm_import_calls`) |
-| `?source=sendblue[&dry=1]` | Historique Sendblue → `crm_import_messages` |
 | `?source=fathom[&since=AAAA-MM-JJ][&until=AAAA-MM-JJ][&queue=1][&dry=1]` | Enregistrements Fathom → `crm_import_recordings` ; `since` par défaut = il y a 2 jours ; `queue=1` met les analyses R1 / R2 en file (tâche horaire seulement) |
 | `?source=iclosed&probe=1` | Lecture seule : forme (noms et types de champs, jamais de valeurs) des réponses de l'API iClosed sur des chemins connus, et chemins de sa description OpenAPI |
 | `?source=iclosed&probe=2` | Lecture seule : quel paramètre pagine `/v1/contacts` et `/v1/eventCalls` (comparaison d'identifiants seulement) |
 | `?report=statuses` | Statuts iClosed croisés avec les contacts Close (par e-mail ou téléphone) ; comptes seulement, et la liste des disqualifiés (nom, téléphone, statuts, date) seulement si l'en-tête `x-lnp-token` égale `CRM_REPORT_TOKEN` (32 caractères au moins) |
 | `?report=calls` | Comptes sur les appels iClosed (types, annulations, issues, mois, appels par contact) |
-| `?report=sendblue` | Comptes sur l'historique Sendblue (sens, service, statut, source, type, groupe, mois) |
 
 Autre `source` → `400 {"error":"source must be close, iclosed or iclosed_calls"}`. Dates `since` / `until` mal formées →
-`400`.
+`400`. Il n'y a pas d'import d'historique WhatsApp : les conversations partagées à la connexion d'un numéro arrivent par
+`whatsapp-in` (`field` `history`, §5.2). L'import Sendblue (`?source=sendblue`, `?report=sendblue`) a été retiré.
 
 ### 6.2 Déroulement d'un import (`_shared/import_run.ts`)
 
@@ -435,7 +451,6 @@ Autre `source` → `400 {"error":"source must be close, iclosed or iclosed_calls
   doublons), annulé en base.
 - **iClosed (appels)** : lit tous les appels, les groupe par contact (`iclosedCallsToItems`), puis `crm_import_calls` par 100
   personnes (tout en un appel pour un essai à blanc).
-- **Sendblue** : tout l'historique, puis `crm_import_messages` par lots de 250 (sous la limite de durée d'une requête).
 - **Fathom** : `crm_import_recordings(items, p_dry, p_queue)` par lots de 10 réunions (les transcriptions sont longues).
 - Fin : `crm_import_save(..., 'done')` et réponse `{run, dry, more: false, stats}` ; erreur : `crm_import_save(...,
   'failed', p_error)` puis `500 {error}` (message tronqué à 300 caractères).
@@ -446,7 +461,6 @@ Autre `source` → `400 {"error":"source must be close, iclosed or iclosed_calls
 |---|---|
 | Close / iClosed | `created`, `matched`, `conflicts`, `skipped`, `statuses {}` (007), plus `leads` ou `contacts` |
 | iClosed (appels) | `people`, `created_people`, `cycles_opened`, `calls`, `calls_known`, `closed {}`, `conflicts`, `skipped` (009), plus `iclosed_calls`, `contacts` |
-| Sendblue | `items`, `new`, `known`, `new_people`, `no_cycle`, `conflicts` (012), plus `sendblue_messages`, `ignored` |
 | Fathom | `items`, un compte par statut (`linked`, `not_sales`, `not_sales_recorder`, `ambiguous`), `rule_<règle>`, `queued`, `speakers_unmapped` (025), plus `fathom_meetings`, `ignored` |
 
 ### 6.3 Lecture des sources (`_shared/importers/`)
@@ -456,7 +470,6 @@ Autre `source` → `400 {"error":"source must be close, iclosed or iclosed_calls
 | Close (`close.ts`) | `GET https://api.close.com/api/v1/lead/?_limit=100&_skip=N&_fields=id,display_name,status_label,date_created,contacts,opportunities`, Basic auth (clé comme nom d'utilisateur) | `_skip`, `has_more` | Un élément par contact : `source_ref = <lead>:<contact>`, e-mails et téléphones normalisés, `close_contact_id`, `data {close_lead_id, lead_name, status_label, opportunities[] (statut, valeur, devise, dates)}` |
 | iClosed contacts (`iclosed.ts`) | `GET https://public.api.iclosed.io/v1/contacts?limit=100&page=N` (N depuis 0), `Authorization: Bearer iclosed_<clé>` | Arrêt sur page vide, page sans nouveauté ou total `data.count` atteint ; 500 pages au plus | `source_ref = iclosed:<id>`, e-mails et téléphones principaux et secondaires, `data {iclosed_contact_id, status_label, country, time_zone, owner_email, events[]}` |
 | iClosed appels (`iclosed.ts`) | `GET …/v1/eventCalls?limit=100&page=N` | Idem | Statut d'appel : `canceled` (motif ou auteur d'annulation, ou `noSaleReason` `ADMIN_CANCELLED` / `CONTACT_CANCELLED`), `no_show` (`NO_SHOW`), `held` (une issue), sinon `scheduled`. Statut de cycle : `won` (issue `WON`, une vente, ou événement « onboarding » / « case stud… ») ; `disqualified` / `dq_off_target` si le dernier appel finit `UNQUALIFIED`, `BAD_FIT` ou `REJECTED` sans annulation ; actif (`null`) si un appel est à venir ou date de moins de 30 jours ; sinon `lost` (`unreachable` après une absence, `timing` sinon) |
-| Sendblue (`sendblue.ts`) | `GET https://api.sendblue.co/api/v2/messages?limit=100&offset=N`, en-têtes `sb-api-key-id`, `sb-api-secret-key` | `offset`, `pagination.hasMore` ; doublons de `message_handle` écartés ; 2000 pages au plus | Même mapper que les webhooks |
 | Fathom (`fathom.ts`) | `GET https://api.fathom.ai/external/v1/meetings?created_after=…&include_transcript=true&include_summary=true[&created_before=…][&cursor=…]`, en-tête `X-Api-Key` | `next_cursor` ; une page au plus toutes les 1,1 s (`PAGE_GAP_MS`) ; sur `429`, attente `Retry-After` (sinon 5, 10, 20… s), 6 fois au plus ; 500 pages au plus | Même mapper que le webhook |
 
 Toute réponse HTTP non 2xx d'une API externe lève `"<Source> API: HTTP <code> <200 premiers caractères>"`.
@@ -496,7 +509,7 @@ Détails de `evaluate(lead, opt)` :
   (texte : « depuis la prise de RDV »…)}`.
 - `worst(list)` = pire niveau ouvert ; `fmt(h)` = `N min` (< 1 h), `x,y h` (< 72 h), sinon `x,y j` (virgule décimale).
 
-Non mesurés faute de données : SH-1, SH-3 à SH-5, SH-7, SH-9, SH-10, DE-2 à DE-6, DE-8, CA-1, CA-3 à CA-7, CO-3 à CO-5,
+Non mesurés faute de données : SH-1, SH-3 à SH-5, SH-7, SH-9, SH-10, DE-2 à DE-6, DE-8, CA-1, CA-3 à CA-7, CO-3 à CO-5 (CO-3, appel manqué : WhatsApp ne transmet pas les appels manqués),
 CL-*, DO-*.
 
 ### 7.2 Modèle d'un cycle (`_shared/sla_view.ts › toLead`)
@@ -507,9 +520,9 @@ call_id, source}], calls[{id, rank, status, start, end}]}`. Conversion des évé
 | Type CRM | Événement de règle |
 |---|---|
 | `call_booked`, `call_rescheduled` | `p booked` (rang de l'appel) |
-| `message_in` | `p sms` ou `p im` |
-| `message_out` | `a remind` si `actor` `auto` / `system`, sinon `s sms` / `s im` |
-| `phone_call_in` / `phone_call_out` | `p call` / `s call` |
+| `message_in` | `p im` (canal `whatsapp`) ; `p sms` seulement pour un canal `sms` |
+| `message_out` | `a remind` si `actor` `auto` / `system` (envoyé par l'API WhatsApp), sinon `s im` (écrit dans l'application WhatsApp Business ; `s sms` pour un canal `sms`) |
+| `phone_call_in` / `phone_call_out` | `p call` / `s call` (plus aucune source ne les écrit) |
 | `payment_succeeded` | `p paid` |
 | `outcome_yes` / `outcome_follow_up` / `outcome_no`, `outcome_disqualified` | `s decision` `yes` / `fu` / `no` |
 | `cycle_lost`, `cycle_disqualified` | `s decision no` (s'il n'y en a pas déjà) |
@@ -707,7 +720,7 @@ Les adresses ont la forme `https://<ref>.supabase.co/functions/v1/<fonction>` (`
 | **iClosed** | Settings › Integrations / Webhooks : URL `…/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>` (ou en-tête `x-lnp-token` sans `?k=`) ; événements appel réservé, déplacé, annulé (et « Contact updated ») ; clé API (Settings › Developers › API) pour les imports | `ICLOSED_INBOUND_TOKEN`, `ICLOSED_API_KEY` |
 | **iClosed par Zapier** (repli) | Un Zap par déclencheur (Call Booked / Rescheduled / Cancelled) → Webhooks by Zapier POST JSON du contrat `lnp.iclosed.v1`, en-tête `x-lnp-token`, Autoreplay activé (`docs/crm/05` §2-3) | Idem |
 | **Fathom** | Settings › API Access : clé API créée depuis un compte qui voit les enregistrements des commerciaux. Webhook facultatif (non utilisé) : URL `…/fathom-in`, « My recordings », transcript, summary et action items cochés | `FATHOM_API_KEY` ; si webhook, `FATHOM_WEBHOOK_SECRET` (ou `FATHOM_WEBHOOK_SECRETS`) |
-| **Sendblue** | Webhooks `receive`, `outbound`, `call_log`, `inbound_call` vers `…/sendblue-in?k=<SENDBLUE_INBOUND_TOKEN>` ; clés API pour l'historique | `SENDBLUE_INBOUND_TOKEN`, `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET` |
+| **WhatsApp Business** | Portefeuille Meta Business de l'entreprise, vérifié ; un numéro WhatsApp Business par personne, relié en coexistence par un fournisseur agréé par Meta (360dialog conseillé), historique des conversations partagé à la connexion. Webhook vers `…/whatsapp-in?k=<WHATSAPP_INBOUND_TOKEN>`, événements `messages`, `smb_message_echoes`, `history`. Meta directement (sans fournisseur) : même adresse sans `k=`, jeton de vérification = `WHATSAPP_INBOUND_TOKEN`, corps signés avec le secret de l'application. Dans LNP : le numéro de chacun dans Paramètres › Compte › Accès de l'équipe, colonne « WhatsApp Business » | `WHATSAPP_INBOUND_TOKEN` ; `WHATSAPP_APP_SECRET` (Meta directement seulement) |
 | **Whop** | Developer › Webhooks : URL `…/whop-in`, version d'API v1, événements `payment.succeeded`, `payment.failed`, `payment.pending`, `payment.requires_action`, `refund.created`, `refund.updated`, `dispute.created`, `dispute.updated`, `membership.activated` (stockés seulement) | `WHOP_WEBHOOK_SECRET` |
 | **Close** | Settings › Developer › API Keys : nouvelle clé (import des prospects existants seulement, aucun webhook) | `CLOSE_API_KEY` |
 | **Slack** | App « From scratch » dans l'espace de travail de l'équipe, Incoming Webhooks activés, webhook du canal `#sales-cycle` | `SLACK_SALES_CYCLE_WEBHOOK_URL` ; `crm_settings.sla_alerts.link` |
@@ -726,10 +739,10 @@ Commande : `deno test --allow-env --allow-read supabase/tests` (sans réseau ni 
 
 | Fichier | Ce qu'il vérifie |
 |---|---|
-| `ingest.test.ts` | Standard Webhooks (signature valide, mauvais secret, corps modifié, plusieurs signatures et secrets, fenêtre de 5 min, en-tête absent) ; jeton ; `iclosed-in` (stockage brut, doublon, mauvais jeton, jeton dans l'URL) ; `sendblue-in` (URL jamais stockée) ; `whop-in` ; limites de méthode et de taille ; échec de stockage → 500 |
-| `pipeline.test.ts` | Normalisation des e-mails et téléphones ; iClosed (contrat Zap, formes natives, `hookType`, « Contact updated », événements ignorés, erreurs) ; worker (application, ignorés, rejetés, échecs) ; Sendblue (reçus, envoyés, statuts sur un handle, STOP, groupes, appels) |
+| `ingest.test.ts` | Standard Webhooks (signature valide, mauvais secret, corps modifié, plusieurs signatures et secrets, fenêtre de 5 min, en-tête absent) ; jeton ; `iclosed-in` (stockage brut, doublon, mauvais jeton, jeton dans l'URL) ; `whatsapp-in` (jeton dans l'URL ou signature de Meta, vérification d'adresse `hub.challenge`, URL jamais stockée) ; `whop-in` ; limites de méthode et de taille ; échec de stockage → 500 |
+| `pipeline.test.ts` | Normalisation des e-mails et téléphones ; iClosed (contrat Zap, formes natives, `hookType`, « Contact updated », événements ignorés, erreurs) ; worker (application, ignorés, rejetés, échecs) ; WhatsApp (reçus, envoyés depuis l'application, statuts, historique, STOP, types ignorés ; fixtures `docs/crm/fixtures/whatsapp-*.json`) |
 | `fathom.test.ts` | Mapper (fixture, enregistrement sans invité, noms des titres, format de transcription, sans `recording_id`) ; lecture de l'historique par curseur ; routage vers `crm_apply_recordings` ; attente sur 429 |
-| `import.test.ts` | Close (un élément par contact), addition des comptes, essai à blanc en un appel contre vraie exécution par pages, clé absente, sonde sans valeurs, rapport des statuts, contacts et appels iClosed, historique Sendblue |
+| `import.test.ts` | Close (un élément par contact), addition des comptes, essai à blanc en un appel contre vraie exécution par pages, clé absente, sonde sans valeurs, rapport des statuts, contacts et appels iClosed |
 | `sla.test.ts` | SH-2, CO-1 (rafale, appel tenu, nuit), SH-11, DE-1, SH-6, SH-8, DE-9, CA-2, DE-7, cycle fermé ; modèle d'un cycle ; `sla-tick` (une seule publication, jamais le passé, jamais avant `since`) |
 | `callqa_llm.test.ts` | Refus sans clé de service ; transmission d'une question avec cache des règles ; cache de la question et contrôle de l'effort ; mauvais modèle, clé absente, erreurs du fournisseur |
 
@@ -743,7 +756,7 @@ Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`
 2. Insérer `crm_settings.functions_url`.
 3. Déployer les huit fonctions avec `--no-verify-jwt` (ou laisser `crm-functions.yml` le faire).
 4. Créer les secrets du §2.4, puis configurer chaque service (§10) et vérifier `crm_webhook_log`.
-5. Lancer les imports dans cet ordre, chaque fois d'abord avec `dry=1` : `close`, `iclosed`, `iclosed_calls`, `sendblue`,
+5. Lancer les imports dans cet ordre, chaque fois d'abord avec `dry=1` : `close`, `iclosed`, `iclosed_calls`,
    puis `fathom&since=<date>` ; relancer avec `?run=<id>` tant que la réponse dit `more: true`.
 6. Poser `SLACK_SALES_CYCLE_WEBHOOK_URL` et `crm_settings.sla_alerts.link`.
 7. Poser `ANTHROPIC_API_KEY` (Supabase) et `SUPABASE_SERVICE_ROLE_KEY` + `vars.SUPABASE_URL` (GitHub) pour l'analyse d'appel.
@@ -754,11 +767,9 @@ Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`
 |---|---|---|
 | Déclenchement de `process-inbox` | Webhook de base sur insertion + cron toutes les 5 min (04 §2 ; 14 §1) | pg_cron chaque minute, seulement s'il reste des lignes à traiter (006) |
 | Projection | `_shared/projector.ts` (04 §3) | En SQL : `crm_recompute_cycle` |
-| Statut Sendblue | Type `message_status` et `source_id` `sendblue:status:<handle>:<statut>` (04 §4, 07 §1) | Un seul événement par handle, mis à jour (`on conflict do update`) |
-| Message automatique Sendblue | `auto` si le handle est dans `crm_outbound_messages` (07 §1) | `auto` si le champ `source` vaut `workflow`, `automation` ou `api` |
 | Fathom | Webhook + rapprochement nocturne (06 §2, §7) | Pas de webhook ; import horaire par l'API (minute 23), règles FL-1 à FL-6 |
 | Whop | Mapper `mappers/whop.ts`, `whop-checkout` (08) | Réception seulement, aucun mapper |
-| Fonctions prévues | `sendblue-send`, `whop-checkout`, `claude-analyze`, `rules-tick`, `nurture-tick`, `reconcile`, `retention` | N'existent pas ; l'analyse d'appel passe par le worker GitHub et `callqa-llm` |
+| Fonctions prévues | `whop-checkout`, `claude-analyze`, `rules-tick`, `nurture-tick`, `reconcile`, `retention` | N'existent pas ; l'analyse d'appel passe par le worker GitHub et `callqa-llm` |
 | Analyse d'appel | `crm_call_analyses`, schéma v0 (09) | Tables `crm_ca_*` (020), moteur `lnp_callqa` |
 | Worker d'analyse | Toutes les 10 minutes (`call-analysis/PLAN.md` §2) | Chaque heure à la minute 7 |
 | Nombre de tests du moteur | 209 (`call-analysis/CLAUDE.md`) | Libellé d'étape « Engine (184 tests) » dans le workflow (simple libellé) |

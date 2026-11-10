@@ -10,7 +10,7 @@
 // late (missed), crit (critical); null = no such threshold.
 // kind: sales (sets the lead's level), tech (a data or integration fault, for Romain: never the lead's level),
 // indicator (read in Performance: never the lead's level, not posted by default), form (a form rule: no clock).
-// needs: the data sources the SLA reads beyond iClosed and Fathom (messages = Sendblue iMessage, SMS and phone; whop = Whop
+// needs: the data sources the SLA reads beyond iClosed and Fathom (messages = WhatsApp Business messages of the team; whop = Whop
 // links and payments; analysis = the automatic call analysis of every recording). eval: measured by the rules below.
 // configure({sources, rules}) applies crm_settings.sla_rules (saved in Settings › Alerts): a source not connected turns its
 // SLAs off; per SLA: on, warn / late / crit (only where the reference has that threshold), app (screen), slack.
@@ -18,14 +18,14 @@
   "use strict";
   var M = 1 / 60, D = 24;
   var SOURCES = [
-    { id: "messages", name: "Messages (Sendblue : iMessage, SMS, téléphone)" },
+    { id: "messages", name: "Messages WhatsApp de l’équipe" },
     { id: "whop", name: "Liens et paiements Whop" },
     { id: "analysis", name: "Analyse automatique de chaque appel" }
   ];
   var DEFS = [
     // ---------------- Présence · from the booked call to the first call held
     { id: "SH-1", name: "Confirmation automatique", stage: "Présence", kind: "tech", needs: ["messages"], eval: true, unit: "min",
-      start: "Prise de RDV dans iClosed", stop: "Confirmation iMessage automatique", target: "1 min", warn: null, late: 5 * M, crit: 15 * M,
+      start: "Prise de RDV dans iClosed", stop: "Confirmation WhatsApp automatique", target: "1 min", warn: null, late: 5 * M, crit: 15 * M,
       esc: "Au-delà de 15 min : alerte technique à Romain",
       why: "Le prospect reçoit tout de suite une trace dans le canal de toute la relation. Un retard vient de l’intégration, pas d’une personne." },
     { id: "SH-2", name: "Premier contact du commercial", stage: "Présence", kind: "sales", needs: ["messages"], eval: true, unit: "min",
@@ -142,14 +142,14 @@
     { id: "CO-1", name: "Réponse à un message du prospect", stage: "Conversation", kind: "sales", needs: ["messages"], eval: true, unit: "min",
       start: "Message du prospect", stop: "Réponse du commercial ou appel tenu", target: "15 min dans la plage du commercial", warn: 10 * M, late: 1, crit: 4,
       esc: "Au-delà de 4 h : critique",
-      why: "iMessage est un canal instantané : le délai de réponse est le premier signe de l’attention qu’on porte au prospect." },
+      why: "WhatsApp est un canal instantané : le délai de réponse est le premier signe de l’attention qu’on porte au prospect." },
     { id: "CO-2", name: "Message hors plage du commercial", stage: "Conversation", kind: "sales", needs: ["messages"], eval: true, unit: "min",
       start: "Message reçu hors 08:00-22:00 (heure du prospect)", stop: "Réponse", target: "dans les 15 premières minutes de la plage suivante", warn: null, late: null, crit: null,
       esc: "Comme CO-1 (désactivée : l’horloge de CO-1 part dès le message, même la nuit)",
       why: "Évite les fausses alertes la nuit sans faire attendre le prospect plus que nécessaire." },
     { id: "CO-3", name: "Appel manqué", stage: "Conversation", kind: "sales", needs: ["messages"], eval: false, unit: "min",
       start: "Appel entrant manqué du prospect", stop: "Rappel du commercial", target: "10 min", warn: null, late: 0.5, crit: 2,
-      esc: "Au-delà de 2 h : critique", pending: "Les appels manqués ne sont pas encore reçus de Sendblue.",
+      esc: "Au-delà de 2 h : critique", pending: "Les appels manqués ne sont pas reçus : WhatsApp ne les transmet pas au CRM.",
       why: "Un prospect qui appelle est au sommet de son intention : c’est l’échange qui mérite la réponse la plus rapide." },
     { id: "CO-4", name: "Demande d’arrêt (STOP)", stage: "Conversation", kind: "tech", needs: ["messages"], eval: true, unit: "min",
       start: "Réponse STOP du prospect", stop: "Messages automatiques bloqués", target: "immédiat", warn: null, late: null, crit: null,
@@ -178,7 +178,7 @@
       why: "La revue à 5 mois évite d’archiver un profil qu’il fallait contacter à la main." },
     // ---------------- Données et fiabilité
     { id: "DO-1", name: "Événement visible dans le CRM", stage: "Données et fiabilité", kind: "tech", needs: [], eval: false, unit: "min",
-      start: "Requête reçue (iClosed, Sendblue, Fathom, Whop)", stop: "Événement dans la fiche prospect", target: "1 min", warn: null, late: 5 * M, crit: 15 * M,
+      start: "Requête reçue (iClosed, WhatsApp, Fathom, Whop)", stop: "Événement dans la fiche prospect", target: "1 min", warn: null, late: 5 * M, crit: 15 * M,
       esc: "Au-delà de 15 min : alerte technique à Romain", pending: "Mesure côté serveur à brancher (file des requêtes reçues).",
       why: "Les SLA en minutes n’ont de sens que si les données arrivent en temps réel." },
     { id: "DO-2", name: "Enregistrement rattaché", stage: "Données et fiabilité", kind: "tech", needs: [], eval: true, unit: "h",

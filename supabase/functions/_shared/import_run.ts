@@ -1,7 +1,6 @@
 // One import run: pages from the source (Close or iClosed) -> crm_import_people, counts saved on crm_import_runs.
 import { closeLeadToItems, closePages, ImportItem } from "./importers/close.ts";
 import { iclosedAllCalls, iclosedAllDeals, iclosedCallsToItems, iclosedDealsToItems, iclosedContactToItem, iclosedPages } from "./importers/iclosed.ts";
-import { sendblueAllMessages, sendblueHistoryItems } from "./importers/sendblue.ts";
 import { fathomHistoryItems, fathomMeetings } from "./importers/fathom.ts";
 import { Rpc } from "./worker.ts";
 
@@ -115,30 +114,6 @@ export async function importIclosedDeals(o: Opts): Promise<Out> {
     return { run: run.id, dry: o.dry, more: false, stats };
   } catch (e) {
     await o.rpc("crm_import_save", { p_run: run.id, p_cursor: { source: "iclosed_deals" }, p_stats: stats, p_status: "failed", p_error: String((e as Error)?.message ?? e) });
-    throw e;
-  }
-}
-
-// Sendblue: every message of the history, then crm_import_messages (012) by batches.
-export async function importSendblue(o: Opts & { secret: string }): Promise<Out> {
-  if (!o.apiKey || !o.secret) return { error: "SENDBLUE_API_KEY_ID / SENDBLUE_API_SECRET are not set in Supabase (Edge Functions › Secrets)" };
-  const busy = await o.rest("GET", `crm_import_runs?status=eq.running&started_at=gte.${new Date(Date.now() - 10 * 60e3).toISOString()}&select=id`);
-  if (busy.length) return { error: "an import is already running", run: busy[0].id };
-  const [run] = await o.rest("POST", "crm_import_runs", { source: "import", dry_run: o.dry, cursor: { source: "sendblue" } });
-  let stats: Stats = {};
-  try {
-    // by 250 in both modes: one call stays under the database's statement time limit (a dry run's new-people count
-    // may then count twice a new number whose messages fall in two batches)
-    const msgs = await sendblueAllMessages(o.apiKey, o.secret, o.fetchFn), { items, ignored } = sendblueHistoryItems(msgs);
-    const size = 250;
-    for (let i = 0; i < items.length; i += size) {
-      stats = addStats(stats, (await o.rpc("crm_import_messages", { p_items: items.slice(i, i + size), p_dry: o.dry })) as Stats);
-    }
-    stats = { ...stats, sendblue_messages: msgs.length, ignored };
-    await o.rpc("crm_import_save", { p_run: run.id, p_cursor: { source: "sendblue" }, p_stats: stats, p_status: "done" });
-    return { run: run.id, dry: o.dry, more: false, stats };
-  } catch (e) {
-    await o.rpc("crm_import_save", { p_run: run.id, p_cursor: { source: "sendblue" }, p_stats: stats, p_status: "failed", p_error: String((e as Error)?.message ?? e) });
     throw e;
   }
 }

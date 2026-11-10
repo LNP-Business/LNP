@@ -61,7 +61,7 @@ CRM alerts **join this engine**:
 | c9 | Refund or dispute | Critical | Whop refund / dispute |
 | c10 | Payment without a declared yes | Medium | payment on a cycle with no yes |
 | c11 | Recording and outcome disagree | Medium | 06 §6 |
-| c12 | Message not delivered | High | Sendblue delivery error |
+| c12 | Message not delivered | High | WhatsApp delivery error (status `failed`) |
 | c13 | Lead abandoned | High | 30 days silent with fewer than 4 sales attempts (no automatic loss) |
 | c14 | Automatic loss tomorrow | Medium | notice before an auto-close |
 | c15 | Nurture return due | Medium | return date reached |

@@ -26,10 +26,10 @@ Navigateur ── https://lnp-sales.vercel.app ── Vercel (web/)
    └── Supabase Realtime (mises à jour en direct des tables crm_*)
 
 Outils externes ── webhooks / API ── Fonctions Edge Supabase (supabase/functions/)
-   iClosed  → iclosed-in      Sendblue → sendblue-in     Whop → whop-in     Fathom → crm-import (toutes les heures)
+   iClosed  → iclosed-in      WhatsApp Business → whatsapp-in     Whop → whop-in     Fathom → crm-import (toutes les heures)
    chaque minute : process-inbox (transforme les requêtes brutes en prospects, cycles, appels, événements)
    toutes les 5 min : sla-tick → Slack (alertes du cycle de vente)
-   Close, iClosed, Sendblue, Fathom : imports d'historique par crm-import
+   Close, iClosed, Fathom : imports d'historique par crm-import (l'historique WhatsApp arrive par whatsapp-in à la connexion)
 
 Analyse d'appel ── GitHub Actions (call-analysis.yml, toutes les heures) ── worker Python
    lit les appels en file (crm_ca_claim), interroge le modèle par la fonction Edge callqa-llm (Anthropic), écrit le résultat (crm_ca_store)
@@ -57,7 +57,7 @@ Tous au nom de l'entreprise (pour LNP : e-mail LNP, jamais le compte d'une autre
 | Vercel | hébergement de la page et de l'API | oui |
 | iClosed | prise de rendez-vous (webhooks des RDV, import des contacts et appels) | pour alimenter le CRM |
 | Fathom | enregistrement et transcription des appels (import toutes les heures) | pour les appels honorés et l'analyse |
-| Sendblue | iMessage / SMS (webhooks, import de l'historique) | si utilisé |
+| WhatsApp Business (Meta, par un fournisseur comme 360dialog) | messages des commerciaux et des setters avec les prospects (webhook `whatsapp-in`, API officielle en coexistence ; historique partagé à la connexion) | pour les messages (seul canal de messages du CRM) |
 | Whop | paiements (webhook `whop-in`, stocké brut ; encaissements saisis à la main en attendant) | si utilisé |
 | Close | ancien CRM (import unique des prospects) | si utilisé |
 | Slack | alertes SLA (webhook entrant) | conseillé |

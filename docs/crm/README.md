@@ -20,7 +20,7 @@ browser-only CRM storage (CRM LNP, `localStorage`) with shared, isolated, live d
 |---|---|---|
 | iClosed | Calendar only: call booked / rescheduled / cancelled | iClosed → Zapier → CRM |
 | Fathom | Call recording: transcript, summary, action items | Fathom → CRM (webhook) + CRM → Fathom (API, reconciliation) |
-| Sendblue | iMessage + SMS (+ calls) between sales and prospects; automated messages | Sendblue ↔ CRM |
+| WhatsApp Business | Messages between the sales reps or setters and prospects (official Cloud API in coexistence: the team keeps the app on their phone); the only messaging channel of the CRM (Romain, 9 Nov 2026) | WhatsApp → CRM |
 | Whop | Payments; first successful payment = won | CRM → Whop (checkout per cycle) + Whop → CRM |
 | Claude API | Call analysis (Agent System: Post-call analyst) | CRM → Claude |
 | Supabase `LNP` | Database, auth (existing), Edge Functions, scheduled jobs | — |
@@ -38,7 +38,7 @@ disqualification reason, nurture, return date, notes) is entered **only in the C
 | `02-data-model.md` | CRM tables (prefixed `crm_`). SQL: `web/supabase/003_crm_core.sql` |
 | `03-identity-matching.md` | Normalisation and person/cycle matching |
 | `04-event-pipeline.md` | Ingestion: raw log → verify → map → match → event → projector |
-| `05`–`08` | iClosed, Fathom, Sendblue, Whop |
+| `05`–`08` | iClosed, Fathom, WhatsApp Business, Whop |
 | `09-call-analysis.md` | Claude analysis = Agent System "Post-call analyst" |
 | `10-rules-engine.md` | CRM rules and how CRM alerts plug into the existing alert engine |
 | `11-crm-frontend.md` | Changes to LNP screens, store.js, sidebar, Access |

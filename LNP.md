@@ -22,7 +22,7 @@ En ligne : https://lnp-sales.vercel.app (projet Vercel `lnp`, dossier racine `we
 
 ## Le back end
 
-Tous les comptes sont ceux de LNP (GitHub `LNP-Business`, Vercel, Anthropic, Slack, iClosed, Fathom, Sendblue, Close).
+Tous les comptes sont ceux de LNP (GitHub `LNP-Business`, Vercel, Anthropic, Slack, iClosed, Fathom, WhatsApp Business (Meta), Close).
 Seule exception, Supabase : le projet `LNP` (réf. `lludbqyosuzgwvvphmqc`, eu-central-1) est encore rangé dans une organisation
 Supabase qui n'est pas celle de LNP ; sa base ne contient que les données de LNP. À transférer dans une organisation LNP
 (Supabase › Project Settings › General › Transfer project).
@@ -33,8 +33,8 @@ Supabase qui n'est pas celle de LNP ; sa base ne contient que les données de LN
 2. **Fonctions Edge** (`supabase/functions/`) : déployées par `.github/workflows/crm-functions.yml` depuis `main`, avec les secrets
    GitHub `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF`.
 3. **Secrets des fonctions** (Supabase › Edge Functions › Secrets), comptes de LNP : `ICLOSED_API_KEY`, `ICLOSED_INBOUND_TOKEN`,
-   `FATHOM_API_KEY`, `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET`, `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY` (analyse
-   d'appel), `SLACK_SALES_CYCLE_WEBHOOK_URL` (alertes SLA). Étapes : `docs/crm/setup.md`. Lien des alertes Slack :
+   `FATHOM_API_KEY`, `WHATSAPP_INBOUND_TOKEN` (messages WhatsApp ; `WHATSAPP_APP_SECRET` si Meta envoie directement les
+   webhooks), `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY` (analyse d'appel), `SLACK_SALES_CYCLE_WEBHOOK_URL` (alertes SLA). Étapes : `docs/crm/setup.md`. Lien des alertes Slack :
    `crm_settings.sla_alerts.link` = `https://lnp-sales.vercel.app/#crm`.
 4. **Vercel** : projet `lnp`, dossier racine `web/`, variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
    (sensible), `SITE_URL`. Premier administrateur : `BOOTSTRAP_TOKEN` le temps d'appeler `/api/bootstrap`, puis le retirer.

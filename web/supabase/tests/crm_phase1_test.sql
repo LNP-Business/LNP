@@ -136,7 +136,7 @@ do $$ declare b jsonb := (select body from docs where col = 'config' and id = 'a
   assert b->'alerts'->'a1' = '{"on":false,"sev":"Low","who":[1,0,0],"ch":[1,0,0]}'::jsonb, 'a1 untouched';
   assert (b->'values'->>'a1')::int = 5 and (b->>'escH')::int = 12, 'values and settings untouched';
   assert b->'alerts'->'c6' = '{"on":true,"sev":"Critical","who":[1,1,0],"ch":[1,0,0],"crm":true}'::jsonb, 'c6 shape';
-  assert (b->'values'->>'c2.hours')::int = 2 and (b->'values'->>'c17.sendblue_hours')::int = 6, 'thresholds';
+  assert (b->'values'->>'c2.hours')::int = 2 and (b->'values'->>'c17.whatsapp_hours')::int = 6, 'thresholds';
 end $$;
 
 -- no config/alerts row yet (production today): the merge creates it with c1..c18 only; Settings adds a1..a18 defaults

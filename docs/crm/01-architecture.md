@@ -6,7 +6,7 @@
                    ┌──────────────── Supabase project "lnp" ─────────────────┐
  iClosed ─► Zapier ─►│ Edge Function iclosed-in  ┐                                  │
  Fathom  ───────────►│ Edge Function fathom-in   ├─► crm_webhook_log (raw)          │
- Sendblue ──────────►│ Edge Function sendblue-in │          │                       │
+ WhatsApp ──────────►│ Edge Function whatsapp-in │          │                       │
  Whop    ───────────►│ Edge Function whop-in     ┘          ▼                       │
                      │                            worker process-inbox             │
                      │                 verify ► map ► match ► crm_events          │
@@ -15,7 +15,7 @@
                      │  existing: docs, members, auth        │                     │
                      │  CRM: crm_* tables ◄───────────────────┘                     │
                      │  pg_cron: rules-tick (15 min), nurture-tick (1 h),          │
-                     │  reconcile (nightly) · outbound: sendblue-send,             │
+                     │  reconcile (nightly) · outbound:                            │
                      │  whop-checkout, claude-analyze                              │
                      └───────────────┬──────────────────────────────────────────────┘
                                      │ supabase-js client already opened by web/public/lnp-web.js
@@ -30,7 +30,7 @@
 | Worker `process-inbox` | Edge Function (database webhook + retry cron) | Verify, map, match, write events, project |
 | Projector | `_shared/projector.ts` | Rebuild a cycle's derived state from its events |
 | CRM rules | `rules-tick` | CRM rules (`crm_rules`) and CRM alert instances c1–c18 (`crm_alerts`) |
-| Outbound | Edge Functions | Sendblue sends, Whop checkouts, Claude calls |
+| Outbound | Edge Functions | Whop checkouts, Claude calls (the CRM sends no WhatsApp message: 07 §4) |
 | Admin functions | existing Vercel `web/api/*` | Unchanged (team, access, files) |
 | Front end | existing LNP web edition | CRM screens on `crm_*` tables; alerts through the existing engine |
 
@@ -50,10 +50,10 @@ supabase/                            Supabase CLI workdir for Edge Functions onl
   functions/
     _shared/ db.ts normalize.ts match.ts projector.ts rules.ts
              verify/standard-webhooks.ts verify/token.ts
-             mappers/iclosed.ts fathom.ts sendblue.ts whop.ts
-    iclosed-in/ fathom-in/ sendblue-in/ whop-in/     ingestion
+             mappers/iclosed.ts fathom.ts whatsapp.ts whop.ts
+    iclosed-in/ fathom-in/ whatsapp-in/ whop-in/     ingestion
     process-inbox/ rules-tick/ nurture-tick/ reconcile/
-    sendblue-send/ whop-checkout/ claude-analyze/
+    whop-checkout/ claude-analyze/
   tests/
 app/crm/                          CRM data layer used by crm_doc.html and the CRM screens
 docs/crm/                            this specification
@@ -96,6 +96,6 @@ Existing Vercel variables are unchanged (`SUPABASE_URL`, `SUPABASE_ANON_KEY`,
 |---|---|
 | `ICLOSED_INBOUND_TOKEN` | `iclosed-in` |
 | `FATHOM_API_KEY`, `FATHOM_WEBHOOK_SECRET(S)` | `fathom-in`, `reconcile` |
-| `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET`, `SENDBLUE_INBOUND_TOKEN` | `sendblue-in`, `sendblue-send` |
+| `WHATSAPP_INBOUND_TOKEN`, `WHATSAPP_APP_SECRET` (Meta directly only) | `whatsapp-in` |
 | `WHOP_API_KEY`, `WHOP_WEBHOOK_SECRET`, `WHOP_COMPANY_ID` | `whop-in`, `whop-checkout`, `reconcile` |
 | `ANTHROPIC_API_KEY` | `claude-analyze` |
