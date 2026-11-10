@@ -18,7 +18,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   check('the training shows in its frame', !!tf, null);
   const box = await p.evaluate(() => { const f = [...document.querySelectorAll('iframe')].find(x => x.title === 'Découverte'); if (!f) return null; const r = f.getBoundingClientRect(); return { w: r.width, h: r.height, d: getComputedStyle(f).display }; });
   check('the frame fills the screen', box && box.d === 'block' && box.w > 1000 && box.h > 700, box);
-  check('top bar: title, two trainings, « Nouvelle séance »', (await tf.evaluate(() => [...document.querySelectorAll('.top > :not(.sync)')].map(x => x.textContent).join(' '))).replace(/\s+/g, ' ').includes('Entraînement discovery Le coup suivant La lettre imposée Nouvelle séance'), null);
+  check('top bar: title, two trainings, « Nouvelle séance »', (await tf.evaluate(() => [...document.querySelectorAll('.top > :not(.sync)')].map(x => x.textContent).join(' '))).replace(/\s+/g, ' ').includes('Découverte Le coup suivant La lettre imposée Nouvelle séance'), null);   // the screen's name (B2, 2026-11-09)
   check('a session of 20 coups starts at once', /coup 1 \/ 20/.test(await tf.textContent('#view-coup .sess')), null);
   await p.screenshot({ path: OUT + '/coup-step1.png' });
   // coup 1: the right gesture, then a question that passes the rules
@@ -48,7 +48,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   const c1 = await tf.evaluate(() => LNP_TRAINING.C.cases[1]);
   const wrong = ['L1', 'L2', 'L3', 'L4'].find(x => x !== c1.att);
   await tf.click('body'); await tf.press('body', String(['L1', 'L2', 'L3', 'L4'].indexOf(wrong) + 1)); await tf.press('body', 'Enter'); await p.waitForTimeout(100);
-  check('a wrong gesture: « Le coup à jouer était … »', /Le coup à jouer était/.test(await tf.textContent('#exC .fb')), null);
+  check('a wrong gesture: « Le coup à jouer était … »', /le coup à jouer était/i.test(await tf.textContent('#exC .fb')), null);
   await tf.click('[data-do="etalon"]'); await p.waitForTimeout(50);
   check('no question → « Geste manqué » at once', /Geste manqué/.test(await tf.textContent('#exC .verdict')) && /Pas de question écrite/.test(await tf.textContent('#exC')), null);
   await tf.click('[data-do="suivant"]');
@@ -81,7 +81,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
     await tf.press('body', 'Enter'); await p.waitForTimeout(100);
     if (k === 0) {
       const sc = await tf.textContent('#scL');
-      check('the étalon and the answer join the script, « Ta version »', sc.includes('Sales · I1') && sc.includes('Ta version : ' + l0.r[0].ok) && sc.includes(l0.r[0].rep) && /Il vient de répondre/.test(sc), null);
+      check('the étalon and the answer join the script, « Ta version »', sc.includes('Commercial · I1') && sc.includes('Ta version : ' + l0.r[0].ok) && sc.includes(l0.r[0].rep) && /Il vient de répondre/.test(sc), null);
     }
   }
   check('the end of the case: « Chaîne tenue sur les trois tours »', /Chaîne tenue sur les trois tours/.test(await tf.textContent('#exL')), null);

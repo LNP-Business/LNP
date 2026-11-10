@@ -122,7 +122,8 @@ function mount(key, srcdoc) { var f = document.createElement("iframe"); f.id = k
   // Mes résultats: the score, the figures of the period, the history (never deleted), the detail of a row
   const rf = await frame('resultats');
   await p.waitForTimeout(300);
-  const t = (s) => rf.$eval(s, e => e.innerText).then(x => x.replace(/\s+/g, ' ').trim());
+  // #ttl is hidden inside LNP (the app's h1 names the page, D8): its text is still the screen's name
+  const t = (s) => rf.$eval(s, (e, sel) => sel === '#ttl' ? e.textContent : e.innerText, s).then(x => x.replace(/\s+/g, ' ').trim());
   check('the title', (await t('#ttl')) === 'Mes résultats', await t('#ttl'));
   check('the score out of 100 and its three parts', /Ton score d’entraînement/i.test(await t('.tiles')) && /Le coup suivant/.test(await t('.parts')) && /La lettre imposée/.test(await t('.parts')) && /Maîtrise de l’offre/.test(await t('.parts')), await t('.tiles'));
   const exp = Math.round(100 * (1 / 50 + 0 + 17.5 / 1000) / 3);
@@ -146,8 +147,8 @@ function mount(key, srcdoc) { var f = document.createElement("iframe"); f.id = k
   // Suivi des commerciaux (admins): one row per person, training and sales, sort, a person's detail
   const sf = await frame('suivi');
   await p.waitForTimeout(300);
-  const st = (s) => sf.$eval(s, e => e.innerText).then(x => x.replace(/\s+/g, ' ').trim());
-  check('the title', (await st('#ttl')) === 'Suivi des commerciaux', null);
+  const st = (s) => sf.$eval(s, (e, sel) => sel === '#ttl' ? e.textContent : e.innerText, s).then(x => x.replace(/\s+/g, ' ').trim());
+  check('the title', (await st('#ttl')) === 'Entraînement de l’équipe', await st('#ttl'));   // renamed in the menu and the page (B2, 2026-11-09)
   const rows = await sf.$$eval('table.team tbody tr.row', a => a.map(x => x.innerText.replace(/\s+/g, ' ')));
   check('one row per person', rows.length === 2, rows);
   const cam = rows.find(x => /Camille Test/.test(x)) || '';
