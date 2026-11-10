@@ -18,7 +18,7 @@ const check = (n, c, info) => (c ? ok : bad).push(n + (c ? '' : ' — ' + JSON.s
   const k = await sc.$$eval('#kpis .kpi', a => a.map(x => x.innerText.replace(/\s+/g, ' ')));
   const needs = await txt('.needs');
   // SLA v3 (Romain 2026-10-30, docs/crm/18): the levels come from the SLAs (044: M. Ferrand is late on DE-4, a follow-up with no call booked), the row adds Due soon and Closed, the alerts go to Slack
-  check('1 KPIs', k.join('|') === 'Prospects en cours 11 dans le pipeline|Critique 5 seuil critique du SLA dépassé|En retard 3 un objectif de SLA manqué|Bientôt dû 1 agir avant que l’objectif soit manqué|Le commercial doit agir 7 la prochaine étape est à nous|Appels sous 24 h 1 à l’agenda|En attente du prospect 1 à lui d’agir|Clos 2 1 gagné · 1 perdu' && /Slack #sales-cycle 8/.test(needs), { k, needs });
+  check('1 KPIs', k.join('|') === 'Prospects en cours 11 dans le pipeline|Critique 5 seuil critique du SLA dépassé|En retard 3 un objectif de SLA manqué|Bientôt dû 1 agir avant que l’objectif soit manqué|Le commercial doit agir 7 la prochaine étape est à nous|Appels sous 24 h 1 à l’agenda|En attente du prospect 1 à lui d’agir|Clos 2 1 gagné · 1 perdu' && /Alertes ouvertes 8/.test(needs), { k, needs });
   // 2
   const rowOf = async (name) => sc.evaluate((n) => { const r = [...document.querySelectorAll('.r')].find(x => x.querySelector('.nm').innerText === n); return r ? r.innerText.replace(/\s+/g, ' ') : null; }, name);
   const yd = await rowOf('Yassine Diallo');

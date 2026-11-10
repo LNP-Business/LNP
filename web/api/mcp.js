@@ -34,7 +34,7 @@ const TOOLS = [
   // LNP's screens and Settings (web/api/_os.js)
   ["page_method", "What a screen of LNP is for, how it helps and how to use it (its Page method, in French as in the app). Without 'screen': the list of LNP's screens (Sales cockpit, Sales Day, CRM, Alerts, Account, Access) and what each shows.",
     { screen: z.string().max(60).optional() }, O.pageMethod, null],
-  ["alert_rules", "The CRM alert rules of Settings › Alerts: each rule on or off, its severity, threshold, who is told and on which channel, plus escalation. The alerts open now are in clocks_running.",
+  ["alert_rules", "The alerts of the CRM as Settings › Alerts sets them: the 42 Sales cycle SLAs, each on or off, measured or waiting for a data source, its target, late and critical thresholds, and where it alerts (CRM, optional Slack copy). The alerts open now are in clocks_running.",
     { include_off: z.boolean().optional().describe("Also list the rules that are switched off") }, O.alertRules, ["settings", "crm"]]
 ];
 

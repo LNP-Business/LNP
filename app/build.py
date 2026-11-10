@@ -9,12 +9,13 @@ _ed = HERE.parent / "edition.json"
 EDITION = json.load(open(_ed, encoding="utf-8")) if _ed.exists() else {}
 TITLE = EDITION.get("title", TITLE)
 # screens kept by the edition: its systems' screens and its Settings screens (None = every screen)
-_SYS = {"ss": ["salescockpit", "salesday", "entrainement", "academie", "resultats", "suivi", "crm"]}
+_SYS = {"ss": ["salescockpit", "salesday", "alertes", "entrainement", "academie", "resultats", "suivi", "crm"]}
 EDITION_KEEP = (sum((_SYS.get(x, []) for x in EDITION.get("systems", [])), []) + [f.replace(".dc.html", "").lower() for f in EDITION.get("settings", [])]) if EDITION else None
 
 SCREENS = [
     ("salescockpit", "SalesCockpit"),
     ("salesday", "SalesDay"),
+    ("alertes", "Alertes"),
     ("crm", "CRM"),
     ("entrainement", "Entrainement"),
     ("academie", "Academie"),
@@ -98,6 +99,10 @@ if CRMDOC.exists():
     if SDJ.exists():
         CRMJS += "\n<script>" + SDJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     # Cockpit commercial › Exécution, Qualité, Impact (2026-11-09, sales_exec_module.js)
+    # Ventes › Alertes (2026-11-09): the alerts of the CRM, the badge of the sidebar and the « Nouvelle alerte » banner
+    ALJ = HERE / "alerts_module.js"
+    if ALJ.exists():
+        CRMJS += "\n<script>" + ALJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     SXJ = HERE / "sales_exec_module.js"
     if SXJ.exists():
         CRMJS += "\n<script>" + SXJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
@@ -342,7 +347,28 @@ html:not(.lnp-admin) [data-admin-only] {{ display: none !important; }}
   }});
   function decorate() {{
     applyNav();
+    // the alerts of the CRM (alerts_module.js): the badge of « Alertes » in the sidebar, and a reminder on top of Ma journée
+    var AL = window.LNP_ALERTS && window.LNP_ALERTS.store; if (!AL) return;
+    var n = AL.count(), crit = AL.critical();
+    app.querySelectorAll('[data-badge="alertes"]').forEach(function (el) {{
+      el.textContent = String(n); el.style.display = n ? "" : "none";
+      el.style.background = crit ? "#B42318" : "#8A6417";
+      el.title = n + " alerte" + (n > 1 ? "s" : "") + " ouverte" + (n > 1 ? "s" : "") + (crit ? ", dont " + crit + " critique" + (crit > 1 ? "s" : "") : "");
+    }});
+    var slot = app.querySelector("[data-salesday]");
+    if (slot) {{
+      var bar = app.querySelector("[data-alertbar]");
+      if (!n) {{ if (bar) bar.remove(); return; }}
+      if (!bar) {{
+        bar = document.createElement("a"); bar.setAttribute("data-alertbar", ""); bar.setAttribute("href", "Alertes.dc.html");
+        bar.style.cssText = "display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 12px; text-decoration: none; font-size: 15px; font-weight: 600; color: #1B1B18; border: 1px solid #E3DFD5; background: #FFFFFF";
+        slot.parentNode.insertBefore(bar, slot);
+      }}
+      bar.style.borderLeft = "4px solid " + (crit ? "#B42318" : "#B4561E");
+      bar.textContent = "Vous avez " + n + " alerte" + (n > 1 ? "s" : "") + " ouverte" + (n > 1 ? "s" : "") + (crit ? ", dont " + crit + " critique" + (crit > 1 ? "s" : "") : "") + " · Voir les alertes →";
+    }}
   }}
+  window.addEventListener("lnp-alerts", function () {{ decorate(); }});
 
   // CRM LNP screens run in their own frames, kept alive outside the re-rendered app so their state survives.
   var frames = {{}};
@@ -424,6 +450,7 @@ html:not(.lnp-admin) [data-admin-only] {{ display: none !important; }}
     mountModule("[data-dash]", "LNP_SALES");
     mountModule("[data-salesexec]", "LNP_SALESEXEC");
     mountModule("[data-salesday]", "LNP_SALESDAY");
+    mountModule("[data-alertes]", "LNP_ALERTS");
     if (modTip) modTip.style.opacity = 0;
   }}
   // A team row on the sales dashboard opens the CRM filtered on that sales rep
@@ -431,12 +458,24 @@ html:not(.lnp-admin) [data-admin-only] {{ display: none !important; }}
     var d = e.data || {{}};
     if (d.lnp === "go" && typeof d.screen === "string") {{ go(d.screen); return; }}
     if (d.lnp !== "crm") return;
+    // « Voir toutes les alertes » of the Cockpit: the Alertes screen (the alerts of the CRM, 053)
+    if (d.view === "alerts") {{ go("alertes"); return; }}
     go("crm");
     var f = frames.crm;
     var apply = function () {{
       try {{
-        if (d.view === "alerts") f.contentWindow.eval("S.view='alerts';renderAll();");
-        else f.contentWindow.eval("S.view='crm';S.cx.owner=" + JSON.stringify(String(d.owner)) + ";S.cx.tab='pipeline';S.cx.quick=null;renderAll();");
+        if (d.lead) {{
+          // a lead of the Alertes screen: its record, once the CRM has loaded the leads (live data come a little later)
+          var tries = 0, lead = JSON.stringify(String(d.lead));
+          var openIt = function () {{
+            var ok = false;
+            try {{ ok = f.contentWindow.eval("(function(){{if(typeof byD!=='function'||!byD(" + lead + "))return false;S.view='crm';renderAll();openLead(" + lead + ");return true}})()"); }} catch (err) {{}}
+            if (!ok && ++tries < 40) setTimeout(openIt, 300);
+          }};
+          openIt();
+          return;
+        }}
+        f.contentWindow.eval("S.view='crm';S.cx.owner=" + JSON.stringify(String(d.owner)) + ";S.cx.tab='pipeline';S.cx.quick=null;renderAll();");
       }} catch (err) {{ console.error(err); }}
     }};
     if (!f) return;

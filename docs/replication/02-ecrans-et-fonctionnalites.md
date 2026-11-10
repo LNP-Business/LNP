@@ -369,6 +369,35 @@ met de côté, « Passer » envoie en fin de file, « À suivre » permet de cho
 
 ---
 
+### 4.9 Rappel des alertes
+
+En tête de Ma journée, s'il y a des alertes ouvertes : « Vous avez N alertes ouvertes, dont X critiques · Voir les alertes → »
+(`app/build.py`, `decorate`), qui ouvre l'écran Alertes (§ 4 bis).
+
+---
+
+## 4 bis. Alertes (Ventes › Alertes)
+
+Source : `app/alerts_module.js` (module `LNP_ALERTS`, monté dans `[data-alertes]`), `app/gen_alertes.py` ; données
+`crm_sla_alerts_open()` (migration 053), ouvertes et fermées par `sla-tick` toutes les 5 minutes (`crm_sync_sla_alerts`).
+Accès : s'ouvre avec le CRM ou Ma journée (`web/api/_screens.js`, écran dérivé).
+
+- Titre « Alertes » ; sous-titre « Les retards de vos prospects, du plus urgent au moins urgent. Une alerte se ferme seule dès
+  que l’action est faite. » (administrateur : « Les retards de tous les prospects de l’équipe… »).
+- Administrateur : sélecteur « Commercial » (« Toute l’équipe » + chaque commercial qui a des alertes).
+- « Être prévenu des alertes critiques » (si le navigateur n'a pas encore répondu) : demande l'autorisation des notifications.
+- Compteurs : Critique, En retard, Bientôt dû, Fermées aujourd’hui.
+- Groupes « Critique · n », « En retard · n », « Bientôt dû · n » ; une ligne par alerte : niveau, prospect, code et nom du SLA,
+  « <durée> <depuis…> · objectif <cible> » (administrateur : « · <commercial> »), « Technique » pour une alerte technique
+  (administrateurs seulement), bouton « Ouvrir la fiche » (ouvre le prospect dans le CRM).
+- Vide : « Aucune alerte ouverte. Tout est dans les temps. » Hors édition web : quatre alertes fictives et « Exemple : hors de
+  l’édition web, ces alertes sont fictives. »
+- Partout : pastille rouge (critique) ou ocre sur « Alertes » dans la barre latérale ; bandeau « Nouvelle alerte · <niveau> ·
+  <SLA> · <prospect> » avec « Voir » quand une alerte En retard ou Critique arrive ; notification du navigateur pour une
+  critique si la personne l'a acceptée et que LNP n'est pas au premier plan. Rechargement en direct (Realtime) et chaque minute.
+
+---
+
 ## 5. Les données du CRM vues par les écrans
 
 ### 5.1 Lecture (`app/crm/data.js`, `window.LNP_CRM`)
@@ -734,8 +763,8 @@ La fenêtre CO-2 n'est appliquée qu'en direct (heure réelle d'ouverture connue
    « LIGNE » « Simple » | « Complet » ; « TRI » (« Plus urgent », « Prochain appel », « Montant », « Temps dans l’étape ») ;
    « GROUPER » (« Aucun », « Qui doit agir », « Étape ») ; « ACTIVITÉ » (« Depuis toujours », « 7 / 30 / 90 derniers jours » :
    dernier événement passé, ou le RDV, dans ces jours) ; « ÉTAPE » (« Toutes les étapes », Présence, Décision, Encaissement :
-   étape courante, ou étape de clôture d'un clos) ; pastille « Slack #sales-cycle <n> » (n = Critique + En retard,
-   infobulle « Chaque SLA en retard ou critique est publié dans Slack #sales-cycle (espace IDA) », non cliquable).
+   étape courante, ou étape de clôture d'un clos) ; pastille « Alertes ouvertes <n> » (n = Critique + En retard,
+   infobulle « Chaque SLA en retard ou critique ouvre une alerte dans l’écran Alertes du commercial du prospect », non cliquable).
 5. **Tableau** : colonnes « PROSPECT · ÉTAPE » (250 px), règle et lignes, « QUI DOIT AGIR · PROCHAINE ÉTAPE » (270 px).
    Sections « En cours · n » (ou par groupe : « Le commercial doit agir », « Appel prévu », « En attente du prospect » ; ou par
    étape ; groupes vides cachés) puis « Clos · n » avec « Afficher » / « Masquer ». Vide : « Aucun prospect dans cette vue. »

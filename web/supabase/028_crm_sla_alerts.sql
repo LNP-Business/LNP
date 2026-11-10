@@ -1,7 +1,7 @@
 -- 028: Sales cycle SLAs v3 posted to Slack (Romain 2026-10-30, docs/crm/18-sales-cycle-slas.md).
 -- Every 5 minutes pg_cron calls the Edge Function sla-tick: it reads the active cycles (crm_sla_snapshot), applies the rules of
 -- supabase/functions/_shared/sla_rules.js (the same file the Sales cycle screen runs) and posts each new Late or Critical miss
--- to Slack #sales-cycle (IDA workspace) through the incoming webhook in the function secret SLACK_SALES_CYCLE_WEBHOOK_URL.
+-- to Slack #sales-cycle (053: now a copy, off by default; the CRM is the base of the alerts) through the incoming webhook in the function secret SLACK_SALES_CYCLE_WEBHOOK_URL.
 -- crm_sla_notices keeps what was posted (one row per cycle, SLA, start and level: never posted twice). Misses older than
 -- crm_settings.sla_alerts.since (this file's run) or than max_age_hours are never posted: no flood of the past.
 

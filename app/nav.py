@@ -5,7 +5,8 @@ P = pathlib.Path(__file__).resolve().parent.parent / "gabarits"
 
 SYSTEMS = {"ss": ("Ventes", "SS", "SalesCockpit.dc.html")}
 GROUPS = {
-    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None)]),
+    "ss": [("Sales System", [("SalesCockpit.dc.html", "Cockpit commercial", None), ("CRM.dc.html", "CRM", None), ("SalesDay.dc.html", "Ma journée", None),
+                             ("Alertes.dc.html", "Alertes", (0, "Alertes ouvertes", "alertes"))]),
            # Entraînement, its own group (Romain 2026-11-06)
            ("Training", [("Entrainement.dc.html", "Découverte", None), ("Academie.dc.html", "Maîtrise de l'offre", None),
                          ("Resultats.dc.html", "Mes résultats", None), ("SuiviCommerciaux.dc.html", "Suivi des commerciaux", None)])],
@@ -21,7 +22,7 @@ if _ed.exists():
     if EDITION.get("settings"):
         GROUPS["settings"] = [(g, [it for it in items if it[0] in EDITION["settings"]]) for g, items in GROUPS["settings"]]
 SCREENS = {
-    "SalesCockpit.dc.html": "ss", "SalesDay.dc.html": "ss", "CRM.dc.html": "ss", "Entrainement.dc.html": "ss", "Academie.dc.html": "ss",
+    "SalesCockpit.dc.html": "ss", "SalesDay.dc.html": "ss", "Alertes.dc.html": "ss", "CRM.dc.html": "ss", "Entrainement.dc.html": "ss", "Academie.dc.html": "ss",
     "Resultats.dc.html": "ss", "SuiviCommerciaux.dc.html": "ss",
     "Settings.dc.html": "settings", "Account.dc.html": "settings", "Access.dc.html": "settings",
 }

@@ -23,30 +23,28 @@ export function pageMethod(u, ctx, { screen }) {
 }
 
 // ---------------- Settings › Alerts ----------------
-// The rules as Settings › Alerts saves them (docs row config/alerts: alerts.<id> = {on, sev, who, ch}, values["<id>.<param>"]);
-// the CRM rules' names and default thresholds come from crm_settings.alert_rule_defaults (003, merged by 004).
-const WHO = ["owner", "department lead", "Romain"], CH = ["in the app", "Slack", "email"];
+// The 42 Sales cycle SLAs (catalogue in _kb.json, from supabase/functions/_shared/sla_rules.js) with the settings Settings ›
+// Alerts saves (crm_settings.sla_rules, 044: sources connected, per SLA on, warn / late / crit in hours, app = alerts of the CRM,
+// slack = copy to Slack, off by default since 053). The alerts open now are in clocks_running.
+const hrs = h => h == null ? "—" : h < 1 ? Math.round(h * 60) + " min" : h < 48 ? (Math.round(h * 10) / 10) + " h" : Math.round(h / 24) + " d";
 export async function alertRules(u, ctx, { include_off }) {
-  const [cfgRows, defRows] = await Promise.all([
-    rows(u.from("docs").select("body").eq("col", "config").eq("id", "alerts")),
-    rows(u.from("crm_settings").select("value").eq("key", "alert_rule_defaults"))]);
-  const cfg = (cfgRows[0] && cfgRows[0].body) || {}, defs = Array.isArray(defRows[0] && defRows[0].value) ? defRows[0].value : [];
-  const saved = cfg.alerts || {}, vals = cfg.values || {};
-  const byNum = (a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1));
-  const all = defs.map(d => {
-    const s = saved[d.id] || {}, on = s.on !== undefined ? !!s.on : true;
-    const th = Object.keys(d.threshold || {}).filter(k => typeof d.threshold[k] === "number").map(k => k + " " + (vals[d.id + "." + k] != null ? vals[d.id + "." + k] : d.threshold[k]))
-      .concat(Object.keys(d.threshold || {}).filter(k => typeof d.threshold[k] === "string").map(k => k + ": " + d.threshold[k]));
-    // not saved yet: the defaults, read as crm_merge_alert_defaults (004) would save them
-    const who = Array.isArray(s.who) ? WHO.filter((_, i) => s.who[i]) : WHO.filter((_, i) => (d.to || []).includes(["owner", "lead", "romain"][i]));
-    const ch = Array.isArray(s.ch) ? CH.filter((_, i) => s.ch[i]) : ["in the app"];
-    const sev = s.sev || (d.severity ? d.severity[0].toUpperCase() + d.severity.slice(1) : "—");
-    return { id: d.id, name: d.name, on, sev, th: th.join(", ") || "—", who: who.join(", ") || "nobody", ch: ch.join(", ") || "none" };
-  }).sort(byNum);
+  const cfgRows = await rows(u.from("crm_settings").select("value").eq("key", "sla_rules"));
+  const cfg = (cfgRows[0] && cfgRows[0].value) || {}, src = cfg.sources || {}, rules = cfg.rules || {};
+  const srcName = Object.fromEntries((KB.sources || []).map(x => [x.id, x.name]));
+  const all = (KB.sla || []).map(d => {
+    const r = rules[d.id] || {}, on = r.on === undefined ? true : !!r.on;
+    const missing = (d.needs || []).filter(n => !src[n]);
+    const state = !d.measured ? (d.kind === "indicator" ? "indicator (Cockpit)" : "not measured yet") : missing.length ? "waiting for " + missing.map(n => srcName[n] || n).join(", ") : "measured";
+    const v = k => (r[k] != null ? Number(r[k]) : d[k]);
+    const where = [(r.app === undefined ? true : !!r.app) ? "CRM" : "", r.slack ? "Slack" : ""].filter(Boolean).join(" + ") || "nowhere";
+    return { id: d.id, name: d.name, stage: d.stage, on, state, target: d.target || "—", late: hrs(v("late")), crit: hrs(v("crit")), where };
+  });
   const shown = include_off ? all : all.filter(r => r.on);
-  const L = ["# Alert rules of the CRM (Settings › Alerts) · " + all.filter(r => r.on).length + " on of " + all.length,
-    shown.length ? table(["Rule", "Name", "On", "Severity", "Threshold", "Who is told", "Channels"], shown.map(r => [r.id, r.name, r.on ? "on" : "off", r.sev, r.th, r.who, r.ch])) : "No alert rule" + (all.length ? " is on." : " is set up yet."),
-    "", "Escalation after " + (cfg.escH || 24) + " h for High and Critical alerts left open" + (cfg.quietOn === false ? "" : " · quiet hours on") + (cfg.digestOn === false ? "" : " · daily digest on") + ".",
-    "The alerts open now on the leads: `clocks_running`."];
+  const L = ["# Alerts of the CRM (Settings › Alerts) · " + all.filter(r => r.on).length + " SLAs on of " + all.length,
+    "Each open miss becomes an alert of the CRM for the lead's sales rep (admins see the whole team), closed by itself when the action is done. Slack is an optional copy.",
+    "Sources connected: " + ((KB.sources || []).map(x => x.name + " " + (src[x.id] ? "yes" : "no")).join(" · ") || "—") + ".", "",
+    shown.length ? table(["SLA", "Name", "Stage", "On", "State", "Target", "Late after", "Critical after", "Where"],
+      shown.map(r => [r.id, r.name, r.stage, r.on ? "on" : "off", r.state, r.target, r.late, r.crit, r.where])) : "No SLA is on.",
+    "", "The alerts open now on the leads: `clocks_running`."];
   return { text: L.join("\n"), rows: all.length };
 }

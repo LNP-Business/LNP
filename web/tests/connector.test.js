@@ -74,14 +74,13 @@ function seed() {
       items: [{ id: "D1", level: 2, note: "", evidence: [{ quote: "I have no steady clients", turn: "T040" }] }] },
     { job_id: job, call_id: ids.k1, competence: "GAP", rules_version: "GAP-1.3", status: "scored", verdict: "absent", score: 0, reasons: ["no_restitution"], items: [] }];
   DB.tables.crm_stage_history = [{ id: 1, cycle_id: ids.cy, stage: "show", hours: 80, exited_at: iso(-100) }];
-  // Settings › Alerts: the CRM rules' defaults (003) and the rules as the screen saves them (docs config/alerts, 004)
-  DB.tables.crm_settings = [{ key: "alert_rule_defaults", value: [
-    { id: "c1", name: "Issue de l'appel manquante", severity: "high", threshold: { after_minutes: 0 }, to: ["owner"] },
-    { id: "c2", name: "Prospect en attente de réponse", severity: "high", threshold: { hours: 2 }, to: ["owner"] },
-    { id: "c7", name: "Oui sans paiement", severity: "critical", threshold: { hours: 48 }, to: ["owner", "romain"] }] }];
-  DB.tables.docs = [{ col: "config", id: "alerts", body: { id: "alerts", escH: 12,
-    alerts: { c1: { on: true, sev: "High", who: [1, 0, 0], ch: [1, 1, 0], crm: true }, c2: { on: false, sev: "High", who: [1, 0, 0], ch: [1, 0, 0], crm: true } },
-    values: { "c1.after_minutes": 30 } } }];
+  // Settings › Alerts: the SLA settings as the screen saves them (crm_settings.sla_rules, 044); the catalogue is in _kb.json
+  DB.tables.crm_settings = [{ key: "sla_rules", value: { sources: { messages: true, whop: false, analysis: false },
+    rules: { "SH-2": { late: 0.5 }, "CO-1": { on: false }, "DE-1": { slack: true } } } }];
+  // the alerts of the CRM (053): one for Valentino's lead, one technical (admins only)
+  DB.tables.crm_sla_alerts = [
+    { id: "al1", sla: "SH-2", level: "crit", name: "Premier contact du commercial", detail: "depuis la prise de RDV", target: "5 min", owner_id: ids.valentino, started_at: iso(-3), cycle_id: ids.cy, kind: "sales", resolved_at: null },
+    { id: "al2", sla: "CO-5", level: "late", name: "Heures d’envoi automatique", detail: null, target: "8 h – 21 h", owner_id: ids.valentino, started_at: iso(-2), cycle_id: ids.cy, kind: "tech", resolved_at: null }];
 }
 
 function serve(req, res) {
@@ -193,6 +192,8 @@ test("tools/list shows the 10 read-only tools and each one answers (admin)", asy
   assert.ok(rec.includes("call `" + ids.k1 + "`"), "call ids are listed for call_analysis");
   const clocks = text(await c.callTool({ name: "clocks_running", arguments: {} }));
   assert.match(clocks, /critical/); assert.match(clocks, /Yassine Diallo/);
+  assert.match(clocks, /Open alerts of the CRM \(Ventes › Alertes\): 2/); assert.match(clocks, /critical \| SH-2 Premier contact du commercial \| depuis la prise de RDV \| 5 min/);
+  assert.match(clocks, /technical \(admins\)/);
   assert.match(text(await c.callTool({ name: "call_prep", arguments: { cycle_id: ids.cy } })), /Discovery \(SPIN\)\*\* · 72\/100/);
   const ca = text(await c.callTool({ name: "call_analysis", arguments: { call_id: ids.k1 } }));
   assert.match(ca, /Gap\*\* · 0\/100 · absent/); assert.match(ca, /> \[T040\] I have no steady clients/, "the prospect's words are quoted as data");
@@ -280,9 +281,9 @@ test("LNP's screens and Settings: Page methods and alert rules", async () => {
   assert.match(await t("page_method", { screen: "CRM" }), /Page method · Ventes › CRM\n[\s\S]{40,}/);
   assert.match(await t("page_method", { screen: "Sales Day" }), /Ventes › Ma journée/);
   const bad = await c.callTool({ name: "page_method", arguments: { screen: "Weekly Review" } }); assert.ok(bad.isError); assert.match(text(bad), /No screen 'Weekly Review'/);
-  const al = await t("alert_rules"); assert.match(al, /2 on of 3/); assert.match(al, /c1 \| Issue de l'appel manquante \| on \| High \| after_minutes 30 \| owner \| in the app, Slack/);
-  assert.ok(!/c2 \|/.test(al), "rules switched off are left out by default"); assert.match(al, /Escalation after 12 h/);
-  const all = await t("alert_rules", { include_off: true }); assert.match(all, /c2 \| Prospect en attente de réponse \| off/); assert.match(all, /c7 \| Oui sans paiement \| on \| Critical \| hours 48 \| owner, Romain \| in the app/);
+  const al = await t("alert_rules"); assert.match(al, /41 SLAs on of 42/); assert.match(al, /SH-2 \| Premier contact du commercial \| Présence \| on \| measured \| 5 min \| 30 min \| 1 h \| CRM \|/);
+  assert.ok(!/CO-1 \|/.test(al), "SLAs switched off are left out by default"); assert.match(al, /DE-1 \| .+ \| CRM \+ Slack \|/); assert.match(al, /CA-1 \| .+ waiting for Liens et paiements Whop/);
+  const all = await t("alert_rules", { include_off: true }); assert.match(all, /CO-1 \| Réponse à un message du prospect \| Conversation \| off/);
   for (const gone of ["os_overview", "okrs", "tasks", "my_day", "lnp_map", "task_create"]) assert.ok((await c.callTool({ name: gone, arguments: {} })).isError, gone + " is gone");
   await c.close();
 });
@@ -298,11 +299,13 @@ test("Settings › Access closes the matching tools", async () => {
   await c.close();
   const { accessOf } = await import("../api/_screens.js");
   // Entraînement (2026-11-05) opens with the CRM, Maîtrise de l'offre (2026-11-06) with Entraînement, Mes résultats with either
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement", "academie", "resultats"]);
-  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "entrainement", "academie", "crm", "settings", "claude", "resultats"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement", "academie", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "entrainement", "academie", "crm", "settings", "claude", "resultats", "alertes"]);
   // a list saved after 2026-11-06 carries the mark: a training closed on purpose stays closed
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "salesday", "entrainement", "resultats"]);
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "salesday", "entrainement", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm", "alertes"]);
+  // Alertes (2026-11-09) opens with the CRM or Ma journée, never alone
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["salescockpit", "v2026-11-06"] } }, "member"), ["salescockpit"]);
   DB.users.find(u => u.id === ids.valentino).app_metadata = { screens: ["salescockpit", "crm", "settings", "claude"] };
 });
 

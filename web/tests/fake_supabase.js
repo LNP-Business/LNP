@@ -33,6 +33,7 @@ function visible(table, row, who) {
     case "crm_people": return seesAll(uid) || T("crm_cycles").some(c => c.person_id === row.id && c.owner_id === uid);
     case "crm_person_identities": return seesAll(uid) || T("crm_cycles").some(c => c.person_id === row.person_id && c.owner_id === uid);
     case "crm_alerts": return seesAll(uid) || row.owner_id === uid;
+    case "crm_sla_alerts": return crmRole(uid) === "admin" || (row.owner_id === uid && row.kind !== "tech");
     case "crm_call_analyses": { const k = T("crm_calls").find(x => x.id === row.call_id); return !!k && cycleVisible(uid, k.cycle_id); }
     // call analysis (020): CRM admins and the owner of the call's cycle
     case "crm_ca_records": case "crm_ca_jobs": case "crm_ca_results": {

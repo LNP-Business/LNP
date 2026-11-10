@@ -2,6 +2,7 @@
 // (docs/crm/17-claude-connector.md §9). Run by build.sh stage 4: node web/kb/build_kb.mjs
 //   - the Page method popup of every LNP screen (gabarits/<Screen>.dc.html, written by stage 2)
 //   - the sidebar: where each screen is and the access key that opens it (Settings › Access, web/api/_screens.js)
+//   - the catalogue of the 42 Sales cycle SLAs (supabase/functions/_shared/sla_rules.js), for the alert_rules tool
 // A screen whose file is missing is left out (never an error), so the connector keeps working when screens change.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
@@ -17,6 +18,7 @@ const SCREENS = [
   ["Resultats", "resultats", "Entraînement › Mes résultats", "each person's training results, kept on their account and never deleted: training score out of 100, exercises, active time, history"],
   ["SuiviCommerciaux", "suivi", "Entraînement › Suivi des commerciaux", "admins only: per sales rep, the training score, exercises and time spent, next to their calls held, sales, revenue signed and collected"],
   ["SalesDay", "salesday", "Ventes › Ma journée", "the sales rep's day, one lead at a time: outcomes to declare, calls within 24 h, reschedules, no-shows, follow-ups"],
+  ["Alertes", "alertes", "Ventes › Alertes", "the alerts of the CRM: each lead late on a sales cycle SLA, for its sales rep (admins: the whole team); closed by itself when the action is done"],
   ["CRM", "crm", "Ventes › CRM", "Pipeline, Leads, Sales cycle, the lead record, call analysis and the payment window"],
   ["Settings", "settings", "Paramètres › Alertes", "the alert rules: on or off, threshold, severity, who is told and how"],
   ["Account", "account", "Paramètres › Compte", "the signed-in account (sign out) and the team; always open"],
@@ -39,6 +41,12 @@ function pageMethod(file) {
 
 const screens = SCREENS.map(([file, key, where, about]) => ({ screen: file, key, where, about, method: pageMethod(file) }))
   .filter(s => has("gabarits/" + s.screen + ".dc.html"));
-const kb = { built_from: "LNP sources (build.sh stage 4)", screens };
+// the SLA catalogue, as Settings › Alerts shows it (thresholds in hours; needs = the data sources an SLA reads)
+await import(new URL("supabase/functions/_shared/sla_rules.js", ROOT).href);
+const L = globalThis.LNP_SLA;
+const sla = L.DEFS.map(d => ({ id: d.id, name: d.name, stage: d.stage, kind: d.kind, target: d.target, warn: d.warn, late: d.late, crit: d.crit,
+  needs: d.needs || [], measured: !!d.eval, pending: d.pending || "" }));
+const sources = L.SOURCES.map(s => ({ id: s.id, name: s.name }));
+const kb = { built_from: "LNP sources (build.sh stage 4)", screens, sla, sources };
 writeFileSync(new URL("web/api/_kb.json", ROOT), JSON.stringify(kb));
 console.log("kb", screens.map(s => s.screen + (s.method ? " " + s.method.length : " (no page method)")).join(", "));

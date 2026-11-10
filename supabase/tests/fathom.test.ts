@@ -47,7 +47,7 @@ Deno.test("fathom: names of titles", () => {
   eq(titleNames("Ann Prospect x Design Career Roadmap Call on 27 Oct 2026 with Valentino D"), ["Ann Prospect"]);
   eq(titleNames(" Jacqueline: your Design Career Roadmap Call"), [], "one word:");
   eq(titleNames("Updated - Vanessa Danis Crook: your Design Career Roadmap Call (+ your personal link)"), ["Vanessa Danis Crook"]);
-  eq(titleNames("Jaci & Anthony Sung | IDA Roadmap Call 2."), ["Jaci & Anthony Sung"]);
+  eq(titleNames("Jaci & Anthony Sung | LNP Roadmap Call 2."), ["Jaci & Anthony Sung"]);
   eq(titleNames("Design Career Roadmap Call"), []);
   eq(titleNames("Training w/ Tristan"), []);
 });

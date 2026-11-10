@@ -69,7 +69,7 @@ Critical (SH-2 and DE-1 waited for messages that never come). An admin switches 
 - On each lane: a mark at the moment an SLA was missed (orange Late, red Critical, gold Due soon; an outlined mark = missed
   then resolved) and a dashed bar under the lane while a miss is open. The mark's tooltip says which SLA, how long, the target.
 
-## Alerts (Slack #sales-cycle, IDA workspace)
+## Alerts copied to Slack #sales-cycle (optional since 053)
 
 `web/supabase/028_crm_sla_alerts.sql` + `006_crm_cron.sql`: every 5 minutes pg_cron calls `sla-tick`, which reads the
 active cycles (`crm_sla_snapshot`, service role, no message text), applies the rules and posts each new Late or Critical
@@ -77,3 +77,20 @@ miss once (`crm_sla_claim` / `crm_sla_notices`): one message per tick listing th
 the sales rep, the time and the target, and a link to the Sales cycle. Misses before `crm_settings.sla_alerts.since` (the
 migration) or older than `max_age_hours` (6) are never posted. Setup: `setup.md` step 7b (secret
 `SLACK_SALES_CYCLE_WEBHOOK_URL`). Tests: `supabase/tests/sla.test.ts`, `web/supabase/tests/sla_alerts_test.sql`.
+
+## Alerts in the CRM (migration 053, Romain 2026-11-09)
+
+The CRM is the base of the notifications, not Slack. Every 5 minutes `sla-tick` evaluates the SLAs of every active cycle (the
+settings of Settings › Alerts) and calls `crm_sync_sla_alerts`: an alert opens at the first threshold crossed (Bientôt dû,
+En retard, Critique), moves up a level, and closes by itself when the SLA stops (the action is done) or the cycle ends. One open
+alert per cycle, SLA and clock start (`crm_sla_alerts`, key `cycle:SLA:minute of the start`).
+
+- Who sees what: a sales rep sees the alerts of the cycles they own; an admin sees all of them (`crm_sees_all`, 048), and can
+  filter by sales rep. Technical alerts (`kind = tech`: integrations, data) go to admins only. Read with
+  `crm_sla_alerts_open(p_owner)` and live through Supabase Realtime (`crm_sla_alerts` in the `supabase_realtime` publication).
+- Screens: Ventes › Alertes (`app/alerts_module.js`, `gen_alertes.py`): critical first, then late, then soon due; « Ouvrir la
+  fiche » opens the lead in the CRM. A badge on « Alertes » in the sidebar, a reminder on top of Ma journée, a « Nouvelle
+  alerte » banner while LNP is open, and, if the person accepts, a browser notification for a critical alert.
+- Slack: a copy, per SLA, off by default (`sla_rules.js`: `slack = false`); it needs the secret `SLACK_SALES_CYCLE_WEBHOOK_URL`.
+- Tests: `web/supabase/tests/alertes_test.sql`, `supabase/tests/sla.test.ts` (sla-tick), `app/alertes_test.js` (screen).
+

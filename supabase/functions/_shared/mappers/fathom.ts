@@ -11,7 +11,7 @@ const clean = (s: unknown) => String(s ?? "").replace(/\s+/g, " ").trim();
 const twoWords = (s: string) => s.split(" ").filter(Boolean).length >= 2;
 
 // names of two words or more in a title: "Ann Prospect x Design Career Roadmap Call on…", "Updated - Ann Prospect x …",
-// "Ann Prospect: your Design Career Roadmap Call", "Ann Prospect | IDA Roadmap Call 2."
+// "Ann Prospect: your Design Career Roadmap Call", "Ann Prospect | LNP Roadmap Call 2."
 export function titleNames(title: unknown): string[] {
   const t = clean(title).replace(/^updated\s*[-:]\s*/i, "");
   const m = t.match(/^(.+?)\s+x\s+/i) ?? t.match(/^(.+?)\s*:\s/) ?? t.match(/^(.+?)\s*\|/);

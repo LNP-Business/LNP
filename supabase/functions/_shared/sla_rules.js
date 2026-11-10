@@ -201,7 +201,8 @@
   var STAGES = ["Présence", "Décision", "Encaissement", "Conversation", "Clôture et suivi long terme", "Données et fiabilité"];
   var BY = {}, BASE = {};
   DEFS.forEach(function (d) {
-    d.on = true; d.app = true; d.slack = d.kind !== "indicator";
+    // the CRM is the base of the alerts (053); Slack is a copy, off by default (Romain 2026-11-09)
+    d.on = true; d.app = true; d.slack = false;
     BY[d.id] = d; BASE[d.id] = { warn: d.warn, late: d.late, crit: d.crit, slack: d.slack };
   });
   var SRC = { messages: true, whop: true, analysis: true };

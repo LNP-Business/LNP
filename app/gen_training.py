@@ -34,7 +34,7 @@ INFO = info_popup('Découverte', [
         "Clavier : 1 à 4 pour choisir un geste, Entrée pour valider, Ctrl ou ⌘ + Entrée pour comparer, O et N pour vos deux jugements.",
         "Chaque coup et chaque cas terminés sont enregistrés sur votre compte (Entraînement › Mes résultats) et ne peuvent pas être effacés."])
 ])
-write_screen('Entrainement.dc.html', 'Découverte', MAIN, fr(INFO), 'roadmap2_logic.js', info=False)
+write_screen('Entrainement.dc.html', 'Découverte', MAIN, fr(INFO), 'info_logic.js', info=False)
 
 
 def frame_main(attr):
@@ -58,7 +58,7 @@ INFO_A = info_popup("Maîtrise de l'offre", [
         "Lisez le résultat critère par critère, puis le corrigé. La fiche mémo résume l'offre en une page.",
         "Chaque note est enregistrée sur votre compte (Entraînement › Mes résultats) et ne peut pas être effacée."])
 ])
-write_screen('Academie.dc.html', "Maîtrise de l'offre", frame_main('data-academie'), fr(INFO_A), 'roadmap2_logic.js', info=False)
+write_screen('Academie.dc.html', "Maîtrise de l'offre", frame_main('data-academie'), fr(INFO_A), 'info_logic.js', info=False)
 
 INFO_R = info_popup('Mes résultats', [
     ('À quoi sert cette page', 'p', "Vos résultats d'entraînement, enregistrés sur votre compte : chaque coup du « Coup suivant », "
@@ -74,7 +74,7 @@ INFO_R = info_popup('Mes résultats', [
         "Le temps compté est le temps actif : une page laissée ouverte sans rien faire ne compte plus après deux minutes.",
         "Cliquez sur une ligne de l'historique pour revoir vos questions et vos réponses."])
 ])
-write_screen('Resultats.dc.html', 'Mes résultats', frame_main('data-resultats'), fr(INFO_R), 'roadmap2_logic.js', info=False)
+write_screen('Resultats.dc.html', 'Mes résultats', frame_main('data-resultats'), fr(INFO_R), 'info_logic.js', info=False)
 
 INFO_S = info_popup('Suivi des commerciaux', [
     ('À quoi sert cette page', 'p', "Pour les administrateurs : le suivi de l'entraînement de chaque commercial, mis en face de ses "
@@ -90,4 +90,4 @@ INFO_S = info_popup('Suivi des commerciaux', [
         "Cliquez sur une personne pour voir son score détaillé, son temps par jour et l'historique de ses exercices.",
         "Les résultats ne peuvent être ni modifiés ni effacés, par personne."])
 ])
-write_screen('SuiviCommerciaux.dc.html', 'Suivi des commerciaux', frame_main('data-suivi'), fr(INFO_S), 'roadmap2_logic.js', info=False)
+write_screen('SuiviCommerciaux.dc.html', 'Suivi des commerciaux', frame_main('data-suivi'), fr(INFO_S), 'info_logic.js', info=False)

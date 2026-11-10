@@ -33,4 +33,4 @@ INFO = info_popup('Ma journée', [
         "<em>Demain</em> met un prospect de côté pour aujourd'hui, <em>Passer</em> l'envoie en fin de file ; <em>À suivre</em> vous permet de choisir un autre prospect d'abord.",
         "Votre liste du jour (fait, mis de côté) n'est conservée que pour vous."])
 ])
-write_screen('SalesDay.dc.html', 'Ma journée', MAIN, fr(INFO), 'roadmap2_logic.js', info=False)
+write_screen('SalesDay.dc.html', 'Ma journée', MAIN, fr(INFO), 'info_logic.js', info=False)

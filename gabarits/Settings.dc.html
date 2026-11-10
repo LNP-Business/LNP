@@ -23,6 +23,7 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 <a href="SalesCockpit.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Cockpit commercial</span></a>
 <a href="CRM.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>CRM</span></a>
 <a href="SalesDay.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Ma journée</span></a>
+<a href="Alertes.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Alertes</span><span data-badge="alertes" title="Alertes ouvertes" style="margin-left: auto; min-width: 22px; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 12px; font-weight: 600; text-align: center">0</span></a>
 </div>
 <button type="button" data-navgrp="ss-training" aria-expanded="true" title="Replier ou déplier Entraînement" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Entraînement</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
 <div data-navitems="ss-training" style="display: flex; flex-direction: column; gap: 4px">
@@ -50,7 +51,7 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 <h2 id="sla" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Gestion des prospects · SLA du cycle de vente</h2>
 <span style="font-size: 13px; color: #5E5B53">{{sla.summary}}</span>
 </div>
-<div style="font-size: 14px; line-height: 1.55; color: #3D3A33; max-width: 980px">Chaque SLA est un engagement de délai : un événement démarre l’horloge, un résultat l’arrête. Au-delà du seuil, le prospect passe « Bientôt dû », « En retard » ou « Critique » dans CRM › Cycle de vente, et chaque retard ou critique est publié dans Slack #sales-cycle. Cliquez sur un SLA pour régler ses seuils et les endroits où il apparaît.</div>
+<div style="font-size: 14px; line-height: 1.55; color: #3D3A33; max-width: 980px">Chaque SLA est un engagement de délai : un événement démarre l’horloge, un résultat l’arrête. Au-delà du seuil, le prospect passe « Bientôt dû », « En retard » ou « Critique » et devient une alerte dans le CRM (écran Alertes, pastille de la barre latérale, Cycle de vente) pour le commercial du prospect ; les administrateurs voient celles de toute l’équipe. Cliquez sur un SLA pour régler ses seuils et les endroits où il apparaît.</div>
 <div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
 <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">Sources de données</span><span style="font-size: 12px; color: #5E5B53">Une source non reliée met en attente les SLA qui en ont besoin, pour ne pas mettre en retard des prospects à tort</span></div>
 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
@@ -162,14 +163,14 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 <section>
 <h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>À quoi sert cette page</h3>
 <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">C’est ici que se règlent les alertes du cycle de vente de LNP : les 42 SLA, de la prise de RDV au premier paiement, plus la conversation, la clôture et la fiabilité des données. Chaque SLA est un engagement de délai : un événement démarre l’horloge, un résultat l’arrête ; au-delà du seuil, le prospect passe « Bientôt dû », « En retard » ou « Critique ».</p>
-<p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #3D3A33">Chaque SLA indique s’il est mesuré, en attente d’une source de données, une règle de formulaire ou un indicateur lu dans le Cockpit commercial. Ses seuils s’appliquent au CRM › Cycle de vente et aux alertes Slack #sales-cycle. Les heures sont celles de Paris.</p>
+<p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #3D3A33">Chaque SLA indique s’il est mesuré, en attente d’une source de données, une règle de formulaire ou un indicateur lu dans le Cockpit commercial. Ses seuils ouvrent les alertes du CRM (écran Alertes, Cycle de vente) ; Slack n’est qu’une copie facultative, éteinte par défaut. Les heures sont celles de Paris.</p>
 </section>
 
 <section>
 <h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>En quoi elle rend chacun plus efficace</h3>
 <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
 <li><strong style="color: #1B1B18">Le système prévient, personne n’a à vérifier.</strong> Un retard arrive au commercial au moment où il se produit, pas à la réunion suivante.</li>
-<li><strong style="color: #1B1B18">Un seul référentiel.</strong> Les mêmes seuils servent au Cycle de vente, aux alertes Slack et au Cockpit commercial (Exécution, Impact).</li>
+<li><strong style="color: #1B1B18">Un seul référentiel.</strong> Les mêmes seuils servent aux alertes du CRM, au Cycle de vente et au Cockpit commercial (Exécution, Impact).</li>
 <li><strong style="color: #1B1B18">Pas de fausse alerte.</strong> Une source non reliée (WhatsApp, Whop, analyse automatique) met ses SLA en attente au lieu de mettre des prospects en retard à tort.</li>
 </ul>
 </section>
@@ -179,7 +180,7 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 <ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
 <li>Indiquez d’abord les sources reliées : tant qu’une source ne l’est pas, ses SLA restent en attente.</li>
 <li>Activez ou désactivez un SLA avec l’interrupteur de sa ligne.</li>
-<li>Cliquez sur un SLA pour régler l’alerte préventive, le retard et le seuil critique, puis choisir s’il apparaît dans le Cycle de vente, dans Slack ou les deux.</li>
+<li>Cliquez sur un SLA pour régler l’alerte préventive, le retard et le seuil critique, puis choisir s’il ouvre des alertes dans le CRM et, en option, s’il est aussi copié dans Slack.</li>
 <li>Enregistrez avec « Enregistrer » dans la fenêtre ou « Enregistrer les modifications » en haut de la page ; « Rétablir les réglages par défaut » remet les valeurs du référentiel. Seuls un administrateur et le responsable commercial enregistrent.</li>
 </ol>
 </section>
@@ -198,7 +199,7 @@ class Component extends DCLogic {
     this.loadSla();
   }
   // Sales cycle SLAs (catalogue: supabase/functions/_shared/sla_rules.js, window.LNP_SLA): the settings live in
-  // crm_settings.sla_rules (044), read by CRM › Sales cycle and by the Slack alerts; outside the web edition, in config/sla
+  // crm_settings.sla_rules (044), read by CRM › Sales cycle and by sla-tick (the alerts of the CRM, 053; Slack as an option); outside the web edition, in config/sla
   slaDefault() { return { sources: { messages: false, whop: false, analysis: false }, rules: {} }; }
   loadSla() {
     const done = (v) => {
@@ -260,7 +261,7 @@ class Component extends DCLogic {
           minus: () => setThr(k, v - stepOf(d, v, -1)), plus: () => setThr(k, v + stepOf(d, v, 1)),
           minusLabel: 'Baisser le seuil « ' + label.toLowerCase() + ' » de ' + d.id, plusLabel: 'Relever le seuil « ' + label.toLowerCase() + ' » de ' + d.id };
       });
-      const places = [['app', 'CRM › Cycle de vente'], ['slack', 'Slack #sales-cycle']].map(([k, label]) => ({
+      const places = [['app', 'Alertes du CRM'], ['slack', 'Copie dans Slack (facultatif)']].map(([k, label]) => ({
         label, on: !!d[k], style: this.chip(!!d[k]), toggle: () => { const o = {}; o[k] = !d[k]; setRule(d.id, o); }
       }));
       const on = d.on;
@@ -274,7 +275,7 @@ class Component extends DCLogic {
         stateHint: !on ? 'Rien n’est mesuré ni publié. Les réglages ci-dessous sont gardés.'
           : st.note || (d.kind === 'tech' ? 'Alerte technique : elle ne change pas le niveau du prospect.' : d.kind === 'indicator' ? 'Indicateur : il ne change pas le niveau du prospect.' : 'Mesuré sur chaque prospect en cours.'),
         dim: on ? 'opacity: 1' : 'opacity: 0.45', thr, places,
-        placeHint: d.kind === 'form' ? 'Une règle de formulaire empêche l’erreur au lieu de prévenir après coup.' : 'Dans le Cycle de vente : la marque sur la ligne du prospect et, pour un SLA commercial, son niveau. Dans Slack : chaque retard ou critique, une fois.',
+        placeHint: d.kind === 'form' ? 'Une règle de formulaire empêche l’erreur au lieu de prévenir après coup.' : 'Alertes du CRM : une alerte pour le commercial du prospect (écran Alertes, pastille, Cycle de vente), fermée dès que l’action est faite. Slack : une copie de chaque retard ou critique, une fois, si le webhook est branché.',
         restore: () => { const rules = Object.assign({}, cfg.rules); delete rules[d.id]; put(rules); }
       };
     });

@@ -245,7 +245,8 @@ export async function clocksRunning(u, ctx, { owner, level }) {
   const of = ownerFilter(ctx, owner); level = level || "late";
   const [cycles, alerts] = await Promise.all([
     liveCycles(u, ctx, of.id),
-    (() => { let q = u.from("crm_alerts").select("rule_id,severity,title,detail,owner_id,opened_at,cycle_id").is("resolved_at", null).order("opened_at"); if (of.id) q = q.eq("owner_id", of.id); return rows(q.limit(200)); })()
+    // the alerts of the CRM (053): opened and closed by sla-tick; a sales rep reads the alerts of their leads, an admin all
+    (() => { let q = u.from("crm_sla_alerts").select("sla,level,name,detail,target,owner_id,started_at,cycle_id,kind").is("resolved_at", null).order("started_at"); if (of.id) q = q.eq("owner_id", of.id); return rows(q.limit(200)); })()
   ]);
   const deals = await dealsFor(u, cycles.map(c => c.id));
   const list = [];
@@ -267,8 +268,11 @@ export async function clocksRunning(u, ctx, { owner, level }) {
         fmtTime(x.nm.due_at, ctx.tz), x.over > 0 ? "overdue " + dur(x.over) : "left " + dur(-x.over), stageLabel(ctx, x.c.current_stage) + " (" + dur(x.hin) + ")",
         ownerName(ctx, x.c.owner_id), x.amt ? eur(x.amt) : "—", "`" + x.c.id + "`"])));
   else L.push("", "Nothing " + (level === "all" ? "running" : level) + " right now.");
-  L.push("", "Open SLA alerts: " + (alerts.length ? "" : "none."));
-  if (alerts.length) L.push(table(["Severity", "Alert", "Detail", "Owner", "Since"], alerts.slice(0, MAX_ROWS).map(a => [a.severity, a.title, a.detail, ownerName(ctx, a.owner_id), fmtTime(a.opened_at, ctx.tz)])));
+  const LV = { crit: "critical", late: "late", warn: "soon due" }, rank = { crit: 0, late: 1, warn: 2 };
+  alerts.sort((a, b) => rank[a.level] - rank[b.level]);
+  L.push("", "Open alerts of the CRM (Ventes › Alertes): " + (alerts.length ? alerts.length : "none."));
+  if (alerts.length) L.push(table(["Level", "SLA", "Detail", "Target", "Owner", "Clock started", "Cycle"], alerts.slice(0, MAX_ROWS).map(a => [LV[a.level] || a.level,
+    a.sla + " " + a.name, a.detail || "—", a.target || "—", a.kind === "tech" ? "technical (admins)" : ownerName(ctx, a.owner_id), fmtTime(a.started_at, ctx.tz), "`" + a.cycle_id + "`"])));
   return { text: L.join("\n"), rows: cycles.length + alerts.length };
 }
 

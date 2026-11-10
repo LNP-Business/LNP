@@ -135,25 +135,36 @@ Deno.test("the model of a cycle: kinds of the screen", () => {
   eq(Math.round(l.age * 10) / 10, 1);
 });
 
-Deno.test("sla-tick: posts each new miss once, never the past, never before the settings date", async () => {
+Deno.test("sla-tick: every open miss becomes an alert of the CRM; Slack only for the SLAs switched on, each miss once", async () => {
   const claimed = new Set<string>(), posts: string[] = [];
+  // deno-lint-ignore no-explicit-any
+  let synced: any[] = [];
   const rpc = (fn: string, args: Record<string, unknown>) => {
     if (fn === "crm_sla_snapshot") return Promise.resolve([snap]);
+    // deno-lint-ignore no-explicit-any
+    if (fn === "crm_sync_sla_alerts") { synced = args.p_items as any[]; return Promise.resolve({ opened: synced.length }); }
     // deno-lint-ignore no-explicit-any
     const keys = (args.p_items as any[]).map((x) => x.key).filter((k) => !claimed.has(k)); keys.forEach((k) => claimed.add(k));
     return Promise.resolve(keys);
   };
   const post = (t: string) => { posts.push(t); return Promise.resolve(true); };
   const now = Date.parse("2026-10-30T06:00:00Z");
-  eq(await tick(rpc, post, now, { since: "2026-10-30T07:00:00Z", sla_rules: {} }), { cycles: 1, new: 0, posted: false }, "before since:");
-  // SH-2 (no personal message after 1 h) and CO-5 (the automatic message left at 06:01 in Paris)
-  eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, new: 2, posted: true });
+  // the CRM: SH-2 (no personal message after 1 h, critical) and CO-5 (the automatic message left at 06:01 in Paris)
+  const out = await tick(rpc, null, now, { since: "2026-10-30T07:00:00Z", sla_rules: {} });
+  eq([out.posted, posts.length], [false, 0], "no Slack without a webhook:");
+  const sh2 = synced.find((x) => x.sla === "SH-2"), co5 = synced.find((x) => x.sla === "CO-5");
+  eq([sh2?.level, sh2?.kind, sh2?.key, sh2?.started_at, co5?.kind], ["crit", "sales", `${snap.id}:SH-2:0`, snap.opened_at.replace("Z", ".000Z"), "tech"]);
+  // Slack is off by default: nothing posted, even with a webhook
+  eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, alerts: { opened: synced.length }, new: 0, posted: false }, "Slack off by default:");
+  const on = { rules: { "SH-2": { slack: true }, "CO-5": { slack: true } } };
+  eq(await tick(rpc, post, now, { since: "2026-10-30T07:00:00Z", sla_rules: on }), { cycles: 1, alerts: { opened: synced.length }, new: 0, posted: false }, "before since:");
+  eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z", sla_rules: on }), { cycles: 1, alerts: { opened: synced.length }, new: 2, posted: true });
   if (!/Critique\* · SH-2 .+ · \*Test Lead\* \(Valentino\)/.test(posts[0]) || !/Critique\* \(technique\) · CO-5 /.test(posts[0])) throw new Error(posts[0]);
-  eq(await tick(rpc, post, now + 60e3, { since: "2026-10-30T00:00:00Z" }), { cycles: 1, new: 0, posted: false }, "twice:");
+  eq((await tick(rpc, post, now + 60e3, { since: "2026-10-30T00:00:00Z", sla_rules: on })).new, 0, "twice:");
   eq(posts.length, 1);
-  // SH-2 off in Settings: nothing more to post for this cycle
-  claimed.clear();
-  eq(await tick(rpc, post, now, { since: "2026-10-30T00:00:00Z", sla_rules: { rules: { "SH-2": { slack: false } }, sources: { messages: false } } }), { cycles: 1, new: 0, posted: false }, "SH-2 not for Slack, no messages:");
+  // SH-2 off for the CRM screen: no CRM alert for it
+  await tick(rpc, null, now, { sla_rules: { rules: { "SH-2": { app: false } } } });
+  eq(synced.some((x) => x.sla === "SH-2"), false, "SH-2 off in the CRM:");
   SLA.configure({});
   eq(slackText([{ level: "late", sla: "CO-1", name: "Reply", person: "A", owner: "B", elapsed: "1 h", extra: "x", target: "15 min" }], "L").split("\n")[0], "1 SLA du cycle de vente dépassé");
 });

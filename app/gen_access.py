@@ -45,7 +45,7 @@ INFO = info_popup('Accès', [
         'Tout le monde, nouveaux venus compris, commence avec tout ouvert. <strong>Tout ouvrir</strong> ramène une personne à cet état.',
         'Les administrateurs peuvent aussi être restreints mais gardent toujours cette page ; personne ne change ses propres accès. Fermer un écran le cache, pas ses données.'])
 ])
-write_screen('Access.dc.html', 'Access', MAIN, INFO, 'roadmap2_logic.js')
+write_screen('Access.dc.html', 'Access', MAIN, INFO, 'info_logic.js')
 
 
 # ---- Settings › Account: who uses LNP here, sign-in and sign-out, Team access (Romain, 2026-10-26: out of the sidebar)
@@ -67,4 +67,4 @@ AINFO = info_popup('Compte', [
         'Administrateurs : <strong>Accès de l’équipe</strong> invite quelqu’un (envoyez-lui le lien obtenu), change un rôle, donne un lien de réinitialisation ou retire une personne. Les écrans que chacun peut ouvrir se règlent dans l’onglet Accès.',
         'Administrateurs : la colonne <strong>WhatsApp Business</strong> garde le numéro de chaque commercial et de chaque setter, avec l’indicatif (+33…). C’est ce numéro qui rattache ses messages WhatsApp aux prospects et aux alertes.'])
 ])
-write_screen('Account.dc.html', 'Account', AMAIN, AINFO, 'roadmap2_logic.js')
+write_screen('Account.dc.html', 'Account', AMAIN, AINFO, 'info_logic.js')

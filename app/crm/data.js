@@ -257,6 +257,10 @@
     salesCockpit: function () { return call("crm_sales_cockpit", {}); },
     // Cockpit commercial › Exécution, Qualité, Impact (050_crm_sales_execution.sql): the delays, reactivation, interactions,
     // quality and impact of a period (7 to 365 days), for every visible cycle or one sales rep's
+    // the alerts of the CRM (053): the open ones the person may see, and the count closed today
+    slaAlerts: function (owner) { return call("crm_sla_alerts_open", { p_owner: owner || null }); },
+    // live changes of the alerts (Realtime); returns an unsubscribe function
+    onAlerts: function (fn) { if (mode !== "live" || !api.subscribe) return function () {}; return api.subscribe(["crm_sla_alerts"], fn); },
     salesExecution: function (days, owner) { return call("crm_sales_execution", { p_days: days || 90, p_owner: owner || null }); },
     // the signed-in person's own screen settings (031): Pipeline column order, Sales Day lists; in demo mode kept in this browser
     getPref: async function (key) {

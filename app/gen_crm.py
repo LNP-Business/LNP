@@ -432,7 +432,7 @@ for a, b in [
     ('<div class="sec">Clos · ${closed.length} <button data-closed>${S.showClosed?"Masquer":"Afficher"}</button></div>${S.showClosed?closed.map(row).join(""):""}',
      '${S.f==="closed"?"":`<div class="sec">Clos · ${closed.length} <button data-closed>${S.showClosed?"Masquer":"Afficher"}</button></div>${S.showClosed?closed.map(row).join(""):""}`}'),
     ('<button class="needs" data-needs="1" title="Les alertes du CRM arrivent avec toutes les autres alertes">Alertes du CRM <b>${cnt.crit+cnt.late}</b></button>',
-     '<span class="needs" title="Chaque SLA en retard ou critique est publié dans Slack #sales-cycle (espace IDA)">Slack #sales-cycle <b>${cnt.crit+cnt.late}</b></span>'),
+     '<span class="needs" title="Chaque SLA en retard ou critique ouvre une alerte dans l’écran Alertes du commercial du prospect">Alertes ouvertes <b>${cnt.crit+cnt.late}</b></span>'),
     ('.kpis{display:flex;gap:10px;flex-wrap:wrap}', '.kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px}'
      '@media(max-width:1180px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:620px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}'),
     ('.kpi{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:0}',

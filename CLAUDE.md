@@ -30,7 +30,7 @@ Prérequis : Python 3.10+, Node 18+.
 Ne mettre à jour `EXPECTED.sha256` que lorsque Romain valide une nouvelle référence.
 
 1. **Écrans** (`app/`, dans cet ordre) : `harmonize.py` (cadre des Paramètres et du CRM), `gen_access.py` (Compte, Accès),
-   `gen_salescockpit.py` (Cockpit commercial), `gen_salesday.py` (Ma journée), `nav.py` (barre latérale). Ils écrivent les
+   `gen_salescockpit.py` (Cockpit commercial), `gen_salesday.py` (Ma journée), `gen_alertes.py` (Alertes), `gen_training.py`, `nav.py` (barre latérale). Ils écrivent les
    gabarits `gabarits/*.dc.html` ; l'en-tête commun est `gabarits/Shell.base.html`, le bouton « i » et sa fenêtre
    viennent de `app/shell.py`.
 2. **Assemblage** : `build.py` réunit les gabarits, `store.js` (`window.LNP` : confirmation des suppressions), `crm/data.js`, le CRM (`crm_doc.html`), le module
@@ -53,6 +53,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   Onglets Exécution, Qualité, Impact : `app/sales_exec_module.js`, onglets dans `gen_salescockpit.py` et
   `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migration 050) ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
 - Ma journée : `app/salesday_module.js` + `gen_salesday.py`.
+- Alertes (Romain, 2026-11-09 : le CRM est la base des notifications, pas Slack) : `sla-tick` ouvre, fait monter et ferme les
+  alertes toutes les 5 min (`crm_sla_alerts`, `crm_sync_sla_alerts`, migration 053) ; un commercial voit les alertes de ses
+  prospects, un administrateur celles de toute l'équipe (`crm_sla_alerts_open`). Écran, pastille, bandeau et notification du
+  navigateur : `app/alerts_module.js` + `gen_alertes.py` ; rappel en tête de Ma journée : `build.py` (`decorate`). Slack n'est
+  qu'une copie facultative, éteinte par défaut (`sla_rules.js`). Test `node app/alertes_test.js $PWD/app/lnp.html <dossier>`.
 - Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `app/training/` injectées
   par `build.py`) :
   - Découverte : `entrainement.html`, ses cas `coup_lnp.json` et `lettre_lnp.json` ; test `training_test.js`.
@@ -95,7 +100,7 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 (`web/supabase/003_crm_core.sql` et suivants), les écritures du navigateur passent par les fonctions `crm_*` (`004_crm_rpc.sql`).
 - Fonctions Edge (`supabase/functions/`, `verify_jwt = false`, chacune vérifie son jeton ou sa signature) : `iclosed-in`,
   `fathom-in`, `whatsapp-in`, `whop-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
-  `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes SLA vers Slack toutes les 5 min), `callqa-llm`.
+  `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes du CRM toutes les 5 min, copie Slack en option), `callqa-llm`.
 - Messages : **WhatsApp Business seulement** (Romain, 2026-11-09 : pas de Sendblue). API officielle en coexistence,
   `whatsapp-in` + `mappers/whatsapp.ts` (`docs/crm/07-integration-whatsapp.md`, migration 052) ; le numéro WhatsApp Business de
   chaque commercial et setter (Paramètres › Compte › Accès de l'équipe) rattache ses messages.

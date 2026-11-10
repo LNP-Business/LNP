@@ -156,19 +156,19 @@ Details: `docs/crm/07-integration-whatsapp.md`.
    succeeds, then refund it. Rows appear with `source = whop`.
 5. Write in the checklist the **plan id** (starts with `plan_`) of each real product. It is not a secret.
 
-## Step 7b — Slack #sales-cycle (SLA alerts)
+## Step 7b — Alerts (in the CRM; Slack optional)
 
-The Sales cycle SLAs (docs/crm/18) post each new Late or Critical miss to Slack #sales-cycle, in the IDA workspace
-(theinteriordesign). It needs an incoming webhook of that channel, kept as a Supabase secret; never paste it in a chat.
+The alerts of the Sales cycle SLAs (docs/crm/18) live in the CRM (migration 053): every 5 minutes `sla-tick` opens, moves up
+and closes them; each sales rep sees the alerts of their own leads in Ventes › Alertes (badge in the sidebar), admins those of
+the whole team. Nothing to set up beyond migration 053 and the team (Settings › Account › Team access).
 
-1. In Slack (IDA workspace), create the channel **#sales-cycle** if it does not exist.
-2. Open https://api.slack.com/apps › **Create New App** › **From scratch**: name **LNP alerts**, workspace
-   **theinteriordesign**.
-3. **Incoming Webhooks** › turn it on › **Add New Webhook to Workspace** › choose **#sales-cycle** › **Allow**.
-4. Copy the webhook URL (starts with `https://hooks.slack.com/services/`).
-5. Supabase › project **LNP** › **Edge Functions** › **Secrets** › add `SLACK_SALES_CYCLE_WEBHOOK_URL` = that URL.
-6. Check: within 5 minutes of the next miss, a message arrives in #sales-cycle. Until the secret exists, nothing is posted
-   (sla-tick answers 409) and nothing is lost: misses of the last 6 hours are posted once it is set.
+Optional copy to Slack, per SLA (off by default):
+
+1. Open https://api.slack.com/apps › **Create New App** › **From scratch**: name **Alertes LNP**, LNP's Slack workspace.
+2. **Incoming Webhooks** › turn it on › **Add New Webhook to Workspace** › choose the channel › **Allow**.
+3. Copy the webhook URL (starts with `https://hooks.slack.com/services/`) and add it in Supabase › project **LNP** ›
+   **Edge Functions** › **Secrets** as `SLACK_SALES_CYCLE_WEBHOOK_URL`. Never paste it in a chat.
+4. Settings › Alerts: on each SLA wanted in Slack, switch on « Copie dans Slack (facultatif) ».
 
 ## Step 8 — Check and hand over
 
