@@ -22,9 +22,9 @@ happens yet (no CRM screen changes). The stored rows become the test data ("fixt
 
 ---
 
-## Step 1 — Create the inbox table in `skl-os`
+## Step 1 — Create the inbox table in `LNP`
 
-1. Go to https://supabase.com/dashboard and open the project **`skl-os`**.
+1. Go to https://supabase.com/dashboard and open the project **`LNP`**.
 2. **Project Settings › General**: copy the **Project ID** (about 20 letters, for example `abcdefghijklmnopqrst`).
    We call it `<ref>` below. It is not a secret. On the same page, note the **Region** for the checklist (Q9).
 3. **SQL Editor** (left menu) › **New query**. (Done on 24 Oct 2026 through the Supabase connector. The file `003a_crm_webhook_log.sql` it used is now folded
@@ -38,7 +38,7 @@ happens yet (no CRM screen changes). The stored rows become the test data ("fixt
 The functions are deployed by GitHub, from the branch `main` only. GitHub needs two secrets for that.
 
 1. Supabase: click your avatar (top right) › **Account preferences** › **Access Tokens**
-   (https://supabase.com/dashboard/account/tokens) › **Generate new token**. Name: `github-skl-os`.
+   (https://supabase.com/dashboard/account/tokens) › **Generate new token**. Name: `github-lnp`.
    Copy the token (it starts with `sbp_`). This token can manage your Supabase projects: paste it only in GitHub, just below.
 2. GitHub: open https://github.com/LNP-Business/LNP › **Settings** › **Secrets and variables** › **Actions** ›
    **New repository secret**, twice:
@@ -69,7 +69,7 @@ Two secrets are ours (we invent them): `ICLOSED_INBOUND_TOKEN` and `SENDBLUE_INB
 Make each one with your password manager's generator: **48 characters, letters and digits only**
 (no symbols: the Sendblue one goes in a web address).
 
-**Where every secret goes:** Supabase › `skl-os` › **Edge Functions** › **Secrets** › **Add new secret**
+**Where every secret goes:** Supabase › `LNP` › **Edge Functions** › **Secrets** › **Add new secret**
 (name exactly as written, value pasted, then **Save**). The functions read them at once, no redeploy needed.
 
 | Secret name | Where it comes from | Used in phase |
@@ -96,7 +96,7 @@ iClosed has its own webhooks (Q1 answered), so Zapier is not needed.
 2. **URL** (the token goes at the end of the address):
    `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>`
    (replace `<ICLOSED_INBOUND_TOKEN>` with the value you made in step 3). If iClosed lets you add a header instead,
-   you can use the header `x-skl-token` = your token and the address without `?k=…`.
+   you can use the header `x-lnp-token` = your token and the address without `?k=…`.
 3. **Events**: call booked (scheduled), call rescheduled, call cancelled. If iClosed offers more (no-show, outcome…),
    tick them too: they are only stored for now, and help decide the mapping in phase 2.
 4. Save, then use iClosed's **Test** button if there is one, or book a test call with yourself. A row appears in
@@ -104,7 +104,7 @@ iClosed has its own webhooks (Q1 answered), so Zapier is not needed.
 5. Write in the checklist which events iClosed offers.
 
 If one day a Zap is needed after all, it posts the JSON contract of `05-integration-iclosed.md` §3 with the header
-`x-skl-token`; the same function accepts both.
+`x-lnp-token`; the same function accepts both.
 
 ## Step 5 — Fathom (recordings)
 
@@ -164,13 +164,13 @@ The Sales cycle SLAs (docs/crm/18) post each new Late or Critical miss to Slack 
    **theinteriordesign**.
 3. **Incoming Webhooks** › turn it on › **Add New Webhook to Workspace** › choose **#sales-cycle** › **Allow**.
 4. Copy the webhook URL (starts with `https://hooks.slack.com/services/`).
-5. Supabase › project **skl-os** › **Edge Functions** › **Secrets** › add `SLACK_SALES_CYCLE_WEBHOOK_URL` = that URL.
+5. Supabase › project **LNP** › **Edge Functions** › **Secrets** › add `SLACK_SALES_CYCLE_WEBHOOK_URL` = that URL.
 6. Check: within 5 minutes of the next miss, a message arrives in #sales-cycle. Until the secret exists, nothing is posted
    (sla-tick answers 409) and nothing is lost: misses of the last 6 hours are posted once it is set.
 
 ## Step 8 — Check and hand over
 
-1. Supabase › `skl-os` › **Table Editor** › `crm_webhook_log`: one row per test, `auth_ok = true`.
+1. Supabase › `LNP` › **Table Editor** › `crm_webhook_log`: one row per test, `auth_ok = true`.
    `false` means the token or secret in Supabase does not match the one in the tool (paste it again).
 2. **SQL Editor** › New query › paste and run:
    ```sql
@@ -188,8 +188,8 @@ The Sales cycle SLAs (docs/crm/18) post each new Late or Critical miss to Slack 
 | Q2 | Does your Fathom plan show API Access and Webhooks? | |
 | Q5 | Automations in iClosed (reminders, follow-ups, workflows): trigger, message, recipient | |
 | Q5 | Automations in Sendblue: trigger, message, recipient | |
-| Q9 | Region of `skl-os`: ap-southeast-2 (Sydney). Origin of the leads (US / EU) to confirm later | |
-| Q10 | Done? Supabase `skl-os` › Authentication › URL Configuration: Site URL = `https://lnp-sales.vercel.app`, Redirect URLs include `https://lnp-sales.vercel.app/**` | |
-| Q10 | Done? Supabase `skl-os` › Authentication › Sign In / Providers › Email: Email OTP Expiration = `86400` | |
+| Q9 | Region of `LNP`: ap-southeast-2 (Sydney). Origin of the leads (US / EU) to confirm later | |
+| Q10 | Done? Supabase `LNP` › Authentication › URL Configuration: Site URL = `https://lnp-sales.vercel.app`, Redirect URLs include `https://lnp-sales.vercel.app/**` | |
+| Q10 | Done? Supabase `LNP` › Authentication › Sign In / Providers › Email: Email OTP Expiration = `86400` | |
 | — | iClosed webhook events offered (step 4.5) | |
 | — | Whop plan id of each product (step 7.5) | |

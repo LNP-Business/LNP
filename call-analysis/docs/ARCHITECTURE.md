@@ -1,9 +1,9 @@
-# ALKIMIY Call Analysis Engine · Architecture
+# LNP Call Analysis Engine · Architecture
 _Technical specification: how one sales call becomes four reliable, auditable competence scores (SPIN, Gap, Pitch, Objections)_
 
 **Version:** Version 1.0 · 25 October 2026  
 **Status:** Draft for validation by the CTO and the methodology owner. Values marked "to validate" or "à confirmer" are proposals or missing facts.  
-**Scope:** Post-call analysis of recorded sales calls. Applies the four methodology documents: SPIN 1.1, Gap 1.3, Pitch 2.0, Objections 1.1, and their common engine (Part C). Reference implementation: Python package alkimiy_callqa.  
+**Scope:** Post-call analysis of recorded sales calls. Applies the four methodology documents: SPIN 1.1, Gap 1.3, Pitch 2.0, Objections 1.1, and their common engine (Part C). Reference implementation: Python package lnp_callqa.  
 # 1. The decision in one page
 
 **Question.** To analyse sales calls with very high reliability, should the system be four agents, one per competence?
@@ -196,7 +196,7 @@ The test set of the gold set is never used to adjust a rule, a prompt or a thres
 
 # 9. Reference implementation
 
-The Python package `alkimiy_callqa` implements this architecture without any external dependency (the Anthropic SDK is optional, for live runs).
+The Python package `lnp_callqa` implements this architecture without any external dependency (the Anthropic SDK is optional, for live runs).
 
 | Path | Content |
 |---|---|

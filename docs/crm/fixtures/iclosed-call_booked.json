@@ -1,7 +1,7 @@
 {
   "_illustrative": true,
   "_note": "Our own contract posted by the Zap (05 §3). Field availability to VERIFY on a real Zap test.",
-  "contract": "skl.iclosed.v1",
+  "contract": "lnp.iclosed.v1",
   "event": "call_booked",
   "occurred_at": "2026-10-24T09:12:00Z",
   "call": { "id": "icl_call_0001", "start": "2026-10-27T15:00:00Z", "end": "2026-10-27T15:45:00Z",

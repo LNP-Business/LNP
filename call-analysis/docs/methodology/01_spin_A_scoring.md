@@ -3,14 +3,14 @@ _Scoring methodology: how the system measures whether the sales ran a discovery 
 
 **Version:** Version 1.1 · 25 October 2026  
 **Status:** Draft for validation by the methodology owner. Values marked "to validate" are proposals.  
-**Scope:** Sales calls (first call and any call that reopens discovery). Sources: ALKIMIY SPIN bounding reference v1.0, ALKIMIY verbatim reference v2, analysis of 85 real calls.  
+**Scope:** Sales calls (first call and any call that reopens discovery). Sources: LNP SPIN bounding reference v1.0, LNP verbatim reference v2, analysis of 85 real calls.  
 # 1. What this competence measures
 
 **Definition.** SPIN Discovery is the sales' ability to lead the prospect, through questions, to say in their own words: their current situation, what is not working, what it costs them outside the problem itself, and what solving it would be worth to them.
 
 **What success means, in one sentence.** The sales succeeded when the prospect, not the sales, has verbalised a measurable starting point, at least one problem, at least two consequences of that problem in other areas of life (one of them quantified), and a desired state with the value they attach to it, and when these came out of chains of questions that dug into the same problem.
 
-**The governing principle.** The system measures the **effect** of the questions on the prospect, never the number of questions. A question earns nothing by itself; only what the prospect says in response does. This follows the SPIN research (Rackham, Huthwaite: in complex sales, implication and need-payoff questions predict progress because they make the buyer state the problem's consequences and the value of solving it) and the ALKIMIY guard: **the letter of a question never produces points.** If question counts entered the score, sales would fire questions to fill the counter.
+**The governing principle.** The system measures the **effect** of the questions on the prospect, never the number of questions. A question earns nothing by itself; only what the prospect says in response does. This follows the SPIN research (Rackham, Huthwaite: in complex sales, implication and need-payoff questions predict progress because they make the buyer state the problem's consequences and the value of solving it) and the LNP guard: **the letter of a question never produces points.** If question counts entered the score, sales would fire questions to fill the counter.
 
 The analysis therefore has two layers that are never mixed:
 
@@ -156,7 +156,7 @@ These indicators explain the score; they never enter it.
 | Diagnostic | Computation | Reference |
 |---|---|---|
 | Letter distribution | Share of S, P, I, N among coded S/P/I/N solicitations | — |
-| Call budget | S and P: ceiling of 2 per call. I and N: floor of 3 per call | ALKIMIY SPIN reference |
+| Call budget | S and P: ceiling of 2 per call. I and N: floor of 3 per call | LNP SPIN reference |
 | Problem followed by implication | Share of P solicitations whose next coded S/P/I/N solicitation is an I | Target 50 % (to validate) |
 | Prompted answers | Share of perimeter solicitations with OUT `agreement` | Target ≤ 15 % (to validate) |
 | Closed need-payoff | Count of `closed_need_payoff` tags | Target 0 |

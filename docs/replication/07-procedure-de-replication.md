@@ -10,13 +10,13 @@ ou un projet de LNP.
 
 1. Créer l'organisation GitHub de NOUVEAU et un dépôt (privé conseillé).
 2. Y copier le dépôt LNP (« Import repository », ou `git clone` puis `git push` vers le nouveau dépôt).
-3. Changer la marque dans `edition.json` (chapitre 06) : `wordmark`, `logo` (nouveau PNG dans `skl-os/brand/`), `brand`, `title`,
-   `recolor`, `fonts` ; reporter les couleurs et polices dans `web/public/skl-web.js` et `web/api/oauth.js`.
+3. Changer la marque dans `edition.json` (chapitre 06) : `wordmark`, `logo` (nouveau PNG dans `app/brand/`), `brand`, `title`,
+   `recolor`, `fonts` ; reporter les couleurs et polices dans `web/public/lnp-web.js` et `web/api/oauth.js`.
 4. Remplacer les mentions « LNP », « Les Nouveaux Profs » et l'adresse `lnp-sales.vercel.app` dans les textes : `edition.json`
-   (`rename`), `LNP.md`, `CLAUDE.md`, `README.md`, `docs/`, les données d'exemple (`skl-os/store.js` : équipe de démonstration ;
+   (`rename`), `LNP.md`, `CLAUDE.md`, `README.md`, `docs/`, les données d'exemple (`app/store.js` : équipe de démonstration ;
    `docs/crm/reference/sales-cycle-v6.html` : messages d'exemple « de LNP »), le nom du serveur MCP (`web/api/mcp.js`).
-5. `./build.sh`, puis ouvrir `skl-os/skl-os-en.html` et vérifier chaque écran (chapitre 06, « Tests »). Quand la page est validée :
-   `cd skl-os && sha256sum skl-os-en.html > EXPECTED.sha256` pour fixer la nouvelle référence.
+5. `./build.sh`, puis ouvrir `app/lnp.html` et vérifier chaque écran (chapitre 06, « Tests »). Quand la page est validée :
+   `cd app && sha256sum lnp.html > EXPECTED.sha256` pour fixer la nouvelle référence.
 
 ## 2. Supabase
 
@@ -70,7 +70,7 @@ ou un projet de LNP.
    curl -sS -X POST https://<site>/api/bootstrap -H "x-bootstrap-token: <BOOTSTRAP_TOKEN>" -H "content-type: application/json" -d '{"email":"<e-mail>"}'
    ```
    La réponse contient un lien d'invitation (aucun e-mail n'est envoyé). Les liens Supabase classiques sont à usage unique et peuvent
-   être consommés par l'aperçu d'une messagerie : préférer le format de l'application, `https://<site>/#skl-link=<hashed_token>&type=recovery`
+   être consommés par l'aperçu d'une messagerie : préférer le format de l'application, `https://<site>/#lnp-link=<hashed_token>&type=recovery`
    (c'est celui que produit Paramètres › Compte pour les invitations suivantes).
 2. Supprimer `BOOTSTRAP_TOKEN` dans Vercel et redéployer (sinon `/api/bootstrap` reste ouvert).
 3. Ouvrir le lien, choisir le mot de passe, inviter l'équipe depuis Paramètres › Compte, régler les accès dans Paramètres › Accès.

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from alkimiy_callqa.core.llm import MockClient
+from lnp_callqa.core.llm import MockClient
 from callqa_worker.gateway import GatewayClient
 from callqa_worker.job import ModelErrors, engine_of, engine_version, run_job, summary
 from test_worker import TIERS, claim, opener_from
@@ -32,7 +32,7 @@ def test_job_routes_engine_lite_to_the_lite_engine():
 
 
 def test_full_engine_unchanged_without_the_choice():
-    assert engine_of(claim()) == "full" and engine_version(claim()) == "alkimiy_callqa-1.0"
+    assert engine_of(claim()) == "full" and engine_version(claim()) == "lnp_callqa-1.0"
     assert engine_of(claim(config={"tiers": TIERS, "passes": 3, "engine": "full"})) == "full"
     rec = run_job(claim(), MockClient(fallback=lambda *a: {}))
     assert "meta" not in rec and set(rec["results"]) == {"SPIN", "GAP", "PITCH", "OBJECTIONS"}

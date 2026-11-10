@@ -99,7 +99,7 @@ One call needs about **700 model calls** (3 passes) before arbitration, so a Ver
 ## 5. Screen (phase 4 of the handoff)
 
 - **One renderer, three doors.**
-  - `skl-os/crm/call_analysis.js` defines `window.SKL_CALL_ANALYSIS.render(el, record)`. It follows
+  - `app/crm/call_analysis.js` defines `window.LNP_CALL_ANALYSIS.render(el, record)`. It follows
     `docs/SCREEN_SPEC.md` with the app's tokens (Cockpit design system: Fraunces, IBM Plex, gold `#D9B46A`).
     - Header with four score tiles, the bottleneck mark, rules versions and the **"provisional"** label.
     - Call line with the duration, and the horizontal call map.
@@ -107,7 +107,7 @@ One call needs about **700 model calls** (3 passes) before arbitration, so a Ver
     - The four sections: discovery by domain with S/P/I/N chips; gap timing bar with the annotated verbatim, the four
       checks and the component table; pitch compliance chips, staircase and pitch verbatim; objections table with
       clickable **A · I · E · M** and the prevention tiles.
-  - `SKL_CRM.callAnalysis(callId)` reads the record through row-level security.
+  - `LNP_CRM.callAnalysis(callId)` reads the record through row-level security.
   1. **Sales cycle**: selecting a call in the cycle opens the existing `anHTML` dialog, now drawn by the renderer.
      - With no record: "Add transcript".
      - While the job runs: "Analysing… (started hh:mm)".

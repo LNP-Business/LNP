@@ -3,7 +3,7 @@ _Scoring methodology: how the system measures whether the sales pitched the one 
 
 **Version:** Version 2.0 · 25 October 2026  
 **Status:** Draft for validation by the methodology owner. Values marked "to validate" or "à confirmer" are proposals or missing facts.  
-**Scope:** Sales calls that contain a presentation of the offer. Sources: ALKIMIY pitch board "9 blocages, 9 mécanismes" (October 2026), Gap Formalisation methodology v1.3 (gap formula, verbatim rules), ALKIMIY verbatim reference v2 (tipping point), analysis of 85 real calls.  
+**Scope:** Sales calls that contain a presentation of the offer. Sources: LNP pitch board "9 blocages, 9 mécanismes" (October 2026), Gap Formalisation methodology v1.3 (gap formula, verbatim rules), LNP verbatim reference v2 (tipping point), analysis of 85 real calls.  
 # 1. What this competence measures
 
 **Definition.** The pitch is the part of the call where the sales presents the offer: from the first statement describing the offer (or the start of the screen share of the program) to the first price, or to the end of the presentation if no price is given.

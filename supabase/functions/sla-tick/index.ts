@@ -8,7 +8,7 @@ import { restRpc, type Rpc } from "../_shared/worker.ts";
 import { slackText, toLead, type Snap } from "../_shared/sla_view.ts";
 
 // deno-lint-ignore no-explicit-any
-const SLA = (globalThis as any).SKL_SLA;
+const SLA = (globalThis as any).LNP_SLA;
 
 export async function tick(rpc: Rpc, post: (text: string) => Promise<boolean>, now = Date.now(), settings?: Record<string, unknown>) {
   const cfg = settings ?? {};

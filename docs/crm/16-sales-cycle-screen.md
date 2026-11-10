@@ -53,7 +53,7 @@ only their own cycles (row-level security, `12-security-compliance.md`); the sal
 | `dec` | Decision | First call held | Yes or no declared | 72 | 144 | `#8B67C9` |
 | `cash` | Cash | Yes | First successful payment | 24 | 48 | `#4F9A5B` |
 
-The values above are the ones of the mock-up. The SLA reference (`SKL-CRM-SLA-cycle-de-vente-v1.docx`) proposes
+The values above are the ones of the mock-up. The SLA reference (`LNP-CRM-SLA-cycle-de-vente-v1.docx`) proposes
 Show 72 / 96 late / 168 critical; whichever values Romain validates go into the configuration, not into this screen.
 Times are **calendar hours** (D7).
 

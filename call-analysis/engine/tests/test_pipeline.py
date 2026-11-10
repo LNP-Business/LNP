@@ -4,10 +4,10 @@ import os
 import re
 from pathlib import Path
 
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.models import CallContext, Turn
-from alkimiy_callqa.core.runner import Runner
-from alkimiy_callqa.pipeline import analyse_call, result_record
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.models import CallContext, Turn
+from lnp_callqa.core.runner import Runner
+from lnp_callqa.pipeline import analyse_call, result_record
 
 RUNS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 

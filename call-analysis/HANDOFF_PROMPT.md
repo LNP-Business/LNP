@@ -1,6 +1,6 @@
 # Prompt to give Claude Code
 
-Copy this folder (`skl-call-analysis/`) into the app repository (for example under `call-analysis/`), open Claude
+Copy this folder (`lnp-call-analysis/`) into the app repository (for example under `call-analysis/`), open Claude
 Code at the repository root, and paste the prompt below.
 
 ---

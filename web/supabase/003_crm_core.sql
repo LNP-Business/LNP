@@ -1,5 +1,5 @@
 -- LNP CRM — core schema (web/supabase/003_crm_core.sql)
--- Applies to the existing Supabase project "skl-os", after 001_init.sql and 002_q4_okrs.sql.
+-- Applies to the Supabase project of LNP, after 001_init.sql and 002_q4_okrs.sql.
 -- Single source of truth for sales cycles: call booked -> won / lost / disqualified, plus nurture.
 --
 -- DELIBERATE EXCEPTION to the LNP convention "every collection is a JSON document in docs":
@@ -534,7 +534,7 @@ insert into crm_settings (key, value) values ('alert_rule_defaults', '[
 ]');
 
 insert into crm_settings (key, value) values
-  ('team_email_domains', '["skl.live"]'),             -- VERIFY: domains used to tell internal from external invitees
+  ('team_email_domains', '["lesnouveauxprofs.fr"]'),             -- VERIFY: domains used to tell internal from external invitees
   ('default_owner', '"sales"'),                        -- LNP member id used when the iClosed host is unknown (Valentino)
   ('whop_plans', '{}'),                                -- product name -> Whop plan id (fill in phase 0)
   ('analysis_model', '"claude-sonnet-5-5"'),

@@ -3,7 +3,7 @@
 ## 1. Components
 
 ```
-                   ┌──────────────── Supabase project "skl-os" ─────────────────┐
+                   ┌──────────────── Supabase project "lnp" ─────────────────┐
  iClosed ─► Zapier ─►│ Edge Function iclosed-in  ┐                                  │
  Fathom  ───────────►│ Edge Function fathom-in   ├─► crm_webhook_log (raw)          │
  Sendblue ──────────►│ Edge Function sendblue-in │          │                       │
@@ -18,7 +18,7 @@
                      │  reconcile (nightly) · outbound: sendblue-send,             │
                      │  whop-checkout, claude-analyze                              │
                      └───────────────┬──────────────────────────────────────────────┘
-                                     │ supabase-js client already opened by web/public/skl-web.js
+                                     │ supabase-js client already opened by web/public/lnp-web.js
                                      ▼
         Vercel "lnp-sales.vercel.app": LNP web edition (sign-in, /api/config, /api/me, /api/team…)
         store.js merges crm_alerts into the alert list → My Day › Needs you, Settings › Alerts
@@ -55,7 +55,7 @@ supabase/                            Supabase CLI workdir for Edge Functions onl
     process-inbox/ rules-tick/ nurture-tick/ reconcile/
     sendblue-send/ whop-checkout/ claude-analyze/
   tests/
-skl-os/crm/                          CRM data layer used by crm_doc.html and the CRM screens
+app/crm/                          CRM data layer used by crm_doc.html and the CRM screens
 docs/crm/                            this specification
 ```
 
@@ -85,7 +85,7 @@ numbered source of truth.
 | Environment | Supabase | Front end | Webhooks |
 |---|---|---|---|
 | `dev` | **none** (D13): the same project `LNP`, with test people only; unit tests run without a database | Vercel preview deployment of the branch | test accounts / replayed fixtures |
-| `prod` | `skl-os` | https://lnp-sales.vercel.app | real providers |
+| `prod` | `LNP` | https://lnp-sales.vercel.app | real providers |
 
 ## 5. Secrets
 

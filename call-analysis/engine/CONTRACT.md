@@ -1,6 +1,6 @@
 # Engine contract (read before writing a competence module)
 
-Package: `alkimiy_callqa` (Python 3.11+, stdlib only; `anthropic` optional).
+Package: `lnp_callqa` (Python 3.11+, stdlib only; `anthropic` optional).
 
 ## Golden rule
 The model extracts and quotes; the code decides and scores. A model answer never contains a score, a level or a

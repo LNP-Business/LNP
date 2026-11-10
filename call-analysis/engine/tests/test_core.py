@@ -1,12 +1,12 @@
 from datetime import date
 
-from alkimiy_callqa.core import aggregate
-from alkimiy_callqa.core.foundation import decide_phases, repair_attribution
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.models import CallContext, Evidence, ItemScore, Turn
-from alkimiy_callqa.core.runner import ModelTask, Runner
-from alkimiy_callqa.core.scoring import call_score, item
-from alkimiy_callqa.core.text import key_expression_ok, norm_number, quote_ok, sentences
+from lnp_callqa.core import aggregate
+from lnp_callqa.core.foundation import decide_phases, repair_attribution
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.models import CallContext, Evidence, ItemScore, Turn
+from lnp_callqa.core.runner import ModelTask, Runner
+from lnp_callqa.core.scoring import call_score, item
+from lnp_callqa.core.text import key_expression_ok, norm_number, quote_ok, sentences
 
 
 def ctx_of(lines):

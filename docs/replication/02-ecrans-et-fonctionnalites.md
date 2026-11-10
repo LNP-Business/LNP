@@ -4,11 +4,10 @@ Spécification fonctionnelle de chaque écran de la page LNP, assez précise pou
 (chemins cités) ; quand `docs/crm/` dit autre chose, **le code fait foi** et l'écart est signalé (§ 13). Les libellés entre
 « » sont ceux que la personne lit, mot pour mot. Les identifiants, clés et valeurs comparées restent en anglais.
 
-Sources principales : `skl-os/build.py` (cadre, routage), `skl-os/nav.py`, `skl-os/shell.py`, `skl-os/store.js`,
-`skl-os/kr_view.js`, `proposal/sales-cockpit-v2.html` + `skl-os/gen_sales_v2.py`, `skl-os/salesday_module.js` +
-`skl-os/gen_salesday.py`, `uploads/ALKIMIY_Lite.html` + `skl-os/gen_crm.py` (résultat figé : `skl-os/crm_doc.html`),
-`docs/crm/reference/sales-cycle-v6.html`, `skl-os/crm/*.js`, `supabase/functions/_shared/sla_rules.js`,
-`skl-en/project/Settings.pre-hz.dc.html`, `skl-os/gen_access.py`, `web/public/skl-web.js`, `web/api/*.js`,
+Sources principales : `app/build.py` (cadre, routage), `app/nav.py`, `app/shell.py`, `app/store.js`, `proposal/sales-cockpit-v2.html` + `app/gen_sales_v2.py`, `app/salesday_module.js` +
+`app/gen_salesday.py`, `uploads/crm_source.html` + `app/gen_crm.py` (résultat figé : `app/crm_doc.html`),
+`docs/crm/reference/sales-cycle-v6.html`, `app/crm/*.js`, `supabase/functions/_shared/sla_rules.js`,
+`gabarits/Settings.pre-hz.dc.html`, `app/gen_access.py`, `web/public/lnp-web.js`, `web/api/*.js`,
 `web/supabase/*.sql`.
 
 ---
@@ -17,7 +16,7 @@ Sources principales : `skl-os/build.py` (cadre, routage), `skl-os/nav.py`, `skl-
 
 ### 1.1 Une page, des écrans
 
-- La page finie est `skl-os/skl-os-en.html` (édition web : `web/public/index.html`, la même page précédée d'un en-tête,
+- La page finie est `app/lnp.html` (édition web : `web/public/index.html`, la même page précédée d'un en-tête,
   voir § 1.6). Chaque écran est un gabarit `<template id="tpl-<id>" data-file="<Fichier>.dc.html">` et une classe
   `Component extends DCLogic` (moteur de gabarits maison de `build.py` : trous `{{…}}`, `<sc-if value>`, `<sc-for list as>`,
   événements `onClick="{{fn}}"`). `setState` redessine tout l'écran courant dans `#app`.
@@ -34,27 +33,27 @@ Sources principales : `skl-os/build.py` (cadre, routage), `skl-os/nav.py`, `skl-
 
 - **Routage** : l'écran courant est dans le hash (`#salescockpit`, `#crm`…), écrit par `history.replaceState`. Un hash
   inconnu ou hors édition renvoie à `home` (table `MOVED`, `build.py`). Les liens `<a href="Xxx.dc.html">` sont interceptés et
-  appellent `go(id)` (redessin + `scrollTo(0,0)`). Un message `postMessage({skl:"go", screen})` change aussi d'écran ; un
-  message `{skl:"crm", owner}` ouvre le CRM sur le Pipeline filtré sur ce commercial, `{skl:"crm", view:"alerts"}` ouvre la vue
+  appellent `go(id)` (redessin + `scrollTo(0,0)`). Un message `postMessage({lnp:"go", screen})` change aussi d'écran ; un
+  message `{lnp:"crm", owner}` ouvre le CRM sur le Pipeline filtré sur ce commercial, `{lnp:"crm", view:"alerts"}` ouvre la vue
   Alertes du CRM (§ 7.7).
 - **Largeur de conception 1440 px** : sous 1440 px, `#app` reçoit `zoom = largeur / 1440` ; au-dessus, la page s'étire. La
   racine fait au moins la hauteur de la fenêtre (`--screen-h`).
-- **Barre latérale** (`skl-os/nav.py`, 232 px, fond nuit, collante) : logo LNP 38 px + « Les **Nouveaux** Profs » et
+- **Barre latérale** (`app/nav.py`, 232 px, fond nuit, collante) : logo LNP 38 px + « Les **Nouveaux** Profs » et
   « VENTES » ; une seule « système », donc pas de sélecteur de système ; groupe repliable « VENTES » (Cockpit commercial,
   Ma journée, CRM) ; sur les écrans de Paramètres, groupe « PARAMÈTRES » (Alertes, Compte, Accès marqué `data-admin-only`) ;
   en bas, bouton « Paramètres » (roue dentée) vers `Settings.dc.html`. L'entrée courante porte `aria-current="page"`. Le pli
-  d'un groupe est gardé dans `localStorage["skl-nav-fold"]` ; le groupe de l'écran courant se rouvre à chaque changement
-  d'écran. `html:not(.skl-admin) [data-admin-only]{display:none}` cache Accès hors administrateur.
+  d'un groupe est gardé dans `localStorage["lnp-nav-fold"]` ; le groupe de l'écran courant se rouvre à chaque changement
+  d'écran. `html:not(.lnp-admin) [data-admin-only]{display:none}` cache Accès hors administrateur.
 - **Barre du haut** des écrans (`gen_access.py` `bar`, `harmonize.py`) : 54 px, contrôle segmenté à gauche (vues),
   contexte ou actions à droite, 72 px réservés à droite pour le bouton « i ». Pas de titre de page.
 - **Redessin et focus** (`build.py`, Romain 2026-11-02) : un redessin ne retire jamais le curseur du champ en cours
   (`focusMark`/`focusBack` retrouvent le champ par son chemin et rendent caret et texte non enregistré). Un changement
-  partagé (`SKL.onChange`) qui arrive pendant la saisie attend la perte du focus ; idem pour les modules en shadow root.
+  partagé (`LNP.onChange`) qui arrive pendant la saisie attend la perte du focus ; idem pour les modules en shadow root.
   Un `change` d'un champ autre qu'un `select` diffère le redessin d'un tick.
-- **Modules en shadow root** : le Cockpit commercial (`window.SKL_SALES`, slot `[data-dash]`) et Ma journée
-  (`window.SKL_SALESDAY`, slot `[data-salesday]`) sont montés une fois dans un `div` + `attachShadow`, gardent leur état et
+- **Modules en shadow root** : le Cockpit commercial (`window.LNP_SALES`, slot `[data-dash]`) et Ma journée
+  (`window.LNP_SALESDAY`, slot `[data-salesday]`) sont montés une fois dans un `div` + `attachShadow`, gardent leur état et
   reçoivent une infobulle (`role="tooltip"`) et une bulle de message (`role="status"`, bas centre) communes.
-- **CRM en iframe** : le document CRM (`window.SKL_CRM_DOC`, `skl-os/crm_doc.html`) vit dans une `iframe srcdoc` fixe,
+- **CRM en iframe** : le document CRM (`window.LNP_CRM_DOC`, `app/crm_doc.html`) vit dans une `iframe srcdoc` fixe,
   hors du redessin, placée sur le slot `[data-crm]` à chaque rendu, défilement et redimensionnement. Cycle de vente est une
   seconde iframe dans ce document (§ 7.5).
 
@@ -68,20 +67,20 @@ dans le CRM) et « × ». Échap ferme (`keydown` de `build.py` remet `info:fals
 
 ### 1.3 Confirmation avant toute suppression
 
-- Page : `window.sklConfirm({title, body, ok, onOk, onCancel, primary, focus, quick})` = `SKL.confirm`
-  (`skl-os/kr_view.js`) : voile, `role="alertdialog"`, titre, texte, « Annuler » (focus par défaut) et bouton rouge
+- Page : `window.lnpConfirm({title, body, ok, onOk, onCancel, primary, focus, quick})` = `LNP.confirm`
+  (`app/store.js`) : voile, `role="alertdialog"`, titre, texte, « Annuler » (focus par défaut) et bouton rouge
   (`ok`, « Supprimer » par défaut). Échap, Annuler ou clic hors de la boîte n'appliquent rien.
-- Document CRM : `window.sklAsk(title, body, ok, fn)` (`gen_crm.py`), même aspect, « Annuler » + bouton rouge.
+- Document CRM : `window.lnpAsk(title, body, ok, fn)` (`gen_crm.py`), même aspect, « Annuler » + bouton rouge.
 
 ### 1.4 Les trois façons d'ouvrir la page
 
-| Contexte | `store.js` (`SKL.mode`) | `crm/data.js` (`SKL_CRM.mode()`) | Effet |
+| Contexte | `store.js` (`LNP.mode`) | `crm/data.js` (`LNP_CRM.mode()`) | Effet |
 |---|---|---|---|
 | Fichier ouvert tel quel | `demo` | `demo` | données d'exemple, rien n'est enregistré |
 | Artifact claude.ai (`window.claude.use` existe, pas `.web`) | `shared` (base de l'Artifact) | `demo` | réglages partagés, CRM d'exemple |
-| Édition web (`window.claude.web === true`, `web/public/skl-web.js`) | `shared` (table `docs`) | `live` (tables `crm_*`) | données réelles, sous connexion |
+| Édition web (`window.claude.web === true`, `web/public/lnp-web.js`) | `shared` (table `docs`) | `live` (tables `crm_*`) | données réelles, sous connexion |
 
-`window.SKL_TODAY = "AAAA-MM-JJ"` fige l'horloge de `store.js` (tests). `store.js` recharge la date chaque minute
+`window.LNP_TODAY = "AAAA-MM-JJ"` fige l'horloge de `store.js` (tests). `store.js` recharge la date chaque minute
 (page laissée ouverte la nuit).
 
 ### 1.5 Rôles
@@ -92,7 +91,7 @@ Deux niveaux de rôles (détail : `web/supabase/001_init.sql`, `003_crm_core.sql
 |---|---|---|---|---|
 | `admin` « Administrateur · gère l’équipe » | `admin` | lit, écrit | tout | tout (RPC `crm_require`) ; seul à voir/ajouter une analyse d'appel sans être le commercial attitré |
 | `member` « Membre · lit et modifie » | `sales_lead` | lit, écrit | ses prospects seulement (048 : seul `admin` voit tout) | tout sauf analyse d'appel d'un prospect qu'il n'a pas |
-| `viewer` « Lecteur · lit seulement » | `viewer` | lit (écritures ignorées, `SKL.readOnly`) | ses prospects seulement (048) | rien |
+| `viewer` « Lecteur · lit seulement » | `viewer` | lit (écritures ignorées, `LNP.readOnly`) | ses prospects seulement (048) | rien |
 | — (posé à la main) | `sales` | — | ses cycles seulement (RLS `owner_id = auth.uid()`) | ses cycles seulement |
 
 Le trigger `members_to_crm` (`011`) crée la ligne `crm_members` à l'invitation : `member_key` = partie locale de l'e-mail
@@ -102,9 +101,9 @@ pas modifiée.
 ### 1.6 Édition web : l'enveloppe
 
 `web/build_web.py` écrit `web/public/index.html` = `<!doctype html><html lang="fr">`, `meta viewport`,
-`meta robots noindex`, `<script src="/api/config">` (définit `window.SKL_WEB_CONFIG = {url, anonKey}`),
-supabase-js `2.117.2` (jsDelivr), `<script src="/skl-web.js">`, puis la page telle quelle. `skl-web.js` ajoute
-`html.skl-locked` (`#app` invisible) jusqu'à la connexion, et définit `window.claude = {web:true, use(name)}` qui résout
+`meta robots noindex`, `<script src="/api/config">` (définit `window.LNP_WEB_CONFIG = {url, anonKey}`),
+supabase-js `2.117.2` (jsDelivr), `<script src="/lnp-web.js">`, puis la page telle quelle. `lnp-web.js` ajoute
+`html.lnp-locked` (`#app` invisible) jusqu'à la connexion, et définit `window.claude = {web:true, use(name)}` qui résout
 `"db"` (collections `docs` + Realtime), `"user"`, `"assets"` (Storage `library` via `/api/files`), `"crm"` (tables et RPC
 `crm_*` seulement : `from()` et `rpc()` refusent tout autre nom) une fois connecté.
 
@@ -112,15 +111,15 @@ supabase-js `2.117.2` (jsDelivr), `<script src="/skl-web.js">`, puis la page tel
 
 ## 2. Connexion et mots de passe (édition web)
 
-Fichier : `web/public/skl-web.js` (`showGate`, `enter`, `authFr`), API : `web/api/me.js`, `web/api/team.js`.
+Fichier : `web/public/lnp-web.js` (`showGate`, `enter`, `authFr`), API : `web/api/me.js`, `web/api/team.js`.
 
-### 2.1 Fenêtre de connexion (`#skl-gate`)
+### 2.1 Fenêtre de connexion (`#lnp-gate`)
 
 Plein écran, carte 420 px, en-tête « LNP Ventes ». Vues :
 
 | Vue | Quand | Contenu |
 |---|---|---|
-| `config` | `SKL_WEB_CONFIG.url` ou `anonKey` absent | « Pas encore configuré » · « La connexion à la base de données manque. Renseignez SUPABASE_URL et SUPABASE_ANON_KEY dans le projet Vercel, puis rechargez la page. » |
+| `config` | `LNP_WEB_CONFIG.url` ou `anonKey` absent | « Pas encore configuré » · « La connexion à la base de données manque. Renseignez SUPABASE_URL et SUPABASE_ANON_KEY dans le projet Vercel, puis rechargez la page. » |
 | `loading` | pendant `enter()` | « Connexion en cours… » |
 | `signin` | pas de session | « Connexion » · « LNP est réservé à l’équipe LNP. Utilisez l’adresse e-mail avec laquelle vous avez été invité. » · champs « E-mail » (`vous@exemple.fr`), « Mot de passe » · « Se connecter » (« Connexion… » pendant l'envoi) · « Mot de passe oublié ? Demandez un lien de réinitialisation à un administrateur (Accès de l’équipe). » |
 | `setpw` | lien d'invitation ou de réinitialisation | titre « Bienvenue sur LNP » (invitation) ou « Choisissez un nouveau mot de passe » (réinitialisation) · « Choisissez le mot de passe qui vous servira à vous connecter avec <e-mail>. 8 caractères au moins. » · « Mot de passe », « Répétez le mot de passe » · « Enregistrer mon mot de passe » |
@@ -130,7 +129,7 @@ Plein écran, carte 420 px, en-tête « LNP Ventes ». Vues :
 ### 2.2 Déroulé
 
 1. `boot()` : crée le client Supabase (`persistSession`, `autoRefreshToken`, `detectSessionInUrl`, `flowType: "implicit"`).
-   Un `#error_description=` dans l'URL affiche `signin` avec le message traduit. Un `#skl-link=<token_hash>&type=invite|recovery`
+   Un `#error_description=` dans l'URL affiche `signin` avec le message traduit. Un `#lnp-link=<token_hash>&type=invite|recovery`
    (lien rendu par Accès de l'équipe) est mémorisé, retiré de l'URL, et ouvre `setpw` : **le jeton n'est dépensé qu'au moment
    d'enregistrer le mot de passe** (un aperçu de lien Slack ou un antivirus qui ouvre le lien ne le consomme pas).
 2. `setpw` : refus si < 8 caractères (« Utilisez au moins 8 caractères. ») ou différents (« Les deux mots de passe ne sont pas
@@ -155,8 +154,8 @@ actif seulement tant que la variable `BOOTSTRAP_TOKEN` existe.
 
 ## 3. Cockpit commercial
 
-Sources : `proposal/sales-cockpit-v2.html` (maquette), `skl-os/gen_sales_v2.py` (module + branchement en direct, écrit
-`skl-os/sales_v2.json`), `skl-os/gen_salescockpit.py` (cadre et mode d'emploi), RPC `crm_sales_cockpit()`
+Sources : `proposal/sales-cockpit-v2.html` (maquette), `app/gen_sales_v2.py` (module + branchement en direct, écrit
+`app/sales_v2.json`), `app/gen_salescockpit.py` (cadre et mode d'emploi), RPC `crm_sales_cockpit()`
 (`web/supabase/034_lnp_fr_labels.sql`, fenêtre `crm_sales_cockpit_window` de `033_crm_noshow_audit.sql`).
 
 ### 3.1 But et disposition
@@ -170,7 +169,7 @@ chaque changement de taille (`ResizeObserver`) et au chargement des polices.
 
 - **Démo / Artifact** : constantes de la maquette (`KPI.all`, `SALES` — cinq commerciaux fictifs —, `ALERTS` — huit alertes
   d'exemple). La période multiplie volumes et montants par `PF = {7: 0,24 ; 30: 1 ; 56: 1,85}` ; les taux ne changent pas.
-- **Web** : `SKL_CRM.salesCockpit()` = RPC `crm_sales_cockpit()` au chargement puis toutes les 5 min. Tant que rien n'est
+- **Web** : `LNP_CRM.salesCockpit()` = RPC `crm_sales_cockpit()` au chargement puis toutes les 5 min. Tant que rien n'est
   reçu, un voile couvre le module : « Chargement des chiffres en direct… » ; en cas d'échec : « Les chiffres en direct ne se
   sont pas chargés (<message>). » + « Réessayer ». L'exemple n'est jamais montré dans l'édition web.
 
@@ -251,7 +250,7 @@ Sous-titre « par encaissé · un clic ouvre son pipeline ». Colonnes « Commer
 « Conversion » (`won ÷ held` ; vert ≥ 32 %, ambre ≥ 28 %, rouge), « Présence » (vert ≥ 72 %, ambre ≥ 65 %, rouge). Tri par
 encaissé décroissant. Web : seules les lignes avec de l'activité (appels, ventes, encaissé ou RDV) ; nom « Non attribué »
 sans commercial. Vide : « Aucune activité commerciale sur cette période. » **Clic sur une ligne** : ouvre le CRM, Pipeline,
-filtré sur ce commercial (`postMessage({skl:"crm", owner})`).
+filtré sur ce commercial (`postMessage({lnp:"crm", owner})`).
 
 ### 3.7 « À venir »
 
@@ -260,9 +259,6 @@ Sous-titre « 30 prochains jours ».
   « encaissement attendu » / « reste en pipeline pondéré ».
 - « Relance sous 24 h » = `follow_done ÷ follow_total` ; objectif 75 % (ambre en dessous).
 - « Jours par étape » = `days_per_stage` (« 7 j », virgule décimale) ; alerte au-delà de 8 j (ambre).
-- Bloc « Résultat clé » : seulement si `SKL.list("krs")` contient un résultat clé de propriétaire `sales` (statut et rapport
-  de `SKL.krView`, clic `SKL.openKr`). **Dans LNP il n'y en a pas** (les données Operating System sont vides) : le bloc est
-  absent.
 
 ### 3.8 « Encaissements à risque »
 
@@ -285,7 +281,7 @@ Aucune écriture sur cet écran. Rôles : chacun voit les chiffres des cycles qu
 
 ## 4. Ma journée
 
-Sources : `skl-os/salesday_module.js` (module `SKL_SALESDAY`), `skl-os/gen_salesday.py` (cadre, mode d'emploi).
+Sources : `app/salesday_module.js` (module `LNP_SALESDAY`), `app/gen_salesday.py` (cadre, mode d'emploi).
 
 ### 4.1 But et disposition
 
@@ -295,12 +291,12 @@ déclarer, puis les appels, les replanifications et les relances. » Module en d
 
 ### 4.2 Données
 
-- Web : `SKL_CRM.me()`, `listMembers()`, `listBoard()` (cycles + appels + événements + ventes + paiements), `listReasons()`
+- Web : `LNP_CRM.me()`, `listMembers()`, `listBoard()` (cycles + appels + événements + ventes + paiements), `listReasons()`
   (motifs actifs, non automatiques, `lost` ou `disqualified`), puis la liste du jour `getPref("salesday.<AAAA-MM-JJ>")`
   (table `crm_member_prefs`, RPC `crm_get_pref` / `crm_set_pref`, `031_crm_member_prefs.sql` ; les clés `salesday.%` de plus de
   30 jours sont effacées à l'écriture).
 - Démo : six prospects fictifs générés autour de maintenant, motifs d'exemple, liste du jour dans
-  `localStorage["skl_crm_pref:salesday.<date>"]`.
+  `localStorage["lnp_crm_pref:salesday.<date>"]`.
 - États : « Chargement de votre journée… » ; erreur : « Votre journée n'a pas pu être chargée : <message> » + « Réessayer ».
   Le changement de jour remet à zéro la liste du jour.
 
@@ -375,7 +371,7 @@ met de côté, « Passer » envoie en fin de file, « À suivre » permet de cho
 
 ## 5. Les données du CRM vues par les écrans
 
-### 5.1 Lecture (`skl-os/crm/data.js`, `window.SKL_CRM`)
+### 5.1 Lecture (`app/crm/data.js`, `window.LNP_CRM`)
 
 | Fonction | Lecture |
 |---|---|
@@ -385,7 +381,7 @@ met de côté, « Passer » envoie en fin de file, « À suivre » permet de cho
 | `salesCycleView(cycles, members, now)` | transforme les cycles en modèle du Cycle de vente (§ 7.5.2) |
 | `caBoard()`, `caRecord(job)` | RPC `crm_ca_board`, `crm_ca_record` (§ 8) |
 | `salesCockpit()` | RPC `crm_sales_cockpit` (§ 3) |
-| `getPref` / `setPref` | RPC `crm_get_pref` / `crm_set_pref` ; en démo `localStorage["skl_crm_pref:<clé>"]` |
+| `getPref` / `setPref` | RPC `crm_get_pref` / `crm_set_pref` ; en démo `localStorage["lnp_crm_pref:<clé>"]` |
 | `subscribe(fn)` | Realtime sur `crm_cycles`, `crm_events`, `crm_alerts` |
 
 Libellés français des motifs à l'affichage (`REASON`) : `price` Prix, `timing` Pas le bon moment, `partner` Associé ou
@@ -430,8 +426,8 @@ Après chaque issue, paiement ou remboursement :
 
 ## 6. CRM : le cadre
 
-Le CRM est le document `skl-os/crm_doc.html` (source `uploads/ALKIMIY_Lite.html`, dictionnaire français fixé, retouches de
-`skl-os/gen_crm.py`, cadre de `harmonize.py`) dans une iframe. Sa propre barre latérale est cachée ; la vue est toujours
+Le CRM est le document `app/crm_doc.html` (source `uploads/crm_source.html`, dictionnaire français fixé, retouches de
+`app/gen_crm.py`, cadre de `harmonize.py`) dans une iframe. Sa propre barre latérale est cachée ; la vue est toujours
 `crm` (sauf la vue Alertes ouverte depuis le Cockpit, avec un bouton « ← Pipeline »).
 
 Barre du haut (`.cx-tabs-row`) : contrôle segmenté **« Pipeline » | « Prospects <n> » | « Cycle de vente »** (n = nombre de
@@ -440,14 +436,14 @@ colonnes ». Sur Prospects : « Rattacher les commerciaux » et « + Nouveau pro
 
 ### 6.1 Chargement en direct (édition web)
 
-Script `LIVE` de `gen_crm.py` (`window.sklCrmLive(C)`, démarré quand `parent.SKL_CRM.mode() === "live"`) :
+Script `LIVE` de `gen_crm.py` (`window.lnpCrmLive(C)`, démarré quand `parent.LNP_CRM.mode() === "live"`) :
 1. Bulle d'état bas centre : « Chargement des prospects… », puis « Chargement des appels et des messages… » (cycles déjà
    dessinés), puis retirée ; échec : « Impossible de charger les prospects : <message> » + « Réessayer ».
 2. Chaque cycle devient un « prospect » du tableau (`toLead`), chaque personne sans cycle une ligne « Sans rendez-vous »
    (`toNoBooking`, id `p-<personne>`, note « iClosed : <statut iClosed> »).
-3. `window.sklScData = {leads: salesCycleView(...), reps, now, role, reasons}` est poussé au Cycle de vente.
+3. `window.lnpScData = {leads: salesCycleView(...), reps, now, role, reasons}` est poussé au Cycle de vente.
 4. Abonnement Realtime : un changement de cycle, d'événement ou d'alerte relance le chargement (attente 800 ms).
-5. `window.sklCanAssign` = rôle CRM `admin` ou `sales_lead`.
+5. `window.lnpCanAssign` = rôle CRM `admin` ou `sales_lead`.
 
 Conversion d'un cycle (`toLead`) :
 
@@ -477,7 +473,7 @@ tris, colonnes, ordre des colonnes, changement de commercial, fenêtre d'encaiss
 
 ### 6.3 Démo
 
-Hors édition web, le Pipeline et la liste sont **vides** (les prospects d'exemple d'ALKIMIY Lite ont été retirés par
+Hors édition web, le Pipeline et la liste sont **vides** (les prospects d'exemple du CRM d'origine ont été retirés par
 `gen_crm.py`) ; seul Cycle de vente montre ses prospects d'exemple. Les commerciaux du filtre sont deux noms fixes
 (« Camille Martin », « Romain »).
 
@@ -570,20 +566,20 @@ Initiale, nom, pastille de statut, produit, « · <commercial> » (bouton pour `
 
 #### 7.3.2 Changer de commercial
 
-Bouton « <nom> ▾ » (« Changer le commercial ») dans l'en-tête et dans la liste, montré si `sklCanAssign` et pas pour un
+Bouton « <nom> ▾ » (« Changer le commercial ») dans l'en-tête et dans la liste, montré si `lnpCanAssign` et pas pour un
 « Sans rendez-vous ». Menu « Attribuer à » : membres CRM actifs dont le rôle n'est pas `viewer`, l'actuel désactivé. Choix →
 `crm_reassign_cycle(p_cycle, p_member)`, toast « Attribué à <nom> », rechargement.
 
 #### 7.3.3 Corps
 
-1. **Chronologie** (`sklTimeline`) : le Cycle de vente embarqué (même document, mode `scEmbed`) réduit à la ligne ouverte de
+1. **Chronologie** (`lnpTimeline`) : le Cycle de vente embarqué (même document, mode `scEmbed`) réduit à la ligne ouverte de
    ce prospect (Récit / Échelle de temps / Tableau, § 7.5.6), sans tableau ni actions. Cas : « Chargement de la chronologie… » ;
    « Pas encore de chronologie : ce prospect n’a jamais pris de rendez-vous. » ; hors web : « La chronologie des appels et
    des messages du prospect s’affiche dans l’édition web, à partir de ses vrais événements. »
 2. **« Facturation et encaissement »** : affiché pour un Gagné et, en web, dès qu'il y a un montant signé, un encaissement,
    ou que l'étape est Décision ou Encaissement. « Signé », « Encaissé » (en web pas de « Facturé »), barre, « reste x à
    encaisser » / « Entièrement encaissé » / « Aucun montant signé ». « Mettre à jour » ouvre la fenêtre d'encaissement (§ 7.4).
-3. **Analyse d'appel** (web) : panneau `SKL_CA.leadView` (§ 8.3). Hors web : onglets « Analyse du prospect » / « Prochain
+3. **Analyse d'appel** (web) : panneau `LNP_CA.leadView` (§ 8.3). Hors web : onglets « Analyse du prospect » / « Prochain
    appel » de la maquette avec textes d'exemple.
 
 **Notes** : la fiche n'a plus de bloc « Note du commercial » ni de « Prochaine action » (retirés le 2026-10-29). Le code
@@ -592,7 +588,7 @@ depuis la fiche ; les notes s'écrivent aujourd'hui par Ma journée (« Fait »)
 
 ### 7.4 Fenêtre d'encaissement
 
-Source : `skl-os/crm/cash_ui.js` (`window.sklCash.open(lead, C, reload, canWrite, find)`), RPC `022`, `024`, `026`.
+Source : `app/crm/cash_ui.js` (`window.lnpCash.open(lead, C, reload, canWrite, find)`), RPC `022`, `024`, `026`.
 Ouverte par « Mettre à jour » de la fiche, le bouton d'une carte Gagné, ou la colonne Encaissé de la liste (web seulement,
 pas pour un « Sans rendez-vous »). 760 px, Échap / × / clic dehors ferment.
 
@@ -629,7 +625,7 @@ pas pour un « Sans rendez-vous »). 760 px, Échap / × / clic dehors ferment.
   `crm_delete_payment`. « Paiement retiré. »
 - Après chaque écriture : rechargement du tableau, la fenêtre se redessine sur les nouvelles données ; erreur affichée en
   rouge (message du serveur).
-- `viewer` (rôle de `sklScData.role`) : pas de formulaire ni de boutons ; « Vous pouvez consulter l’encaissement ; un
+- `viewer` (rôle de `lnpScData.role`) : pas de formulaire ni de boutons ; « Vous pouvez consulter l’encaissement ; un
   administrateur, un responsable commercial ou le commercial du prospect le saisit. »
 - Montants au format `fr-FR` dans la devise du `crm_deals` (EUR par défaut).
 
@@ -637,8 +633,8 @@ pas pour un « Sans rendez-vous »). 760 px, Échap / × / clic dehors ferment.
 
 Source : `docs/crm/reference/sales-cycle-v6.html` (maquette v6, entièrement en français) retouchée par `gen_crm.py`, règles
 SLA de `supabase/functions/_shared/sla_rules.js` (insérées telles quelles), adaptateur `salesCycleView` (`data.js`). Il
-tourne dans une iframe plein écran au-dessus du document CRM (`sklCycle`). Ses boutons « Pipeline » / « Prospects » rappellent
-le CRM (`parent.sklCrmTab`). Le bouton « i » propre à la maquette est retiré : le mode d'emploi du CRM le couvre.
+tourne dans une iframe plein écran au-dessus du document CRM (`lnpCycle`). Ses boutons « Pipeline » / « Prospects » rappellent
+le CRM (`parent.lnpCrmTab`). Le bouton « i » propre à la maquette est retiré : le mode d'emploi du CRM le couvre.
 
 #### 7.5.1 But
 
@@ -689,7 +685,7 @@ La prochaine étape d'une issue n'est gardée que si le commercial n'a rien envo
   au-delà de 48 h de silence « Relancer le prospect », sinon prospect « En attente du prospect » (relance dans 48 h − silence).
   Puis, s'il y a une prochaine étape (et pas d'appel ni d'issue manquante), son texte remplace celui du commercial et sa
   source s'affiche.
-- **Niveau** (LNP) : le pire SLA **ouvert** de `SKL_SLA.evaluate` : `crit` → Critique, `late` → En retard, `warn` → reste
+- **Niveau** (LNP) : le pire SLA **ouvert** de `LNP_SLA.evaluate` : `crit` → Critique, `late` → En retard, `warn` → reste
   « ok » mais compte en **Bientôt dû** (`risk`). (Les règles de la maquette sur la durée d'étape et le retard du commercial
   sont remplacées.)
 - **Temps de réponse** : pour chaque échange passé non automatique, l'échange précédent de l'autre côté sans échange du
@@ -825,7 +821,7 @@ médiane du commercial, appels honorés · absences), « Appels » (« Analyse �
 « Montants » (« Vendu », « Encaissé (Whop) »), pied « Tout ce qui figure sur cette page vient d’iClosed, de Sendblue, de
 Fathom, de Whop et des formulaires d’issue. Les transcriptions des appels restent dans Fathom. »
 
-Analyse d'appel depuis le Cycle de vente : en direct, ouvre l'analyse réelle (`parent.SKL_CA.open`, § 8) ; la fenêtre de
+Analyse d'appel depuis le Cycle de vente : en direct, ouvre l'analyse réelle (`parent.LNP_CA.open`, § 8) ; la fenêtre de
 la maquette (5 sections inventées) ne sert qu'en démo.
 
 #### 7.5.9 États et rôles
@@ -842,7 +838,7 @@ rendez-vous » de la liste, actions proposées « Appeler » et « Prendre un RD
 
 ### 7.7 Vue Alertes du CRM
 
-Atteinte par « Voir toutes les alertes → » du Cockpit. C'est la vue d'ALKIMIY Lite (groupes « Maintenant / En
+Atteinte par « Voir toutes les alertes → » du Cockpit. C'est la vue du CRM d'origine (groupes « Maintenant / En
 tête-à-tête / À escalader / En attente », compteurs « À traiter / En file / Différées / Escaladées / Fermées aujourd’hui »).
 Sa liste `ALERTS` est vidée par `gen_crm.py` et rien ne la remplit : elle affiche toujours « Rien à traiter. ». Bouton
 « ← Pipeline ».
@@ -859,8 +855,8 @@ de fermer. Bouton « J’ai compris ».
 
 ## 8. Analyse d'appel
 
-Sources : `skl-os/crm/call_analysis.js` (`SKL_CA` : fenêtre, pastilles, panneau de la fiche), `call_analysis_view.js`
-(`SKL_CAV.html` : rendu du dossier du moteur), `transcript_parse.js` (`SKL_TRANSCRIPT`), RPC `020_crm_call_analysis.sql`,
+Sources : `app/crm/call_analysis.js` (`LNP_CA` : fenêtre, pastilles, panneau de la fiche), `call_analysis_view.js`
+(`LNP_CAV.html` : rendu du dossier du moteur), `transcript_parse.js` (`LNP_TRANSCRIPT`), RPC `020_crm_call_analysis.sql`,
 `021_crm_call_analysis_board.sql`, `025`, `034`. Spécification de départ : `call-analysis/docs/SCREEN_SPEC.md`. Le moteur
 cite, le code décide et note ; ces fichiers n'affichent que ce que le moteur a stocké. Les codes du moteur restent en anglais
 dans le dossier ; seuls leurs libellés sont traduits (tables `WHY`, `STATUS`, `NATURE`, `SUBT`, `REACT`, `PCAT`…) ; les
@@ -897,7 +893,7 @@ existe), sinon la fenêtre d'ajout.
   découverte, l'écart, la présentation de l'offre et les objections. » ; chargement — « Chargement de l'analyse… »
   (`crm_ca_record(job)`) ; erreur de lecture.
 
-### 8.4 Le rendu d'une analyse (`SKL_CAV.html`)
+### 8.4 Le rendu d'une analyse (`LNP_CAV.html`)
 
 1. **Carte d'en-tête** : « Analyse d'appel — <prospect> », bouton « Transcription » / « Masquer la transcription » (tiroir
    de toute la transcription, prises de parole horodatées, 620 px max, « Fermer »). Bandeau rouge si le dossier n'est pas
@@ -960,7 +956,7 @@ affiché ci-dessous, sans note finale / sans points. » L'heure s'écrit `mm:ss`
 
 ### 8.5 Ajouter une transcription
 
-Fenêtre 1180 px (`SKL_CA.open(callId, {add})`) : avatar, nom, « Analyse d'appel · R<n> · <date> ». Hors web : « L'analyse
+Fenêtre 1180 px (`LNP_CA.open(callId, {add})`) : avatar, nom, « Analyse d'appel · R<n> · <date> ». Hors web : « L'analyse
 d'appel fonctionne dans la version web, où le CRM est en ligne. » Appel non analysable : « Cet appel n'est pas analysé : seuls
 les appels de vente R1 et R2 passés le sont (pas les appels d'intégration ni d'étude de cas), et seuls un administrateur ou le
 commercial attitré du prospect voient l'analyse. »
@@ -992,94 +988,44 @@ passe à « Analyse en cours… ». Erreur : « Non enregistré : <message> ». 
 
 ## 9. Paramètres › Alertes
 
-Source : `skl-en/project/Settings.pre-hz.dc.html` (cadre posé par `harmonize.py`), lecture des seuils par `skl-os/store.js`
-(`rule()`, `alerts()`).
+Source : `gabarits/Settings.pre-hz.dc.html` (cadre posé par `harmonize.py`), catalogue `supabase/functions/_shared/sla_rules.js`
+(`window.LNP_SLA`), réglages `crm_settings.sla_rules` (migration 044, `crm_save_sla_rules`).
 
-### 9.1 Portée réelle dans LNP
+### 9.1 Portée
 
-Cet écran règle le moteur d'alertes de `store.js`, conçu pour l'Operating System (tâches, résultats clés, décisions…). Dans
-LNP ces collections sont vides : **aucune de ces règles ne se déclenche**. Les alertes commerciales sont les SLA du Cycle de
-vente (`sla_rules.js`, § 7.5.4, non réglables ici) et leurs messages Slack (`sla-tick`, `crm_settings.sla_alerts`).
+Les 42 SLA du cycle de vente de LNP, de la prise de RDV au premier paiement, plus la conversation, la clôture et la fiabilité
+des données. Leurs seuils s'appliquent au CRM › Cycle de vente et aux alertes Slack #sales-cycle (`sla-tick`, toutes les
+5 minutes). Heure de référence : Europe/Paris (`crm_settings.sla_alerts.window_tz`, migration 051).
 
 ### 9.2 Disposition
 
 Barre : onglets « Alertes et notifications » | « Compte » | « Accès » (administrateurs) ; à droite l'état (« Modifications non
-enregistrées » orange, « Enregistré pour toute l’équipe » ou « Enregistré pour cette session du navigateur seulement », « À
-jour » vert), « Rétablir les réglages par défaut », « Enregistrer les modifications » (actif seulement s'il y a des
-modifications).
+enregistrées », « Enregistrement… », « Non enregistré : … », « Enregistré pour toute l’équipe », « À jour »), « Rétablir les
+réglages par défaut », « Enregistrer les modifications ».
 
-Quatre tuiles : « n / 16 · alertes activées » (calculé), puis trois valeurs **écrites en dur** : « 23 · notifications envoyées
-· 7 derniers jours », « 4 · critiques · toutes prises en compte », « 3,1 h · délai moyen de prise en compte ».
+Section « Gestion des prospects · SLA du cycle de vente » : le résumé (SLA activés, mesurés, en attente), « Sources de données »
+(Sendblue, Whop, analyse automatique : interrupteur ; une source non reliée met en attente les SLA qui en ont besoin), puis les
+SLA par étape : code (SH-2, DE-1, CO-1…), nom, état (mesuré, en attente d'une source, règle de formulaire, « Indicateur ·
+Cockpit commercial »), objectif, interrupteur.
 
-**« Règles d’envoi »** : « Heures calmes » (interrupteur, « Aucune notification de 20 h à 8 h, à l’heure locale de chacun. Les
-alertes critiques passent quand même. ») ; « Résumé quotidien » (« Les alertes de gravité basse sont regroupées en un seul
-message à 8 h 30… ») ; « Escalade » (« Une alerte critique ou haute qui n’est pas prise en compte dans le délai ci-dessous est
-envoyée à Romain. », − / + de 2 h en 2 h, 2 à 72 h, défaut 24 h) ; « Exemple de notification » (texte fixe).
+### 9.3 Fenêtre d'un SLA
 
-**« Alertes »** : par groupe (« n sur m activée(s) »), une ligne par règle : nom (clic → fenêtre de réglage) et interrupteur.
+« SLA <code> · <étape> », nom, « × » ; état et explication ; seuils « Bientôt dû », « En retard », « Critique » ; où il apparaît
+(CRM › Cycle de vente, Slack, les deux) ; « Enregistrer ».
 
-### 9.3 Les règles et leurs défauts
+### 9.4 Enregistrement, rôles, mode d'emploi
 
-| id | Groupe | Nom | Condition (avant · seuil · après) | Défaut | Pas | Min–max | Gravité | Prévenir (Responsable, Chef de pôle, Romain) | Canaux (Application, Slack, E-mail) | Activée |
-|---|---|---|---|---|---|---|---|---|---|---|
-| a1 | Tâches | Tâche en retard | « Une tâche dépasse sa date d’engagement de plus de » | 0 h | 2 | 0–48 | Haute | 1,1,0 | 1,1,0 | oui |
-| a2 | Tâches | Tâche bloquée trop longtemps | « Une tâche reste bloquée plus de » | 24 h | 4 | 4–96 | Haute | 1,1,0 | 1,1,0 | oui |
-| a3 | Tâches | Tâche trop grosse | « Une estimation dépasse » … « et doit être découpée » | 8 h | 1 | 4–16 | Moyenne | 1,0,0 | 1,0,0 | oui |
-| a4 | Tâches | Trop de travail en cours | « Une personne a plus de » … « tâches en cours » | 3 | 1 | 1–6 | Basse | 1,0,0 | 1,0,0 | oui |
-| a5 | Résultats clés | Résultat clé hors trajectoire (rouge) | « Au rythme récent, le résultat clé finit sous » … « de sa cible » | 0,90 | 0,05 | 0,5–1 | Critique | 1,0,1 | 1,1,1 | oui |
-| a6 | Résultats clés | Résultat clé à risque ou en rattrapage (orange) | « …ou le réel ÷ attendu passe sous » | 0,90 | 0,05 | 0,7–1 | Moyenne | 1,0,0 | 1,0,0 | oui |
-| a7 | Résultats clés | Point d’avancement manquant | « Aucun point d’avancement du résultat clé depuis » | 7 j | 1 | 3–14 | Haute | 1,0,1 | 1,1,0 | oui |
-| a8 | Décisions | Décision réversible en retard | « Aucune décision après » | 48 h | 12 | 12–120 | Haute | 1,0,0 | 1,1,0 | oui |
-| a9 | Décisions | Décision irréversible en retard | « Aucune décision après » | 7 j | 1 | 2–21 | Haute | 1,0,1 | 1,1,0 | oui |
-| a10 | Décisions | Revue de décision à faire | « Une revue à 30 ou 90 jours a un retard de » | 0 j | 1 | 0–14 | Moyenne | 1,0,0 | 1,0,0 | oui |
-| a11 | Explorations | Temps imparti épuisé | « Une exploration atteint » … « de son temps imparti » | 100 % | 5 | 50–100 | Haute | 1,1,0 | 1,1,0 | oui |
-| a12 | Explorations | Temps imparti bientôt épuisé | idem « …sans résultat pour l’instant » | 75 % | 5 | 25–95 | Moyenne | 1,0,0 | 1,0,0 | oui |
-| a15 | Bibliothèque et propriété intellectuelle | Cession de droits manquante | « Un contenu réalisé par un indépendant n’a pas de cession de droits » | sans seuil | — | — | Haute | 0,1,0 | 1,0,1 | oui |
-| a16 | Bibliothèque et propriété intellectuelle | Guide de méthode à revoir | « …n’a pas été revu depuis » | 6 mois | 1 | 1–12 | Basse | 1,0,0 | 0,0,1 | oui |
-| a17 | Finances | Dépassement de budget | « Un pôle dépense plus de » … « au-delà de son budget mensuel » | 10 % | 5 | 0–50 | Haute | 0,1,1 | 1,0,1 | **non** |
-| a18 | Finances | Trésorerie trop courte | « L’autonomie de trésorerie passe sous » | 6 mois | 1 | 2–18 | Critique | 0,0,1 | 1,0,1 | oui |
-
-`store.js` n'évalue que a1 à a11 (`RULE_DEFAULTS`) ; a12, a15 à a18 n'existent que sur cet écran. Gravités stockées `Low`,
-`Medium`, `High`, `Critical`, affichées Basse, Moyenne, Haute, Critique (clic sur la pastille de la ligne = gravité suivante).
-Formats : ratio « 0,90 », « 75 % », « 6 mois », « 24 h », « 7 j ».
-
-### 9.4 Fenêtre de réglage d'une alerte
-
-« ALERTE · <groupe> », nom, « × ». État « Alerte activée » (« Les notifications partent quand la condition est remplie. ») /
-« Alerte désactivée » (« Rien n’est envoyé. Les réglages ci-dessous sont gardés. ») + interrupteur. « Condition » : texte avec
-le seuil réglable par − / + (bornes min–max), « Par défaut : x » (ou « Cette alerte n’a pas de seuil. »). « Gravité » :
-quatre boutons + explication (Basse : résumé quotidien ; Moyenne : tout de suite hors heures calmes ; Haute : tout de suite et
-remonte à Romain ; Critique : passe outre les heures calmes et remonte). « Prévenir » : Responsable, Chef de pôle, Romain ;
-« Canaux » : Dans l’application, Slack, E-mail. « Quand elle se déclenche » : résumé (« Gravité haute · prévenus :
-Responsable et Chef de pôle · canaux : Dans l’application et Slack. » ; « · regroupée dans le résumé de 8 h 30. » si basse ;
-« Personne ne sera prévenu : choisissez au moins une personne et un canal. »). « Rétablir la valeur par défaut », « Terminé ».
-
-### 9.5 Enregistrement, rôles, mode d'emploi
-
-- « Enregistrer les modifications » : `SKL.save("config", {id:"alerts", alerts, values, quietOn, digestOn, escH})` →
-  document `docs(col='config', id='alerts')` (web, Artifact) ou mémoire (démo). Tant qu'on modifie (`dirty`), les changements
-  d'autrui ne sont pas appliqués à l'écran. « Rétablir les réglages par défaut » remet les défauts sans enregistrer.
-- `viewer` : `SKL.readOnly` ignore l'écriture (la RLS de `docs` n'autorise que `admin` et `member`) ; l'écran affiche
-  pourtant « Enregistré pour toute l’équipe » (voir § 13).
-- Mode d'emploi : le système d'alertes, une condition par alerte avec seuil, gravité, destinataires et canaux ; apports (le
-  système prévient, la bonne personne, pas de bruit, des règles qui suivent les règles de travail) ; usage (interrupteur,
-  clic sur le nom, − / +, gravité et destinataires, règles d'envoi, enregistrer et revoir chaque trimestre).
+- « Enregistrer » : `crm_save_sla_rules(p_value)` (administrateur ou responsable commercial). Hors édition web : gardé pour la
+  session du navigateur (`LNP.save("config", {id:"sla"})`).
+- Mode d'emploi : à quoi sert la page (les 42 SLA, heure de Paris), en quoi elle aide (le système prévient, un seul
+  référentiel, pas de fausse alerte), comment l'utiliser (sources, interrupteur, fenêtre d'un SLA, enregistrer).
 
 ---
 
 ## 10. Paramètres › Compte
 
-Sources : `skl-os/gen_access.py` (cadre), `skl-os/build.py` `decorate()` (bloc `[data-me]`), `web/public/skl-web.js`
+Sources : `app/gen_access.py` (cadre), `web/public/lnp-web.js`
 `account()` et `team()`, `web/api/team.js`.
-
-### 10.1 « Qui utilise LNP ici »
-
-« Les écrans montrent le travail de la personne choisie ici : ses tâches, ses alertes et ses suivis. » Sélecteur « VOUS ÊTES »
-(« Choisissez qui vous êtes… » + les membres fixes de `store.js`, noms fictifs de l'Operating System, rôles affichés en
-français : « Commercial », « Responsable contenu »). Le choix est gardé dans `localStorage["skl_me"]` et, en mode partagé, dans
-`docs(col='members', id=<uid>)`. Point d'état : « Données partagées · enregistrées pour l’équipe » (vert), « Données partagées
-· lecture seule » (or), « Connexion… », « Données de démonstration · non enregistrées » (gris). Ce choix ne sert à aucun écran
-commercial (le CRM utilise le compte connecté).
 
 ### 10.2 « Connecté » (web)
 
@@ -1096,19 +1042,19 @@ Carte : « Connecté », e-mail, « <rôle> » (+ « · lecture seule » pour un
   valide. »), lien d'invitation généré (`auth.admin.generateLink type invite`, ou `recovery` si le compte existe), ligne
   `members` créée ou mise à jour (le trigger crée le membre CRM). Encadré « Invitation prête pour <e-mail> » : « Envoyez ce lien
   à <e-mail> (Slack, e-mail…). Il ouvre LNP et lui demande de choisir un mot de passe. Il ne sert qu’une fois ; s’il ne marche
-  plus, créez-en un nouveau ici (Nouveau lien d’invitation). », le lien `https://<site>/#skl-link=<hashed_token>&type=invite`,
+  plus, créez-en un nouveau ici (Nouveau lien d’invitation). », le lien `https://<site>/#lnp-link=<hashed_token>&type=invite`,
   « Copier le lien » (→ « Copié »).
 - Tableau « Membre » (e-mail, « (vous) », « Dernière connexion le 3 nov. » ou « Invité · ne s’est pas encore connecté ») /
   « Rôle » (sélecteur, désactivé pour soi ; changement → `{action:"role"}` ; « Gardez au moins un administrateur. ») /
   actions (pas pour soi) : « Lien de réinitialisation » (compte confirmé) ou « Nouveau lien d’invitation » → `{action:"reset"}`
-  (lien `type=recovery` dans le même encadré) ; « Retirer » → confirmation `sklConfirm` « Retirer cette personne ? » · « <e-mail>
+  (lien `type=recovery` dans le même encadré) ; « Retirer » → confirmation `lnpConfirm` « Retirer cette personne ? » · « <e-mail>
   ne pourra plus se connecter à LNP. Son travail reste dans les données partagées. » · « Retirer l’accès » → `{action:"remove"}`
   (compte Auth supprimé ; pas soi-même ; garder au moins un administrateur).
 - Erreurs en rouge au-dessus du tableau ; « Chargement… » pendant la lecture.
 
 ### 10.4 Mode d'emploi (résumé)
 
-Qui utilise LNP ici ; le menu ne garde que les écrans, compte et équipe sont réunis ; usage : « Vous êtes », « Se
+Le compte connecté et l’équipe ; le menu ne garde que les écrans, compte et équipe sont réunis ; usage : « Se
 déconnecter », et pour les administrateurs « Accès de l’équipe » (inviter, changer un rôle, lien de réinitialisation, retirer) ;
 les écrans de chacun se règlent dans Accès.
 
@@ -1116,7 +1062,7 @@ les écrans de chacun se règlent dans Accès.
 
 ## 11. Paramètres › Accès (administrateurs, web)
 
-Sources : `skl-os/gen_access.py` (cadre), `web/public/skl-web.js` (`AREAS`, `applyAccess`, `drawAccess`), `web/api/_screens.js`,
+Sources : `app/gen_access.py` (cadre), `web/public/lnp-web.js` (`AREAS`, `applyAccess`, `drawAccess`), `web/api/_screens.js`,
 `web/api/team.js` (`action:"access"`).
 
 ### 11.1 Les clés
@@ -1131,7 +1077,7 @@ administrateurs (`/api/me` ajoute `access`) et jamais attribuable.
 
 Une feuille de style cache les entrées de la barre latérale et les onglets des écrans fermés, les groupes vides et un système
 sans écran ouvert ; un clic vers un écran fermé est bloqué et renvoie au premier écran ouvert de son espace (Paramètres →
-Compte) ; à l'ouverture, si l'écran courant est fermé, la page va au premier écran ouvert. `html.skl-admin` affiche les entrées
+Compte) ; à l'ouverture, si l'écran courant est fermé, la page va au premier écran ouvert. `html.lnp-admin` affiche les entrées
 `data-admin-only`. Cela cache des écrans, pas des données (la RLS décide toujours des prospects visibles).
 
 ### 11.3 Le panneau

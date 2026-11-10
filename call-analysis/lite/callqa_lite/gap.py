@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from alkimiy_callqa.competences import gap as G
-from alkimiy_callqa.core.models import CallContext, CompetenceResult, SALES
-from alkimiy_callqa.core.text import key_expression_ok
+from lnp_callqa.competences import gap as G
+from lnp_callqa.core.models import CallContext, CompetenceResult, SALES
+from lnp_callqa.core.text import key_expression_ok
 
 from .shim import Drops, StepRunner
 from .spin import SpinFacts

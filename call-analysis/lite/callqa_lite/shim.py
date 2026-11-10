@@ -1,6 +1,6 @@
 """The reference engine's competences (Gap, Pitch) run unchanged on the lite answers.
 
-`StepRunner` has the `Runner.run(ctx, task, unit_id, unit)` interface of alkimiy_callqa.core.runner: instead of asking
+`StepRunner` has the `Runner.run(ctx, task, unit_id, unit)` interface of lnp_callqa.core.runner: instead of asking
 the model three times, it takes the answer to the engine's closed question from the whole-call step already answered
 (`answer_fn`), then checks it with the engine task's own validator (every quote, speaker and phase, C3). Invalid items
 of a list are dropped one by one and counted; an invalid sub-object is set to null and counted; an answer that is still
@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from alkimiy_callqa.core.models import CallContext
-from alkimiy_callqa.core.runner import ModelTask, Resolved
+from lnp_callqa.core.models import CallContext
+from lnp_callqa.core.runner import ModelTask, Resolved
 
 
 class Drops:

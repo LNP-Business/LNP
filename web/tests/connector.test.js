@@ -158,7 +158,7 @@ test("registration accepts Claude's callback and local tools only", async () => 
 
 test("OAuth: sign-in page, code bound to PKCE and single use, cancel, wrong password", async () => {
   const s = await signIn("romain");
-  assert.equal(s.pageStatus, 200); assert.match(s.html, /demande à <strong>lire<\/strong> LNP/); assert.ok(!/SKL|ALKIMIY/.test(s.html), "no LNP name on the sign-in page");
+  assert.equal(s.pageStatus, 200); assert.match(s.html, /demande à <strong>lire<\/strong> LNP/);
   assert.equal(s.status, 302); assert.equal(new URL(s.loc).searchParams.get("state"), "st-1"); assert.ok(s.loc.startsWith(CALLBACK));
   assert.equal(s.tokenStatus, 200); assert.equal(s.tokens.token_type, "Bearer"); assert.ok(s.tokens.access_token && s.tokens.refresh_token);
   const again = await fetch(BASE + "/api/oauth/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "authorization_code", code: s.code, code_verifier: s.verifier, client_id: s.client.client_id }) });
@@ -177,7 +177,7 @@ test("tools/list shows the 10 read-only tools and each one answers (admin)", asy
   const tools = (await c.listTools()).tools;
   assert.deepEqual(tools.filter(t => t.annotations.readOnlyHint).map(t => t.name).sort(), ["alert_rules", "call_analysis", "call_prep", "clocks_running", "find_lead", "lead_record", "page_method", "performance", "pipeline_summary", "whoami"]);
   assert.equal(tools.filter(t => !t.annotations.readOnlyHint).length, 2, "an admin also has the 2 write tools");
-  assert.ok(!JSON.stringify(tools).match(/SKL|ALKIMIY/), "tool names and descriptions say LNP");
+  assert.ok(/LNP/.test(JSON.stringify(tools)), "tool names and descriptions say LNP");
   const calls = {
     whoami: {}, find_lead: { query: "yass" }, lead_record: { cycle_id: ids.cy }, clocks_running: { level: "all" }, pipeline_summary: {},
     call_prep: { cycle_id: ids.cy }, call_analysis: { call_id: ids.k1 }, performance: { period: "quarter" }, page_method: {}, alert_rules: {} };
@@ -273,7 +273,7 @@ test("durations round to whole hours before splitting into days", async () => {
 test("LNP's screens and Settings: Page methods and alert rules", async () => {
   const s = await signIn("romain"), c = await client(s.tokens.access_token);
   const init = c.getInstructions ? c.getInstructions() : "";
-  assert.ok(!/SKL|ALKIMIY/.test(init || ""), "server instructions say LNP");
+  assert.ok(/LNP/.test(init || ""), "server instructions say LNP");
   assert.equal(c.getServerVersion().name, "lnp");
   const t = async (name, args = {}) => { const r = await c.callTool({ name, arguments: args }); assert.ok(!r.isError, name + ": " + text(r)); return text(r); };
   const list = await t("page_method"); assert.match(list, /Cockpit commercial/); assert.match(list, /Ma journée/); assert.match(list, /CRM/); assert.ok(!/Build|Execute|Library|LNP Map|Agent System/.test(list), "only LNP's screens");
@@ -283,7 +283,7 @@ test("LNP's screens and Settings: Page methods and alert rules", async () => {
   const al = await t("alert_rules"); assert.match(al, /2 on of 3/); assert.match(al, /c1 \| Issue de l'appel manquante \| on \| High \| after_minutes 30 \| owner \| in the app, Slack/);
   assert.ok(!/c2 \|/.test(al), "rules switched off are left out by default"); assert.match(al, /Escalation after 12 h/);
   const all = await t("alert_rules", { include_off: true }); assert.match(all, /c2 \| Prospect en attente de réponse \| off/); assert.match(all, /c7 \| Oui sans paiement \| on \| Critical \| hours 48 \| owner, Romain \| in the app/);
-  for (const gone of ["os_overview", "okrs", "tasks", "my_day", "skl_map", "task_create"]) assert.ok((await c.callTool({ name: gone, arguments: {} })).isError, gone + " is gone");
+  for (const gone of ["os_overview", "okrs", "tasks", "my_day", "lnp_map", "task_create"]) assert.ok((await c.callTool({ name: gone, arguments: {} })).isError, gone + " is gone");
   await c.close();
 });
 

@@ -1,5 +1,5 @@
 // LNP CRM · Sales cycle SLAs v3 (docs/crm/18-sales-cycle-slas.md, reference SLAs v3 of 2026-10-25 / 2026-10-30). One source for
-// the Sales cycle screen (inlined by skl-os/gen_crm.py), Settings › Alerts (the catalogue, through skl-os/build.py) and the
+// the Sales cycle screen (inlined by app/gen_crm.py), Settings › Alerts (the catalogue, through app/build.py) and the
 // Slack alerts (supabase/functions/sla-tick).
 // A lead is the screen's model: {age, ev: [{t (hours since the cycle opened), w: s|p|a, k, r, dur (min), rec, ana, stop}]}
 // (rec / ana on a call: hours of its Fathom recording / of its call analysis, l.rec = the model carries them; stop on a note:
@@ -402,6 +402,6 @@
   function fmt(h) { return (h < 1 ? Math.round(h * 60) + " min" : h < 72 ? (Math.round(h * 10) / 10) + " h" : Math.round(h / 24 * 10) / 10 + " j").replace(".", ","); }
   // what a miss reads as: its own label (a count, a time before the call) or the time elapsed
   function said(b) { return b.label || fmt(b.elapsed); }
-  root.SKL_SLA = { DEFS: DEFS, BY: BY, BASE: BASE, STAGES: STAGES, SOURCES: SOURCES, get sources() { return Object.assign({}, SRC); },
+  root.LNP_SLA = { DEFS: DEFS, BY: BY, BASE: BASE, STAGES: STAGES, SOURCES: SOURCES, get sources() { return Object.assign({}, SRC); },
     configure: configure, active: active, status: status, evaluate: evaluate, worst: worst, fmt: fmt, said: said, RANK: RANK };
 })(typeof window !== "undefined" ? window : globalThis);

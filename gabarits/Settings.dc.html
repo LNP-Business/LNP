@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LNP — Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F6F4EF;color:#1B1B18}
+a{color:#9A6614}a:hover{color:#7A4B00}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 1900px; display: flex; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B18">
+
+<nav aria-label="Main navigation" style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #1B1B18; padding: 28px 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 11px; padding: 0 8px 20px"><img src="data:image/png;base64,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" alt="" width="38" height="38" style="width: 38px; height: 38px; border-radius: 10px; flex: none; display: block"><div style="font-family: Poppins, Arial, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .09em; text-transform: uppercase; line-height: 1.2; color: #F7F8FB">Les <span style="color: #5B8DF7">Nouveaux</span> Profs<div style="font-size: 10.5px; letter-spacing: .16em; font-weight: 600; color: #AECBF2; margin-top: 3px">Ventes</div></div></div>
+<button type="button" data-navgrp="ss-sales-system" aria-expanded="true" title="Replier ou déplier Ventes" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Ventes</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="ss-sales-system" style="display: flex; flex-direction: column; gap: 4px">
+<a href="SalesCockpit.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Cockpit commercial</span></a>
+<a href="CRM.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>CRM</span></a>
+<a href="SalesDay.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Ma journée</span></a>
+</div>
+<button type="button" data-navgrp="ss-training" aria-expanded="true" title="Replier ou déplier Entraînement" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Entraînement</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="ss-training" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Entrainement.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Découverte</span></a>
+<a href="Academie.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Maîtrise de l'offre</span></a>
+<a href="Resultats.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Mes résultats</span></a>
+<a href="SuiviCommerciaux.dc.html" data-admin-only style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Suivi des commerciaux</span></a>
+</div>
+<button type="button" data-navgrp="settings-settings" aria-expanded="true" title="Replier ou déplier Paramètres" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A80; cursor: pointer; text-align: left"><span>Paramètres</span><svg data-chev width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="flex-shrink: 0; transition: transform .15s"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div data-navitems="settings-settings" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Settings.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><span>Alertes</span></a>
+<a href="Account.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Compte</span></a>
+<a href="Access.dc.html" data-admin-only style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; text-decoration: none; font-size: 15px; color: #C9C4B7"><span>Accès</span></a>
+</div>
+<div style="flex-grow: 1"></div>
+<a href="Settings.dc.html" aria-current="true" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 6px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; color: #D9B46A; background: #34322C; box-shadow: inset 3px 0 0 #D9B46A"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Paramètres</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px">
+
+<header data-topbar style="display: flex; align-items: center; gap: 14px; min-height: 54px; padding-right: 72px"><div role="group" aria-label="Views" style="display: flex; gap: 6px; padding: 5px; background: #ECE8DF; border-radius: 12px; align-self: flex-start; flex-shrink: 0"><span style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: #1B1B18; color: #FFFFFF; font-weight: 600" aria-current="page">Alertes et notifications</span><a href="Account.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: transparent; color: #3D3A33; font-weight: 500">Compte</a><a href="Access.dc.html" data-admin-only style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap; background: transparent; color: #3D3A33; font-weight: 500">Accès</a></div><span style="flex: 1"></span><span style="font-size: 13px; color: {{saveColor}}">{{saveText}}</span><button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 18px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap">Rétablir les réglages par défaut</button><button type="button" onClick="{{save}}" style="{{saveBtn}}">Enregistrer les modifications</button></header>
+
+<section aria-labelledby="sla" style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap">
+<h2 id="sla" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">Gestion des prospects · SLA du cycle de vente</h2>
+<span style="font-size: 13px; color: #5E5B53">{{sla.summary}}</span>
+</div>
+<div style="font-size: 14px; line-height: 1.55; color: #3D3A33; max-width: 980px">Chaque SLA est un engagement de délai : un événement démarre l’horloge, un résultat l’arrête. Au-delà du seuil, le prospect passe « Bientôt dû », « En retard » ou « Critique » dans CRM › Cycle de vente, et chaque retard ou critique est publié dans Slack #sales-cycle. Cliquez sur un SLA pour régler ses seuils et les endroits où il apparaît.</div>
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">Sources de données</span><span style="font-size: 12px; color: #5E5B53">Une source non reliée met en attente les SLA qui en ont besoin, pour ne pas mettre en retard des prospects à tort</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{sla.sources}}" as="src" hint-placeholder-count="3">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: #F6F4EF">
+<div style="min-width: 0"><div style="font-size: 14px; font-weight: 600">{{src.name}}</div><div style="font-size: 12px; color: {{src.color}}; margin-top: 2px">{{src.state}}</div></div>
+<button type="button" role="switch" aria-checked="{{src.on}}" aria-label="{{src.switchLabel}}" onClick="{{src.toggle}}" style="{{src.sw}}"><span style="{{src.knob}}"></span></button>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start">
+<sc-for list="{{sla.groups}}" as="sg" hint-placeholder-count="6">
+<div style="background: #FFFFFF; border: 1px solid #E3DFD5; border-radius: 14px; padding: 8px 8px 6px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 12px 8px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">{{sg.label}}</span>
+<span style="font-size: 12px; color: #5E5B53">{{sg.count}}</span>
+</div>
+<sc-for list="{{sg.items}}" as="sl" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-top: 1px solid #EFEBE3">
+<button type="button" onClick="{{sl.open}}" aria-haspopup="dialog" style="{{sl.rowStyle}}">
+<span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B53">{{sl.id}}</span> · {{sl.name}}</span>
+<span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; font-weight: 500; color: #5E5B53"><span style="{{sl.chip}}">{{sl.status}}</span>objectif {{sl.target}}</span>
+</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E8A80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
+</button>
+<button type="button" role="switch" aria-checked="{{sl.on}}" aria-label="{{sl.switchLabel}}" onClick="{{sl.toggle}}" style="{{sl.sw}}"><span style="{{sl.knob}}"></span></button>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</section>
+
+</main>
+
+<sc-if value="{{hasSla}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 56px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="sla-title" style="width: 660px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">SLA {{se.id}} · {{se.stage}}</div><h2 id="sla-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 500">{{se.name}}</h2></div>
+<button type="button" onClick="{{closeSla}}" aria-label="Fermer" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 12px; background: #F6F4EF">
+<div style="min-width: 0"><div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-size: 15px; font-weight: 600">{{se.stateLabel}}</span><span style="{{se.chip}}">{{se.status}}</span></div><div style="font-size: 13px; color: #5E5B53; margin-top: 4px; line-height: 1.45">{{se.stateHint}}</div></div>
+<button type="button" role="switch" aria-checked="{{se.on}}" aria-label="{{se.switchLabel}}" onClick="{{se.toggle}}" style="{{se.sw}}"><span style="{{se.knob}}"></span></button>
+</div>
+
+<div style="{{se.dim}}; display: flex; flex-direction: column; gap: 20px">
+<div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 14px; font-size: 14px; line-height: 1.5">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53; padding-top: 2px">Démarre</span><span>{{se.start}}</span>
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53; padding-top: 2px">S’arrête</span><span>{{se.stop}}</span>
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53; padding-top: 2px">Objectif</span><span>{{se.target}}</span>
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53; padding-top: 2px">Escalade</span><span>{{se.esc}}</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Seuils</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{se.thr}}" as="th" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid #E3DFD5; border-radius: 12px">
+<span style="font-size: 13px; font-weight: 600; color: {{th.color}}">{{th.label}}</span>
+<sc-if value="{{th.has}}" hint-placeholder-val="{{true}}">
+<span style="display: inline-flex; align-items: center; justify-content: space-between; gap: 2px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FAF8F3">
+<button type="button" onClick="{{th.minus}}" aria-label="{{th.minusLabel}}" style="width: 38px; height: 38px; border: 0; background: transparent; font: inherit; font-size: 18px; cursor: pointer">−</button>
+<span style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500">{{th.valueLabel}}</span>
+<button type="button" onClick="{{th.plus}}" aria-label="{{th.plusLabel}}" style="width: 38px; height: 38px; border: 0; background: transparent; font: inherit; font-size: 18px; cursor: pointer">+</button>
+</span>
+</sc-if>
+<span style="font-size: 12px; color: #5E5B53">{{th.hint}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B53">Où il apparaît</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{se.places}}" as="pl" hint-placeholder-count="2"><button type="button" onClick="{{pl.toggle}}" aria-pressed="{{pl.on}}" style="{{pl.style}}">{{pl.label}}</button></sc-for></div>
+<span style="font-size: 12px; color: #5E5B53">{{se.placeHint}}</span>
+</div>
+
+<div style="padding: 14px 16px; border-radius: 12px; background: #1B1B18; color: #F6F4EF; font-size: 14px; line-height: 1.5"><span style="display: block; font-size: 12px; color: #C9C4B7; margin-bottom: 4px">Pourquoi ce SLA</span>{{se.why}}</div>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<button type="button" onClick="{{se.restore}}" style="min-height: 44px; padding: 0 14px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Rétablir la valeur par défaut</button>
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end">
+<span role="status" style="font-size: 13px; color: {{saveColor}}">{{saveText}}</span>
+<button type="button" onClick="{{save}}" style="{{saveBtn}}">Enregistrer</button>
+<button type="button" onClick="{{closeSla}}" style="min-height: 44px; padding: 0 22px; border: 1px solid #D8D3C7; border-radius: 10px; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Terminé</button>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<button type="button" onClick="{{openInfo}}" aria-label="Mode d’emploi de la page" title="Mode d’emploi de la page" style="position: absolute; top: 18px; right: 24px; width: 52px; height: 52px; border-radius: 50%; border: 2px solid #1B1B18; background: #FFFFFF; color: #1B1B18; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; font-style: italic; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(27,27,24,0.14); z-index: 40">i</button>
+
+<sc-if value="{{info}}" hint-placeholder-val="{{false}}">
+<div data-overlay="info" style="position: absolute; inset: 0; background: rgba(27,27,24,0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 32px; overflow: auto; z-index: 50">
+<div role="dialog" aria-modal="true" aria-labelledby="info-title" style="width: 820px; max-width: calc(100% - 48px); box-sizing: border-box; background: #FFFFFF; border-radius: 16px; padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.28)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px">
+<div><div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B53">Mode d’emploi</div><h2 id="info-title" style="margin: 6px 0 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Alertes et notifications</h2></div>
+<button type="button" onClick="{{closeInfo}}" aria-label="Fermer" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid #D8D3C7; background: #FFFFFF; color: #1B1B18; font: inherit; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">1</span>À quoi sert cette page</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #3D3A33">C’est ici que se règlent les alertes du cycle de vente de LNP : les 42 SLA, de la prise de RDV au premier paiement, plus la conversation, la clôture et la fiabilité des données. Chaque SLA est un engagement de délai : un événement démarre l’horloge, un résultat l’arrête ; au-delà du seuil, le prospect passe « Bientôt dû », « En retard » ou « Critique ».</p>
+<p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #3D3A33">Chaque SLA indique s’il est mesuré, en attente d’une source de données, une règle de formulaire ou un indicateur lu dans le Cockpit commercial. Ses seuils s’appliquent au CRM › Cycle de vente et aux alertes Slack #sales-cycle. Les heures sont celles de Paris.</p>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">2</span>En quoi elle rend chacun plus efficace</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li><strong style="color: #1B1B18">Le système prévient, personne n’a à vérifier.</strong> Un retard arrive au commercial au moment où il se produit, pas à la réunion suivante.</li>
+<li><strong style="color: #1B1B18">Un seul référentiel.</strong> Les mêmes seuils servent au Cycle de vente, aux alertes Slack et au Cockpit commercial (Exécution, Impact).</li>
+<li><strong style="color: #1B1B18">Pas de fausse alerte.</strong> Une source non reliée (Sendblue, Whop, analyse automatique) met ses SLA en attente au lieu de mettre des prospects en retard à tort.</li>
+</ul>
+</section>
+
+<section>
+<h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1B1B18; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>Comment l’utiliser</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #3D3A33">
+<li>Indiquez d’abord les sources reliées : tant qu’une source ne l’est pas, ses SLA restent en attente.</li>
+<li>Activez ou désactivez un SLA avec l’interrupteur de sa ligne.</li>
+<li>Cliquez sur un SLA pour régler l’alerte préventive, le retard et le seuil critique, puis choisir s’il apparaît dans le Cycle de vente, dans Slack ou les deux.</li>
+<li>Enregistrez avec « Enregistrer » dans la fenêtre ou « Enregistrer les modifications » en haut de la page ; « Rétablir les réglages par défaut » remet les valeurs du référentiel. Seuls un administrateur et le responsable commercial enregistrent.</li>
+</ol>
+</section>
+
+<button type="button" onClick="{{closeInfo}}" style="align-self: flex-end; min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #1B1B18; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Compris</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { info: false, dirty: false, saved: false, slaEdit: null, slaCfg: null, slaDirty: false, saving: false, err: '' };
+    this.loadSla();
+  }
+  // Sales cycle SLAs (catalogue: supabase/functions/_shared/sla_rules.js, window.LNP_SLA): the settings live in
+  // crm_settings.sla_rules (044), read by CRM › Sales cycle and by the Slack alerts; outside the web edition, in config/sla
+  slaDefault() { return { sources: { messages: false, whop: false, analysis: false }, rules: {} }; }
+  loadSla() {
+    const done = (v) => {
+      const cfg = v && typeof v === 'object' ? { sources: Object.assign({}, v.sources || {}), rules: Object.assign({}, v.rules || {}) } : null;
+      if (!this.state.slaDirty) this.setState({ slaCfg: cfg });
+    };
+    Promise.resolve().then(() => {
+      if (window.claude && window.claude.web) {
+        return window.claude.use('crm').then(C => C ? C.from('crm_settings').select('value').eq('key', 'sla_rules').maybeSingle() : null)
+          .then(r => done(r && r.data ? r.data.value : null));
+      }
+      const S = window.LNP, c = S && S.get('config', 'sla');
+      done(c ? c.value : null);
+    }).catch(() => done(null));
+  }
+  saveSla(v) {
+    if (window.claude && window.claude.web) {
+      return window.claude.use('crm').then(C => {
+        if (!C) throw new Error('le CRM n’est pas disponible');
+        return C.rpc('crm_save_sla_rules', { p_value: v });
+      });
+    }
+    const S = window.LNP;
+    if (S) S.save('config', { id: 'sla', value: v });
+    return Promise.resolve(v);
+  }
+  slaView(s) {
+    const L = window.LNP_SLA;
+    if (!L) return { sla: { summary: '', sources: [], groups: [] }, se: {}, hasSla: false };
+    const cfg = s.slaCfg || this.slaDefault();
+    L.configure(cfg);
+    const put = (rules, sources) => this.change({ slaDirty: true, slaCfg: { sources: sources || Object.assign({}, cfg.sources), rules: rules || Object.assign({}, cfg.rules) } });
+    const setRule = (id, patch) => { const rules = Object.assign({}, cfg.rules); rules[id] = Object.assign({}, rules[id] || {}, patch); put(rules); };
+    const LOOK = {
+      on: 'background: #E7F2EA; color: #1E5E38;', wait: 'background: #FDF1E3; color: #8A3F06;', form: 'background: #EEF1F8; color: #2D4A7A;',
+      ind: 'background: #EEF1F8; color: #2D4A7A;', todo: 'background: #EFECE4; color: #5E5B53;'
+    };
+    const chipStyle = (k) => 'display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; ' + LOOK[k];
+    const show = (d, v) => d.unit === 'appels' ? v + ' appel' + (v > 1 ? 's' : '') : L.fmt(v) + (d.before ? ' avant le R1' : '');
+    const stepOf = (d, v, dir) => {
+      if (d.unit === 'appels') return 1;
+      const x = dir < 0 ? v - 1e-9 : v;
+      return x < 0.25 ? 1 / 60 : x < 1 ? 5 / 60 : x < 3 ? 0.25 : x < 24 ? 1 : x < 72 ? 6 : 24;
+    };
+    const K = ['warn', 'late', 'crit'];
+    const rows = L.DEFS.map(d => {
+      const st = L.status(d.id), base = L.BASE[d.id];
+      const setThr = (k, nv) => {
+        // stays between its neighbours: preventive, then missed, then critical (SH-4: hours before the R1, the other way)
+        const i = K.indexOf(k), before = K.slice(0, i).map(x => d[x]).filter(x => x != null), after = K.slice(i + 1).map(x => d[x]).filter(x => x != null);
+        const lo = Math.max(d.unit === 'appels' ? 1 : 1 / 60, ...(d.before ? after : before)), hi = Math.min(8760, ...(d.before ? before : after));
+        const v = Math.round(Math.min(hi, Math.max(lo, nv)) * 60) / 60;
+        const o = {}; o[k] = d.unit === 'appels' ? Math.round(v) : v; setRule(d.id, o);
+      };
+      const thr = [['warn', 'Alerte préventive', '#9A6614'], ['late', 'En retard', '#B45309'], ['crit', 'Critique', '#9B1C12']].map(([k, label, color]) => {
+        if (base[k] == null) return { label, color, has: false, hint: 'Pas de seuil dans le référentiel' };
+        const v = d[k];
+        return { label, color, has: true, valueLabel: show(d, v), hint: 'Par défaut : ' + show(d, base[k]),
+          minus: () => setThr(k, v - stepOf(d, v, -1)), plus: () => setThr(k, v + stepOf(d, v, 1)),
+          minusLabel: 'Baisser le seuil « ' + label.toLowerCase() + ' » de ' + d.id, plusLabel: 'Relever le seuil « ' + label.toLowerCase() + ' » de ' + d.id };
+      });
+      const places = [['app', 'CRM › Cycle de vente'], ['slack', 'Slack #sales-cycle']].map(([k, label]) => ({
+        label, on: !!d[k], style: this.chip(!!d[k]), toggle: () => { const o = {}; o[k] = !d[k]; setRule(d.id, o); }
+      }));
+      const on = d.on;
+      return {
+        id: d.id, name: d.name, stage: d.stage, target: d.target, start: d.start, stop: d.stop, esc: d.esc, why: d.why,
+        status: st.label, chip: chipStyle(st.k), on, switchLabel: 'SLA ' + d.id + ' : ' + d.name,
+        rowStyle: 'display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; min-height: 56px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer; color: ' + (on ? '#1B1B18' : '#8E8A80') + ';',
+        sw: this.swStyle(on), knob: this.knobStyle(on), toggle: () => setRule(d.id, { on: !on }),
+        open: () => this.setState({ slaEdit: d.id }), measured: st.k === 'on', waiting: st.k === 'wait',
+        stateLabel: on ? 'SLA activé' : 'SLA désactivé',
+        stateHint: !on ? 'Rien n’est mesuré ni publié. Les réglages ci-dessous sont gardés.'
+          : st.note || (d.kind === 'tech' ? 'Alerte technique : elle ne change pas le niveau du prospect.' : d.kind === 'indicator' ? 'Indicateur : il ne change pas le niveau du prospect.' : 'Mesuré sur chaque prospect en cours.'),
+        dim: on ? 'opacity: 1' : 'opacity: 0.45', thr, places,
+        placeHint: d.kind === 'form' ? 'Une règle de formulaire empêche l’erreur au lieu de prévenir après coup.' : 'Dans le Cycle de vente : la marque sur la ligne du prospect et, pour un SLA commercial, son niveau. Dans Slack : chaque retard ou critique, une fois.',
+        restore: () => { const rules = Object.assign({}, cfg.rules); delete rules[d.id]; put(rules); }
+      };
+    });
+    const groups = L.STAGES.map(g => {
+      const items = rows.filter(r => r.stage === g), m = items.filter(r => r.measured && r.on).length;
+      return { label: g, items, count: m + ' mesuré' + (m > 1 ? 's' : '') + ' sur ' + items.length };
+    });
+    const measured = rows.filter(r => r.measured && r.on).length, waiting = rows.filter(r => r.waiting).length;
+    const sources = L.SOURCES.map(x => {
+      const on = !!L.sources[x.id];
+      return { name: x.name, on, state: on ? 'Reliée : ses SLA sont mesurés' : 'Non reliée : ses SLA sont en attente', color: on ? '#1E5E38' : '#8A3F06',
+        switchLabel: 'Source reliée : ' + x.name, sw: this.swStyle(on), knob: this.knobStyle(on),
+        toggle: () => { const src = Object.assign({}, cfg.sources); src[x.id] = !on; put(null, src); } };
+    });
+    const cur = rows.find(r => r.id === s.slaEdit);
+    return {
+      sla: { summary: measured + ' mesurés sur ' + rows.length + ' · ' + waiting + ' en attente de données', sources, groups },
+      se: cur || {}, hasSla: !!cur
+    };
+  }
+  change(patch) {
+    this.setState(Object.assign({ dirty: true, saved: false }, patch));
+  }
+  swStyle(on) {
+    return 'position: relative; width: 44px; height: 26px; flex-shrink: 0; border: 0; border-radius: 999px; cursor: pointer; padding: 0; background: ' + (on ? '#2E7D4F' : '#B7B2A6') + ';';
+  }
+  knobStyle(on) {
+    return 'position: absolute; top: 3px; left: ' + (on ? '21px' : '3px') + '; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25);';
+  }
+  chip(on) {
+    return 'min-height: 32px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; ' +
+      (on ? 'border: 1px solid #1B1B18; background: #1B1B18; color: #FFFFFF;' : 'border: 1px solid #D8D3C7; background: #FFFFFF; color: #8E8A80;');
+  }
+  renderVals() {
+    const S = window.LNP;
+    const s = this.state;
+    const SL = this.slaView(s);
+    return {
+      sla: SL.sla, se: SL.se, hasSla: SL.hasSla,
+      closeSla: () => this.setState({ slaEdit: null }),
+      info: !!s.info,
+      openInfo: () => this.setState({ info: true }),
+      closeInfo: () => this.setState({ info: false }),
+      saveText: s.saving ? 'Enregistrement…' : s.err ? 'Non enregistré : ' + s.err : s.dirty ? 'Modifications non enregistrées' : (s.saved ? (S && S.mode === 'shared' ? 'Enregistré pour toute l’équipe' : 'Enregistré pour cette session du navigateur seulement') : 'À jour'),
+      saveColor: s.err ? '#9B1C12' : s.dirty || s.saving ? '#8A3F06' : '#1E5E38',
+      saveBtn: 'min-height: 44px; padding: 0 20px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; ' + (s.dirty && !s.saving ? 'background: #1B1B18; color: #D9B46A;' : 'background: #D8D3C7; color: #5E5B53;'),
+      save: () => {
+        if (!s.dirty || s.saving) return;
+        if (!s.slaDirty) return this.setState({ dirty: false, saved: true, err: '' });
+        // the SLA settings: crm_save_sla_rules (044, admin or sales lead); CRM › Sales cycle takes them at once
+        this.setState({ saving: true, err: '' });
+        this.saveSla(s.slaCfg || this.slaDefault()).then(v => {
+          const cfg = v && typeof v === 'object' ? v : s.slaCfg;
+          this.setState({ saving: false, dirty: false, slaDirty: false, saved: true, err: '', slaCfg: cfg });
+          try { window.dispatchEvent(new CustomEvent('lnp-sla-saved', { detail: cfg })); } catch (e) {}
+        }, e => this.setState({ saving: false, err: String(e && e.message || e) }));
+      },
+      reset: () => this.setState({ dirty: true, saved: false, slaDirty: true,
+        slaCfg: { sources: Object.assign({}, (s.slaCfg || this.slaDefault()).sources), rules: {} } })
+    };
+  }
+}
+</script>
+</body>
+</html>

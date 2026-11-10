@@ -18,12 +18,12 @@ Le détail de chaque écran est au chapitre 02.
 
 ```
 Navigateur ── https://lnp-sales.vercel.app ── Vercel (web/)
-   │            page unique web/public/index.html + web/public/skl-web.js
-   │            API serverless web/api/*.js (config, me, team, files, bootstrap, mcp, oauth)
+   │            page unique web/public/index.html + web/public/lnp-web.js
+   │            API serverless web/api/*.js (config, me, team, bootstrap, mcp, oauth)
    │
    ├── Supabase Auth (connexion, invitations, mots de passe)
-   ├── Supabase Postgres (tables crm_*, members, docs ; RLS ; fonctions crm_* ; pg_cron + pg_net)
-   └── Supabase Realtime (mises à jour en direct de la table docs)
+   ├── Supabase Postgres (tables crm_*, members ; RLS ; fonctions crm_* ; pg_cron + pg_net)
+   └── Supabase Realtime (mises à jour en direct des tables crm_*)
 
 Outils externes ── webhooks / API ── Fonctions Edge Supabase (supabase/functions/)
    iClosed  → iclosed-in      Sendblue → sendblue-in     Whop → whop-in     Fathom → crm-import (toutes les heures)
@@ -68,17 +68,17 @@ Tous au nom de l'entreprise (pour LNP : e-mail LNP, jamais le compte d'une autre
 | Chemin | Contenu |
 |---|---|
 | `build.sh` | construit la page (chapitre 06) |
-| `edition.json` | la marque et le périmètre de l'édition : écrans gardés, nom, logo, couleurs, polices, renommages |
-| `skl-os/` | générateurs des écrans (`harmonize.py`, `gen_access.py`, `gen_salescockpit.py`, `gen_salesday.py`, `nav.py`), assemblage (`build.py`), coquille (`shell.py`), magasin de données (`store.js`, `kr_view.js`), module Ma journée (`salesday_module.js`), module Cockpit figé (`sales_v2.json`, `gen_sales_v2.py`), CRM figé (`crm_doc.html`, `gen_crm.py`, `dash_doc.html`, `dash_shadow.json`, `sales_kr.html`), `crm/` (données, encaissements, analyse d'appel, transcriptions, tests), `brand/` (logo), la page construite `skl-os-en.html` et son empreinte `EXPECTED.sha256` |
-| `skl-en/project/` | gabarits des écrans (`*.dc.html`, `*.pre-hz.dc.html`, en-tête commun `Shell.base.html`) |
-| `uploads/ALKIMIY_Lite.html` | source du CRM (dictionnaire français, langue fixée en français) |
+| `edition.json` | la marque et le périmètre de l'édition : écrans gardés, nom, logo, couleurs, polices |
+| `app/` | générateurs des écrans (`harmonize.py`, `gen_access.py`, `gen_salescockpit.py`, `gen_salesday.py`, `nav.py`), assemblage (`build.py`), coquille (`shell.py`), socle de la page (`store.js` : confirmation des suppressions), module Ma journée (`salesday_module.js`), module Cockpit figé (`sales_v2.json`, `gen_sales_v2.py`), CRM figé (`crm_doc.html`, `gen_crm.py`), `crm/` (données, encaissements, analyse d'appel, transcriptions, tests), `brand/` (logo), la page construite `lnp.html` et son empreinte `EXPECTED.sha256` |
+| `gabarits/` | gabarits des écrans (`*.dc.html`, `*.pre-hz.dc.html`, en-tête commun `Shell.base.html`) |
+| `uploads/crm_source.html` | source du CRM (dictionnaire français, langue fixée en français) |
 | `proposal/sales-cockpit-v2.html` | source du Cockpit commercial |
 | `docs/crm/reference/sales-cycle-v6.html` | source de la vue Cycle de vente |
-| `web/` | édition web Vercel : `public/` (page et `skl-web.js`), `api/` (routes), `kb/` (base de connaissances du connecteur), `supabase/` (migrations SQL et leurs tests), `tests/` (tests du connecteur), `vercel.json`, `package.json` |
+| `web/` | édition web Vercel : `public/` (page et `lnp-web.js`), `api/` (routes), `kb/` (base de connaissances du connecteur), `supabase/` (migrations SQL et leurs tests), `tests/` (tests du connecteur), `vercel.json`, `package.json` |
 | `supabase/` | dossier de la CLI Supabase : `functions/` (fonctions Edge et `_shared/`), `tests/` (tests Deno), `config.toml` (`verify_jwt = false`) |
 | `call-analysis/` | moteur d'analyse (`engine/`), worker (`worker/`), méthodologie et contrats (`docs/`) |
 | `.github/workflows/` | `crm-functions.yml` (tests + déploiement des fonctions), `call-analysis.yml` (tests + worker horaire) |
 | `docs/crm/` | spécification du CRM ; `docs/lnp/GLOSSAIRE.md` ; ce dossier |
 
-Les noms techniques `skl-os/`, `SKL_*`, `skl-web.js` sont des identifiants hérités : ils ne s'affichent nulle part et peuvent
+Les noms techniques `app/`, `LNP_*`, `lnp-web.js` sont des identifiants hérités : ils ne s'affichent nulle part et peuvent
 rester tels quels dans une réplication (les renommer demande de reprendre build, générateurs et tests ensemble).

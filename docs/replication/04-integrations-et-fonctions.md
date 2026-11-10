@@ -3,7 +3,7 @@
 Ce chapitre décrit tout ce qui tourne côté serveur en dehors de la page et de l'édition web : les huit fonctions Edge de
 `supabase/functions/`, leurs modules partagés (`supabase/functions/_shared/`), les tâches planifiées qui les appellent, la
 configuration à faire chez chaque service externe, puis la chaîne d'analyse d'appel (worker Python, moteur
-`alkimiy_callqa`, passerelle `callqa-llm`, workflow GitHub Actions). Chaque fait vient du code ; le fichier est cité.
+`lnp_callqa`, passerelle `callqa-llm`, workflow GitHub Actions). Chaque fait vient du code ; le fichier est cité.
 Quand `docs/crm/` dit autre chose que le code, c'est le code qui fait foi (voir §13).
 
 Aucun secret n'apparaît ici : seuls les **noms** des secrets sont donnés.
@@ -28,12 +28,12 @@ GitHub Actions :07 ──► call-analysis/worker/run.py ──► crm_ca_claim 
 
 | Fonction | Rôle | Déclencheur | Authentification |
 |---|---|---|---|
-| `iclosed-in` | Stocke le webhook iClosed brut | Webhook natif iClosed (ou Zap) | Jeton `ICLOSED_INBOUND_TOKEN` en `?k=` ou en en-tête `x-skl-token` |
+| `iclosed-in` | Stocke le webhook iClosed brut | Webhook natif iClosed (ou Zap) | Jeton `ICLOSED_INBOUND_TOKEN` en `?k=` ou en en-tête `x-lnp-token` |
 | `fathom-in` | Stocke le webhook Fathom brut | Webhook Fathom (non utilisé en production, voir §6.3) | Signature Standard Webhooks, secrets `FATHOM_WEBHOOK_SECRETS` / `FATHOM_WEBHOOK_SECRET` |
 | `sendblue-in` | Stocke le webhook Sendblue brut | Webhooks Sendblue `receive`, `outbound`, `call_log`, `inbound_call` | Jeton `SENDBLUE_INBOUND_TOKEN` en `?k=` |
 | `whop-in` | Stocke le webhook Whop brut | Webhooks Whop | Signature Standard Webhooks, secret `WHOP_WEBHOOK_SECRET` |
 | `process-inbox` | Transforme les lignes brutes en faits du CRM | pg_cron chaque minute (`crm-process-inbox`) | Aucune (ne prend aucune entrée) |
-| `crm-import` | Imports (Close, iClosed, Sendblue, Fathom), rapports, sondes | pg_cron minute 23 (`crm-fathom-hourly`) et appels manuels | Aucune ; noms dans un rapport seulement avec `x-skl-token` = `CRM_REPORT_TOKEN` |
+| `crm-import` | Imports (Close, iClosed, Sendblue, Fathom), rapports, sondes | pg_cron minute 23 (`crm-fathom-hourly`) et appels manuels | Aucune ; noms dans un rapport seulement avec `x-lnp-token` = `CRM_REPORT_TOKEN` |
 | `sla-tick` | Alertes SLA du cycle de vente vers Slack | pg_cron toutes les 5 min (`crm-sla-tick`) | Aucune (ne prend aucune entrée) |
 | `callqa-llm` | Passerelle de modèle du worker d'analyse | Appels du worker (GitHub Actions) | Bearer = clé service role (`SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY`) |
 
@@ -45,16 +45,16 @@ Les points d'entrée sont minimes : `supabase/functions/<nom>/index.ts` importe 
 ### 2.1 `supabase/config.toml`
 
 Le dossier `supabase/` est l'espace de travail de la CLI Supabase pour les fonctions seulement (le schéma est géré par les
-fichiers SQL numérotés de `web/supabase/`). `project_id = "skl-os"` (identifiant technique). Les huit fonctions ont
+fichiers SQL numérotés de `web/supabase/`). `project_id = "lnp"` (identifiant technique). Les huit fonctions ont
 `verify_jwt = false` : aucun fournisseur n'envoie de JWT Supabase, chacune vérifie elle-même son jeton ou sa signature, ou
 ne prend aucune entrée.
 
 ### 2.2 Déploiement (`.github/workflows/crm-functions.yml`)
 
 - Déclenché sur `push` vers `main` ou `crm-*`, sur `pull_request` (chemins `supabase/**`, `web/supabase/**`,
-  `skl-os/crm/**`, `web/api/**`, `web/tests/**`, `web/package*.json`, le workflow lui-même) et à la main.
+  `app/crm/**`, `web/api/**`, `web/tests/**`, `web/package*.json`, le workflow lui-même) et à la main.
 - Job `test` : Deno 2.x, `deno check supabase/functions/*/index.ts` puis `deno test --allow-env --allow-read supabase/tests`.
-- Job `sql` : Postgres 16 en service, `web/supabase/tests/run.sh` puis `node skl-os/crm/data.test.js`.
+- Job `sql` : Postgres 16 en service, `web/supabase/tests/run.sh` puis `node app/crm/data.test.js`.
 - Job `connector` : Node 22, `cd web && npm ci && npm test` (chapitre 05).
 - Job `deploy` (après `test` et `sql`, sur `main` hors PR) : ignoré tant que les secrets GitHub `SUPABASE_ACCESS_TOKEN` et
   `SUPABASE_PROJECT_REF` manquent ; sinon, pour chaque fonction `iclosed-in fathom-in sendblue-in whop-in process-inbox
@@ -115,7 +115,7 @@ Le script désinscrit d'abord chaque tâche par son nom (`cron.unschedule`), il 
 4. Si la vérification passe et que la source donne un identifiant de livraison (`opts.deliveryId`), il est gardé ; une
    ligne rejetée n'a jamais d'identifiant de livraison (une requête forgée ne doit pas bloquer la vraie comme doublon).
 5. Insère dans `crm_webhook_log` : `source`, `delivery_id`, `headers` (tous, sauf `authorization`, `cookie`, `apikey`,
-   `x-skl-token` et les en-têtes secrets propres à la source, remplacés par `"<redacted>"`), `body` (brut), `auth_ok`,
+   `x-lnp-token` et les en-têtes secrets propres à la source, remplacés par `"<redacted>"`), `body` (brut), `auth_ok`,
    `status` = `received` ou `rejected`.
 6. Réponses : échec d'écriture → `500 Not stored, retry later` (le fournisseur réessaie) ; vérification échouée →
    `401 Unauthorized` (la ligne est quand même gardée, pour audit) ; doublon (HTTP 409 ou code `23505` de PostgREST) →
@@ -145,7 +145,7 @@ aucune politique RLS : seul le rôle de service y lit et écrit.
 
 | Source | Vérification | Identifiant de livraison |
 |---|---|---|
-| iClosed | `tokenMatches(x-skl-token, ICLOSED_INBOUND_TOKEN)` **ou** `tokenMatches(?k=, ICLOSED_INBOUND_TOKEN)` | `zap.task_id` du contrat Zap s'il existe, sinon aucun |
+| iClosed | `tokenMatches(x-lnp-token, ICLOSED_INBOUND_TOKEN)` **ou** `tokenMatches(?k=, ICLOSED_INBOUND_TOKEN)` | `zap.task_id` du contrat Zap s'il existe, sinon aucun |
 | Fathom | `verifyStandardWebhook(secretList("FATHOM_WEBHOOK_SECRETS", "FATHOM_WEBHOOK_SECRET"), …)` | En-tête `webhook-id` |
 | Sendblue | `tokenMatches(?k=, SENDBLUE_INBOUND_TOKEN)` | Aucun : un `message_handle` revient à chaque changement de statut, ce n'est pas un identifiant de livraison |
 | Whop | `verifyStandardWebhook(secretList("WHOP_WEBHOOK_SECRET"), …)` | En-tête `webhook-id` |
@@ -227,7 +227,7 @@ transactions sont créées dans le CRM.
   `canceled_at`, `cancel_reason`, identifiant, nom et e-mail de l'hôte, `location_type`…), `contact` (`id`, `email`,
   `firstName`, `lastName`, `phoneNumber`), `invitee`, `event_type.name`, `questions_and_answers`. Pour « Contact updated » :
   `id`, `email`, `secondary_email`, `firstName`, `lastName`, `phoneNumber`, `status`, `updatedAt`, `updatedAttributes[]`.
-- Contrat de Zap `skl.iclosed.v1` (fixture `iclosed-call_booked.json`, solution de repli) : `contract`, `event`
+- Contrat de Zap `lnp.iclosed.v1` (fixture `iclosed-call_booked.json`, solution de repli) : `contract`, `event`
   (`call_booked|call_rescheduled|call_cancelled`), `occurred_at`, `call {id, start, end, event_type, host_email,
   cancel_reason, previous_start}`, `contact {id, first_name, last_name, email, phone}`, `zap {id, task_id}`.
 
@@ -373,8 +373,8 @@ prospects correspondent ») et `unmatched` ; sinon `ignored` avec la note FL-1 o
 
 Seule la réception existe : `whop-in` vérifie la signature et stocke la requête. Il n'y a pas de mapper Whop, la file ne prend
 pas les lignes `whop`. La fixture `whop-payment_succeeded.json` montre la forme attendue : `type`, `account_id`,
-`data {id, status, total, currency, paid_at, user {id, email}, member {id, phone}, plan {id}, metadata {skl_cycle_id,
-skl_person_id}}` et les en-têtes Standard Webhooks. La correspondance prévue (`docs/crm/08-integration-whop.md` §4) n'est pas
+`data {id, status, total, currency, paid_at, user {id, email}, member {id, phone}, plan {id}, metadata {lnp_cycle_id,
+lnp_person_id}}` et les en-têtes Standard Webhooks. La correspondance prévue (`docs/crm/08-integration-whop.md` §4) n'est pas
 codée.
 
 ### 5.5 Ventes et encaissements iClosed (037)
@@ -413,7 +413,7 @@ et écrit la base par PostgREST avec la clé service role (`restRpc` pour les RP
 | `?source=fathom[&since=AAAA-MM-JJ][&until=AAAA-MM-JJ][&queue=1][&dry=1]` | Enregistrements Fathom → `crm_import_recordings` ; `since` par défaut = il y a 2 jours ; `queue=1` met les analyses R1 / R2 en file (tâche horaire seulement) |
 | `?source=iclosed&probe=1` | Lecture seule : forme (noms et types de champs, jamais de valeurs) des réponses de l'API iClosed sur des chemins connus, et chemins de sa description OpenAPI |
 | `?source=iclosed&probe=2` | Lecture seule : quel paramètre pagine `/v1/contacts` et `/v1/eventCalls` (comparaison d'identifiants seulement) |
-| `?report=statuses` | Statuts iClosed croisés avec les contacts Close (par e-mail ou téléphone) ; comptes seulement, et la liste des disqualifiés (nom, téléphone, statuts, date) seulement si l'en-tête `x-skl-token` égale `CRM_REPORT_TOKEN` (32 caractères au moins) |
+| `?report=statuses` | Statuts iClosed croisés avec les contacts Close (par e-mail ou téléphone) ; comptes seulement, et la liste des disqualifiés (nom, téléphone, statuts, date) seulement si l'en-tête `x-lnp-token` égale `CRM_REPORT_TOKEN` (32 caractères au moins) |
 | `?report=calls` | Comptes sur les appels iClosed (types, annulations, issues, mois, appels par contact) |
 | `?report=sendblue` | Comptes sur l'historique Sendblue (sens, service, statut, source, type, groupe, mois) |
 
@@ -467,8 +467,8 @@ Toute réponse HTTP non 2xx d'une API externe lève `"<Source> API: HTTP <code> 
 
 ### 7.1 Une seule source de règles (`_shared/sla_rules.js`)
 
-Fichier JavaScript sans module (IIFE) qui expose `SKL_SLA = {DEFS, evaluate, worst, fmt, RANK}` sur `window` ou
-`globalThis`. Il est inséré dans l'écran Cycle de vente par `skl-os/gen_crm.py` et importé par `sla-tick` : l'écran et Slack
+Fichier JavaScript sans module (IIFE) qui expose `LNP_SLA = {DEFS, evaluate, worst, fmt, RANK}` sur `window` ou
+`globalThis`. Il est inséré dans l'écran Cycle de vente par `app/gen_crm.py` et importé par `sla-tick` : l'écran et Slack
 appliquent exactement les mêmes règles (« SLA du cycle de vente v3 », `docs/crm/18-sales-cycle-slas.md`).
 
 Seuils en heures (`M = 1/60`) : `warn` (préventif, « bientôt dû »), `late` (dépassé), `crit` (critique).
@@ -574,7 +574,7 @@ Rien n'est journalisé : ni consigne, ni transcription.
 
 Le moteur a ses propres règles : `call-analysis/CLAUDE.md` est à lire avant toute modification. Règle qui prime sur tout :
 **le modèle extrait et cite, le code décide et note**. Les consignes envoyées au modèle
-(`call-analysis/engine/alkimiy_callqa/prompts/*.md`) restent en anglais.
+(`call-analysis/engine/lnp_callqa/prompts/*.md`) restent en anglais.
 
 ### 9.1 Données (`web/supabase/020_crm_call_analysis.sql`, 025, 034)
 
@@ -610,7 +610,7 @@ Python, bibliothèque standard seulement. `run.py [--once] [--budget-min 300]` :
 2. Boucle tant que le budget n'est pas épuisé : `crm_ca_claim({"p_worker": "gha:<hôte>"})` ; plus de job → fin.
 3. `GatewayClient(<SUPABASE_URL>/functions/v1/callqa-llm, clé, config.tiers, effort = CALLQA_EFFORT ou config.effort ou "low")`.
 4. `run_job(claim, client, rounds=True, workers=24, budget_s=90*60)` puis `crm_ca_store` avec
-   `usage = {tiers, seconds, effort}` et `ENGINE_VERSION = "alkimiy_callqa-1.0"`.
+   `usage = {tiers, seconds, effort}` et `ENGINE_VERSION = "lnp_callqa-1.0"`.
 5. Échecs : `ModelErrors` (plus de la moitié des questions du modèle en erreur : l'enregistrement serait vide) et `TooLong`
    (budget de 90 min dépassé) → `crm_ca_fail(..., p_final = true)` ; `GatewayError` → final selon l'erreur ; toute autre
    exception → non final. Les journaux ne contiennent que des identifiants, statuts, scores et comptes de jetons.
@@ -634,7 +634,7 @@ Modules :
 - `callqa_worker/job.py` : `build_context` (transcription analysée par `parse_transcript` avec la carte des intervenants,
   bibliothèque de cas, épisodes d'objection des appels précédents) et `result_record`.
 
-### 9.4 Le moteur (`call-analysis/engine/alkimiy_callqa`, résumé de `call-analysis/docs/ARCHITECTURE.md`)
+### 9.4 Le moteur (`call-analysis/engine/lnp_callqa`, résumé de `call-analysis/docs/ARCHITECTURE.md`)
 
 Un **pipeline fixe** à trois couches : une fondation commune calculée une fois, de nombreuses petites tâches du modèle (une
 question fermée sur une unité, avec citations exactes), du code déterministe qui vérifie chaque citation et prend chaque
@@ -683,7 +683,7 @@ passer deux appels de 7,10 à 3,65 USD et de 10,15 à 4,40 USD.
 
 Commandes du moteur (`call-analysis/CLAUDE.md`) : `cd call-analysis/engine && python3 -m pytest -q tests` ;
 `CALLQA_CORPUS=<dossier> python3 -m pytest -q tests` (cas de l'annexe B sur un autre corpus) ;
-`python3 -m alkimiy_callqa.pipeline transcript.txt --config call.json` (un appel, modèle réel).
+`python3 -m lnp_callqa.pipeline transcript.txt --config call.json` (un appel, modèle réel).
 
 ### 9.5 Le workflow `.github/workflows/call-analysis.yml`
 
@@ -704,8 +704,8 @@ Les adresses ont la forme `https://<ref>.supabase.co/functions/v1/<fonction>` (`
 
 | Service | Côté service | Côté Supabase |
 |---|---|---|
-| **iClosed** | Settings › Integrations / Webhooks : URL `…/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>` (ou en-tête `x-skl-token` sans `?k=`) ; événements appel réservé, déplacé, annulé (et « Contact updated ») ; clé API (Settings › Developers › API) pour les imports | `ICLOSED_INBOUND_TOKEN`, `ICLOSED_API_KEY` |
-| **iClosed par Zapier** (repli) | Un Zap par déclencheur (Call Booked / Rescheduled / Cancelled) → Webhooks by Zapier POST JSON du contrat `skl.iclosed.v1`, en-tête `x-skl-token`, Autoreplay activé (`docs/crm/05` §2-3) | Idem |
+| **iClosed** | Settings › Integrations / Webhooks : URL `…/iclosed-in?k=<ICLOSED_INBOUND_TOKEN>` (ou en-tête `x-lnp-token` sans `?k=`) ; événements appel réservé, déplacé, annulé (et « Contact updated ») ; clé API (Settings › Developers › API) pour les imports | `ICLOSED_INBOUND_TOKEN`, `ICLOSED_API_KEY` |
+| **iClosed par Zapier** (repli) | Un Zap par déclencheur (Call Booked / Rescheduled / Cancelled) → Webhooks by Zapier POST JSON du contrat `lnp.iclosed.v1`, en-tête `x-lnp-token`, Autoreplay activé (`docs/crm/05` §2-3) | Idem |
 | **Fathom** | Settings › API Access : clé API créée depuis un compte qui voit les enregistrements des commerciaux. Webhook facultatif (non utilisé) : URL `…/fathom-in`, « My recordings », transcript, summary et action items cochés | `FATHOM_API_KEY` ; si webhook, `FATHOM_WEBHOOK_SECRET` (ou `FATHOM_WEBHOOK_SECRETS`) |
 | **Sendblue** | Webhooks `receive`, `outbound`, `call_log`, `inbound_call` vers `…/sendblue-in?k=<SENDBLUE_INBOUND_TOKEN>` ; clés API pour l'historique | `SENDBLUE_INBOUND_TOKEN`, `SENDBLUE_API_KEY_ID`, `SENDBLUE_API_SECRET` |
 | **Whop** | Developer › Webhooks : URL `…/whop-in`, version d'API v1, événements `payment.succeeded`, `payment.failed`, `payment.pending`, `payment.requires_action`, `refund.created`, `refund.updated`, `dispute.created`, `dispute.updated`, `membership.activated` (stockés seulement) | `WHOP_WEBHOOK_SECRET` |
@@ -759,6 +759,6 @@ Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`
 | Fathom | Webhook + rapprochement nocturne (06 §2, §7) | Pas de webhook ; import horaire par l'API (minute 23), règles FL-1 à FL-6 |
 | Whop | Mapper `mappers/whop.ts`, `whop-checkout` (08) | Réception seulement, aucun mapper |
 | Fonctions prévues | `sendblue-send`, `whop-checkout`, `claude-analyze`, `rules-tick`, `nurture-tick`, `reconcile`, `retention` | N'existent pas ; l'analyse d'appel passe par le worker GitHub et `callqa-llm` |
-| Analyse d'appel | `crm_call_analyses`, schéma v0 (09) | Tables `crm_ca_*` (020), moteur `alkimiy_callqa` |
+| Analyse d'appel | `crm_call_analyses`, schéma v0 (09) | Tables `crm_ca_*` (020), moteur `lnp_callqa` |
 | Worker d'analyse | Toutes les 10 minutes (`call-analysis/PLAN.md` §2) | Chaque heure à la minute 7 |
 | Nombre de tests du moteur | 209 (`call-analysis/CLAUDE.md`) | Libellé d'étape « Engine (184 tests) » dans le workflow (simple libellé) |

@@ -7,7 +7,7 @@ they are created in the CRM.
 ## 1. Transport
 
 **Update (Q1 answered, 24 Oct 2026):** iClosed has native webhooks. They post to
-`iclosed-in?k=<ICLOSED_INBOUND_TOKEN>` (or with the header `x-skl-token`), no Zapier. The Zap set-up below stays as a
+`iclosed-in?k=<ICLOSED_INBOUND_TOKEN>` (or with the header `x-lnp-token`), no Zapier. The Zap set-up below stays as a
 fallback; the mapper of phase 2 is written from the captured native payloads.
 
 iClosed exposes instant triggers through Zapier (Call Booked, Call Rescheduled, Call Cancelled,
@@ -21,7 +21,7 @@ provides native webhooks, only the mapper changes.
 2. Action: *Webhooks by Zapier › POST*.
    - URL: `https://<project>.functions.supabase.co/iclosed-in`
    - Payload type: `json`
-   - Headers: `x-skl-token: <ICLOSED_INBOUND_TOKEN>`
+   - Headers: `x-lnp-token: <ICLOSED_INBOUND_TOKEN>`
    - Data: the contract below, each value mapped from the trigger's fields.
 3. Turn on *Autoreplay* in Zapier for failed tasks.
 
@@ -29,7 +29,7 @@ provides native webhooks, only the mapper changes.
 
 ```json
 {
-  "contract": "skl.iclosed.v1",
+  "contract": "lnp.iclosed.v1",
   "event": "call_booked",                 // call_booked | call_rescheduled | call_cancelled
   "occurred_at": "2026-10-24T09:12:00Z",  // when the booking/reschedule/cancel happened
   "call": {
@@ -71,7 +71,7 @@ Save one captured payload per trigger in `fixtures/` (personal data replaced).
 
 ## 5. Auth
 
-`x-skl-token` compared in constant time with `ICLOSED_INBOUND_TOKEN`. Rotate the token by
+`x-lnp-token` compared in constant time with `ICLOSED_INBOUND_TOKEN`. Rotate the token by
 updating the secret and the three Zaps together.
 
 ## 6. Reconciliation

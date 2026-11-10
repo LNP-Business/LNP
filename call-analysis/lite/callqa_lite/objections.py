@@ -15,10 +15,10 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from alkimiy_callqa.competences import objections as O
-from alkimiy_callqa.core.models import CallContext, CompetenceResult, Evidence, ItemScore, SALES
-from alkimiy_callqa.core.scoring import call_score
-from alkimiy_callqa.core.text import norm, sentences
+from lnp_callqa.competences import objections as O
+from lnp_callqa.core.models import CallContext, CompetenceResult, Evidence, ItemScore, SALES
+from lnp_callqa.core.scoring import call_score
+from lnp_callqa.core.text import norm, sentences
 
 from .shim import Drops
 

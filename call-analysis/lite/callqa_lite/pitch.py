@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 from typing import Any, Optional
 
-from alkimiy_callqa.competences import pitch as P
-from alkimiy_callqa.core.models import CallContext, CompetenceResult
+from lnp_callqa.competences import pitch as P
+from lnp_callqa.core.models import CallContext, CompetenceResult
 
 from .shim import Drops, StepRunner
 

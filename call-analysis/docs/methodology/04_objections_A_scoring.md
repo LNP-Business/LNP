@@ -3,7 +3,7 @@ _Scoring methodology: how the system measures whether the sales prevented object
 
 **Version:** Version 1.1 · 25 October 2026  
 **Status:** Draft for validation by the methodology owner. Values marked "to validate" are proposals.  
-**Scope:** All sales calls of a cycle (first call, follow-ups, decision calls). Sources: ALKIMIY verbatim reference v2 (objection triplet, anxiety, inertia, past attempt, decision circuit), analysis of 95 real calls.  
+**Scope:** All sales calls of a cycle (first call, follow-ups, decision calls). Sources: LNP verbatim reference v2 (objection triplet, anxiety, inertia, past attempt, decision circuit), analysis of 95 real calls.  
 # 1. What this competence measures
 
 **Definition.** Objection removal covers two things: **preventing** the resistances that can be anticipated (decision circuit, budget, timing) before the price, and **removing** each resistance the prospect raises after the first price (OB-27), with the gesture that fits its nature, until the prospect states that it no longer holds.

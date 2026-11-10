@@ -10,7 +10,7 @@
 
 | Source | Check |
 |---|---|
-| iClosed (Zapier) | `x-skl-token` header, constant-time compare |
+| iClosed (Zapier) | `x-lnp-token` header, constant-time compare |
 | Fathom | `webhook-id` / `webhook-timestamp` / `webhook-signature`, 5-minute window |
 | Sendblue | token in query string until a signature is confirmed (Q4) |
 | Whop | Standard Webhooks HMAC-SHA256, 5-minute window |

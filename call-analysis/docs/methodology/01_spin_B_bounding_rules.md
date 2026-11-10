@@ -1,6 +1,6 @@
 # Annex A · Bounding rules for SPIN discovery (v1.3: A8 registers, SB-26 to SB-33 and SB-35)
 
-The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG-8, the five gates, OUT reasons and hard rules) is given in §2 and §3 and follows the ALKIMIY SPIN bounding reference v1.0. This annex adds what that reference leaves open for scoring: the exact bounding of the **perimeter**, of the **prospect's answer**, of the **atoms** it contains and of the **chains**. A rule that is not written here does not exist: an uncovered case goes to the arbiter with the label `uncovered_case`.
+The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG-8, the five gates, OUT reasons and hard rules) is given in §2 and §3 and follows the LNP SPIN bounding reference v1.0. This annex adds what that reference leaves open for scoring: the exact bounding of the **perimeter**, of the **prospect's answer**, of the **atoms** it contains and of the **chains**. A rule that is not written here does not exist: an uncovered case goes to the arbiter with the label `uncovered_case`.
 
 ## A1. Perimeter
 

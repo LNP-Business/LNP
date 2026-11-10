@@ -1,5 +1,5 @@
 """The call 001 pitch scenario of the engine's test_pitch.test_real_001_full_run, rebuilt for the worker tests."""
-from alkimiy_callqa.core.models import Evidence, SALES, CompetenceResult
+from lnp_callqa.core.models import Evidence, SALES, CompetenceResult
 
 
 def span(turn, quote):
@@ -7,7 +7,7 @@ def span(turn, quote):
 
 
 def pitch_001_setup(load):
-    from alkimiy_callqa.competences import pitch as P
+    from lnp_callqa.competences import pitch as P
     ctx = load("001")
     ph = ctx.phases
     ph.pitch_start, ph.first_price, ph.pitch_end = "T085", "T113", "T113"

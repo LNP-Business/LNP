@@ -1,6 +1,6 @@
 # Output contract · the call record
 
-One call record is produced per analysed call by `alkimiy_callqa.pipeline.result_record(ctx)`. It is what is stored
+One call record is produced per analysed call by `lnp_callqa.pipeline.result_record(ctx)`. It is what is stored
 and what the screen reads. The per-competence output contracts are defined in each `0N_<x>_A_scoring.md`
 (section "Output contract"); this file gives the envelope and what the screen needs.
 
@@ -51,7 +51,7 @@ and what the screen reads. The per-competence output contracts are defined in ea
 
 ## Period results (performance screen)
 
-`alkimiy_callqa.core.aggregate.period(results, competence, window, today, tz)` returns, per sales and competence:
+`lnp_callqa.core.aggregate.period(results, competence, window, today, tz)` returns, per sales and competence:
 score, 95 % interval (Student), item level-2 rates with Wilson intervals, level with the floor rule, delta vs the
 comparison window ("stable" when within half the interval), status counts; `bottleneck(periods)` names the weakest
 competence. Windows: `7d`, `month`, `all`, in the sales' time zone (Part C, C5–C6).

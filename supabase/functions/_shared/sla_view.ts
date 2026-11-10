@@ -1,5 +1,5 @@
-// The Sales cycle model of one cycle for the SLA rules (sla_rules.js): the same event kinds as SKL_CRM.salesCycleView
-// (skl-os/crm/data.js) builds for the screen, reduced to what the rules read. t = hours since the cycle opened.
+// The Sales cycle model of one cycle for the SLA rules (sla_rules.js): the same event kinds as LNP_CRM.salesCycleView
+// (app/crm/data.js) builds for the screen, reduced to what the rules read. t = hours since the cycle opened.
 export type Ev = { t: number; w: "s" | "p" | "a"; k: string; r?: number; dur?: number; yes?: number; no?: number; fu?: number; rec?: number; ana?: number; stop?: number };
 export type Snap = {
   id: string; opened_at: string; person?: string; owner?: string; owner_key?: string;

@@ -922,7 +922,7 @@ document.addEventListener("click",e=>{
     if(a==="outcome"){S.ofm=l.id;S.of={res:"held",dec:"fu",amt:l.a,inst:"3",reason:"",nur:"y",step:""};return renderModal()}
     if(a==="reply"){S.pop=l.id;S.flt="all";S.an=null;renderPop();const c=document.getElementById("cmp");if(c){c.focus();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight}return}
     if(a==="whop")return copy("https://whop.com/checkout/demo-"+l.id,"Lien Whop copié · collez-le dans la conversation ; le paiement sera rattaché à ce cycle");
-    if(a==="book")return copy("https://app.iclosed.io/e/alkimiy/strategy-follow-up?skl="+l.id,"Lien iClosed copié · l’appel qu’il planifie rejoint ce cycle");}
+    if(a==="book")return toast("Planifiez le prochain appel dans iClosed avec l’adresse e-mail du prospect : l’appel rejoint ce cycle");}
   if(t.dataset.send){const l=LEADS.find(z=>z.id===t.dataset.send),c=document.getElementById("cmp"),v=c&&c.value.trim();if(!v){c&&c.focus();return}
     const k=l.ev.findIndex(z=>z.t>l.age),ev=E(l.age,"s","im",v,{st:"Sent"});k<0?l.ev.push(ev):l.ev.splice(k,0,ev);if(l.nx&&l.nx.due==null)l.nx=null;else if(l.nx&&l.nx.due<=l.age+2)l.nx=null;
     toast("Envoyé par iMessage via Sendblue (maquette : rien ne quitte cette page)");render();const cv=document.querySelector(".convo");if(cv)cv.scrollTop=cv.scrollHeight;return}

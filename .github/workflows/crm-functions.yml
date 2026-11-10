@@ -1,4 +1,4 @@
-# CRM ingestion functions: unit tests on every change; deploy to the Supabase project skl-os from main only
+# CRM ingestion functions: unit tests on every change; deploy to the Supabase project LNP from main only
 # (the same project as the app: decision D13), when its secrets exist.
 # Secrets (GitHub › Settings › Secrets and variables › Actions): SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF.
 # See docs/crm/setup.md. The functions only store raw requests (phase 0).
@@ -7,9 +7,9 @@ name: CRM functions
 on:
   push:
     branches: ["main", "crm-*"]
-    paths: ["supabase/**", "web/supabase/**", "skl-os/crm/**", "web/api/**", "web/tests/**", "web/package*.json", ".github/workflows/crm-functions.yml"]
+    paths: ["supabase/**", "web/supabase/**", "app/crm/**", "web/api/**", "web/tests/**", "web/package*.json", ".github/workflows/crm-functions.yml"]
   pull_request:
-    paths: ["supabase/**", "web/supabase/**", "skl-os/crm/**", "web/api/**", "web/tests/**", "web/package*.json", ".github/workflows/crm-functions.yml"]
+    paths: ["supabase/**", "web/supabase/**", "app/crm/**", "web/api/**", "web/tests/**", "web/package*.json", ".github/workflows/crm-functions.yml"]
   workflow_dispatch:
 
 permissions:
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: web/supabase/tests/run.sh
-      - run: node skl-os/crm/data.test.js
+      - run: node app/crm/data.test.js
 
   # Claude connector (web/api/mcp.js, web/api/oauth.js): OAuth flow and the 8 tools on an in-memory Supabase
   connector:

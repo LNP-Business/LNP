@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from alkimiy_callqa.competences import gap as g
-from alkimiy_callqa.competences.gap import GapCompetence, Restitution, Span
-from alkimiy_callqa.core.foundation import repair_attribution
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.models import Atom, CallContext, Evidence, PROSPECT, SALES, Solicitation, Turn
-from alkimiy_callqa.core.runner import Runner
+from lnp_callqa.competences import gap as g
+from lnp_callqa.competences.gap import GapCompetence, Restitution, Span
+from lnp_callqa.core.foundation import repair_attribution
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.models import Atom, CallContext, Evidence, PROSPECT, SALES, Solicitation, Turn
+from lnp_callqa.core.runner import Runner
 
 RUNS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 LINE = re.compile(r"^\[(T\d+\w?) ([\d:]+)\] (SALES|PROSPECT|OTHER): ?(.*)$")

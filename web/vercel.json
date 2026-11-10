@@ -47,7 +47,7 @@
       ]
     },
     {
-      "source": "/skl-web.js",
+      "source": "/lnp-web.js",
       "headers": [
         {
           "key": "Cache-Control",

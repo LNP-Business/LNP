@@ -59,8 +59,8 @@ Never asked of the model: a score, a level, a verdict, the phase order, whether 
 
 ## The record
 
-The same record as `alkimiy_callqa.pipeline.result_record` (`docs/OUTPUT_CONTRACT.md`), stored by `crm_ca_store` and
-read by `skl-os/crm/call_analysis_view.js` (checked in a browser with a lite record: header tiles, discovery rows by
+The same record as `lnp_callqa.pipeline.result_record` (`docs/OUTPUT_CONTRACT.md`), stored by `crm_ca_store` and
+read by `app/crm/call_analysis_view.js` (checked in a browser with a lite record: header tiles, discovery rows by
 register with the letter chips and the question + answer panel, the gap panel and its four checks, the pitch staircase
 and verbatim, the objections table with A · I · E · M), plus:
 

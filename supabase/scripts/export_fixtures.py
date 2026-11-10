@@ -7,7 +7,7 @@ Input, either:
       select id, source, delivery_id, received_at, headers, body, auth_ok, status from crm_webhook_log order by id;
   python3 supabase/scripts/export_fixtures.py --live
       reads crm_webhook_log directly; needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment
-      (of the project skl-os; never paste them in a chat or commit them).
+      (of the project LNP; never paste them in a chat or commit them).
 
 Output: docs/crm/fixtures/<source>-<event>.json, one per event type (the latest authenticated row wins),
 with personal data replaced: emails, phone numbers, names, free text, links and IP addresses.
@@ -113,7 +113,7 @@ def load_rows(argv):
     if "--live" in argv:
         base, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
         if not base or not key:
-            sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (project skl-os) in the environment.")
+            sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (project LNP) in the environment.")
         req = urllib.request.Request(
             f"{base}/rest/v1/crm_webhook_log?select=id,source,delivery_id,received_at,headers,body,auth_ok,status&order=id",
             headers={"apikey": key, "authorization": f"Bearer {key}"},

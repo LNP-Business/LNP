@@ -12,11 +12,11 @@ from pathlib import Path
 
 import pytest
 
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.models import CallContext, Evidence, PROSPECT, SALES, Turn
-from alkimiy_callqa.core.runner import Runner
-from alkimiy_callqa.competences import objections as O
-from alkimiy_callqa.competences.objections import ObjectionsCompetence
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.models import CallContext, Evidence, PROSPECT, SALES, Turn
+from lnp_callqa.core.runner import Runner
+from lnp_callqa.competences import objections as O
+from lnp_callqa.competences.objections import ObjectionsCompetence
 
 RUNS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 

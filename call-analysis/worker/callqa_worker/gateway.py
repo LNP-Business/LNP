@@ -17,7 +17,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-from alkimiy_callqa.core.llm import parse_json
+from lnp_callqa.core.llm import parse_json
 
 
 # tasks asked at another effort than the job's (docs/ARCHITECTURE.md §7). "default" = the model's own default (no effort

@@ -6,10 +6,10 @@
 |---|---|
 | Hosting | Web edition live at https://lnp-sales.vercel.app, deployed from `main` of LNP-Business/LNP |
 | Database / auth | Supabase project `LNP`: table `docs (col, id, body)` for every collection, table `members` (roles Admin / Member / Viewer), sign-in by invite link + password, `/api/config`, `/api/me`, `/api/team`, `/api/files` on Vercel |
-| Clock | Real OS clock (`window.SKL_TODAY` pins it for tests) |
+| Clock | Real OS clock (`window.LNP_TODAY` pins it for tests) |
 | Alerts | Engine in `store.js`, rules a1–a18 in `config/alerts`, Settings › Alerts (threshold, severity Low/Medium/High/Critical, recipients, channels, quiet hours, daily digest, 24 h escalation), life in `inbox` (Take it, Reassign, Snooze, Make it a decision, Handled), shown in My Day › Needs you |
 | Team | amin (CEO), romain (CPO), marketing (Michael), contenu (Ilya), sales (Valentino). Leads: Romain → Amin; everyone else → Romain |
-| CRM | ALKIMIY Lite embedded (`crm_doc.html`), Pipeline / Leads, warming steps (D-3, D-1, day of), EN/FR switch, data in `localStorage` only |
+| CRM | CRM LNP embedded (`crm_doc.html`), Pipeline / Leads, warming steps (D-3, D-1, day of), EN/FR switch, data in `localStorage` only |
 | Agent System | Sample data; agents include Post-call analyst and Lead follow-ups (Sales) |
 | Access | Settings › Access hides screens per person; it does not isolate data |
 
@@ -50,16 +50,16 @@
 
 | # | Question | Blocks |
 |---|---|---|
-| Q1 | ~~Does iClosed offer native webhooks?~~ — answered (Romain, 24 Oct 2026): **yes**. No Zapier: iClosed posts to `iclosed-in?k=<token>` (header `x-skl-token` also accepted). The mapper reads iClosed's own payload, captured in phase 0 | — |
+| Q1 | ~~Does iClosed offer native webhooks?~~ — answered (Romain, 24 Oct 2026): **yes**. No Zapier: iClosed posts to `iclosed-in?k=<token>` (header `x-lnp-token` also accepted). The mapper reads iClosed's own payload, captured in phase 0 | — |
 | Q2 | Does each sales' Fathom plan include API and webhooks? | Phase 4 |
 | Q3 | Are Whop checkout metadata included in `payment.*` webhook payloads? | Phase 5 |
 | Q4 | How does Sendblue authenticate its webhooks? | Phase 7 |
-| Q5 | Inventory of automations in iClosed, Sendblue and ALKIMIY Lite (warming steps) to rebuild | Phase 7 |
+| Q5 | Inventory of automations in iClosed, Sendblue and CRM LNP (warming steps) to rebuild | Phase 7 |
 | Q6 | Legal sign-off: recording notice, nurture messages, retention period | Phases 4 and 8 |
 | Q7 | **Vercel plan**: the Hobby plan is, as far as known, for personal non-commercial use. Check Vercel's terms for an internal company tool; upgrade if needed. | Before go-live |
 | Q8 | ~~Columns of `members`~~ — answered: `user_id`, `email`, `role` (admin/member/viewer); `crm_members.id` references `members(user_id)` | — |
 | Q9 | Region of the Supabase project `LNP`: **ap-southeast-2 (Sydney)**, not EU (read through the Supabase connector, 24 Oct 2026). Open (Romain, 24 Oct 2026): the origin of the leads (US, EU or both) is not settled; nothing changes for now. Decide before real automated messaging (phase 7) and before go-live, with the matching rules (GDPR for the EU; recording consent and TCPA in the US) | Before go-live |
-| Q10 | Pending web settings from the functional spec §14 (Site URL, OTP expiry) — still to do by Romain in the Supabase dashboard of `skl-os` (`setup.md` checklist) | Phase 1 |
+| Q10 | Pending web settings from the functional spec §14 (Site URL, OTP expiry) — still to do by Romain in the Supabase dashboard of `LNP` (`setup.md` checklist) | Phase 1 |
 
 ## Phase 0 — findings (branch `crm-0-capture`)
 
@@ -74,7 +74,7 @@
 
 RLS on; members read the team (`members_read`), nobody writes from the browser (only `/api/team` with the service
 role). `my_role()` (security definer) returns the caller's role. The LNP member id (`amin`, `romain`, `sales`…) is
-**not** in this table: it lives in the app (team list in `skl-os/store.js`, "You are" selector), so `crm_members.member_key` must be filled
+**not** in this table: it lives in the app (team list in `app/store.js`, "You are" selector), so `crm_members.member_key` must be filled
 by hand or by the phase 1 import. `crm_members.id` references `members(user_id)` (pack v1.2), and deleting an account
 cascades from `auth.users` to `members`, then is blocked by `crm_members` (`on delete restrict`): deactivate CRM
 members with `active = false` before removing an account.
@@ -88,9 +88,9 @@ specification §14 (Site URL still the old domain, OTP expiry probably 1 h).
 
 | Tool | Automation | What it does | State |
 |---|---|---|---|
-| ALKIMIY Lite (`crm_doc.html`) | Warming steps D-3, D-1, day of | **Manual**: the sales ticks each step on the lead card; nothing is sent automatically. Filter "No warming", card warning "No warming logged" when a call is today or tomorrow with no step ticked, "Day-of pending" when D-3 and D-1 are ticked on the day | Rebuild as Lead follow-ups proposals (phase 7) |
-| ALKIMIY Lite | Next-action suggestions | Suggested next actions by status (new: call / book / follow up; scheduled: call, D-1 and day-of warming, prep, reschedule; no-show: re-engage, reschedule, call; held: follow up, proposal, next call, objection, alternative, nurture; won: track payment) | Feeds `crm_rules.next_move` (F4) |
-| ALKIMIY Lite | Alert 2.2 "Missing warming" | Tomorrow's call with no warming logged | Candidate CRM rule (phase 6) |
+| CRM LNP (`crm_doc.html`) | Warming steps D-3, D-1, day of | **Manual**: the sales ticks each step on the lead card; nothing is sent automatically. Filter "No warming", card warning "No warming logged" when a call is today or tomorrow with no step ticked, "Day-of pending" when D-3 and D-1 are ticked on the day | Rebuild as Lead follow-ups proposals (phase 7) |
+| CRM LNP | Next-action suggestions | Suggested next actions by status (new: call / book / follow up; scheduled: call, D-1 and day-of warming, prep, reschedule; no-show: re-engage, reschedule, call; held: follow up, proposal, next call, objection, alternative, nurture; won: track payment) | Feeds `crm_rules.next_move` (F4) |
+| CRM LNP | Alert 2.2 "Missing warming" | Tomorrow's call with no warming logged | Candidate CRM rule (phase 6) |
 | iClosed | to fill by Romain (`setup.md` checklist) | | |
 | Sendblue | to fill by Romain (`setup.md` checklist) | | |
 
@@ -100,12 +100,12 @@ specification §14 (Site URL still the old domain, OTP expiry probably 1 h).
 - `web/supabase/003a_crm_webhook_log.sql`: the two enums and `crm_webhook_log`, same definition as `003`, re-runnable
   (folded into `003_crm_core.sql` in phase 1, whose three matching statements are idempotent).
 - `iclosed-in`, `fathom-in`, `sendblue-in`, `whop-in` per 04 §1: POST only, 2 MB limit, raw text body stored,
-  cheap check (iClosed `x-skl-token`, Sendblue `?k=`, Fathom and Whop Standard Webhooks with a 5-minute window),
+  cheap check (iClosed `x-lnp-token`, Sendblue `?k=`, Fathom and Whop Standard Webhooks with a 5-minute window),
   rejected requests stored with `status = 'rejected'` and **no delivery id** (a forged request cannot block the
   genuine delivery as a duplicate) and answered 401, duplicate deliveries answered 200, storage failure 500 (the
   provider retries). Secret headers stored as `<redacted>`; the URL (Sendblue token) is never stored or logged.
 - Tests: `deno test --allow-env supabase/tests` (Standard Webhooks specification example, token, handler).
-- `.github/workflows/crm-functions.yml`: tests on every change; deploys to `skl-os` from `main` only, when the GitHub
+- `.github/workflows/crm-functions.yml`: tests on every change; deploys to `LNP` from `main` only, when the GitHub
   secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` exist.
 - `supabase/scripts/export_fixtures.py`: captured rows → anonymised `fixtures/<source>-<event>.json`.
 - `setup.md`: what Romain configures (Supabase, GitHub, Zapier, Fathom, Sendblue, Whop sandbox).
@@ -119,7 +119,7 @@ specification §14 (Site URL still the old domain, OTP expiry probably 1 h).
 
 ### Definition of done of phase 0 — state
 
-Code done. Applied to `skl-os` through the Supabase connector (24 Oct 2026): `003a` migration, the four functions
+Code done. Applied to `LNP` through the Supabase connector (24 Oct 2026): `003a` migration, the four functions
 deployed (`verify_jwt = false`) and checked (a request without token is stored as `rejected` and answered 401).
 **Pending Romain's setup** (`setup.md`): one real payload per event type in `fixtures/` and the
 checklist answers (Q2, Q5 for iClosed and Sendblue, Q9, Q10).
@@ -128,7 +128,7 @@ checklist answers (Q2, Q5 for iClosed and Sendblue, Q9, Q10).
 
 ### No browser data to move
 
-The current CRM (`crm_doc.html`, ALKIMIY Lite) does **not** keep its leads in `localStorage`: they are built-in sample
+The current CRM (`crm_doc.html`, CRM LNP) does **not** keep its leads in `localStorage`: they are built-in sample
 leads (fictional sales reps) rebuilt at every load; only the language choice is stored. Nothing real was ever saved,
 so the planned "Export my CRM data" and the admin import (11 §3) have nothing to move and are **dropped**. Since 24 Oct 2026 the screen
 starts empty: `gen_crm.py` removes the fictional leads, their sample alerts and the fictional sales reps (Romain's request). Real history
@@ -146,15 +146,13 @@ comes from the iClosed history import (phase 2). The functional specification §
 - CRM alert rules in `config/alerts`: `alerts.cN = {on, sev, who: [owner, lead, romain], ch, crm: true}`,
   thresholds as `values["cN.<param>"]` (Settings › Alerts saves only `alerts`, `values` and three settings, and keeps
   every key it does not show). a1–a18 untouched; the "Sales (CRM)" group in the screen comes in phase 6.
-- `skl-os/crm/data.js` (`window.SKL_CRM`) and `claude.use("crm")` in `web/public/skl-web.js`.
+- `app/crm/data.js` (`window.LNP_CRM`) and `claude.use("crm")` in `web/public/lnp-web.js`.
 - Tests: `web/supabase/tests/run.sh` (RLS: Valentino sees only his cycle, Romain and Amin all, an account without CRM
-  profile none, anonymous nothing; RPC role checks; audit; events; outcome history; alert merge), `skl-os/crm/data.test.js`.
+  profile none, anonymous nothing; RPC role checks; audit; events; outcome history; alert merge), `app/crm/data.test.js`.
 
 ### Team mapping (who is who in the CRM)
 
-`crm_members` links an existing LNP account to its LNP member id. Today the project has **two accounts, both admins,
-on stealthkairoslabs.com**; Valentino and Amin have no account yet, so they must be invited (Settings › Team access)
-before they can be linked. Then, for each person, an admin runs (SQL editor or through Claude):
+`crm_members` links an existing LNP account to its LNP member id. Each person must have an account first (Settings › Team access, invitation) before being linked. Then, for each person, an admin runs (SQL editor or through Claude):
 
 | Order | Call |
 |---|---|
@@ -162,10 +160,10 @@ before they can be linked. Then, for each person, an admin runs (SQL editor or t
 | 2 | `select crm_admin_set_member('<romain email>', 'romain', 'Romain', 'sales_lead', 'amin');` |
 | 3 | `select crm_admin_set_member('<valentino email>', 'sales', 'Valentino', 'sales', 'romain');` |
 
-Emails are not written in the repository. VERIFY: `crm_settings.team_email_domains` is seeded with `skl.live`, while the
-accounts use `stealthkairoslabs.com`: set the real team domains before phase 4 (Fathom internal vs external invitees).
+Emails are not written in the repository. `crm_settings.team_email_domains` (internal vs external Fathom invitees) is
+`["lesnouveauxprofs.fr"]`.
 
-### Applying phase 1 to `skl-os` (after Romain approves the PR)
+### Applying phase 1 to `LNP` (after Romain approves the PR)
 
 **Done on 24 Oct 2026.** `003` applied through the connector, `004` run by Romain in the SQL editor, then
 `crm_merge_alert_defaults()` (18 rules added). The production schema was compared with the tested one (columns,
@@ -215,8 +213,8 @@ the reason in `crm_webhook_log.error` and is retried, then kept: once the mapper
 
 ## Phase 2b — the CRM board on real cycles (branch `crm-2b-screen`)
 
-- `skl-os/crm/data.js`: `listBoard()` (visible cycles with their calls, events and deal), `listMembers()`, `listReasons()`.
-- `gen_crm.py` adds a live script to the CRM (ALKIMIY Lite) frame, active only when the parent page's `SKL_CRM` is live
+- `app/crm/data.js`: `listBoard()` (visible cycles with their calls, events and deal), `listMembers()`, `listReasons()`.
+- `gen_crm.py` adds a live script to the CRM (CRM LNP) frame, active only when the parent page's `LNP_CRM` is live
   (web edition): Pipeline and Leads show the real cycles. Status: won → Won, lost → Lost, disqualified →
   Disqualified, else from the latest non-cancelled call (scheduled → Call booked, held → Call held, no-show → No-show,
   none → New); column R1 / R2 / R3+ from the call rank; owner from `crm_members` (or "Unassigned"); the step history from

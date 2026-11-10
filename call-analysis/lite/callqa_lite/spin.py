@@ -7,7 +7,7 @@ The model lists the discovery questions with their letter, register and the atom
 - applies the hard rules of §3 (a final validation tail, a closed need-payoff: OUT agreement);
 - places the perimeter (SB-1, SB-2), computes the answer spans (SB-5 to SB-8), the follow-ups (SB-17, SB-19), the
   chains (SB-16 to SB-20), the atom decisions (SB-9 to SB-24) and the items D1 to D5, with the reference engine's
-  functions (alkimiy_callqa.competences.spin).
+  functions (lnp_callqa.competences.spin).
 """
 from __future__ import annotations
 
@@ -15,11 +15,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-from alkimiy_callqa.competences import spin as E
-from alkimiy_callqa.core.models import (Atom, CallContext, CompetenceResult, Evidence, PROSPECT, SALES, Solicitation,
+from lnp_callqa.competences import spin as E
+from lnp_callqa.core.models import (Atom, CallContext, CompetenceResult, Evidence, PROSPECT, SALES, Solicitation,
                                         Turn)
-from alkimiy_callqa.core.scoring import call_score
-from alkimiy_callqa.core.text import norm, quote_ok
+from lnp_callqa.core.scoring import call_score
+from lnp_callqa.core.text import norm, quote_ok
 
 from .shim import Drops
 

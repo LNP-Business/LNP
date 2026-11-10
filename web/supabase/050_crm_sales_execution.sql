@@ -1,12 +1,10 @@
--- 050 · Cockpit commercial : les onglets Exécution, Qualité et Impact (Romain 2026-11-09 : « réplique exactement l'interface de
--- SKL OS dans LNP, l'écran Exécution, Qualité, Impact uniquement, tout en français »). Repris de SKL OS (052_crm_sales_execution.sql
--- et 056_crm_sales_exec_7d.sql du pack « sales-alerting ») et adapté à LNP :
--- · l'appel de vente est le premier appel tenu du cycle (chez LNP, le R1 est l'appel de vente ; SKL appelait R1 l'appel du setter) ;
+-- 050 · Cockpit commercial : les onglets Exécution, Qualité et Impact (Romain 2026-11-09, tout en français) :
+-- · l'appel de vente est le premier appel tenu du cycle (chez LNP, le R1 est l'appel de vente) ;
 --   tous les appels de LNP sont des appels de vente (pas de crm_calls.kind) ;
 -- · vente « gagnée » pour ces onglets = un premier paiement dans les 14 jours après la fin de ce premier appel tenu, lu sur les appels
---   d'au moins 14 jours (règle KR 3.2 de SKL) ; les paiements de LNP viennent d'iClosed (crm_payments), nets des remboursements ;
+--   d'au moins 14 jours ; les paiements de LNP viennent d'iClosed (crm_payments), nets des remboursements ;
 -- · qualifié = la qualification de LNP (portes 2.2, crm_lead_qualifications, 042 / 046), la plus récente du cycle : SQL GAGNÉ, SQL
---   OUVERT ou SQL PERDU = qualifié, NON SQL = non qualifié ; sans lecture (ou MQL EN ATTENTE, À REVOIR) : la règle de SKL « inconnu
+--   OUVERT ou SQL PERDU = qualifié, NON SQL = non qualifié ; sans lecture (ou MQL EN ATTENTE, À REVOIR) : « inconnu
 --   compte comme qualifié », c'est-à-dire qualifié sauf cycle disqualifié ;
 -- · les délais et leurs cibles sont les SLA de LNP (supabase/functions/_shared/sla_rules.js : SH-2, SH-3, SH-8, SH-9, SH-11, DE-1,
 --   DE-9, CA-2, CA-6, CO-1) ; l'appel après un R1 sans décision reste une bonne pratique ;

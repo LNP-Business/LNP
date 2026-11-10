@@ -53,7 +53,7 @@ changes, the call transcript.
 
     claude.ai ──MCP (Streamable HTTP, JSON-RPC)──► Vercel  /api/mcp            (tools)
               ──OAuth 2.1 (PKCE)──────────────────► Vercel  /api/oauth/*       (authorization server)
-                                                      │  sign-in page = existing LNP sign-in (skl-web.js)
+                                                      │  sign-in page = existing LNP sign-in (lnp-web.js)
                                                       ▼
                                               Supabase (same project)  ── queries run WITH THE USER'S JWT → RLS
 
@@ -354,7 +354,7 @@ and every tool description say LNP. 10 read tools:
   it. Switched-off rules only with `include_off`. The alerts open now are in `clocks_running`.
 - `page_method` reads `web/api/_kb.json`, written by `web/kb/build_kb.mjs` (`build.sh` stage 4): for each LNP screen
   (SalesCockpit, SalesDay, CRM, Settings, Account, Access) where it is in the sidebar, its access key, what it shows and
-  its Page method popup (from `skl-en/project/<Screen>.dc.html`, with `edition.json` "rename" applied as in the page; a
+  its Page method popup (from `gabarits/<Screen>.dc.html`, with `edition.json` "rename" applied as in the page; a
   screen whose file is missing is left out). The Page methods are in French, as in the app. The kb no longer holds the
   journey map, the mechanisms, the Agent System sample or `store.js`: nothing reads them.
 - Settings › Access (`web/api/_screens.js`): the keys are `salescockpit`, `salesday`, `crm`, `settings` and `claude`. A list

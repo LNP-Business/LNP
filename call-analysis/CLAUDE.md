@@ -37,7 +37,7 @@ If code and methodology disagree, the methodology wins: fix the code and add a t
 - Never write the word "closer": always "sales".
 - Never put the API key or transcripts with personal data in the repository or in logs.
 
-## Engine map (`engine/alkimiy_callqa`)
+## Engine map (`engine/lnp_callqa`)
 `core/models.py` data model · `core/text.py` quote checks, verbatim rule, numbers, sentences · `core/llm.py` model
 client (live + mock) · `core/runner.py` passes, replay, arbitration, audit · `core/foundation.py` parsing,
 diarization, attribution repair, phase map · `core/scoring.py` · `core/aggregate.py` periods ·
@@ -53,6 +53,6 @@ the code checks every quote and reuses the engine's decision code (Gap and Pitch
 ```
 cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (209 tests)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
-python3 -m alkimiy_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
+python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
 cd lite && python3 -m pytest -q tests                                 # lite engine
 ```

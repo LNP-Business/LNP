@@ -34,7 +34,7 @@ dit d'eux que ce qu'ils appellent dans la base.
 - **Deux mondes dans le schéma `public`.**
   - L'application (001) : `members` (qui peut entrer, avec un rôle d'application) et `docs`, un magasin de documents JSON
     `(col, id) → body` qui sert toutes les collections de l'application (indicateurs, tâches, décisions, `config`…). Le
-    navigateur le lit et l'écrit directement (`web/public/skl-web.js`), en temps réel.
+    navigateur le lit et l'écrit directement (`web/public/lnp-web.js`), en temps réel.
   - Le CRM (003 et suivants) : des tables relationnelles préfixées `crm_` (plus `mcp_oauth_*` pour le connecteur Claude).
     L'en-tête de `003_crm_core.sql` explique cette **exception volontaire** à la convention « tout est un document de `docs` » :
     idempotence garantie par la base (identifiants de source uniques), cloisonnement réel par commercial (RLS ; une ligne de
@@ -138,7 +138,7 @@ fausses absences en `scheduled`). Sur une base vide ils ne font rien.
    ```sql
    update crm_settings set value = value || jsonb_build_object('since', '<date ISO>', 'enabled', true) where key = 'no_show_rule';
    ```
-8. Temps réel du CRM : le CRM s'abonne à `crm_cycles`, `crm_events` et `crm_alerts` (`skl-os/crm/data.js`, `subscribe`), mais
+8. Temps réel du CRM : le CRM s'abonne à `crm_cycles`, `crm_events` et `crm_alerts` (`app/crm/data.js`, `subscribe`), mais
    aucune migration ne les ajoute à la publication `supabase_realtime` (seule `docs` l'est, 001). À ajouter à la main si l'on
    veut les mises à jour en direct (voir §16).
 
@@ -369,8 +369,8 @@ Clé `rep` = clé de membre du CRM, ou partie locale de l'e-mail de l'hôte iClo
 #### `crm_member_prefs` (031)
 
 Réglages d'écran propres à chaque personne. Clés utilisées : `crm.pipeline.cols` (ordre des colonnes du Pipeline,
-`skl-os/gen_crm.py`) et `salesday.<date>` (prospects faits, passés ou reportés ce jour-là dans Ma journée,
-`skl-os/salesday_module.js`).
+`app/gen_crm.py`) et `salesday.<date>` (prospects faits, passés ou reportés ce jour-là dans Ma journée,
+`app/salesday_module.js`).
 
 | Colonne | Type | N | Défaut | Contraintes |
 |---|---|---|---|---|
@@ -808,7 +808,7 @@ Aucune fonction du dépôt ne l'écrit.
 #### `crm_alerts` (003)
 
 Instances d'alertes des règles c1 à c18 (la définition des règles est dans `docs` `config/alerts`). Lue par le CRM
-(`skl-os/crm/data.js`), le connecteur (`web/api/_crm.js`) et `crm_sales_cockpit` ; mise à jour par `crm_reassign_cycle` et
+(`app/crm/data.js`), le connecteur (`web/api/_crm.js`) et `crm_sales_cockpit` ; mise à jour par `crm_reassign_cycle` et
 `crm_merge_people`. **Aucune fonction du dépôt n'y insère de ligne** (le `rules-tick` prévu par `docs/crm/` n'existe pas).
 
 | Colonne | Type | N | Défaut | Contraintes |
@@ -879,7 +879,7 @@ Chaque enregistrement Fathom lu, rattaché ou non (gardé pour revue, jamais tra
 
 #### `crm_call_analyses` (003, ancienne)
 
-Prévue avant le moteur ; le moteur écrit les tables `crm_ca_*`. Seul le CRM la lit encore (`skl-os/crm/data.js`, fiche prospect).
+Prévue avant le moteur ; le moteur écrit les tables `crm_ca_*`. Seul le CRM la lit encore (`app/crm/data.js`, fiche prospect).
 
 | Colonne | Type | N | Défaut | Contraintes |
 |---|---|---|---|---|
@@ -1050,7 +1050,7 @@ Codes d'autorisation à usage unique (60 s), stockés hachés.
 
 `with (security_invoker = true)` : la RLS de `crm_people` s'applique (administrateurs, responsables commerciaux et lecteurs voient
 tout le monde ; un commercial `sales` ne voit personne, faute de cycle à posséder). Droits : `revoke all from anon`,
-`grant select to authenticated`. Lue par le CRM (`skl-os/crm/data.js`) pour le statut « Sans rendez-vous ».
+`grant select to authenticated`. Lue par le CRM (`app/crm/data.js`) pour le statut « Sans rendez-vous ».
 
 Une ligne par personne non fusionnée (`merged_into is null`) sans aucun cycle. Colonnes (définition finale, 010) :
 
@@ -1069,7 +1069,7 @@ Sauf mention, chaque fonction est `security definer` avec `set search_path = pub
 (`auth` = `authenticated`, `service` = `service_role`, « interne » = retirée à tous, appelée seulement par d'autres fonctions,
 un déclencheur ou pg_cron). « Appelants » vient d'une recherche dans le code JS / TS / Python du dépôt.
 
-Le navigateur appelle les RPC par `skl-os/crm/data.js` (`call(nom, arguments)`, client Supabase de `web/public/skl-web.js`) ; le
+Le navigateur appelle les RPC par `app/crm/data.js` (`call(nom, arguments)`, client Supabase de `web/public/lnp-web.js`) ; le
 connecteur Claude par `web/api/_crm.js`, `_write.js`, `mcp.js` avec le jeton de la personne ; les Edge Functions par REST avec la
 clé du rôle de service (`supabase/functions/_shared/worker.ts`, `import_run.ts`, `sla-tick/index.ts`) ; le worker d'analyse d'appel
 par `call-analysis/worker/run.py`.
@@ -1089,7 +1089,7 @@ par `call-analysis/worker/run.py`.
 | Fonction | Droits | Contrôle | Ce qu'elle fait et écrit | Appelants | Définition finale |
 |---|---|---|---|---|---|
 | `crm_admin_set_member(p_email, p_member_key, p_full_name, p_role member_role, p_lead_key default null, p_iclosed_email default null, p_fathom_email default null, p_sendblue_number default null, p_active default true) → uuid` | auth, service | administrateur d'application ou du CRM | Retrouve le compte dans `members` par e-mail (erreur s'il n'existe pas : « invitez d'abord la personne »), résout le responsable par sa clé (erreur s'il est inconnu ou s'il s'agit de la personne elle-même), insère ou met à jour `crm_members`, audit `set_member`. | Aucun dans le code (éditeur SQL). | 004 (copie 034) |
-| `crm_declare_outcome(p_call uuid, p jsonb) → uuid` | auth, service | `crm_require(['admin','sales_lead'], cycle)` | Voir §12.5. Écrit `crm_call_outcomes` (remplace l'issue courante), `crm_calls.status`, les événements `outcome_<présence>` et `outcome_<décision>`, la vente si « oui », l'audit, puis recalcule le cycle. | `data.js` `declareOutcome` (fiche prospect du CRM, Ma journée `skl-os/salesday_module.js`) ; connecteur `web/api/_write.js` (outil « issue d'un appel »). | 027 (copie 034) |
+| `crm_declare_outcome(p_call uuid, p jsonb) → uuid` | auth, service | `crm_require(['admin','sales_lead'], cycle)` | Voir §12.5. Écrit `crm_call_outcomes` (remplace l'issue courante), `crm_calls.status`, les événements `outcome_<présence>` et `outcome_<décision>`, la vente si « oui », l'audit, puis recalcule le cycle. | `data.js` `declareOutcome` (fiche prospect du CRM, Ma journée `app/salesday_module.js`) ; connecteur `web/api/_write.js` (outil « issue d'un appel »). | 027 (copie 034) |
 | `crm_add_note(p_cycle uuid, p_text text) → bigint` | auth, service | idem | Refuse une note vide ; événement `note` (`content` = texte, `source_id` `crm:note:<uuid>`) ; audit `add_note`. Renvoie l'id de l'événement. | `data.js` `addNote` (CRM, Ma journée) ; `web/api/_write.js` (outil « note sur un prospect »). | 004 (copie 034) |
 | `crm_reassign_cycle(p_cycle uuid, p_member uuid) → void` | auth, service | `crm_require(['admin','sales_lead'])` | Le nouveau commercial doit être actif et pas `viewer` ; change `owner_id` du cycle et des alertes ouvertes (`owner_id`, `owner_key`) ; audit. | `data.js` `reassignCycle` (CRM, `gen_crm.py`). | 004 (copie 034) |
 | `crm_cancel_auto_close(p_cycle uuid) → timestamptz` | auth, service | `crm_require([...], cycle)` | Renvoie maintenant + `max(params.snooze_days)` des règles `auto_close` (7 par défaut) et l'écrit **seulement dans l'audit** (`suppressed_until`). Rien ne le relit. | Exposée par `data.js`, aucun écran. | 004 (copie 034) |
@@ -1101,7 +1101,7 @@ par `call-analysis/worker/run.py`.
 | `crm_create_checkout(p_cycle uuid) → text` | auth, service | idem | Bouchon : lève `0A000` « Les liens de paiement arrivent en phase 5 (Whop) ». | Exposée, aucun écran. | 004 (copie 034) |
 | `crm_merge_alert_defaults() → int` | auth, service | administrateur d'application, ou appel sans `auth.uid()` | Ajoute à `docs` `config/alerts` chaque règle c1–c18 absente : `alerts.cN = {on: true, sev: Initcap(severity), who: [propriétaire, responsable, romain] en 0/1, ch: [1,0,0], crm: true}` et `values["cN.<param>"]` pour chaque seuil numérique absent. Ne touche ni a1–a18 ni une règle c déjà modifiée. Renvoie le nombre de règles ajoutées. | Aucun dans le code ; `web/api/_os.js` lit `crm_settings.alert_rule_defaults` « comme 004 les enregistrerait ». | 004 (copie 034) |
 | `crm_set_deal(p_cycle uuid, p_amount numeric, p_currency text default 'EUR') → uuid` | auth | `crm_require([...], cycle)` | Montant signé ≥ 0 ; insère ou met à jour la vente (devise en majuscules, `yes_at` gardé) ; audit `set_deal`. | Exposée (`data.js` `setDeal`), aucun écran. | 022 (copie 034) |
-| `crm_add_payment(p_cycle uuid, p_amount numeric, p_paid_at timestamptz, p_method text, p_note text default null) → uuid` | auth | idem | §12.9. | Fenêtre d'encaissement (`skl-os/crm/cash_ui.js` → `data.js` `addPayment`). | 022 (copie 034) |
+| `crm_add_payment(p_cycle uuid, p_amount numeric, p_paid_at timestamptz, p_method text, p_note text default null) → uuid` | auth | idem | §12.9. | Fenêtre d'encaissement (`app/crm/cash_ui.js` → `data.js` `addPayment`). | 022 (copie 034) |
 | `crm_delete_payment(p_payment uuid) → void` | auth | idem (cycle du paiement) | Seulement un paiement `source = 'manual'` ; supprime le paiement et son événement `payment:<id>`, recalcule, audit. La confirmation est demandée dans le navigateur. | `cash_ui.js` (`deletePayment`). | 022 (copie 034) |
 | `crm_set_payment_plan(p_cycle uuid, p_amount numeric, p_currency text, p_schedule jsonb) → uuid` | auth | idem | §12.10. | `cash_ui.js` (`setPlan`). | 024 (copie 034) |
 | `crm_add_refund(p_payment uuid, p_amount numeric default null, p_refunded_at timestamptz default null, p_note text default null) → numeric` | auth | idem | §12.11. Renvoie le total remboursé du paiement. | `cash_ui.js` (`addRefund`). | 026 (copie 034) |
@@ -1146,7 +1146,7 @@ par `call-analysis/worker/run.py`.
 
 | Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
 |---|---|---|---|---|
-| `crm_sales_cockpit() → jsonb` | auth | §12.19. `plpgsql stable definer` ; refuse un compte sans rôle CRM ; limite aux cycles visibles. | `data.js` `salesCockpit`, module du Cockpit commercial (`skl-os/gen_sales_v2.py`). | 019 (copie 034) ; versions 016 (invoker), 017, 018 |
+| `crm_sales_cockpit() → jsonb` | auth | §12.19. `plpgsql stable definer` ; refuse un compte sans rôle CRM ; limite aux cycles visibles. | `data.js` `salesCockpit`, module du Cockpit commercial (`app/gen_sales_v2.py`). | 019 (copie 034) ; versions 016 (invoker), 017, 018 |
 | `crm_sales_cockpit_window(p_from timestamptz, p_to timestamptz, p_ids uuid[], p_people_all boolean, p_owner uuid default null, p_all boolean default true) → jsonb` | interne | Les chiffres d'une fenêtre (§12.19). `sql stable definer`. | `crm_sales_cockpit`. | 033 ; versions 016 (autre signature, supprimée par 017), 017, 032 |
 | `crm_call_is_reschedule(p_call uuid) → boolean` | défaut (aucun `revoke`) | Vrai si le dernier `call_canceled` de l'appel a un motif (`data.cancel_reason` ou `data.reason`) qui correspond à `resched|new time|better time|correspond|organi[sz]ing a new|moving accordingly` (insensible à la casse), ou si l'appel a un `call_rescheduled`. | Fenêtre du cockpit. | 032 |
 
@@ -1173,7 +1173,7 @@ par `call-analysis/worker/run.py`.
 |---|---|---|---|---|
 | `crm_ca_can_read(p_call uuid) → boolean` | auth | §6.2. | Politiques `crm_ca_*`, `crm_ca_latest`, `crm_ca_record`. | 020 |
 | `crm_ca_call_info(p_call uuid) → jsonb` | interne | Place de l'appel parmi les appels de vente du cycle : `{call_id, cycle_id, start_utc, event_name, sales_round, eligible, reason, sales_id, sales_name, timezone, person}` (§12.18). | `crm_ca_add_transcript`, `crm_ca_claim`, `crm_ca_store`, `crm_apply_recording_item`. | 025 (copie 034) ; version 020 |
-| `crm_ca_add_transcript(p_call uuid, p_raw text, p_speaker_map jsonb, p_source text default 'upload') → jsonb` | auth | Administrateur ou propriétaire du cycle ; appel éligible ; transcription ≥ 200 caractères ; carte avec au moins un `SALES` et un `PROSPECT`, valeurs dans `SALES`/`PROSPECT`/`OTHER`. Écrit les colonnes de transcription, passe les travaux en file à `failed` (« remplacée par une nouvelle transcription »), crée un travail, événement `transcript_added`. Renvoie `{job, status: 'queued'}`. | `skl-os/crm/call_analysis.js` (`caAddTranscript`). | 020 (copie 034) |
+| `crm_ca_add_transcript(p_call uuid, p_raw text, p_speaker_map jsonb, p_source text default 'upload') → jsonb` | auth | Administrateur ou propriétaire du cycle ; appel éligible ; transcription ≥ 200 caractères ; carte avec au moins un `SALES` et un `PROSPECT`, valeurs dans `SALES`/`PROSPECT`/`OTHER`. Écrit les colonnes de transcription, passe les travaux en file à `failed` (« remplacée par une nouvelle transcription »), crée un travail, événement `transcript_added`. Renvoie `{job, status: 'queued'}`. | `app/crm/call_analysis.js` (`caAddTranscript`). | 020 (copie 034) |
 | `crm_ca_retry(p_call uuid) → jsonb` | auth | Mêmes droits ; exige une transcription ; ne crée rien si un travail est déjà `queued`/`running` (`{status: 'already queued'}`). | `call_analysis.js` (`caRetry`). | 020 (copie 034) |
 | `crm_ca_claim(p_worker text) → jsonb` | interne* | Prend le plus ancien travail `queued` (avec `not_before` passé) ou `running` depuis plus de 2 h (`for update skip locked`), le passe `running`, +1 tentative, renvoie `{job, attempt, call (crm_ca_call_info), transcript, speaker_map, config {tiers, passes}, offer_reference, case_library, prior}` (`prior` = résultats des appels de vente analysés plus tôt dans le cycle). `null` s'il n'y a rien. | `call-analysis/worker/run.py`. | 020 |
 | `crm_ca_store(p_job uuid, p_record jsonb, p_usage jsonb, p_engine text) → jsonb` | interne* | Travail `running` obligatoire ; écrit `crm_ca_records` (meta = infos de l'appel + `engine`, `rules`, `duration` = horodatage du dernier tour), `crm_ca_turns`, `crm_ca_results`, `crm_ca_audit` ; travail `done` ; événement `analysis_ready` (`data.scores`). Une note enregistrée n'est jamais modifiée : une nouvelle analyse fait une nouvelle fiche. | `run.py`. | 020 |
@@ -1635,7 +1635,7 @@ dans Slack.
 | Clé | Posée par | Valeur par défaut | Sens | Lue par |
 |---|---|---|---|---|
 | `alert_rule_defaults` | 003 | Tableau des règles c1 à c18 : `{id, name, severity, threshold, to}` (noms français ; seuils : c1 `after_minutes` 0, c2 `hours` 2, c3 `silence_hours` 48, c4 `hours` 2, c5/c6 étapes, c7 `hours` 48, c13 `silence_days` 30 / `attempts_below` 4, c14 `notice_hours` 24, c16 `after_hours` 2, c17 `iclosed_hours` 6 / `sendblue_hours` 6 / `fathom_missed_calls` 2) | Définitions par défaut des alertes du CRM | `crm_merge_alert_defaults`, `web/api/_os.js` |
-| `team_email_domains` | 003 | `["skl.live"]` (commentaire « VERIFY ») | Domaines internes (invités internes / externes) | Aucun code |
+| `team_email_domains` | 003 | `["lesnouveauxprofs.fr"]` | Domaines internes (invités internes / externes) | Aucun code |
 | `default_owner` | 003 | `"sales"` | Clé du membre propriétaire quand l'hôte iClosed est inconnu | `crm_owner_for` |
 | `whop_plans` | 003 | `{}` | Produit → identifiant de plan Whop | Aucun code |
 | `analysis_model` | 003 | `"claude-sonnet-5-5"` | Modèle d'analyse (ancien) | Aucun code (le moteur lit `crm_ca_config.tiers`) |
@@ -1677,7 +1677,7 @@ PGHOST=/tmp PGPORT=5432 PGUSER=postgres web/supabase/tests/run.sh
 ```
 
 Il faut `psql` et un Postgres local dont l'utilisateur peut créer des bases et des rôles (aucun projet Supabase n'est touché). Le
-script crée une base jetable `skl_crm_test_<pid>`, la supprime à la sortie, et s'arrête à la première erreur (`ON_ERROR_STOP`,
+script crée une base jetable `lnp_crm_test_<pid>`, la supprime à la sortie, et s'arrête à la première erreur (`ON_ERROR_STOP`,
 message d'erreur affiché). Chaque suite affiche une dernière ligne « … SQL checks: all passed ».
 
 Déroulé :
@@ -1716,7 +1716,7 @@ Déroulé :
 | `lnp_fr_labels_test.sql` | Une base aux libellés anglais reçoit les libellés français (étape, motifs, description de règle, nom d'alerte, prochaine action, échéancier, raison d'élément non rattaché) ; un libellé modifié à la main reste ; le canal Slack reste ; les fonctions sont recréées et appelables ; un second passage ne change rien. |
 
 Autres tests qui touchent la base : `deno test --allow-env --allow-read supabase/tests` (fonctions, dont `pipeline.test.ts` et
-`fathom.test.ts` qui appellent `crm_apply_items`, `crm_apply_contact`, `crm_apply_recordings`), `node skl-os/crm/data.test.js`
+`fathom.test.ts` qui appellent `crm_apply_items`, `crm_apply_contact`, `crm_apply_recordings`), `node app/crm/data.test.js`
 (couche de données du navigateur), `cd web && npm test` (connecteur Claude, avec `web/tests/fake_supabase.js`).
 
 ---
@@ -1743,7 +1743,7 @@ Le code fait foi. Écarts relevés avec la spécification `docs/crm/` :
 
 Points d'attention pour une réplique :
 
-- **Temps réel du CRM** : `skl-os/crm/data.js` s'abonne à `crm_cycles`, `crm_events`, `crm_alerts`, mais seule `docs` est ajoutée à
+- **Temps réel du CRM** : `app/crm/data.js` s'abonne à `crm_cycles`, `crm_events`, `crm_alerts`, mais seule `docs` est ajoutée à
   `supabase_realtime` par les migrations. Impossible de savoir d'ici si la base en ligne a été complétée à la main.
 - **Retirer un membre** : `crm_members.id` référence `members(user_id)` `on delete restrict`, alors que `members` est supprimé en
   cascade avec `auth.users`. Depuis 011 tout membre a une ligne `crm_members` : la suppression d'un compte par `/api/team`

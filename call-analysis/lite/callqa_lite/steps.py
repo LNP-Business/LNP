@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from alkimiy_callqa.core.models import CallContext
+from lnp_callqa.core.models import CallContext
 
 PROMPTS = Path(__file__).resolve().parent / "prompts"
 

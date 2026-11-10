@@ -12,10 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from alkimiy_callqa.competences import spin as S
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.models import PROSPECT, SALES, Atom, CallContext, Evidence, Turn
-from alkimiy_callqa.core.runner import Runner
+from lnp_callqa.competences import spin as S
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.models import PROSPECT, SALES, Atom, CallContext, Evidence, Turn
+from lnp_callqa.core.runner import Runner
 
 RUNS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 LINE = re.compile(r"^\[(T\d+[a-z]?) ([\d:]+)\] (SALES|PROSPECT|OTHER): ?(.*)$")
@@ -828,7 +828,7 @@ class TestRegisters:
 
 def test_gate_split_of_the_wrong_shape_is_a_bad_split():
     """A split / sub sent as an object instead of a list is rejected by the validator and never applied."""
-    from alkimiy_callqa.competences.spin import _validate_gate_obj, decide_gates
+    from lnp_callqa.competences.spin import _validate_gate_obj, decide_gates
     g = {"g1": {"reason": None}, "split": ["How long?", "And why?"], "sub": {"0": {}, "1": {}}}
     assert "bad_split" in _validate_gate_obj(g, "How long? And why?")
     attrs = {"validation_tail": False, "alternative": False, "open_branch": False, "offer_mention": False,

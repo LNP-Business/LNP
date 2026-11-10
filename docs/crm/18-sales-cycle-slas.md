@@ -1,12 +1,12 @@
 # 18 — Sales cycle SLAs (v3)
 
-Reference: `reference/SKL-CRM-Sales-cycle-SLAs-v3.docx` (Romain, 25 October 2026; approved 2026-10-30 as the base of the
+Reference: `reference/LNP-CRM-Sales-cycle-SLAs-v3.docx` (Romain, 25 October 2026; approved 2026-10-30 as the base of the
 Sales cycle screen and its alerts). An SLA is a clock: an event starts it, a result stops it; four thresholds: the target,
 the preventive alert (Due soon), the miss (Late) and the critical threshold.
 
 ## What is measured now
 
-One source: `supabase/functions/_shared/sla_rules.js`, run by the Sales cycle screen (inlined by `skl-os/gen_crm.py`) and
+One source: `supabase/functions/_shared/sla_rules.js`, run by the Sales cycle screen (inlined by `app/gen_crm.py`) and
 by the Edge Function `sla-tick` (Slack). Values in hours in `DEFS`.
 
 | ID | SLA | Starts | Stops | Due soon | Late | Critical |
@@ -55,8 +55,8 @@ The 42 SLAs of the reference, grouped by stage, each with its status (measured, 
 measured yet), a switch, and an editor: start and stop, target, escalation, the three thresholds (only those the
 reference has; they stay in order), where it shows (CRM › Sales cycle, Slack #sales-cycle) and why. « Enregistrer » next to
 « Terminé » in each editor, or « Enregistrer les modifications » at the top, saves through `crm_save_sla_rules` (044, admin
-or sales lead; shape checked, audited) into `crm_settings.sla_rules = {sources, rules}`. `SKL_SLA.configure()` applies it on
-the screen (`SKL_CRM.slaRules`, and at once after a save) and in `sla-tick` (`crm_sla_settings().sla_rules`).
+or sales lead; shape checked, audited) into `crm_settings.sla_rules = {sources, rules}`. `LNP_SLA.configure()` applies it on
+the screen (`LNP_CRM.slaRules`, and at once after a save) and in `sla-tick` (`crm_sla_settings().sla_rules`).
 
 Sources: `messages` (Sendblue iMessage, SMS, phone), `whop`, `analysis` (automatic analysis of every recording). On
 2026-11-05 none reaches the CRM, so 044 stores them as not connected and their SLAs wait: before, all 171 active leads were

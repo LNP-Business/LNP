@@ -16,7 +16,7 @@ des réglages publics et des compteurs. À utiliser comme état attendu d'une r�
 
 | Élément | Valeur |
 |---|---|
-| Organisation | ALKIMIY (exception décidée par Romain le 2026-11-03 ; tous les autres comptes sont ceux de LNP) |
+| Organisation | pas encore celle de LNP (à transférer dans une organisation LNP ; tous les autres comptes sont ceux de LNP) |
 | Projet | `LNP`, réf. `lludbqyosuzgwvvphmqc`, région `eu-central-1`, Postgres 17 |
 | Migrations tracées | 33 : `001_init` puis `003_crm_core` … `034_lnp_fr_labels` |
 | Tables (`public`) | 41, toutes avec RLS |

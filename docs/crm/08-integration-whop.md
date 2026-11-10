@@ -19,7 +19,7 @@ automatically — DEFERRED). `whop-checkout` calls:
 POST https://api.whop.com/api/v1/checkout_configurations
 { "mode": "payment",
   "plan_id": "<Whop plan id of the product>",
-  "metadata": { "skl_cycle_id": "<cycle uuid>", "skl_person_id": "<person uuid>" },
+  "metadata": { "lnp_cycle_id": "<cycle uuid>", "lnp_person_id": "<person uuid>" },
   "redirect_url": "<thank-you page>" }
 ```
 
@@ -68,7 +68,7 @@ Envelope: event type + `data` = full object (payment, refund, dispute, membershi
 | `membership.activated` | `membership_activated` | none | hand-over signal |
 
 - `source_id` = `whop:<event>:<object id>` (+ `:<updated_at>` for `*.updated`).
-- Identity: `metadata.skl_cycle_id` first; else member/user id, email, phone (03).
+- Identity: `metadata.lnp_cycle_id` first; else member/user id, email, phone (03).
 - A payment on a cycle with no `yes` outcome: accept, write the event, alert the sales lead
   (alert c10), let the projector mark it won.
 - Amounts are stored as reported; currency kept; no FX conversion in this phase.

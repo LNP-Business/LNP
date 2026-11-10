@@ -7,25 +7,25 @@ français (`docs/lnp/GLOSSAIRE.md` fixe les termes) et aux couleurs du site http
 En ligne : https://lnp-sales.vercel.app (projet Vercel `lnp`, dossier racine `web/`, déployé depuis `main`).
 
 ```bash
-./build.sh            # construit skl-os/skl-os-en.html et web/public/index.html (la page LNP)
-./build.sh --verify   # compare le résultat à l'empreinte de référence skl-os/EXPECTED.sha256
+./build.sh            # construit app/lnp.html et web/public/index.html (la page LNP)
+./build.sh --verify   # compare le résultat à l'empreinte de référence app/EXPECTED.sha256
 ```
 
 ## La marque : `edition.json`
 
 - `brand`, `title` : « LNP Ventes » dans la barre latérale, « LNP · Ventes » dans l'onglet.
-- `wordmark`, `logo` : le nom « Les Nouveaux Profs » et le logo LNP (`skl-os/brand/lnp-logo.png`) dans la barre latérale, le logo en
-  icône d'onglet (`skl-os/nav.py`, `skl-os/build.py`).
+- `wordmark`, `logo` : le nom « Les Nouveaux Profs » et le logo LNP (`app/brand/lnp-logo.png`) dans la barre latérale, le logo en
+  icône d'onglet (`app/nav.py`, `app/build.py`).
 - `recolor` et `fonts` : la charte de Les Nouveaux Profs (nuit `#1E2A5E`, vif `#2B6CF5`, vif-clair `#5B8DF7`, ciel `#AECBF2`,
-  pâle `#E3ECFB`, ardoise `#5A6478`, cassé `#F7F8FB`) et la police Poppins, appliquées par `skl-os/build.py` à la page finie.
-- `rename` : les anciens noms remplacés par LNP dans tout le texte de la page.
+  pâle `#E3ECFB`, ardoise `#5A6478`, cassé `#F7F8FB`) et la police Poppins, appliquées par `app/build.py` à la page finie.
 - `systems`, `settings`, `home` : la page ne contient que les écrans de LNP et s'ouvre sur le Cockpit commercial.
 
 ## Le back end
 
 Tous les comptes sont ceux de LNP (GitHub `LNP-Business`, Vercel, Anthropic, Slack, iClosed, Fathom, Sendblue, Close).
-Seule exception, Supabase (Romain, 2026-11-03) : le projet `LNP` (réf. `lludbqyosuzgwvvphmqc`, eu-central-1) est rangé dans
-l'organisation Supabase **ALKIMIY**. C'est un projet à part, dont la base ne contient que les données de LNP.
+Seule exception, Supabase : le projet `LNP` (réf. `lludbqyosuzgwvvphmqc`, eu-central-1) est encore rangé dans une organisation
+Supabase qui n'est pas celle de LNP ; sa base ne contient que les données de LNP. À transférer dans une organisation LNP
+(Supabase › Project Settings › General › Transfer project).
 
 1. **Base Supabase** : chaque fichier de `web/supabase/` (`001` puis `003` à `034`), dans l'ordre. `034_lnp_fr_labels.sql` passe
    en français les libellés d'une base déjà remplie ; il peut être rejoué. `crm_sales_team` liste les commerciaux de LNP.

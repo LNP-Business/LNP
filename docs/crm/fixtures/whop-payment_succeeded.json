@@ -13,6 +13,6 @@
     "user": { "id": "user_0001", "email": "test.prospect@example.com" },
     "member": { "id": "mem_0001", "phone": "+33600000001" },
     "plan": { "id": "plan_0001" },
-    "metadata": { "skl_cycle_id": "00000000-0000-0000-0000-000000000001", "skl_person_id": "00000000-0000-0000-0000-000000000002" }
+    "metadata": { "lnp_cycle_id": "00000000-0000-0000-0000-000000000001", "lnp_person_id": "00000000-0000-0000-0000-000000000002" }
   }
 }

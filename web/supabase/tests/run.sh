@@ -3,7 +3,7 @@
 # Usage: PGHOST=/tmp PGPORT=5432 PGUSER=postgres web/supabase/tests/run.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
-DB="skl_crm_test_$$"
+DB="lnp_crm_test_$$"
 psql -q -v ON_ERROR_STOP=1 -c "create database $DB" >/dev/null
 trap 'psql -q -c "drop database if exists $DB" >/dev/null' EXIT
 run() { psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$1" >/dev/null 2>"$DB.err" || { cat "$DB.err"; rm -f "$DB.err"; exit 1; }; rm -f "$DB.err"; }

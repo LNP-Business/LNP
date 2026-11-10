@@ -29,7 +29,7 @@ export type Deps = {
 };
 
 export const MAX_BODY = 2 * 1024 * 1024;
-const ALWAYS_REDACTED = ["authorization", "cookie", "apikey", "x-skl-token"];
+const ALWAYS_REDACTED = ["authorization", "cookie", "apikey", "x-lnp-token"];
 
 export function redactHeaders(req: Request, extra: string[] = []): Record<string, string> {
   const secret = new Set([...ALWAYS_REDACTED, ...extra.map((h) => h.toLowerCase())]);

@@ -1,6 +1,6 @@
 # Supabase CLI workdir for the CRM Edge Functions only (docs/crm/01-architecture.md §2).
 # The database schema is not managed here: the numbered SQL files in web/supabase/ are the source of truth.
-project_id = "skl-os"
+project_id = "lnp"
 
 # Providers (Zapier, Fathom, Sendblue, Whop) do not send a Supabase JWT: each function checks its own token or signature.
 [functions.iclosed-in]

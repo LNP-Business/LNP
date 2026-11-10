@@ -35,7 +35,7 @@ def is_r1(claim: dict) -> bool:
 
 def transcript_text(claim: dict) -> str:
     """The analysis' turns, one line each: "[mm:ss] SALES: text" / "[mm:ss] PROSPECT: text" (other speakers left out)."""
-    from alkimiy_callqa.core.foundation import parse_transcript
+    from lnp_callqa.core.foundation import parse_transcript
     turns = parse_transcript(claim.get("transcript") or "", claim.get("speaker_map") or {})
     return "\n".join(f"[{t.ts}] {t.role}: {t.text}" for t in turns if t.role in ("SALES", "PROSPECT") and t.text)
 

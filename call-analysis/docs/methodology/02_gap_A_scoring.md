@@ -3,7 +3,7 @@ _Scoring methodology: how the system measures whether the sales turned the disco
 
 **Version:** Version 1.3 · 25 October 2026  
 **Status:** Draft for validation by the methodology owner. Values marked "to validate" are proposals.  
-**Scope:** Sales calls with a discovery phase. Sources: ALKIMIY verbatim reference v2 (current state, desired state, decision), ALKIMIY SPIN bounding reference v1.0 (restitution), analysis of 85 real calls.  
+**Scope:** Sales calls with a discovery phase. Sources: LNP verbatim reference v2 (current state, desired state, decision), LNP SPIN bounding reference v1.0 (restitution), analysis of 85 real calls.  
 # 1. What this competence measures
 
 **Definition.** The gap is the distance between where the prospect is today (point A) and where they want to be (point B), the problem that keeps them from closing that distance on their own, and what that problem costs them. Formalising the gap means making it explicit and agreed **before** the offer is presented: the sales restates it in the prospect's words and the prospect validates it.

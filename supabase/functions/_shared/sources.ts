@@ -4,12 +4,12 @@ import { env, IngestOptions, secretList } from "./ingest.ts";
 import { tokenMatches } from "./verify/token.ts";
 import { swHeaders, verifyStandardWebhook } from "./verify/standard-webhooks.ts";
 
-// iClosed: native webhook (token "k=" in the address, Q1 answered) or a Zap (header x-skl-token);
+// iClosed: native webhook (token "k=" in the address, Q1 answered) or a Zap (header x-lnp-token);
 // delivery id = zap.task_id of our JSON contract when present.
 export const iclosed: IngestOptions = {
   source: "iclosed",
   check: async (req, _raw, url) =>
-    await tokenMatches(req.headers.get("x-skl-token"), env("ICLOSED_INBOUND_TOKEN")) ||
+    await tokenMatches(req.headers.get("x-lnp-token"), env("ICLOSED_INBOUND_TOKEN")) ||
     await tokenMatches(url.searchParams.get("k"), env("ICLOSED_INBOUND_TOKEN")),
   deliveryId: (_req, raw) => {
     const id = JSON.parse(raw)?.zap?.task_id;

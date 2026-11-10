@@ -5,8 +5,8 @@ import urllib.error
 
 import pytest
 
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.runner import RunConfig
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.runner import RunConfig
 from callqa_worker.gateway import GatewayClient, GatewayError
 from callqa_worker.job import build_context, case_library, prior_inputs, run_job, summary
 

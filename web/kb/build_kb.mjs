@@ -1,7 +1,6 @@
 // Builds web/api/_kb.json: the parts of LNP that live in the page itself, not in the database, for the Claude connector
 // (docs/crm/17-claude-connector.md §9). Run by build.sh stage 4: node web/kb/build_kb.mjs
-//   - the Page method popup of every LNP screen (skl-en/project/<Screen>.dc.html, written by stage 2), with the names of
-//     edition.json "rename" applied as in the page (skl-os/build.py)
+//   - the Page method popup of every LNP screen (gabarits/<Screen>.dc.html, written by stage 2)
 //   - the sidebar: where each screen is and the access key that opens it (Settings › Access, web/api/_screens.js)
 // A screen whose file is missing is left out (never an error), so the connector keeps working when screens change.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -20,29 +19,26 @@ const SCREENS = [
   ["SalesDay", "salesday", "Ventes › Ma journée", "the sales rep's day, one lead at a time: outcomes to declare, calls within 24 h, reschedules, no-shows, follow-ups"],
   ["CRM", "crm", "Ventes › CRM", "Pipeline, Leads, Sales cycle, the lead record, call analysis and the payment window"],
   ["Settings", "settings", "Paramètres › Alertes", "the alert rules: on or off, threshold, severity, who is told and how"],
-  ["Account", "account", "Paramètres › Compte", "the signed-in account (sign out) and the \"You are\" choice; always open"],
+  ["Account", "account", "Paramètres › Compte", "the signed-in account (sign out) and the team; always open"],
   ["Access", "access", "Paramètres › Accès", "which screens each person can open and who may use the Claude connector (admins only)"]
 ];
 
-// edition.json "rename": the page's own names (LNP → LNP, ALKIMIY → LNP…), applied in order like skl-os/build.py
-const RENAME = has("edition.json") ? (JSON.parse(read("edition.json")).rename || []) : [];
-const renamed = t => RENAME.reduce((s, [a, z]) => s.split(a).join(z), t);
 
 const text = h => h.replace(/<(br|\/p|\/li|\/h\d|\/div)\b[^>]*>/gi, "\n").replace(/<li\b[^>]*>/gi, "- ").replace(/<[^>]+>/g, "")
   .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&rsquo;/g, "'")
   .replace(/&[a-z]+;/g, " ").replace(/\{\{[^}]*\}\}/g, "").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
 
 function pageMethod(file) {
-  const p = "skl-en/project/" + file + ".dc.html";
+  const p = "gabarits/" + file + ".dc.html";
   if (!has(p)) return null;
   const h = read(p), i = h.indexOf('aria-labelledby="info-title"');
   if (i < 0) return null;
   const start = h.lastIndexOf("<div", i), stop = h.indexOf("</dialog>", i) > 0 ? h.indexOf("</dialog>", i) : h.indexOf("<main", i);
-  return renamed(text(h.slice(start, stop > 0 ? stop : i + 8000))).slice(0, 4000);
+  return text(h.slice(start, stop > 0 ? stop : i + 8000)).slice(0, 4000);
 }
 
 const screens = SCREENS.map(([file, key, where, about]) => ({ screen: file, key, where, about, method: pageMethod(file) }))
-  .filter(s => has("skl-en/project/" + s.screen + ".dc.html"));
+  .filter(s => has("gabarits/" + s.screen + ".dc.html"));
 const kb = { built_from: "LNP sources (build.sh stage 4)", screens };
 writeFileSync(new URL("web/api/_kb.json", ROOT), JSON.stringify(kb));
 console.log("kb", screens.map(s => s.screen + (s.method ? " " + s.method.length : " (no page method)")).join(", "));

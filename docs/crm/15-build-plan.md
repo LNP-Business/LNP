@@ -8,7 +8,7 @@ at the end of phase 6 every cycle is traced from booking to won / lost / disqual
 | Phase | Branch | Content | Definition of done |
 |---|---|---|---|
 | 0 | `crm-0-capture` | Supabase `supabase/` workdir, `crm_webhook_log` only, the 4 ingestion functions storing raw rows, providers pointed at them (project `LNP`, test people only: D13), real payloads captured into `fixtures/`, automation inventory (Q5), answers to Q8–Q10 | One real payload per event type; inventory and answers written in `00-decisions.md` |
-| 1 | `crm-1-schema` | `web/supabase/003_crm_core.sql` (link `crm_members` to `members`), RPC skeletons with role checks + audit, `skl-os/crm/data.js` on the existing client, export / import of browser CRM data, merge c1–c18 into `config/alerts` | Valentino sees only his cycles, Romain and Amin see all; import dry-run matches the browser data; build and demo still work |
+| 1 | `crm-1-schema` | `web/supabase/003_crm_core.sql` (link `crm_members` to `members`), RPC skeletons with role checks + audit, `app/crm/data.js` on the existing client, export / import of browser CRM data, merge c1–c18 into `config/alerts` | Valentino sees only his cycles, Romain and Amin see all; import dry-run matches the browser data; build and demo still work |
 | 2 | `crm-2-iclosed` | normalize, match, process-inbox, projector, iClosed mapper and Zaps, history import, CRM › Sales cycle on real data | 20 bookings / reschedules / cancels in < 2 min, right cycle, no duplicate; replay safe; late events reorder |
 | 3 | `crm-3-outcome` | Outcome form + `crm_declare_outcome`, lead record tabs, Pipeline / Leads on cycles, Unmatched screen | A full cycle runs from booking to yes / no / disqualified in the CRM only |
 | 4 | `crm-4-fathom` | Fathom webhook, verifier, mapper, call matching, consistency checks (c11, not-recorded flag) | ≥ 95 % of held calls matched automatically; each mismatch case alerts |
@@ -44,8 +44,8 @@ Read docs/crm 00-03, 10 §2, 11, 12. Branch "crm-1-schema". Apply web/supabase/0
 (fold 003a into it). Link crm_members to the existing members table using the columns found in
 phase 0, with member_key = the LNP member id and lead_id per the existing lead rule (Valentino ->
 Romain, Romain -> Amin). Implement the RPCs of 02 §5 as security-definer functions with role and
-ownership checks and crm_audit_log. Add skl-os/crm/data.js on the Supabase client already opened
-by web/public/skl-web.js, with a demo-mode fallback. Add "Export my CRM data" to the current CRM
+ownership checks and crm_audit_log. Add app/crm/data.js on the Supabase client already opened
+by web/public/lnp-web.js, with a demo-mode fallback. Add "Export my CRM data" to the current CRM
 and an admin import with dry run (11 §3). Merge crm_settings.alert_rule_defaults into the docs row
 config/alerts without touching a1-a18.
 ```
@@ -75,7 +75,7 @@ not_recorded flag) and the Fathom part of reconcile.
 
 ### Phase 5
 ```
-Read docs/crm 08. Branch "crm-5-whop". Implement whop-checkout (metadata skl_cycle_id), the
+Read docs/crm 08. Branch "crm-5-whop". Implement whop-checkout (metadata lnp_cycle_id), the
 Standard Webhooks verifier, mapper, payments upsert, won at the first succeeded payment, sold vs
 collected, alerts c7-c10, and the Whop part of reconcile. Test in the Whop sandbox.
 ```

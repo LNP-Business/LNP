@@ -1,6 +1,6 @@
 """The lite pipeline: foundation (code) → S0 phases → S1 discovery → S2 gap → S3 pitch → S4 objections → call record.
 
-`analyse(ctx, client, config)` returns the same record as alkimiy_callqa.pipeline.result_record (OUTPUT_CONTRACT.md),
+`analyse(ctx, client, config)` returns the same record as lnp_callqa.pipeline.result_record (OUTPUT_CONTRACT.md),
 plus `meta` ({"engine": "lite", "version", "steps": what the code dropped per step}). The model is asked one question per
 step about the whole call (S1 in chunks of turns on long discoveries), always with the transcript as the same cached
 prefix; the code checks every quote and decides every level, verdict and score. A crash in one competence makes it
@@ -12,10 +12,10 @@ import json
 from typing import Any, Optional
 
 from . import LITE_VERSION
-from alkimiy_callqa.competences import pitch as P
-from alkimiy_callqa.core.foundation import diarization_gate
-from alkimiy_callqa.core.models import CallContext, CompetenceResult
-from alkimiy_callqa.pipeline import result_record
+from lnp_callqa.competences import pitch as P
+from lnp_callqa.core.foundation import diarization_gate
+from lnp_callqa.core.models import CallContext, CompetenceResult
+from lnp_callqa.pipeline import result_record
 
 from .gap import run_gap, statements_text
 from .objections import run_objections

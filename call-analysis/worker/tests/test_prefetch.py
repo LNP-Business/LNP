@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from alkimiy_callqa.core.llm import MockClient
-from alkimiy_callqa.core.models import CallContext, Evidence, Turn, SALES
-from alkimiy_callqa.core.runner import Runner
-from alkimiy_callqa.pipeline import analyse_call, result_record
+from lnp_callqa.core.llm import MockClient
+from lnp_callqa.core.models import CallContext, Evidence, Turn, SALES
+from lnp_callqa.core.runner import Runner
+from lnp_callqa.pipeline import analyse_call, result_record
 from callqa_worker.prefetch import PrefetchClient, analyse_in_rounds
 from tests.test_worker import claim
 from callqa_worker.job import run_job
@@ -66,7 +66,7 @@ def test_real_call_same_record_and_no_extra_question():
 @real
 def test_real_pitch_with_answers_same_result_in_rounds():
     """Same scenario as the engine's test_real_001_full_run (answers that pass the quote checks)."""
-    from alkimiy_callqa.competences import pitch as P
+    from lnp_callqa.competences import pitch as P
     from tests_engine_helpers import pitch_001_setup
     ctx0, answers = pitch_001_setup(load)
     seq = P.PitchCompetence().run(ctx0, Runner(MockClient(answers=answers, fallback=lambda *x: {})))

@@ -22,7 +22,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Optional
 
-from alkimiy_callqa.core.models import CallContext
+from lnp_callqa.core.models import CallContext
 
 
 class Pending(Exception):

@@ -1,7 +1,7 @@
 # 05 · Édition web (Vercel) et connecteur Claude
 
 Ce chapitre décrit l'édition web de LNP (`web/`) : comment la page unique est servie par Vercel, les routes `web/api/`, la
-connexion, les invitations et les réinitialisations, les rôles et les accès par écran, la couche `web/public/skl-web.js` qui
+connexion, les invitations et les réinitialisations, les rôles et les accès par écran, la couche `web/public/lnp-web.js` qui
 branche la page sur Supabase, puis le connecteur MCP pour Claude (OAuth 2.1, outils, droits, limite de débit, journal) et
 ses tests. Chaque fait vient du code ; le fichier est cité. Aucun secret n'apparaît ici : seuls les noms des variables sont
 donnés.
@@ -11,11 +11,11 @@ donnés.
 ## 1. Vue d'ensemble
 
 ```
-navigateur ── GET / ──► web/public/index.html  (en-tête web + page skl-os/skl-os-en.html inchangée)
-               │           ├─ <script src="/api/config">        → window.SKL_WEB_CONFIG {url, anonKey}
+navigateur ── GET / ──► web/public/index.html  (en-tête web + page app/lnp.html inchangée)
+               │           ├─ <script src="/api/config">        → window.LNP_WEB_CONFIG {url, anonKey}
                │           ├─ <script src="supabase-js 2.117.2"> (cdn.jsdelivr.net)
-               │           └─ <script src="/skl-web.js">        → connexion, accès, window.claude.use(...)
-               ├── Supabase Auth, PostgREST (table docs, tables crm_*, fonctions crm_*), Realtime, Storage « library »
+               │           └─ <script src="/lnp-web.js">        → connexion, accès, window.claude.use(...)
+               ├── Supabase Auth, PostgREST (tables crm_*, fonctions crm_*), Realtime, Storage « library »
                └── /api/me, /api/team, /api/files (Vercel, clé service role côté serveur)
 
 Claude ──► /.well-known/oauth-* , /api/oauth/{register,authorize,token} ──► web/api/oauth.js
@@ -29,7 +29,7 @@ fichier construit, pour que la page de référence reste identique octet pour oc
 
 ### 2.1 `web/build_web.py`
 
-Lit `skl-os/skl-os-en.html` et écrit `web/public/index.html` = en-tête + page. L'en-tête :
+Lit `app/lnp.html` et écrit `web/public/index.html` = en-tête + page. L'en-tête :
 
 ```html
 <!doctype html>
@@ -40,7 +40,7 @@ Lit `skl-os/skl-os-en.html` et écrit `web/public/index.html` = en-tête + page.
 <meta name="robots" content="noindex">
 <script src="/api/config"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
-<script src="/skl-web.js"></script>
+<script src="/lnp-web.js"></script>
 ```
 
 ### 2.2 `web/kb/build_kb.mjs` → `web/api/_kb.json`
@@ -57,9 +57,9 @@ latérale, `{screen, key, where, about, method}`.
 | `Account` | `account` | Paramètres › Compte |
 | `Access` | `access` | Paramètres › Accès |
 
-`method` = le texte de la fenêtre « Mode d'emploi » de l'écran, extrait de `skl-en/project/<Screen>.dc.html` (à partir de
+`method` = le texte de la fenêtre « Mode d'emploi » de l'écran, extrait de `gabarits/<Screen>.dc.html` (à partir de
 l'élément `aria-labelledby="info-title"` jusqu'à `</dialog>`), balises retirées, renommages `edition.json` › `rename`
-appliqués dans l'ordre comme `skl-os/build.py`, tronqué à 4 000 caractères. Un écran dont le fichier manque est omis (jamais
+appliqués dans l'ordre comme `app/build.py`, tronqué à 4 000 caractères. Un écran dont le fichier manque est omis (jamais
 d'erreur). Racine du JSON : `{built_from, screens}`.
 
 ### 2.3 Dans `build.sh`
@@ -120,7 +120,7 @@ Utilitaires communs (`_lib.js`) : `admin()` (client service role, sans session),
 ### 5.1 `GET /api/config` (`config.js`)
 
 Sans authentification. Répond en JavaScript (`Cache-Control: no-store`) :
-`window.SKL_WEB_CONFIG = {"url": <SUPABASE_URL>, "anonKey": <SUPABASE_ANON_KEY>};`.
+`window.LNP_WEB_CONFIG = {"url": <SUPABASE_URL>, "anonKey": <SUPABASE_ANON_KEY>};`.
 
 ### 5.2 `GET /api/me` (`me.js`)
 
@@ -146,50 +146,38 @@ Rôles : `admin`, `member`, `viewer`.
 | autre | — | `400 « Action inconnue. »` ; autre méthode → `405` |
 
 Les liens sont **rendus à l'administrateur**, jamais envoyés par e-mail (aucun serveur d'e-mail) :
-`<origin>/#skl-link=<hashed_token encodé>&type=invite|recovery` (`appLink`). Le jeton à usage unique n'est consommé que
+`<origin>/#lnp-link=<hashed_token encodé>&type=invite|recovery` (`appLink`). Le jeton à usage unique n'est consommé que
 lorsque la personne enregistre un mot de passe : un aperçu de lien (Slack, antivirus d'e-mail) qui ouvre la page d'abord ne
 l'use pas.
 
-### 5.4 `POST /api/files` (`files.js`) · bibliothèque de fichiers
-
-Bucket Storage privé `library` (créé à la volée par `ensureBucket`, `public: false`). Le navigateur ne reçoit jamais de clé de
-stockage. Bearer d'un membre obligatoire (`401`).
-
-| `action` | Qui | Entrée | Sortie |
-|---|---|---|---|
-| `upload` | `admin`, `member` (`viewer` → `403`) | `{name, type, size}` | `{path, token}` : URL d'envoi signée à usage unique ; chemin `AAAA-MM/AAAA-MM-JJ-<aléa>-<nom nettoyé>` |
-| `url` | tout membre | `{path, download?}` | `{url}` signée valable 600 s ; chemin vide ou contenant `..` → `400` ; fichier absent → `404` |
-
-Autre méthode → `405` ; autre action → `400`.
-
-### 5.5 `POST /api/bootstrap` (`bootstrap.js`) · mise en route
+### 5.4 `POST /api/bootstrap` (`bootstrap.js`) · mise en route
 
 Répond `404` si `BOOTSTRAP_TOKEN` n'existe pas, si la méthode n'est pas `POST` ou si l'en-tête `x-bootstrap-token` diffère.
 
 | `action` | Effet |
 |---|---|
-| (aucune) | Crée le premier administrateur : refusé (`409`) si un administrateur existe ; lien `invite` (ou `recovery` si le compte existe) vers `<origin>/` ; upsert `members` rôle `admin` ; réponse `{email, link}` où `link` est le lien d'action Supabase (pas un lien `#skl-link=`) |
+| (aucune) | Crée le premier administrateur : refusé (`409`) si un administrateur existe ; lien `invite` (ou `recovery` si le compte existe) vers `<origin>/` ; upsert `members` rôle `admin` ; réponse `{email, link}` où `link` est le lien d'action Supabase (pas un lien `#lnp-link=`) |
 | `testuser` | Compte de test confirmé `{email, password, role: member|viewer}` |
 | `storefile` | Dépose un fichier `{path, base64, contentType}` dans `library` |
 | `upsert` | Charge des lignes `docs {col, id, body, ifAbsent}` |
 | `removefile` | Supprime un fichier de `library` |
 | `deleteuser` | Supprime un compte de test (jamais un administrateur) |
 
-### 5.6 `/api/oauth` et `/api/mcp`
+### 5.5 `/api/oauth` et `/api/mcp`
 
 Voir §8.
 
-## 6. Connexion, invitation, réinitialisation (`web/public/skl-web.js`)
+## 6. Connexion, invitation, réinitialisation (`web/public/lnp-web.js`)
 
-`skl-web.js` est chargé avant l'application. Tant que la personne n'est pas connectée, `#app` est caché
-(`html.skl-locked #app{visibility:hidden}`) et une fenêtre `#skl-gate` s'affiche.
+`lnp-web.js` est chargé avant l'application. Tant que la personne n'est pas connectée, `#app` est caché
+(`html.lnp-locked #app{visibility:hidden}`) et une fenêtre `#lnp-gate` s'affiche.
 
 Client : `supabase.createClient(url, anonKey, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl:
 true, flowType: "implicit"}})`. Sans `url`, `anonKey` ou bibliothèque → vue « Pas encore configuré ».
 
 Lecture du fragment d'URL au chargement :
 
-- `#skl-link=<jeton>&type=invite|recovery` → lien en attente (le fragment est effacé), vue « mot de passe » ;
+- `#lnp-link=<jeton>&type=invite|recovery` → lien en attente (le fragment est effacé), vue « mot de passe » ;
 - sinon `type=invite|recovery|signup|magiclink` (lien d'action Supabase, par ex. celui de `/api/bootstrap`) → la session
   est lue dans l'URL par Supabase, puis vue « mot de passe » pour `invite` et `recovery` ;
 - `error_description=…` → vue « Connexion » avec le message traduit.
@@ -236,42 +224,33 @@ rechargement.
 ### 7.3 Application dans la page (`applyAccess`)
 
 - Relève les gabarits `template[data-file]` (identifiant d'écran ↔ fichier).
-- Ajoute la classe `skl-admin` pour un administrateur.
+- Ajoute la classe `lnp-admin` pour un administrateur.
 - Feuille de style qui cache les entrées fermées (`[data-navitems] a[href]`, `[data-topbar] a[href]`), les groupes vides
   (`[data-navgrp="<espace>-<groupe>"]`) et, sauf Paramètres, les systèmes sans écran ouvert dans le sélecteur
   « Changer de système ».
 - Intercepte les clics vers un écran fermé et renvoie vers le premier écran ouvert de l'espace (Compte pour Paramètres) ;
   au démarrage, quitte un écran fermé.
-- `window.SKL_EDITION.keep` (écrans gardés par `skl-os/build.py`) limite ce que le panneau Accès liste.
+- `window.LNP_EDITION.keep` (écrans gardés par `app/build.py`) limite ce que le panneau Accès liste.
 - Panneau Accès (`[data-access]`, administrateurs) : une carte par membre, cases par espace et par écran, colonne
   « Connecteur Claude » ; chaque changement → `POST /api/team {action: "access"}` ; « Tout ouvrir » → `access: null`.
 - Panneau Compte (`[data-account]`) : e-mail, rôle, « Se déconnecter » ; pour un administrateur, « Accès de l’équipe »
   (inviter, changer un rôle, « Lien de réinitialisation » ou « Nouveau lien d’invitation » selon que le compte est confirmé,
-  « Retirer » avec confirmation `window.sklConfirm`), avec une boîte « Copier le lien ».
+  « Retirer » avec confirmation `window.lnpConfirm`), avec une boîte « Copier le lien ».
 
 Masquer un écran ne cache pas de données : la RLS du CRM décide toujours ce que chacun lit.
 
 ### 7.4 `window.claude.use(name)`
 
-La page a été écrite pour tourner aussi dans un Artifact claude.ai ; l'édition web fournit la même interface.
 `window.claude = {web: true, use(name)}` renvoie une promesse résolue après la connexion.
 
 | `name` | Objet | Implémentation |
 |---|---|---|
-| `"db"` | `DB` | `collection(nom)` → `{doc(id), get(), onSnapshot(fn, onErr)}` ; `doc("col/id")` ; `docRef` → `{id, get(), set(body), update(patch), delete()}` |
 | `"user"` | `USER` | `id()`, `me()` → `{id, name: e-mail, email}`, `isOwner()` et `canEdit()` (= administrateur), `can("data.write")` (= administrateur ou membre), `profiles(ids)` |
 | `"crm"` | `CRM` | `from(table)` (seulement `^crm_[a-z_]+$`), `rpc(fn, args)` (seulement `^crm_[a-z_]+$`, erreur avec `code`), `me()` (ligne `crm_members`), `subscribe(tables, fn)` (canal Realtime `postgres_changes` sur chaque table, renvoie la désinscription) |
-| `"assets"` | `ASSETS` | `upload(file)` → `/api/files upload` puis `storage.from("library").uploadToSignedUrl` → `{id: chemin, name, contentType, sizeBytes}` ; `open(id, {download})` → URL signée |
 | autre | `null` | — |
 
-**Table `docs`** (`001_init.sql`) : `(col, id)` clé primaire, `body jsonb`, `updated_at`, `updated_by` (défaut `auth.uid()`,
-déclencheur `touch_doc`). RLS : lecture pour tout membre, écriture (insertion, mise à jour, suppression) pour `admin` et
-`member`. Ajoutée à la publication `supabase_realtime`.
-
-Cache et temps réel : une carte par collection, chargée par pages de 1000 (`range`) ; `set` fait un `upsert` puis met à jour
-le cache et prévient les abonnés ; un seul canal Realtime `skl-docs` (`postgres_changes`, tous événements, table `docs`)
-met à jour les collections déjà chargées. Erreur d'écriture : `code = "invalid_argument"` si refus RLS (`42501`), sinon
-`"unavailable"`. Les écritures du CRM passent uniquement par les fonctions `crm_*` (`web/supabase/004_crm_rpc.sql`).
+Les écritures du CRM passent uniquement par les fonctions `crm_*` (`web/supabase/004_crm_rpc.sql`). La table `docs` de
+`001_init.sql` n'est plus lue ni écrite par la page.
 
 ---
 
@@ -455,5 +434,5 @@ Test SQL associé : `web/supabase/tests/mcp_test.sql` (via `web/supabase/tests/r
 |---|---|---|
 | Nombre d'outils de lecture | « the 8 of §4 » (`17-claude-connector.md` §8) ; commentaire « the 8 tools » dans `crm-functions.yml` | 10 outils de lecture (+ 2 d'écriture pour les administrateurs), §9 et §10 du même document |
 | `call_prep`, `call_analysis` | Lisent `crm_call_analyses` (17 §8) | Lisent `crm_ca_records`, `crm_ca_results`, `crm_ca_jobs` (020) |
-| Lien de `/api/bootstrap` | — | Lien d'action Supabase direct, pas un lien `#skl-link=` comme `/api/team` |
+| Lien de `/api/bootstrap` | — | Lien d'action Supabase direct, pas un lien `#lnp-link=` comme `/api/team` |
 | Variables Whop | `WHOP_API_KEY`, `WHOP_COMPANY_ID` (setup.md) | Non lues par le code |

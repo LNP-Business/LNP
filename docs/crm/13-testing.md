@@ -52,7 +52,7 @@ Time travel for 13–14: rules accept an injectable `now` in tests; in staging, 
 
 - `./build.sh` (including `web/build_web.py`) passes.
 - Every screen of the functional specification §13 opens with no console error.
-- Scenario tests with the date pinned (`window.SKL_TODAY`).
+- Scenario tests with the date pinned (`window.LNP_TODAY`).
 - The plain-file demo still runs on sample data and saves nothing.
 - CRM alerts: a c-rule instance appears in My Day › Needs you of the right person; Take it,
   Reassign, Snooze 1 day, Make it a decision and Handled work; a High alert left open 24 h escalates

@@ -1,6 +1,6 @@
 // Team access, for admins only: list members, invite, change a role, send a password reset link, remove.
 // Invitation and reset links are returned to the admin, who sends them (no email server needed). A link opens the
-// app itself (#skl-link=<token hash>&type=…); the one-time token is spent only when the person saves a password, so
+// app itself (#lnp-link=<token hash>&type=…); the one-time token is spent only when the person saves a password, so
 // link previews (Slack, mail scanners) that open the link first cannot use it up.
 import { admin, send, caller, origin, readJson } from "./_lib.js";
 import { SCREENS, DEFAULT_ACCESS, MARK, defaultAccess, accessOf } from "./_screens.js";
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   const b = await readJson(req);
   const redirectTo = origin(req) + "/";
   const adminsLeft = async () => { const { count } = await sb.from("members").select("user_id", { count: "exact", head: true }).eq("role", "admin"); return count || 0; };
-  const appLink = (l, type) => redirectTo + "#skl-link=" + encodeURIComponent(l.data.properties.hashed_token) + "&type=" + type;
+  const appLink = (l, type) => redirectTo + "#lnp-link=" + encodeURIComponent(l.data.properties.hashed_token) + "&type=" + type;
   const target = async id => { const { data } = await sb.from("members").select("user_id, email, role").eq("user_id", id).maybeSingle(); return data; };
 
   if (b.action === "invite") {

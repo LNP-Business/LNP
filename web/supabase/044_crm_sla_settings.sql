@@ -1,8 +1,8 @@
 -- 044 · Sales cycle SLAs in Settings › Alerts (Romain, 2026-11-05: « un bouton de sauvegarde de la configuration à côté de
 -- Terminé » and « toutes les alertes manquantes liées à la gestion des leads en terme de SLA »).
 -- Settings › Alerts lists the 42 SLAs of the reference v3 (catalogue: supabase/functions/_shared/sla_rules.js) and saves
--- here what an admin changes; the Sales cycle screen (skl-os/crm/data.js › slaRules) and sla-tick (crm_sla_settings) both
--- apply it through SKL_SLA.configure:
+-- here what an admin changes; the Sales cycle screen (app/crm/data.js › slaRules) and sla-tick (crm_sla_settings) both
+-- apply it through LNP_SLA.configure:
 --   crm_settings.sla_rules = {sources: {messages, whop, analysis}, rules: {"SH-2": {on, warn, late, crit, app, slack}, …}}
 -- sources: the data an SLA needs beyond iClosed and Fathom. On 2026-11-05 no message (Sendblue), no Whop link and no automatic
 -- analysis reaches the CRM: their SLAs are off until an admin marks the source connected (otherwise every lead was Critical:

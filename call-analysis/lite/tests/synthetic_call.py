@@ -3,8 +3,8 @@
 The recorded answers also carry the mistakes the code must catch: an invented quote, a quote given to the wrong
 speaker, a question after the pitch start, objections raised before the pitch and before the first price (OB-27), the same objection listed twice.
 """
-from alkimiy_callqa.core.foundation import parse_transcript
-from alkimiy_callqa.core.models import CallContext
+from lnp_callqa.core.foundation import parse_transcript
+from lnp_callqa.core.models import CallContext
 
 S, P = "Sam Rep", "Alex Lead"
 LINES = [

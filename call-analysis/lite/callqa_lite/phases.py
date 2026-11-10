@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from typing import Optional
 
-from alkimiy_callqa.competences.spin import discovery_end
-from alkimiy_callqa.core.foundation import _ph_validate, decide_phases
-from alkimiy_callqa.core.models import CallContext, Evidence, SALES
-from alkimiy_callqa.core.text import quote_ok
+from lnp_callqa.competences.spin import discovery_end
+from lnp_callqa.core.foundation import _ph_validate, decide_phases
+from lnp_callqa.core.models import CallContext, Evidence, SALES
+from lnp_callqa.core.text import quote_ok
 
 from .shim import Drops
 

@@ -14,7 +14,7 @@ what exists today, the functional specification wins; this pack describes what t
 The LNP CRM becomes the **single source of truth** for every sales cycle, from the moment a
 call is booked until the cycle is **won** (first successful Whop payment), **lost**, or
 **disqualified**, plus a **nurture** track for people who may come back. It replaces the current
-browser-only CRM storage (ALKIMIY Lite, `localStorage`) with shared, isolated, live data.
+browser-only CRM storage (CRM LNP, `localStorage`) with shared, isolated, live data.
 
 | Tool | Role | Direction |
 |---|---|---|
@@ -23,7 +23,7 @@ browser-only CRM storage (ALKIMIY Lite, `localStorage`) with shared, isolated, l
 | Sendblue | iMessage + SMS (+ calls) between sales and prospects; automated messages | Sendblue ↔ CRM |
 | Whop | Payments; first successful payment = won | CRM → Whop (checkout per cycle) + Whop → CRM |
 | Claude API | Call analysis (Agent System: Post-call analyst) | CRM → Claude |
-| Supabase `skl-os` | Database, auth (existing), Edge Functions, scheduled jobs | — |
+| Supabase `LNP` | Database, auth (existing), Edge Functions, scheduled jobs | — |
 | Vercel `lnp-sales.vercel.app` | Existing web edition (front end + `/api` admin functions) | — |
 
 Everything a person decides about a lead (call outcome, no-show, yes/no, loss or
@@ -50,7 +50,7 @@ disqualification reason, nurture, return date, notes) is entered **only in the C
 | `17-claude-connector.md` | LNP connector for Claude (remote MCP server, OAuth, 8 read tools); setup: `setup-claude-connector.md` |
 | `fixtures/` | Illustrative payloads — replace with captured real payloads in phase 0 |
 | `architecture-one-page.html` / `.pdf` | One-page diagram (French) |
-| `SKL-CRM-Implementation-stack-technique-v1.1.docx` | Business document for Romain (French); this pack takes precedence on technical points |
+| `LNP-CRM-Implementation-stack-technique-v1.1.docx` | Business document for Romain (French); this pack takes precedence on technical points |
 
 ## Ground rules for Claude Code
 
@@ -64,7 +64,7 @@ disqualification reason, nurture, return date, notes) is entered **only in the C
 5. Secrets never go in the front end, the repository or logs. Vercel keeps its existing variables;
    CRM secrets are Supabase function secrets.
 6. UI text in English (the CRM keeps its own English/French switch). Never write "closer": always
-   "sales" / "sales rep". The company is ALKIMIY. Every delete asks for confirmation. Designed at 1440 px.
+   "sales" / "sales rep". The company is LNP. Every delete asks for confirmation. Designed at 1440 px.
 7. All timestamps in UTC (`timestamptz`); durations in **calendar hours**. Use the OS clock
-   (`window.SKL_TODAY` can pin it in tests).
+   (`window.LNP_TODAY` can pin it in tests).
 8. Every phase updates the matching sections of the functional specification (3, 9.3, 11, 12, 13, 14).

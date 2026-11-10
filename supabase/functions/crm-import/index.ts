@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   if (u.searchParams.get("report") === "statuses") {
     // read-only: iClosed statuses (DISQUALIFIED…) of the Close contacts; names only with the CRM_REPORT_TOKEN secret
     const tok = Deno.env.get("CRM_REPORT_TOKEN") ?? "";
-    const names = tok.length >= 32 && req.headers.get("x-skl-token") === tok;
+    const names = tok.length >= 32 && req.headers.get("x-lnp-token") === tok;
     try {
       return Response.json(await statusReport({ iclosedHeaders: iclosedHeaders(Deno.env.get("ICLOSED_API_KEY") ?? ""),
         closeKey: Deno.env.get("CLOSE_API_KEY") ?? "", names }));

@@ -1,5 +1,5 @@
 // iClosed (calendar only, docs/crm/05): call booked, rescheduled, cancelled. Reads iClosed's own webhooks and the Zap
-// contract skl.iclosed.v1. VERIFY: iClosed's native payload was not documented publicly when this was written, so fields
+// contract lnp.iclosed.v1. VERIFY: iClosed's native payload was not documented publicly when this was written, so fields
 // are looked up under the usual names; a payload it cannot read fails with a clear error and stays in crm_webhook_log
 // for replay once the mapping is adjusted. Native webhooks since 2026-10-25: hookType ("Call booked", "Call rescheduled",
 // "Call cancelled"; "Outcome added" stays ignored; "Contact updated" only for a new name, email or phone, see mapContact) and the call under event (uuid = the imported

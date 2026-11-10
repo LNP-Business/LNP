@@ -90,7 +90,7 @@ Ne jamais écrire « closer » (ni « closing ») : toujours « commercial » / 
 | queued / running / failed | en file / en cours / échec |
 | evidence / quote | preuve / citation |
 
-Les consignes envoyées au modèle (`call-analysis/engine/alkimiy_callqa/prompts/*.md`) restent en anglais : les traduire changerait
+Les consignes envoyées au modèle (`call-analysis/engine/lnp_callqa/prompts/*.md`) restent en anglais : les traduire changerait
 l'analyse. Seul ce que la personne lit est en français.
 
 ## Formats

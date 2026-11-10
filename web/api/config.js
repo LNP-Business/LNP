@@ -6,5 +6,5 @@ export default function handler(req, res) {
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/javascript; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
-  res.end("window.SKL_WEB_CONFIG = " + JSON.stringify({ url: SUPABASE_URL || "", anonKey: ANON_KEY || "" }) + ";\n");
+  res.end("window.LNP_WEB_CONFIG = " + JSON.stringify({ url: SUPABASE_URL || "", anonKey: ANON_KEY || "" }) + ";\n");
 }

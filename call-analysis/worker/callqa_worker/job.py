@@ -1,6 +1,6 @@
 """One job: the claim returned by crm_ca_claim → CallContext → engine pipeline → call record (OUTPUT_CONTRACT.md).
 
-crm_ca_config.engine (035, 2026-11-03) picks the engine per job: 'full' (alkimiy_callqa, unchanged) or 'lite'
+crm_ca_config.engine (035, 2026-11-03) picks the engine per job: 'full' (lnp_callqa, unchanged) or 'lite'
 (call-analysis/lite: five whole-transcript steps on the fast tier, the code still decides).
 """
 from __future__ import annotations
@@ -10,14 +10,14 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from alkimiy_callqa.core.foundation import parse_transcript
-from alkimiy_callqa.core.models import CallContext
-from alkimiy_callqa.core.runner import RunConfig, Runner
-from alkimiy_callqa.pipeline import analyse_call, result_record
+from lnp_callqa.core.foundation import parse_transcript
+from lnp_callqa.core.models import CallContext
+from lnp_callqa.core.runner import RunConfig, Runner
+from lnp_callqa.pipeline import analyse_call, result_record
 
 from .prefetch import PrefetchClient, analyse_in_rounds
 
-ENGINE_VERSION = "alkimiy_callqa-1.0"
+ENGINE_VERSION = "lnp_callqa-1.0"
 LITE_DIR = Path(__file__).resolve().parents[2] / "lite"
 
 

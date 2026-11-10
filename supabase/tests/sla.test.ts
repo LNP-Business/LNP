@@ -5,7 +5,7 @@ import { slackText, toLead, type Snap } from "../functions/_shared/sla_view.ts";
 import { tick } from "../functions/sla-tick/index.ts";
 
 // deno-lint-ignore no-explicit-any
-const SLA = (globalThis as any).SKL_SLA;
+const SLA = (globalThis as any).LNP_SLA;
 function eq<T>(a: T, b: T, msg = "") { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg} expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); }
 // the nine SLAs of the first version, one at a time; the others have their own tests below (only = the SLAs looked at)
 const V1 = ["SH-2", "SH-6", "SH-8", "SH-11", "DE-1", "DE-7", "DE-9", "CA-2", "CO-1"];
