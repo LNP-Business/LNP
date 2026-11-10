@@ -277,9 +277,10 @@ test("LNP's screens and Settings: Page methods and alert rules", async () => {
   assert.ok(/LNP/.test(init || ""), "server instructions say LNP");
   assert.equal(c.getServerVersion().name, "lnp");
   const t = async (name, args = {}) => { const r = await c.callTool({ name, arguments: args }); assert.ok(!r.isError, name + ": " + text(r)); return text(r); };
-  const list = await t("page_method"); assert.match(list, /Cockpit commercial/); assert.match(list, /Ma journée/); assert.match(list, /CRM/); assert.ok(!/Build|Execute|Library|LNP Map|Agent System/.test(list), "only LNP's screens");
+  const list = await t("page_method"); assert.match(list, /Cockpit commercial/); assert.match(list, /Cycle de vente/); assert.match(list, /CRM/); assert.ok(!/Build|Execute|Library|LNP Map|Agent System/.test(list), "only LNP's screens");
   assert.match(await t("page_method", { screen: "CRM" }), /Page method · Ventes › CRM\n[\s\S]{40,}/);
-  assert.match(await t("page_method", { screen: "Sales Day" }), /Ventes › Ma journée/);
+  // Ma journée is merged into Cycle de vente (2026-11-10): its old names open Cycle de vente
+  assert.match(await t("page_method", { screen: "Sales Day" }), /Ventes › Cycle de vente/);
   const bad = await c.callTool({ name: "page_method", arguments: { screen: "Weekly Review" } }); assert.ok(bad.isError); assert.match(text(bad), /No screen 'Weekly Review'/);
   const al = await t("alert_rules"); assert.match(al, /51 SLAs on of 52/); assert.match(al, /SE-1 \| Premier appel du setter \| Setting \| on \| measured/); assert.match(al, /SE-4 \| .+ \| applied by the CRM/); assert.match(al, /SH-2 \| Premier contact du commercial \| Présence \| on \| measured \| 5 min \| 30 min \| 1 h \| CRM \|/);
   assert.ok(!/CO-1 \|/.test(al), "SLAs switched off are left out by default"); assert.match(al, /DE-1 \| .+ \| CRM \+ Slack \|/); assert.match(al, /CA-1 \| .+ waiting for Liens et paiements Whop/);
@@ -300,16 +301,18 @@ test("Settings › Access closes the matching tools", async () => {
   const { accessOf } = await import("../api/_screens.js");
   // Entraînement (2026-11-05) opens with the CRM, Maîtrise de l'offre (2026-11-06) with Entraînement, Mes résultats with either
   // Cycle de vente (2026-11-09) opens with the CRM in lists saved before it had its own screen
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement", "academie", "salescycle", "resultats", "alertes"]);
-  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "salescycle", "entrainement", "academie", "crm", "settings", "claude", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "entrainement", "academie", "salescycle", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salescycle", "entrainement", "academie", "crm", "settings", "claude", "resultats", "alertes"]);
   // a list saved after 2026-11-06 carries the mark: a training closed on purpose stays closed
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "salesday", "entrainement", "salescycle", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "entrainement", "salescycle", "resultats", "alertes"]);
+  // Ma journée merged into Cycle de vente (2026-11-10): a list that opened Ma journée opens Cycle de vente
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["salesday", "v2026-11-06", "v2026-11-09"] } }, "member"), ["salescycle", "alertes"]);
   assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm", "salescycle", "alertes"]);
-  // Alertes (2026-11-09) opens with the CRM or Ma journée, never alone
+  // Alertes (2026-11-09) opens with the CRM or Cycle de vente, never alone
   assert.deepEqual(accessOf({ app_metadata: { screens: ["salescockpit", "v2026-11-06"] } }, "member"), ["salescockpit"]);
   // a list saved after 2026-11-09 carries both marks: Cycle de vente closed on purpose stays closed
   assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06", "v2026-11-09"] } }, "member"), ["crm", "alertes"]);
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["salescycle", "v2026-11-06", "v2026-11-09"] } }, "member"), ["salescycle"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["salescycle", "v2026-11-06", "v2026-11-09"] } }, "member"), ["salescycle", "alertes"]);
   DB.users.find(u => u.id === ids.valentino).app_metadata = { screens: ["salescockpit", "crm", "settings", "claude"] };
 });
 

@@ -10,7 +10,7 @@ const KB = JSON.parse(readFileSync(new URL("./_kb.json", import.meta.url), "utf8
 function table(head, list) { return ["| " + head.join(" | ") + " |", "|" + head.map(() => "---").join("|") + "|"].concat(list.map(r => "| " + r.map(cell).join(" | ") + " |")).join("\n"); }
 
 // ---------------- Page method of each screen ----------------
-const ALIASES = { "sales cockpit": "salescockpit", cockpit: "salescockpit", "cockpit commercial": "salescockpit", "sales day": "salesday", "ma journée": "salesday", "my day": "salesday",
+const ALIASES = { "sales cockpit": "salescockpit", cockpit: "salescockpit", "cockpit commercial": "salescockpit", "sales day": "salescycle", "ma journée": "salescycle", "my day": "salescycle",
   pipeline: "crm", leads: "crm", "sales cycle": "crm", alerts: "settings", alertes: "settings", "settings": "settings", paramètres: "settings", compte: "account", accès: "access" };
 export function pageMethod(u, ctx, { screen }) {
   const list = KB.screens || [];

@@ -9,8 +9,9 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
   await p.goto(FILE); await p.waitForTimeout(1500);
   const nav = await p.$$eval('nav a', a => a.map(x => x.textContent.trim()).filter(Boolean));
-  const iJ = nav.indexOf('Ma journée'), iE = nav.indexOf('Découverte');
-  check('« Entraînement › Découverte » comes right after « Ma journée »', iJ >= 0 && iE === iJ + 1 && nav[iE + 1] === 'Maîtrise de l’offre'.replace('’', "'") && nav[iE + 2] === 'Mes résultats', nav);
+  // Ma journée is merged into Cycle de vente (2026-11-10): the training group comes right after CRM
+  const iJ = nav.indexOf('CRM'), iE = nav.indexOf('Découverte');
+  check('« Entraînement › Découverte » comes right after « CRM »', iJ >= 0 && iE === iJ + 1 && nav[iE + 1] === 'Maîtrise de l’offre'.replace('’', "'") && nav[iE + 2] === 'Mes résultats', nav);
   check('« Suivi des commerciaux » is for admins only', !(await p.isVisible('nav a:has-text("Suivi des commerciaux")')), null);
   await p.click('nav a:has-text("Découverte")'); await p.waitForTimeout(1200);
   const fr = p.frames().find(f => f.url().startsWith('about:srcdoc') && f.name() === '' && f !== p.mainFrame() && f.parentFrame() === p.mainFrame() && f.url());

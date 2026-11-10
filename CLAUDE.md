@@ -65,7 +65,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `app/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
   Onglets Exécution, Qualité, Impact : `app/sales_exec_module.js`, onglets dans `gen_salescockpit.py` et
   `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migration 050) ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
-- Ma journée : `app/salesday_module.js` + `gen_salesday.py`.
+- Ma journée est fusionnée dans Cycle de vente (Romain, 2026-11-10) : plus d'entrée dans la barre latérale, `#salesday` ouvre
+  Cycle de vente sur « Agir maintenant », un accès « salesday » donne Cycle de vente (`web/api/_screens.js`). Dans l'écran
+  (`LNP_SB_DOC`, dans `LNP_CRM_DOC` de `app/lnp.html`) : « Aujourd'hui » et « Fait aujourd'hui », « Demain » (touche D) et
+  « Passer » (touche P), la journée gardée dans les préférences `salesday.<jour>`. Test `node app/cycle_day_test.js $PWD/app/lnp.html <dossier>`.
+  Le module de Ma journée (`app/salesday_module.js`, `gen_salesday.py`) n'est plus affiché.
 - Alertes (Romain, 2026-11-09 : le CRM est la base des notifications, pas Slack) : `sla-tick` ouvre, fait monter et ferme les
   alertes toutes les 5 min (`crm_sla_alerts`, `crm_sync_sla_alerts`, migration 053) ; un commercial voit les alertes de ses
   prospects, un administrateur celles de toute l'équipe (`crm_sla_alerts_open`). Écran, pastille, bandeau et notification du
