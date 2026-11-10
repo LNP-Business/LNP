@@ -18,6 +18,19 @@ entreprises.
 - Ne jamais mettre de clé dans le dépôt. Les secrets du CRM sont des secrets des fonctions Supabase (`docs/crm/setup.md`) ;
   ne jamais les demander dans une conversation.
 
+## ⚠️ Interface en production : `app/lnp.html` fait foi (2026-11-10)
+
+L'interface actuelle (passes Impeccable : phases 1 à 3, C1 à C13, D1 à D10, écran Cycle de vente à part) a été faite
+directement dans la page construite `app/lnp.html` et n'est **pas encore reportée dans les générateurs** (`app/gen_*.py`,
+`gabarits/`, `uploads/crm_source.html`, modules…). Tant que ce report n'est pas fait :
+
+- **ne pas lancer `./build.sh`** : il régénère `app/lnp.html` depuis les générateurs et effacerait cette interface ;
+- modifier `app/lnp.html` lui-même, puis `python3 web/build_web.py` (écrit `web/public/index.html` et
+  `web/public/docs/lnp-docs.<build>.js`) et `node web/kb/build_kb.mjs` ;
+- les écrans en cadre (CRM, Cycle de vente, Découverte, Maîtrise de l'offre, Résultats, Suivi) sont dans un fichier à part,
+  chargé seulement après la connexion et gardé en cache (`web/public/docs/`, `vercel.json`) ;
+- `app/EXPECTED.sha256` décrit l'ancienne référence : `./build.sh --verify` ne s'applique pas.
+
 ## Construire la page
 
 Prérequis : Python 3.10+, Node 18+.

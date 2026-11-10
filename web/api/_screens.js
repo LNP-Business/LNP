@@ -1,6 +1,6 @@
 // The screens an admin can open to other people in LNP (Settings › Access itself is never grantable, Settings › Account is
 // always open). "claude" is not a screen: it lets a person use the LNP connector in Claude (docs/crm/17-claude-connector.md).
-export const SCREENS = ["salescockpit", "salesday", "entrainement", "academie", "crm", "settings", "claude"];
+export const SCREENS = ["salescockpit", "salesday", "salescycle", "entrainement", "academie", "crm", "settings", "claude"];
 // Not in Settings › Access: « Mes résultats » opens with any training (Découverte or Maîtrise de l'offre), « Alertes » with the
 // CRM or Ma journée, « Suivi des commerciaux » is for admins only (web/api/me.js), like Settings › Access.
 export const DERIVED = ["resultats", "alertes"];
@@ -10,6 +10,8 @@ export const DEFAULT_ACCESS = SCREENS.filter(x => x !== "claude");
 // A list saved from Settings › Access after the training screens were split (2026-11-06) carries this mark, so a training
 // closed on purpose stays closed; a list saved before gets the new screens of what it opens.
 export const MARK = "v2026-11-06";
+// Cycle de vente left the CRM for its own screen (2026-11-09): a list saved before opens it to whoever opens the CRM.
+export const CYCLE_MARK = "v2026-11-09";
 export function defaultAccess(role) { return withDerived(role === "admin" ? SCREENS.slice() : DEFAULT_ACCESS.slice()); }
 function withDerived(l) {
   if (l.includes("entrainement") || l.includes("academie")) l = l.concat(["resultats"]);
@@ -31,6 +33,7 @@ export function accessOf(user, role) {
     if (l.includes("crm") || l.includes("salesday")) l.push("entrainement");
     if (l.includes("entrainement")) l.push("academie");
   }
+  if (!l.includes(CYCLE_MARK) && l.includes("crm")) l.push("salescycle");
   l = [...new Set(l)].filter(x => SCREENS.includes(x));
   return withDerived(l);
 }

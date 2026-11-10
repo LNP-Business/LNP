@@ -51,17 +51,17 @@
 
   // ---------------- screens: sign in, set a password, no access ----------------
   var CSS = ''
-    + '.lnp-newver{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483001;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;background:#1E2A5E;color:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(12,19,48,.25);font:14px/1.4 Poppins,system-ui,sans-serif}'
+    + '.lnp-newver{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483001;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;background:#1E2A5E;color:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(12,19,48,.25);font:15px/1.4 Poppins,system-ui,sans-serif}'
     + '.lnp-newver button{font:inherit;font-weight:600;border:0;border-radius:9px;padding:6px 14px;background:#fff;color:#1E2A5E;cursor:pointer}'
     + '#lnp-gate{position:fixed;inset:0;z-index:2147483000;background:#F7F8FB;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Poppins",system-ui,sans-serif;color:#1E2A5E}'
     + '#lnp-gate .card{width:min(420px,100%);background:#fff;border:1px solid #E3ECFB;border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}'
-    + '#lnp-gate .logo{font-family:Poppins,Arial,sans-serif;font-size:30px;font-weight:600}#lnp-gate .logo span{color:#5B8DF7}'
+    + '#lnp-gate .logo{font-family:Poppins,Arial,sans-serif;font-size:32px;font-weight:600}#lnp-gate .logo span{color:#5B8DF7}'
     + '#lnp-gate h1{margin:0;font-family:Poppins,Arial,sans-serif;font-weight:500;font-size:22px}'
-    + '#lnp-gate p{margin:0;font-size:14px;line-height:1.55;color:#5A6478}'
-    + '#lnp-gate label{display:flex;flex-direction:column;gap:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5A6478;font-weight:600}'
-    + '#lnp-gate input{font:inherit;font-size:15px;letter-spacing:0;text-transform:none;font-weight:400;color:#1E2A5E;padding:11px 12px;border:1px solid #AECBF2;border-radius:10px;background:#fff;outline:none}'
+    + '#lnp-gate p{margin:0;font-size:15px;line-height:1.55;color:#5A6478}'
+    + '#lnp-gate label{display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5A6478;font-weight:600}'
+    + '#lnp-gate input{font:inherit;font-size:15px;letter-spacing:0;text-transform:none;font-weight:400;color:#1E2A5E;padding:11px 12px;border:1px solid #7A849E;border-radius:10px;background:#fff;outline:none}'
     + '#lnp-gate input:focus{border-color:#1E2A5E}'
-    + '#lnp-gate .btn{border:0;background:#1E2A5E;color:#5B8DF7;font:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:12px 16px;cursor:pointer}'
+    + '#lnp-gate .btn{border:0;background:#1E2A5E;color:#FFFFFF;font:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:12px 16px;cursor:pointer}'
     + '#lnp-gate .btn[disabled]{opacity:.6;cursor:default}'
     + '#lnp-gate .lnk{border:0;background:none;font:inherit;font-size:13px;color:#2B6CF5;cursor:pointer;padding:0;align-self:flex-start}'
     + '#lnp-gate .err{font-size:13px;color:#9B1C12;background:#FDECEA;border-radius:8px;padding:8px 10px}'
@@ -69,40 +69,40 @@
     + '.lnp-acct{background:#fff;border:1px solid #E3ECFB;border-radius:14px;padding:28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-family:"Poppins",system-ui,sans-serif;color:#1E2A5E}'
     + '.lnp-acct h2{margin:0 0 6px;font-family:Poppins,Arial,sans-serif;font-weight:500;font-size:22px}'
     + '.lnp-acct .who{font-size:15px;color:#222C4E;overflow-wrap:anywhere}.lnp-acct .q{font-size:13px;color:#5A6478;margin-top:4px}'
-    + '.lnp-acct button{min-height:44px;padding:0 18px;border:1px solid #AECBF2;border-radius:10px;background:#fff;color:#1E2A5E;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}'
+    + '.lnp-acct button{min-height:44px;padding:0 18px;border:1px solid #7A849E;border-radius:10px;background:#fff;color:#1E2A5E;font:inherit;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}'
     + '.lnp-acct button:hover{border-color:#1E2A5E}'
     + '#lnp-team{font-family:"Poppins",system-ui,sans-serif;color:#1E2A5E}'
     + '#lnp-team .card{width:100%;background:#fff;border:1px solid #E3ECFB;border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:18px;box-sizing:border-box}'
-    + '#lnp-team h2{margin:0;font-family:Poppins,Arial,sans-serif;font-weight:500;font-size:24px}'
+    + '#lnp-team h2{margin:0;font-family:Poppins,Arial,sans-serif;font-weight:500;font-size:26px}'
     + '#lnp-team .q{font-size:13px;color:#5A6478;line-height:1.5}'
     + '#lnp-team .inv{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}'
-    + '#lnp-team label{display:flex;flex-direction:column;gap:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5A6478;font-weight:600}'
-    + '#lnp-team input,#lnp-team select{font:inherit;font-size:14px;letter-spacing:0;text-transform:none;font-weight:400;color:#1E2A5E;padding:9px 10px;border:1px solid #AECBF2;border-radius:10px;background:#fff}'
-    + '#lnp-team .btn{border:0;background:#1E2A5E;color:#5B8DF7;font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:10px 16px;cursor:pointer;white-space:nowrap}'
+    + '#lnp-team label{display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5A6478;font-weight:600}'
+    + '#lnp-team input,#lnp-team select{font:inherit;font-size:15px;letter-spacing:0;text-transform:none;font-weight:400;color:#1E2A5E;padding:9px 10px;border:1px solid #7A849E;border-radius:10px;background:#fff}'
+    + '#lnp-team .btn{border:0;background:#1E2A5E;color:#FFFFFF;font:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:10px 16px;cursor:pointer;white-space:nowrap}'
     + '#lnp-team .btnl{border:1px solid #AECBF2;background:#fff;color:#1E2A5E;font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap}'
     + '#lnp-team .btnl:hover{border-color:#1E2A5E}#lnp-team .rm{color:#9B1C12}#lnp-team .rm:hover{border-color:#B42318}'
-    + '#lnp-team table{width:100%;border-collapse:collapse;font-size:14px}'
-    + '#lnp-team th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#747D9A;font-weight:600;padding:6px 8px;border-bottom:1px solid #E3ECFB}'
+    + '#lnp-team table{width:100%;border-collapse:collapse;font-size:15px}'
+    + '#lnp-team th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5A6478;font-weight:600;padding:6px 8px;border-bottom:1px solid #E3ECFB}'
     + '#lnp-team td{padding:10px 8px;border-bottom:1px solid #E3ECFB;vertical-align:middle}'
-    + '#lnp-team td .s{font-size:12px;color:#747D9A}'
+    + '#lnp-team td .s{font-size:12px;color:#5A6478}'
     + '#lnp-team .linkbox{background:#F7F8FB;border:1px solid #E3ECFB;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:13px}'
-    + '#lnp-team .linkbox code{font-family:"IBM Plex Mono",monospace;font-size:12px;word-break:break-all;color:#222C4E}'
+    + '#lnp-team .linkbox code{font-variant-numeric:tabular-nums;font-size:12px;word-break:break-all;color:#222C4E}'
     + '#lnp-team .err{font-size:13px;color:#9B1C12;background:#FDECEA;border-radius:8px;padding:8px 10px}'
     + '.lnp-access{display:flex;flex-direction:column;gap:20px}'
     + '.lnp-access .card{background:#fff;border:1px solid #E3ECFB;border-radius:14px;padding:24px 28px;display:flex;flex-direction:column;gap:18px}'
     + '.lnp-access h2{margin:0;font-family:Poppins,Arial,sans-serif;font-weight:500;font-size:22px}'
     + '.lnp-access .q{font-size:13px;color:#5A6478;line-height:1.5;margin:0}'
     + '.lnp-access .mh{display:flex;align-items:center;gap:14px}'
-    + '.lnp-access .em{font-family:Poppins,Arial,sans-serif;font-size:19px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+    + '.lnp-access .em{font-family:Poppins,Arial,sans-serif;font-size:17px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
     + '.lnp-access .st{font-size:13px;color:#5A6478}'
     + '.lnp-access .btnl{border:1px solid #AECBF2;background:#fff;color:#1E2A5E;font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}.lnp-access .btnl:hover{border-color:#1E2A5E}'
     + '.lnp-access .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}'
-    + '.lnp-access .area{border:1px solid #E3ECFB;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;background:#F4F7FE}'
+    + '.lnp-access .area{border:1px solid #E3ECFB;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;background:#F7F8FB}'
     + '.lnp-access .area.off{background:#fff}'
-    + '.lnp-access label{display:flex;align-items:center;gap:9px;font-size:14px;color:#1E2A5E;cursor:pointer}'
+    + '.lnp-access label{display:flex;align-items:center;gap:9px;font-size:15px;color:#1E2A5E;cursor:pointer}'
     + '.lnp-access .an{font-weight:600;font-size:15px;padding-bottom:6px;border-bottom:1px solid #E3ECFB;margin-bottom:2px}'
-    + '.lnp-access .cnt{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:500;color:#5A6478}'
-    + '.lnp-access .gn{margin-top:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#747D9A;font-weight:600}'
+    + '.lnp-access .cnt{margin-left:auto;font-variant-numeric:tabular-nums;font-size:12px;font-weight:500;color:#5A6478}'
+    + '.lnp-access .gn{margin-top:6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5A6478;font-weight:600}'
     + '.lnp-access input[type=checkbox]{width:16px;height:16px;accent-color:#1E2A5E;margin:0;flex-shrink:0}'
     + '.lnp-access .err{font-size:13px;color:#9B1C12;background:#FDECEA;border-radius:8px;padding:8px 10px}';
 
@@ -121,7 +121,9 @@
     if (!gate) { gate = h("div", { id: "lnp-gate", role: "dialog", "aria-modal": "true", "aria-label": "Connexion à LNP" }); document.body.appendChild(gate); }
     gate.textContent = "";
     var card = h("div", { "class": "card" }, [h("div", { "class": "logo" }, ["LNP ", h("span", { text: "Ventes" })])]);
-    var note = msg ? h("div", { "class": msg.ok ? "ok" : "err", text: msg.text }) : null;
+    // C7 (2026-11-09): an error is announced to screen readers; the tab says where the person is
+    var note = msg ? h("div", { "class": msg.ok ? "ok" : "err", role: msg.ok ? "status" : "alert", text: msg.text }) : null;
+    document.title = view === "signin" || !view ? "LNP · Connexion" : "LNP";
     if (view === "config") {
       card.appendChild(h("h1", { text: "Pas encore configuré" }));
       card.appendChild(h("p", { text: "La connexion à la base de données manque. Renseignez SUPABASE_URL et SUPABASE_ANON_KEY dans le projet Vercel, puis rechargez la page." }));
@@ -163,6 +165,7 @@
       setTimeout(function () { p1.focus(); }, 0);
     } else {
       var em = h("input", { type: "email", autocomplete: "username", required: "", placeholder: "vous@exemple.fr" });
+      if (msg && msg.email) em.value = msg.email;   // the e-mail typed stays after an error
       var pw = h("input", { type: "password", autocomplete: "current-password", required: "" });
       var btn = h("button", { "class": "btn", type: "submit", text: "Se connecter" });
       card.appendChild(h("h1", { text: "Connexion" }));
@@ -174,12 +177,12 @@
         e.preventDefault();
         btn.disabled = true; btn.textContent = "Connexion…";
         var r = await sb.auth.signInWithPassword({ email: em.value.trim(), password: pw.value });
-        if (r.error) return showGate("signin", { text: /invalid/i.test(r.error.message) ? "E-mail ou mot de passe incorrect." : authFr(r.error.message) });
+        if (r.error) return showGate("signin", { email: em.value.trim(), text: /invalid/i.test(r.error.message) ? "E-mail ou mot de passe incorrect." : authFr(r.error.message) });
         enter();
       });
       card.appendChild(form);
       card.appendChild(h("p", { style: "font-size:13px", text: "Mot de passe oublié ? Demandez un lien de réinitialisation à un administrateur (Accès de l’équipe)." }));
-      setTimeout(function () { em.focus(); }, 0);
+      setTimeout(function () { (em.value ? pw : em).focus(); }, 0);
     }
     gate.appendChild(card);
   }
@@ -219,8 +222,8 @@
 
   // ---------------- screens each person may open (Settings › Access) ----------------
   var AREAS = [
-    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salesday", "Ma journée"], ["crm", "CRM"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["academie", "Maîtrise de l’offre"]], "Entraînement"]] },
-    { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes"]], "Paramètres"]] },
+    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salesday", "Ma journée"], ["salescycle", "Cycle de vente"], ["crm", "CRM"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["academie", "Maîtrise de l’offre"]], "Entraînement"]] },
+    { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes et notifications"]], "Paramètres"]] },
     // not a screen: the LNP connector in Claude (docs/crm/17-claude-connector.md); admins only by default
     { key: "claude", name: "Claude", nav: false, groups: [["Claude", [["claude", "Connecteur Claude"]]]] }
   ];
