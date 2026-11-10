@@ -38,8 +38,11 @@ jobs:
             echo "::notice::SUPABASE_SERVICE_ROLE_KEY not set: Annex B tests on real transcripts are skipped."
             echo "CALLQA_SKIP_MISSING_CORPUS=1" >> "$GITHUB_ENV"; exit 0
           fi
-          curl -fsS -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
-            "$SUPABASE_URL/storage/v1/object/callqa-fixtures/transcripts.tar.gz" -o /tmp/t.tgz
+          if ! curl -fsS -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+            "$SUPABASE_URL/storage/v1/object/callqa-fixtures/transcripts.tar.gz" -o /tmp/t.tgz; then
+            echo "::notice::callqa-fixtures/transcripts.tar.gz not found in Storage: Annex B tests on real transcripts are skipped."
+            echo "CALLQA_SKIP_MISSING_CORPUS=1" >> "$GITHUB_ENV"; exit 0
+          fi
           mkdir -p call-analysis/engine/tests/fixtures/transcripts
           tar xzf /tmp/t.tgz -C call-analysis/engine/tests/fixtures/transcripts
           rm /tmp/t.tgz
