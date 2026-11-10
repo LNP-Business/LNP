@@ -255,6 +255,9 @@
     addRefund: function (paymentId, amount) { return call("crm_add_refund", { p_payment: paymentId, p_amount: amount == null ? null : amount }); },
     // the Sales cockpit figures (016_crm_sales_cockpit.sql): periods 7 / 30 / 56 days with baselines, team, 8 weeks, cash at risk
     salesCockpit: function () { return call("crm_sales_cockpit", {}); },
+    // Cockpit commercial › Exécution, Qualité, Impact (050_crm_sales_execution.sql): the delays, reactivation, interactions,
+    // quality and impact of a period (7 to 365 days), for every visible cycle or one sales rep's
+    salesExecution: function (days, owner) { return call("crm_sales_execution", { p_days: days || 90, p_owner: owner || null }); },
     // the signed-in person's own screen settings (031): Pipeline column order, Sales Day lists; in demo mode kept in this browser
     getPref: async function (key) {
       await ready();

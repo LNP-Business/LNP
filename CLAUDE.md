@@ -49,6 +49,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 
 - Barre latérale (groupes, entrées, logo) : `skl-os/nav.py` ; nom, logo, couleurs, polices : `edition.json`.
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `skl-os/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
+  Onglets Exécution, Qualité, Impact (repris de SKL OS) : `skl-os/sales_exec_module.js`, onglets dans `gen_salescockpit.py` et
+  `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migration 050) ; test `node skl-os/sales_exec_test.js $PWD/skl-os/skl-os-en.html <dossier>`.
 - Ma journée : `skl-os/salesday_module.js` + `gen_salesday.py`.
 - Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `skl-os/training/` injectées
   par `build.py`) :

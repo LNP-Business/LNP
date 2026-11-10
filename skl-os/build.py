@@ -149,6 +149,10 @@ if LANG == "en" and CRMDOC.exists():
         m = json.loads(CJ.read_text(encoding="utf-8"))
         CRMJS += ("\n<script>window.SKL_CARTO = {css: " + json.dumps(m["css"]).replace("</", "<\\/") + ", html: " + json.dumps(m["html"]).replace("</", "<\\/")
                   + ", mount: " + m["js"].replace("</", "<\\/") + "};</script>")
+    # Cockpit commercial › Exécution, Qualité, Impact (2026-11-09): the module of SKL OS, in French (sales_exec_module.js)
+    SXJ = HERE / "sales_exec_module.js"
+    if SXJ.exists():
+        CRMJS += "\n<script>" + SXJ.read_text(encoding="utf-8").replace("</", "<\\/") + "</script>"
     SALESV2 = HERE / "sales_v2.json"
     if SALESV2.exists():
         sv = json.loads(SALESV2.read_text(encoding="utf-8"))
@@ -504,6 +508,7 @@ html:not(.skl-admin) [data-admin-only] {{ display: none !important; }}
   }}
   function mountDash() {{
     mountModule("[data-dash]", "SKL_SALES");
+    mountModule("[data-salesexec]", "SKL_SALESEXEC");
     mountModule("[data-ov]", "SKL_OV");
     mountModule("[data-krroom]", "SKL_KRROOM");
     mountModule("[data-mkt]", "SKL_MKT");

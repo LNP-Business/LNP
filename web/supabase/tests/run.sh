@@ -116,6 +116,8 @@ run 048_crm_admin_only_sees_all.sql
 run 048_crm_admin_only_sees_all.sql
 run 049_crm_training.sql
 run 049_crm_training.sql
+run 050_crm_sales_execution.sql
+run 050_crm_sales_execution.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -153,3 +155,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/qualif_in_analysis_test.sql | t
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/stage_moves_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/access_scope_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/training_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sales_execution_test.sql | tail -1

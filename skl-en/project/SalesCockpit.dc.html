@@ -36,8 +36,9 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 </nav>
 
 <main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 28px; position: relative">
-<header data-topbar style="display: flex; align-items: center; gap: 14px; min-height: 54px; padding-right: 72px"><span style="flex: 1"></span></header>
-<div data-dash="1" style="width: 100%"></div>
+<header data-topbar style="display: flex; align-items: center; gap: 14px; min-height: 54px; padding-right: 72px"><div role="group" aria-label="Vues" style="display: flex; gap: 6px; padding: 5px; background: #ECE8DF; border-radius: 12px; align-self: flex-start; flex-shrink: 0"><button type="button" onClick="{{goResults}}" aria-pressed="{{onResults}}" style="{{tabResults}}">Résultats</button><button type="button" onClick="{{goExec}}" aria-pressed="{{onExec}}" style="{{tabExec}}">Exécution</button><button type="button" onClick="{{goQual}}" aria-pressed="{{onQual}}" style="{{tabQual}}">Qualité</button><button type="button" onClick="{{goImpact}}" aria-pressed="{{onImpact}}" style="{{tabImpact}}">Impact</button></div><span style="flex: 1"></span></header>
+<sc-if value="{{isResults}}" hint-placeholder-val="{{true}}"><div data-dash="1" style="width: 100%"></div></sc-if>
+<sc-if value="{{isExec}}" hint-placeholder-val="{{false}}"><div data-salesexec="1" data-view="{{view}}" style="width: 100%"></div></sc-if>
 </main>
 
 <sc-if value="{{info}}" hint-placeholder-val="{{false}}">
@@ -59,6 +60,9 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 <li><strong>Équipe commerciale</strong> classe les commerciaux par montant encaissé ; un clic ouvre leur pipeline dans le CRM.</li>
 <li><strong>À venir</strong> et <strong>Encaissements à risque</strong> disent ce qu’il faut préparer et ce qu’il faut sécuriser ce mois-ci.</li>
 <li>Le <strong>contrôle de parité</strong> (en haut à droite) compare 6 critères à leur référence : VALIDÉ, ÉCHEC, ou EN ATTENTE tant qu’un critère n’est pas mesuré.</li>
+<li><strong>Exécution</strong> mesure chaque étape du cycle de vente face à sa cible (les SLA de Paramètres › Alertes) : la part faite dans les temps, le délai médian, la relance des absents et des ventes manquées, et le lien entre les interactions et la vente. Un clic sur une étape explique son fonctionnement et la bonne pratique.</li>
+<li><strong>Qualité</strong> réunit l’analyse d’appel, la qualification porte par porte (Métier, Financement, Décision et timing), les motifs de perte et la fiabilité des données.</li>
+<li><strong>Impact</strong> compare le taux de vente quand une étape est faite dans les temps et quand elle est manquée : où mettre l’effort de l’équipe. C’est une corrélation, pas une preuve.</li>
 </ul>
 </section>
 <section>
@@ -67,6 +71,7 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 <li>Choisissez la période en haut à droite (7 j, 30 j ou 8 sem.) : chaque chiffre est comparé à la période précédente de même durée.</li>
 <li>Lisez-la de haut en bas chaque lundi matin.</li>
 <li>Survolez un chiffre pour voir comment il est calculé ; cliquez sur un commercial pour ouvrir ses prospects dans le CRM.</li>
+<li>Dans Exécution, Qualité et Impact, choisissez la période (7, 30, 90 ou 180 jours) et, en administrateur, un commercial. Un prospect est gagné quand son premier paiement arrive dans les 14 jours après son premier appel tenu ; un taux sur moins de 20 prospects est marqué indicatif.</li>
 <li>Ouvrez le CRM (dans le menu) pour agir sur un prospect : déclarer l’issue, relancer, ajouter une note.</li>
 </ol>
 </section>
@@ -81,10 +86,25 @@ a{color:#9A6614}a:hover{color:#7A4B00}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { info: false };
+    this.state = { view: 'results', info: false };
+  }
+  tab(active) {
+    const base = 'min-height: 44px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; cursor: pointer; ';
+    return active
+      ? base + 'background: #1B1B18; color: #FFFFFF; font-weight: 600;'
+      : base + 'background: transparent; color: #3D3A33; font-weight: 500;';
   }
   renderVals() {
-    return { info: !!this.state.info, openInfo: () => this.setState({ info: true }), closeInfo: () => this.setState({ info: false }) };
+    const v = this.state.view;
+    const go = (x) => () => this.setState({ view: x });
+    return {
+      info: !!this.state.info, openInfo: () => this.setState({ info: true }), closeInfo: () => this.setState({ info: false }),
+      isResults: v === 'results', isExec: v !== 'results', view: v,
+      tabResults: this.tab(v === 'results'), goResults: go('results'), onResults: v === 'results',
+      tabExec: this.tab(v === 'execution'), goExec: go('execution'), onExec: v === 'execution',
+      tabQual: this.tab(v === 'quality'), goQual: go('quality'), onQual: v === 'quality',
+      tabImpact: this.tab(v === 'impact'), goImpact: go('impact'), onImpact: v === 'impact'
+    };
   }
 }
 </script>
