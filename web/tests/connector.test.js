@@ -299,13 +299,17 @@ test("Settings › Access closes the matching tools", async () => {
   await c.close();
   const { accessOf } = await import("../api/_screens.js");
   // Entraînement (2026-11-05) opens with the CRM, Maîtrise de l'offre (2026-11-06) with Entraînement, Mes résultats with either
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement", "academie", "resultats", "alertes"]);
-  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "entrainement", "academie", "crm", "settings", "claude", "resultats", "alertes"]);
+  // Cycle de vente (2026-11-09) opens with the CRM in lists saved before it had its own screen
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "salesday", "entrainement", "academie", "salescycle", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salesday", "salescycle", "entrainement", "academie", "crm", "settings", "claude", "resultats", "alertes"]);
   // a list saved after 2026-11-06 carries the mark: a training closed on purpose stays closed
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "salesday", "entrainement", "resultats", "alertes"]);
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "salesday", "entrainement", "salescycle", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm", "salescycle", "alertes"]);
   // Alertes (2026-11-09) opens with the CRM or Ma journée, never alone
   assert.deepEqual(accessOf({ app_metadata: { screens: ["salescockpit", "v2026-11-06"] } }, "member"), ["salescockpit"]);
+  // a list saved after 2026-11-09 carries both marks: Cycle de vente closed on purpose stays closed
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06", "v2026-11-09"] } }, "member"), ["crm", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["salescycle", "v2026-11-06", "v2026-11-09"] } }, "member"), ["salescycle"]);
   DB.users.find(u => u.id === ids.valentino).app_metadata = { screens: ["salescockpit", "crm", "settings", "claude"] };
 });
 
