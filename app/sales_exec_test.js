@@ -18,12 +18,15 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   // Exécution
   await p.click('#app [aria-label="Vues"] button:has-text("Exécution")'); await p.waitForTimeout(500);
   let t = await txt();
-  check('Exécution : titre, délais, relances, interactions', /Exécution/.test(t) && /Délais/.test(t) && /Relance après une absence/.test(t) && /Relance après une vente manquée/.test(t) && /Interactions commerciales et vente/.test(t) && /Délai de réponse et vente/.test(t), t.slice(0, 300));
+  check('Exécution : titre, délais, relances, interactions', /Exécution/.test(t) && /étapes à travailler/.test(t) && /Relance après une absence/.test(t) && /Relance après une vente manquée/.test(t) && /Interactions commerciales et vente/.test(t) && /Délai de réponse et vente/.test(t), t.slice(0, 300));
   const steps = await (await sx()).evaluate(r => r.querySelectorAll('tr[data-step]').length);
   check('onze étapes mesurées', steps === 11, steps);
   check('chiffres d’exemple annoncés hors édition web', /Chiffres d’exemple/.test(t), null);
-  check('périodes 7 j, 30 j, 90 j, 180 j et Actualiser', /7 j/.test(t) && /180 j/.test(t) && /Actualiser/.test(t), null);
-  check('cibles des SLA de LNP (SH-2, DE-1, CO-1)', /SH-2/.test(t) && /DE-1/.test(t) && /CO-1/.test(t), null);
+  // the same periods as Résultats (B3, 2026-11-09): 7, 30 and 90 days
+  check('périodes 7 j, 30 j, 90 j et Actualiser', /7 j/.test(t) && /90 j/.test(t) && !/180 j/.test(t) && /Actualiser/.test(t), null);
+  // the SLA codes are secondary (B1): in the tooltip of each step
+  const rules = await (await sx()).evaluate(r => [...r.querySelectorAll('tr[data-step]')].map(x => x.title).join(' '));
+  check('cibles des SLA de LNP (SH-2, DE-1, CO-1)', /SH-2/.test(rules) && /DE-1/.test(rules) && /CO-1/.test(rules), null);
   await p.screenshot({ path: OUT + '/cockpit-execution.png', fullPage: true });
   // une étape expliquée
   await (await sx()).evaluate(r => r.querySelector('tr[data-step="recap_60"]').click()); await p.waitForTimeout(200);
@@ -42,7 +45,9 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   // Impact
   await p.click('#app [aria-label="Vues"] button:has-text("Impact")'); await p.waitForTimeout(500);
   t = await txt();
-  check('Impact : étapes et vente, ce qu’il faut pousser', /Étapes et vente/.test(t) && /Ce qu’il faut pousser maintenant/.test(t) && /corrélation/.test(t), t.slice(0, 300));
+  // « corrélation » is in « En savoir plus », folded (C6)
+  const tAll = await (await sx()).evaluate(r => r.getElementById('sx').textContent);
+  check('Impact : étapes et vente, ce qu’il faut pousser', /Étapes et vente/.test(t) && /Ce qu’il faut pousser maintenant/.test(t) && /corrélation/.test(tAll), t.slice(0, 300));
   check('Impact : lectures en français', /Fait vendre|Un certain effet|Pas assez de données|Pas d’effet visible|Effet inverse/.test(t), null);
   await p.screenshot({ path: OUT + '/cockpit-impact.png', fullPage: true });
   // retour à Résultats

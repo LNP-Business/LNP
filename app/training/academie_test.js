@@ -85,7 +85,10 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
     const { p: q, af: f } = await open(w, h);
     const res = await f.evaluate(async () => {
       const A = window.LNP_ACADEMIE, out = [];
-      const over = (pane, inner) => inner.scrollHeight > pane.clientHeight + 1 || pane.scrollHeight > pane.clientHeight + 1;
+      // 2026-11-10: the text never goes under 12 px; a pane that still does not fit scrolls (class « scroll », focusable) rather
+      // than cutting its content. A failure is content cut off, or a text under 12 px.
+      const small = (pane) => [...pane.querySelectorAll('*')].some(e => e.childNodes.length && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.offsetParent !== null && parseFloat(getComputedStyle(e).fontSize) < 12);
+      const over = (pane, inner) => small(pane) || ((inner.scrollHeight > pane.clientHeight + 1 || pane.scrollHeight > pane.clientHeight + 1) && !(pane.classList.contains('scroll') && pane.tabIndex === 0 && getComputedStyle(pane).overflowY === 'auto'));
       A.CAS.forEach(c => { A.REC.exos[c.id] = { best: 5, last: 5, tries: 1, mode: 'Auto-évaluation', at: '2026-11-06T10:00:00Z', feedback: { criteres: c.attendus.map((a, k) => ({ index: k + 1, points: 0, max: a[0], commentaire: '' })), eliminatoire: { declenche: false, raison: '' }, points_forts: '', a_corriger: '', phrase_a_retenir: '' } }; });
       for (let i = 0; i < A.CAS.length; i++) {
         for (const tab of ['rep', 'cor', 'auto']) {
@@ -98,7 +101,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
       const doc = document.documentElement; if (doc.scrollHeight > doc.clientHeight + 1) out.push('page');
       return out;
     });
-    check(`${w}×${h}: the 100 cases fit, answer, auto-correction and corrigé (${res.length} overflow)`, res.length === 0, res.slice(0, 12));
+    check(`${w}×${h}: the 100 cases, answer, auto-correction and corrigé: nothing cut, no text under 12 px (${res.length} failures)`, res.length === 0, res.slice(0, 12));
     await q.close();
   }
   check('no console error', errs.length === 0, errs);
