@@ -89,6 +89,17 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   - Résultats : chaque exercice terminé est gardé dans `crm_training_results` (migration 049 : ajout seulement, jamais modifié
     ni effacé) via `results_log.js` ; « Mes résultats » et « Suivi des
     commerciaux » (administrateurs) sont `resultats.html` en deux modes, sur `crm_training_dashboard(p_days)` ; test `results_test.js`.
+  - Simulateur (Romain 2026-11-11, `docs/crm/20-simulateur.md`) : l'appel de vente simulé avec un prospect joué par Claude, en texte
+    ou à la voix (appel complet, diagnostic, objections ; difficulté Moyen, Difficile, Expert), l'analyse de fin d'appel (grille
+    d'analyse sur 100, cinq dimensions), l'historique, et pour les administrateurs les offres, les prospects générés et les réglages.
+    Écran : `app/training/simulateur.html`, mis dans `app/lnp.html` (entrée de la barre latérale, gabarit, cadre, document) par
+    `python3 app/gen_simulateur.py` (idempotent ; à reporter dans les générateurs avec le reste). Fonction Edge `simulateur`
+    (`supabase/functions/simulateur`, moteur dans `supabase/functions/_shared/simulateur/` : moteur d'état et prompts du prospect,
+    `grille/` pour l'analyse, `offres.ts` pour les offres et prospects), tables `crm_sim_*` (migrations 055 et 056), accès
+    `simulateur` (`web/api/_screens.js`), interface `window.claude.use("simulateur")` (`web/public/lnp-web.js`). Les prompts envoyés
+    au modèle viennent tels quels de la source, neutralisés (aucun autre nom d'entreprise, jamais « closer »). Tests :
+    `deno test --allow-env --allow-read supabase/tests`, `web/supabase/tests/run.sh`, `node app/training/simulateur_test.js
+    $PWD/app/training/simulateur.html <dossier>`.
   - Tests : `node app/training/<test>.js $PWD/app/lnp.html <dossier>`.
 - CRM, Cycle de vente, encaissements : voir les fichiers figés ci-dessus ; règles SLA : `supabase/functions/_shared/sla_rules.js`
   (une seule source pour l'écran, pour `sla-tick` et pour le catalogue de Paramètres › Alertes ; réglages enregistrés dans
@@ -115,7 +126,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
 - Version de la page : `web/build_web.py` inscrit un identifiant de build dans `index.html` (`LNP_BUILD`) et dans
   `web/public/version.json` ; `lnp-web.js` recharge une page restée en cache d'un navigateur (une fois, puis bandeau « Recharger »).
-- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salescycle`, `entrainement`, `academie`, `crm`,
+- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salescycle`, `entrainement`, `academie`, `simulateur`, `crm`,
   `settings`, `claude` (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte ; `resultats` suit les
   entraînements ouverts, `suivi` (Suivi des commerciaux) et `access` sont réservés aux administrateurs (`web/api/me.js`).
 - **Connecteur Claude** (`web/api/mcp.js`, OAuth `web/api/oauth.js`, doc `docs/crm/17-claude-connector.md`) : 10 outils de lecture
@@ -129,7 +140,9 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 (`web/supabase/003_crm_core.sql` et suivants), les écritures du navigateur passent par les fonctions `crm_*` (`004_crm_rpc.sql`).
 - Fonctions Edge (`supabase/functions/`, `verify_jwt = false`, chacune vérifie son jeton ou sa signature) : `iclosed-in`,
   `fathom-in`, `whatsapp-in`, `whop-in`, `lead-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
-  `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes du CRM toutes les 5 min, copie Slack en option), `callqa-llm`.
+  `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes du CRM toutes les 5 min, copie Slack en option), `callqa-llm`,
+  `simulateur` (le Simulateur ; jeton de la personne ; secrets `ANTHROPIC_API_KEY`, et `ELEVENLABS_API_KEY` facultatif pour la voix du
+  prospect, sinon le navigateur parle ; `simulateur/balayer` toutes les 10 min relance les analyses en attente).
 - Messages : **WhatsApp Business seulement** (Romain, 2026-11-09 : pas de Sendblue). API officielle en coexistence,
   `whatsapp-in` + `mappers/whatsapp.ts` (`docs/crm/07-integration-whatsapp.md`, migration 052) ; le numéro WhatsApp Business de
   chaque commercial et setter (Paramètres › Compte › Accès de l'équipe) rattache ses messages.

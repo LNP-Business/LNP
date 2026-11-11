@@ -20,7 +20,7 @@
 
   var sb = null, ctx = null, settle;
   var ready = new Promise(function (r) { settle = r; });
-  window.claude = { web: true, use: function (name) { return ready.then(function (c) { return name === "user" ? USER : name === "crm" ? CRM : null; }); } };
+  window.claude = { web: true, use: function (name) { return ready.then(function (c) { return name === "user" ? USER : name === "crm" ? CRM : name === "simulateur" ? SIM : null; }); } };
 
   // CRM (docs/crm): relational crm_* tables on the same client. Row-level security decides what each person reads;
   // writes go only through the crm_* functions of web/supabase/004_crm_rpc.sql. Used by app/crm/data.js.
@@ -38,6 +38,18 @@
       tables.forEach(function (t) { ch.on("postgres_changes", { event: "*", schema: "public", table: t }, function (p) { fn(t, p); }); });
       ch.subscribe();
       return function () { sb.removeChannel(ch); };
+    }
+  };
+  // Entraînement › Simulateur (2026-11-11): the Edge Function `simulateur` (supabase/functions/simulateur), always with the
+  // person's own token (a fresh one: the session refreshes it). The frame calls fetch("simulations", {...}); answers as fetch.
+  var SIM = {
+    url: (cfg.url || "").replace(/\/$/, "") + "/functions/v1/simulateur",
+    token: async function () { var s = await sb.auth.getSession(); return s.data && s.data.session ? s.data.session.access_token : ""; },
+    fetch: async function (path, init) {
+      init = init || {};
+      var t = await SIM.token();
+      var h = Object.assign({ apikey: cfg.anonKey || "", Authorization: "Bearer " + t }, init.body && typeof init.body === "string" ? { "Content-Type": "application/json" } : {}, init.headers || {});
+      return fetch(SIM.url + "/" + String(path || "").replace(/^\//, ""), Object.assign({}, init, { headers: h }));
     }
   };
   var USER = {
@@ -222,7 +234,7 @@
 
   // ---------------- screens each person may open (Settings › Access) ----------------
   var AREAS = [
-    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salescycle", "Cycle de vente"], ["crm", "Leads"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["academie", "Maîtrise de l’offre"]], "Entraînement"]] },    { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes et notifications"]], "Paramètres"]] },
+    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salescycle", "Cycle de vente"], ["crm", "Leads"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["academie", "Maîtrise de l’offre"], ["simulateur", "Simulateur"]], "Entraînement"]] },    { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes et notifications"]], "Paramètres"]] },
     // not a screen: the LNP connector in Claude (docs/crm/17-claude-connector.md); admins only by default
     { key: "claude", name: "Claude", nav: false, groups: [["Claude", [["claude", "Connecteur Claude"]]]] }
   ];

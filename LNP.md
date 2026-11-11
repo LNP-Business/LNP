@@ -27,14 +27,15 @@ Seule exception, Supabase : le projet `LNP` (réf. `lludbqyosuzgwvvphmqc`, eu-ce
 Supabase qui n'est pas celle de LNP ; sa base ne contient que les données de LNP. À transférer dans une organisation LNP
 (Supabase › Project Settings › General › Transfer project).
 
-1. **Base Supabase** : chaque fichier de `web/supabase/` (`001` puis `003` à `034`), dans l'ordre. `034_lnp_fr_labels.sql` passe
+1. **Base Supabase** : chaque fichier de `web/supabase/` (`001` puis `003` à `056`), dans l'ordre. `034_lnp_fr_labels.sql` passe
    en français les libellés d'une base déjà remplie ; il peut être rejoué. `crm_sales_team` liste les commerciaux de LNP.
    `crm_settings.functions_url` = `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1` (`006_crm_cron.sql`).
 2. **Fonctions Edge** (`supabase/functions/`) : déployées par `.github/workflows/crm-functions.yml` depuis `main`, avec les secrets
    GitHub `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF`.
 3. **Secrets des fonctions** (Supabase › Edge Functions › Secrets), comptes de LNP : `ICLOSED_API_KEY`, `ICLOSED_INBOUND_TOKEN`,
    `FATHOM_API_KEY`, `WHATSAPP_INBOUND_TOKEN` (messages WhatsApp ; `WHATSAPP_APP_SECRET` si Meta envoie directement les
-   webhooks), `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY` (analyse d'appel), `SLACK_SALES_CYCLE_WEBHOOK_URL` (alertes SLA). Étapes : `docs/crm/setup.md`. Lien des alertes Slack :
+   webhooks), `CLOSE_API_KEY` (si utilisé), `ANTHROPIC_API_KEY` (analyse d'appel, Simulateur), `ELEVENLABS_API_KEY` (facultatif : la voix du prospect du Simulateur ; sans elle,
+   le navigateur parle), `SLACK_SALES_CYCLE_WEBHOOK_URL` (alertes SLA). Étapes : `docs/crm/setup.md`. Lien des alertes Slack :
    `crm_settings.sla_alerts.link` = `https://lnp-sales.vercel.app/#crm`.
 4. **Vercel** : projet `lnp`, dossier racine `web/`, variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
    (sensible), `SITE_URL`. Premier administrateur : `BOOTSTRAP_TOKEN` le temps d'appeler `/api/bootstrap`, puis le retirer.

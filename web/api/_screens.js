@@ -1,7 +1,7 @@
 // The screens an admin can open to other people in LNP (Settings › Access itself is never grantable, Settings › Account is
 // always open). "claude" is not a screen: it lets a person use the LNP connector in Claude (docs/crm/17-claude-connector.md).
 // Ma journée (salesday) is merged into Cycle de vente (Romain 2026-11-10): a list that opened it opens Cycle de vente.
-export const SCREENS = ["salescockpit", "salescycle", "entrainement", "academie", "crm", "settings", "claude"];
+export const SCREENS = ["salescockpit", "salescycle", "entrainement", "academie", "simulateur", "crm", "settings", "claude"];
 // Not in Settings › Access: « Mes résultats » opens with any training (Découverte or Maîtrise de l'offre), « Alertes » with the
 // CRM or Cycle de vente, « Suivi des commerciaux » is for admins only (web/api/me.js), like Settings › Access.
 export const DERIVED = ["resultats", "alertes"];
@@ -13,9 +13,11 @@ export const DEFAULT_ACCESS = SCREENS.filter(x => x !== "claude");
 export const MARK = "v2026-11-06";
 // Cycle de vente left the CRM for its own screen (2026-11-09): a list saved before opens it to whoever opens the CRM.
 export const CYCLE_MARK = "v2026-11-09";
+// Entraînement › Simulateur (2026-11-11): a list saved before opens it to whoever opens a training (Découverte or Maîtrise de l'offre).
+export const SIM_MARK = "v2026-11-11";
 export function defaultAccess(role) { return withDerived(role === "admin" ? SCREENS.slice() : DEFAULT_ACCESS.slice()); }
 function withDerived(l) {
-  if (l.includes("entrainement") || l.includes("academie")) l = l.concat(["resultats"]);
+  if (l.includes("entrainement") || l.includes("academie") || l.includes("simulateur")) l = l.concat(["resultats"]);
   // Alertes (2026-11-09, now inside Cycle de vente) opens with the CRM or Cycle de vente: everyone who works leads sees the alerts of their leads
   if (l.includes("crm") || l.includes("salescycle")) l = l.concat(["alertes"]);
   return l;
@@ -35,6 +37,7 @@ export function accessOf(user, role) {
     if (l.includes("entrainement")) l.push("academie");
   }
   if (!l.includes(CYCLE_MARK) && l.includes("crm")) l.push("salescycle");
+  if (!l.includes(SIM_MARK) && (l.includes("entrainement") || l.includes("academie"))) l.push("simulateur");
   if (l.includes("salesday")) l.push("salescycle");
   l = [...new Set(l)].filter(x => SCREENS.includes(x));
   return withDerived(l);
