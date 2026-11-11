@@ -126,6 +126,8 @@ run 053_crm_alertes.sql
 run 053_crm_alertes.sql
 run 054_crm_setting.sql
 run 054_crm_setting.sql
+run 055_crm_regle_absence.sql
+run 055_crm_regle_absence.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -167,3 +169,4 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sales_execution_test.sql | tail
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/whatsapp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/alertes_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/setting_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/regle_absence_test.sql | tail -1

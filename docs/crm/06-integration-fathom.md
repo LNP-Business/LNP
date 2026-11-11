@@ -50,6 +50,24 @@ with the R1 / R2 analyses queued; a call is in the CRM at most an hour after it 
   runs once `no_show_rule.enabled` is true. A recording that comes later wins (the call is held again).
 - `web/supabase/030_crm_no_show_rule.sql`, test `web/supabase/tests/no_show_rule_test.sql`.
 
+## 0c. La règle d'absence à partir du 27/10/2026 (Romain, 2026-11-11, migration 055)
+
+> « La règle d'absence, c'est de ne pas venir au R2 ou de ne pas répondre aux messages WhatsApp. Le R1 dans iClosed est
+> représenté par R2 dans le CRM LNP. »
+
+- L'appel de setting (15 min, par le setter) n'est pas un RDV iClosed : la règle ne le lit jamais. Le setter et le commercial
+  déclarent son issue dans le CRM.
+- RDV iClosed avec un enregistrement Fathom de 30 min ou plus : honoré automatiquement ; l'issue (R3, perdu, vendu…) reste à
+  déclarer par le commercial (« Déclarer l'issue de l'appel »).
+- RDV iClosed sans aucun enregistrement, sans présence donnée (ni dans le CRM, ni dans iClosed), 3 h après la fin : absent (le
+  premier RDV du cycle) ou manqué (un RDV suivant : « Replanifier l'appel »).
+- Enregistrement court, ou RDV déjà donné « honoré » par iClosed : la règle ne fait rien, le commercial tranche dans le CRM.
+- `no_show_rule` : `since` = 27/10/2026 (heure de Paris), `min_minutes` = 30, `enabled` = true.
+- Une fois : les leads encore ouverts, ouverts avant le 27/10, sans RDV depuis et sans paiement, passent en perdu (motif « Pas
+  le bon moment ») et en suivi long terme (`crm_close_before`). Les leads vendus ne bougent pas.
+- Pas encore : l'absence de réponse aux messages WhatsApp (WhatsApp n'est pas branché, migration 052).
+- Test `web/supabase/tests/regle_absence_test.sql`.
+
 ## 0c. Back-to-back calls: the closest booking (2026-10-31)
 
 Valentino's calls follow each other every 30 to 60 minutes, so FL-2 (b) often finds two or three bookings within ±90 min of a
