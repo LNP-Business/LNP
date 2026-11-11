@@ -1,4 +1,5 @@
 -- 030_crm_no_show_rule.sql: no complete Fathom recording = no-show on R1, missed (reschedule) on R2+.
+-- 056: only a call with no recording and no attendance given; a short recording is left to the sales rep.
 do $$
 declare pid uuid; cid uuid; k1 uuid; k2 uuid; k3 uuid; k4 uuid; old uuid; r jsonb;
 begin
@@ -21,15 +22,16 @@ begin
   assert (select rank from crm_calls where id = k2) = 1 and (select rank from crm_calls where id = k3) = 1 and (select rank from crm_calls where id = k4) = 2,
     'a recording under 7 minutes does not take a number';
   r := crm_apply_no_show_rule(true, cid);
-  assert (r->>'no_show_r1')::int = 2 and (r->>'missed_r2_plus')::int = 1, 'dry run counts: ' || r::text;
+  assert (r->>'no_show_r1')::int = 1 and (r->>'missed_r2_plus')::int = 1, 'dry run counts: ' || r::text;
   assert (select status::text from crm_calls where id = k1) = 'scheduled', 'a dry run writes nothing';
   r := crm_apply_no_show_rule(false, cid);
   assert (select status::text from crm_calls where id = old) = 'held', 'calls before since are untouched';
-  assert (select status::text from crm_calls where id = k1) = 'no_show' and (select status::text from crm_calls where id = k2) = 'no_show', 'R1 with no complete recording = no-show';
+  assert (select status::text from crm_calls where id = k1) = 'no_show', 'R1 with no recording = no-show';
+  assert (select status::text from crm_calls where id = k2) = 'held', '056: a short recording is left to the sales rep';
   assert (select status::text from crm_calls where id = k3) = 'held', 'the complete R1 stays held';
   assert (select status::text from crm_calls where id = k4) = 'missed', 'a missed R2 is not a no-show';
-  assert (select next_move->>'label' from crm_cycles where id = cid) = 'Replanifier l''appel', 'next move after a missed R2';
-  assert (select no_shows from crm_cycles where id = cid) = 2, 'no-shows counted: R1 only';
+  assert (select next_move->>'label' from crm_cycles where id = cid) = 'Déclarer l''issue de l''appel', '056: the short recording asks the sales rep first';
+  assert (select no_shows from crm_cycles where id = cid) = 1, 'no-shows counted: R1 only';
   r := crm_apply_no_show_rule(false, cid);
   assert (r->>'no_show_r1')::int = 0 and (r->>'missed_r2_plus')::int = 0, 'runs again without change';
   -- the recording comes later: held again, the rule's event goes
