@@ -130,6 +130,10 @@ run 055_crm_refus_six_mois.sql
 run 055_crm_refus_six_mois.sql
 run 056_crm_regle_absence.sql
 run 056_crm_regle_absence.sql
+run 057_crm_simulateur.sql
+run 057_crm_simulateur.sql
+run 058_crm_simulateur_offre_lnp.sql
+run 058_crm_simulateur_offre_lnp.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -173,6 +177,8 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/whatsapp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/alertes_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/setting_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/regle_absence_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_offre_lnp_test.sql | tail -1
 # 059 : le CRM est la seule source de vérité (iClosed : le lead, la date des RDV, un montant pour information) ; règles webinaire
 run 059_crm_source_de_verite.sql
 run 059_crm_source_de_verite.sql

@@ -301,10 +301,13 @@ test("Settings › Access closes the matching tools", async () => {
   const { accessOf } = await import("../api/_screens.js");
   // Entraînement (2026-11-05) opens with the CRM, Maîtrise de l'offre (2026-11-06) with Entraînement, Mes résultats with either
   // Cycle de vente (2026-11-09) opens with the CRM in lists saved before it had its own screen
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "entrainement", "academie", "salescycle", "resultats", "alertes"]);
-  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salescycle", "entrainement", "academie", "crm", "settings", "claude", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["roadmap", "monjour", "crm", "bibliotheque"] } }, "member"), ["crm", "entrainement", "academie", "salescycle", "simulateur", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: {} }, "admin"), ["salescockpit", "salescycle", "entrainement", "academie", "simulateur", "crm", "settings", "claude", "resultats", "alertes"]);
   // a list saved after 2026-11-06 carries the mark: a training closed on purpose stays closed
-  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "entrainement", "salescycle", "resultats", "alertes"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "salesday", "entrainement", "v2026-11-06"] } }, "member"), ["crm", "entrainement", "salescycle", "simulateur", "resultats", "alertes"]);
+  // Simulateur (2026-11-11) opens with a training in lists saved before it; a list saved after keeps it closed or open as saved
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["academie", "v2026-11-06", "v2026-11-09", "v2026-11-11"] } }, "member"), ["academie", "resultats"]);
+  assert.deepEqual(accessOf({ app_metadata: { screens: ["simulateur", "v2026-11-06", "v2026-11-09", "v2026-11-11"] } }, "member"), ["simulateur", "resultats"]);
   // Ma journée merged into Cycle de vente (2026-11-10): a list that opened Ma journée opens Cycle de vente
   assert.deepEqual(accessOf({ app_metadata: { screens: ["salesday", "v2026-11-06", "v2026-11-09"] } }, "member"), ["salescycle", "alertes"]);
   assert.deepEqual(accessOf({ app_metadata: { screens: ["crm", "v2026-11-06"] } }, "member"), ["crm", "salescycle", "alertes"]);
