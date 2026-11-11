@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<script>window.LNP_BUILD = "6b505286bca892ba";</script>
+<script>window.LNP_BUILD = "95bd364e6b082cfb";</script>
 <script src="/api/config"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script src="/lnp-web.js"></script>
@@ -303,7 +303,7 @@ html { scroll-padding-bottom: 140px; }
 <li><strong style="color: #1E2A5E">L’encaissé, pas seulement les ventes.</strong> Les ventes gagnées montrent côte à côte le montant signé et le montant encaissé.</li></ul></section>
 <section><h3 style="margin: 0 0 10px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600"><span style="width: 28px; height: 28px; border-radius: 50%; background: #1E2A5E; color: #FFFFFF; font-size: 13px; display: inline-flex; align-items: center; justify-content: center">3</span>Comment l’utiliser</h3>
 <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #222C4E; padding-left: 22px">
-<li>Pipeline : un lead par ligne. État : la dernière action effectuée. Progrès : les étapes du lead, cochées quand elles sont faites (RDV pris, 1er contact, appel d’éligibilité, confirmation de présence, appel honoré, décision, lien de paiement, payé). Prochaine action avec l’heure prévue (en rouge si elle est en retard), alertes à traiter, et le temps écoulé depuis le dernier message du lead.</li>
+<li>Pipeline : un lead par ligne. État : la dernière action effectuée. Progrès : les étapes du lead, cochées quand elles sont faites, les mêmes que dans la fiche du lead et dans Cycle de vente. Ligne principale : RDV pris, 1er contact, appel d’éligibilité (R1, facultatif), confirmation de présence, appel honoré (R2), décision, payé. Deux branches : « Rattrapage » après une absence ou sans réponse après le RDV pris (relance, nouveau RDV, ou injoignable après 6 relances), et « Relance après refus » après un refus d’achat (objection notée, relance, réponse, nouvel appel) : le lead reste « Clos » dans Cycle de vente pendant ces relances, et passe en « Disqualifié » 6 mois après le refus sans nouveau RDV, comme tout disqualifié. La répartition au-dessus du tableau suit ces mêmes étapes ; un clic filtre le tableau. Prochaine action avec l’heure prévue (en rouge si elle est en retard), alertes à traiter, et le temps écoulé depuis le dernier message du lead.</li>
 <li>Cliquez sur un en-tête pour trier (Alertes, Prochaine action…) ; Colonnes choisit ce qui s’affiche.</li>
 <li>Prospects : filtrez, triez, choisissez vos colonnes et agissez sur plusieurs prospects à la fois.</li>
 <li>Cycle de vente a maintenant son propre onglet dans la barre de gauche (Ventes › Cycle de vente) : le prospect à traiter, sa prochaine action et son cycle de vente, un prospect à la fois.</li>
@@ -1938,7 +1938,7 @@ html { scroll-padding-bottom: 140px; }
   window.LNP_LEADFEED = { css: CSS, feed: feed, todo: todo, bind: bind, settle: settle };
 })();
 </script>
-<script>window.LNP_DOCS_SRC = "/docs/lnp-docs.0c1978a609b158b1.js";</script>
+<script>window.LNP_DOCS_SRC = "/docs/lnp-docs.cf0dc5bca599ff6d.js";</script>
 <script>/* LNP › Sales System › Sales Day (Romain 2026-10-31): the sales rep's day, one lead at a time. The queue is built from the CRM: outcomes to declare first (the call is over and nothing is declared),
    then today's calls to prepare, reschedules to plan (a missed R2, a canceled call), no-shows to re-engage and follow-ups due.
    A card is finished with its action (an outcome declared, or "Done" with what was done, saved as a note on the lead); it

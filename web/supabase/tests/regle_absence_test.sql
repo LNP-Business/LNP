@@ -1,4 +1,4 @@
--- 055_crm_regle_absence.sql: absent only with no recording and no attendance given; the leads still open from before a date
+-- 056_crm_regle_absence.sql: absent only with no recording and no attendance given; the leads still open from before a date
 -- become lost, in long-term follow-up.
 do $$
 declare pid uuid; cid uuid; k1 uuid; k2 uuid; k3 uuid; k4 uuid; r jsonb;

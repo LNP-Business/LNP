@@ -126,8 +126,10 @@ run 053_crm_alertes.sql
 run 053_crm_alertes.sql
 run 054_crm_setting.sql
 run 054_crm_setting.sql
-run 055_crm_regle_absence.sql
-run 055_crm_regle_absence.sql
+run 055_crm_refus_six_mois.sql
+run 055_crm_refus_six_mois.sql
+run 056_crm_regle_absence.sql
+run 056_crm_regle_absence.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1
@@ -140,6 +142,7 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/fathom_calls_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/refunds_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/yes_keeps_deal_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/sla_alerts_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/refus_six_mois_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/call_ranks_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/no_show_rule_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/member_prefs_test.sql | tail -1

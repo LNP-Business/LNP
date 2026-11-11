@@ -1,5 +1,5 @@
 -- 030_crm_no_show_rule.sql: no complete Fathom recording = no-show on R1, missed (reschedule) on R2+.
--- 055: only a call with no recording and no attendance given; a short recording is left to the sales rep.
+-- 056: only a call with no recording and no attendance given; a short recording is left to the sales rep.
 do $$
 declare pid uuid; cid uuid; k1 uuid; k2 uuid; k3 uuid; k4 uuid; old uuid; r jsonb;
 begin
@@ -27,10 +27,10 @@ begin
   r := crm_apply_no_show_rule(false, cid);
   assert (select status::text from crm_calls where id = old) = 'held', 'calls before since are untouched';
   assert (select status::text from crm_calls where id = k1) = 'no_show', 'R1 with no recording = no-show';
-  assert (select status::text from crm_calls where id = k2) = 'held', '055: a short recording is left to the sales rep';
+  assert (select status::text from crm_calls where id = k2) = 'held', '056: a short recording is left to the sales rep';
   assert (select status::text from crm_calls where id = k3) = 'held', 'the complete R1 stays held';
   assert (select status::text from crm_calls where id = k4) = 'missed', 'a missed R2 is not a no-show';
-  assert (select next_move->>'label' from crm_cycles where id = cid) = 'Déclarer l''issue de l''appel', '055: the short recording asks the sales rep first';
+  assert (select next_move->>'label' from crm_cycles where id = cid) = 'Déclarer l''issue de l''appel', '056: the short recording asks the sales rep first';
   assert (select no_shows from crm_cycles where id = cid) = 1, 'no-shows counted: R1 only';
   r := crm_apply_no_show_rule(false, cid);
   assert (r->>'no_show_r1')::int = 0 and (r->>'missed_r2_plus')::int = 0, 'runs again without change';

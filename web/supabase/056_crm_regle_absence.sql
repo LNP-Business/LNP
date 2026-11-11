@@ -1,4 +1,4 @@
--- 055: the absence rule, from 2026-10-27 (Romain, 2026-11-11).
+-- 056: the absence rule, from 2026-10-27 (Romain, 2026-11-11).
 -- « La règle d'absence, c'est de ne pas venir au R2 » : the setting call (15 minutes, by the setter) is never an iClosed booking,
 -- so it is never a crm_calls row and the rule never reads it; the setter and the sales rep declare it in the CRM. The rule reads
 -- the iClosed bookings (the R2 of the sales cycle and the next ones):
@@ -27,7 +27,7 @@ begin
     seen := false;
     for k in select * from crm_calls where cycle_id = cy.id order by coalesce(recording_start, scheduled_start, created_at), created_at, id loop
       if crm_call_complete(k) then seen := true; continue; end if;
-      -- 055: only a call nobody has given an attendance for: still scheduled (iClosed gave no outcome), with no recording
+      -- 056: only a call nobody has given an attendance for: still scheduled (iClosed gave no outcome), with no recording
       continue when k.status::text not in ('scheduled', 'outcome_pending')
         or k.recorded_by is not null or k.recording_start is not null
         or k.scheduled_start is null or k.scheduled_start < since

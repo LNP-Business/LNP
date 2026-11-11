@@ -50,7 +50,7 @@ with the R1 / R2 analyses queued; a call is in the CRM at most an hour after it 
   runs once `no_show_rule.enabled` is true. A recording that comes later wins (the call is held again).
 - `web/supabase/030_crm_no_show_rule.sql`, test `web/supabase/tests/no_show_rule_test.sql`.
 
-## 0c. La règle d'absence à partir du 27/10/2026 (Romain, 2026-11-11, migration 055)
+## 0c. La règle d'absence à partir du 27/10/2026 (Romain, 2026-11-11, migration 056)
 
 > « La règle d'absence, c'est de ne pas venir au R2 ou de ne pas répondre aux messages WhatsApp. Le R1 dans iClosed est
 > représenté par R2 dans le CRM LNP. »
