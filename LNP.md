@@ -27,7 +27,7 @@ Seule exception, Supabase : le projet `LNP` (réf. `lludbqyosuzgwvvphmqc`, eu-ce
 Supabase qui n'est pas celle de LNP ; sa base ne contient que les données de LNP. À transférer dans une organisation LNP
 (Supabase › Project Settings › General › Transfer project).
 
-1. **Base Supabase** : chaque fichier de `web/supabase/` (`001` puis `003` à `056`), dans l'ordre. `034_lnp_fr_labels.sql` passe
+1. **Base Supabase** : chaque fichier de `web/supabase/` (`001` puis `003` à `057`), dans l'ordre. `034_lnp_fr_labels.sql` passe
    en français les libellés d'une base déjà remplie ; il peut être rejoué. `crm_sales_team` liste les commerciaux de LNP.
    `crm_settings.functions_url` = `https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1` (`006_crm_cron.sql`).
 2. **Fonctions Edge** (`supabase/functions/`) : déployées par `.github/workflows/crm-functions.yml` depuis `main`, avec les secrets

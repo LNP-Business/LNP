@@ -1,4 +1,4 @@
--- 055 · Entraînement › Simulateur (Romain 2026-11-11) : l'appel de vente simulé avec un prospect joué par Claude, en texte ou à
+-- 056 · Entraînement › Simulateur (Romain 2026-11-11) : l'appel de vente simulé avec un prospect joué par Claude, en texte ou à
 -- la voix, en appel complet, en diagnostic ou en objections, à trois difficultés. Le moteur (confiance du prospect, conscience,
 -- résistance aux objections) est dans supabase/functions/_shared/simulateur ; la fonction Edge `simulateur` écrit tout.
 --   crm_sim_offers       une offre (LNP) : ses données lues par le prospect (offer_identity, offer_details, outils), ses sources

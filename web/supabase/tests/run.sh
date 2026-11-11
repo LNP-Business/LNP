@@ -128,8 +128,8 @@ run 054_crm_setting.sql
 run 054_crm_setting.sql
 run 055_crm_refus_six_mois.sql
 run 055_crm_refus_six_mois.sql
-run 055_crm_simulateur.sql
-run 055_crm_simulateur.sql
+run 056_crm_simulateur.sql
+run 056_crm_simulateur.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/crm_import_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/mcp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/owners_test.sql | tail -1

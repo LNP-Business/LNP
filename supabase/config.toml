@@ -35,7 +35,7 @@ verify_jwt = false
 [functions.lead-in]
 verify_jwt = false
 
-# Entraînement › Simulateur (055): checks the person's own Supabase token itself (and reads it from the body for the
+# Entraînement › Simulateur (056): checks the person's own Supabase token itself (and reads it from the body for the
 # end of a call sent by sendBeacon, which cannot carry a header).
 [functions.simulateur]
 verify_jwt = false

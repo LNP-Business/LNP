@@ -421,7 +421,7 @@ export function app(d: Deps) {
       try { const b = JSON.parse(corps || "{}"); if (b.beacon && typeof b.token === "string") jeton = b.token; } catch { /* corps vide */ }
       req = new Request(req.url, { method: "POST", headers: req.headers, body: corps });
     }
-    // la tâche planifiée (055, toutes les 10 min) : relancer les analyses en attente ; aucune entrée, des nombres en sortie
+    // la tâche planifiée (056, toutes les 10 min) : relancer les analyses en attente ; aucune entrée, des nombres en sortie
     if (req.method === "POST" && chemin[0] === "balayer" && chemin.length === 1) {
       if (!d.analyse?.reprendre) return json({ relancees: 0 });
       return await d.analyse.reprendre({ id: "00000000-0000-0000-0000-000000000000", email: "", role: "admin", admin: true });

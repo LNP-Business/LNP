@@ -95,7 +95,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
     Écran : `app/training/simulateur.html`, mis dans `app/lnp.html` (entrée de la barre latérale, gabarit, cadre, document) par
     `python3 app/gen_simulateur.py` (idempotent ; à reporter dans les générateurs avec le reste). Fonction Edge `simulateur`
     (`supabase/functions/simulateur`, moteur dans `supabase/functions/_shared/simulateur/` : moteur d'état et prompts du prospect,
-    `grille/` pour l'analyse, `offres.ts` pour les offres et prospects), tables `crm_sim_*` (migrations 055 et 056), accès
+    `grille/` pour l'analyse, `offres.ts` pour les offres et prospects), tables `crm_sim_*` (migrations 056 et 057), accès
     `simulateur` (`web/api/_screens.js`), interface `window.claude.use("simulateur")` (`web/public/lnp-web.js`). Les prompts envoyés
     au modèle viennent tels quels de la source, neutralisés (aucun autre nom d'entreprise, jamais « closer »). Tests :
     `deno test --allow-env --allow-read supabase/tests`, `web/supabase/tests/run.sh`, `node app/training/simulateur_test.js

@@ -36,7 +36,7 @@ Fonction Edge `simulateur` (supabase/functions/simulateur)
    ├─ fin : l'analyse (grille/) en arrière-plan, plafond quotidien (heure de Paris), file d'attente relancée toutes les 10 min
    └─ offres (offres.ts) : extraction de l'offre (10 modules), matrice de 6 prospects, 6 prospects complets, voix attribuées
 Tables : crm_sim_offers, crm_sim_personas, crm_sim_simulations, crm_sim_messages, crm_sim_feedback, crm_sim_analyses,
-         crm_sim_config (055) ; l'offre LNP (056).
+         crm_sim_config (056) ; l'offre LNP (057).
 ```
 
 Le prospect ne se livre que si on gagne sa confiance : une bonne question ouverte, une reformulation juste ou de l'empathie la font
@@ -49,7 +49,7 @@ les 18 tests de caractérisation d'origine (`supabase/tests/simulateur_etat.test
 
 ## 3. Mise en service
 
-1. Base : `web/supabase/055_crm_simulateur.sql` puis `056_crm_simulateur_offre_lnp.sql` (après accord sur la PR).
+1. Base : `web/supabase/056_crm_simulateur.sql` puis `057_crm_simulateur_offre_lnp.sql` (après accord sur la PR).
 2. Fonction : déployée par `.github/workflows/crm-functions.yml` (liste des fonctions) depuis `main`.
 3. Secrets des fonctions : `ANTHROPIC_API_KEY` (déjà là pour l'analyse d'appel) ; `ELEVENLABS_API_KEY` facultatif (compte LNP). Les
    4 voix (Hugo, Jérémy, Claire, Jade) sont des voix de la bibliothèque ElevenLabs : les ajouter au compte LNP si elles n'y sont pas.

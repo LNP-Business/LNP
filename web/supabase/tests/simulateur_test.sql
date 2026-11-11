@@ -1,4 +1,4 @@
--- 055_crm_simulateur.sql : chacun lit ses simulations (un administrateur toutes), l'équipe lit les offres et les prospects
+-- 056_crm_simulateur.sql : chacun lit ses simulations (un administrateur toutes), l'équipe lit les offres et les prospects
 -- actifs, personne n'écrit depuis le navigateur ; l'historique ne montre que ce que la personne peut voir.
 create temp table simt (k text primary key, v uuid);
 grant select on simt to authenticated;
