@@ -704,6 +704,7 @@ export function routesOffres(d: DepsOffres) {
       r0 === "offres" && r1 && r2 === "prospects" && !r3 && m === "POST" ? "prospects" :
       r0 === "offres" && r1 && r2 === "reanalyser" && !r3 && m === "POST" ? "reanalyser" :
       r0 === "offres" && r1 && !r2 && m === "DELETE" ? "supprimerOffre" :
+      r0 === "offres" && r1 && !r2 && m === "PATCH" ? "archiverOffre" :
       r0 === "personas" && r1 && !r2 && m === "PATCH" ? "modifierPersona" :
       r0 === "personas" && r1 && !r2 && m === "DELETE" ? "supprimerPersona" : null;
     if (!route) return null;
@@ -728,6 +729,15 @@ export function routesOffres(d: DepsOffres) {
       const maj = await majOffre(o.id, { status: "generating", error: null });
       await enFond(regenerer(o.id).catch(echec(o.id, "La génération des prospects a échoué")));
       return json({ offer: legere(maj) }, 202);
+    }
+
+    // archiver (ou désarchiver) : l'offre n'est plus proposée aux commerciaux, ses simulations restent
+    if (route === "archiverOffre") {
+      const o = await offre(r1);
+      if (o instanceof Response) return o;
+      const b = await lire(req);
+      if (!b || typeof b.archived !== "boolean") return erreur(400, "« archived » doit valoir vrai ou faux.");
+      return json({ offer: legere(await majOffre(o.id, { archived: b.archived })) });
     }
 
     if (route === "supprimerOffre") {

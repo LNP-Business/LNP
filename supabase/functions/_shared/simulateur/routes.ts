@@ -139,7 +139,7 @@ export function app(d: Deps) {
     const simX = await simulationAccessible(id, a);
     if (simX instanceof Response) return simX;
     let sim = simX;
-    if (sim.status !== "active") return erreur(400, "Simulation is not active");
+    if (sim.status !== "active") return erreur(400, "Cette simulation est terminée.", "NOT_ACTIVE");
 
     const [commercial] = await d.db.insert("crm_sim_messages", { simulation_id: id, role: "commercial", content });
     const enc = new TextEncoder();
@@ -219,7 +219,7 @@ export function app(d: Deps) {
   async function annuler(a: Appelant, id: number) {
     const sim = await simulationAccessible(id, a);
     if (sim instanceof Response) return sim;
-    if (sim.status !== "active") return erreur(400, "Cannot undo in a completed simulation");
+    if (sim.status !== "active") return erreur(400, "Impossible d’annuler : la simulation est terminée.", "NOT_ACTIVE");
     const msgs = await messagesDe(d.db, id);
     let i = msgs.length - 1, deleted = 0;
     while (i >= 0 && msgs[i].role === "prospect") { deleted += await d.db.remove("crm_sim_messages", { id: msgs[i].id }); i--; }
@@ -239,7 +239,7 @@ export function app(d: Deps) {
     const reprise = sim.status === "completed" && !skip;
     if (sim.status !== "active" && !reprise) {
       if (beacon) return json({ ok: true });
-      return erreur(400, "Simulation is not active");
+      return erreur(400, "Cette simulation est terminée.", "NOT_ACTIVE");
     }
     const t = now();
     const duree = reprise && sim.duration_seconds != null ? sim.duration_seconds : Math.floor((t.getTime() - new Date(sim.started_at).getTime()) / 1000);
@@ -304,7 +304,7 @@ export function app(d: Deps) {
     const simX = await simulationAccessible(id, a);
     if (simX instanceof Response) return simX;
     const sim = simX;
-    if (sim.status !== "active") return erreur(400, "Simulation is not active");
+    if (sim.status !== "active") return erreur(400, "Cette simulation est terminée.", "NOT_ACTIVE");
     const enc = new TextEncoder();
     const persona = await chargerPersona(d.db, sim);
     const voiceId = persona?.voice_id || voixParDefaut(persona?.identite?.prenom || "");
