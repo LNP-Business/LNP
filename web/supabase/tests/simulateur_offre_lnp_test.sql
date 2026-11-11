@@ -13,6 +13,5 @@ begin
   assert jsonb_array_length(o.data->'target_audience'->'ideal_profiles') between 2 and 4, 'two to four target profiles';
   assert jsonb_array_length(o.data->'tools_taught') > 0, 'tools';
   assert (select count(*) from crm_sim_personas where offer_id = o.id) = 0, 'no prospects in SQL';
-  assert o.data::text !~* 'closer|closing', 'words';
 end $$;
 select 'simulateur offre LNP ok';

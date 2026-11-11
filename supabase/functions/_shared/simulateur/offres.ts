@@ -5,6 +5,7 @@
 // Écarts voulus avec l'origine : l'offre reçoit aussi les champs lus par les consignes du prospect (offer_identity, offer_details,
 // tools_taught), la difficulté est rangée en moyen / difficile / expert, une régénération attribue les voix, les sources collées
 // ou les PDF identiques renvoient l'offre existante (empreinte), et la lecture du site est bornée dans le temps.
+// deno-lint-ignore-file no-explicit-any
 import type { Appelant, Db } from "./base.ts";
 import { erreur, json } from "./routes.ts";
 import { appeler } from "./llm.ts";
@@ -33,7 +34,7 @@ const ENCOURS = ["extracting", "generating"];
 
 // ---------- petits outils ----------
 
-export function sansNul(s: string): string { return s.replace(/\u0000/g, ""); }
+export function sansNul(s: string): string { return s.replaceAll("\u0000", ""); }
 export function sansNulProfond<T>(v: T): T {
   if (typeof v === "string") return sansNul(v) as T;
   if (Array.isArray(v)) return v.map(sansNulProfond) as T;
@@ -126,7 +127,6 @@ const prixTexte = (n: number) => `${new Intl.NumberFormat("fr-FR").format(n)} �
 
 // Les champs lus par les consignes du prospect (persona-generated-full.ts), tirés des modules extraits : à l'origine ils
 // n'existaient pas, et le prospect ne connaissait ni l'entreprise ni le prix
-// deno-lint-ignore no-explicit-any
 export function adapterOffre(v3: any, nom: string, prixDeLOffre: string | null): Record<string, unknown> {
   const id = v3?.identity || {};
   const st = v3?.offer_structure || {};
@@ -153,7 +153,6 @@ export function adapterOffre(v3: any, nom: string, prixDeLOffre: string | null):
 }
 
 // Les écarts du prospect, calculés par le code (calculatePersonaGaps d'origine)
-// deno-lint-ignore no-explicit-any
 export function calculerEcarts(persona: any): any {
   if (!persona?.identite) return persona;
   const caActuelStr = persona.identite.ca_actuel;
@@ -462,8 +461,6 @@ export function routesOffres(d: DepsOffres) {
   }
 
   // ---------- les prospects ----------
-
-  // deno-lint-ignore no-explicit-any
   async function genererProspects(od: any, prix: number): Promise<any[]> {
     const cible = od?.target_audience?.ideal_profiles?.[0]?.label || od?.identity?.domain || "Professionnels en reconversion";
     const matrice = await appelJson({
@@ -519,7 +516,6 @@ export function routesOffres(d: DepsOffres) {
   }
 
   // Le prix envoyé aux consignes du prospect (0 quand l'offre n'en a pas, comme à l'origine)
-  // deno-lint-ignore no-explicit-any
   function prixPourProspects(o: any): number {
     const p = o?.data?.pricing?.main_offer?.price;
     if (typeof p === "number" && p > 0) return p;
@@ -528,7 +524,6 @@ export function routesOffres(d: DepsOffres) {
   }
 
   // Génère les 6 prospects d'une offre et les range, un par un (la voix tient compte des précédents)
-  // deno-lint-ignore no-explicit-any
   async function genererEtRanger(o: any): Promise<number> {
     const generes = await genererProspects(o.data || {}, prixPourProspects(o));
     const deja = (await d.db.select<{ voice_id: string | null }>("crm_sim_personas", { offer_id: o.id }, { select: "voice_id" })).map((r) => r.voice_id);
@@ -657,7 +652,8 @@ export function routesOffres(d: DepsOffres) {
     };
     const retrouvee = async (o: any) => json({
       isNew: false, message: "Offre trouvée en base ! Vous pouvez commencer directement.", offer: legere(o),
-      personas: (await d.db.select("crm_sim_personas", { offer_id: o.id }, { order: "position.asc", select: "id,first_name,difficulty" })),
+      personas: (await d.db.select("crm_sim_personas", { offer_id: o.id }, { order: "position.asc", select: "id,first_name,difficulty" }))
+        .map((p: any) => ({ id: p.id, first_name: p.first_name, difficulty: p.difficulty })),
     });
     const deja = await existante();
     if (deja) return await retrouvee(deja);
