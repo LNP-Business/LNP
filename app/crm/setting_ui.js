@@ -9,7 +9,7 @@
   // the status labels (the same as LNP_SLA.SETTING of sla_rules.js, which this document does not always load)
   var LBL = { a_contacter: "Lead à contacter", relance: "Relance", qualification: "Appel de qualification", rdv_a_confirmer: "RDV à confirmer",
     appel_confirmation: "Appel de confirmation", rdv_pose: "RDV posé · OK attendu", rdv_confirme: "RDV confirmé", reconfirmation: "Re-confirmation",
-    a_replanifier: "À replanifier", absent_rattrapage: "Absent · rattrapage", transmis: "RDV tenu · au commercial", injoignable: "Injoignable · nurture",
+    a_replanifier: "À replanifier", absent_rattrapage: "Absent · rattrapage", webinaire_absent: "Webinaire absent · attente de réponse", absent_attente: "Absent · attente de réponse", transmis: "RDV tenu · au commercial", injoignable: "Injoignable · nurture",
     non_qualifie: "Non qualifié · nurture" };
   // ce qu'il faut faire maintenant, par statut, et les actions proposées (dans l'ordre des boutons)
   var NOW = {
@@ -23,6 +23,8 @@
     reconfirmation: ["Appeler le jour même pour re-confirmer", ["confirmation_faite", "ok_recu", "appel_sans_reponse", "annule"]],
     a_replanifier: ["Reposer le RDV en direct, le jour même", ["rdv_pose", "appel_sans_reponse", "non_qualifie"]],
     absent_rattrapage: ["Appeler dans les 15 min et re-booker", ["rdv_pose", "appel_sans_reponse"]],
+    webinaire_absent: ["Rien pour l’instant : sans réponse du prospect en 48 h, le lead passe au setter", []],
+    absent_attente: ["Le commercial relance : sans réponse en 24 h, le setter rattrape", []],
     transmis: ["Au commercial", []],
     injoignable: ["En nurture", ["relancer"]],
     non_qualifie: ["En nurture", ["relancer"]]
@@ -33,7 +35,7 @@
     relancer: "Reprendre le lead" };
   var SRC = { quiz: "Quiz complété", vsl: "Opt-in VSL", quiz_abandon: "Quiz abandonné", webinaire: "Webinaire", manuel: "Saisi à la main", iclosed: "iClosed" };
   var GRP = { a_contacter: "go", relance: "go", qualification: "go", rdv_a_confirmer: "rdv", appel_confirmation: "rdv", rdv_pose: "rdv", rdv_confirme: "ok",
-    reconfirmation: "rdv", a_replanifier: "go", absent_rattrapage: "go", transmis: "ok", injoignable: "off", non_qualifie: "off" };
+    reconfirmation: "rdv", a_replanifier: "go", absent_rattrapage: "go", webinaire_absent: "off", absent_attente: "off", transmis: "ok", injoignable: "off", non_qualifie: "off" };
   var MAXA = { quiz_abandon: 2 };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }

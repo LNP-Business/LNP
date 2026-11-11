@@ -36,9 +36,15 @@ samedi). Setter d'un nouveau lead : `crm_settings.setting.default_setter`, sinon
   appel sans réponse, joint au téléphone, message de relance envoyé, RDV posé dans iClosed, non qualifié, classer injoignable,
   message de confirmation envoyé, appel de confirmation fait, « OK » reçu, rappel J−1 / H−2 envoyé, pas de « OK » à J−1, RDV
   annulé ou déplacé, reprendre le lead, note. Chaque action est un événement `setter_action` du fil du prospect.
-- **iClosed**, seul (déclencheur sur `crm_calls`, le R1 seulement) : RDV réservé → « RDV à confirmer » (ou reste « RDV posé » si le
-  setter vient de le poser), déplacé → « RDV à confirmer », annulé → « À replanifier », absent → « Absent · rattrapage », tenu →
-  « RDV tenu · au commercial ».
+- **Le CRM est la seule source de vérité** (migration 059, Romain 2026-11-11) : d'iClosed, on ne garde que le lead, la date et
+  l'heure des RDV, leurs déplacements et leurs annulations ; jamais « honoré », « absent », « gagné », « perdu » ni un paiement (une
+  vente iClosed s'affiche dans la fiche, pour information). Un RDV réservé → « RDV à confirmer » (ou reste « RDV posé » si le setter
+  vient de le poser), déplacé → « RDV à confirmer », annulé → « À replanifier » ; l'issue déclarée dans le CRM (ou la règle
+  d'absence, 056) : absent → « Absent · rattrapage », tenu → « RDV tenu · au commercial ».
+- **Webinaire** : le setter ne reprend un lead webinaire que s'il a assisté sans prendre de RDV (« Lead à contacter »), s'il était
+  absent au webinaire et n'a pas répondu en 48 h (« Webinaire absent · attente de réponse », puis « Lead à contacter »), ou s'il
+  était absent à son RDV de vente et n'a pas répondu en 24 h (« Absent · attente de réponse », puis « Absent · rattrapage »).
+  Un lead webinaire qui réserve seul va directement au commercial. `crm_setting_tick` vérifie les attentes toutes les 10 min.
 - **L'entrée d'un lead** : fonction `lead-in` (ci-dessous) ou « + Nouveau prospect » (`crm_create_lead`).
 
 Qui voit quoi : un setter voit les leads qui lui sont confiés (`crm_sets_person`, `crm_owns_cycle`, `crm_sees_person`) et reçoit
@@ -60,6 +66,7 @@ L'outil du quiz ou de la VSL (ou Zapier, Make…) envoie un POST JSON par lead (
   "first_name": "Léa",
   "last_name": "Martin",
   "booked": false,
+  "attended": null,
   "answers": { "matiere": "SVT", "niveau": "lycée", "objectif": "2 000 €/mois" },
   "id": "identifiant-unique-de-la-reponse",
   "submitted_at": "2026-11-10T09:00:00Z"
@@ -68,9 +75,10 @@ L'outil du quiz ou de la VSL (ou Zapier, Make…) envoie un POST JSON par lead (
 
 `source` : `quiz`, `vsl`, `quiz_abandon` ou `webinaire` (les libellés proches sont reconnus). Les noms de champs courants sont
 lus aussi (`telephone`, `prenom`, `nom`, `full_name`, `responses`…). `booked: true` : le RDV arrive par iClosed, le setter le
-confirmera. Le même `id` envoyé deux fois ne crée qu'un lead.
+confirmera (sauf un lead webinaire, qui va au commercial). `attended` (webinaire seulement, ou `present`) : `true` présent,
+`false` absent. Le même `id` envoyé deux fois ne crée qu'un lead.
 
 ## Tests
 
-`web/supabase/tests/setting_test.sql`, `supabase/tests/pipeline.test.ts` (lecture des leads), `supabase/tests/ingest.test.ts`
+`web/supabase/tests/setting_test.sql`, `web/supabase/tests/source_de_verite_test.sql` (059), `supabase/tests/pipeline.test.ts` (lecture des leads), `supabase/tests/ingest.test.ts`
 (jeton), `supabase/tests/sla.test.ts` (alertes SE), `app/crm/setting_live.js` (écran Prospects et fiche).

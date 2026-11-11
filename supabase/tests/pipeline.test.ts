@@ -169,5 +169,8 @@ Deno.test("funnel: a lead of the quiz, the VSL, an abandoned quiz or a webinar, 
   const two = mapFunnel(JSON.stringify([{ email: "a@x.com", booked: "oui", funnel: "vsl" }, { name: "no contact" }]), "2026-11-10T09:00:00Z");
   eq("items" in two && [two.items.length, two.items[0].data.booked, two.items[0].source_id], [1, true, "funnel:vsl:a@x.com:2026-11-10"]);
   eq("ignored" in mapFunnel('{"name":"nobody"}', "2026-11-10T09:00:00Z"), true);
+  // 059: a webinar lead says whether it came; the other leads say nothing
+  const w = mapFunnel(JSON.stringify([{ email: "w1@x.com", type: "Webinaire", present: "non" }, { email: "w2@x.com", type: "webinar", attended: true }]), "2026-11-10T20:00:00Z");
+  eq("items" in w && [w.items[0].data.attended, w.items[1].data.attended, q.items[0].data.attended], [false, true, null]);
 });
 

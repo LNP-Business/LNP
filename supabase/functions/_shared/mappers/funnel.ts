@@ -7,6 +7,7 @@
 //   name    : name | full_name | first_name + last_name | prenom + nom
 //   booked  : booked | rdv | has_booking       (true: an iClosed booking follows, the setter confirms it)
 //   answers : answers | quiz | responses       (kept as received, shown in the lead record)
+//   attended: attended | present | showed_up   (webinar only: true = came, false = absent; migration 059)
 //   id      : id | lead_id | submission_id     (the same id twice is one lead)
 //   at      : submitted_at | created_at | date
 import { Canonical, MapResult } from "../canonical.ts";
@@ -46,7 +47,8 @@ export function funnelItem(b: Obj, receivedAt: string): Canonical | null {
   if (phone) identity.phone = phone;
   if (name) identity.name = name;
   return { source: "funnel", source_id: `funnel:${source}:${id}`, type: "lead_in", occurred_at: when, actor: "prospect", channel: "crm",
-    identity, data: { source, booked: truthy(b.booked ?? b.rdv ?? b.has_booking), answers } };
+    identity, data: { source, booked: truthy(b.booked ?? b.rdv ?? b.has_booking), answers,
+      attended: (b.attended ?? b.present ?? b.showed_up) == null ? null : truthy(b.attended ?? b.present ?? b.showed_up) } };
 }
 
 export function mapFunnel(raw: string, receivedAt: string): MapResult {
