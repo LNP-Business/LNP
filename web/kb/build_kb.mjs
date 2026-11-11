@@ -17,7 +17,7 @@ const SCREENS = [
   ["Academie", "academie", "Entraînement › Maîtrise de l'offre", "the offer training (« Académie sales LNP »): 100 cases from real calls, answer the prospect (format A, 90 s) or review an excerpt (format B), the rep validates their answer, then self-corrects it against the trainer's grid and the corrigé, validated at 8/10"],
   ["Resultats", "resultats", "Entraînement › Mes résultats", "each person's training results, kept on their account and never deleted: training score out of 100, exercises, active time, history"],
   ["SuiviCommerciaux", "suivi", "Entraînement › Suivi des commerciaux", "admins only: per sales rep, the training score, exercises and time spent, next to their calls held, sales, revenue signed and collected"],
-  ["SalesDay", "salesday", "Ventes › Ma journée", "the sales rep's day, one lead at a time: outcomes to declare, calls within 24 h, reschedules, no-shows, follow-ups"],
+  ["SalesCycle", "salescycle", "Ventes › Cycle de vente", "the sales rep's work queue, one lead at a time (Ma journée merged here, 2026-11-10): act now (late or critical), to do, calls planned, waiting, closed; the next action, the outcome form, today's progress (« Aujourd'hui », « Fait aujourd'hui »), « Demain » and « Passer »"],
   ["Alertes", "alertes", "Ventes › Alertes", "the alerts of the CRM: each lead late on a sales cycle SLA, for its sales rep (admins: the whole team); closed by itself when the action is done"],
   ["CRM", "crm", "Ventes › CRM", "Pipeline, Leads, Sales cycle, the lead record, call analysis and the payment window"],
   ["Settings", "settings", "Paramètres › Alertes", "the alert rules: on or off, threshold, severity, who is told and how"],
@@ -30,17 +30,28 @@ const text = h => h.replace(/<(br|\/p|\/li|\/h\d|\/div)\b[^>]*>/gi, "\n").replac
   .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&rsquo;/g, "'")
   .replace(/&[a-z]+;/g, " ").replace(/\{\{[^}]*\}\}/g, "").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
 
-function pageMethod(file) {
+// The screen's template: gabarits/<file>.dc.html, or, for a screen that exists only in the built page (the interface in
+// production lives in app/lnp.html, CLAUDE.md), its <template data-file="<file>.dc.html"> there.
+function screenHTML(file) {
   const p = "gabarits/" + file + ".dc.html";
-  if (!has(p)) return null;
-  const h = read(p), i = h.indexOf('aria-labelledby="info-title"');
+  if (has(p)) return read(p);
+  if (!has("app/lnp.html")) return null;
+  const page = read("app/lnp.html"), k = page.indexOf('data-file="' + file + '.dc.html"');
+  if (k < 0) return null;
+  const e = page.indexOf("</template>", k);
+  return e > 0 ? page.slice(page.indexOf(">", k) + 1, e) : null;
+}
+function pageMethod(file) {
+  const h = screenHTML(file);
+  if (!h) return null;
+  const i = h.indexOf('aria-labelledby="info-title"');
   if (i < 0) return null;
   const start = h.lastIndexOf("<div", i), stop = h.indexOf("</dialog>", i) > 0 ? h.indexOf("</dialog>", i) : h.indexOf("<main", i);
   return text(h.slice(start, stop > 0 ? stop : i + 8000)).slice(0, 4000);
 }
 
 const screens = SCREENS.map(([file, key, where, about]) => ({ screen: file, key, where, about, method: pageMethod(file) }))
-  .filter(s => has("gabarits/" + s.screen + ".dc.html"));
+  .filter(s => screenHTML(s.screen) != null);
 // the SLA catalogue, as Settings › Alerts shows it (thresholds in hours; needs = the data sources an SLA reads)
 await import(new URL("supabase/functions/_shared/sla_rules.js", ROOT).href);
 const L = globalThis.LNP_SLA;

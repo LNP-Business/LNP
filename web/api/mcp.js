@@ -42,7 +42,7 @@ const TOOLS = [
 const ISO = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("A date, YYYY-MM-DD");
 const WRITE_TOOLS = [
   ["lead_note", "Add a note to a lead's cycle in the CRM (lead_record shows them).",
-    { cycle_id: z.string().uuid(), text: z.string().min(1).max(2000) }, W.leadNote, ["crm", "salesday"], false],
+    { cycle_id: z.string().uuid(), text: z.string().min(1).max(2000) }, W.leadNote, ["crm", "salescycle"], false],
   ["declare_outcome", "Declare a call's outcome in the CRM, as in Sales cycle: attendance (held, no_show); for a held call a decision (yes, no, follow_up, disqualified), a reason code for no or disqualified, next step, amount sold.",
     { call_id: z.string().uuid().describe("Call id (lead_record lists them)"), attendance: z.enum(["held", "no_show"]), decision: z.enum(["yes", "no", "follow_up", "disqualified"]).optional(),
       reason_code: z.string().max(60).optional(), next_step: z.string().max(300).optional(), amount_sold: z.number().min(0).optional(), currency: z.string().max(3).optional(),

@@ -65,11 +65,15 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `app/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
   Onglets Exécution, Qualité, Impact : `app/sales_exec_module.js`, onglets dans `gen_salescockpit.py` et
   `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migration 050) ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
-- Ma journée : `app/salesday_module.js` + `gen_salesday.py`.
+- Ma journée est fusionnée dans Cycle de vente (Romain, 2026-11-10) : plus d'entrée dans la barre latérale, `#salesday` ouvre
+  Cycle de vente sur « Agir maintenant », un accès « salesday » donne Cycle de vente (`web/api/_screens.js`). Dans l'écran
+  (`LNP_SB_DOC`, dans `LNP_CRM_DOC` de `app/lnp.html`) : « Aujourd'hui » et « Fait aujourd'hui », « Demain » (touche D) et
+  « Passer » (touche P), la journée gardée dans les préférences `salesday.<jour>`. Test `node app/cycle_day_test.js $PWD/app/lnp.html <dossier>`.
+  Le module de Ma journée (`app/salesday_module.js`, `gen_salesday.py`) n'est plus affiché.
 - Alertes (Romain, 2026-11-09 : le CRM est la base des notifications, pas Slack) : `sla-tick` ouvre, fait monter et ferme les
   alertes toutes les 5 min (`crm_sla_alerts`, `crm_sync_sla_alerts`, migration 053) ; un commercial voit les alertes de ses
   prospects, un administrateur celles de toute l'équipe (`crm_sla_alerts_open`). Écran, pastille, bandeau et notification du
-  navigateur : `app/alerts_module.js` + `gen_alertes.py` ; rappel en tête de Ma journée : `build.py` (`decorate`). Slack n'est
+  navigateur : `app/alerts_module.js` + `gen_alertes.py` ; les alertes se traitent dans Cycle de vente › « Agir maintenant ». Slack n'est
   qu'une copie facultative, éteinte par défaut (`sla_rules.js`). Test `node app/alertes_test.js $PWD/app/lnp.html <dossier>`.
 - Suivi du setter (Romain, 2026-11-09, `docs/crm/19-setting.md`, migration 054) : un statut setter par lead, gardé sur la
   personne (`crm_people.setting_*`) ; actions `crm_setter_action`, réactions à iClosed par un déclencheur sur `crm_calls`, leads
@@ -104,7 +108,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
 - Version de la page : `web/build_web.py` inscrit un identifiant de build dans `index.html` (`LNP_BUILD`) et dans
   `web/public/version.json` ; `lnp-web.js` recharge une page restée en cache d'un navigateur (une fois, puis bandeau « Recharger »).
-- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salesday`, `entrainement`, `academie`, `crm`,
+- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salescycle`, `entrainement`, `academie`, `crm`,
   `settings`, `claude` (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte ; `resultats` suit les
   entraînements ouverts, `suivi` (Suivi des commerciaux) et `access` sont réservés aux administrateurs (`web/api/me.js`).
 - **Connecteur Claude** (`web/api/mcp.js`, OAuth `web/api/oauth.js`, doc `docs/crm/17-claude-connector.md`) : 10 outils de lecture
@@ -144,5 +148,5 @@ chaque citation et calcule les notes avec les fonctions du moteur de référence
 ## Vérifier après un changement
 
 Ouvrir `app/lnp.html` dans un navigateur (ou Playwright) et vérifier, sans erreur dans la console et sans texte anglais :
-Cockpit commercial (7 j, 30 j, 8 sem.), Ma journée, CRM (Pipeline, Prospects, Cycle de vente, fiche prospect, fenêtre
+Cockpit commercial (7 j, 30 j, 8 sem.), Cycle de vente (Aujourd'hui, Demain, Passer), CRM (Pipeline, Prospects, Cycle de vente, fiche prospect, fenêtre
 d'encaissement), Paramètres (Alertes, Compte ; Accès en édition web) et chaque « Mode d'emploi ».

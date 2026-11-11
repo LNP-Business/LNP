@@ -1,7 +1,7 @@
 // node app/alertes_test.js $PWD/app/lnp.html <dossier> — Alertes (Romain 2026-11-09 ; interface Impeccable P1.4 et D1,
 // 2026-11-10) : les alertes du CRM se traitent dans Cycle de vente › « Agir maintenant » (l'ancien écran Alertes y renvoie),
 // la pastille de la barre latérale sur Cycle de vente, un seul modèle de gravité (critiques d'abord, puis en retard), le rappel
-// en tête de Ma journée, Paramètres › Alertes sans Slack par défaut, tout en français, aucune erreur dans la console.
+// (Ma journée est fusionnée dans Cycle de vente), Paramètres › Alertes sans Slack par défaut, tout en français, aucune erreur dans la console.
 const { chromium } = require('playwright');
 const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
 (async () => {
@@ -34,14 +34,13 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   // the former Alertes screen sends to Cycle de vente
   await p.evaluate(() => { location.hash = '#alertes'; }); await p.waitForTimeout(800);
   check('l’ancien lien #alertes ouvre Cycle de vente', /salescycle/.test(await p.evaluate(() => location.hash)) || !!(await p.$('#app [data-crmview="cycle"]')), await p.evaluate(() => location.hash));
-  // Ma journée: the reminder at the top
-  await p.click('nav a:has-text("Ma journée")'); await p.waitForTimeout(1200);
-  const barTxt = await p.$eval('#app [data-alertbar]', e => e.textContent).catch(() => '');
-  check('Ma journée : « 7 prospects à traiter maintenant en tête de votre file, dont 5 critiques »', /7 prospects à traiter maintenant en tête de votre file, dont 5 critiques/.test(barTxt), barTxt);
-  await p.click('#app [data-alertbar]'); await p.waitForTimeout(1200);
+  // Ma journée is merged into Cycle de vente (2026-11-10): no entry in the sidebar; Cycle de vente opens on « Agir maintenant »
+  check('« Ma journée » n’est plus dans la barre latérale', !(await p.$('nav a:has-text("Ma journée")')), null);
+  await p.click('nav a:has-text("Cockpit commercial")'); await p.waitForTimeout(600);
+  await p.click('nav a:has-text("Cycle de vente")'); await p.waitForTimeout(1500);
   f = await desk();
   const pressed = f ? await f.evaluate(() => document.querySelector('#qs [data-b="now"]').getAttribute('aria-pressed')) : null;
-  check('le rappel ouvre Cycle de vente › Agir maintenant', pressed === 'true', pressed);
+  check('Cycle de vente s’ouvre sur Agir maintenant', pressed === 'true', pressed);
   // Paramètres › Alertes : le CRM d'abord, Slack en option éteinte
   await p.click('nav a:has-text("Paramètres")'); await p.waitForTimeout(700);
   const st = await p.evaluate(() => document.getElementById('app').innerText);
