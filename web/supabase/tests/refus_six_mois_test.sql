@@ -1,7 +1,7 @@
 -- 055_crm_refus_six_mois.sql: a refusal (lost) with no new RDV for 6 months goes to disqualified (crm_refusal_tick), stays so,
 -- and the other lost leads (recent, unreachable, refunded, back with a new cycle) are not touched.
 do $$
-declare p1 uuid; p2 uuid; p3 uuid; p4 uuid; c1 uuid; c2 uuid; c3 uuid; c4 uuid; c4b uuid; n int;
+declare p1 uuid; p2 uuid; p3 uuid; p4 uuid; p5 uuid; c1 uuid; c2 uuid; c3 uuid; c4 uuid; c4b uuid; c5 uuid; n int;
 begin
   insert into crm_people (full_name) values ('Refus Ancien') returning id into p1;
   insert into crm_people (full_name) values ('Refus Récent') returning id into p2;
@@ -11,13 +11,21 @@ begin
   insert into crm_cycles (person_id, opened_at) values (p2, now() - interval '120 days') returning id into c2;
   insert into crm_cycles (person_id, opened_at) values (p3, now() - interval '220 days') returning id into c3;
   insert into crm_cycles (person_id, opened_at) values (p4, now() - interval '220 days') returning id into c4;
+  insert into crm_people (full_name) values ('Perdu Sans Appel') returning id into p5;
+  insert into crm_cycles (person_id, opened_at) values (p5, now() - interval '220 days') returning id into c5;
+  -- a refusal is a no after a call held: c1, c2, c4 had their call; c5 never had one
+  insert into crm_calls (cycle_id, rank, status, scheduled_start, scheduled_end) values
+    (c1, 1, 'held', now() - interval '205 days', now() - interval '205 days' + interval '45 minutes'),
+    (c2, 1, 'held', now() - interval '105 days', now() - interval '105 days' + interval '45 minutes'),
+    (c4, 1, 'held', now() - interval '205 days', now() - interval '205 days' + interval '45 minutes');
   -- refusals closed by hand (lost, reason price), and a lead lost by the rules as unreachable
   insert into crm_events (person_id, cycle_id, occurred_at, actor, channel, type, data, source, source_id) values
     (p1, c1, now() - interval '200 days', 'sales', 'crm', 'cycle_lost', '{"reason":"price"}', 'manual', 't055:c1'),
     (p2, c2, now() - interval '100 days', 'sales', 'crm', 'cycle_lost', '{"reason":"price"}', 'manual', 't055:c2'),
     (p3, c3, now() - interval '200 days', 'system', 'crm', 'cycle_lost', '{"reason":"unreachable"}', 'rules', 't055:c3'),
-    (p4, c4, now() - interval '200 days', 'sales', 'crm', 'cycle_lost', '{"reason":"price"}', 'manual', 't055:c4');
-  perform crm_recompute_cycle(c1); perform crm_recompute_cycle(c2); perform crm_recompute_cycle(c3); perform crm_recompute_cycle(c4);
+    (p4, c4, now() - interval '200 days', 'sales', 'crm', 'cycle_lost', '{"reason":"price"}', 'manual', 't055:c4'),
+    (p5, c5, now() - interval '200 days', 'sales', 'crm', 'cycle_lost', '{"reason":"price"}', 'manual', 't055:c5');
+  perform crm_recompute_cycle(c1); perform crm_recompute_cycle(c2); perform crm_recompute_cycle(c3); perform crm_recompute_cycle(c4); perform crm_recompute_cycle(c5);
   assert (select status from crm_cycles where id = c1) = 'lost' and (select close_reason from crm_cycles where id = c1) = 'price', 'a refusal is lost (Clos)';
   assert (select status from crm_cycles where id = c3) = 'lost' and (select close_reason from crm_cycles where id = c3) = 'unreachable', 'unreachable: lost';
   -- the lead of c4 came back: a newer cycle
@@ -31,6 +39,7 @@ begin
   assert (select status from crm_cycles where id = c2) = 'lost', 'refusal of 100 days: still lost (Relance après refus)';
   assert (select status from crm_cycles where id = c3) = 'lost', 'unreachable: not a refusal, untouched';
   assert (select status from crm_cycles where id = c4) = 'lost', 'came back with a new cycle: untouched';
+  assert (select status from crm_cycles where id = c5) = 'lost', 'lost without any call held: not a refusal, untouched';
   assert (select status from crm_cycles where id = c4b) = 'active', 'the new cycle stays active';
 
   -- it stays disqualified when the cycle is computed again, and the tick does nothing twice

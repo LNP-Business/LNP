@@ -5,7 +5,8 @@
 -- du lead (LNP_ETAPES dans app/lnp.html). Six mois après la clôture (crm_rules.nurture_cadence.archive_after_days, 182 jours,
 -- « archivage après 6 mois décidé »), sans nouveau cycle ni réouverture, crm_refusal_tick le passe en « disqualifié », motif
 -- « refus_6_mois » (automatique) : événement cycle_disqualified, source rules, que crm_recompute_cycle garde ensuite.
--- Ne sont pas concernés : les remboursés (refunded) et les injoignables (unreachable), qui ne sont pas des refus.
+-- Un refus est un « non » après un appel tenu. Ne sont pas concernés : les perdus sans aucun appel tenu (anciens imports jamais
+-- joints), les remboursés (refunded) et les injoignables (unreachable), qui ne sont pas des refus.
 -- Une fois par jour (pg_cron, 03 h 17 UTC). Sans danger si rejoué.
 
 insert into crm_reason_codes (code, kind, label, nurture_default, automatic, position, is_proposal)
@@ -129,6 +130,9 @@ begin
     select cy.id, cy.person_id from crm_cycles cy
      where cy.status = 'lost' and cy.closed_at < p_now - make_interval(days => days)
        and coalesce(cy.close_reason, '') not in ('refunded', 'unreachable')
+       -- a refusal is a no after a call held (Romain 2026-11-11: « les 128 vrais refus ») ; a lead lost without any call held
+       -- (an old import, never reached) is not a refusal and stays lost
+       and exists (select 1 from crm_calls k where k.cycle_id = cy.id and k.status = 'held' and k.scheduled_start <= cy.closed_at)
        -- the lead came back: a newer cycle of the same person
        and not exists (select 1 from crm_cycles c2 where c2.person_id = cy.person_id and c2.id <> cy.id and c2.opened_at > cy.closed_at)
   loop
