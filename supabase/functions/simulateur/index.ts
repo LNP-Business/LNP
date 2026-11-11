@@ -5,6 +5,7 @@
 import { appelant, dbRest } from "../_shared/simulateur/base.ts";
 import { app } from "../_shared/simulateur/routes.ts";
 import { elevenLabs } from "../_shared/simulateur/voix.ts";
+import { creerAnalyse } from "../_shared/simulateur/grille/index.ts";
 
 const base = Deno.env.get("SUPABASE_URL") ?? "";
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -22,5 +23,7 @@ Deno.serve(app({
     ? Promise.resolve({ id: "00000000-0000-0000-0000-000000000000", email: "", role: "admin", admin: true })
     : appelant(base, service, jeton, db),
   tts: eleven ? (p) => elevenLabs(eleven, p) : null,
+  // l'analyse de fin d'appel (grille d'analyse), en arrière-plan après la réponse
+  analyse: creerAnalyse({ db, anthropicKey, waitUntil }),
   waitUntil,
 }));

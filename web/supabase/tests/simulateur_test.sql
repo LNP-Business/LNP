@@ -29,7 +29,7 @@ begin
   assert (select count(*) from crm_sim_simulations) = 1, 'a sales rep sees only their own simulations';
   assert (select count(*) from crm_sim_messages) = 2, 'and their messages';
   assert (select count(*) from crm_sim_personas) = 1, 'the active prospects only';
-  assert (select count(*) from crm_sim_offers) = 1, 'the offers';
+  assert (select count(*) from crm_sim_offers where name = 'Accompagnement LNP') = 1, 'the offers';   -- 057 adds the LNP offer
   assert (select count(*) from crm_sim_config) = 1, 'the settings';
   h := crm_sim_history(null, 50);
   assert jsonb_array_length(h) = 1 and (h->0->>'messages')::int = 2 and (h->0->>'rating')::int = 4
