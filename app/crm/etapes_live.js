@@ -26,7 +26,10 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
       cyc('c4', 'Dina Disq', -60, [{ id: 'k4', rank: 1, status: 'held', scheduled_start: iso(-40), scheduled_end: iso(-39) }],
         [ev('call_booked', -60, { call_id: 'k4', source: 'iclosed', actor: 'prospect' }), ev('outcome_disqualified', -39, { call_id: 'k4', data: { reason_code: 'off_target' } })]),
       cyc('c5', 'Céline Confirmée', -10, [{ id: 'k5', rank: 1, status: 'scheduled', scheduled_start: iso(20), scheduled_end: iso(21) }],
-        [ev('call_booked', -10, { call_id: 'k5', source: 'iclosed', actor: 'prospect' }), ev('message_out', -9.5)])
+        [ev('call_booked', -10, { call_id: 'k5', source: 'iclosed', actor: 'prospect' }), ev('message_out', -9.5)]),
+      // a refusal 190 days ago with no new RDV: out of « Relance après refus », disqualified (055)
+      cyc('c6', 'Simon Six Mois', -4600, [{ id: 'k6', rank: 1, status: 'held', scheduled_start: iso(-4580), scheduled_end: iso(-4579) }],
+        [ev('call_booked', -4600, { call_id: 'k6', source: 'iclosed', actor: 'prospect' }), ev('outcome_no', -4560, { call_id: 'k6', data: { reason_code: 'price' } })])
     ];
     const fake = {
       listMembers: async () => [{ id: 'u-r', member_key: 'romain', full_name: 'Romain', role: 'admin', active: true }],
@@ -45,6 +48,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   check('Progrès · Céline : 3/6, le R1 facultatif sauté ne compte pas', /3\/6/.test(P('Céline').p), prog);
   check('Progrès · Nora absente : branche Rattrapage', P('Nora').br && /Rattrapage/.test(P('Nora').p), P('Nora'));
   check('Progrès · Rémi : branche Relance après refus', P('Rémi').br && /Relance après refus/.test(P('Rémi').p), P('Rémi'));
+  check('Progrès · Simon : refus de plus de 6 mois, disqualifié', /disqualifié après 6 mois/.test(P('Simon').p), P('Simon'));
   check('Progrès · Dina : disqualifiée, sans branche', !P('Dina').br && /disqualifié/.test(P('Dina').p), P('Dina'));
   const leg = await cf.$$eval('.lp-lg', a => a.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
   check('Répartition par étape : les étapes partagées (Rattrapage, Relance après refus, Payé, Disqualifié, Appel honoré)',
