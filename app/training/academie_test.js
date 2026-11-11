@@ -19,7 +19,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   }
   const { p, af } = await open(1440, 900);
   const nav = await p.$$eval('nav [data-navitems] a', a => a.map(x => x.textContent.trim()));
-  check('the Entraînement group: Découverte, Maîtrise de l’offre, Mes résultats', nav.join('|').includes("Découverte|Maîtrise de l'offre|Mes résultats"), nav);
+  check('the Entraînement group: Découverte, Maîtrise de l’offre, Simulateur, Mes résultats', nav.join('|').includes("Découverte|Maîtrise de l'offre|Simulateur|Mes résultats"), nav);
   check('the app shows in its frame', !!af, null);
   const box = await p.evaluate(() => { const f = [...document.querySelectorAll('iframe')].find(x => x.title === 'Maîtrise de l’offre'); if (!f) return null; const r = f.getBoundingClientRect(); return { w: r.width, h: r.height, d: getComputedStyle(f).display }; });
   check('the frame fills the screen', box && box.d === 'block' && box.w > 1000 && box.h > 700, box);

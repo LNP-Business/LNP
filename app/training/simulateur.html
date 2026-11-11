@@ -1,0 +1,2037 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur LNP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+/* LNP · Entraînement › Simulateur (Romain 2026-11-11) : l'appel de vente simulé, le prospect est joué par Claude, en texte ou à la
+   voix. Un seul document dans un cadre de la page LNP, comme l'Académie ; il passe par window.parent.claude.use("crm") (lecture des
+   tables crm_sim_*) et use("simulateur") (la fonction Edge, qui écrit tout). Vues : Nouvelle simulation, appel, fin d'appel,
+   résultat, Historique ; pour les administrateurs : Offres et prospects, Réglages. */
+:root{--ink:#0C1330;--ink2:#2A3352;--mut:#5A6478;--line:#D6DEF0;--soft:#EEF3FC;--pale:#E3ECFB;--sky:#AECBF2;--bg:#F7F8FB;--card:#FFFFFF;
+  --brand:#1E2A5E;--vif:#2B6CF5;--clair:#5B8DF7;--ok:#137A4F;--oks:#E2F4EB;--mid:#B45309;--mids:#FDF0DC;--ko:#B42318;--kos:#FCE5E2;
+  --sans:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);overflow:hidden;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}
+:focus{outline:none}:focus-visible{outline:3px solid #2B6CF5;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #2B6CF5;outline-offset:0}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.bar{flex:none;display:flex;align-items:center;gap:16px;padding:6px 18px;background:var(--card);border-bottom:1px solid var(--line);min-height:54px}
+.brand{line-height:1.1}.brand b{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--brand)}.brand span{font-size:13px;font-weight:600;color:var(--ink2)}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px;flex:none}
+.seg button{border:0;background:transparent;border-radius:8px;padding:6px 13px;font-weight:600;font-size:13px;color:var(--ink2);white-space:nowrap}
+.seg button[aria-current=page],.seg button[aria-pressed=true]{background:var(--card);color:var(--brand);box-shadow:0 1px 3px rgba(12,19,48,.14)}
+.sp{flex:1}
+.who{font-size:12px;color:var(--mut);text-align:right;line-height:1.3}.who b{color:var(--brand);font-weight:600}
+#view{flex:1;min-height:0;overflow:auto}
+body.calling .bar{display:none}body.calling #view{overflow:hidden}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 28px 48px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:22px;line-height:1.25;margin:0;color:var(--brand)}h2{font-size:17px;margin:0;color:var(--brand)}h3{font-size:14px;margin:0;color:var(--brand)}
+p{margin:0}
+.head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.ct{font-weight:600;color:var(--brand);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ct small{font-weight:500;color:var(--mut);font-size:12px}
+.cap{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.muted{color:var(--mut)}.small{font-size:12.5px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn:hover:not(:disabled){border-color:var(--clair)}
+.btn.p{background:var(--vif);border-color:var(--vif);color:#fff}.btn.p:hover:not(:disabled){background:#1F5BDB}
+.btn.n{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.ko{background:var(--ko);border-color:var(--ko);color:#fff}
+.btn.kol{color:var(--ko)}
+.btn.g{border-color:transparent;background:transparent}.btn.g:hover:not(:disabled){background:var(--soft)}
+.btn.sm{padding:4px 10px;font-size:12px;border-radius:8px}
+.btn.cta{padding:10px 20px;font-size:14px;background:linear-gradient(135deg,#2B6CF5,#1F4FC8);border:0;color:#fff;box-shadow:0 3px 10px rgba(43,108,245,.25);transition:transform .15s,box-shadow .15s}
+.btn.cta:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 16px rgba(43,108,245,.35)}
+.btn.cta:disabled{background:#C9D2E6;box-shadow:none}
+.lnk{border:0;background:none;padding:2px 0;color:var(--vif);text-decoration:underline;font-weight:500;font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--soft);color:var(--brand);white-space:nowrap}
+.pill.ok{background:var(--oks);color:var(--ok)}.pill.mid{background:var(--mids);color:var(--mid)}.pill.ko{background:var(--kos);color:var(--ko)}.pill.b{background:var(--pale);color:#1F4FC8}
+.spin{display:inline-block;width:16px;height:16px;border:2.5px solid var(--sky);border-top-color:var(--vif);border-radius:50%;animation:rot .8s linear infinite;vertical-align:middle}
+.spin.l{width:34px;height:34px;border-width:4px}
+@keyframes rot{to{transform:rotate(360deg)}}
+.load{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px 20px;color:var(--mut)}
+.empty{text-align:center;padding:34px 20px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:8px}
+.empty b{color:var(--ink2);font-size:15px}
+.ico{width:56px;height:56px;border-radius:16px;background:var(--pale);color:var(--vif);display:flex;align-items:center;justify-content:center;font-size:26px}
+.notice{background:#FFF8E6;border:1px solid #F0D58C;border-radius:12px;padding:12px 16px;color:#5C4200}.notice b{color:#7A5400}
+.err{color:var(--ko);font-size:13px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--ink2)}
+label.f small{font-weight:400;color:var(--mut)}
+.in,select.in,textarea.in{border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;font-size:13.5px;font-weight:400;color:var(--ink);width:100%}
+textarea.in{resize:vertical;min-height:90px;line-height:1.45}
+/* toasts */
+.toasts{position:fixed;top:14px;right:14px;z-index:90;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100vw - 28px))}
+.toast{background:#fff;border:1px solid var(--line);border-left:4px solid var(--vif);border-radius:10px;padding:10px 34px 10px 12px;box-shadow:0 8px 24px rgba(12,19,48,.16);position:relative;font-size:13px;display:flex;flex-direction:column;gap:2px}
+.toast b{color:var(--brand)}.toast.bad{border-left-color:var(--ko)}.toast.bad b{color:var(--ko)}
+.toast .tx{position:absolute;top:6px;right:6px;border:0;background:none;width:24px;height:24px;border-radius:6px;color:var(--mut)}
+/* fenêtres */
+.scrim{position:fixed;inset:0;z-index:70;background:rgba(12,19,48,.5);display:flex;justify-content:center;align-items:center;padding:24px}
+.modal{width:min(480px,100%);max-height:calc(100vh - 48px);overflow:auto;background:#fff;border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.modal.wide{width:min(900px,100%)}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.x{width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:16px;line-height:1}
+.acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.warnt{color:var(--mid);font-weight:700}.court{color:#C2410C;font-size:12.5px}
+.stars{display:flex;justify-content:center;gap:6px}
+.stars button{border:0;background:none;font-size:38px;line-height:1;color:#D6DEF0;padding:2px;border-radius:8px}
+.stars button.on{color:#F5B301}
+/* nouvelle simulation */
+.banner{display:flex;flex-direction:column;gap:8px}
+.brow{display:flex;align-items:center;gap:12px;border:1px solid var(--sky);background:var(--pale);border-radius:12px;padding:10px 14px}
+.brow .bi{width:36px;height:36px;border-radius:50%;background:var(--vif);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.brow b{display:block;color:var(--brand)}.brow small{color:var(--mut)}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mb{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.mb .mi{width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none;font-size:16px}
+.mb b{display:block;color:var(--ink)}.mb small{color:var(--mut);font-size:12px;line-height:1.35;display:block}
+.mb[aria-pressed=true]{border-color:var(--vif);background:#F3F7FF}.mb[aria-pressed=true] .mi{background:var(--vif);color:#fff}
+.offs{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px;max-height:176px;overflow:auto;padding:2px}
+.ob{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;font-size:13px}
+.ob i{width:9px;height:9px;border-radius:50%;background:var(--sky);flex:none}
+.ob .on{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ob[aria-pressed=true]{border-color:var(--vif);background:#F3F7FF;font-weight:600}.ob[aria-pressed=true] i{background:var(--vif)}
+.ok-ic{width:18px;height:18px;border-radius:50%;background:var(--vif);color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.pc{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.pc[aria-pressed=true]{border-color:var(--vif);box-shadow:0 0 0 3px rgba(43,108,245,.12)}
+.pc .top{display:flex;align-items:center;gap:10px}
+.av{width:38px;height:38px;border-radius:11px;background:var(--pale);color:var(--brand);font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.pc[aria-pressed=true] .av{background:var(--vif);color:#fff}
+.pc .nm{flex:1;min-width:0}.pc .nm b{display:block}.pc .nm small{color:var(--mut);font-size:12px}
+.pc .job{font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.diff{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:2px 7px;align-self:flex-start}
+.pc .no{font-size:11.5px;color:var(--mid)}
+/* offres (administrateurs) */
+.ogrid{display:grid;grid-template-columns:minmax(340px,400px) minmax(0,1fr);gap:16px;align-items:start}
+.olist{display:flex;flex-direction:column;gap:8px}
+.oi{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.oi[aria-pressed=true]{border-color:var(--vif);background:#F3F7FF}
+.oi .l1{display:flex;align-items:center;gap:8px;font-weight:600}.oi .l1 .on{flex:1;min-width:0}
+.filein{position:relative;align-self:flex-start;cursor:pointer}.filein:focus-within{outline:3px solid #2B6CF5;outline-offset:2px}
+.oi small{color:var(--mut);font-size:12px}
+.form{display:flex;flex-direction:column;gap:10px}
+.files{display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.files div{display:flex;align-items:center;gap:8px;background:var(--soft);border-radius:8px;padding:4px 8px}.files div span{flex:1}
+.dl{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);gap:6px 14px;font-size:13px}
+.dl dt{font-weight:600;color:var(--brand)}.dl dd{margin:0;color:var(--ink2);white-space:pre-wrap}
+table.t{border-collapse:collapse;width:100%;font-size:13px}
+table.t th,table.t td{border-top:1px solid var(--line);padding:8px 8px;text-align:left;vertical-align:middle}
+table.t th{color:var(--mut);font-weight:600;font-size:12px;border-top:0}
+table.t tr.off td{opacity:.6}
+table.t select{width:auto;min-width:130px}
+details.sec{border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+details.sec summary{cursor:pointer;font-weight:600;color:var(--brand)}
+details.sec[open] summary{margin-bottom:8px}
+.pd ul{margin:2px 0;padding-left:18px}.pd .sub{border-left:3px solid var(--pale);padding-left:10px;margin:4px 0}
+/* réglages */
+.rgl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.rgl .card{display:flex;flex-direction:column;gap:12px}
+.sw{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:500}
+.sw input{width:18px;height:18px}
+/* historique */
+.filt{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filt select,.filt input{width:auto;min-width:150px;height:34px;padding:4px 8px}
+.hl{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.hr{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 18px;border-top:1px solid var(--line)}
+.hr:first-child{border-top:0}
+.hs{font-size:22px;font-weight:700;text-align:center;color:var(--mut)}.hs.g{color:var(--ok)}.hs.m{color:var(--vif)}.hs.b{color:var(--ko)}
+.hs .pulse{animation:pul 1.4s ease-in-out infinite;display:inline-block}
+@keyframes pul{50%{opacity:.35}}
+.hc{display:flex;flex-direction:column;gap:3px;min-width:0}
+.hc .l1{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.hc .l1 b{font-size:14.5px;color:var(--ink)}
+.hc .l2,.hc .l3{font-size:12.5px;color:var(--mut)}
+.ha{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;font-size:13px;color:var(--ink2)}
+/* appel */
+.call{display:grid;grid-template-columns:var(--bw,340px) minmax(0,1fr);height:100%;min-height:0}
+.call.nobrief{grid-template-columns:minmax(0,1fr)!important}
+.brief{border-right:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.bt{margin:10px;border:0;border-radius:10px;background:var(--brand);color:#fff;padding:9px 12px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;justify-content:center}
+.bb{flex:1;overflow:auto;padding:4px 14px 18px;display:flex;flex-direction:column;gap:12px}
+.bid{display:flex;align-items:center;gap:10px}
+.bid .av{width:34px;height:34px;border-radius:50%}
+.mbadge{font-size:10.5px;font-weight:700;color:#fff;border-radius:999px;padding:2px 9px;background:var(--ok)}
+.mbadge.m-diagnostic{background:var(--vif)}.mbadge.m-objections{background:#C2410C}
+.bsec{display:flex;flex-direction:column;gap:6px}
+.bsec h3{display:flex;align-items:center;gap:6px;font-size:13px}
+.bg2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bx{background:var(--soft);border-radius:8px;padding:6px 9px;font-size:12.5px}.bx.w{grid-column:span 2}
+.bx small{display:block;color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.quote{background:var(--soft);border-left:3px solid var(--vif);border-radius:6px;padding:6px 9px;font-size:12.5px;font-style:italic}
+.quote small{display:block;font-style:normal;color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.vok{color:var(--ok);font-size:12px;font-weight:600}
+.gapb{background:var(--kos);border-radius:10px;padding:10px;font-size:12.5px}.gapb .big{font-size:20px;font-weight:700;color:var(--ko)}
+.ammo{background:#FFF8E6;border:1px solid #F0D58C;border-radius:10px;padding:8px 10px;font-size:12.5px}.ammo ul{margin:4px 0 0;padding-left:18px}
+.prix{background:var(--pale);border-radius:10px;padding:10px;text-align:center}.prix b{display:block;font-size:22px;color:var(--brand)}
+.cmain{display:flex;flex-direction:column;min-height:0;min-width:0}
+.chead{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.92);flex-wrap:wrap}
+.ib{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:17px;flex:none}
+.cwho{min-width:0}.cwho b{display:block;font-size:15px;color:var(--brand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cwho small{color:var(--mut);font-size:12px}
+.timer{font:700 20px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);border-radius:10px;padding:7px 10px;display:inline-flex;align-items:baseline;gap:4px;color:var(--ink)}
+.timer small{font-size:11px;color:var(--mut);font-weight:600}
+.timer.w5{background:var(--mids);color:var(--mid)}.timer.w1{background:var(--kos);color:var(--ko)}.timer.w1 .tri{animation:pul 1s infinite}
+.sess{display:flex;align-items:center;gap:10px;background:var(--kos);color:var(--ko);padding:8px 16px;font-size:13px;font-weight:500}
+.track{padding:8px 16px;border-bottom:1px solid var(--line);background:#fff;display:flex;flex-direction:column;gap:7px}
+.phs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.ph{border:1px solid var(--line);background:#fff;border-radius:12px;padding:4px 11px;font-size:12px;font-weight:600;white-space:nowrap;color:var(--ink2)}
+.ph.done{background:var(--oks);border-color:#9FD7B9;color:var(--ok)}
+.ph[aria-pressed=true]{background:var(--vif);border-color:var(--vif);color:#fff}
+.crs{display:flex;gap:6px;flex-wrap:wrap}
+.cr{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px 3px 4px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.cr i{width:17px;height:17px;border-radius:50%;border:1.5px solid #B6C2DA;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:700}
+.cr.y{border-color:#9FD7B9;background:var(--oks)}.cr.y i{background:var(--ok);border-color:var(--ok);color:#fff}
+.cr.n{border-color:#F2B8B0;background:var(--kos)}.cr.n i{background:var(--ko);border-color:var(--ko);color:#fff}
+.cscroll{flex:1;min-height:0;overflow:auto;position:relative}
+.orbw{position:sticky;top:0;z-index:2;height:260px;background:radial-gradient(circle at 30% 20%,#EEF3FC,transparent 55%),radial-gradient(circle at 75% 70%,#E3ECFB,transparent 50%),#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:1px solid var(--line)}
+.orbw canvas{width:220px;height:220px}
+.orbl{font-size:12.5px;color:var(--mut);margin-top:-6px}
+.msgs{max-width:820px;margin:0 auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-height:100%}
+.msgs .spacer{flex:1}
+.msg{display:flex}.msg.s{justify-content:flex-end}
+.bub{max-width:75%;border-radius:16px;padding:9px 14px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.s .bub{background:var(--brand);color:#fff;border-top-right-radius:5px}
+.msg.p .bub{background:#fff;border:1px solid var(--line);border-top-left-radius:5px}
+.msg.tmp .bub{opacity:.8}
+.typing{color:var(--mut);font-size:13px;display:inline-flex;align-items:center;gap:8px}
+.dots{display:inline-flex;gap:4px}.dots i{width:7px;height:7px;border-radius:50%;background:#9AA7C2;animation:bnc 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+.msg.s .bub.typing{background:var(--pale);border:1px solid var(--sky)}
+@keyframes bnc{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}
+.cempty{margin:auto;text-align:center;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:8px;padding:30px}
+.cempty b{color:var(--ink);font-size:16px}
+.cbottom{border-top:1px solid var(--line);background:#fff;padding:10px 16px}
+.inbar{max-width:820px;margin:0 auto;display:flex;gap:8px;align-items:flex-end}
+.taw{flex:1;position:relative}
+.taw textarea{width:100%;min-height:44px;max-height:120px;resize:none;border:1px solid var(--line);border-radius:12px;padding:11px 14px;line-height:1.4;font-size:14px;display:block}
+.taw.rec textarea{border-color:var(--ko)}
+.taw .rd{position:absolute;right:12px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--ko);animation:pul 1s infinite}
+.rb{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:18px;flex:none}
+.rb.on{background:var(--ko);border-color:var(--ko);color:#fff;animation:pul 1.4s infinite}
+.rb.send{background:var(--vif);border-color:var(--vif);color:#fff}
+.vbar{max-width:820px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:44px}
+.vt{flex:1;min-width:0;font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vt.u{color:var(--ink);font-style:italic}.vt .gd{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:8px;animation:pul 1s infinite}
+.btn.mute[aria-pressed=true]{background:var(--kos);border-color:#F2B8B0;color:var(--ko)}
+/* fin d'appel : plein écran */
+.full{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:48px 20px}
+.fc{width:min(560px,100%);display:flex;flex-direction:column;gap:14px}
+.fc.c{text-align:center;align-items:center;width:min(480px,100%);margin-top:6vh}
+.rond{width:80px;height:80px;border-radius:50%;background:var(--pale);display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--vif)}
+.rond.a{background:var(--mids);color:var(--mid)}
+.prog4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.prog4 i{height:6px;border-radius:3px;background:var(--line)}.prog4 i.on{background:var(--vif)}
+.lvopt{display:flex;flex-direction:column;gap:8px}
+.lv{text-align:left;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px}
+.lv b{display:block;color:var(--ink)}.lv small{color:var(--mut)}
+.lv[aria-checked=true]{border-color:var(--vif);background:#F3F7FF}
+.aart{min-height:130px}
+/* résultat */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:9px 14px;font-weight:600;font-size:13.5px;color:var(--mut);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--vif)}
+.r3{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.score{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+.score .n{font-size:84px;font-weight:700;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}.score .n small{font-size:22px;color:var(--mut)}
+.lvl{font-weight:700;font-size:13px;border-radius:999px;padding:4px 14px;background:var(--pale);color:var(--brand)}
+.lad{display:flex;flex-direction:column;gap:0}
+.lad div{display:flex;align-items:center;gap:10px;font-size:13px;padding:6px 0;position:relative}
+.lad i{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:700;background:var(--line);color:var(--mut);flex:none}
+.lad .ok i{background:var(--ok);color:#fff}.lad .cur i{background:var(--vif);color:#fff;box-shadow:0 0 0 4px var(--pale)}
+.lad .cur b{color:var(--vif)}.lad span{flex:1}.lad small{color:var(--mut)}
+.fort{background:var(--oks);border-color:#BFE5CF}.faible{background:#FFF8E6;border-color:#F0D58C}
+.cond{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 12px;align-items:center;font-size:13px}
+.cond>div{padding:6px 0;border-top:1px solid var(--line)}
+.vd{border-radius:10px;padding:8px 10px;font-size:12.5px;margin-top:6px}
+.vd.confirme{background:var(--oks);color:#0E5C3B}.vd.nuance{background:var(--mids);color:#7A3A06}.vd.contredit{background:var(--kos);color:#8F1B12}
+.vd b{text-transform:uppercase;letter-spacing:.05em;font-size:11px;display:block}
+.dimg{display:grid;grid-template-columns:240px minmax(0,1fr);gap:16px;align-items:start}
+.dl5{display:flex;flex-direction:column;gap:6px}
+.db{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:5px}
+.db[aria-pressed=true]{border-color:var(--vif);background:#F3F7FF}
+.db .l1{display:flex;justify-content:space-between;font-weight:600;font-size:13px}
+.mbar{height:6px;border-radius:3px;background:var(--soft);overflow:hidden}.mbar i{display:block;height:100%}
+.it{border-top:1px solid var(--line)}.it:first-child{border-top:0}
+.it summary{display:flex;align-items:center;gap:10px;padding:9px 2px;cursor:pointer;list-style:none;font-size:13.5px}
+.it summary::-webkit-details-marker{display:none}
+.it summary span.lb{flex:1}
+.st{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
+.st.correct{background:var(--oks);color:var(--ok)}.st.partiel{background:var(--mids);color:var(--mid)}.st.absent{background:var(--kos);color:var(--ko)}
+.it .bd{padding:0 2px 10px 32px;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.verb{font-style:italic;color:var(--ink2)}.com{color:var(--mid)}
+.lg{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.tl{display:flex;flex-direction:column;gap:10px}
+.tln{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;font-size:13.5px;border-radius:10px;padding:6px 8px}
+.tln .who2{font-size:11.5px;color:var(--mut);font-weight:600}.tln.s .who2{color:var(--vif)}
+.tln.hl{box-shadow:0 0 0 3px var(--clair)}
+.ann{margin-top:6px;border-radius:8px;padding:6px 9px;font-size:12.5px}
+.ann.positif{background:var(--oks)}.ann.partiel{background:var(--mids)}.ann.negatif{background:var(--kos)}
+.mom{display:flex;flex-direction:column;gap:6px;position:sticky;top:10px}
+.mom button.m{text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font-size:12.5px}
+.fpills{display:flex;gap:6px;flex-wrap:wrap}
+.fpills button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.fpills button[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.drill{border:2px solid var(--vif)}
+.model{background:var(--oks);border-radius:10px;padding:10px 12px;font-style:italic}
+.chart{width:100%;height:auto;display:block}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+@media (max-width:1000px){.ogrid,.rgl,.r3,.g2,.g3,.dimg,.lg{grid-template-columns:1fr}.modes{grid-template-columns:1fr}.call{grid-template-columns:var(--bwm,56px) minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<header class="bar" id="bar">
+  <div class="brand"><b>LES NOUVEAUX PROFS</b><span>Simulateur</span></div>
+  <nav class="seg" id="nav" aria-label="Sections du simulateur"></nav>
+  <span class="sp"></span>
+  <div class="who" id="who" role="status"></div>
+</header>
+<main id="view" tabindex="-1"></main>
+<div id="fin"></div>
+<div id="layers"></div>
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  "use strict";
+  // ------------------------------------------------------------------ outils
+  var TZ = "Europe/Paris";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function lget(k, d) { try { var v = window.localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function lset(k, v) { try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var FMT = {};
+  function fmt(o) { var k = JSON.stringify(o); return FMT[k] || (FMT[k] = new Intl.DateTimeFormat("fr-FR", Object.assign({ timeZone: TZ }, o))); }
+  var jour = function (d) { return fmt({ day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(d)); };
+  var hm = function (d) { return fmt({ hour: "2-digit", minute: "2-digit" }).format(new Date(d)); };
+  var hms = function (d) { return fmt({ hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(d)); };
+  var jm = function (d) { return fmt({ day: "2-digit", month: "2-digit" }).format(new Date(d)); };
+  function quand(d) { return jour(d) === jour(Date.now()) ? "Aujourd’hui " + hm(d) : jour(d) + " " + hm(d); }
+  function isoJour(d) { var p = jour(d).split("/"); return p[2] + "-" + p[1] + "-" + p[0]; }
+  function nb(n, dec) { return Number(n || 0).toLocaleString("fr-FR", { maximumFractionDigits: dec == null ? 1 : dec }); }
+  function plur(n, s, p) { return n + " " + (Math.abs(n) > 1 ? (p || s + "s") : s); }
+  function minutes(sec) { return sec == null ? "—" : Math.max(1, Math.round(sec / 60)) + " min"; }
+  function dureeLongue(sec) { if (sec == null) return "—"; var m = Math.floor(sec / 60), s = sec % 60; return m + " min " + String(s).padStart(2, "0") + " s"; }
+  function slug(s) { return String(s || "prospect").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "prospect"; }
+  function initiale(s) { return String(s || "?").trim().charAt(0).toUpperCase() || "?"; }
+  function norm(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
+  function similarite(a, b) {
+    a = String(a || "").toLowerCase().slice(0, 100); b = String(b || "").toLowerCase().slice(0, 100);
+    if (!a.length && !b.length) return 1;
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= n; i++) d[i] = i;
+    for (i = 1; i <= m; i++) { var prev = d[0]; d[0] = i; for (j = 1; j <= n; j++) { var t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; } }
+    return 1 - d[n] / Math.max(m, n);
+  }
+  function telecharger(nom, texte) {
+    var b = new Blob([texte], { type: "text/plain;charset=utf-8" }), u = URL.createObjectURL(b), a = document.createElement("a");
+    a.href = u; a.download = nom; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 2000);
+  }
+  // un rendu qui garde le focus sur l'élément de même clé (data-k)
+  function paint(el, html) {
+    if (!el) return;
+    var a = document.activeElement, k = a && el.contains(a) && a.getAttribute("data-k");
+    el.innerHTML = html;
+    if (k) { var b = el.querySelector('[data-k="' + (window.CSS && CSS.escape ? CSS.escape(k) : k) + '"]'); if (b) b.focus(); }
+  }
+  function loader(t) { return '<div class="load"><span class="spin"></span>' + esc(t || "Chargement…") + "</div>"; }
+
+  // ------------------------------------------------------------------ référentiels affichés
+  var MODES = { full: "Appel complet", diagnostic: "Diagnostic", objections: "Objections" };
+  var MODE_DESC = { full: "Tout l’appel, de la prise de contact à la conclusion.", diagnostic: "Découverte et écart : le prospect est déjà en ligne, le cadre est posé.",
+    objections: "Le prix vient d’être annoncé : traitez ses objections jusqu’à la décision." };
+  var MODE_ICO = { full: "☎", diagnostic: "⌕", objections: "◎" };
+  var DIFF = { moyen: ["Moyen", "#FEF5E0", "#8A5A06"], difficile: ["Difficile", "#FDECEA", "#B03A33"], expert: ["Expert", "#F5E6F5", "#8B2E8B"] };
+  function diff(k) { return DIFF[k] || DIFF.moyen; }
+  // la grille d'analyse (note_grille.md)
+  var NIV = { insuffisant: "Insuffisant", discovery: "Découverte", diagnostic: "Diagnostic", strategic: "Stratégique", elite: "Élite" };
+  var PALIERS = [["elite", 85], ["strategic", 75], ["diagnostic", 65], ["discovery", 50], ["insuffisant", 0]];
+  var DIMS = [["structure", "Connexion"], ["diagnostic", "Écoute"], ["valeur", "Exposition"], ["pcm", "Alignement"], ["conclusion", "Résolution"]];
+  var STATUT = { correct: ["Correct", "✓"], partiel: ["Partiel", "~"], absent: ["Absent", "✕"] };
+  var EVAL = { positif: "Bien joué", partiel: "Partiel", negatif: "À corriger" };
+  var TYPE_EX = { cadrage: "Cadrage", decouverte: "Questions de découverte", impact: "Impact", gap: "Écart", objection: "Objections et décision" };
+  var AAR_NIV = [["discovery", "J’ai posé des questions de base, mais je n’ai pas vraiment creusé."], ["diagnostic", "J’ai compris la situation et identifié le vrai problème."],
+    ["strategic", "J’ai créé de la valeur, géré les objections, guidé vers la décision."], ["elite", "Exécution quasi parfaite : structure, adaptation, conclusion."]];
+  function niveauLabel(x) {
+    var k = String(x || "").toLowerCase();
+    if (NIV[k]) return NIV[k];
+    for (var key in NIV) if (k.indexOf(key) === 0 || k === NIV[key].toLowerCase()) return NIV[key];
+    return x ? String(x) : "—";
+  }
+  // la dimension R : clé « conclusion » ; toute autre clé inconnue est acceptée à la lecture (anciennes analyses)
+  function dimsDe(res) {
+    var d = (res && res.dimensions) || {}, connues = ["structure", "diagnostic", "valeur", "pcm"];
+    var cleR = d.conclusion ? "conclusion" : d.resolution ? "resolution" : Object.keys(d).filter(function (k) { return connues.indexOf(k) < 0; })[0];
+    return DIMS.map(function (x) {
+      var v = x[0] === "conclusion" ? d[cleR] : d[x[0]]; v = v || {};
+      return { key: x[0], label: x[1], score: Number(v.score || 0), max: Number(v.scoreMax || 0), items: Array.isArray(v.items) ? v.items : [] };
+    });
+  }
+  // le suivi de l'appel : 7 phases, 25 critères (aide-mémoire manuel)
+  var PHASES = [
+    { id: 1, nom: "Prise de contact", crit: [[1, "Mise en place"], [2, "Connexion"], [3, "Tutoiement"]] },
+    { id: 2, nom: "Cadrage", crit: [[4, "Disponibilité"], [5, "Attentes du prospect"], [6, "Cadrage et validation"]] },
+    { id: 3, nom: "Situation actuelle", crit: [[7, "Situation négative"], [8, "Conséquence"], [9, "Émotion négative"], [10, "Conscience du problème"]] },
+    { id: 4, nom: "Situation désirée", crit: [[11, "Situation rêvée"], [12, "Émotion positive"], [13, "Conscience de la solution"]] },
+    { id: 5, nom: "Engagement", crit: [[14, "Écart"], [15, "Conscience de l’opportunité"], [16, "Engagement"], [17, "Validation de la candidature"]] },
+    { id: 6, nom: "Présentation", crit: [[18, "Rappel de l’autorité"], [19, "Rappel de l’objectif"], [20, "Structure de la présentation"], [21, "Validation des piliers"]] },
+    { id: 7, nom: "Conclusion", crit: [[22, "Annonce du prix"], [23, "Traitement des objections"], [24, "Décision"], [25, "Positionnement du second rendez-vous"]] }];
+  var MODE_CRIT = { full: null, diagnostic: [7, 8, 9, 10, 11, 12, 13], objections: [23, 24, 25] };
+  function phasesVisibles(mode) {
+    var f = MODE_CRIT[mode] || null;
+    return PHASES.map(function (p) { return { id: p.id, nom: p.nom, crit: f ? p.crit.filter(function (c) { return f.indexOf(c[0]) >= 0; }) : p.crit }; })
+      .filter(function (p) { return p.crit.length; });
+  }
+  var ERR_FLUX = {
+    SCENARIO_UNAVAILABLE: "Ce scénario d’entraînement est temporairement indisponible. Relancez une simulation.",
+    PROVIDER_UNAVAILABLE: "Le prospect est momentanément indisponible. Réessayez dans quelques instants.",
+    SESSION_EXPIRED: "Votre session a expiré. Rechargez la page avant de réessayer.",
+    STREAM_INCOMPLETE: "La réponse du prospect a été interrompue. Réessayez votre message.",
+    RESPONSE_FAILED: "Le prospect n’a pas pu répondre. Réessayez dans quelques instants." };
+  function classer(t) {
+    t = String(t || "").toLowerCase();
+    if (/persona généré sans offercontext|scénario d'entraînement|scénario d’entraînement/.test(t)) return "SCENARIO_UNAVAILABLE";
+    if (/credit balance|overloaded|rate limit|temporarily unavailable/.test(t)) return "PROVIDER_UNAVAILABLE";
+    if (/unauthorized|non authentifié/.test(t)) return "SESSION_EXPIRED";
+    return "RESPONSE_FAILED";
+  }
+  // quelques messages du serveur sont restés en anglais : ils sont traduits ici
+  var FR = [[/simulation is not active/i, "Cette simulation est terminée."], [/cannot undo in a completed simulation/i, "Impossible d’annuler : la simulation est terminée."],
+    [/^route inconnue$/i, "Cette action n’est pas encore disponible."], [/^tts failed$/i, "La voix du prospect est indisponible."],
+    [/feedback already submitted/i, "Vous avez déjà donné votre avis sur cette simulation."], [/^forbidden$/i, "Accès non autorisé"], [/not found/i, "Élément introuvable."]];
+  function fr(m) { m = String(m || ""); for (var i = 0; i < FR.length; i++) if (FR[i][0].test(m)) return FR[i][1]; return m; }
+
+  // ------------------------------------------------------------------ connexion à LNP
+  var A = { demo: false, crm: null, sim: null, me: null, admin: false, config: {}, voix: [], voixEL: false, token: "", membres: null, ctx: null };
+  var P = (function () { try { return window.parent !== window && window.parent.claude && window.parent.claude.web ? window.parent : null; } catch (e) { return null; } })();
+  async function api(path, opt) {
+    opt = opt || {};
+    var init = { method: opt.method || "GET", headers: {} };
+    if (opt.body !== undefined) { init.body = JSON.stringify(opt.body); init.headers["Content-Type"] = "application/json"; }
+    if (opt.signal) init.signal = opt.signal;
+    var r;
+    try { r = await A.sim.fetch(path, init); }
+    catch (e) { if (e && e.name === "AbortError") throw e; var x = new Error("Connexion interrompue — vérifiez votre réseau puis réessayez"); x.status = 0; throw x; }
+    if (opt.raw) return r;
+    return lireJson(r);
+  }
+  async function lireJson(r) {
+    var t = "", b = null;
+    try { t = await r.text(); } catch (e) {}
+    try { b = t ? JSON.parse(t) : null; } catch (e) {}
+    if (!r.ok) {
+      var m = b && b.error ? fr(b.error) : r.status === 401 || r.status === 403 ? "Votre session doit être renouvelée — rechargez l’application puis réessayez"
+        : r.status >= 500 ? "Le serveur n’a pas pu enregistrer l’action — réessayez dans un instant" : "Réponse inattendue du serveur — réessayez dans un instant";
+      var e = new Error(m); e.status = r.status; e.code = b && b.code; e.raw = b && b.error; throw e;
+    }
+    return b;
+  }
+  async function q(p) { var r = await p; if (r && r.error) throw new Error(r.error.message || "Lecture impossible"); return r ? r.data : null; }
+  function chargerMessages(id) { return q(A.crm.from("crm_sim_messages").select("id,role,content,created_at").eq("simulation_id", id).order("id", { ascending: true })).then(function (x) { return x || []; }); }
+  async function membres() {
+    if (A.membres) return A.membres;
+    try { A.membres = (await q(A.crm.from("crm_members").select("id,full_name,email").order("full_name", { ascending: true }))) || []; } catch (e) { A.membres = []; }
+    return A.membres;
+  }
+
+  // ------------------------------------------------------------------ notifications
+  function toast(titre, desc, mauvais) {
+    var box = $("#toasts"), el = document.createElement("div");
+    el.className = "toast" + (mauvais ? " bad" : "");
+    el.innerHTML = "<b>" + esc(titre) + "</b>" + (desc ? "<span>" + esc(desc) + "</span>" : "") + '<button type="button" class="tx" aria-label="Fermer la notification">✕</button>';
+    box.appendChild(el);
+    var t = setTimeout(rm, mauvais ? 8000 : 5000);
+    function rm() { clearTimeout(t); el.remove(); }
+    el.querySelector(".tx").onclick = rm;
+    while (box.children.length > 4) box.firstChild.remove();
+  }
+
+  // ------------------------------------------------------------------ fenêtres (Échap, focus gardé dedans, rendu au bouton d'ouverture)
+  var LAY = [], NL = 0;
+  function layer(o) {
+    var n = ++NL, opener = document.activeElement, el = document.createElement("div");
+    el.className = "scrim";
+    el.innerHTML = '<div class="modal ' + (o.cls || "") + '" role="' + (o.alert ? "alertdialog" : "dialog") + '" aria-modal="true" aria-labelledby="lt' + n + '">' +
+      '<div class="mh"><h2 id="lt' + n + '">' + esc(o.title) + "</h2>" + (o.close ? '<button type="button" class="x" data-x="close" aria-label="Fermer">✕</button>' : "") + "</div>" +
+      '<div class="mbody" style="display:flex;flex-direction:column;gap:12px">' + (o.body || "") + "</div></div>";
+    $("#layers").appendChild(el);
+    var L = { el: el, o: o, closed: false, close: function () { if (L.closed) return; L.closed = true; el.remove(); LAY.splice(LAY.indexOf(L), 1); if (opener && opener.focus && document.contains(opener)) opener.focus(); },
+      body: function (h) { paint(el.querySelector(".mbody"), h); } };
+    LAY.push(L);
+    el.addEventListener("click", function (e) {
+      if (e.target === el && o.scrimClose) { if (o.onEsc) o.onEsc(L); else L.close(); return; }
+      var b = e.target.closest("button"); if (!b || b.disabled) return;
+      if (b.dataset.x === "close") { if (o.onEsc) o.onEsc(L); else L.close(); return; }
+      if (o.onClick) o.onClick(b, L, e);
+    });
+    if (o.onMount) o.onMount(L);
+    var f = (o.focus && el.querySelector(o.focus)) || el.querySelector("button,textarea,input,select");
+    if (f) f.focus();
+    return L;
+  }
+  document.addEventListener("keydown", function (e) {
+    var L = LAY[LAY.length - 1]; if (!L) return;
+    if (e.key === "Escape") { e.preventDefault(); if (L.o.onEsc) L.o.onEsc(L); else if (!L.o.noEsc) L.close(); return; }
+    if (e.key === "Tab") {
+      var f = $$("button:not(:disabled),textarea,input,select,a[href]", L.el); if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }
+  }, true);
+  // toute suppression passe par cette confirmation
+  function ask(o) {
+    return new Promise(function (res) {
+      layer({ alert: true, title: o.title, focus: '[data-x="no"]',
+        body: '<p>' + (o.html || esc(o.text)) + '</p><div class="acts"><span class="sp"></span><button type="button" class="btn" data-x="no">' + esc(o.cancel || "Annuler") +
+          '</button><button type="button" class="btn ' + (o.danger ? "ko" : "p") + '" data-x="yes">' + esc(o.ok) + "</button></div>",
+        onEsc: function (L) { L.close(); res(false); },
+        onClick: function (b, L) { if (b.dataset.x === "yes" || b.dataset.x === "no") { L.close(); res(b.dataset.x === "yes"); } } });
+    });
+  }
+
+  // ------------------------------------------------------------------ navigation entre les vues (#nouvelle, #historique, #offres, #reglages, #appel/<id>, #resultat/<id>)
+  var V = { name: "", arg: null, cleanup: null }, HASH = location.hash;
+  function go(h) {
+    HASH = h;
+    if (location.hash === h) return route();
+    try { location.hash = h; } catch (e) {}
+    if (location.hash !== h) route();
+  }
+  window.addEventListener("hashchange", function () { HASH = location.hash; route(); });
+  function route() {
+    var parts = String(HASH || "").replace(/^#/, "").split("/"), name = parts[0] || "nouvelle";
+    if (["nouvelle", "historique", "offres", "reglages", "appel", "resultat"].indexOf(name) < 0) name = "nouvelle";
+    if (A.demo) name = "nouvelle";
+    if (!A.admin && (name === "offres" || name === "reglages")) name = "nouvelle";
+    if (V.cleanup) { var c = V.cleanup; V.cleanup = null; try { c(); } catch (e) { console.warn(e); } }
+    while (LAY.length) LAY[LAY.length - 1].close();
+    $("#fin").innerHTML = "";
+    V.name = name; V.arg = parts[1] || null;
+    document.body.classList.toggle("calling", name === "appel");
+    renderNav();
+    $("#view").scrollTop = 0;
+    ({ nouvelle: vueNouvelle, historique: vueHistorique, offres: vueOffres, reglages: vueReglages, appel: vueAppel, resultat: vueResultat })[name](V.arg);
+  }
+  function renderNav() {
+    var items = A.demo ? [["nouvelle", "Nouvelle simulation"]] : [["nouvelle", "Nouvelle simulation"], ["historique", "Historique"]]
+      .concat(A.admin ? [["offres", "Offres et prospects"], ["reglages", "Réglages"]] : []);
+    var cur = V.name === "resultat" ? "historique" : V.name;
+    paint($("#nav"), items.map(function (x) { return '<button type="button" data-k="nav-' + x[0] + '" data-go="#' + x[0] + '"' + (cur === x[0] ? ' aria-current="page"' : "") + ">" + x[1] + "</button>"; }).join(""));
+  }
+
+  // ------------------------------------------------------------------ vue « Nouvelle simulation »
+  var H = { offre: lget("lnp-sim-offre", null), voix: lget("lnp-sim-voix", true) !== false, mode: "full", busy: false, offres: null, prospects: {}, actives: [], err: "" };
+  var LANCE = null;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  function voixPossible() { return !!(SR && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && A.config.voice_mode_enabled !== false; }
+  var DEMO = { offre: { id: "demo", name: "Offre exemple · formation de 6 mois", status: "ready" },
+    prospects: [
+      { id: "demo-nadia", first_name: "Nadia", age: 38, city: "Lyon", profession: "Professeure des écoles en reconversion", difficulty: "moyen", full_persona_data: { objectionsMode: {} } },
+      { id: "demo-paul", first_name: "Paul", age: 45, city: "Nantes", profession: "Responsable commercial dans l’industrie", difficulty: "difficile", full_persona_data: {} }] };
+  async function vueNouvelle() {
+    if (A.demo) { H.offres = [DEMO.offre]; H.offre = "demo"; H.prospects.demo = DEMO.prospects; if (!H.prospect) H.prospect = "demo-nadia"; return renderNouvelle(); }
+    renderNouvelle();
+    chargerOffresAccueil(); chargerActives();
+    var t = setInterval(chargerActives, 30000);
+    V.cleanup = function () { clearInterval(t); };
+  }
+  async function chargerOffresAccueil() {
+    try {
+      var rows = (await q(A.crm.from("crm_sim_offers").select("id,name,price,status,archived,created_at").order("created_at", { ascending: false }))) || [];
+      H.offres = rows.filter(function (o) { return !o.archived; }); H.err = "";
+      if (!H.offres.some(function (o) { return o.id === H.offre && o.status === "ready"; })) H.offre = (H.offres.filter(function (o) { return o.status === "ready"; })[0] || {}).id || null;
+    } catch (e) { H.offres = []; H.err = "Impossible de charger les offres : " + e.message; }
+    if (V.name !== "nouvelle") return;
+    renderNouvelle(); if (H.offre) chargerProspectsAccueil(H.offre);
+  }
+  async function chargerProspectsAccueil(oid, force) {
+    if (!H.prospects[oid] || force) {
+      H.prospects[oid] = null; renderNouvelle();
+      try { H.prospects[oid] = ((await q(A.crm.from("crm_sim_personas").select("*").eq("offer_id", oid).order("position", { ascending: true }))) || []).filter(function (p) { return p.active !== false; }); }
+      catch (e) { H.prospects[oid] = []; H.err = "Impossible de charger les prospects : " + e.message; }
+    }
+    var l = H.prospects[oid] || [], m = lget("lnp-sim-prospect-" + oid, null);
+    H.prospect = l.some(function (p) { return p.id === m; }) ? m : (l[0] || {}).id || null;
+    if (V.name === "nouvelle") renderNouvelle();
+  }
+  async function chargerActives() {
+    try { var rows = await A.crm.rpc("crm_sim_history", { p_user: A.me.id, p_limit: 50 }); H.actives = (rows || []).filter(function (r) { return r.status === "active" && r.user_id === A.me.id; }); }
+    catch (e) { H.actives = []; }
+    if (V.name === "nouvelle") renderNouvelle();
+  }
+  function prospectChoisi() { return (H.prospects[H.offre] || []).filter(function (p) { return p.id === H.prospect; })[0] || null; }
+  function sansObjections(p) { return !(p.full_persona_data && p.full_persona_data.objectionsMode); }
+  function renderNouvelle() {
+    var p = prospectChoisi(), vp = A.demo || voixPossible(), voix = H.voix && vp;
+    var peut = !A.demo && !H.busy && p && !(H.mode === "objections" && sansObjections(p));
+    var h = '<div class="wrap">';
+    if (A.demo) h += '<div class="notice" role="note"><b>Le simulateur fonctionne dans LNP en ligne.</b> Ouvrez-le depuis LNP (Entraînement › Simulateur) pour lancer un appel. Voici un aperçu de l’écran, avec deux prospects d’exemple.</div>';
+    if (H.actives.length) {
+      h += '<div class="banner" aria-label="Conversations en cours">' + H.actives.map(function (s) {
+        var mn = Math.floor((Date.now() - Date.parse(s.started_at)) / 60000);
+        return '<div class="brow"><span class="bi" aria-hidden="true">✆</span><div style="flex:1;min-width:0"><b>Conversation en cours avec ' + esc(s.prospect_name) + "</b><small>" +
+          (mn < 1 ? "moins d’une minute" : mn + " min") + " · " + plur(s.messages || 0, "message") + " · " + esc(MODES[s.mode] || "") + "</small></div>" +
+          '<button type="button" class="btn p" data-k="rep-' + s.id + '" data-go="#appel/' + s.id + '">▶ Reprendre</button></div>';
+      }).join("") + "</div>";
+    }
+    h += '<div class="head"><h1>Nouvelle simulation</h1><span class="sp"></span>' +
+      '<div class="seg" role="group" aria-label="Texte ou voix"><button type="button" data-k="vx0" data-do="h-voix" data-v="0" aria-pressed="' + !voix + '">Texte</button>' +
+      '<button type="button" data-k="vx1" data-do="h-voix" data-v="1" aria-pressed="' + voix + '"' + (vp ? "" : ' disabled title="La voix demande Chrome ou Edge, un micro, et le mode voix ouvert par un administrateur."') + ">🎙 Voix</button></div>" +
+      '<button type="button" class="btn cta" data-k="lancer" data-do="lancer"' + (peut ? "" : " disabled") + (A.demo ? ' title="Disponible dans LNP en ligne"' : "") + ">" +
+      (H.busy ? '<span class="spin"></span> Lancement…' : "▶ Lancer la simulation") + "</button></div>";
+    if (H.err) h += '<p class="err" role="alert">' + esc(H.err) + "</p>";
+    h += '<section class="card" aria-labelledby="t-mode"><div class="ct" id="t-mode">Type d’entraînement</div><div class="modes">' + Object.keys(MODES).map(function (k) {
+      return '<button type="button" class="mb" data-k="m-' + k + '" data-do="h-mode" data-v="' + k + '" aria-pressed="' + (H.mode === k) + '"><span class="mi" aria-hidden="true">' + MODE_ICO[k] +
+        "</span><span><b>" + MODES[k] + "</b><small>" + MODE_DESC[k] + "</small></span></button>";
+    }).join("") + "</div></section>";
+    h += '<section class="card" aria-labelledby="t-off"><div class="ct" id="t-off">Offre à vendre</div>';
+    if (H.offres == null) h += loader("Chargement des offres…");
+    else if (!H.offres.length) h += '<div class="empty"><div class="ico">◫</div><b>Aucune offre pour l’instant</b><p>' + (A.admin ? "Créez une offre : ses prospects seront générés automatiquement." : "Un administrateur doit d’abord créer une offre et ses prospects.") + "</p>" +
+      (A.admin ? '<button type="button" class="btn p" data-go="#offres">Créer une offre</button>' : "") + "</div>";
+    else h += '<div class="offs">' + H.offres.map(function (o) {
+      var pret = o.status === "ready";
+      return '<button type="button" class="ob" data-k="o-' + o.id + '" data-do="h-offre" data-v="' + o.id + '" aria-pressed="' + (H.offre === o.id) + '"' + (pret ? "" : " disabled") + ' title="' + esc(o.name) + '"><i></i><span class="on">' +
+        esc(o.name) + "</span>" + (pret ? (H.offre === o.id ? '<span class="ok-ic" aria-hidden="true">✓</span>' : "") : '<span class="pill mid">' + (o.status === "failed" ? "Échec" : "En préparation") + "</span>") + "</button>";
+    }).join("") + "</div>";
+    h += "</section>";
+    var l = H.offre ? H.prospects[H.offre] : undefined;
+    h += '<section class="card" aria-labelledby="t-pro"><div class="ct" id="t-pro">Prospects' + (l && l.length ? " <small>" + plur(l.length, "prospect") + " · la difficulté vient du prospect</small>" : "") + "</div>";
+    if (!H.offre) h += '<p class="muted">← Choisissez d’abord une offre.</p>';
+    else if (l == null) h += loader("Chargement des prospects…");
+    else if (!l.length) h += '<div class="empty"><div class="ico">☺</div><b>Aucun prospect pour cette offre</b><p>' +
+      (A.admin ? "Générez les prospects de cette offre : six profils variés, prêts à l’emploi." : "Demandez à un administrateur de générer les prospects de cette offre.") + "</p>" +
+      (A.admin ? '<button type="button" class="btn p" data-do="h-generer" data-k="gen">Générer les prospects</button>' : "") + "</div>";
+    else h += '<div class="pgrid">' + l.map(function (x) {
+      var d = diff(x.difficulty), sel = H.prospect === x.id;
+      return '<button type="button" class="pc" data-k="p-' + esc(x.id) + '" data-do="h-prospect" data-v="' + esc(x.id) + '" aria-pressed="' + sel + '"><span class="top"><span class="av" aria-hidden="true">' + esc(initiale(x.first_name)) +
+        '</span><span class="nm"><b>' + esc(x.first_name) + "</b><small>" + (x.age ? x.age + " ans" : "") + (x.city ? " · " + esc(x.city) : "") + "</small></span>" + (sel ? '<span class="ok-ic" aria-hidden="true">✓</span>' : "") +
+        '</span><span class="job" title="' + esc(x.profession) + '">' + esc(x.profession || "Métier non renseigné") + '</span><span class="diff" style="background:' + d[1] + ";color:" + d[2] + '">' + d[0] + "</span>" +
+        (H.mode === "objections" && sansObjections(x) ? '<span class="no">Pas de données pour le mode Objections</span>' : "") + "</button>";
+    }).join("") + "</div>";
+    h += "</section></div>";
+    paint($("#view"), h);
+  }
+  async function lancer() {
+    var p = prospectChoisi(); if (!p || H.busy || A.demo) return;
+    if (H.mode === "objections" && sansObjections(p)) return toast("Erreur", "Ce prospect n’a pas les données requises pour le mode Objections.", true);
+    var voix = H.voix && voixPossible();
+    if (voix) debloquerAudio();
+    H.busy = true; renderNouvelle();
+    try {
+      var r = await api("simulations", { method: "POST", body: { personaId: p.id, simulationMode: H.mode, voiceMode: !!voix } });
+      H.busy = false; LANCE = { sim: r, messages: r.messages || [], voix: !!voix };
+      go("#appel/" + r.id);
+    } catch (e) { H.busy = false; renderNouvelle(); toast("Erreur", e.message || "Impossible de démarrer la simulation.", true); }
+  }
+
+  // ------------------------------------------------------------------ vue « Offres et prospects » (administrateurs)
+  var O = { list: null, sel: null, pers: {}, arch: false, form: { name: "", url: "", text: "", pdfs: [] }, busy: false, msg: "", err: "", poll: null };
+  var ST_OFF = { extracting: ["Lecture des sources…", "b"], generating: ["Création des prospects…", "b"], ready: ["Prête", "ok"], failed: ["Échec", "ko"] };
+  async function vueOffres() {
+    renderOffres(); await chargerOffresAdmin();
+    V.cleanup = function () { clearTimeout(O.poll); O.poll = null; };
+  }
+  async function chargerOffresAdmin() {
+    try { O.list = (await q(A.crm.from("crm_sim_offers").select("*").order("created_at", { ascending: false }))) || []; O.err = ""; }
+    catch (e) { O.list = []; O.err = "Impossible de charger les offres : " + e.message; }
+    if (!O.list.some(function (o) { return o.id === O.sel; })) O.sel = (O.list.filter(function (o) { return !o.archived; })[0] || O.list[0] || {}).id || null;
+    if (O.sel) await chargerPersAdmin(O.sel);
+    if (V.name !== "offres") return;
+    renderOffres(); planifierSuivi();
+  }
+  async function chargerPersAdmin(oid) {
+    try { O.pers[oid] = (await q(A.crm.from("crm_sim_personas").select("*").eq("offer_id", oid).order("position", { ascending: true }))) || []; }
+    catch (e) { O.pers[oid] = []; }
+    delete H.prospects[oid];
+  }
+  // le suivi des offres en préparation : toutes les 3 s tant qu'une offre lit ses sources ou génère ses prospects
+  function planifierSuivi() {
+    clearTimeout(O.poll); O.poll = null;
+    if ((O.list || []).some(function (o) { return o.status === "extracting" || o.status === "generating"; })) O.poll = setTimeout(function () { if (V.name === "offres") chargerOffresAdmin(); }, 3000);
+  }
+  function offreSel() { return (O.list || []).filter(function (o) { return o.id === O.sel; })[0] || null; }
+  function renderOffres() {
+    var h = '<div class="wrap"><div class="head"><h1>Offres et prospects</h1><span class="sp"></span>' +
+      '<label class="sw"><input type="checkbox" data-k="arch" data-do="o-arch"' + (O.arch ? " checked" : "") + "> Afficher les offres archivées</label></div>";
+    if (O.err) h += '<p class="err" role="alert">' + esc(O.err) + "</p>";
+    h += '<div class="ogrid"><div style="display:flex;flex-direction:column;gap:16px">';
+    var f = O.form;
+    h += '<section class="card" aria-labelledby="t-new"><div class="ct" id="t-new">Nouvelle offre</div><div class="form">' +
+      '<label class="f">Nom de l’offre <small>Facultatif : il est trouvé dans les sources sinon.</small><input class="in" data-k="f-name" data-f="name" maxlength="200" value="' + esc(f.name) + '"></label>' +
+      '<label class="f">Adresse du site <input class="in" type="url" data-k="f-url" data-f="url" placeholder="https://exemple.fr/formation" value="' + esc(f.url) + '"></label>' +
+      '<label class="f">Texte de l’offre <small>Collez la page de vente, le programme, les prix…</small><textarea class="in" data-k="f-text" data-f="text" rows="4">' + esc(f.text) + "</textarea></label>" +
+      '<div class="f" style="display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--ink2)">Documents PDF <small style="font-weight:400;color:var(--mut)">10 au plus, 20 Mo chacun.</small>' +
+      '<label class="btn filein">📄 Choisir des PDF<input class="sr" type="file" data-k="f-pdf" data-f="pdf" accept="application/pdf,.pdf" multiple aria-label="Choisir des documents PDF"></label></div>' +
+      (f.pdfs.length ? '<div class="files">' + f.pdfs.map(function (p, i) { return "<div><span>📄 " + esc(p.filename) + " · " + nb(p.size / 1048576, 1) + ' Mo</span><button type="button" class="btn g sm" data-do="o-pdfx" data-v="' + i + '" aria-label="Retirer ' + esc(p.filename) + '">Retirer</button></div>'; }).join("") + "</div>" : "") +
+      (O.msg ? '<p class="err" role="alert">' + esc(O.msg) + "</p>" : "") +
+      '<div class="acts"><button type="button" class="btn p" data-k="o-creer" data-do="o-creer"' + (O.busy ? " disabled" : "") + ">" + (O.busy ? '<span class="spin"></span> Envoi…' : "Créer l’offre et ses prospects") + "</button></div></div></section>";
+    h += '<section class="card" aria-labelledby="t-ol"><div class="ct" id="t-ol">Offres</div>';
+    var list = (O.list || []).filter(function (o) { return O.arch || !o.archived; });
+    if (O.list == null) h += loader("Chargement des offres…");
+    else if (!list.length) h += '<p class="muted">Aucune offre. Créez la première avec le formulaire ci-dessus.</p>';
+    else h += '<div class="olist">' + list.map(function (o) {
+      var s = ST_OFF[o.status] || ST_OFF.ready, n = (O.pers[o.id] || []).length;
+      return '<button type="button" class="oi" data-k="oi-' + o.id + '" data-do="o-sel" data-v="' + o.id + '" aria-pressed="' + (O.sel === o.id) + '"><span class="l1"><span class="on">' + esc(o.name) + "</span>" +
+        (o.archived ? '<span class="pill">Archivée</span>' : "") + '<span class="pill ' + s[1] + '">' + (o.status === "extracting" || o.status === "generating" ? '<span class="spin" style="width:11px;height:11px;border-width:2px"></span> ' : "") + s[0] + "</span></span>" +
+        "<small>" + (o.price ? esc(o.price) + " · " : "") + "créée le " + jour(o.created_at) + (O.pers[o.id] ? " · " + plur(n, "prospect") : "") + "</small></button>";
+    }).join("") + "</div>";
+    h += "</section></div><div>" + detailOffre() + "</div></div></div>";
+    paint($("#view"), h);
+  }
+  function detailOffre() {
+    var o = offreSel();
+    if (!o) return '<section class="card"><p class="muted">Choisissez une offre pour voir ses prospects.</p></section>';
+    var d = o.data || {}, id = d.offer_identity || {}, det = (d.offer_details || {}).main_offer || {}, tools = Array.isArray(d.tools_taught) ? d.tools_taught : [];
+    var enc = o.status === "extracting" || o.status === "generating", pers = O.pers[o.id] || [];
+    var h = '<section class="card" aria-labelledby="t-od"><div class="head"><h2 id="t-od">' + esc(o.name) + '</h2><span class="pill ' + (ST_OFF[o.status] || ST_OFF.ready)[1] + '">' + (ST_OFF[o.status] || ST_OFF.ready)[0] + "</span></div>";
+    if (o.status === "failed" && o.error) h += '<p class="err" style="margin-top:8px">Échec : ' + esc(o.error) + "</p>";
+    h += '<div class="acts" style="margin:12px 0">' +
+      '<button type="button" class="btn p" data-do="o-train"' + (o.status !== "ready" || !pers.length || o.archived ? " disabled" : "") + ">S’entraîner sur cette offre</button>" +
+      '<button type="button" class="btn" data-do="o-gen"' + (enc ? " disabled" : "") + ">" + (pers.length ? "Régénérer les prospects" : "Générer les prospects") + "</button>" +
+      '<button type="button" class="btn" data-do="o-rean"' + (enc ? " disabled" : "") + ">Réanalyser l’offre</button>" +
+      '<button type="button" class="btn" data-do="o-archiver">' + (o.archived ? "Désarchiver" : "Archiver") + "</button>" +
+      '<button type="button" class="btn kol" data-do="o-suppr">Supprimer l’offre</button></div>';
+    var rows = [["Promesse", id.main_promise], ["Positionnement", id.positioning], ["Prix", det.price != null && det.price !== "" ? (typeof det.price === "number" ? nb(det.price, 0) + " €" : det.price) : o.price],
+      ["Durée", det.duration], ["Financement", Array.isArray(det.financing_options) ? det.financing_options.join(" · ") : ""], ["Outils enseignés", tools.map(function (t) { return t && t.name; }).filter(Boolean).join(", ")],
+      ["Secteur", o.sector], ["Sources", (o.sources || []).map(function (s) { return (s.type === "url" ? "Site " + (s.url || s.filename) : s.type === "pdf" ? "PDF " + s.filename : "Texte collé") + (s.char_count ? " (" + nb(s.char_count, 0) + " caractères)" : ""); }).join("\n")]]
+      .filter(function (r) { return r[1]; });
+    if (rows.length) h += '<details class="sec"><summary>Ce que le prospect sait de l’offre</summary><dl class="dl">' + rows.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("") + "</dl></details>";
+    h += "</section>";
+    h += '<section class="card" style="margin-top:16px" aria-labelledby="t-op"><div class="ct" id="t-op">Prospects de l’offre <small>' + plur(pers.length, "prospect") + "</small></div>";
+    if (o.status === "generating") h += '<p class="muted"><span class="spin"></span> Création des prospects en cours : la liste se mettra à jour d’elle-même.</p>';
+    else if (!pers.length) h += '<p class="muted">Aucun prospect. Utilisez « Générer les prospects ».</p>';
+    else {
+      var vf = A.voix.filter(function (v) { return v.gender === "F"; }), vm = A.voix.filter(function (v) { return v.gender === "M"; });
+      var opt = function (l, cur) { return l.map(function (v) { return '<option value="' + esc(v.id) + '"' + (v.id === cur ? " selected" : "") + ">" + esc(v.name) + "</option>"; }).join(""); };
+      h += '<div style="overflow:auto"><table class="t"><thead><tr><th>Prospect</th><th>Difficulté</th><th>Conscience</th><th>Voix</th><th>État</th><th><span class="sr">Actions</span></th></tr></thead><tbody>' + pers.map(function (p) {
+        return '<tr class="' + (p.active === false ? "off" : "") + '"><td><b>' + esc(p.first_name) + "</b>" + (p.age ? ", " + p.age + " ans" : "") + (p.city ? " · " + esc(p.city) : "") + '<br><small class="muted">' + esc(p.profession || "") + "</small></td>" +
+          '<td><select class="in" data-k="pd-' + esc(p.id) + '" data-pdiff="' + esc(p.id) + '" aria-label="Difficulté de ' + esc(p.first_name) + '">' + Object.keys(DIFF).map(function (k) { return '<option value="' + k + '"' + (p.difficulty === k ? " selected" : "") + ">" + DIFF[k][0] + "</option>"; }).join("") + "</select></td>" +
+          "<td>" + (p.consciousness_level ? p.consciousness_level + " / 5" : "—") + "</td>" +
+          '<td><select class="in" data-k="pv-' + esc(p.id) + '" data-pvoix="' + esc(p.id) + '" aria-label="Voix de ' + esc(p.first_name) + '">' + (p.voice_id ? "" : '<option value="" selected>Voix par défaut</option>') +
+          '<optgroup label="Voix féminines">' + opt(vf, p.voice_id) + '</optgroup><optgroup label="Voix masculines">' + opt(vm, p.voice_id) + "</optgroup></select></td>" +
+          "<td>" + (p.active === false ? '<span class="pill">Désactivé</span>' : '<span class="pill ok">Actif</span>') + "</td>" +
+          '<td style="white-space:nowrap"><button type="button" class="btn sm" data-do="p-fiche" data-v="' + esc(p.id) + '">Fiche</button> <button type="button" class="btn sm" data-do="p-actif" data-v="' + esc(p.id) + '">' +
+          (p.active === false ? "Réactiver" : "Désactiver") + '</button> <button type="button" class="btn sm kol" data-do="p-suppr" data-v="' + esc(p.id) + '" aria-label="Supprimer ' + esc(p.first_name) + '">Supprimer</button></td></tr>';
+      }).join("") + "</tbody></table></div>";
+    }
+    return h + "</section>";
+  }
+  function lireFichier(f) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result).replace(/^data:[^,]*,/, "")); }; r.onerror = rej; r.readAsDataURL(f); }); }
+  async function ajouterPdfs(input) {
+    var msgs = [], files = Array.prototype.slice.call(input.files || []);
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) { msgs.push("« " + f.name + " » n’est pas un PDF."); continue; }
+      if (f.size > 20 * 1048576) { msgs.push("« " + f.name + " » dépasse 20 Mo."); continue; }
+      if (O.form.pdfs.some(function (p) { return p.filename === f.name && p.size === f.size; })) continue;
+      if (O.form.pdfs.length >= 10) { msgs.push("10 PDF au plus (" + plur(files.length - i, "fichier ignoré", "fichiers ignorés") + ")."); break; }
+      try { O.form.pdfs.push({ filename: f.name, size: f.size, base64: await lireFichier(f) }); } catch (e) { msgs.push("« " + f.name + " » est illisible."); }
+    }
+    O.msg = msgs.join(" "); renderOffres();
+  }
+  async function creerOffre() {
+    var f = O.form; O.msg = "";
+    if (!f.url.trim() && !f.text.trim() && !f.pdfs.length) { O.msg = "Ajoutez une adresse, collez un texte ou joignez au moins un PDF."; return renderOffres(); }
+    if (f.url.trim()) { try { var u = new URL(f.url.trim()); if (!/^https?:$/.test(u.protocol)) throw 0; } catch (e) { O.msg = "Adresse invalide. Vérifiez le format (ex. https://exemple.fr)."; return renderOffres(); } }
+    O.busy = true; renderOffres();
+    try {
+      var r = await api("offres", { method: "POST", body: { name: f.name.trim() || undefined, url: f.url.trim() || undefined, text: f.text.trim() || undefined, pdfs: f.pdfs.map(function (p) { return { filename: p.filename, base64: p.base64 }; }) } });
+      var o = (r && r.offer) || r || {};
+      toast(r && r.isNew === false ? "Offre existante trouvée" : "Offre en préparation", (r && r.message) || "Lecture des sources, puis génération des prospects.");
+      O.form = { name: "", url: "", text: "", pdfs: [] }; if (o.id) O.sel = o.id;
+    } catch (e) { O.msg = e.message; }
+    O.busy = false; await chargerOffresAdmin();
+  }
+  async function actionOffre(kind) {
+    var o = offreSel(); if (!o) return;
+    try {
+      if (kind === "o-gen") {
+        var n = (O.pers[o.id] || []).length;
+        if (n && !(await ask({ title: "Régénérer les prospects ?", text: "Les " + n + " prospects actuels de cette offre seront supprimés et remplacés par six nouveaux. Cette action est irréversible.", ok: "Régénérer", danger: true }))) return;
+        await api("offres/" + o.id + "/prospects", { method: "POST" }); toast("Génération lancée", "Les prospects apparaîtront dans quelques minutes.");
+      } else if (kind === "o-rean") {
+        await api("offres/" + o.id + "/reanalyser", { method: "POST" }); toast("Réanalyse lancée", "L’offre est relue à partir de ses sources. Les prospects ne changent pas.");
+      } else if (kind === "o-archiver") {
+        try { await api("offres/" + o.id, { method: "PATCH", body: { archived: !o.archived } }); toast(o.archived ? "Offre désarchivée" : "Offre archivée", o.archived ? "Elle est de nouveau proposée aux commerciaux." : "Elle n’est plus proposée aux commerciaux."); }
+        catch (e) { if (e.status === 404) return toast("Archivage indisponible", "Le serveur ne propose pas encore l’archivage d’une offre.", true); throw e; }
+      } else if (kind === "o-suppr") {
+        if (!(await ask({ title: "Supprimer cette offre ?", html: "L’offre <b>" + esc(o.name) + "</b> ainsi que tous ses prospects seront supprimés définitivement. Cette action est irréversible.", ok: "Supprimer", danger: true }))) return;
+        await api("offres/" + o.id, { method: "DELETE" }); toast("Offre supprimée", "L’offre a été supprimée définitivement.");
+        O.sel = null; if (H.offre === o.id) H.offre = null;
+      } else if (kind === "o-train") { H.offre = o.id; lset("lnp-sim-offre", o.id); delete H.prospects[o.id]; return go("#nouvelle"); }
+    } catch (e) { return toast("Erreur", e.message, true); }
+    await chargerOffresAdmin();
+  }
+  async function actionProspect(kind, pid, val) {
+    var o = offreSel(), p = ((o && O.pers[o.id]) || []).filter(function (x) { return x.id === pid; })[0]; if (!p) return;
+    try {
+      if (kind === "p-fiche") return ficheProspect(p);
+      if (kind === "p-suppr") {
+        if (!(await ask({ title: "Supprimer ce prospect ?", html: "Le prospect <b>" + esc(p.first_name) + "</b> sera supprimé définitivement. Les simulations déjà faites restent dans l’historique.", ok: "Supprimer", danger: true }))) return;
+        await api("personas/" + encodeURIComponent(pid), { method: "DELETE" }); toast("Prospect supprimé", p.first_name + " ne fait plus partie de l’offre.");
+      } else if (kind === "p-actif") {
+        await api("personas/" + encodeURIComponent(pid), { method: "PATCH", body: { active: p.active === false } }); toast(p.active === false ? "Prospect réactivé" : "Prospect désactivé", p.first_name + (p.active === false ? " est de nouveau proposé." : " n’est plus proposé aux commerciaux."));
+      } else if (kind === "p-voix") {
+        await api("personas/" + encodeURIComponent(pid), { method: "PATCH", body: { voice_id: val } }); toast("Voix modifiée", "La voix de " + p.first_name + " est enregistrée.");
+      } else if (kind === "p-diff") {
+        await api("personas/" + encodeURIComponent(pid), { method: "PATCH", body: { difficulty: val } }); toast("Difficulté modifiée", p.first_name + " : " + diff(val)[0] + ".");
+      }
+    } catch (e) { toast("Erreur", e.message, true); }
+    await chargerPersAdmin(o.id); renderOffres();
+  }
+  // la fiche complète d'un prospect (lecture)
+  var LIB = { prenom: "Prénom", gender: "Genre", age: "Âge", ville: "Ville", metier: "Métier", situation: "Situation", ca_actuel: "CA actuel", objectif_ca: "Objectif de CA",
+    conscience: "Conscience du problème", confiance: "Confiance initiale", engagement: "Engagement", etat_emotionnel: "État émotionnel",
+    source: "Source", ce_qui_attire: "Ce qui attire", ce_qui_retenu: "Ce qui a retenu l’attention", ce_qui_pas_compris: "Ce qui n’est pas compris", action_deja_faite: "Actions déjà faites",
+    surface: "En surface", consequences: "Conséquences", emotionnel: "Émotionnel", identitaire: "Identitaire", texte: "Objection", vraie_raison: "Vraie raison", declencheur: "Déclencheur",
+    vocabulaire: "Vocabulaire", tics: "Tics de langage", phrasesType: "Type de phrases", emotionVisible: "Expression des émotions",
+    siMentionFormation: "S’il est question de formation", siPromesseResultat: "Si on lui promet un résultat", siPrixAvantPhase7: "Si le prix arrive trop tôt",
+    siConseilNonSollicite: "Si on lui donne un conseil non demandé", siReformulationJuste: "Si la reformulation est juste",
+    reformulationParfaite: "Reformulation parfaite", silenceApresGAP: "Silence après l’écart", empathieAuthentique: "Empathie sincère", exemple: "Exemple",
+    prixOffre: "Prix de l’offre", gap: "Écart", financier: "Financier", temps: "Temps", total: "Total", objectionPrix: "Objection sur le prix", vraie_objection: "Vraie objection", historique: "Historique",
+    pourquoi_appel: "Pourquoi cet appel", attentes_echange: "Attentes de l’échange", niveau: "Niveau", label: "Libellé", description: "Description", objectif_progression: "Objectif de progression",
+    situation_actuelle: "Situation actuelle", situation_negative: "Situation négative", emotion_negative: "Émotion négative", problem_aware: "Conscience du problème",
+    situation_desiree: "Situation désirée", objectif_chiffre: "Objectif chiffré", timeline: "Échéance", vision_concrete: "Vision concrète", emotion_positive: "Émotion positive",
+    actuel: "Actuel", cible: "Cible", ecart_mensuel: "Écart mensuel", cout_annuel_inaction: "Coût annuel de l’inaction", validation_prospect: "Validation du prospect",
+    opportunity_aware: "Conscience de l’opportunité", engagement_verbal: "Engagement verbal", validation_candidature: "Validation de la candidature", prix_annonce: "Prix annoncé",
+    diagnostic: "Phase diagnostic", objections: "Phase objections", attentes_appel: "Attentes de l’appel", niveau_conscience: "Niveau de conscience", engagementB: "Engagement", pitch: "Présentation" };
+  var CONSC = { "UNAWARE": "Inconscient du problème", "PROBLEM AWARE": "Conscient du problème", "SOLUTION AWARE": "Conscient des solutions", "PRODUCT AWARE": "Connaît l’offre", "MOST AWARE": "Prêt à acheter" };
+  function rendu(v) {
+    if (v == null || v === "") return '<span class="muted">—</span>';
+    if (typeof v === "number") return nb(v, 2);
+    if (typeof v === "boolean") return v ? "Oui" : "Non";
+    if (typeof v === "string") return esc(CONSC[v] || v);
+    if (Array.isArray(v)) return v.length ? "<ul>" + v.map(function (x) { return "<li>" + rendu(x) + "</li>"; }).join("") + "</ul>" : '<span class="muted">—</span>';
+    return '<dl class="dl sub">' + Object.keys(v).filter(function (k) { return k !== "pcmType"; }).map(function (k) { return "<dt>" + esc(LIB[k] || k.replace(/_/g, " ")) + "</dt><dd>" + rendu(v[k]) + "</dd>"; }).join("") + "</dl>";
+  }
+  function ficheProspect(p) {
+    var d = p.full_persona_data || {}, b = d.briefing || {};
+    var secs = [["Histoire personnelle", d.backstory, true], ["Identité et revenus", d.identite], ["Diagnostic", b.diagnostic], ["Douleurs", d.douleurs], ["Objections", d.objections],
+      ["Contexte de l’offre", d.offerContext || d.alegraContext], ["États initiaux", d.etatsInitiaux], ["Messages initiaux", d.messagesInitiaux], ["Déclencheurs positifs", d.triggersPositifs],
+      ["Comportements particuliers", d.comportementsUniques], ["Style de langage", d.styleLinguistique], ["Mode objections (prix)", d.objectionsMode],
+      ["Attentes de l’appel", b.attentes_appel], ["Niveau de conscience", b.niveau_conscience], ["Engagement obtenu", b.engagement], ["Présentation", b.pitch]].filter(function (s) { return s[1]; });
+    var dd = diff(p.difficulty);
+    layer({ title: "Fiche de " + p.first_name, cls: "wide", close: true, scrimClose: true,
+      body: '<p class="muted">' + esc([p.age ? p.age + " ans" : "", p.city, p.profession].filter(Boolean).join(" · ")) + ' · <span class="diff" style="background:' + dd[1] + ";color:" + dd[2] + '">' + dd[0] + "</span>" +
+        (p.consciousness_level ? ' · <span class="pill">Conscience ' + p.consciousness_level + " / 5</span>" : "") + "</p>" + (p.situation ? "<p>" + esc(p.situation) + "</p>" : "") +
+        '<div class="pd" style="display:flex;flex-direction:column;gap:8px">' + secs.map(function (s) { return '<details class="sec"' + (s[2] ? " open" : "") + "><summary>" + s[0] + "</summary>" + rendu(s[1]) + "</details>"; }).join("") + "</div>" });
+  }
+
+  // ------------------------------------------------------------------ vue « Réglages » (administrateurs)
+  var RG = { row: null, edit: null, busy: false };
+  var MODELES = [["claude-sonnet-5-5", "Sonnet 5.5 (recommandé)", "Réponses nuancées et réalistes : le bon choix pour l’entraînement."],
+    ["claude-haiku-5-5", "Haiku 5.5 (rapide)", "Réponses plus rapides et moins coûteuses, un peu moins nuancées."], ["claude-opus-5-5", "Opus 5.5", "Le plus fin, mais plus lent et plus coûteux."]];
+  var MODELES_VOIX = [["eleven_flash_v2_5", "Flash v2.5 (rapide)"], ["eleven_turbo_v2_5", "Turbo v2.5 (équilibré)"], ["eleven_multilingual_v2", "Multilingue v2 (qualité)"]];
+  var CHAMPS = ["claude_model", "voice_mode_enabled", "eleven_labs_model_id", "eleven_labs_stability", "eleven_labs_style", "eleven_labs_speed", "silence_timeout_ms", "daily_analysis_limit"];
+  async function vueReglages() {
+    paint($("#view"), '<div class="wrap">' + loader("Chargement des réglages…") + "</div>");
+    try { RG.row = (await q(A.crm.from("crm_sim_config").select("*").eq("id", 1).maybeSingle())) || A.config; } catch (e) { RG.row = A.config; }
+    RG.edit = {}; CHAMPS.forEach(function (k) { RG.edit[k] = RG.row[k]; });
+    renderReglages();
+  }
+  function rgModifie() { return CHAMPS.some(function (k) { return String(RG.edit[k]) !== String(RG.row[k]); }); }
+  function renderReglages() {
+    var e = RG.edit, m = MODELES.filter(function (x) { return x[0] === e.claude_model; })[0] || MODELES[0];
+    var num = function (k, lab, min, max, step, aide, unit) {
+      return '<label class="f">' + lab + " (" + nb(e[k], 2) + (unit || "") + ')<input class="in" type="number" data-k="r-' + k + '" data-r="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + esc(e[k]) + '"><small>' + aide + "</small></label>";
+    };
+    var h = '<div class="wrap"><div class="head"><h1>Réglages du simulateur</h1><span class="sp"></span>' +
+      '<button type="button" class="btn" data-do="r-annuler"' + (rgModifie() ? "" : " disabled") + '>Annuler</button><button type="button" class="btn p" data-k="r-save" data-do="r-save"' + (rgModifie() && !RG.busy ? "" : " disabled") + ">" + (RG.busy ? "Enregistrement…" : "Enregistrer les réglages") + "</button></div>" +
+      (RG.row.updated_at ? '<p class="muted small">Dernière modification : ' + quand(RG.row.updated_at) + "</p>" : "") +
+      '<div class="rgl"><section class="card" aria-labelledby="t-mod"><h2 id="t-mod">Modèle du prospect</h2><p class="muted small">Le modèle qui joue le prospect, en texte comme à la voix.</p>' +
+      '<label class="f">Modèle<select class="in" data-k="r-model" data-r="claude_model">' + MODELES.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === e.claude_model ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select><small>" + m[2] + "</small></label></section>" +
+      '<section class="card" aria-labelledby="t-an"><h2 id="t-an">Analyses</h2>' + num("daily_analysis_limit", "Plafond quotidien d’analyses", 0, 1000, 1, "Au-delà, l’analyse est mise en attente et repart dès qu’une place se libère (journée de Paris). 0 coupe les analyses.") +
+      '<div class="acts"><button type="button" class="btn" data-do="r-reprendre">Relancer les analyses en attente</button></div></section>' +
+      '<section class="card" aria-labelledby="t-vx"><h2 id="t-vx">Voix</h2><p class="muted small">' + (A.voixEL ? "Voix de synthèse ElevenLabs configurée : les réglages ci-dessous s’appliquent." : "Voix de synthèse ElevenLabs non configurée : le navigateur lit les réponses du prospect avec sa propre voix.") + "</p>" +
+      '<label class="sw"><input type="checkbox" data-k="r-vme" data-r="voice_mode_enabled"' + (e.voice_mode_enabled !== false ? " checked" : "") + "> Proposer le mode voix aux commerciaux</label>" +
+      '<label class="f">Modèle de voix<select class="in" data-k="r-vm" data-r="eleven_labs_model_id">' + MODELES_VOIX.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === e.eleven_labs_model_id ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select></label>" +
+      num("eleven_labs_stability", "Stabilité", 0, 1, 0.05, "0 = stable, 1 = expressive.") + num("eleven_labs_style", "Style", 0, 1, 0.05, "0 = neutre, 1 = expressif.") +
+      num("eleven_labs_speed", "Vitesse", 0.7, 1.2, 0.05, "1 = normale, 1,2 = rapide.") + "</section>" +
+      '<section class="card" aria-labelledby="t-sil"><h2 id="t-sil">Détection du silence</h2>' + num("silence_timeout_ms", "Temps de silence", 300, 5000, 100, "Durée de silence qui marque la fin d’une phrase en mode voix. 800 ms par défaut ; 800 à 1 200 ms conviennent le mieux.", " ms") + "</section></div></div>";
+    paint($("#view"), h);
+  }
+  async function enregistrerReglages() {
+    var b = {}, e = RG.edit;
+    CHAMPS.forEach(function (k) { b[k] = e[k]; });
+    ["eleven_labs_stability", "eleven_labs_style", "eleven_labs_speed", "silence_timeout_ms", "daily_analysis_limit"].forEach(function (k) { b[k] = Number(e[k]); });
+    b.voice_mode_enabled = e.voice_mode_enabled !== false;
+    RG.busy = true; renderReglages();
+    try { var r = await api("config", { method: "PUT", body: b }); RG.row = Object.assign({}, RG.row, r || b); A.config = Object.assign({}, A.config, RG.row); toast("Réglages enregistrés", "Les nouveaux réglages s’appliquent dès maintenant."); }
+    catch (x) { toast("Erreur", x.message || "Impossible d’enregistrer les réglages.", true); }
+    RG.busy = false; CHAMPS.forEach(function (k) { RG.edit[k] = RG.row[k]; }); renderReglages();
+  }
+
+  // ------------------------------------------------------------------ vue « Historique »
+  var HI = { rows: null, q: "", offre: "", mode: "", score: "", statut: "", personne: "", tri: "recent", page: 1, err: "", charge: false };
+  var PAGE = 8;
+  async function vueHistorique() {
+    renderHistorique(); chargerHistorique();
+    if (A.admin) membres().then(function () { if (V.name === "historique") renderHistorique(); });
+    // toutes les 5 s tant qu'une analyse tourne
+    var t = setInterval(function () { if (!HI.charge && (HI.rows || []).some(function (r) { return r.analysis && r.analysis.status === "processing"; })) chargerHistorique(); }, 5000);
+    V.cleanup = function () { clearInterval(t); };
+  }
+  async function chargerHistorique() {
+    HI.charge = true;
+    try { HI.rows = (await A.crm.rpc("crm_sim_history", { p_user: A.admin && HI.personne ? HI.personne : null, p_limit: 1000 })) || []; HI.err = ""; }
+    catch (e) { HI.rows = HI.rows || []; HI.err = "Impossible de charger l’historique : " + e.message; }
+    HI.charge = false;
+    if (V.name === "historique") renderHistorique();
+  }
+  function scoreDe(r) { var s = r.analysis && r.analysis.status === "completed" ? Number(r.analysis.score) : NaN; return isFinite(s) ? s : null; }
+  function statutDe(r) {
+    if (r.status === "active") return "active";
+    var a = r.analysis; if (!a) return "aucune";
+    return { processing: "processing", deferred: "deferred", completed: "completed", failed: "failed", rejected: "aucune" }[a.status] || "aucune";
+  }
+  var ST_HIST = { active: ["Appel en cours", "b"], processing: ["Analyse en cours…", "b"], deferred: ["Analyse en attente", "mid"], completed: ["Analysée", "ok"], failed: ["Échec de l’analyse", "ko"], aucune: ["Sans analyse", ""] };
+  function filtrer() {
+    var t = norm(HI.q);
+    var l = (HI.rows || []).filter(function (r) {
+      if (t && norm([r.prospect_name, r.offer_name, r.name, MODES[r.mode]].join(" ")).indexOf(t) < 0) return false;
+      if (HI.offre && r.offer_name !== HI.offre) return false;
+      if (HI.mode && r.mode !== HI.mode) return false;
+      if (HI.statut && statutDe(r) !== HI.statut) return false;
+      var s = scoreDe(r);
+      if (HI.score === "high" && !(s >= 80)) return false;
+      if (HI.score === "medium" && !(s >= 60 && s < 80)) return false;
+      if (HI.score === "low" && !(s != null && s < 60)) return false;
+      if (HI.score === "none" && s != null) return false;
+      return true;
+    });
+    var by = { recent: function (a, b) { return Date.parse(b.started_at) - Date.parse(a.started_at); }, oldest: function (a, b) { return Date.parse(a.started_at) - Date.parse(b.started_at); },
+      best: function (a, b) { return (scoreDe(b) == null ? -1 : scoreDe(b)) - (scoreDe(a) == null ? -1 : scoreDe(a)); },
+      worst: function (a, b) { return (scoreDe(a) == null ? 101 : scoreDe(a)) - (scoreDe(b) == null ? 101 : scoreDe(b)); } };
+    return l.sort(by[HI.tri] || by.recent);
+  }
+  function sel(k, lab, opts, cur) {
+    return '<select class="in" data-k="hf-' + k + '" data-hf="' + k + '" aria-label="' + lab + '">' + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(cur) === String(o[0]) ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>";
+  }
+  function renderHistorique() {
+    var rows = HI.rows, l = rows ? filtrer() : [], pages = Math.max(1, Math.ceil(l.length / PAGE));
+    if (HI.page > pages) HI.page = pages;
+    var offres = []; (rows || []).forEach(function (r) { if (r.offer_name && offres.indexOf(r.offer_name) < 0) offres.push(r.offer_name); });
+    offres.sort(function (a, b) { return a.localeCompare(b, "fr"); });
+    var h = '<div class="wrap"><div class="head"><h1>Historique</h1><span class="sp"></span><input class="in" type="search" style="width:240px" data-k="hq" data-hf="q" placeholder="Rechercher…" aria-label="Rechercher une simulation" value="' + esc(HI.q) + '"></div>';
+    if (HI.err) h += '<p class="err" role="alert">' + esc(HI.err) + "</p>";
+    h += '<div class="filt" role="group" aria-label="Filtres"><span class="muted small" style="margin-right:6px">' + plur(l.length, "simulation") + "</span>" +
+      sel("offre", "Offre", [["", "Toutes les offres"]].concat(offres.map(function (o) { return [o, o]; })), HI.offre) +
+      sel("mode", "Mode", [["", "Tous les modes"], ["full", "Appel complet"], ["diagnostic", "Diagnostic"], ["objections", "Objections"]], HI.mode) +
+      sel("score", "Score", [["", "Tous les scores"], ["high", "80 et plus (bon)"], ["medium", "60 à 79 (moyen)"], ["low", "Moins de 60 (faible)"], ["none", "Non analysé"]], HI.score) +
+      sel("statut", "Statut", [["", "Tous les statuts"], ["active", "Appel en cours"], ["processing", "Analyse en cours"], ["deferred", "Analyse en attente"], ["completed", "Analysée"], ["failed", "Échec de l’analyse"], ["aucune", "Sans analyse"]], HI.statut) +
+      (A.admin ? sel("personne", "Personne", [["", "Toute l’équipe"]].concat((A.membres || []).map(function (m) { return [m.id, m.full_name || m.email]; })), HI.personne) : "") +
+      sel("tri", "Trier", [["recent", "Plus récent"], ["oldest", "Plus ancien"], ["best", "Meilleur score"], ["worst", "Moins bon score"]], HI.tri) + "</div>";
+    if (rows == null) h += loader("Chargement de l’historique…");
+    else if (!l.length) h += '<div class="card empty"><div class="ico">☰</div><b>Aucune simulation</b><p>' + (rows.length ? "Aucune simulation ne correspond à ces filtres." : "Lancez une simulation pour commencer.") + "</p>" +
+      (rows.length ? "" : '<button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button>') + "</div>";
+    else {
+      h += '<div class="hl">' + l.slice((HI.page - 1) * PAGE, HI.page * PAGE).map(ligneHist).join("") + "</div>";
+      if (pages > 1) h += '<div class="pager"><button type="button" class="btn g" data-k="hp" data-do="h-page" data-v="-1"' + (HI.page <= 1 ? " disabled" : "") + '>‹ Précédent</button><span>Page ' + HI.page + " sur " + pages +
+        '</span><button type="button" class="btn g" data-k="hn" data-do="h-page" data-v="1"' + (HI.page >= pages ? " disabled" : "") + ">Suivant ›</button></div>";
+    }
+    paint($("#view"), h + "</div>");
+  }
+  function ligneHist(r) {
+    var st = statutDe(r), s = scoreDe(r), d = diff(r.difficulty), stl = ST_HIST[st];
+    var col = s != null ? '<div class="hs ' + (s >= 80 ? "g" : s >= 60 ? "m" : "b") + '">' + s + '<span class="sr"> sur 100</span></div>'
+      : st === "processing" ? '<div class="hs"><span class="pulse" aria-label="Analyse en cours">◷</span></div>' : st === "failed" ? '<div class="hs b" aria-label="Échec">⚠</div>' : '<div class="hs">—</div>';
+    return '<div class="hr">' + col + '<div class="hc"><div class="l1"><b>' + esc(r.prospect_name || "Prospect") + '</b><span class="pill ' + stl[1] + '">' + stl[0] + "</span>" +
+      (r.analysis && r.analysis.niveau && st === "completed" ? '<span class="pill b">' + esc(niveauLabel(r.analysis.niveau)) + "</span>" : "") +
+      '<span class="pill">' + (r.voice ? "Voix" : "Texte") + '</span><span class="diff" style="background:' + d[1] + ";color:" + d[2] + '">' + d[0] + "</span></div>" +
+      '<div class="l2">' + (A.admin && r.name ? "👤 " + esc(r.name) + " · " : "") + "◷ " + minutes(r.duration_seconds) + " · " + quand(r.started_at) + " · " + plur(r.messages || 0, "réplique") +
+      (r.rating ? " · " + "★".repeat(r.rating) + '<span class="sr"> (' + r.rating + " sur 5)</span>" : "") + "</div>" +
+      '<div class="l3">' + esc(r.offer_name || "—") + " · " + esc(MODES[r.mode] || r.mode || "—") + (r.analysis && r.analysis.reason && st !== "completed" ? " · " + esc(r.analysis.reason) : "") + "</div></div>" +
+      '<div class="ha">' + (st === "active" && r.user_id === A.me.id ? '<button type="button" class="btn p sm" data-go="#appel/' + r.id + '">▶ Reprendre</button>' : "") +
+      (st !== "active" ? '<button type="button" class="btn sm" data-go="#resultat/' + r.id + '">' + (st === "completed" ? "Voir l’analyse" : "Ouvrir") + "</button>" : "") +
+      (r.messages ? '<button type="button" class="btn sm" data-do="h-txt" data-v="' + r.id + '" aria-label="Télécharger la conversation avec ' + esc(r.prospect_name) + '">⤓ Conversation</button>' : "") +
+      '<button type="button" class="btn sm kol" data-do="h-suppr" data-v="' + r.id + '" aria-label="Supprimer la simulation avec ' + esc(r.prospect_name) + '">Supprimer</button></div></div>';
+  }
+  function texteConversation(sim, msgs) {
+    var L = ["=== CONVERSATION DE SIMULATION ===", "Prospect : " + (sim.prospect_name || "Prospect"), "Profil : " + diff(sim.difficulty)[0], "Mode : " + (MODES[sim.simulation_mode || sim.mode] || "—"),
+      "Date : " + jour(sim.started_at) + " " + hm(sim.started_at), "Durée : " + dureeLongue(sim.duration_seconds), new Array(51).join("="), ""];
+    msgs.forEach(function (m) { L.push("[" + hms(m.created_at) + "] " + (m.role === "commercial" ? "COMMERCIAL" : "PROSPECT") + " :", m.content, ""); });
+    return L.join("\n");
+  }
+  async function telechargerConversation(sim) {
+    try { var msgs = await chargerMessages(sim.id); telecharger("conversation-" + slug(sim.prospect_name) + "-" + isoJour(sim.started_at) + ".txt", texteConversation(sim, msgs)); }
+    catch (e) { toast("Erreur", "Impossible de télécharger la conversation.", true); }
+  }
+  async function supprimerSimulation(r) {
+    if (!(await ask({ title: "Supprimer cette simulation ?", text: "Cette action est irréversible. La simulation, sa conversation et son analyse seront définitivement supprimées.", ok: "Supprimer", danger: true }))) return false;
+    try { await api("simulations/" + r.id, { method: "DELETE" }); toast("Simulation supprimée", "La simulation avec " + (r.prospect_name || "le prospect") + " a été supprimée."); return true; }
+    catch (e) { toast("Erreur", e.message || "Impossible de supprimer.", true); return false; }
+  }
+
+  // ------------------------------------------------------------------ l'écran d'appel
+  var C = null;
+  async function vueAppel(arg) {
+    var id = Number(arg), sim = null, msgs = [], lance = LANCE && LANCE.sim && Number(LANCE.sim.id) === id ? LANCE : null;
+    LANCE = null;
+    paint($("#view"), loader("Chargement de l’appel…"));
+    try {
+      if (lance) { sim = lance.sim; msgs = lance.messages; }
+      else { sim = await q(A.crm.from("crm_sim_simulations").select("*").eq("id", id).maybeSingle()); if (sim) msgs = await chargerMessages(id); }
+    } catch (e) { paint($("#view"), '<div class="wrap"><div class="card empty"><b>Appel injoignable</b><p>' + esc(e.message) + '</p><button type="button" class="btn p" data-go="#nouvelle">Retour à l’accueil</button></div></div>'); return; }
+    if (V.name !== "appel" || V.arg !== arg) return;
+    if (!sim) { paint($("#view"), '<div class="wrap"><div class="card empty"><div class="ico">?</div><b>Simulation introuvable</b><button type="button" class="btn p" data-go="#nouvelle">Retour à l’accueil</button></div></div>'); return; }
+    if (sim.status !== "active") return go("#resultat/" + id);
+    C = { sim: sim, msgs: msgs || [], persona: sim.persona_data || null, voiceId: (sim.persona_data && sim.persona_data.voice_id) || null, busy: false, typing: false, stream: "",
+      phase: phasesVisibles(sim.simulation_mode)[0].id, crit: {}, voiceView: false, ended: false, timeUp: false, fails: 0, session: false, start: Date.parse(sim.started_at) || Date.now(),
+      fin: null, accueil: false, brief: lget("lnp-sim-fiche-repliee", false) === true, draft: "" };
+    if (sim.persona_id) Promise.resolve(A.crm.from("crm_sim_personas").select("voice_id").eq("id", sim.persona_id).maybeSingle()).then(function (r) { if (C && r && r.data && r.data.voice_id) C.voiceId = r.data.voice_id; }, function () {});
+    renderAppel();
+    var tick = setInterval(tickAppel, 1000); tickAppel();
+    var t2h = setTimeout(fin2h, Math.max(0, C.start + 7200000 - Date.now()));
+    verifierSession(); var ts = setInterval(verifierSession, 60000);
+    var avant = function (e) { if (C && !C.ended && C.sim.status === "active") { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", avant);
+    V.cleanup = function () { clearInterval(tick); clearTimeout(t2h); clearInterval(ts); window.removeEventListener("beforeunload", avant); voixArret(true); dicteeStop(); finNettoyer(); C = null; };
+    if (lance && lance.voix) voixDemarrer(true);
+    else setTimeout(function () { var ta = $("#ta"); if (ta) ta.focus(); }, 50);
+  }
+  function actif() { return C && !C.ended && C.sim.status === "active"; }
+  function nomP() { return (C && C.sim.prospect_name) || "Prospect"; }
+  // à la fermeture de la page pendant un appel : fin de l'appel sans analyse (le jeton voyage dans le corps)
+  window.addEventListener("pagehide", function () {
+    if (!actif()) return;
+    try { navigator.sendBeacon(A.sim.url + "/simulations/" + C.sim.id + "/end", new Blob([JSON.stringify({ beacon: true, token: A.token })], { type: "text/plain;charset=UTF-8" })); } catch (e) {}
+    voixArret(true);
+  });
+  async function verifierSession() {
+    if (!C) return;
+    try { A.token = await A.sim.token(); var r = await A.sim.fetch("moi", { method: "GET" }); if (!r.ok) throw 0; C.fails = 0; }
+    catch (e) { if (C) C.fails++; }
+    if (C && C.fails >= 2 !== C.session) { C.session = C.fails >= 2; renderBanniere(); }
+  }
+  function renderAppel() {
+    if (!C) return;
+    var view = $("#view");
+    if (!$("#callroot")) {
+      view.innerHTML = '<div class="call" id="callroot"><aside class="brief" id="brief" aria-label="Fiche prospect"></aside><section class="cmain"><header class="chead" id="chead"></header><div id="cban"></div>' +
+        '<div class="track" id="track"></div><div class="cscroll" id="cscroll"><div class="orbw" id="orbw" hidden><canvas id="orb" width="400" height="400" aria-hidden="true"></canvas><div class="orbl" id="orbl" role="status"></div></div>' +
+        '<div class="msgs" id="msgs" role="log" aria-label="Conversation"></div></div><div class="cbottom" id="cbottom"></div></section></div>';
+    }
+    renderBrief(); renderTete(); renderBanniere(); renderSuivi(); renderMsgs(); renderBas();
+    $("#orbw").hidden = !C.voiceView;
+    if (C.voiceView) orbeDemarrer();
+  }
+  function renderBrief() {
+    var el = $("#brief"), p = C.persona, mode = C.sim.simulation_mode;
+    $("#callroot").style.setProperty("--bw", C.brief ? "60px" : "340px");
+    $("#callroot").classList.toggle("nobrief", !actif() || !p);
+    if (!actif() || !p) { el.hidden = true; return; }
+    el.hidden = false;
+    var h = '<button type="button" class="bt" data-k="brief" data-do="brief" aria-expanded="' + !C.brief + '" title="' + (C.brief ? "Afficher la fiche prospect" : "Masquer la fiche prospect") + '">' +
+      (C.brief ? '<span aria-hidden="true">»</span><span class="sr">Afficher la fiche prospect</span>' : '<span aria-hidden="true">«</span> Masquer la fiche') + "</button>";
+    if (!C.brief) {
+      var id = p.identite || {}, b = p.briefing || {};
+      h += '<div class="bb"><div class="bid"><span class="av">' + esc(initiale(id.prenom || C.sim.prospect_name)) + "</span><b>" + esc(id.prenom || C.sim.prospect_name) + '</b><span class="mbadge m-' + mode + '">' + MODES[mode] + "</span></div>" +
+        '<div class="bsec"><h3>Fiche prospect</h3><div class="bg2"><div class="bx"><small>Prénom</small>' + esc(id.prenom || C.sim.prospect_name) + '</div><div class="bx"><small>Âge</small>' + (id.age ? esc(id.age) + " ans" : "—") + "</div>" +
+        '<div class="bx w"><small>Métier</small>' + esc(id.metier || "—") + '</div><div class="bx"><small>CA actuel</small>' + esc(id.ca_actuel || "—") + '</div><div class="bx"><small>Objectif</small><span style="color:var(--vif)">' + esc(id.objectif_ca || "—") + "</span></div></div></div>";
+      if (mode === "objections") {
+        var dg = b.diagnostic, en = b.engagement, pi = b.pitch;
+        if (dg && en && pi) {
+          var sa = dg.situation_actuelle || {}, sd = dg.situation_desiree || {}, g = dg.gap || {};
+          var qt = function (l, t) { return '<div class="quote"><small>' + l + "</small>« " + esc(t || "—") + " »</div>"; };
+          h += '<div class="bsec"><h3>⚠ Situation actuelle</h3>' + qt("Situation", sa.situation_negative) + qt("Conséquences", sa.consequences) + qt("Émotion", sa.emotion_negative) + '<span class="vok">✓ Conscience du problème validée</span></div>' +
+            '<div class="bsec"><h3>↗ Situation désirée</h3><div class="bg2"><div class="bx"><small>Objectif</small>' + esc(sd.objectif_chiffre || "—") + '</div><div class="bx"><small>Échéance</small>' + esc(sd.timeline || "—") + "</div></div>" +
+            qt("Vision", sd.vision_concrete) + qt("Émotion positive", sd.emotion_positive) + '<span class="vok">✓ Conscience de la solution validée</span></div>' +
+            '<div class="bsec"><h3>€ Écart chiffré validé</h3><div class="gapb">Actuel ' + nb(g.actuel, 0) + " € → Cible <b style=\"color:var(--vif)\">" + nb(g.cible, 0) + " €</b> = écart <b style=\"color:var(--ko)\">+" + nb(g.ecart_mensuel, 0) +
+            ' € par mois</b><hr style="border:0;border-top:1px solid #F2B8B0">Coût annuel de l’inaction<div class="big">' + nb(g.cout_annuel_inaction, 0) + " € par an</div></div>" + qt("Validation du prospect", g.validation_prospect) + "</div>" +
+            '<div class="bsec"><h3>✓ Engagement obtenu</h3>' + qt("Conscience de l’opportunité", en.opportunity_aware) + qt("Engagement verbal", en.engagement_verbal) + qt("Candidature validée", en.validation_candidature) + "</div>" +
+            '<div class="ammo"><b>Phrases à réutiliser</b><ul><li>« Tu m’as dit que ' + esc(sa.emotion_negative || "…") + " »</li><li>« Tu as validé que l’inaction te coûte " + nb(g.cout_annuel_inaction, 0) + " € par an »</li><li>« Tu voulais " +
+            esc(sd.vision_concrete || "…") + " »</li><li>« Tu as dit oui pour voir l’offre »</li></ul></div>" +
+            '<div class="prix">Prix annoncé<b>' + nb(pi.prix_annonce, 0) + " €</b></div>";
+        } else h += '<p class="muted small" style="background:var(--soft);border-radius:8px;padding:8px 10px">Mode Objections simplifié pour ce prospect : les phases précédentes (diagnostic, engagement, présentation) sont considérées comme faites.</p>';
+      }
+      h += "</div>";
+    }
+    paint(el, h);
+  }
+  function renderTete() {
+    var a = actif(), vp = a && voixPossible(), conn = VX.connecting;
+    var aCommercial = C.msgs.some(function (m) { return m.role === "commercial" && !m.tmp; });
+    var h = '<button type="button" class="ib" data-k="ret" data-do="retour" aria-label="' + (a ? "Terminer l’appel" : "Retour à l’accueil") + '">←</button>' +
+      '<div class="cwho"><b>' + esc(nomP()) + "</b><small>" + MODES[C.sim.simulation_mode] + " · " + diff(C.sim.difficulty)[0] + (a ? "" : " · appel terminé") + '</small></div><span class="sp"></span>';
+    if (a) {
+      h += '<button type="button" class="btn g sm" data-k="undo" data-do="undo"' + (aCommercial && !C.busy && !VX.waiting ? "" : " disabled") + ">↶ Annuler le dernier échange</button>";
+      if (vp) h += '<div class="seg" role="group" aria-label="Texte ou voix"><button type="button" data-k="cv0" data-do="v-texte" aria-pressed="' + !C.voiceView + '"' + (conn ? " disabled" : "") + '>Texte</button>' +
+        '<button type="button" data-k="cv1" data-do="v-voix" aria-pressed="' + C.voiceView + '"' + (conn ? " disabled" : "") + ">" + (conn ? '<span class="spin" style="width:12px;height:12px;border-width:2px"></span> ' : "🎙 ") + "Voix</button></div>";
+      h += '<span class="timer" id="timer" role="timer" aria-label="Temps restant"></span><button type="button" class="btn ko" data-k="term" data-do="terminer">✆ Terminer</button>';
+    }
+    paint($("#chead"), h);
+    tickAppel();
+  }
+  function renderBanniere() {
+    var el = $("#cban"); if (!el || !C) return;
+    el.innerHTML = C.session ? '<div class="sess" role="alert"><span aria-hidden="true">⚠</span><span style="flex:1">Votre session a expiré. Rafraîchissez la page pour continuer la conversation.</span><button type="button" class="btn ko sm" data-do="recharger">↻ Rafraîchir</button></div>' : "";
+  }
+  function tickAppel() {
+    if (!C) return;
+    var el = $("#timer"); if (!el) return;
+    var reste = Math.max(0, 2700 - Math.floor((Date.now() - C.start) / 1000)), m = Math.floor(reste / 60), s = reste % 60;
+    el.className = "timer" + (reste <= 60 ? " w1" : reste <= 300 ? " w5" : "");
+    el.innerHTML = (reste <= 60 ? '<span class="tri" aria-hidden="true">⚠</span>' : '<span aria-hidden="true">◷</span>') + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0") + "<small>/ 45:00</small>";
+    if (reste === 0 && !C.timeUp && actif()) { C.timeUp = true; ouvrirFin(); }
+  }
+  function fin2h() {
+    if (!actif()) return;
+    toast("Durée maximale atteinte (2 h)", "La simulation va se terminer automatiquement.", true);
+    while (LAY.length) LAY[LAY.length - 1].close();
+    terminerEtAnalyser(null);
+  }
+  function renderSuivi() {
+    var el = $("#track");
+    if (!actif()) { el.hidden = true; return; }
+    el.hidden = false;
+    var ph = phasesVisibles(C.sim.simulation_mode), cur = ph.filter(function (p) { return p.id === C.phase; })[0] || ph[0];
+    var h = '<div class="phs" role="group" aria-label="Phases de l’appel">' + ph.map(function (p) {
+      var v = p.crit.filter(function (c) { return C.crit[c[0]] === true; }).length, t = p.crit.length, done = v === t && t > 0;
+      return '<button type="button" class="ph' + (done ? " done" : "") + '" data-k="ph-' + p.id + '" data-do="phase" data-v="' + p.id + '" aria-pressed="' + (p.id === cur.id) + '">' + (done ? "✓ " : "") + p.nom + " (" + v + "/" + t + ")</button>";
+    }).join("") + '</div><div class="crs" role="group" aria-label="Critères de la phase ' + esc(cur.nom) + '">' + cur.crit.map(function (c) {
+      var s = C.crit[c[0]], cls = s === true ? " y" : s === false ? " n" : "", lab = s === true ? "validé" : s === false ? "manqué" : "non évalué";
+      return '<button type="button" class="cr' + cls + '" data-k="cr-' + c[0] + '" data-do="crit" data-v="' + c[0] + '" aria-label="' + c[0] + ". " + esc(c[1]) + " : " + lab + '" title="Cliquer : validé, puis manqué, puis non évalué"><i aria-hidden="true">' +
+        (s === true ? "✓" : s === false ? "✕" : "") + "</i>" + c[0] + ". " + esc(c[1]) + "</button>";
+    }).join("") + "</div>";
+    paint(el, h);
+  }
+  function bulle(m) {
+    var s = m.role === "commercial";
+    return '<div class="msg ' + (s ? "s" : "p") + (m.tmp ? " tmp" : "") + '"><div class="bub"><span class="sr">' + (s ? "Vous" : esc(nomP())) + " : </span>" + esc(m.content) + "</div></div>";
+  }
+  function renderMsgs() {
+    var box = $("#msgs"); if (!box || !C) return;
+    var h = '<div class="spacer"></div>';
+    if (!C.msgs.length && !C.typing && !C.voiceView) h += '<div class="cempty"><div class="ico">✆</div><b>L’appel commence maintenant</b><p>Le prospect ' + esc(nomP()) + " est en ligne. Commencez par vous présenter.</p></div>";
+    h += C.msgs.map(bulle).join("");
+    if (C.typing && C.stream) h += '<div class="msg p"><div class="bub" id="streamb">' + esc(C.stream) + "</div></div>";
+    else if (C.typing) h += '<div class="msg p"><div class="bub typing"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span> Le prospect écrit…</div></div>';
+    if (C.voiceView && VX.on) {
+      if (VX.commercialParle && VX.userTranscript) h += '<div class="msg s"><div class="bub typing"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr">Vous parlez</span></div></div>';
+      if (VX.prospectTyping) h += '<div class="msg p"><div class="bub typing"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr">' + esc(nomP()) + " parle</span></div></div>";
+    }
+    box.setAttribute("aria-busy", C.typing ? "true" : "false");
+    box.innerHTML = h;
+    basDePage();
+  }
+  function basDePage() { var s = $("#cscroll"); if (s) s.scrollTo({ top: s.scrollHeight, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
+  function renderBas() {
+    var el = $("#cbottom");
+    if (!actif()) { el.hidden = true; return; }
+    el.hidden = false;
+    if (C.voiceView) {
+      paint(el, '<div class="vbar"><span class="vt" id="vt"></span><button type="button" class="btn sm mute" data-k="muet" data-do="muet" aria-pressed="' + VX.muted + '">' + (VX.muted ? "🎙 Réactiver le micro" : "🔇 Couper le micro") + "</button></div>");
+      majVoix(); return;
+    }
+    var cur = $("#ta") ? $("#ta").value : C.draft || "";
+    paint(el, '<div class="inbar"><div class="taw' + (DI.on ? " rec" : "") + '"><textarea id="ta" data-k="ta" rows="1" aria-label="Votre réplique" placeholder="' + (DI.on ? "Parlez maintenant…" : SR ? "Tapez ou utilisez le micro pour dicter" : "Tapez votre réplique") + '"' + (C.busy ? " disabled" : "") + "></textarea>" +
+      (DI.on ? '<span class="rd" aria-hidden="true"></span>' : "") + "</div>" +
+      (SR ? '<button type="button" class="rb' + (DI.on ? " on" : "") + '" data-k="mic" data-do="dictee" title="' + (DI.on ? "Arrêter la dictée" : "Dicter avec le micro") + '" aria-label="' + (DI.on ? "Arrêter la dictée" : "Dicter avec le micro") + '" aria-pressed="' + DI.on + '"' + (C.busy || C.typing ? " disabled" : "") + ">🎙</button>" : "") +
+      '<button type="button" class="rb send" data-k="send" data-do="envoyer" aria-label="Envoyer" title="Envoyer (Entrée)"' + (C.busy ? " disabled" : "") + ">" + (C.busy ? '<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff"></span>' : "➤") + "</button></div>");
+    var ta = $("#ta"); ta.value = cur; taille(ta);
+  }
+  function taille(ta) { ta.style.height = "auto"; ta.style.height = Math.min(120, Math.max(44, ta.scrollHeight)) + "px"; }
+  // lecture d'un flux SSE (lignes « data: … »)
+  async function lireSSE(r, on) {
+    var dec = new TextDecoder(), buf = "";
+    function ligne(l) { l = l.replace(/\r$/, ""); if (l.indexOf("data:") !== 0) return; var d = l.slice(5).trim(); if (!d || d === "[DONE]") return; var o; try { o = JSON.parse(d); } catch (e) { return; } on(o); }
+    function vider(fin) { var i; while ((i = buf.indexOf("\n")) >= 0) { ligne(buf.slice(0, i)); buf = buf.slice(i + 1); } if (fin && buf) { ligne(buf); buf = ""; } }
+    if (r.body && r.body.getReader) {
+      var rd = r.body.getReader();
+      for (;;) { var x = await rd.read(); if (x.done) break; buf += dec.decode(x.value, { stream: true }); vider(false); }
+      buf += dec.decode(); vider(true);
+    } else { buf = await r.text(); vider(true); }
+  }
+  function remplacerTmp(tmp, m) { var i = C.msgs.indexOf(tmp); if (i >= 0) C.msgs[i] = m; else C.msgs.push(m); }
+  async function envoyer(texte) {
+    texte = String(texte || "").trim();
+    if (!texte || !C || C.busy || !actif()) return;
+    var sim = C.sim, tmp = { id: "tmp" + Date.now(), role: "commercial", content: texte, created_at: new Date().toISOString(), tmp: true }, srv = null;
+    C.busy = true; C.typing = true; C.stream = ""; C.msgs.push(tmp); C.draft = "";
+    var ta = $("#ta"); if (ta) ta.value = "";
+    renderMsgs(); renderBas(); renderTete();
+    var ok = false, code = null, desc = null;
+    try {
+      var r = await api("simulations/" + sim.id + "/messages", { method: "POST", body: { content: texte, voiceMode: false }, raw: true });
+      if (!r.ok) { var b = null; try { b = await r.json(); } catch (e) {} code = (b && b.code) || classer(b && b.error); if (b && b.error && r.status === 400) desc = fr(b.error); throw new Error("http"); }
+      await lireSSE(r, function (ev) {
+        if (!C || C.sim !== sim) return;
+        if (ev.userMessage) { srv = ev.userMessage; remplacerTmp(tmp, ev.userMessage); }
+        else if (ev.done) { ok = true; C.typing = false; C.stream = ""; if (ev.prospectMessage) C.msgs.push(ev.prospectMessage); renderMsgs(); }
+        else if (ev.error) code = typeof ev.error === "string" ? classer(ev.error) : (ev.error.code || "RESPONSE_FAILED");
+        else if (ev.content != null) { C.stream += ev.content; var sb = $("#streamb"); if (sb) { sb.textContent = C.stream; basDePage(); } else renderMsgs(); }
+      });
+      if (!ok && !code) code = "STREAM_INCOMPLETE";
+    } catch (e) { if (!code) code = e.status === 0 ? "RESPONSE_FAILED" : "RESPONSE_FAILED"; if (e.status === 0) desc = e.message; }
+    if (!C || C.sim !== sim) return;
+    C.busy = false; C.typing = false; C.stream = "";
+    if (!ok) {
+      // la réplique sans réponse est retirée (le serveur l'a effacée) : elle revient dans la zone de saisie
+      C.msgs = C.msgs.filter(function (m) { return m !== tmp && m !== srv; });
+      C.draft = texte;
+      try { C.msgs = await chargerMessages(sim.id); } catch (e) {}
+      toast("Réponse du prospect interrompue", desc || ERR_FLUX[code] || ERR_FLUX.RESPONSE_FAILED, true);
+    }
+    renderMsgs(); renderBas(); renderTete();
+    setTimeout(function () { var t = $("#ta"); if (t && !C.voiceView) { if (!ok) { t.value = texte; taille(t); } t.focus(); } }, 100);
+  }
+  function envoyerSaisie() {
+    var ta = $("#ta"); if (!ta) return;
+    if (DI.on) { dicteeStop(); setTimeout(function () { envoyer(ta.value); }, 120); } else envoyer(ta.value);
+  }
+  async function annulerEchange() {
+    if (!actif() || C.busy) return;
+    if (!(await ask({ title: "Annuler le dernier échange ?", text: "Votre dernière réplique et la réponse du prospect seront retirées de la conversation, comme si elles n’avaient pas eu lieu.", ok: "Annuler l’échange", cancel: "Garder", danger: true }))) return;
+    try {
+      var b = await api("simulations/" + C.sim.id + "/messages/undo", { method: "DELETE" });
+      C.msgs = b.messages || (await chargerMessages(C.sim.id));
+      toast("Dernier échange annulé", plur(b.deleted || 0, "message supprimé", "messages supprimés") + ".");
+      renderMsgs(); renderTete();
+    } catch (e) { toast("Impossible d’annuler", e.message || "Erreur lors de l’annulation.", true); }
+  }
+
+  // ------------------------------------------------------------------ dictée (vue texte)
+  var DI = { rec: null, on: false, prefix: "", fin: "" };
+  var ERR_DICTEE = { "not-allowed": "Accès au microphone refusé. Autorisez l’accès dans les paramètres de votre navigateur.", "permission-denied": "Accès au microphone refusé. Autorisez l’accès dans les paramètres de votre navigateur.",
+    "no-speech": "Aucune parole détectée. Réessayez.", "audio-capture": "Aucun micro détecté. Vérifiez votre matériel.", network: "Erreur réseau. Vérifiez votre connexion internet." };
+  function dicteeBasculer() {
+    if (DI.on) return dicteeStop();
+    if (!SR) return toast("Erreur de reconnaissance vocale", "Votre navigateur ne gère pas la reconnaissance vocale. Utilisez Chrome ou Edge.", true);
+    var ta = $("#ta"); if (!ta) return;
+    var rec = new SR(); rec.lang = "fr-FR"; rec.continuous = true; rec.interimResults = true;
+    DI.rec = rec; DI.prefix = ta.value; DI.fin = "";
+    rec.onresult = function (ev) {
+      var inter = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) DI.fin += t; else inter += t; }
+      var x = $("#ta"); if (x) { x.value = DI.prefix + (DI.prefix && !/\s$/.test(DI.prefix) ? " " : "") + DI.fin + inter; taille(x); }
+    };
+    rec.onerror = function (ev) { if (ev.error === "aborted") return; toast("Erreur de reconnaissance vocale", ERR_DICTEE[ev.error] || "Erreur de reconnaissance vocale : " + ev.error, true); };
+    rec.onend = function () { if (DI.rec === rec) { DI.on = false; DI.rec = null; if (C && !C.voiceView) renderBas(); } };
+    try { rec.start(); DI.on = true; }
+    catch (e) { try { rec.stop(); } catch (x) {} setTimeout(function () { try { rec.start(); DI.on = true; renderBas(); } catch (y) {} }, 100); }
+    renderBas();
+  }
+  function dicteeStop() { if (DI.rec) { var r = DI.rec; DI.rec = null; try { r.stop(); } catch (e) {} } if (DI.on) { DI.on = false; if (C && !C.voiceView) renderBas(); } }
+
+  // ------------------------------------------------------------------ voix mains libres : reconnaissance du navigateur (fr-FR), fin de tour au silence,
+  // un tour = POST simulations/:id/voix ; chaque phrase de la réponse = POST tts, lue dans l'ordre (audio/mpeg, sinon speechSynthesis)
+  var VX = { on: false, connecting: false, rec: null, recActive: false, paused: false, muted: false, finalBuf: "", interim: "", silT: null, restartT: null, startT: null, backoff: 0, netFails: 0,
+    waiting: false, sent: [], queue: [], playing: null, idx: 0, inflight: 0, fallback: false, speed: 1.2, voiceId: "", replyId: 0, interrupted: false, pending: null, halfDuplex: false,
+    commercialParle: false, prospectTyping: false, userTranscript: "", hiddenAt: 0, playStart: 0 };
+  function debloquerAudio() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      if (!A.ctx) A.ctx = new AC();
+      if (A.ctx.state === "suspended") A.ctx.resume();
+      var s = A.ctx.createBufferSource(); s.buffer = A.ctx.createBuffer(1, 1, 22050); s.connect(A.ctx.destination); s.start(0);
+    } catch (e) {}
+  }
+  function bip() {
+    try { var c = A.ctx, g = c.createGain(), o = c.createOscillator(); o.frequency.value = 880; g.gain.setValueAtTime(0.08, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.12); o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.13); } catch (e) {}
+  }
+  function genreVoix() {
+    var v = A.voix.filter(function (x) { return x.id === VX.voiceId; })[0];
+    if (v) return v.gender;
+    var id = (C && C.persona && C.persona.identite) || {};
+    return id.gender || (/(a|e|ie|ine|elle|ette)$/i.test(String(id.prenom || "")) ? "F" : "M");
+  }
+  function voixDefaut() { var g = genreVoix(), v = A.voix.filter(function (x) { return x.gender === g; })[0]; return v ? v.id : ""; }
+  function poubelle(t) { return !t || /^[.\s…]+$/.test(t) || t.replace(/[.\s…]/g, "").length < 2; }
+  function renderAppelVue() { if (!C) return; renderTete(); renderMsgs(); renderBas(); $("#orbw").hidden = !C.voiceView; if (C.voiceView) orbeDemarrer(); }
+  async function voixDemarrer(auto) {
+    if (!actif() || VX.on || VX.connecting) return;
+    var echec = function () { voixArret(true); if (C) { C.voiceView = false; renderAppelVue(); } toast("Mode voix indisponible", auto ? "Basculement en mode texte." : "Vérifiez les permissions du micro.", true); };
+    if (!voixPossible()) return echec();
+    dicteeStop();
+    if (C) C.draft = $("#ta") ? $("#ta").value : C.draft;
+    VX.connecting = true; VX.muted = false; VX.netFails = 0; VX.paused = false; C.voiceView = true;
+    var s = $("#cscroll"), y = s ? s.scrollTop : 0;
+    renderAppelVue(); if (s) s.scrollTop = y + 260;
+    debloquerAudio();
+    try { var st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); st.getTracks().forEach(function (t) { t.stop(); }); }
+    catch (e) { return echec(); }
+    if (!C || !VX.connecting) return;
+    VX.voiceId = C.voiceId || voixDefaut();
+    VX.halfDuplex = VX.fallback || (/safari/i.test(navigator.userAgent) && !/chrome|chromium|android/i.test(navigator.userAgent));
+    var rec = new SR(); rec.lang = "fr-FR"; rec.continuous = true; rec.interimResults = true; VX.rec = rec;
+    rec.onstart = function () {
+      if (VX.rec !== rec) return;
+      VX.recActive = true;
+      if (VX.connecting) { clearTimeout(VX.startT); VX.connecting = false; VX.on = true; accueil(); renderTete(); }
+      majVoix();
+    };
+    rec.onresult = function (ev) { if (VX.rec === rec) recResultat(ev); };
+    rec.onerror = function (ev) { if (VX.rec === rec) recErreur(ev, echec); };
+    rec.onend = function () { if (VX.rec === rec) recFin(); };
+    try { rec.start(); } catch (e) { return echec(); }
+    VX.startT = setTimeout(function () { if (VX.connecting) echec(); }, 8000);
+  }
+  function voixArret(silent) {
+    clearTimeout(VX.silT); clearTimeout(VX.restartT); clearTimeout(VX.startT);
+    var r = VX.rec; VX.rec = null; if (r) { try { r.abort(); } catch (e) {} }
+    VX.on = false; VX.connecting = false; VX.recActive = false; VX.paused = false; VX.finalBuf = ""; VX.interim = "";
+    arreterLecture();
+    VX.commercialParle = false; VX.prospectTyping = false; VX.userTranscript = "";
+    if (C && C.voiceView) { C.voiceView = false; if (!silent) { var s = $("#cscroll"), y = s ? s.scrollTop : 0; renderAppelVue(); if (s) s.scrollTop = Math.max(0, y - 260); } }
+  }
+  function recResultat(ev) {
+    if (!VX.on || VX.paused || VX.muted) return;
+    VX.netFails = 0;
+    var inter = "";
+    for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) VX.finalBuf += (VX.finalBuf ? " " : "") + t.trim(); else inter += t; }
+    VX.interim = inter.trim();
+    if (VX.waiting) { VX.finalBuf = ""; VX.interim = ""; return; }   // un tour à la fois
+    var txt = (VX.finalBuf + " " + VX.interim).trim(), avant = VX.commercialParle;
+    VX.userTranscript = txt; VX.commercialParle = !!txt;
+    if (VX.playing && estInterruption(txt)) interrompre();
+    clearTimeout(VX.silT);
+    VX.silT = setTimeout(finTour, Math.max(300, Number(A.config.silence_timeout_ms) || 800));
+    majVoix(); if (avant !== VX.commercialParle) renderMsgs();
+  }
+  function recErreur(ev, echec) {
+    var c = ev.error;
+    if (VX.connecting && c !== "no-speech" && c !== "aborted") return echec();
+    if (c === "not-allowed" || c === "service-not-allowed" || c === "permission-denied") { voixArret(); toast("Mode voix indisponible", "Vérifiez les permissions du micro.", true); return; }
+    if (c === "network" || c === "audio-capture") {
+      VX.netFails++;
+      if (VX.netFails > 3) { voixArret(); toast("Mode voix interrompu", "Connexion perdue.", true); return; }
+      VX.backoff = 1000 * Math.pow(2, VX.netFails - 1);
+    }
+  }
+  function recFin() {
+    VX.recActive = false;
+    if (VX.on && !VX.paused && !VX.muted && !document.hidden) {
+      var d = VX.backoff || 60; VX.backoff = 0;
+      VX.restartT = setTimeout(function () { if (VX.on && !VX.recActive && !VX.paused && !VX.muted && VX.rec) { try { VX.rec.start(); } catch (e) {} } }, d);
+    }
+  }
+  function pauseReco() { VX.paused = true; clearTimeout(VX.silT); VX.finalBuf = ""; VX.interim = ""; if (VX.rec) { try { VX.rec.abort(); } catch (e) {} } }
+  function reprendreReco() { if (!VX.on || !VX.paused) return; VX.paused = false; if (!VX.muted && VX.rec && !VX.recActive) { try { VX.rec.start(); } catch (e) {} } bip(); }
+  function finTour() {
+    var t = (VX.finalBuf + " " + VX.interim).trim(); VX.finalBuf = ""; VX.interim = "";
+    if (VX.waiting || !VX.on) return;
+    if (poubelle(t)) { VX.userTranscript = ""; VX.commercialParle = false; majVoix(); renderMsgs(); return; }
+    // une même phrase envoyée deux fois de suite en quelques secondes (écho, double fin de tour) n'est pas renvoyée
+    var now = Date.now();
+    if (VX.sent.some(function (s) { return now - s.t < 5000 && similarite(s.x, t) > 0.8; })) { VX.userTranscript = ""; majVoix(); return; }
+    VX.sent.push({ x: t, t: now }); VX.sent = VX.sent.slice(-3);
+    if (VX.rec) { try { VX.rec.abort(); } catch (e) {} }   // les résultats tardifs de cette phrase sont abandonnés
+    tourVocal(t);
+  }
+  function estInterruption(txt) {
+    if (!VX.playing || Date.now() - VX.playStart < 300 || txt.replace(/[.\s…]/g, "").length < 2) return false;
+    var a = norm(txt), b = norm(VX.playing.text);
+    return !(b.indexOf(a) >= 0) && similarite(a, b) < 0.6;
+  }
+  async function tourVocal(t) {
+    if (!C) return;
+    var sim = C.sim, rid = ++VX.replyId, tmp = { id: "tmp" + Date.now(), role: "commercial", content: t, created_at: new Date().toISOString(), tmp: true }, srv = null;
+    VX.waiting = true; VX.interrupted = false; VX.commercialParle = false; VX.prospectTyping = true;
+    C.msgs.push(tmp); renderMsgs(); renderTete(); majVoix();
+    var dec = Decoupeur(), ok = false, code = null, prospect = null, dit = "";
+    try {
+      var r = await api("simulations/" + sim.id + "/voix", { method: "POST", body: { content: t }, raw: true });
+      if (!r.ok) { var b = null; try { b = await r.json(); } catch (e) {} code = (b && b.code) || classer(b && b.error); throw new Error("http"); }
+      await lireSSE(r, function (ev) {
+        if (!C || C.sim !== sim) return;
+        if (ev.voiceId) VX.voiceId = ev.voiceId;
+        if (ev.userMessage) { srv = ev.userMessage; remplacerTmp(tmp, ev.userMessage); renderMsgs(); }
+        else if (ev.done) { ok = true; prospect = ev.prospectMessage || null; if (!dit && ev.spokenText) dec.push(ev.spokenText).forEach(function (x) { enfiler(x, rid); }); dec.fin().forEach(function (x) { enfiler(x, rid); }); }
+        else if (ev.error) { code = ev.error.code || "RESPONSE_FAILED"; if (ev.spokenText) enfiler(ev.spokenText, rid); }
+        else if (ev.content != null) { dit += ev.content; dec.push(ev.content).forEach(function (x) { enfiler(x, rid); }); }
+      });
+      if (!ok && !code) code = "STREAM_INCOMPLETE";
+    } catch (e) { if (!code) code = "RESPONSE_FAILED"; }
+    if (!C || C.sim !== sim) { VX.waiting = false; return; }
+    VX.waiting = false;
+    if (ok && prospect) {
+      // la bulle du prospect paraît quand sa voix commence (ou tout de suite sans voix)
+      VX.pending = prospect;
+      if (VX.playing || VX.interrupted || !VX.queue.length || !VX.on) montrerBulle();
+    } else {
+      C.msgs = C.msgs.filter(function (m) { return m !== tmp && m !== srv; });
+      try { C.msgs = await chargerMessages(sim.id); } catch (e) {}
+      toast("Réponse du prospect interrompue", ERR_FLUX[code] || ERR_FLUX.RESPONSE_FAILED, true);
+    }
+    if (!VX.playing && !VX.queue.length) { VX.prospectTyping = false; VX.commercialParle = false; }
+    renderMsgs(); renderTete(); majVoix();
+  }
+  function montrerBulle() {
+    var m = VX.pending; VX.pending = null;
+    if (!m || !C) return;
+    var der = C.msgs.filter(function (x) { return x.role === "prospect"; }).pop();
+    if (!(der && (der.id === m.id || der.content === m.content))) C.msgs.push(m);
+    renderMsgs();
+  }
+  function accueil() {
+    if (!C || C.accueil) return;
+    C.accueil = true;
+    var m = C.msgs;
+    if (m.length === 1 && m[0].role === "prospect") { var rid = ++VX.replyId, d = Decoupeur(); VX.interrupted = false; d.push(m[0].content).concat(d.fin()).forEach(function (x) { enfiler(x, rid); }); }
+  }
+  // la file des phrases à dire : 2 demandes de voix en cours au plus, lecture dans l'ordre
+  function enfiler(texte, rid) {
+    if (!texte || VX.interrupted || rid !== VX.replyId || !VX.on && !VX.connecting) return;
+    VX.queue.push({ i: VX.idx++, text: texte, state: "wait", url: null, fb: false, ctl: null });
+    pomper();
+  }
+  function pomper() {
+    VX.queue.forEach(function (it) {
+      if (it.state !== "wait" || VX.inflight >= 2) return;
+      if (VX.fallback) { it.state = "ready"; it.fb = true; return; }
+      it.state = "load"; VX.inflight++;
+      var ctl = window.AbortController ? new AbortController() : null; it.ctl = ctl;
+      api("tts", { method: "POST", body: { text: it.text, voiceId: VX.voiceId }, raw: true, signal: ctl ? ctl.signal : undefined }).then(async function (r) {
+        var ct = (r.headers && r.headers.get("content-type")) || "";
+        if (r.status === 204) it.state = "skip";
+        else if (r.ok && /audio/.test(ct)) { it.url = URL.createObjectURL(await r.blob()); it.state = "ready"; }
+        else {
+          var b = null; try { b = await r.json(); } catch (e) {}
+          if (b && b.fallback) { VX.fallback = true; VX.speed = Number(b.speed) || 1.2; VX.halfDuplex = true; it.fb = true; it.state = "ready"; } else it.state = "skip";
+        }
+      }).catch(function () { it.state = "skip"; }).then(function () { VX.inflight--; pomper(); jouerSuite(); });
+    });
+    jouerSuite();
+  }
+  function jouerSuite() {
+    if (VX.playing) return;
+    var it = VX.queue[0];
+    if (!it) return;
+    if (it.state === "skip") { VX.queue.shift(); if (!VX.queue.length) finLecture(); else jouerSuite(); return; }
+    if (it.state !== "ready") return;
+    VX.queue.shift(); jouer(it);
+  }
+  function choisirVoixFr() {
+    var l = (window.speechSynthesis && speechSynthesis.getVoices() || []).filter(function (v) { return /^fr/i.test(v.lang); });
+    var re = genreVoix() === "F" ? /female|femme|amélie|amelie|audrey|marie|julie|céline|celine|virginie|hortense|denise|eloise|aurélie|aurelie|léa|lea/i : /male|homme|thomas|paul|henri|nicolas|claude|daniel|guillaume|rémy|remy|jérôme|jerome/i;
+    return l.filter(function (v) { return re.test(v.name) && !(genreVoix() === "M" && /female/i.test(v.name)); })[0] || l[0] || null;
+  }
+  function jouer(it) {
+    VX.playing = it; VX.playStart = Date.now(); VX.prospectTyping = true; VX.commercialParle = false; VX.userTranscript = "";
+    if (VX.halfDuplex) pauseReco();
+    if (VX.pending) montrerBulle();
+    var fini = function () { if (VX.playing !== it) return; if (it.url) URL.revokeObjectURL(it.url); VX.playing = null; if (VX.queue.length) { pomper(); jouerSuite(); } else finLecture(); };
+    if (it.fb) {
+      if (!window.speechSynthesis) return fini();
+      var u = new SpeechSynthesisUtterance(it.text); u.lang = "fr-FR"; u.rate = VX.speed; var v = choisirVoixFr(); if (v) u.voice = v;
+      u.onend = fini; u.onerror = fini; speechSynthesis.speak(u);
+    } else {
+      var a = new Audio(it.url); it.audio = a; a.onended = fini; a.onerror = fini;
+      a.play().catch(function () { toast("Son bloqué", "Cliquez n’importe où pour réactiver le micro.", true); document.addEventListener("click", debloquerAudio, { once: true }); fini(); });
+    }
+    majVoix(); renderMsgs();
+  }
+  function finLecture() {
+    VX.prospectTyping = false; VX.commercialParle = !!VX.on;
+    if (VX.pending) montrerBulle();
+    if (VX.halfDuplex && VX.paused) setTimeout(reprendreReco, 300);
+    majVoix(); renderMsgs();
+  }
+  function arreterLecture() {
+    VX.queue.forEach(function (it) { if (it.ctl) { try { it.ctl.abort(); } catch (e) {} } if (it.url) URL.revokeObjectURL(it.url); });
+    VX.queue = [];
+    if (VX.playing) { if (VX.playing.audio) { try { VX.playing.audio.pause(); } catch (e) {} } if (VX.playing.url) URL.revokeObjectURL(VX.playing.url); VX.playing = null; }
+    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+    if (VX.pending) montrerBulle();
+  }
+  // la personne parle pendant la réponse : la voix s'arrête, la réponse reste écrite en entier
+  function interrompre() { VX.interrupted = true; arreterLecture(); VX.prospectTyping = false; majVoix(); renderMsgs(); }
+  function muet() {
+    VX.muted = !VX.muted;
+    if (VX.muted) { clearTimeout(VX.silT); VX.finalBuf = ""; VX.interim = ""; VX.userTranscript = ""; if (VX.rec) { try { VX.rec.abort(); } catch (e) {} } }
+    else if (VX.rec && !VX.recActive && !VX.paused) { try { VX.rec.start(); } catch (e) {} }
+    renderBas();
+  }
+  function etatOrbe() { if (VX.connecting) return "warming_up"; if (VX.on) return VX.playing ? "speaking" : VX.waiting ? "thinking" : "listening"; return "idle"; }
+  function majVoix() {
+    if (!C || !C.voiceView) return;
+    var e = etatOrbe(), l = $("#orbl"), vt = $("#vt");
+    if (l) l.textContent = { warming_up: "Connexion…", listening: "Je vous écoute…", speaking: nomP() + " parle", thinking: "Réflexion en cours…", idle: "Parlez maintenant…" }[e];
+    if (vt) {
+      if (VX.userTranscript && !VX.muted) { vt.className = "vt u"; vt.innerHTML = '<span class="gd" aria-hidden="true"></span>' + esc(VX.userTranscript); }
+      else { vt.className = "vt"; vt.textContent = VX.muted ? "Micro coupé" : VX.playing ? nomP() + " parle…" : VX.on ? "En écoute — parlez maintenant" : "Connexion…"; }
+    }
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { VX.hiddenAt = Date.now(); return; }
+    if (!VX.on) return;
+    if (VX.hiddenAt && Date.now() - VX.hiddenAt > 300000) { voixArret(); toast("Mode voix désactivé", "L’onglet était inactif depuis trop longtemps.", true); return; }
+    if (!VX.recActive && !VX.paused && !VX.muted && VX.rec) { try { VX.rec.start(); } catch (e) {} }
+  });
+  window.addEventListener("offline", function () { if (VX.on || VX.connecting) { voixArret(); toast("Connexion perdue", "Le mode voix a été désactivé. Vous pouvez continuer en mode texte quand la connexion revient.", true); } });
+  // découpage en phrases au fil du flux (règles du découpeur d'origine ; une phrase très courte attend la suivante)
+  var ABBR = ["m.", "mme.", "mr.", "dr.", "pr.", "st.", "etc.", "ex.", "cf.", "av.", "apr.", "env.", "éd.", "vol.", "p.", "pp.", "fig.", "ch.", "art.", "n°."];
+  var COUPE = " \n\"«»";
+  function finPhrase(buf) {
+    for (var i = 0; i < buf.length - 1; i++) {
+      var c = buf[i], n = buf[i + 1];
+      if (c === "." && i > 0 && buf[i - 1] === ".") continue;
+      if (c === "." && n === ".") continue;
+      if (c === ".") {
+        var w = buf.substring(buf.lastIndexOf(" ", i - 1) + 1, i + 1).toLowerCase();
+        if (ABBR.indexOf(w) >= 0) continue;
+        if (n >= "0" && n <= "9") continue;
+        if (COUPE.indexOf(n) >= 0) { var a = i + 2 < buf.length ? buf[i + 2] : ""; if (a && a === a.toLowerCase() && a !== a.toUpperCase()) continue; return i; }
+      }
+      if ((c === "!" || c === "?" || c === "…") && COUPE.indexOf(n) >= 0) return i;
+      if (c === ";" && (n === " " || n === "\n") && i > 60) return i;
+    }
+    return -1;
+  }
+  function coupure(buf) {
+    var e = finPhrase(buf); if (e !== -1) return e;
+    if (buf.length < 35) return -1;
+    for (var i = 30; i < buf.length - 1; i++) { if ((buf[i] === "," || buf[i] === ":") && (buf[i + 1] === " " || buf[i + 1] === "\n")) return i; }
+    return -1;
+  }
+  function Decoupeur() {
+    var buf = "", tenu = "";
+    var net = function (s, tout) { s = s.replace(/\[[^\]]+\]/g, "").replace(/\*[^*]+\*/g, ""); if (tout) s = s.replace(/---[\s\S]*$/g, ""); return s.trim(); };
+    return {
+      push: function (t) { buf += t; var out = [], i; while ((i = coupure(buf)) !== -1) { var s = net(buf.substring(0, i + 1), true); buf = buf.substring(i + 2); if (!s) continue; var x = (tenu ? tenu + " " : "") + s; if (x.length > 5) { out.push(x); tenu = ""; } else tenu = x; } return out; },
+      fin: function () { var x = ((tenu ? tenu + " " : "") + net(buf, false)).trim(); buf = ""; tenu = ""; return x.length > 1 ? [x] : []; } };
+  }
+  // l'orbe (bleus LNP)
+  var ORB = { raf: 0, t: 0, amp: 0 };
+  function orbeDemarrer() { if (!ORB.raf) ORB.raf = requestAnimationFrame(orbeBoucle); majVoix(); }
+  function orbeBoucle() {
+    var cv = $("#orb");
+    if (!cv || !C || !C.voiceView) { ORB.raf = 0; return; }
+    dessinerOrbe(cv, etatOrbe());
+    ORB.raf = requestAnimationFrame(orbeBoucle);
+  }
+  function dessinerOrbe(cv, etat) {
+    var g = cv.getContext("2d"); if (!g) return;
+    var cx = 200, cy = 200, B = 85, red = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    ORB.t += red ? 0.003 : 0.012;
+    ORB.amp += ((etat === "speaking" ? 0.6 : 0) - ORB.amp) * 0.12;
+    var a = ORB.amp, t = ORB.t;
+    var def = { speaking: 18 + a * 25, listening: 10 + a * 15, thinking: 14 + Math.sin(t * 3) * 8, warming_up: 6 + Math.sin(t * 1.5) * 4, idle: 8 }[etat];
+    var sp = { thinking: 1.8, speaking: 1.3, warming_up: 0.7 }[etat] || 1;
+    g.clearRect(0, 0, 400, 400);
+    var gr = B + 60 + a * 30, glow = g.createRadialGradient(cx, cy, B * 0.5, cx, cy, gr);
+    glow.addColorStop(0, "rgba(43,108,245,0.15)"); glow.addColorStop(1, "rgba(91,141,247,0)");
+    g.fillStyle = glow; g.beginPath(); g.arc(cx, cy, gr, 0, Math.PI * 2); g.fill();
+    var N = 8, pts = [];
+    for (var i = 0; i < N; i++) {
+      var an = i / N * Math.PI * 2, x = Math.cos(an) * 2, y = Math.sin(an) * 2, z = t * sp;
+      var n = Math.sin(x * 1.2 + z * 0.8) * 0.5 + Math.cos(y * 0.9 + z * 1.1) * 0.5 + Math.sin((x + y) * 0.7 + z * 0.6) * 0.3 + Math.cos(x * 2.1 - z * 0.4) * 0.2;
+      var r = B + n * def; pts.push([cx + Math.cos(an) * r, cy + Math.sin(an) * r]);
+    }
+    var mid = function (p, q) { return [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]; };
+    g.beginPath(); var m0 = mid(pts[N - 1], pts[0]); g.moveTo(m0[0], m0[1]);
+    for (var k = 0; k < N; k++) { var m = mid(pts[k], pts[(k + 1) % N]); g.quadraticCurveTo(pts[k][0], pts[k][1], m[0], m[1]); }
+    g.closePath();
+    var body = g.createRadialGradient(cx - 20, cy - 25, 10, cx, cy, B + 20);
+    body.addColorStop(0, "rgba(131,171,255,0.95)"); body.addColorStop(0.55, "rgba(91,141,247,0.88)"); body.addColorStop(1, "rgba(43,108,245,0.8)");
+    g.fillStyle = body; g.fill();
+    var hl = g.createRadialGradient(cx - 30, cy - 35, 4, cx - 30, cy - 35, 60);
+    hl.addColorStop(0, "rgba(255,255,255,0.18)"); hl.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = hl; g.fill();
+    if (etat === "thinking") { g.fillStyle = "rgba(43,108,245,0.7)"; for (var j = 0; j < 6; j++) { var aa = t * 2 + j * Math.PI / 3; g.beginPath(); g.arc(cx + Math.cos(aa) * (B + 28), cy + Math.sin(aa) * (B + 28), 4, 0, Math.PI * 2); g.fill(); } }
+  }
+
+  // ------------------------------------------------------------------ fin de l'appel : fenêtre de fin, avis, auto-analyse, attente
+  var FINL = null;
+  function ouvrirFin() {
+    if (!actif() || FINL) return;
+    var obj = C.sim.simulation_mode === "objections", court = C.msgs.filter(function (m) { return !m.tmp; }).length < 4;
+    FINL = layer({ alert: true, title: "Terminer l’appel ?", focus: '[data-x="cont"]',
+      body: '<p class="warnt">Cette action est irréversible.</p><p>' + (obj ? "Le mode Objections n’est pas analysé : l’appel sera simplement terminé." : "Un rapport d’analyse sera généré.") + "</p>" +
+        (court ? '<p class="court">Attention : la conversation est très courte.</p>' : "") +
+        '<div class="acts"><button type="button" class="lnk" data-x="skip">Quitter sans analyser</button><span class="sp"></span><button type="button" class="btn" data-x="end">' + (obj ? "Terminer l’appel" : "Terminer et analyser") +
+        '</button><button type="button" class="btn p" data-x="cont">Continuer l’appel</button></div>',
+      onEsc: function (L) { if (!C || !C.endBusy) { L.close(); FINL = null; } },
+      onClick: function (b, L) {
+        if (b.dataset.x === "cont") { L.close(); FINL = null; }
+        else if (b.dataset.x === "skip") quitterSansAnalyser(L);
+        else if (b.dataset.x === "end") terminerEtAnalyser(L);
+      } });
+  }
+  async function quitterSansAnalyser(L) {
+    if (!C) return;
+    var id = C.sim.id; voixArret(true); dicteeStop(); C.ended = true;
+    if (L) { L.close(); FINL = null; }
+    try { await api("simulations/" + id + "/end", { method: "POST", body: { skipAnalysis: true } }); } catch (e) {}
+    go("#nouvelle");
+  }
+  async function terminerEtAnalyser(L) {
+    if (!C || C.endBusy) return;
+    C.endBusy = true;
+    var b = L && L.el.querySelector('[data-x="end"]');
+    if (b) { b.disabled = true; b.innerHTML = '<span class="spin"></span> Fin de l’appel…'; }
+    voixArret(true); dicteeStop();
+    var sim = C.sim, r;
+    try { r = await api("simulations/" + sim.id + "/end", { method: "POST", body: {} }); }
+    catch (e) {
+      if (L) { L.close(); FINL = null; } if (C) C.endBusy = false;
+      if (/not active|terminée/i.test(String(e.raw || e.message))) { if (C) C.ended = true; toast("Appel déjà terminé", "Cette simulation était déjà terminée.", false); go("#historique"); }
+      else toast("Impossible de terminer", e.message, true);
+      return;
+    }
+    if (L) { L.close(); FINL = null; }
+    if (!C || C.sim !== sim) return;
+    C.ended = true; C.sim.status = "completed"; C.voiceView = false;
+    renderAppel();
+    await avis(sim.id);
+    if (!C || C.sim !== sim) return;
+    suiteFin(r || {});
+  }
+  // la note de la simulation (1 à 5 étoiles)
+  function avis(simId) {
+    return new Promise(function (res) {
+      var S = { note: 0, survol: 0, envoi: false, merci: false, com: "" };
+      var corps = function () {
+        var n = S.survol || S.note;
+        var h = '<p class="muted">Votre avis nous aide à l’améliorer.</p><div class="stars" role="group" aria-label="Votre note">' + [1, 2, 3, 4, 5].map(function (i) {
+          return '<button type="button" data-k="st' + i + '" data-star="' + i + '" class="' + (i <= n ? "on" : "") + '" aria-label="' + plur(i, "étoile") + '" aria-pressed="' + (S.note === i) + '"' + (S.envoi ? " disabled" : "") + ">★</button>";
+        }).join("") + "</div>";
+        if (S.merci) h += '<p style="text-align:center;font-weight:600;color:var(--ok)">Merci !</p>';
+        else if (S.note && S.note < 5) h += '<label class="f">Dites-nous ce qui ne vous a pas plu.<textarea class="in" id="fbc" data-k="fbc" rows="4" maxlength="2000" placeholder="Votre retour…">' + esc(S.com) + "</textarea></label>" +
+          '<div class="acts"><span class="sp"></span><button type="button" class="btn" data-x="pass">Passer</button><button type="button" class="btn p" data-x="send"' + (S.envoi ? " disabled" : "") + ">" + (S.envoi ? '<span class="spin"></span> Envoi…' : "Envoyer") + "</button></div>";
+        return h;
+      };
+      var fini = function (L) { L.close(); res(); };
+      var envoyerAvis = async function (L, note, com) {
+        S.envoi = true; L.body(corps());
+        try { await api("simulations/" + simId + "/feedback", { method: "POST", body: { rating: note, comment: com && com.trim() ? com.trim().slice(0, 2000) : null } }); fini(L); }
+        catch (e) { if (e.status === 409) return fini(L); S.envoi = false; S.merci = false; L.body(corps()); toast("Impossible d’envoyer votre avis", e.message || "Une erreur est survenue.", true); }
+      };
+      layer({ title: "Avez-vous apprécié la simulation ?", close: true, body: corps(), focus: "[data-star]",
+        onEsc: function (L) { if (!S.envoi) fini(L); },
+        onMount: function (L) {
+          L.el.addEventListener("mouseover", function (e) { var b = e.target.closest("[data-star]"); var v = b ? +b.dataset.star : 0; if (v !== S.survol && !S.envoi) { S.survol = v; $$("[data-star]", L.el).forEach(function (x) { x.classList.toggle("on", +x.dataset.star <= (S.survol || S.note)); }); } });
+          L.el.addEventListener("mouseleave", function () { S.survol = 0; $$("[data-star]", L.el).forEach(function (x) { x.classList.toggle("on", +x.dataset.star <= S.note); }); }, true);
+          L.el.addEventListener("input", function (e) { if (e.target.id === "fbc") S.com = e.target.value; });
+        },
+        onClick: function (b, L) {
+          if (S.envoi) return;
+          if (b.dataset.star) {
+            S.note = +b.dataset.star; S.survol = 0;
+            if (S.note === 5) { S.merci = true; L.body(corps()); setTimeout(function () { envoyerAvis(L, 5, null); }, 500); }
+            else { L.body(corps()); var t = $("#fbc"); if (t) t.focus(); }
+          } else if (b.dataset.x === "pass") fini(L);
+          else if (b.dataset.x === "send") envoyerAvis(L, S.note, S.com);
+        } });
+    });
+  }
+  function suiteFin(r) {
+    C.fin = { r: r, id: r.analysisId || null, row: null, res: null, echec: null, polls: 0, timer: null, ecran: "", step: 1, envoi: false, aarFait: false,
+      aar: { momentBienGere: "", momentDifficile: "", ceQueJeReferais: "", niveauEstime: "" } };
+    if (r.deferred || r.status === "deferred") return ecranFin("differe");
+    if (!r.analysisId) return ecranFin(r.status === "rejected" || C.sim.simulation_mode === "objections" || (r.reason && !/court/i.test(r.reason)) ? "refus" : "court");
+    sonder(); ecranFin("aar");
+  }
+  function finNettoyer() { if (C && C.fin) clearTimeout(C.fin.timer); $("#fin").innerHTML = ""; }
+  // l'analyse se fait en arrière-plan : on lit sa ligne toutes les 2 s, 40 fois au plus
+  async function sonder() {
+    var F = C && C.fin; if (!F || !F.id) return;
+    F.polls++;
+    try {
+      var row = await q(A.crm.from("crm_sim_analyses").select("id,status,reason,result").eq("id", F.id).maybeSingle());
+      if (!C || C.fin !== F) return;
+      if (row) {
+        F.row = row;
+        if (row.status === "completed" && row.result && row.result.dimensions) { F.res = row; if (F.aarFait) return go("#resultat/" + C.sim.id); if (F.ecran === "aar") renderFin(); return; }
+        if (row.status === "failed" || row.status === "rejected") { F.echec = row; if (F.aarFait) ecranFin("echec"); else if (F.ecran === "aar") renderFin(); return; }
+      }
+    } catch (e) {}
+    if (C && C.fin === F && F.polls < 40) F.timer = setTimeout(sonder, 2000);
+    else if (C && C.fin === F && F.ecran === "aar") renderFin();
+  }
+  function ecranFin(e) { C.fin.ecran = e; renderFin(); var h = $("#fin h1"); if (h) h.focus(); }
+  var AARQ = [["momentBienGere", "Quel moment précis de l’appel as-tu bien géré ?", "Une question posée, une réaction, une transition…", "Ex. : quand le prospect a mentionné son stress, j’ai marqué un silence et rebondi dessus…"],
+    ["momentDifficile", "À quel moment la conversation est devenue plus difficile ?", "Sois précis : ce moment existe dans chaque appel.", "Ex. : quand il a dit « c’est trop cher », j’ai senti que je perdais le fil…"],
+    ["ceQueJeReferais", "Si tu pouvais refaire une question ou une réaction, laquelle changerais-tu ?", "Une seule. La plus utile.", "Ex. : j’aurais creusé les conséquences avant de présenter l’offre…"]];
+  function renderFin() {
+    var F = C && C.fin, el = $("#fin"); if (!F) { el.innerHTML = ""; return; }
+    var h = "", nom = esc(nomP());
+    var ecran = function (rond, cls, titre, txt, btn) {
+      return '<div class="full" role="region" aria-labelledby="fh"><div class="fc c"><div class="rond' + (cls ? " " + cls : "") + '" aria-hidden="true">' + rond + '</div><h1 id="fh" tabindex="-1">' + titre + "</h1>" + txt + btn + "</div></div>";
+    };
+    if (F.ecran === "aar") {
+      var s = F.step, att = F.id && !F.res && !F.echec && F.polls < 40;
+      h = '<div class="full" role="region" aria-labelledby="fh"><div class="fc"><div class="acts"><span class="pill b" style="text-transform:uppercase;letter-spacing:.08em">Auto-analyse</span>' +
+        (att ? '<span class="muted small"><span class="spin" style="width:12px;height:12px;border-width:2px"></span> L’IA analyse ton appel…</span>' : F.res ? '<span class="pill ok">Analyse prête</span>' : "") + "</div>" +
+        '<h1 id="fh" tabindex="-1">Avant de voir le retour <span class="muted" style="font-weight:500">avec ' + nom + "</span></h1>" +
+        '<p class="muted">Les meilleurs commerciaux s’évaluent avant de recevoir un jugement extérieur. Ta perception sera comparée à l’analyse de l’IA.</p>' +
+        '<div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="prog4" aria-hidden="true">' + [1, 2, 3, 4].map(function (i) { return '<i class="' + (i <= s ? "on" : "") + '"></i>'; }).join("") + "</div>" +
+        '<div class="cap">Question ' + s + " / 4</div>";
+      if (s <= 3) {
+        var qq = AARQ[s - 1];
+        h += '<label class="f" style="font-size:15px;color:var(--brand)">' + qq[1] + '<small>' + qq[2] + '</small><textarea class="in aart" id="aar" data-k="aar' + s + '" maxlength="2000" placeholder="' + esc(qq[3]) + '">' + esc(F.aar[qq[0]]) + "</textarea></label>";
+      } else {
+        h += '<div><b style="color:var(--brand);font-size:15px">Quel niveau de commercial penses-tu avoir été ?</b><p class="muted small">Sois honnête : l’IA va comparer ta réponse à son analyse.</p></div>' +
+          '<div class="lvopt" role="radiogroup" aria-label="Ton niveau">' + AAR_NIV.map(function (x) {
+            return '<button type="button" class="lv" role="radio" data-k="lv-' + x[0] + '" data-lv="' + x[0] + '" aria-checked="' + (F.aar.niveauEstime === x[0]) + '"><b>' + NIV[x[0]] + "</b><small>" + x[1] + "</small></button>";
+          }).join("") + "</div>";
+      }
+      var plein = s <= 3 ? !!F.aar[AARQ[s - 1][0]].trim() : !!F.aar.niveauEstime;
+      h += '<div class="acts">' + (s > 1 ? '<button type="button" class="btn g" data-do="aar-ret">← Retour</button>' : "") + '<span class="sp"></span>' +
+        (s < 4 ? '<button type="button" class="btn p" data-k="aar-suiv" data-do="aar-suiv"' + (plein ? "" : " disabled") + ">Suivant →</button>"
+          : '<button type="button" class="btn p" data-k="aar-env" data-do="aar-env"' + (plein && !F.envoi ? "" : " disabled") + ">" + (F.envoi ? '<span class="spin"></span> Envoi…' : "Voir le retour de l’IA →") + "</button>") + "</div></div>" +
+        '<p class="muted small" style="text-align:center">Tes réponses sont enregistrées avec l’analyse pour mesurer ta progression.</p></div></div>';
+    } else if (F.ecran === "attente") {
+      h = ecran('<span class="spin l"></span>', "", "Analyse en cours", "<p>Votre simulation est terminée et l’analyse se fait en arrière-plan.</p><p><b>Pas besoin d’attendre ici : vous pouvez quitter cette page. Vos résultats seront disponibles dans quelques minutes.</b></p>",
+        '<div class="acts" style="justify-content:center"><button type="button" class="btn p" data-go="#historique">Retour à l’historique</button></div>');
+    } else if (F.ecran === "court") {
+      h = ecran("⚠", "a", "Conversation trop courte", "<p>La simulation n’a pas eu assez d’échanges pour générer une analyse. Relancez une simulation et essayez de prolonger la conversation.</p>",
+        '<div class="acts" style="justify-content:center"><button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button></div>');
+    } else if (F.ecran === "refus") {
+      h = ecran("ℹ", "a", "Pas d’analyse pour cet appel", "<p>" + esc(F.r.reason || "Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont.") + "</p>",
+        '<div class="acts" style="justify-content:center"><button type="button" class="btn" data-go="#resultat/' + C.sim.id + '">Revoir la conversation</button><button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button></div>');
+    } else if (F.ecran === "differe") {
+      h = ecran("⏳", "a", "Analyse mise en attente", "<p>" + esc(F.r.deferredReason || F.r.reason || "Analyse mise en attente : plafond quotidien atteint.") + "</p><p>Elle démarrera automatiquement dès qu’une place se libérera.</p>",
+        '<div class="acts" style="justify-content:center"><button type="button" class="btn p" data-go="#historique">Retour à l’historique</button></div>');
+    } else if (F.ecran === "echec") {
+      h = ecran("⚠", "a", "L’analyse n’a pas abouti", "<p>" + esc((F.echec && F.echec.reason) || "Une erreur est survenue pendant l’analyse.") + "</p>",
+        '<div class="acts" style="justify-content:center"><button type="button" class="btn" data-go="#resultat/' + C.sim.id + '">Revoir la conversation</button><button type="button" class="btn p" data-go="#historique">Retour à l’historique</button></div>');
+    }
+    paint(el, h);
+    var t = $("#aar"); if (t && document.activeElement !== t && !el.contains(document.activeElement)) t.focus();
+  }
+  function aarSuivant() {
+    var F = C.fin; if (F.step > 3 || !F.aar[AARQ[F.step - 1][0]].trim()) return;
+    F.step++; renderFin(); var t = $("#aar") || $("[data-lv]"); if (t) t.focus();
+  }
+  async function aarEnvoyer() {
+    var F = C.fin; if (F.envoi || !F.aar.niveauEstime) return;
+    F.envoi = true; renderFin();
+    try { if (F.id) await api("analyses/" + F.id + "/aar", { method: "POST", body: F.aar }); } catch (e) {}
+    if (!C || C.fin !== F) return;
+    F.envoi = false; F.aarFait = true;
+    if (F.res) return go("#resultat/" + C.sim.id);
+    if (F.echec) return ecranFin("echec");
+    ecranFin("attente");
+  }
+
+  // ------------------------------------------------------------------ vue « Résultat » (#resultat/<simulation>)
+  var R = null;
+  var ONGLETS = [["resultat", "Résultat"], ["analyse", "Analyse détaillée"], ["lignes", "Ligne à ligne"], ["exercice", "Exercice"], ["progression", "Progression"]];
+  async function vueResultat(arg) {
+    var id = Number(arg);
+    paint($("#view"), '<div class="wrap">' + loader("Chargement de l’analyse…") + "</div>");
+    var sim, an, msgs;
+    try {
+      sim = await q(A.crm.from("crm_sim_simulations").select("*").eq("id", id).maybeSingle());
+      if (sim) { an = await q(A.crm.from("crm_sim_analyses").select("*").eq("simulation_id", id).maybeSingle()); msgs = await chargerMessages(id); }
+    } catch (e) { paint($("#view"), '<div class="wrap"><div class="card empty"><b>Analyse injoignable</b><p>' + esc(e.message) + '</p><button type="button" class="btn p" data-go="#historique">← Retour à l’historique</button></div></div>'); return; }
+    if (V.name !== "resultat" || V.arg !== arg) return;
+    if (!sim) { paint($("#view"), '<div class="wrap"><div class="card empty"><div class="ico">?</div><b>Analyse introuvable.</b><button type="button" class="btn p" data-go="#historique">← Retour à l’historique</button></div></div>'); return; }
+    R = { sim: sim, an: an || null, msgs: msgs || [], tab: "resultat", dim: null, filtre: "tout", hist: null, ex: { txt: "", vu: false, fait: false }, polls: 0, timer: null, anime: true, cible: null };
+    renderResultat();
+    if (R.an && R.an.status === "processing") R.timer = setTimeout(sonderResultat, 2000);
+    if (R.an && R.an.status === "completed") chargerProgression();
+    V.cleanup = function () { if (R) clearTimeout(R.timer); R = null; };
+  }
+  async function sonderResultat() {
+    if (!R) return;
+    var r0 = R; r0.polls++;
+    try { var an = await q(A.crm.from("crm_sim_analyses").select("*").eq("id", r0.an.id).maybeSingle()); if (R !== r0) return; if (an) r0.an = an; } catch (e) {}
+    if (R !== r0) return;
+    if (r0.an.status === "processing" && r0.polls < 40) r0.timer = setTimeout(sonderResultat, 2000);
+    else { renderResultat(); if (r0.an.status === "completed") chargerProgression(); }
+  }
+  async function chargerProgression() {
+    var r0 = R;
+    try {
+      var rows = (await q(A.crm.from("crm_sim_analyses").select("id,simulation_id,status,created_at,completed_at,result").eq("user_id", r0.an.user_id).eq("status", "completed").order("created_at", { ascending: true }).limit(60))) || [];
+      if (R !== r0) return;
+      r0.hist = rows.filter(function (x) { return x.result && x.result.score_total != null && Date.parse(x.created_at) <= Date.parse(r0.an.created_at) + 1000; });
+    } catch (e) { if (R === r0) r0.hist = []; }
+    if (R === r0 && r0.tab === "progression") renderResultat();
+  }
+  function renderResultat() {
+    if (!R) return;
+    var s = R.sim, an = R.an, res = an && an.result, ok = an && an.status === "completed" && res && res.dimensions;
+    var h = '<div class="wrap"><div class="head"><div><h1>Analyse de l’appel avec ' + esc(s.prospect_name) + '</h1><p class="muted small">' + MODES[s.simulation_mode] + " · " + diff(s.difficulty)[0] + " · " + quand(s.started_at) +
+      " · " + minutes(s.duration_seconds) + " · " + plur(R.msgs.length, "réplique") + (an && an.completed_at ? " · analysée le " + jour(an.completed_at) : "") + "</p></div><span class=\"sp\"></span>" +
+      '<button type="button" class="btn" data-do="r-txt">⤓ Télécharger la conversation</button><button type="button" class="btn" data-go="#historique">Historique</button><button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button></div>';
+    if (!ok) {
+      var st = an ? an.status : null;
+      if (st === "processing") h += '<div class="card empty"><span class="spin l"></span><b>Analyse en cours</b><p>L’analyse se fait en arrière-plan : cette page se mettra à jour d’elle-même.</p></div>';
+      else if (st === "deferred") h += '<div class="card empty"><div class="ico">⏳</div><b>Analyse mise en attente</b><p>' + esc(an.reason || "Plafond quotidien atteint.") + "</p><p>Elle démarrera automatiquement dès qu’une place se libérera.</p>" +
+        (A.admin ? '<button type="button" class="btn" data-do="r-reprendre">Relancer les analyses en attente</button>' : "") + "</div>";
+      else if (st === "failed") h += '<div class="card empty"><div class="ico">⚠</div><b>L’analyse n’a pas abouti</b><p>' + esc(an.reason || "Une erreur est survenue pendant l’analyse.") + "</p></div>";
+      else h += '<div class="card empty"><div class="ico">ℹ</div><b>Pas d’analyse pour cet appel</b><p>' + esc((an && an.reason) || (s.simulation_mode === "objections" ? "Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont." : s.status === "active" ? "L’appel est encore en cours." : "L’appel a été terminé sans analyse.")) + "</p></div>";
+      h += '<section class="card"><div class="ct">Conversation</div>' + transcription([]) + "</section></div>";
+      paint($("#view"), h); return;
+    }
+    h += '<div class="tabs" role="tablist" aria-label="Analyse">' + ONGLETS.map(function (o) {
+      return '<button type="button" role="tab" id="tab-' + o[0] + '" data-k="tab-' + o[0] + '" data-tab="' + o[0] + '" aria-selected="' + (R.tab === o[0]) + '" aria-controls="panel" tabindex="' + (R.tab === o[0] ? 0 : -1) + '">' + o[1] + "</button>";
+    }).join("") + '</div><div id="panel" role="tabpanel" aria-labelledby="tab-' + R.tab + '" style="display:flex;flex-direction:column;gap:16px">' +
+      ({ resultat: ongletResultat, analyse: ongletAnalyse, lignes: ongletLignes, exercice: ongletExercice, progression: ongletProgression })[R.tab](res) + "</div></div>";
+    paint($("#view"), h);
+    if (R.tab === "resultat") animerScore(res.score_total);
+    if (R.tab === "lignes" && R.cible != null) { var el = document.getElementById("ln-" + R.cible); if (el) el.scrollIntoView({ block: "center" }); R.cible = null; }
+  }
+  function animerScore(cible) {
+    var el = $("#scoreN"); if (!el) return;
+    cible = Math.round(Number(cible) || 0);
+    if (!R.anime || matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = cible; return; }
+    R.anime = false; el.textContent = "0";
+    var t0 = performance.now() + 500;
+    (function pas(t) { if (!document.contains(el)) return; var p = Math.min(1, Math.max(0, (t - t0) / 1600)); el.textContent = Math.round(cible * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(pas); })(performance.now());
+  }
+  function radar(dims) {
+    var cx = 160, cy = 140, Rr = 92, n = dims.length, pt = function (i, f) { var a = -Math.PI / 2 + i * 2 * Math.PI / n; return [cx + Math.cos(a) * Rr * f, cy + Math.sin(a) * Rr * f]; };
+    var grid = [0.33, 0.66, 1].map(function (f) { return '<polygon points="' + dims.map(function (_, i) { return pt(i, f).join(","); }).join(" ") + '" fill="none" stroke="#D6DEF0"/>'; }).join("");
+    var axes = dims.map(function (_, i) { var p = pt(i, 1); return '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="#E3ECFB"/>'; }).join("");
+    var poly = '<polygon points="' + dims.map(function (d, i) { return pt(i, d.max > 0 ? Math.min(1, d.score / d.max) : 0).join(","); }).join(" ") + '" fill="rgba(43,108,245,.15)" stroke="#2B6CF5" stroke-width="2"/>';
+    var lab = dims.map(function (d, i) { var p = pt(i, 1.24); return '<text x="' + p[0] + '" y="' + p[1] + '" text-anchor="middle" font-size="12" fill="#2A3352" font-weight="600">' + esc(d.label) +
+      '<tspan x="' + p[0] + '" dy="14" font-weight="400" fill="#5A6478">' + (d.max > 0 ? nb(d.score) + " / " + nb(d.max) : "non évalué") + "</tspan></text>"; }).join("");
+    return '<svg viewBox="-10 0 340 290" class="chart" role="img" aria-label="Score par dimension : ' + esc(dims.map(function (d) { return d.label + " " + (d.max > 0 ? nb(d.score) + " sur " + nb(d.max) : "non évalué"); }).join(", ")) + '">' + grid + axes + poly + lab + "</svg>";
+  }
+  function ongletResultat(res) {
+    var dims = dimsDe(res), niv = String(res.niveau || ""), g = res.grille || {}, sc = Math.round(Number(res.score_total) || 0);
+    var cur = PALIERS.findIndex(function (p) { return p[0] === niv; });
+    if (cur < 0) cur = PALIERS.findIndex(function (p) { return sc >= p[1]; });
+    var lad = PALIERS.map(function (p, i) { var cls = i === cur ? "cur" : i > cur ? "ok" : ""; return '<div class="' + cls + '"><i aria-hidden="true">' + (i === cur ? "●" : i > cur ? "✓" : "🔒") + "</i><span>" + (i === cur ? "<b>" + NIV[p[0]] + "</b>" : NIV[p[0]]) + "</span><small>" + (p[1] ? p[1] + " points" : "") + "</small></div>"; }).join("");
+    var h = '<div class="r3"><section class="card score"><div class="cap">Score global</div><div class="n"><span id="scoreN">' + sc + '</span><small>/100</small></div><span class="lvl">' + esc(niveauLabel(niv)) + "</span>" +
+      (g.eliminatoire_declenche && g.score_hors_plafond != null ? '<p class="small muted">Score plafonné par une condition éliminatoire. Sans ce plafond : ' + nb(g.score_hors_plafond) + "/100.</p>" : "") + "</section>" +
+      '<section class="card"><div class="cap">Les cinq dimensions</div>' + radar(dims) + '</section><section class="card"><div class="cap" style="margin-bottom:6px">Paliers</div><div class="lad">' + lad + "</div></section></div>";
+    h += '<div class="g2"><section class="card fort"><div class="cap">Point fort</div><p>' + esc(res.point_fort || "Donnée indisponible.") + '</p></section><section class="card faible"><div class="cap">Pilier à travailler</div><p>' + esc(res.point_faible || "Donnée indisponible.") + "</p></section></div>";
+    if (res.drill && res.drill.titre) h += '<section class="card drill"><div class="cap">Exercice ciblé</div><p><b>' + esc(res.drill.titre) + "</b></p><p>" + esc(res.drill.consigne || "") + '</p><div class="acts" style="margin-top:8px"><button type="button" class="btn p sm" data-tab="exercice">Faire l’exercice →</button></div></section>';
+    var conds = Array.isArray(g.conditions) ? g.conditions : [];
+    if (conds.length) h += '<section class="card"><div class="ct">Conditions éliminatoires <small>une condition active et constatée plafonne le score à 25</small></div><div class="cond">' + conds.map(function (c) {
+      var stt = { declenchee: ["Constatée", "ko"], non_declenchee: ["Non constatée", "ok"], indeterminee: ["Indéterminée", "mid"] }[c.statut] || [c.statut || "—", ""];
+      var mot = c.motif && /\s/.test(String(c.motif)) ? '<br><small class="muted">' + esc(c.motif) + "</small>" : "";
+      return "<div>" + esc(c.libelle || c.code) + mot + '</div><div><span class="pill ' + (c.etat === "active" ? "b" : "") + '">' + (c.etat === "active" ? "Active" : "Suspendue : constatée, jamais appliquée") + '</span></div><div><span class="pill ' + stt[1] + '">' + stt[0] + "</span></div>";
+    }).join("") + "</div></section>";
+    h += carteMiroir(res);
+    return h;
+  }
+  function carteMiroir(res) {
+    var aar = (R.an && R.an.aar) || res.aar || null, mi = (R.an && R.an.miroir) || res.miroir_aar || null, cmp = res.comparaison_aar || null;
+    var h = '<section class="card"><div class="ct">Ton analyse face à l’IA</div>';
+    if (!aar) return h + '<p class="muted">Tu n’as pas rempli l’auto-analyse pour cet appel.</p></section>';
+    var reel = (mi && mi.niveau && mi.niveau.reel) || niveauLabel(res.niveau), est = (mi && mi.niveau && mi.niveau.estime) || niveauLabel(aar.niveauEstime);
+    var msg = (cmp && cmp.message) || (mi && mi.niveau && mi.niveau.message) || "";
+    h += '<p>Ton estimation : <b>' + esc(niveauLabel(est)) + "</b> · niveau de l’analyse : <b>" + esc(niveauLabel(reel)) + "</b>" + (msg ? '<br><span class="muted">' + esc(msg) + "</span>" : "") + "</p>";
+    var cols = [["moment_bien_gere", "Ton meilleur moment", aar.momentBienGere], ["moment_difficile", "Ton moment difficile", aar.momentDifficile], ["ce_que_je_referais", "Ce que tu referais", aar.ceQueJeReferais]];
+    h += '<div class="g3" style="margin-top:12px">' + cols.map(function (c) {
+      var m = mi && mi[c[0]], rep = c[2];
+      if (m) Object.keys(m).forEach(function (k) { if (/^reponse/.test(k) && m[k]) rep = m[k]; });
+      var v = m && m.verdict, ic = { confirme: "✓", nuance: "!", contredit: "✕" }[v] || "";
+      var lien = m && m.lien && m.lien.tab ? '<button type="button" class="lnk" data-tab="' + ({ analyse: "analyse", tournant: "lignes", drill: "exercice" }[m.lien.tab] || "analyse") + '">→ ' + esc(m.lien.label || "Voir") + "</button>" : "";
+      return '<div><div class="cap">' + c[1] + '</div><p class="verb" style="margin-top:4px">« ' + esc(rep || "—") + " »</p>" +
+        (m ? '<div class="vd ' + esc(v) + '"><b>' + ic + " " + esc(m.verdict_label || "") + "</b>" + esc(m.explication || "") + (lien ? "<br>" + lien : "") + "</div>" : "") + "</div>";
+    }).join("") + "</div>";
+    if (!mi) h += '<p class="muted small" style="margin-top:8px">La comparaison détaillée de l’IA n’est pas encore disponible.</p>';
+    return h + "</section>";
+  }
+  function ongletAnalyse(res) {
+    var dims = dimsDe(res);
+    if (!R.dim) R.dim = (dims.filter(function (d) { return d.items.length; })[0] || dims[0]).key;
+    var d = dims.filter(function (x) { return x.key === R.dim; })[0] || dims[0];
+    var bar = function (x) { if (!(x.max > 0)) return '<span class="small muted">Non évalué</span>'; var p = x.score / x.max; return '<span class="mbar"><i style="width:' + Math.round(p * 100) + "%;background:" + (p < 0.3 ? "var(--ko)" : p <= 0.6 ? "#E89B2C" : "var(--ok)") + '"></i></span>'; };
+    var h = '<div class="dimg"><div class="dl5" role="group" aria-label="Dimensions">' + dims.map(function (x) {
+      return '<button type="button" class="db" data-k="dim-' + x.key + '" data-dim="' + x.key + '" aria-pressed="' + (x.key === d.key) + '"><span class="l1"><span>' + x.label + "</span><span>" + (x.max > 0 ? nb(x.score) + " / " + nb(x.max) : "—") + "</span></span>" + bar(x) + "</button>";
+    }).join("") + '</div><section class="card"><div class="head" style="margin-bottom:6px"><h2>' + d.label + '</h2><span class="sp"></span><b>' + (d.max > 0 ? nb(d.score) + " / " + nb(d.max) + " points" : "non évalué") + "</b></div>";
+    if (!d.items.length) h += '<p class="muted">Aucun élément évaluable sur cette étape pour cet appel.</p>';
+    else h += d.items.map(function (it) {
+      var st = STATUT[it.statut] || STATUT.absent;
+      return '<details class="it"><summary><span class="st ' + esc(it.statut) + '" aria-hidden="true">' + st[1] + '</span><span class="lb">' + esc(it.label) + '</span><span class="pill ' + ({ correct: "ok", partiel: "mid", absent: "ko" }[it.statut] || "") + '">' + st[0] +
+        '</span><b class="small">+' + nb(it.points) + " pt</b></summary><div class=\"bd\">" + (it.verbatim ? '<span class="verb">« ' + esc(it.verbatim) + " »</span>" : '<span class="muted">Pas de citation.</span>') +
+        (it.statut !== "correct" && it.commentaire ? '<span class="com">→ ' + esc(it.commentaire) + "</span>" : "") + "</div></details>";
+    }).join("");
+    return h + "</section></div>";
+  }
+  // les remarques de l'analyse rattachées aux répliques par leur citation
+  function rattacher(res) {
+    var anns = Array.isArray(res.annotations) ? res.annotations : [], parLigne = {}, libres = [];
+    anns.forEach(function (a, k) {
+      var v = norm(a.verbatim), i = -1;
+      if (v.length >= 6) { var cle = v.slice(0, 60); i = R.msgs.findIndex(function (m) { return norm(m.content).indexOf(cle) >= 0; }); }
+      var x = { a: a, k: k, ligne: i };
+      if (i >= 0) (parLigne[i] = parLigne[i] || []).push(x); else libres.push(x);
+    });
+    return { anns: anns.map(function (a, k) { return { a: a, k: k, ligne: (Object.keys(parLigne).filter(function (l) { return parLigne[l].some(function (x) { return x.k === k; }); })[0]) }; }), parLigne: parLigne, libres: libres };
+  }
+  function transcription(parLigne) {
+    if (!R.msgs.length) return '<p class="muted">Aucune réplique dans cette simulation.</p>';
+    var t0 = Date.parse(R.sim.started_at) || Date.parse(R.msgs[0].created_at);
+    return '<div class="tl">' + R.msgs.map(function (m, i) {
+      var sec = Math.max(0, Math.round((Date.parse(m.created_at) - t0) / 1000)), ts = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0");
+      var anns = (parLigne[i] || []).filter(function (x) { return R.filtre === "tout" || x.a.evaluation === R.filtre; });
+      return '<div class="tln ' + (m.role === "commercial" ? "s" : "p") + '" id="ln-' + i + '"><div class="who2">' + (m.role === "commercial" ? "Commercial" : esc(R.sim.prospect_name || "Prospect")) + "<br>" + ts + "</div><div>" + esc(m.content) +
+        anns.map(function (x) { return '<div class="ann ' + esc(x.a.evaluation) + '"><b>' + (EVAL[x.a.evaluation] || "") + " — " + esc(x.a.label || x.a.critere) + "</b>" + (x.a.pourquoi ? "<br>→ " + esc(x.a.pourquoi) : "") + "</div>"; }).join("") + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function ongletLignes(res) {
+    var r = rattacher(res), cnt = { tout: r.anns.length, negatif: 0, positif: 0, partiel: 0 };
+    r.anns.forEach(function (x) { if (cnt[x.a.evaluation] != null) cnt[x.a.evaluation]++; });
+    var vis = r.anns.filter(function (x) { return R.filtre === "tout" || x.a.evaluation === R.filtre; });
+    var h = '<div class="lg"><section class="card"><div class="ct">Conversation</div>' + transcription(r.parLigne) + "</section>" +
+      '<aside class="mom" aria-label="Moments annotés"><div class="fpills" role="group" aria-label="Filtrer les moments">' + [["tout", "Tout"], ["negatif", "À corriger"], ["positif", "Bien joué"], ["partiel", "Partiel"]].map(function (f) {
+        return '<button type="button" data-k="fl-' + f[0] + '" data-filtre="' + f[0] + '" aria-pressed="' + (R.filtre === f[0]) + '">' + f[1] + " " + cnt[f[0]] + "</button>";
+      }).join("") + "</div>";
+    if (!vis.length) h += '<p class="muted small">Aucun moment annoté sur cet appel.</p>';
+    else h += vis.map(function (x) {
+      return '<button type="button" class="m" data-ligne="' + (x.ligne == null ? "" : x.ligne) + '"' + (x.ligne == null ? ' disabled title="Citation introuvable dans la conversation"' : "") + '><span class="pill ' + ({ positif: "ok", partiel: "mid", negatif: "ko" }[x.a.evaluation] || "") + '">' + (EVAL[x.a.evaluation] || "") + "</span> <b>" + esc(x.a.label || x.a.critere) + "</b>" +
+        (x.a.verbatim ? '<br><span class="verb">« ' + esc(String(x.a.verbatim).slice(0, 140)) + (String(x.a.verbatim).length > 140 ? "…" : "") + " »</span>" : "") + "</button>";
+    }).join("");
+    return h + "</aside></div>";
+  }
+  function ongletExercice(res) {
+    var d = res.drill;
+    if (!d || !d.titre) return '<section class="card empty"><b>Aucun exercice proposé par l’analyse de cet appel.</b></section>';
+    var dur = String(d.duree_estimee || "").replace(/^(\d+)\s*min$/, "$1 min");
+    var h = '<p class="notice">Entraîne-toi avant ton prochain appel.</p><section class="card drill" style="display:flex;flex-direction:column;gap:10px"><div class="acts"><span class="pill b">Exercice' + (dur ? " · " + esc(dur) : "") + "</span>" +
+      (d.type ? '<span class="pill">' + esc(TYPE_EX[d.type] || d.type) + "</span>" : "") + "</div><h2>" + esc(d.titre) + "</h2>" + (d.contexte ? '<div><div class="cap">Contexte</div><p>' + esc(d.contexte) + "</p></div>" : "") +
+      '<div><div class="cap">Ce que tu dois faire</div><p>' + esc(d.consigne || "") + "</p></div>" +
+      '<label class="f">Ta réponse<textarea class="in" id="exr" data-k="exr" placeholder="Écris ta réponse ici avant de voir le modèle…">' + esc(R.ex.txt) + "</textarea></label>";
+    if (R.ex.vu && d.exemple_reponse) h += '<div><div class="cap">Réponse modèle</div><p class="model">« ' + esc(d.exemple_reponse) + " »</p></div>";
+    h += '<div class="acts">' + (!R.ex.vu ? '<button type="button" class="btn p" data-k="exv" data-do="ex-voir"' + (d.exemple_reponse && R.ex.txt.trim().length > 5 ? "" : " disabled") + ">" + (d.exemple_reponse ? "Valider et voir le modèle" : "Pas de réponse modèle fournie") + "</button>" : "") +
+      (R.ex.fait ? '<p class="vok">✓ Tu ne repars pas les mains vides.</p>' : '<button type="button" class="btn" data-do="ex-fait">Exercice fait</button>') + "</div></section>";
+    return h;
+  }
+  function courbe(pts) {
+    var W = 720, Hh = 250, pl = 44, pr = 20, pt = 18, pb = 36, n = pts.length;
+    var x = function (i) { return n === 1 ? (pl + W - pr) / 2 : pl + i * (W - pl - pr) / (n - 1); }, y = function (v) { return pt + (100 - v) * (Hh - pt - pb) / 100; };
+    var grid = [0, 25, 50, 75, 100].map(function (v) { return '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#E3ECFB"/><text x="' + (pl - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="11" fill="#5A6478">' + v + "</text>"; }).join("");
+    var seuils = [[50, "Découverte"], [65, "Diagnostic"], [85, "Élite"]].map(function (s) { return '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(s[0]) + '" y2="' + y(s[0]) + '" stroke="#AECBF2" stroke-dasharray="4 4"/><text x="' + (W - pr) + '" y="' + (y(s[0]) - 4) + '" text-anchor="end" font-size="10" fill="#5B8DF7">' + s[1] + "</text>"; }).join("");
+    var line = n > 1 ? '<polyline fill="none" stroke="#2B6CF5" stroke-width="2.5" points="' + pts.map(function (p, i) { return x(i) + "," + y(p.v); }).join(" ") + '"/>' : "";
+    var dots = pts.map(function (p, i) { return '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="' + (p.cur ? 6 : 4) + '" fill="' + (p.cur ? "#1E2A5E" : "#fff") + '" stroke="#2B6CF5" stroke-width="2"><title>' + jour(p.d) + " : " + p.v + "/100</title></circle>" +
+      (n <= 14 || i % Math.ceil(n / 14) === 0 || p.cur ? '<text x="' + x(i) + '" y="' + (Hh - 12) + '" text-anchor="middle" font-size="10.5" fill="#5A6478">' + jm(p.d) + "</text>" : ""); }).join("");
+    return '<svg viewBox="0 0 ' + W + " " + Hh + '" class="chart" role="img" aria-label="Évolution du score : ' + esc(pts.map(function (p) { return jour(p.d) + " " + p.v; }).join(", ")) + '">' + grid + seuils + line + dots + "</svg>";
+  }
+  function ongletProgression(res) {
+    if (R.hist == null) return loader("Chargement de la progression…");
+    var hist = R.hist.length ? R.hist : [{ id: R.an.id, created_at: R.an.created_at, result: res }];
+    var pts = hist.map(function (x) { return { d: x.created_at, v: Math.round(Number(x.result.score_total) || 0), cur: x.id === R.an.id }; });
+    var dims = dimsDe(res).filter(function (d) { return d.max > 0; });
+    var faible = dims.slice().sort(function (a, b) { return a.score / a.max - b.score / b.max; })[0];
+    var h = '<section class="card"><div class="ct">Score sur ' + plur(pts.length, "appel analysé", "appels analysés") + "</div>" + courbe(pts) +
+      (pts.length < 2 ? '<p class="muted small">Premier appel analysé : la progression s’affichera dès le prochain.</p>' : "") + "</section>";
+    if (faible) {
+      var sur3 = function (r) { var d = dimsDe(r).filter(function (x) { return x.key === faible.key; })[0]; return d && d.max > 0 ? Math.round(d.score / d.max * 300) / 100 : null; };
+      var lignes = hist.map(function (x) { return { d: x.created_at, n: sur3(x.result), cur: x.id === R.an.id }; }).filter(function (x) { return x.n != null; });
+      h += '<section class="card"><div class="ct">Chantier prioritaire : ' + faible.label + " <small>la dimension la plus faible de cet appel</small></div>" +
+        '<p class="notice small">' + (lignes.length <= 1 ? "Premier appel noté sur cette dimension : la progression se mesurera dès le prochain appel." : "Le progrès se confirmera si la note remonte au prochain appel.") + "</p>" +
+        '<table class="t" style="margin-top:8px"><thead><tr><th>Appel</th><th>' + faible.label + " (sur 3)</th></tr></thead><tbody>" + lignes.map(function (l) { return "<tr><td>" + (l.cur ? "<b>Cet appel</b>" : "Appel du " + jour(l.d)) + "</td><td>" + nb(l.n, 2) + " / 3</td></tr>"; }).join("") +
+        '</tbody></table><p class="muted small" style="margin-top:6px">Objectif : repasser au-dessus de 2 / 3 au prochain appel.</p></section>';
+    }
+    h += '<section class="card"><div class="ct">Tes appels analysés</div><table class="t"><thead><tr><th>Date</th><th>Score</th><th>Niveau</th></tr></thead><tbody>' + hist.slice().reverse().map(function (x) {
+      return "<tr><td>" + (x.id === R.an.id ? "<b>" + quand(x.created_at) + " (cet appel)</b>" : quand(x.created_at)) + "</td><td>" + Math.round(Number(x.result.score_total) || 0) + "/100</td><td>" + esc(niveauLabel(x.result.niveau)) + "</td></tr>";
+    }).join("") + "</tbody></table></section>";
+    return h;
+  }
+
+  // ------------------------------------------------------------------ événements
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#layers")) return;
+    var b = e.target.closest("button,[data-go]"); if (!b || b.disabled) return;
+    if (b.dataset.go) { e.preventDefault(); return go(b.dataset.go); }
+    if (b.dataset.tab && R) { R.tab = b.dataset.tab; renderResultat(); var t = $("#tab-" + R.tab); if (t) t.focus(); if (R.tab === "progression" && R.hist == null) chargerProgression(); return; }
+    if (b.dataset.dim && R) { R.dim = b.dataset.dim; return renderResultat(); }
+    if (b.dataset.filtre && R) { R.filtre = b.dataset.filtre; return renderResultat(); }
+    if (b.dataset.ligne != null && b.dataset.ligne !== "" && R) { $$(".tln.hl").forEach(function (x) { x.classList.remove("hl"); }); var l = document.getElementById("ln-" + b.dataset.ligne); if (l) { l.classList.add("hl"); l.scrollIntoView({ block: "center", behavior: "smooth" }); } return; }
+    if (b.dataset.lv) { if (C && C.fin) { C.fin.aar.niveauEstime = b.dataset.lv; renderFin(); } return; }
+    var d = b.dataset.do, v = b.dataset.v; if (!d) return;
+    switch (d) {
+      case "h-voix": H.voix = v === "1"; lset("lnp-sim-voix", H.voix); return renderNouvelle();
+      case "h-mode": H.mode = v; return renderNouvelle();
+      case "h-offre": H.offre = v; if (!A.demo) { lset("lnp-sim-offre", v); return chargerProspectsAccueil(v); } return renderNouvelle();
+      case "h-prospect": H.prospect = v; if (!A.demo) lset("lnp-sim-prospect-" + H.offre, v); return renderNouvelle();
+      case "h-generer": return api("offres/" + H.offre + "/prospects", { method: "POST" }).then(function () { toast("Génération lancée", "Les prospects apparaîtront dans quelques minutes. Suivez-la dans « Offres et prospects »."); }, function (x) { toast("Erreur", x.message, true); });
+      case "lancer": return lancer();
+      case "o-sel": O.sel = v; renderOffres(); if (!O.pers[v]) chargerPersAdmin(v).then(renderOffres); return;
+      case "o-pdfx": O.form.pdfs.splice(+v, 1); return renderOffres();
+      case "o-creer": return creerOffre();
+      case "o-gen": case "o-rean": case "o-archiver": case "o-suppr": case "o-train": return actionOffre(d);
+      case "p-fiche": case "p-actif": case "p-suppr": return actionProspect(d, v);
+      case "r-save": return enregistrerReglages();
+      case "r-annuler": CHAMPS.forEach(function (k) { RG.edit[k] = RG.row[k]; }); return renderReglages();
+      case "r-reprendre": return api("analyses/reprendre", { method: "POST" }).then(function (r) { toast("Analyses relancées", r && r.relancees != null ? plur(r.relancees, "analyse relancée", "analyses relancées") + (r.enAttente ? ", " + r.enAttente + " encore en attente." : ".") : "Les analyses en attente repartent dès qu’une place se libère."); if (V.name === "resultat") route(); }, function (x) { toast("Erreur", x.message, true); });
+      case "h-page": HI.page += +v; renderHistorique(); $("#view").scrollTop = 0; return;
+      case "h-txt": { var r1 = (HI.rows || []).filter(function (x) { return String(x.id) === v; })[0]; return r1 && telechargerConversation({ id: r1.id, prospect_name: r1.prospect_name, difficulty: r1.difficulty, simulation_mode: r1.mode, started_at: r1.started_at, duration_seconds: r1.duration_seconds }); }
+      case "h-suppr": { var r2 = (HI.rows || []).filter(function (x) { return String(x.id) === v; })[0]; return r2 && supprimerSimulation(r2).then(function (ok) { if (ok) chargerHistorique(); }); }
+      case "r-txt": return R && telecharger("conversation-" + slug(R.sim.prospect_name) + "-" + isoJour(R.sim.started_at) + ".txt", texteConversation(R.sim, R.msgs));
+      case "ex-voir": if (R) { R.ex.vu = true; renderResultat(); } return;
+      case "ex-fait": if (R) { R.ex.fait = true; renderResultat(); } return;
+      case "brief": C.brief = !C.brief; lset("lnp-sim-fiche-repliee", C.brief); return renderBrief();
+      case "retour": return actif() ? ouvrirFin() : go("#nouvelle");
+      case "terminer": return ouvrirFin();
+      case "undo": return annulerEchange();
+      case "v-voix": return C.voiceView ? null : voixDemarrer(false);
+      case "v-texte": if (C.voiceView) { voixArret(); setTimeout(function () { var t = $("#ta"); if (t) t.focus(); }, 30); } return;
+      case "muet": return muet();
+      case "recharger": return location.reload();
+      case "phase": C.phase = +v; return renderSuivi();
+      case "crit": { var k = +v, s = C.crit[k]; C.crit[k] = s == null ? true : s === true ? false : null; return renderSuivi(); }
+      case "envoyer": return envoyerSaisie();
+      case "dictee": return dicteeBasculer();
+      case "aar-suiv": return aarSuivant();
+      case "aar-ret": { C.fin.step = Math.max(1, C.fin.step - 1); renderFin(); var tt = $("#aar"); if (tt) tt.focus(); return; }
+      case "aar-env": return aarEnvoyer();
+    }
+  });
+  document.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.id === "ta") { taille(t); if (C) C.draft = t.value; return; }
+    if (t.id === "aar" && C && C.fin) { var F = C.fin; F.aar[AARQ[F.step - 1][0]] = t.value; var b = $('[data-do="aar-suiv"]'); if (b) b.disabled = !t.value.trim(); return; }
+    if (t.id === "exr" && R) { R.ex.txt = t.value; var dr = R.an && R.an.result && R.an.result.drill, bv = $('[data-do="ex-voir"]'); if (bv) bv.disabled = !(dr && dr.exemple_reponse && t.value.trim().length > 5); return; }
+    if (t.dataset.f && t.dataset.f !== "pdf") { O.form[t.dataset.f] = t.value; return; }
+    if (t.dataset.hf === "q") { HI.q = t.value; HI.page = 1; return renderHistorique(); }
+    if (t.dataset.r && t.type === "number") { RG.edit[t.dataset.r] = t.value === "" ? RG.row[t.dataset.r] : Number(t.value); var sv = $('[data-do="r-save"]'), an = $('[data-do="r-annuler"]'); if (sv) sv.disabled = !rgModifie(); if (an) an.disabled = !rgModifie(); }
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.dataset.f === "pdf") return ajouterPdfs(t);
+    if (t.dataset.do === "o-arch") { O.arch = t.checked; return renderOffres(); }
+    if (t.dataset.pvoix) return actionProspect("p-voix", t.dataset.pvoix, t.value);
+    if (t.dataset.pdiff) return actionProspect("p-diff", t.dataset.pdiff, t.value);
+    if (t.dataset.hf && t.dataset.hf !== "q") { HI[t.dataset.hf] = t.value; HI.page = 1; if (t.dataset.hf === "personne") { HI.rows = null; renderHistorique(); return chargerHistorique(); } return renderHistorique(); }
+    if (t.dataset.r && t.type !== "number") { RG.edit[t.dataset.r] = t.type === "checkbox" ? t.checked : t.value; return renderReglages(); }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (LAY.length) return;
+    var t = e.target;
+    if (t.id === "ta" && e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); return envoyerSaisie(); }
+    if (t.id === "aar" && e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); return aarSuivant(); }
+    if (t.getAttribute && t.getAttribute("role") === "tab" && (e.key === "ArrowRight" || e.key === "ArrowLeft") && R) {
+      e.preventDefault(); var i = ONGLETS.findIndex(function (o) { return o[0] === R.tab; }); i = (i + (e.key === "ArrowRight" ? 1 : ONGLETS.length - 1)) % ONGLETS.length;
+      R.tab = ONGLETS[i][0]; renderResultat(); var f = $("#tab-" + R.tab); if (f) f.focus(); if (R.tab === "progression" && R.hist == null) chargerProgression();
+    }
+  });
+
+  // ------------------------------------------------------------------ démarrage
+  function demo() {
+    A.demo = true; A.config = { voice_mode_enabled: true };
+    $("#who").textContent = "Aperçu hors ligne";
+    HASH = "#nouvelle"; route();
+  }
+  async function boot() {
+    if (!P) return demo();
+    paint($("#view"), loader("Connexion à votre compte…"));
+    try {
+      var r = await Promise.all([P.claude.use("crm"), P.claude.use("simulateur")]);
+      if (!r[0] || !r[1]) return demo();
+      A.crm = r[0]; A.sim = r[1];
+      try { A.token = await A.sim.token(); } catch (e) {}
+      var me = await api("moi");
+      A.me = me || {}; A.admin = !!A.me.admin; A.config = A.me.config || {}; A.voix = A.me.voix || []; A.voixEL = !!A.me.voixElevenLabs;
+    } catch (e) {
+      paint($("#view"), '<div class="wrap"><div class="card empty"><div class="ico">⚠</div><b>Le simulateur est injoignable</b><p>' + esc(e.message || "") + '</p><button type="button" class="btn p" data-do="recharger">Réessayer</button></div></div>');
+      return;
+    }
+    $("#who").innerHTML = esc(A.me.email || "") + (A.admin ? "<br><b>Administrateur</b>" : "");
+    // le jeton de la personne, gardé à jour pour la fin d'appel par « beacon »
+    setInterval(function () { Promise.resolve(A.sim.token()).then(function (t) { if (t) A.token = t; }, function () {}); }, 240000);
+    route();
+  }
+  window.LNP_SIMULATEUR = { A: A, H: H, VX: VX, go: go, etat: function () { return { C: C, R: R, HI: HI, O: O }; }, Decoupeur: Decoupeur };
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -11,7 +11,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   const nav = await p.$$eval('nav a', a => a.map(x => x.textContent.trim()).filter(Boolean));
   // Ma journée is merged into Cycle de vente (2026-11-10): the training group comes right after Leads
   const iJ = nav.indexOf('Leads'), iE = nav.indexOf('Découverte');
-  check('« Entraînement › Découverte » comes right after « Leads »', iJ >= 0 && iE === iJ + 1 && nav[iE + 1] === 'Maîtrise de l’offre'.replace('’', "'") && nav[iE + 2] === 'Mes résultats', nav);
+  check('« Entraînement › Découverte » comes right after « Leads »', iJ >= 0 && iE === iJ + 1 && nav[iE + 1] === 'Maîtrise de l’offre'.replace('’', "'") && nav[iE + 2] === 'Simulateur' && nav[iE + 3] === 'Mes résultats', nav);
   check('« Suivi des commerciaux » is for admins only', !(await p.isVisible('nav a:has-text("Suivi des commerciaux")')), null);
   await p.click('nav a:has-text("Découverte")'); await p.waitForTimeout(1200);
   const fr = p.frames().find(f => f.url().startsWith('about:srcdoc') && f.name() === '' && f !== p.mainFrame() && f.parentFrame() === p.mainFrame() && f.url());
