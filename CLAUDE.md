@@ -130,6 +130,10 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 - Fonctions Edge (`supabase/functions/`, `verify_jwt = false`, chacune vérifie son jeton ou sa signature) : `iclosed-in`,
   `fathom-in`, `whatsapp-in`, `whop-in`, `lead-in` (stockent la requête brute), `process-inbox` (chaque minute, `006_crm_cron.sql`),
   `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes du CRM toutes les 5 min, copie Slack en option), `callqa-llm`.
+- **Le CRM LNP est la seule source de vérité des statuts** (Romain, 2026-11-11, migration 059) : d'iClosed, on ne garde que le
+  lead, la date des RDV (déplacements, annulations) et le montant d'une vente, affiché pour information ; jamais honoré, absent,
+  gagné, perdu ni un paiement. Webinaire : au setter seulement si présent sans RDV, ou absent sans réponse (48 h au webinaire,
+  24 h au RDV de vente), `crm_setting_tick` ; test `web/supabase/tests/source_de_verite_test.sql`.
 - Messages : **WhatsApp Business seulement** (Romain, 2026-11-09 : pas de Sendblue). API officielle en coexistence,
   `whatsapp-in` + `mappers/whatsapp.ts` (`docs/crm/07-integration-whatsapp.md`, migration 052) ; le numéro WhatsApp Business de
   chaque commercial et setter (Paramètres › Compte › Accès de l'équipe) rattache ses messages.

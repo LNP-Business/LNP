@@ -202,7 +202,7 @@
     // deadline of the setter's current action (crm_people.setting_due_at, computed by the CRM for each status: 5 min within the
     // setter's hours, the follow-up cadence, the day itself…); late and crit are the time allowed past that deadline.
     { id: "SE-1", name: "Premier appel du setter", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "min", setting: ["a_contacter"],
-      start: "Lead reçu (quiz, VSL, quiz abandonné, webinaire), dans les heures du setter", stop: "Premier appel du setter", target: "5 min", warn: null, late: 10 * M, crit: 55 * M,
+      start: "Lead reçu (quiz, VSL, quiz abandonné ; webinaire : présent sans RDV, ou absent sans réponse en 48 h), dans les heures du setter", stop: "Premier appel du setter", target: "5 min", warn: null, late: 10 * M, crit: 55 * M,
       esc: "Au-delà de 1 h : critique", why: "Appelé dans les 5 minutes, un lead convertit plusieurs fois mieux ; après 30 minutes il est retourné à sa vie." },
     { id: "SE-2", name: "WhatsApp après un appel sans réponse", stage: "Setting", kind: "sales", needs: ["messages"], eval: false, unit: "min",
       start: "Appel du setter sans réponse", stop: "Message WhatsApp du setter", target: "dans la minute", warn: null, late: 15 * M, crit: null,
@@ -220,7 +220,7 @@
       esc: "—", pending: "Appliquée : pour un quiz abandonné, la cadence est de 2 appels sur 48 h, puis le lead est classé injoignable.",
       why: "Un lead tiède mérite un essai court, pas la cadence complète." },
     { id: "SE-6", name: "Confirmation d’un RDV auto-booké", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["rdv_a_confirmer", "appel_confirmation"],
-      start: "RDV réservé seul (quiz, VSL, webinaire)", stop: "Appel de confirmation fait ou « OK » reçu", target: "1 h", warn: null, late: 1, crit: 3,
+      start: "RDV réservé seul (quiz, VSL)", stop: "Appel de confirmation fait ou « OK » reçu", target: "1 h", warn: null, late: 1, crit: 3,
       esc: "Au-delà de 4 h après la réservation : critique", why: "Un RDV non confirmé, c’est 40 à 50 % d’absences." },
     { id: "SE-7", name: "Issue de l’appel setter notée", stage: "Setting", kind: "sales", needs: [], eval: true, unit: "h", setting: ["qualification"],
       start: "Lead joint au téléphone", stop: "RDV posé ou non qualifié", target: "le jour même (21 h)", warn: null, late: 0, crit: 24,
@@ -238,7 +238,7 @@
   // the setter's statuses (crm_people.setting_status, 054), as the CRM shows them
   var SETTING = { a_contacter: "Lead à contacter", relance: "Relance", qualification: "Appel de qualification", rdv_a_confirmer: "RDV à confirmer",
     appel_confirmation: "Appel de confirmation", rdv_pose: "RDV posé · OK attendu", rdv_confirme: "RDV confirmé", reconfirmation: "Re-confirmation",
-    a_replanifier: "À replanifier", absent_rattrapage: "Absent · rattrapage", transmis: "RDV tenu · au commercial", injoignable: "Injoignable · nurture",
+    a_replanifier: "À replanifier", absent_rattrapage: "Absent · rattrapage", webinaire_absent: "Webinaire absent · attente de réponse", absent_attente: "Absent · attente de réponse", transmis: "RDV tenu · au commercial", injoignable: "Injoignable · nurture",
     non_qualifie: "Non qualifié · nurture" };
   var STAGES = ["Setting", "Présence", "Décision", "Encaissement", "Conversation", "Clôture et suivi long terme", "Données et fiabilité"];
   var BY = {}, BASE = {};

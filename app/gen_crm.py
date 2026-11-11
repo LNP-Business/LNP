@@ -160,7 +160,7 @@ LIVE = ('<script>(function(){'
   # people who never booked (no cycle): status "No booking", their iClosed status as the note; nothing to save for them
   'function toNoBooking(p){return{id:"p-"+p.id,set:window.lnpSetOf?lnpSetOf(p):null,p:p.full_name||p.primary_email||p.primary_phone||"—",em:p.primary_email||"",o:"none",st:"nobook",prod:null,'
     'a:0,age:Math.max(0,-dd(p.first_seen_at||p.created_at)),born:dd(p.first_seen_at||p.created_at),last:dd(p.first_seen_at||p.created_at),tour:1,ns:0,tent:0,rel:{n:0},rdv:null,warm:[false,false,false],nx:null,'
-    'note:p.iclosed_status?"iClosed : "+p.iclosed_status:"",inv:0,col:0,hist:[{st:"nobook",d:dd(p.first_seen_at||p.created_at),src:"import",r:null}],tr:"none",live:true}}'
+    'note:"",inv:0,col:0,hist:[{st:"nobook",d:dd(p.first_seen_at||p.created_at),src:"import",r:null}],tr:"none",live:true}}'
   # the board draws the cycles as soon as they are in (calls, messages and events follow: a slow connection took minutes,
   # with an empty board and no word, Michael 2026-10-25); a status pill says what is loading and why a load failed
   'function loadMsg(txt,retry){var el=document.getElementById("lnpLoad");if(!txt){if(el)el.remove();return}'

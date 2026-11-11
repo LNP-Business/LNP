@@ -92,6 +92,7 @@
           case "phone_call_out": add({ t: at, w: "s", k: "call", txt: txt || "Appel téléphonique sortant" }); break;
           case "note": add({ t: at, w: "s", k: "note", txt: txt }); break;
           case "opt_out": add({ t: at, w: "a", k: "note", stop: 1, txt: "STOP : le prospect ne veut plus de messages automatiques" }); break;
+          case "iclosed_deal": add({ t: at, w: "a", k: "note", txt: txt || "iClosed (pour information)" }); break;
           case "checkout_created": add({ t: at, w: "s", k: "paylink", txt: "Lien Whop envoyé" }); break;
           case "payment_succeeded": add({ t: at, w: "p", k: "paid", txt: "Paiement Whop" + (d.amount ? " · " + eur(d.amount) : "") }); break;
           case "cycle_won":
