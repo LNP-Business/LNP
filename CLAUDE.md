@@ -97,7 +97,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   la fiche du lead et Cycle de vente (fiche, filtre « Étape », en-tête, « À faire ») : `LNP_ETAPES`, écrit une fois et injecté dans
   le document du CRM et dans celui de Cycle de vente de `app/lnp.html`. Ligne principale (RDV pris → 1er contact → appel
   d'éligibilité R1 facultatif → confirmation de présence → appel honoré R2 → décision → payé) et deux branches : « Rattrapage »
-  (absence ou silence après le RDV pris ; sortie Injoignable après 6 relances) et « Relance après refus » (le lead reste « Clos »
+  (absence ou silence après le RDV pris ; sortie Injoignable après 6 relances) et « Relance après refus » (un « non » après un appel tenu ; perdu sans appel tenu = « Perdu », sans branche ; le lead reste « Clos »
   dans Cycle de vente ; disqualifié 6 mois après le refus sans nouveau RDV : `crm_refusal_tick`, migration 055, chaque jour).
   Tests `node app/crm/etapes_live.js $PWD/app/lnp.html <dossier>` et `tests/refus_six_mois_test.sql`.
 - Fiche prospect et Ma journée : le cycle de vente en fil vertical et « À faire » (`app/crm/lead_feed.js`) ; déplacements du
