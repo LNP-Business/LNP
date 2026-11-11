@@ -1,6 +1,7 @@
-// node app/alertes_test.js $PWD/app/lnp.html <dossier> — Ventes › Alertes (Romain 2026-11-09) : la pastille de la barre latérale,
-// l'écran (critiques d'abord, compteurs, filtre par commercial), le rappel en tête de Ma journée, Paramètres › Alertes sans Slack
-// par défaut, tout en français, aucune erreur dans la console.
+// node app/alertes_test.js $PWD/app/lnp.html <dossier> — Alertes (Romain 2026-11-09 ; interface Impeccable P1.4 et D1,
+// 2026-11-10) : les alertes du CRM se traitent dans Cycle de vente › « Agir maintenant » (l'ancien écran Alertes y renvoie),
+// la pastille de la barre latérale sur Cycle de vente, un seul modèle de gravité (critiques d'abord, puis en retard), le rappel
+// (Ma journée est fusionnée dans Cycle de vente), Paramètres › Alertes sans Slack par défaut, tout en français, aucune erreur dans la console.
 const { chromium } = require('playwright');
 const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
 (async () => {
@@ -9,26 +10,37 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
   await p.goto(FILE); await p.waitForTimeout(1500);
-  const badge = await p.$eval('#app nav a[href="Alertes.dc.html"] [data-badge="alertes"]', e => ({ t: e.textContent, d: getComputedStyle(e).display })).catch(() => null);
-  check('la pastille compte les alertes ouvertes (4 dans l’exemple)', badge && badge.t === '4' && badge.d !== 'none', badge);
-  await p.click('nav a[href="Alertes.dc.html"]'); await p.waitForTimeout(700);
-  const txt = () => p.evaluate(() => { const h = document.querySelector('#app [data-alertes] > div'); return h && h.shadowRoot ? h.shadowRoot.getElementById('al').innerText : ''; });
-  let t = await txt();
-  check('écran Alertes : titre, compteurs, fermées aujourd’hui', /Alertes/.test(t) && /CRITIQUE/i.test(t) && /EN RETARD/i.test(t) && /BIENTÔT DÛ/i.test(t) && /Fermées aujourd’hui/i.test(t), t.slice(0, 300));
-  const order = await p.evaluate(() => [...document.querySelector('#app [data-alertes] > div').shadowRoot.querySelectorAll('.row')].map(r => r.className.split(' ')[1]));
-  check('critiques d’abord, puis en retard, puis bientôt dû', order.join(',') === 'crit,late,late,warn', order);
-  check('chaque ligne : prospect, SLA, depuis quand, objectif, commercial', /Prospect fictif A/.test(t) && /SH-2 · Premier contact du commercial/.test(t) && /depuis la prise de RDV/.test(t) && /objectif 5 min/.test(t) && /Commercial fictif 1/.test(t), t);
-  check('exemple annoncé hors édition web', /Exemple : hors de l’édition web/.test(t), null);
-  await p.evaluate(() => { const r = document.querySelector('#app [data-alertes] > div').shadowRoot; const s = r.querySelector('[data-who]'); s.value = 'm2'; s.dispatchEvent(new Event('change', { bubbles: true })); });
-  await p.waitForTimeout(200); t = await txt();
-  check('un administrateur filtre par commercial', /Prospect fictif B/.test(t) && !/Prospect fictif A/.test(t), t.slice(0, 400));
+  const badge = await p.$eval('#app nav a[href="SalesCycle.dc.html"] [data-badge="alertes"]', e => ({ t: e.textContent, d: getComputedStyle(e).display })).catch(() => null);
+  check('la pastille de Cycle de vente compte les prospects à traiter maintenant (7 dans l’exemple)', badge && badge.t === '7' && badge.d !== 'none', badge);
+  // the Cycle de vente desk (a frame inside the CRM frame)
+  const desk = async () => { for (let i = 0; i < 30; i++) { const f = p.frames().find(x => { try { return x.url() === 'about:srcdoc' && x.parentFrame() && x.parentFrame() !== p.mainFrame(); } catch (e) { return false; } }); if (f && await f.$('#qs').catch(() => null)) return f; await p.waitForTimeout(200); } return null; };
+  await p.click('nav a:has-text("Cycle de vente")'); await p.waitForTimeout(1500);
+  let f = await desk();
+  check('Cycle de vente s’ouvre avec son bureau', !!f, null);
+  if (f) {
+    const s = await f.evaluate(() => ({ tab: document.querySelector('#qs [data-b="now"]').textContent.replace(/\s+/g, ' ').trim(),
+      secs: [...document.querySelectorAll('#list .sec')].map(x => x.textContent.replace(/\s+/g, ' ').trim()),
+      tones: [...document.querySelectorAll('#list .row')].map(r => r.dataset.tone), dues: [...document.querySelectorAll('#list .row .due')].map(x => x.textContent.trim()) }));
+    // « Agir maintenant » = its three sections, in this order, at the top of « Tous en cours »
+    const now = s.secs.filter(x => /^(En premier|Aussi critique|En retard) ·/.test(x)), sum = now.reduce((n, x) => n + +x.match(/· (\d+)/)[1], 0);
+    check('« Agir maintenant » : les sections font le total de l’onglet et de la pastille', /Agir maintenant 7/.test(s.tab) && sum === 7 && /^En premier/.test(s.secs[0]), s);
+    check('critiques d’abord, puis en retard', s.tones.slice(0, 7).join(',') === 'crit,crit,crit,crit,crit,late,late', s.tones);
+    check('l’étiquette vient de l’état SLA (« Critique · … » sur chaque critique)', s.dues.slice(0, 5).every(x => /^Critique/.test(x)) && s.dues.slice(5).every(x => !/Critique/.test(x)), s.dues);
+    check('exemple annoncé hors édition web', /Démo/.test(await f.evaluate(() => document.body.innerText)), null);
+    const english = ['Alerts', 'Late', 'Critical', 'Due soon', 'Owner', 'Closed', 'Loading'].filter(w => new RegExp('\\b' + w + '\\b').test(s.secs.join(' ') + s.dues.join(' ')));
+    check('aucun mot anglais', english.length === 0, english);
+  }
   await p.screenshot({ path: OUT + '/alertes.png', fullPage: true });
-  // Ma journée : le rappel en tête
-  await p.click('nav a:has-text("Ma journée")'); await p.waitForTimeout(700);
-  const barTxt = await p.$eval('#app [data-alertbar]', e => e.textContent).catch(() => '');
-  check('Ma journée : « Vous avez 4 alertes ouvertes, dont 1 critique »', /Vous avez 4 alertes ouvertes, dont 1 critique/.test(barTxt), barTxt);
-  await p.click('#app [data-alertbar]'); await p.waitForTimeout(500);
-  check('le rappel ouvre l’écran Alertes', !!(await p.$('#app [data-alertes]')), null);
+  // the former Alertes screen sends to Cycle de vente
+  await p.evaluate(() => { location.hash = '#alertes'; }); await p.waitForTimeout(800);
+  check('l’ancien lien #alertes ouvre Cycle de vente', /salescycle/.test(await p.evaluate(() => location.hash)) || !!(await p.$('#app [data-crmview="cycle"]')), await p.evaluate(() => location.hash));
+  // Ma journée is merged into Cycle de vente (2026-11-10): no entry in the sidebar; Cycle de vente opens on « Agir maintenant »
+  check('« Ma journée » n’est plus dans la barre latérale', !(await p.$('nav a:has-text("Ma journée")')), null);
+  await p.click('nav a:has-text("Cockpit commercial")'); await p.waitForTimeout(600);
+  await p.click('nav a:has-text("Cycle de vente")'); await p.waitForTimeout(1500);
+  f = await desk();
+  const pressed = f ? await f.evaluate(() => document.querySelector('#qs [data-b="now"]').getAttribute('aria-pressed')) : null;
+  check('Cycle de vente s’ouvre sur Agir maintenant', pressed === 'true', pressed);
   // Paramètres › Alertes : le CRM d'abord, Slack en option éteinte
   await p.click('nav a:has-text("Paramètres")'); await p.waitForTimeout(700);
   const st = await p.evaluate(() => document.getElementById('app').innerText);
@@ -36,11 +48,6 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.click('#app button[aria-haspopup="dialog"] >> nth=1'); await p.waitForTimeout(300);
   const dlg = await p.evaluate(() => document.getElementById('app').innerText);
   check('la fenêtre d’un SLA : « Alertes du CRM » et « Copie dans Slack (facultatif) »', /Alertes du CRM/.test(dlg) && /Copie dans Slack \(facultatif\)/.test(dlg), null);
-  await p.click('#app [data-overlay] button[aria-label="Fermer"]'); await p.waitForTimeout(200);
-  // pas d'anglais à l'écran Alertes
-  await p.click('nav a[href="Alertes.dc.html"]'); await p.waitForTimeout(500); t = await txt();
-  const english = ['Alerts', 'Late', 'Critical', 'Due soon', 'Open', 'Owner', 'Closed', 'Loading'].filter(w => new RegExp('\\b' + w + '\\b').test(t));
-  check('aucun mot anglais', english.length === 0, english);
   check('aucune erreur dans la console', errs.length === 0, errs);
   ok.forEach(x => console.log('OK  ' + x)); bad.forEach(x => console.log('BAD ' + x));
   console.log(ok.length + ' contrôles réussis, ' + bad.length + ' en échec');

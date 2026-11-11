@@ -33,8 +33,10 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   });
   await p.waitForTimeout(800);
   await cf.click('[data-act="cxtab"][data-t="leads"]'); await p.waitForTimeout(400);
+  // 7 columns by default (2026-11-10): « Dernière action » is switched on, as from the « Colonnes » menu
+  await cf.evaluate(() => { S.cx.cols.slast = true; renderCRM(); }); await p.waitForTimeout(200);
   const heads = await cf.$$eval('.cx-tbl thead th', a => a.map(x => x.textContent.trim()));
-  check('colonnes Étape setter, Dernière action, Action actuelle', heads.some(h => /Étape setter/.test(h)) && heads.some(h => /Dernière action/.test(h)) && heads.some(h => /Action actuelle/.test(h)), heads);
+  check('colonnes Prise de RDV (étape du setter), Dernière action, Action actuelle', heads.some(h => /Prise de RDV/.test(h)) && heads.some(h => /Dernière action/.test(h)) && heads.some(h => /Action actuelle/.test(h)), heads);
   const row = (name) => cf.$$eval('.cx-tbl tbody tr', (rs, n) => { const r = rs.find(x => x.textContent.includes(n)); return r ? r.innerText.replace(/\s+/g, ' ') : ''; }, name);
   const lea = await row('Léa Quiz');
   check('Léa : Lead à contacter, Sam Setter, en retard', /Lead à contacter/.test(lea) && /Sam Setter/.test(lea) && /En retard de/.test(lea) && /Appeler en moins de 5 min/.test(lea), lea);
@@ -50,7 +52,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   // la fiche de Léa : le panneau Setting et ses actions
   await cf.evaluate(() => openLead('p-n1')); await p.waitForTimeout(500);
   const panel = await cf.$eval('.lnps', e => e.innerText).catch(() => '');
-  check('fiche : panneau Setting, source, réponses du quiz, actions', /SETTING/i.test(panel) && /Quiz complété/.test(panel) && /Réponses du quiz/.test(panel) && /Appel sans réponse/.test(panel) && /Joint au téléphone/.test(panel), panel.slice(0, 300));
+  check('fiche : panneau Setting, source, réponses du quiz, actions', /PRISE DE RDV · SETTER/i.test(panel) && /Quiz complété/.test(panel) && /Réponses du quiz/.test(panel) && /Appel sans réponse/.test(panel) && /Joint au téléphone/.test(panel), panel.slice(0, 300));
   check('un administrateur choisit le setter', !!(await cf.$('.lnps select[data-lnpsetter]')), null);
   await cf.fill('#lnpsNote', 'Messagerie, rappel à 18 h');
   await cf.click('.lnps [data-lnpset="appel_sans_reponse"]'); await p.waitForTimeout(500);
