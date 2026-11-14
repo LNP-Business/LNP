@@ -74,6 +74,10 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   sur une ligne (étape, montant, commercial), le cycle de vente en conversation (le lead à gauche, l'équipe de vente à droite, la
   dernière action encadrée en bas) et « À faire » tout en bas (`chatHTML`, `renderDet`, `rowHTML` dans `LNP_SB_DOC`). Tests
   `node app/crm/sales_cycle_accept.js $PWD/app/lnp.html <dossier>` et `app/cycle_day_test.js`.
+  À droite, la fiche du lead est **la même que dans Leads** (Romain, 2026-11-14 : la fiche est la source de vérité) : le bureau réserve
+  la place (`#dock`, `dockTo`) et le CRM y pose `renderLead2` sans fond grisé (`lnpCycleDock`, `S.cx.dock`) ; la barre « À faire » du
+  bureau reste dessous (Fait, Annuler, Demain, Passer, la journée), les touches du bureau marchent depuis la fiche. Sur les données
+  d'exemple, le bureau garde son panneau en bulles (`chatHTML`). Test `node app/crm/cycle_fiche_live.js $PWD/app/lnp.html <dossier>`.
 - Alertes (Romain, 2026-11-09 : le CRM est la base des notifications, pas Slack) : `sla-tick` ouvre, fait monter et ferme les
   alertes toutes les 5 min (`crm_sla_alerts`, `crm_sync_sla_alerts`, migration 053) ; un commercial voit les alertes de ses
   prospects, un administrateur celles de toute l'équipe (`crm_sla_alerts_open`). Écran, pastille, bandeau et notification du
