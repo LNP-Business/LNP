@@ -183,3 +183,6 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_offre_lnp_test.sql |
 run 059_crm_source_de_verite.sql
 run 059_crm_source_de_verite.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/source_de_verite_test.sql | tail -1
+run 060_crm_appel_deux_personnes.sql
+run 060_crm_appel_deux_personnes.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/appel_deux_personnes_test.sql | tail -1

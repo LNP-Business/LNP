@@ -160,6 +160,10 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
   `crm-import` (imports et Fathom toutes les heures), `sla-tick` (alertes du CRM toutes les 5 min, copie Slack en option), `callqa-llm`,
   `simulateur` (le Simulateur ; jeton de la personne ; secrets `ANTHROPIC_API_KEY`, et `ELEVENLABS_API_KEY` facultatif pour la voix du
   prospect, sinon le navigateur parle ; `simulateur/balayer` toutes les 10 min relance les analyses en attente).
+- **Appel honoré = deux personnes dans la réunion** (Romain, 2026-11-13, migration 060) : deux intervenants au moins dans la
+  transcription Fathom (le commercial et le prospect), quelle que soit la durée ; une seule personne = absence (règle d'absence 056) ;
+  sans transcription, la durée `no_show_rule.min_minutes` en attendant ; une issue déclarée l'emporte. `crm_transcript_people`,
+  `crm_call_attended`, `crm_call_complete` ; test `tests/appel_deux_personnes_test.sql`.
 - **Le CRM LNP est la seule source de vérité des statuts** (Romain, 2026-11-11, migration 059) : d'iClosed, on ne garde que le
   lead, la date des RDV (déplacements, annulations) et le montant d'une vente, affiché pour information ; jamais honoré, absent,
   gagné, perdu ni un paiement. Webinaire : au setter seulement si présent sans RDV, ou absent sans réponse (48 h au webinaire,
