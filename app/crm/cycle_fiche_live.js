@@ -7,7 +7,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: +(process.argv[4] || 1440), height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-  await p.goto(FILE + '#crm'); await p.waitForTimeout(2500);
+  await p.goto(FILE + '#salescycle'); await p.waitForTimeout(2500);
   let cf = null; for (const f of p.frames()) { try { if (await f.$('#v-crm')) { cf = f; break; } } catch (e) {} }
   const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
   await cf.evaluate(async () => {
@@ -46,9 +46,9 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
     await window.lnpCrmLive(fake);
   });
   await p.waitForTimeout(900);
-  await cf.evaluate(() => { S.cx.tab = 'cycle'; renderCRM(); }); await p.waitForTimeout(2000);
+  await p.waitForTimeout(2000);
   let dk = null; for (const f of p.frames()) { try { if (f.parentFrame() === cf && await f.$('#qs')) { dk = f; break; } } catch (e) {} }
-  check('le bureau Cycle de vente est ouvert', !!dk, null);
+  check('le bureau Cycle de vente est ouvert depuis « Cycle de vente » de la barre latérale', !!dk && await p.evaluate(() => location.hash === '#salescycle'), null);
   if (!dk) { console.log(bad.join('\n')); await b.close(); process.exit(1); }
   const fiche = () => cf.evaluate(() => { const d = document.querySelector('#layer .lr-dock'); if (!d) return null; const r = d.getBoundingClientRect();
     return { name: (d.querySelector('#lT') || {}).textContent, x: r.left, y: r.top, w: r.width, h: r.height, where: !!d.querySelector('.lr-where'), calls: !!d.querySelector('.lr-calls'),
@@ -84,8 +84,11 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   if (inp) { await inp.fill('Message envoyé'); await cf.click('#layer .lr-dock [data-ltdone]'); await p.waitForTimeout(900); }
   const s4 = await sel();
   check('« Fait » dans la fiche compte dans « Aujourd’hui » et ouvre le prospect suivant', !!inp && /1 prospect traité/.test(await day()) && s4 && s3 && s4.id !== s3.id, { inp: !!inp, day: await day(), s3, s4 });
-  // retour à Leads : la fiche posée s'en va
-  await cf.evaluate(() => { S.cx.tab = 'leads'; renderCRM(); }); await p.waitForTimeout(800);
+  // « Leads » dans la barre latérale : le tableau des leads, sans le bureau ni la fiche posée
+  await p.click('nav >> text=Leads'); await p.waitForTimeout(1200);
+  await p.screenshot({ path: OUT + '/leads-apres.png' });
+  const leads = await cf.evaluate(() => ({ tab: S.cx.tab, desk: LNP_SCF ? LNP_SCF.style.display : 'none', table: !!document.querySelector('#v-crm .cx-tbl, #v-crm .cx-board, #v-crm .cx-col'), bar: !!document.querySelector('#v-crm .et-bar, #v-crm .lp-bar, #v-crm [class*="etbar"], #v-crm .lp-prog') }));
+  check('« Leads » montre le tableau des leads, sans le bureau Cycle de vente', leads.desk === 'none' && leads.tab !== 'cycle' && leads.table, leads);
   check('de retour dans Leads, la fiche posée s\'en va', !(await fiche()) && !(await cf.evaluate(() => document.getElementById('layer').innerHTML.trim())), null);
   check('aucune erreur dans la console', errs.length === 0, errs);
   console.log(ok.map(x => 'OK  ' + x).join('\n')); if (bad.length) console.log(bad.map(x => 'BAD ' + x).join('\n'));

@@ -52,7 +52,12 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   // la fiche de Léa : le panneau Setting et ses actions
   await cf.evaluate(() => openLead('p-n1')); await p.waitForTimeout(500);
   const panel = await cf.$eval('.lnps', e => e.innerText).catch(() => '');
-  check('fiche : panneau Setting, source, réponses du quiz, actions', /PRISE DE RDV · SETTER/i.test(panel) && /Quiz complété/.test(panel) && /Réponses du quiz/.test(panel) && /Appel sans réponse/.test(panel) && /Joint au téléphone/.test(panel), panel.slice(0, 300));
+  check('fiche : panneau du setter en trois lignes (action actuelle, dernière faite, à faire ensuite)', /PRISE DE RDV · SETTER/i.test(panel) && /Action actuelle/i.test(panel) && /Appeler le lead/.test(panel) && /Dernière faite/i.test(panel) && /À faire ensuite/i.test(panel) && /message de relance WhatsApp/.test(panel) && !/Appel sans réponse/.test(panel), panel.slice(0, 300));
+  const rec = await cf.$eval('#layer', e => e.innerText).catch(() => '');
+  check('fiche sans RDV : la source et les réponses du quiz restent, repliées', /Source et réponses du quiz/.test(rec), rec.slice(0, 300));
+  await cf.click('.lnps-more summary'); await p.waitForTimeout(200);
+  const panel2 = await cf.$eval('.lnps', e => e.innerText).catch(() => '');
+  check('« Enregistrer une action du setter » montre les actions', /Appel sans réponse/.test(panel2) && /Joint au téléphone/.test(panel2), panel2.slice(0, 300));
   check('un administrateur choisit le setter', !!(await cf.$('.lnps select[data-lnpsetter]')), null);
   await cf.fill('#lnpsNote', 'Messagerie, rappel à 18 h');
   await cf.click('.lnps [data-lnpset="appel_sans_reponse"]'); await p.waitForTimeout(500);

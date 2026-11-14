@@ -87,7 +87,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Suivi du setter (Romain, 2026-11-09, `docs/crm/19-setting.md`, migration 054) : un statut setter par lead, gardé sur la
   personne (`crm_people.setting_*`) ; actions `crm_setter_action`, réactions à iClosed par un déclencheur sur `crm_calls`, leads
   des funnels par la fonction `lead-in` (`mappers/funnel.ts`, `crm_apply_leads`) ou « + Nouveau prospect » (`crm_create_lead`) ;
-  rôle `setter` ; alertes SE-1 à SE-10 (`sla_rules.js`, `sla-tick`). Écran Prospects et fiche : `app/crm/setting_ui.js` ; test
+  rôle `setter` ; alertes SE-1 à SE-10 (`sla_rules.js`, `sla-tick`). Écran Prospects et fiche : `app/crm/setting_ui.js` ; dans la
+  fiche, le panneau « Prise de RDV · setter » n'a que trois lignes (Action actuelle, Dernière faite, À faire ensuite : `STEP`), les
+  actions sous « Enregistrer une action du setter » (Romain, 2026-11-14 ; fait dans `app/lnp.html`, à reporter dans `setting_ui.js`) ; test
   `node app/crm/setting_live.js $PWD/app/lnp.html <dossier>`.
 - Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `app/training/` injectées
   par `build.py`) :
