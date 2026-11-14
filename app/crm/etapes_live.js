@@ -64,8 +64,10 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.screenshot({ path: OUT + '/etapes-prospects.png' });
   // la fiche du lead
   await cf.evaluate(() => openLead('c3')); await p.waitForTimeout(500);
+  // fiche simplifiée (Romain 2026-11-14) : l'étape dans l'en-tête, la liste complète sous « Voir toutes les étapes »
+  await cf.evaluate(() => { const d = document.querySelector('.lr-path'); if (d) d.open = true; });
   const fiche = await cf.$eval('.et', e => e.innerText).catch(() => '');
-  const head = await cf.$eval('.cx-stc', e => e.textContent).catch(() => '');
+  const head = await cf.$eval('.lr-top', e => e.textContent).catch(() => '');
   check('fiche : la liste des étapes, ligne principale et branche', /Ligne principale/.test(fiche) && /RDV pris/.test(fiche) && /Payé/.test(fiche) && /Relance après refus/.test(fiche) && /Objection notée/.test(fiche), fiche);
   check('fiche : l’en-tête dit l’étape actuelle', /Relance après refus/.test(head), head);
   await p.screenshot({ path: OUT + '/etapes-fiche.png' });
