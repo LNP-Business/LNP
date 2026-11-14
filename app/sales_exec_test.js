@@ -36,6 +36,10 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.keyboard.press('Escape'); await p.waitForTimeout(100);
   check('Échap ferme la fenêtre', !(await (await sx()).evaluate(r => !!r.querySelector('.dlg'))), null);
   // Qualité
+  // les onglets restent en haut quand la page défile (Romain 2026-11-14)
+  await p.mouse.wheel(0, 1200); await p.waitForTimeout(300);
+  const vt = await p.evaluate(() => ({ top: Math.round(document.querySelector('#app [aria-label="Vues"]').getBoundingClientRect().top), y: window.scrollY }));
+  check('après défilement, les onglets restent visibles en haut', vt.y > 200 && vt.top >= 0 && vt.top < 80, vt);
   await p.click('#app [aria-label="Vues"] button:has-text("Qualité")'); await p.waitForTimeout(500);
   t = await txt();
   check('Qualité : issues, enregistrements, SPIN, objections', /Qualité/.test(t) && /Appels tenus avec une issue/.test(t) && /Fathom/.test(t) && /Découverte \(SPIN\)/.test(t) && /Traitement des objections/.test(t), t.slice(0, 300));
