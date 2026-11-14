@@ -93,7 +93,7 @@ export function buildGatedObjectionsPrompt(options: ObjectionsPromptOptions): st
     if (haikuC.eg) {
       haikuCContext = `\nATTENTION : le commercial tente de conclure ("on y va ?", "on fait ça ?"). Si toutes tes objections ne sont pas résolues, tu freines : "Attends, j'ai encore des questions." Si elles sont résolues, tu peux accepter.\n`;
     } else if (haikuC.sy || haikuC.gp) {
-      haikuCContext = `\nLe commercial vient de rappeler le GAP ou de refaire la synthèse. Reste résistant mais reconnais le poids de l'argument : "Ouais je comprends le raisonnement mais quand même..." (8 mots max).\n`;
+      haikuCContext = `\nLe commercial vient de rappeler le GAP ou de refaire la synthèse. Reste résistant mais reconnais le poids de l'argument : "Ouais je comprends le raisonnement mais quand même..." puis ce qui te retient encore, 10-30 mots.\n`;
     }
     if (haikuC.vl === 'frank') {
       haikuCContext += `\nTu viens de valider franchement un argument. Tu te rapproches de l'achat. Ton objection suivante sera moins défensive.\n`;
