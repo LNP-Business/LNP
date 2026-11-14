@@ -113,6 +113,9 @@ Ce qui change (`VERSION_REFERENTIEL_SIMULATION = "v0.13"`, gardé sur chaque sim
   dessus).
 - **Style oral** en texte aussi (hésitations, phrases qui repartent), pas de didascalie.
 - `maxTokens` 900 (300 avant), fenêtre d'historique 60 messages (30 avant) pour tenir un appel de 130 répliques.
+- **Plus de résistance par défaut** : sans analyse de signaux (mode voix, où elle n'est pas faite ; premier tour ; Haiku en échec), le
+  prospect recevait à chaque tour « le commercial vient de poser une question faible » et répondait à côté (`getResistanceBehavior`).
+  Trouvé en rejouant un appel à la main (`simulations/2026-11-14-camille-v0.13-option-B.md`) ; corrigé.
 - **Mesure de réalisme** (`realisme.ts`) : à la fin de chaque simulation, les quatre mesures ci-dessus sont calculées sur la
   conversation et comparées aux cibles ; une note sur 100 et les écarts en français sont gardés dans `crm_sim_simulations.usage.realisme`
   et rendus par `crm_sim_history` (060). L'historique affiche « réalisme N % », la page de résultat une carte « Réalisme de la

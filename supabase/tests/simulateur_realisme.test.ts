@@ -97,3 +97,11 @@ Deno.test("v0.13 : version du référentiel et fenêtre d'historique", () => {
   assertEquals(VERSION_REFERENTIEL_SIMULATION, "v0.13");
   assertEquals(MAX_HISTORY_MESSAGES, 60);
 });
+
+Deno.test("v0.13 : sans analyse de signaux (voix, premier tour), le prospect n'est pas mis en résistance par défaut", () => {
+  const sm = new SimulationStateManager("moyen", undefined, "full", 5);
+  assertEquals(sm.getResistanceBehavior(), "");
+  const p = buildGatedDiagnosticPrompt({ persona, offerData: offre as any, stateManager: sm, mode: "full", voiceMode: true });
+  assert(!p.includes("vient de poser une question faible"), "pas de réaction « question faible » sans analyse");
+});
+
