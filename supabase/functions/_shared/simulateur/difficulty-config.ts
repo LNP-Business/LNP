@@ -171,9 +171,9 @@ export const DIFFICULTY_CONFIGS: Record<string, DifficultyConfig> = {
       identity: 8,
     },
     resistance: {
-      on_weak_question: 'Tu réponds quand même, juste plus court. "Ouais c\'est compliqué." (3-5 mots)',
+      on_weak_question: 'Tu réponds quand même, mais à côté : "Ouais c\'est compliqué..." et tu pars sur un détail sans importance, sans rien livrer d\'utile.',
       on_red_flag: 'Tu fronces les sourcils. "On en est pas encore là non ?" Puis tu attends.',
-      on_dump_request: 'Tu donnes un résumé factuel de 2 phrases max et tu attends les questions.',
+      on_dump_request: 'Tu donnes un résumé factuel de ta situation (ce que tu fais, depuis quand), sans ce que ça te fait, et tu attends les questions.',
     },
     objections: {
       minRoundsPerObjection: 2,
@@ -239,7 +239,7 @@ export const DIFFICULTY_CONFIGS: Record<string, DifficultyConfig> = {
     resistance: {
       on_weak_question: 'Tu restes vague. "Bah c\'est-à-dire... c\'est compliqué quoi." Tu ne développes pas.',
       on_red_flag: 'Tu recules. "Attends, on parlait de ma situation là, pourquoi tu me parles de ça ?"',
-      on_dump_request: 'Tu donnes un résumé factuel de 2 phrases et tu dis "voilà" pour couper court.',
+      on_dump_request: 'Tu donnes un résumé factuel de ta situation, en restant en surface, et tu dis "voilà" pour couper court.',
     },
     objections: {
       minRoundsPerObjection: 3,
@@ -305,7 +305,7 @@ export const DIFFICULTY_CONFIGS: Record<string, DifficultyConfig> = {
     resistance: {
       on_weak_question: 'Tu challenges. "Je vois pas le rapport avec ma question." Tu forces le commercial à reformuler.',
       on_red_flag: 'Tu te fermes. "Eh oh, on se connaît depuis 5 minutes là. On en est pas du tout là."',
-      on_dump_request: 'Tu donnes UNE phrase factuelle et tu dis "c\'est tout" ou "voilà en gros".',
+      on_dump_request: 'Tu donnes les faits en vrac, sans ordre et sans ce qui compte vraiment, et tu dis "c\'est tout" ou "voilà en gros".',
     },
     objections: {
       minRoundsPerObjection: 4,

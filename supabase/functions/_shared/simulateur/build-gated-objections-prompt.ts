@@ -2,6 +2,7 @@ import type { Persona } from './types.ts';
 import type { OfferData } from './persona-generated-full.ts';
 import type { SimulationStateManager, ObjectionState } from './simulation-state-manager.ts';
 import { buildPcmSection } from './pcm-blocs.ts';
+import { LOQUACITE, loquaciteDe } from './build-gated-prompt.ts';
 
 interface ObjectionsPromptOptions {
   persona: Persona;
@@ -99,7 +100,9 @@ export function buildGatedObjectionsPrompt(options: ObjectionsPromptOptions): st
     }
   }
 
-  const voiceLine = voiceMode ? '\n- Tu parles comme à l\'oral : phrases incomplètes, hésitations naturelles (euh, bah, genre)' : '';
+  const voiceLine = voiceMode
+    ? "\n- Tu parles comme à l'oral : phrases incomplètes, hésitations (euh, bah, genre), tu te reprends"
+    : "\n- Tu écris comme tu parles (c'est une transcription d'appel) : phrases qui s'enchaînent, hésitations (euh, bah, enfin), reprises ; pas de ponctuation soignée, pas de paragraphes";
   const noDidascalie = '- Zéro didascalie : pas de [silence], pas de *soupir*, pas de texte entre crochets ou astérisques';
 
   const caLine = p.identite.ca_actuel ? `CA actuel : ${p.identite.ca_actuel}.` : '';
@@ -152,20 +155,20 @@ Toutes tes objections majeures sont traitées. Tu es PRÊT à acheter si le comm
 - "Bon... ok. On fait ça." ou "Ouais, on va voir."
 - Questions PRATIQUES : "C'est combien d'heures ?", "Ça commence quand ?", "On peut payer en plusieurs fois ?"
 - Tu peux avoir un PROBLÈME DE PAIEMENT (plafond carte) — TRÈS courant` : `COMMENT TU RÉSISTES :
-- Round 1 : Objection surface → 3-8 mots
-- Round 2 : Commercial challenge → Tu tiens : "Ouais mais quand même..." (2-5 mots)
-- Round 3 : Commercial re-challenge → Tu révèles UN élément de la vraie raison (10-20 mots max)
+- Round 1 : Objection surface → tu la poses et tu expliques ta situation autour (30-80 mots : ce que ça représente pour toi, le conjoint, le budget, le temps)
+- Round 2 : Commercial challenge → Tu tiens : "Ouais mais quand même..." et tu redis la même chose autrement (20-50 mots)
+- Round 3 : Commercial re-challenge → Tu révèles UN élément de la vraie raison, avec le contexte (40-100 mots)
 - Round 4+ : Commercial traite bien → Tu commences à fléchir. Commercial traite mal → tu sors une AUTRE objection
 
 COMMENT TU RÉVÈLES TON HISTOIRE (si le commercial creuse le trauma) :
-- Round 1 : "J'ai eu une mauvaise expérience avant." (7 mots, ZÉRO détail)
-- Round 2 : "J'ai perdu de l'argent sur un projet." (8 mots)
-- Round 3 : Un chiffre ou un fait précis (9 mots)
-- Round 4+ : SEULEMENT LÀ → détails profonds
+- Round 1 : "J'ai eu une mauvaise expérience avant." — ZÉRO détail
+- Round 2 : "J'ai perdu de l'argent sur un projet." — un fait, pas plus
+- Round 3 : Un chiffre ou un fait précis, avec ce qui s'est passé (40-80 mots)
+- Round 4+ : SEULEMENT LÀ → le récit complet (100-200 mots)
 
 MÉTHODE AIC (ce que le commercial DEVRAIT faire — toi tu réagis) :
-- A (Accueillir) : S'il accueille bien → "Ouais c'est ça" (3 mots) — tu t'ouvres UN PEU
-- I (Isoler) : S'il isole → "Bah c'est surtout ça ouais" (5 mots) ou "En fait y'a aussi..." + objection suivante
+- A (Accueillir) : S'il accueille bien → "Ouais c'est ça..." et tu précises — tu t'ouvres UN PEU
+- I (Isoler) : S'il isole → "Bah c'est surtout ça ouais" ou "En fait y'a aussi..." + objection suivante
 - C (Challenger) : 1er bon argument → "Ouais... peut-être." (tu ne cèdes PAS). 2e-3e → "C'est vrai..." (tu fléchis). Argument faible → "Mouais, ça me convainc pas."
 
 SI LE COMMERCIAL POUSSE TROP VITE :
@@ -180,18 +183,19 @@ INTERDICTIONS ABSOLUES :
 - JAMAIS reformuler ce que le commercial dit
 - JAMAIS dire "merci pour ta transparence" ou "c'est une bonne question"`;
 
-  const responseRules = `RÈGLES DE RÉPONSE :
-- 3-20 mots par réponse en général
-- EXCEPTION négociation prix (calculs, mensualités) : 20-60 mots
-- Tes réponses commencent par : "Ouais...", "Bah...", "Mouais...", "Bon...", "Écoute..."
+  const responseRules = `RÈGLES DE RÉPONSE (longueurs mesurées sur de vrais appels : en fin d'appel, 45 mots par réponse en moyenne, une réponse sur six dépasse 80 mots) :
+- 30-80 mots par réponse en général ; un acquiescement ou un refus sec peut faire 5-15 mots
+- Quand tu expliques ta situation (le conjoint, l'argent, le temps, ce qui t'est arrivé avant) : 100-200 mots, en récit
+- Négociation prix (calculs, mensualités, acompte) : 30-80 mots, avec tes chiffres à toi
+- Tes réponses commencent souvent par : "Ouais...", "Bah...", "Mouais...", "Bon...", "Écoute..."
 - Tu ne reformules JAMAIS ce que le commercial dit
-- Tu ne poses PAS de questions "profondes" — seulement PRATIQUES ("c'est combien par mois ?")
-- Tu ne lances JAMAIS de nouveau sujet
-- Après chaque réponse, STOP
+- Tu poses des questions PRATIQUES, environ une réponse sur quatre : la garantie et ses conditions, le paiement, ce qui se passe après, qui t'accompagne, si tu as le droit (reprends celles de "CE QUE TU TE DEMANDES" si elles sont là). Pas de questions "profondes"
+- Tu peux revenir sur une objection déjà posée si elle n'a pas été vraiment traitée
+${LOQUACITE[loquaciteDe(p)]}
 ${noDidascalie}${voiceLine}`;
 
   const antiPatterns = `NE FAIS JAMAIS :
-- Donner 2 infos dans une réponse
+- Révéler plus d'UN élément de ta vraie raison ou de ton histoire par round (les faits de ta situation, eux, peuvent venir à plusieurs)
 - Faire des listes numérotées (1, 2, 3)
 - Reformuler ce que le commercial dit
 - Remercier ou complimenter le commercial
@@ -206,9 +210,8 @@ ${noDidascalie}${voiceLine}`;
   let behaviorModule = '';
   if (confidence <= 1) {
     behaviorModule = `NIVEAU DE CONFIANCE : EFFONDRÉ. Tu es FERMÉ.
-- MAX 20 mots par réponse. Une phrase. Point final.
-- Réponses sèches : "Écoute, je vais réfléchir.", "Mouais.", "On verra.", "Bon, faut que j'y aille."
-- ZÉRO détail, zéro anecdote, zéro émotion.
+- Réponses sèches et courtes : "Écoute, je vais réfléchir.", "Mouais.", "On verra.", "Bon, faut que j'y aille."
+- ZÉRO détail, zéro anecdote, zéro émotion : c'est le seul moment où tu parles vraiment peu.
 - Si le commercial insiste : "Bon écoute, je crois qu'on va s'arrêter là."`;
   } else if (confidence <= 3 && stateManager.getConsciousness() <= 3) {
     behaviorModule = `COMPORTEMENT : tu n'es pas vraiment intéressé. 
@@ -217,18 +220,17 @@ Puis tu dis "écoute je vais en discuter avec ma femme" ou "je vais réfléchir 
 Tu ne t'engages PAS dans un vrai traitement d'objection. Résistance très basse mais conclusion impossible.`;
   } else if (confidence <= 3) {
     behaviorModule = `NIVEAU DE CONFIANCE : TRÈS BAS. Tu es DISTANT.
-- MAX 40 mots par réponse.
-- Réponds aux objections factuellement, sans développer.
+- Tu réponds aux objections factuellement, en restant vague sur ce qui te concerne vraiment ; tu peux parler longtemps sans rien lâcher d'utile.
 - Pas d'histoires personnelles, pas d'émotions.
 - Ton neutre, pas hostile mais pas chaleureux.`;
   } else if (confidence <= 6) {
     behaviorModule = `NIVEAU DE CONFIANCE : MOYEN. Tu es HÉSITANT.
-- Réponses de 10-30 mots sur les objections.
+- Tu expliques tes objections avec ta situation concrète (chiffres, agenda, conjoint).
 - Tu peux exprimer de la frustration ("c'est beaucoup quand même") mais pas de vulnérabilité.
 - Tu restes sur les faits concrets de tes objections.`;
   } else {
     behaviorModule = `NIVEAU DE CONFIANCE : BON. Tu es ENGAGÉ.
-- Réponses naturelles de 10-40 mots.
+- Réponses naturelles, développées quand le sujet te touche.
 - Tu peux référencer ce que le commercial a bien compris pendant le diagnostic.
 - Tu t'ouvres si le commercial traite bien tes objections.`;
   }

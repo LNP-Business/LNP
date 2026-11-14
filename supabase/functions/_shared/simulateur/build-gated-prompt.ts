@@ -22,7 +22,20 @@ import type { OfferData } from './persona-generated-full.ts';
 import type { SimulationStateManager, ContentSlots } from './simulation-state-manager.ts';
 import { buildPcmSection } from './pcm-blocs.ts';
 
-export type GatedMode = 'diagnostic' | 'full' | 'objections';  // objections kept for type compat, but handled by build-gated-objections-prompt.ts
+export type GatedMode = 'diagnostic' | 'full' | 'objections';
+
+// La loquacité du prospect (v0.13) : sur 549 vrais appels R1, la part de parole du prospect va de 37 % (quart le plus bref)
+// à 56 % (quart le plus bavard), autour de 46 %. Un trait par prospect, tiré à sa génération.
+export type Loquacite = 'bref' | 'moyen' | 'bavard';
+export const LOQUACITE: Record<Loquacite, string> = {
+  bref: "- Tu es plutôt BREF : tu réponds à la question et tu t'arrêtes, tu racontes peu de toi-même, le commercial doit te relancer pour avoir la suite (prends le bas de chaque fourchette)",
+  moyen: "- Tu es de LOQUACITÉ MOYENNE : tu réponds, tu ajoutes un détail ou une anecdote de temps en temps",
+  bavard: "- Tu es BAVARD : tu racontes, tu digresses (tes élèves, ton établissement, ta journée), tu reviens sur ce que tu disais, tu parles presque autant que le commercial (prends le haut de chaque fourchette, et dépasse-le parfois)",
+};
+export function loquaciteDe(p: Persona): Loquacite {
+  const l = (p as any).loquacite;
+  return l === 'bref' || l === 'bavard' ? l : 'moyen';
+}  // objections kept for type compat, but handled by build-gated-objections-prompt.ts
 
 // ─── Extraction automatique du contenu depuis le Persona ───
 
@@ -128,45 +141,65 @@ Tu ne mentionnes ces connaissances QUE si le commercial te demande SPÉCIFIQUEME
 ${parcours}
 
 PHASES DE L'APPEL (tu ne connais PAS ces phases, tu réagis naturellement) :
-- P1-P2 : Ice Breaker + Cadrage → réponses courtes (1-10 mots)
-- P3 : Diagnostic → tu réponds aux questions du commercial
-- P4-P5 : Engagement + Pitch → tu écoutes, réponses courtes (1-15 mots)
-- P6-P7 : Objections + Conclusion → tu résistes, puis tu cèdes si le commercial mérite`;
+- P1-P2 : Prise de contact + Cadrage → tu parles volontiers : à « qu'est-ce qui t'amène ? » tu racontes ta situation (c'est le moment où tu parles le plus)
+- P3 : Diagnostic → tu réponds aux questions du commercial, avec du concret et des anecdotes
+- P4-P5 : Engagement + Présentation → tu écoutes, tu réagis en quelques mots, tu poses des questions sur ce que tu ne comprends pas
+- P6-P7 : Objections + Conclusion → tu résistes, tu expliques ta situation (argent, temps, conjoint), puis tu cèdes si le commercial mérite${buildOfferKnowledge(offerData)}`;
   }
   
   return `Tu es en appel avec un commercial de ${companyName}. L'ice breaker et le cadrage sont faits. Tu es en phase diagnostic. Tu tutoies le commercial.`;
 }
 
-function buildResponseRules(mode: GatedMode, voiceMode?: boolean): string {
-  const voiceLine = voiceMode ? '\n- Tu parles comme à l\'oral : phrases incomplètes, hésitations naturelles (euh, bah, genre)' : '';
+
+// Ce que le prospect sait déjà et ce qu'il se demande, d'après l'offre (content_for_simulation) : la source d'origine ne lisait
+// jamais ces champs, le prospect ne posait donc jamais les questions des vrais prospects.
+function buildOfferKnowledge(offerData: OfferData): string {
+  const cs = (offerData as any)?.content_for_simulation || {};
+  const lignes = (a: unknown) => (Array.isArray(a) ? a.filter((x) => typeof x === 'string' && x.trim()) : []) as string[];
+  const sait = lignes(cs.prospect_already_knows), doutes = lignes(cs.prospect_unclear_about), mots = lignes(cs.vocabulary?.terms_prospects_use);
+  if (!sait.length && !doutes.length && !mots.length) return '';
+  let out = '';
+  if (sait.length) out += `\n\nCE QUE TU SAIS DÉJÀ DE L'OFFRE (tu l'as vu avant l'appel, tu peux y faire référence) :\n${sait.map((x) => `- ${x}`).join('\n')}`;
+  if (doutes.length) out += `\n\nCE QUE TU TE DEMANDES (tes vraies questions ; tu les poses au fil de l'appel, quand le sujet arrive ou quand on te demande si tu as des questions, pas toutes d'un coup) :\n${doutes.map((x) => `- ${x}`).join('\n')}`;
+  if (mots.length) out += `\n\nTES MOTS À TOI : ${mots.join(', ')}`;
+  return out;
+}
+
+function buildResponseRules(mode: GatedMode, voiceMode?: boolean, loquacite?: Loquacite): string {
+  const oral = voiceMode
+    ? "- Tu parles comme à l'oral : phrases incomplètes, hésitations (euh, bah, genre), tu te reprends, tu digresses parfois"
+    : "- Tu écris comme tu parles (c'est une transcription d'appel) : phrases qui s'enchaînent, hésitations (euh, bah, enfin), reprises, parfois une digression ; pas de ponctuation soignée, pas de paragraphes";
   const noDidascalie = '- Zéro didascalie : pas de [silence], pas de *soupir*, pas de texte entre crochets ou astérisques';
-  
+  const loq = LOQUACITE[loquacite || 'moyen'];
+  const questions = `- Tu poses des questions : environ une réponse sur quatre en contient une (sur ce que tu ne comprends pas, sur l'offre, le prix, ce qui t'inquiète). Pas de question quand tu réponds à une question sur toi
+- Tu peux repartir sur un sujet qui te préoccupe, même si le commercial est passé à autre chose
+- Quand tu as fini, tu t'arrêtes. Pas de "et toi ?" ; le commercial relance`;
+
   if (mode === 'full') {
-    return `RÈGLES DE RÉPONSE :
-- Phase 1-2 : 1-10 mots
-- Phase 3 diagnostic : Question fermée → 1-5 mots, Question factuelle → 5-15 mots, Question ouverte → 15-40 mots
-- Question profonde qui te touche → 40-80 mots, en mode histoire (anecdotes, pas analyses)
-- "Présente-toi" → 60-120 mots max, FAITS seulement (parcours, métier, situation), pas d'émotions
-- Phase 4-5 : 1-15 mots, tu écoutes beaucoup
-- Phase 6-7 objections : 3-20 mots (sauf négociation prix → 20-60 mots)
-- Tu ne poses JAMAIS de question sauf si tu comprends vraiment pas
-- Tu ne lances JAMAIS de nouveau sujet
-- Tu termines et tu te TAIS. C'est le commercial qui relance
-- Après chaque réponse, STOP. Pas de "et toi ?" ou "du coup..."
-${noDidascalie}${voiceLine}`;
+    return `RÈGLES DE RÉPONSE (longueurs mesurées sur de vrais appels : en moyenne 55 mots par réponse, un quart des réponses dépasse 80 mots) :
+- Prise de contact et cadrage : 40-90 mots. À "qu'est-ce qui t'amène ?" ou "raconte-moi" : tu racontes ta situation, 80-200 mots, en récit (ce que tu fais, depuis quand, ce qui coince)
+- Diagnostic : question fermée → 5-15 mots ; question factuelle → 20-50 mots ; question ouverte → 30-80 mots
+- Question profonde qui te touche, ou "explique-moi", "raconte-moi" → 100-250 mots, en mode histoire (anecdotes, détails concrets, pas d'analyse)
+- Pendant la présentation de l'offre : 10-40 mots, tu écoutes ("d'accord", "ok", "ah oui ?"), et tu poses des questions sur ce que tu ne comprends pas
+- Objections et décision : 30-80 mots ; quand tu expliques ta situation (le conjoint, l'argent, le temps), 100-200 mots
+- Tu donnes parfois plusieurs faits d'un coup, comme un vrai prospect ; ce qui reste verrouillé plus bas (douleurs profondes, émotions) ne sort pas, même dans une longue réponse
+${loq}
+${questions}
+${noDidascalie}
+${oral}`;
   }
-  
-  return `RÈGLES DE RÉPONSE :
-- Question fermée → 1-5 mots max
-- Question factuelle → 5-15 mots
-- Question ouverte → 15-40 mots
-- Question profonde qui te touche → 40-80 mots, en mode histoire (anecdotes, pas analyses)
-- "Présente-toi" → 60-120 mots max, FAITS seulement (parcours, métier, situation), pas d'émotions
-- Tu ne poses JAMAIS de question sauf si tu comprends vraiment pas
-- Tu ne lances JAMAIS de nouveau sujet
-- Tu termines et tu te TAIS. C'est le commercial qui relance
-- Après chaque réponse, STOP. Pas de "et toi ?" ou "du coup..."
-${noDidascalie}${voiceLine}`;
+
+  return `RÈGLES DE RÉPONSE (longueurs mesurées sur de vrais appels : en moyenne 55 mots par réponse, un quart des réponses dépasse 80 mots) :
+- Question fermée → 5-15 mots
+- Question factuelle → 20-50 mots
+- Question ouverte → 30-80 mots
+- Question profonde qui te touche, ou "explique-moi", "raconte-moi" → 100-250 mots, en mode histoire (anecdotes, détails concrets, pas d'analyse)
+- "Présente-toi" → 80-200 mots, en récit : ce que tu fais, depuis quand, ce qui coince
+- Tu donnes parfois plusieurs faits d'un coup, comme un vrai prospect ; ce qui reste verrouillé plus bas (douleurs profondes, émotions) ne sort pas, même dans une longue réponse
+${loq}
+${questions}
+${noDidascalie}
+${oral}`;
 }
 
 // ─── Prompt Assembly ───
@@ -216,7 +249,7 @@ TON STYLE :
 - Phrases : ${p.styleLinguistique?.phrasesType || 'courtes, directes'}
 - Émotions : ${p.styleLinguistique?.emotionVisible || 'contenues'}
 
-${buildResponseRules(mode, voiceMode)}
+${buildResponseRules(mode, voiceMode, loquaciteDe(p))}
 
 MOTS INTERDITS : "effectivement", "absolument", "pertinent", "transparence", "c'est une bonne question", "je comprends ta démarche"`;
 
@@ -340,6 +373,13 @@ Si le commercial te demande "pourquoi..." (même une seule fois, même gentiment
     }
   }
 
+  // Contradictions (v0.13) : sur 71 vrais appels, la qualification a relevé 116 contradictions du prospect (budget annoncé puis
+  // démenti, temps disponible qui change). Un prospect difficile ou expert se contredit une ou deux fois par appel.
+  const diffLabel = stateManager.getDifficultyLabel();
+  if (diffLabel === 'Difficile' || diffLabel === 'Expert') {
+    behaviorModule += `\nCONTRADICTIONS : comme un vrai prospect, tu n'es pas cohérent d'un bout à l'autre. ${diffLabel === 'Expert' ? 'Deux fois' : 'Une fois'} dans l'appel, tu dis quelque chose qui contredit ce que tu as dit avant (ton budget, le temps que tu peux dégager, qui décide, depuis quand ça dure), sans le remarquer. Si le commercial relève la contradiction, tu te justifies ou tu minimises ("non mais c'est pas pareil") avant d'admettre.\n`;
+  }
+
   // Résistance basée sur l'analyse HaikuA du commercial
   if (resistance) {
     behaviorModule += `\nLe commercial vient de poser une question faible ou inappropriée. Ta réaction : ${resistance}\n`;
@@ -349,8 +389,8 @@ Si le commercial te demande "pourquoi..." (même une seule fois, même gentiment
   if (confidence < 5) {
     behaviorModule += `
 NIVEAU DE CONFIANCE : TRÈS BAS. Tu es FERMÉ et DISTANT.
-- Tu réponds en 3-10 mots maximum à TOUTE question
-- Tu ne développes JAMAIS, même si la question est bonne
+- Tu parles autant qu'un vrai prospect, mais tu ne LIVRES rien d'utile : tu restes vague, tu généralises ("c'est compliqué", "comme tout le monde"), tu digresses sur des détails sans importance
+- Tu ne développes pas ce qui te concerne vraiment, même si la question est bonne
 - Tu donnes ZÉRO détail sur ta vie perso, ta famille, tes émotions
 - Si le commercial te demande un truc trop personnel, tu dis "on se connaît pas" ou "c'est pas le sujet"
 - Tu es là parce que tu as pris rdv, mais tu fais pas confiance, tu testes le commercial
@@ -358,10 +398,10 @@ NIVEAU DE CONFIANCE : TRÈS BAS. Tu es FERMÉ et DISTANT.
   } else if (confidence < 7) {
     behaviorModule += `
 NIVEAU DE CONFIANCE : BAS. Tu es FACTUEL, pas émotionnel.
-- Tu réponds en 5-15 mots sur les faits, jamais plus
+- Tu réponds sur les faits (ton métier, tes horaires, tes élèves, tes chiffres), avec des détails concrets, mais rien de plus
 - Pas d'émotions profondes, pas de vulnérabilité, pas d'histoires personnelles
-- Si on te demande comment tu te sens : "c'est compliqué", "ça me saoule", "bah voilà quoi" — 5 mots max
-- Si on te demande de "tout raconter" ou "te présenter" : les FAITS en 2-3 phrases courtes et tu t'arrêtes
+- Si on te demande comment tu te sens : tu restes en surface ("c'est compliqué", "ça me saoule", "bah voilà quoi") et tu reviens aux faits
+- Si on te demande de "tout raconter" ou "te présenter" : les FAITS, en récit, sans ce que ça te fait
 - Tu ne parles PAS de tes enfants, ta famille, ton ex, tes peurs, tes échecs passés
 - Ton attitude : coopérative sur les faits, fermée sur le reste`;
   } else if (confidence < 8) {
@@ -413,9 +453,8 @@ Si le commercial traite BIEN mais vite → "Ouais... faut que je digère ça." (
   
   const antiPatterns = `
 NE FAIS JAMAIS :
-- Donner 2 infos dans une réponse (une question = une info)
-- Anticiper les questions ("et aussi j'ai ce problème...")
-- Faire des listes numérotées (1, 2, 3)
+- Révéler dans une réponse plus d'UN élément des sections encore verrouillées (conséquences, émotions, blessure) ; les faits de surface, eux, peuvent venir à plusieurs
+- Faire des listes numérotées (1, 2, 3) ou des réponses structurées en points
 - Analyser ta situation ("d'un côté... de l'autre...")
 - Reformuler ce que le commercial dit ("comme tu dis...")
 - Remercier ou complimenter le commercial
