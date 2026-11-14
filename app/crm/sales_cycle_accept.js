@@ -19,17 +19,24 @@ const check = (n, c, info) => (c ? ok : bad).push(n + (c ? '' : ' — ' + JSON.s
   const txt = (sel) => sc.$eval(sel, e => e.innerText.replace(/\s+/g, ' ').trim());
   // 1 tabs and counts
   const tabs = await sc.$$eval('#qs .qc', a => a.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
-  check('1 onglets et compteurs', tabs.join('|') === 'Tous en cours 11|Agir maintenant 7|À faire 0|Appels prévus 3|En attente 1|Clos 2', tabs);
-  check('1 en-tête : prospects à traiter, appels du jour', /7 prospects à traiter maintenant/.test(await txt('#sub')), await txt('#sub'));
-  // 2 « Agir maintenant »: three sections, one order, the label from the SLA state
-  const secs = await sc.$$eval('#list .sec', a => a.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
-  check('2 sections En premier · 3, Aussi critique · 2, En retard · 2', secs.slice(0, 3).join('|') === 'En premier · 3|Aussi critique · 2|En retard · 2', secs);
+  // B en bulles (Romain 2026-11-14) : deux onglets, une ligne par prospect, la conversation du cycle, l'action à faire en bas
+  check('1 deux onglets et leurs compteurs', tabs.join('|') === 'À traiter · 10|Tous · 11', tabs);
+  check('1 en-tête : à traiter, en retard', /10 à traiter/.test(await txt('#sub')) && /7 en retard/.test(await txt('#sub')), await txt('#sub'));
+  // 2 one line per lead: name, action, how late; the most urgent first
   const row = (id) => sc.evaluate((i) => { const r = document.querySelector('.row[data-id="' + i + '"]'); return r ? r.innerText.replace(/\s+/g, ' ') : null; }, id);
   const yd = await row('yd');
-  check('2 Yassine : critique, action, montant en jeu', /Yassine Diallo/.test(yd) && /Critique · 1 h/.test(yd) && /Appeler Yassine pour la décision/.test(yd) && /3 400 € en jeu/.test(yd), yd);
-  // 3 the selected lead
+  check('2 Yassine : nom, action, retard', /Yassine Diallo/.test(yd) && /Appeler Yassine pour la décision/.test(yd) && /1 h/.test(yd), yd);
+  const ids = await sc.$$eval('#list .row', a => a.map(r => r.dataset.tone));
+  check('2 les critiques d’abord, puis en retard', ids.slice(0, 7).join(',') === 'crit,crit,crit,crit,crit,late,late', ids);
+  // 3 the selected lead: its header on one line, the conversation (lead on the left, the team on the right), the action at the bottom
   const det = await txt('#det');
-  check('3 fiche : « À faire », où en est le prospect, fil du cycle', /Olivier Masson/.test(det) && /À faire/.test(det) && /Envoyer l’étude de cas du T1 promise au R2/.test(det) && /Où en est le prospect/.test(det) && /Cycle de vente/.test(det) && /Faits clés/.test(det), det.slice(0, 300));
+  const chat = await sc.evaluate(() => ({ L: document.querySelectorAll('#cl .bub.L').length, R: document.querySelectorAll('#cl .bub.R').length,
+    last: document.querySelectorAll('#cl .bub.last').length, lastIsLast: [...document.querySelectorAll('#cl .bub')].pop().classList.contains('last'),
+    bottom: (() => { const c = document.getElementById('cl'); return c.scrollHeight - c.scrollTop - c.clientHeight < 4; })(),
+    share: document.getElementById('cl').getBoundingClientRect().height / innerHeight }));
+  check('3 fiche : nom, « À faire » et l’action en bas', /Olivier Masson/.test(det) && /À faire/i.test(det) && /Envoyer l’étude de cas du T1 promise au R2/.test(det) && !/Où en est le prospect/.test(det), det.slice(0, 300));
+  check('3 conversation : le lead à gauche, l’équipe à droite, la dernière action en bas et visible', chat.L > 0 && chat.R > 0 && chat.last === 1 && chat.lastIsLast && chat.bottom, chat);
+  check('3 la conversation occupe l’essentiel de la hauteur', chat.share > 0.55, chat.share);
   await p.screenshot({ path: OUT + '/sc-desk.png' });
   // 4 « Fait » with a note, then « Annuler »
   const r = await sc.evaluate(async () => {
@@ -39,12 +46,12 @@ const check = (n, c, info) => (c ? ok : bad).push(n + (c ? '' : ' — ' + JSON.s
     if (ub) ub.querySelector('button').click(); await new Promise(r => setTimeout(r, 400));
     return { sel0, sel1, shown, sel2: S.sel, back: document.querySelector('[data-ff=note]').value }; });
   check('4 « Fait » passe au prospect suivant, « Annuler » revient avec la note', r.sel0 === 'om' && r.sel1 !== 'om' && r.shown && r.sel2 === 'om' && r.back === 'Étude de cas envoyée', r);
-  // 5 a search without result keeps the counts and says so
-  await sc.fill('#q', 'zzzzqq'); await p.waitForTimeout(300);
-  const empty = await txt('#list'), sub = await txt('#sub'), tabs2 = await sc.$$eval('#qs .qc', a => a.map(x => x.textContent.replace(/\s+/g, ' ').trim()).join('|'));
-  check('5 recherche sans résultat : message, compteurs gardés, « 0 sur 11 affichés »', /Aucun résultat pour « zzzzqq »/.test(empty) && /Effacer la recherche/.test(empty) && /0 sur 11/.test(sub) && tabs2 === tabs.join('|'), { empty, sub, tabs2 });
-  await sc.click('[data-clearq]'); await p.waitForTimeout(300);
-  check('5 « Effacer la recherche » rend la liste', (await sc.$$eval('#list .row', a => a.length)) > 0, null);
+  // 5 « Tous » shows every lead in progress, « À traiter » comes back
+  const n1 = await sc.$$eval('#list .row', a => a.length);
+  await sc.click('.qc[data-b="all"]'); await p.waitForTimeout(300);
+  const n2 = await sc.$$eval('#list .row', a => a.length);
+  await sc.click('.qc[data-b="act"]'); await p.waitForTimeout(300);
+  check('5 « Tous » montre plus de prospects, « À traiter » revient', n2 > n1 && (await sc.$$eval('#list .row', a => a.length)) === n1, { n1, n2 });
   // 6 French only
   const all = await sc.evaluate(() => document.body.innerText);
   const english = ['Due soon', 'Overdue', 'Critical', 'Late', 'Owner', 'Next step', 'Loading', 'Sales'].filter(w => new RegExp('\\b' + w + '\\b').test(all));

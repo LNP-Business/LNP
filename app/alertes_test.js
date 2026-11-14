@@ -18,14 +18,16 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   let f = await desk();
   check('Cycle de vente s’ouvre avec son bureau', !!f, null);
   if (f) {
-    const s = await f.evaluate(() => ({ tab: document.querySelector('#qs [data-b="now"]').textContent.replace(/\s+/g, ' ').trim(),
+    const s = await f.evaluate(() => ({ tab: document.querySelector('#qs [data-b="act"]').textContent.replace(/\s+/g, ' ').trim(),
       secs: [...document.querySelectorAll('#list .sec')].map(x => x.textContent.replace(/\s+/g, ' ').trim()),
-      tones: [...document.querySelectorAll('#list .row')].map(r => r.dataset.tone), dues: [...document.querySelectorAll('#list .row .due')].map(x => x.textContent.trim()) }));
+      tones: [...document.querySelectorAll('#list .row')].map(r => r.dataset.tone), dues: [...document.querySelectorAll('#list .row .due')].map(x => x.textContent.trim()),
+      reds: [...document.querySelectorAll('#list .row')].map(r => r.style.getPropertyValue('--rc')) }));
     // « Agir maintenant » = its three sections, in this order, at the top of « Tous en cours »
     const now = s.secs.filter(x => /^(En premier|Aussi critique|En retard) ·/.test(x)), sum = now.reduce((n, x) => n + +x.match(/· (\d+)/)[1], 0);
-    check('« Agir maintenant » : les sections font le total de l’onglet et de la pastille', /Agir maintenant 7/.test(s.tab) && sum === 7 && /^En premier/.test(s.secs[0]), s);
+    check('« Agir maintenant » : les sections font le total de l’onglet et de la pastille', /À traiter · \d+/.test(s.tab) && sum === 7 && /^En premier/.test(s.secs[0]), s);
     check('critiques d’abord, puis en retard', s.tones.slice(0, 7).join(',') === 'crit,crit,crit,crit,crit,late,late', s.tones);
-    check('l’étiquette vient de l’état SLA (« Critique · … » sur chaque critique)', s.dues.slice(0, 5).every(x => /^Critique/.test(x)) && s.dues.slice(5).every(x => !/Critique/.test(x)), s.dues);
+    // B en bulles (2026-11-14) : une ligne par prospect, la couleur vient de l'état SLA (rouge : critique, orange : en retard)
+    check('la couleur vient de l’état SLA (rouge sur chaque critique)', s.reds.slice(0, 5).every(x => /crit/.test(x)) && s.reds.slice(5, 7).every(x => /late/.test(x)), s.reds);
     check('exemple annoncé hors édition web', /Démo/.test(await f.evaluate(() => document.body.innerText)), null);
     const english = ['Alerts', 'Late', 'Critical', 'Due soon', 'Owner', 'Closed', 'Loading'].filter(w => new RegExp('\\b' + w + '\\b').test(s.secs.join(' ') + s.dues.join(' ')));
     check('aucun mot anglais', english.length === 0, english);
@@ -39,8 +41,8 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.click('nav a:has-text("Cockpit commercial")'); await p.waitForTimeout(600);
   await p.click('nav a:has-text("Cycle de vente")'); await p.waitForTimeout(1500);
   f = await desk();
-  const pressed = f ? await f.evaluate(() => document.querySelector('#qs [data-b="now"]').getAttribute('aria-pressed')) : null;
-  check('Cycle de vente s’ouvre sur Agir maintenant', pressed === 'true', pressed);
+  const pressed = f ? await f.evaluate(() => document.querySelector('#qs [data-b="act"]').getAttribute('aria-pressed')) : null;
+  check('Cycle de vente s’ouvre sur « À traiter »', pressed === 'true', pressed);
   // Paramètres › Alertes : le CRM d'abord, Slack en option éteinte
   await p.click('nav a:has-text("Paramètres")'); await p.waitForTimeout(700);
   const st = await p.evaluate(() => document.getElementById('app').innerText);
