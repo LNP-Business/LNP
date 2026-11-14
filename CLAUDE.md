@@ -111,8 +111,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (absence ou silence après le RDV pris ; sortie Injoignable après 6 relances) et « Relance après refus » (un « non » après un appel tenu ; perdu sans appel tenu = « Perdu », sans branche ; le lead reste « Clos »
   dans Cycle de vente ; disqualifié 6 mois après le refus sans nouveau RDV : `crm_refusal_tick`, migration 055, chaque jour).
   Tests `node app/crm/etapes_live.js $PWD/app/lnp.html <dossier>` et `tests/refus_six_mois_test.sql`.
-- Leads et fiche d'un lead (Romain, 2026-11-14) : la barre de filtres sur une ligne, le tableau à la largeur de la page, l'État
-  sous Progrès, le nombre d'alertes à côté du prospect, sans colonnes Alertes ni Statut (`cxBar`, `cxLeads` dans `LNP_CRM_DOC`).
+- Leads et fiche d'un lead (Romain, 2026-11-14) : la barre de filtres sur une ligne, le tableau à la largeur de la page, une ligne
+  par lead, l'État dans sa colonne avant Progrès, le nombre d'alertes à côté du prospect, sans colonnes Alertes ni Statut (`cxBar`, `cxLeads` dans `LNP_CRM_DOC`).
   Fiche (édition web) : `renderLead2` ; à gauche À faire, Où il en est (toutes les étapes sous « Voir toutes les étapes »), Profil
   et réponses du quiz, setter, paiement, appels et transcriptions (`LNP_CA.leadPanel`) ; à droite le cycle de vente en bulles
   (`LNP_CHAT`). Test `node app/crm/etapes_live.js $PWD/app/lnp.html <dossier>`.
