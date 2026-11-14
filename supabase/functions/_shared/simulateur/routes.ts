@@ -10,6 +10,7 @@ import { VERSION_REFERENTIEL_SIMULATION } from "./referentiel-version.ts";
 import { appelRapide, consignesProspect, fenetreGlissante, personaDepuisLigne, type MessageSim } from "./prospect.ts";
 import { diffuser, ErreurModele, MODELE_PROSPECT, MODELES_PROSPECT, type Bloc, type MessageModele, type Usage } from "./llm.ts";
 import { convertisseurFlux, nettoyerPourVoix, transcriptionVide, voixParDefaut, VOIX, type ReglagesVoix } from "./voix.ts";
+import { mesurerRealisme } from "./realisme.ts";
 
 export type Deps = {
   db: Db;
@@ -174,7 +175,7 @@ export function app(d: Deps) {
 
           let reponse = "";
           const gen = diffuser(d.anthropicKey, {
-            model: modele, maxTokens: 500, messages: chat,
+            model: modele, maxTokens: 900, messages: chat,
             system: [{ type: "text", text: consignes.prompt, cache_control: { type: "ephemeral" } }] as Bloc[],
           }, d.fetchModele);
           while (true) {
@@ -243,16 +244,19 @@ export function app(d: Deps) {
     }
     const t = now();
     const duree = reprise && sim.duration_seconds != null ? sim.duration_seconds : Math.floor((t.getTime() - new Date(sim.started_at).getTime()) / 1000);
-    if (!reprise) await d.db.update("crm_sim_simulations", { id }, { status: "completed", ended_at: t.toISOString(), duration_seconds: duree });
-    const terminee = { ...sim, status: "completed", ended_at: sim.ended_at ?? t.toISOString(), duration_seconds: duree };
+    // v0.13 : la mesure de réalisme de la simulation (part de parole, longueur des réponses, questions du prospect), gardée
+    // avec l'usage et lue dans l'historique
+    const messagesFin = await messagesDe(d.db, id);
+    const usageFin = { ...(sim.usage || {}), realisme: mesurerRealisme(messagesFin) };
+    if (!reprise) await d.db.update("crm_sim_simulations", { id }, { status: "completed", ended_at: t.toISOString(), duration_seconds: duree, usage: usageFin });
+    const terminee = { ...sim, status: "completed", ended_at: sim.ended_at ?? t.toISOString(), duration_seconds: duree, usage: usageFin };
     const relire = async () => (await d.db.select("crm_sim_simulations", { id }))[0];
     // seuls l'appel complet et le diagnostic s'analysent ; le mode objections est refusé, même sans analyse demandée
     const eligible = sim.simulation_mode === "full" || sim.simulation_mode === "diagnostic";
     if (skip && eligible) return json({ simulation: await relire(), analysisId: null, skippedAnalysis: true, reason: "Analyse non demandée" });
     if (!d.analyse) return json({ simulation: await relire(), analysisId: null, skippedAnalysis: true, reason: "Analyse indisponible" });
-    const messages = await messagesDe(d.db, id);
     const offre = await chargerOffre(d.db, sim);
-    const r = await d.analyse.demarrer({ simulation: terminee, messages, appelant: a, offerName: offre?.name ?? null });
+    const r = await d.analyse.demarrer({ simulation: terminee, messages: messagesFin, appelant: a, offerName: offre?.name ?? null });
     return json({ simulation: await relire(), ...r });
   }
 
@@ -350,7 +354,7 @@ export function app(d: Deps) {
         let reponse = "";
         for (let essai = 0; essai <= 2; essai++) {
           let texte = "";
-          const gen = diffuser(d.anthropicKey, { model: modele, maxTokens: 500, messages: chat,
+          const gen = diffuser(d.anthropicKey, { model: modele, maxTokens: 900, messages: chat,
             system: [{ type: "text", text: consignes.prompt, cache_control: { type: "ephemeral" } }] as Bloc[] }, d.fetchModele);
           while (true) { const r = await gen.next(); if (r.done) { ajouterUsage(usage, "prospect", r.value || {}); break; } texte += r.value; }
           reponse = texte;

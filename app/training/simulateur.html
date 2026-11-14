@@ -711,9 +711,10 @@ details.sec[open] summary{margin-bottom:8px}
     else {
       var vf = A.voix.filter(function (v) { return v.gender === "F"; }), vm = A.voix.filter(function (v) { return v.gender === "M"; });
       var opt = function (l, cur) { return l.map(function (v) { return '<option value="' + esc(v.id) + '"' + (v.id === cur ? " selected" : "") + ">" + esc(v.name) + "</option>"; }).join(""); };
-      h += '<div style="overflow:auto"><table class="t"><thead><tr><th>Prospect</th><th>Difficulté</th><th>Conscience</th><th>Voix</th><th>État</th><th><span class="sr">Actions</span></th></tr></thead><tbody>' + pers.map(function (p) {
+      h += '<div style="overflow:auto"><table class="t"><thead><tr><th>Prospect</th><th>Difficulté</th><th>Loquacité</th><th>Conscience</th><th>Voix</th><th>État</th><th><span class="sr">Actions</span></th></tr></thead><tbody>' + pers.map(function (p) {
         return '<tr class="' + (p.active === false ? "off" : "") + '"><td><b>' + esc(p.first_name) + "</b>" + (p.age ? ", " + p.age + " ans" : "") + (p.city ? " · " + esc(p.city) : "") + '<br><small class="muted">' + esc(p.profession || "") + "</small></td>" +
           '<td><select class="in" data-k="pd-' + esc(p.id) + '" data-pdiff="' + esc(p.id) + '" aria-label="Difficulté de ' + esc(p.first_name) + '">' + Object.keys(DIFF).map(function (k) { return '<option value="' + k + '"' + (p.difficulty === k ? " selected" : "") + ">" + DIFF[k][0] + "</option>"; }).join("") + "</select></td>" +
+          '<td><select class="in" data-k="pl-' + esc(p.id) + '" data-ploq="' + esc(p.id) + '" aria-label="Loquacité de ' + esc(p.first_name) + '">' + Object.keys(LOQ).map(function (k) { return '<option value="' + k + '"' + (loqDe(p) === k ? " selected" : "") + ">" + LOQ[k] + "</option>"; }).join("") + "</select></td>" +
           "<td>" + (p.consciousness_level ? p.consciousness_level + " / 5" : "—") + "</td>" +
           '<td><select class="in" data-k="pv-' + esc(p.id) + '" data-pvoix="' + esc(p.id) + '" aria-label="Voix de ' + esc(p.first_name) + '">' + (p.voice_id ? "" : '<option value="" selected>Voix par défaut</option>') +
           '<optgroup label="Voix féminines">' + opt(vf, p.voice_id) + '</optgroup><optgroup label="Voix masculines">' + opt(vm, p.voice_id) + "</optgroup></select></td>" +
@@ -783,6 +784,8 @@ details.sec[open] summary{margin-bottom:8px}
         await api("personas/" + encodeURIComponent(pid), { method: "PATCH", body: { voice_id: val } }); toast("Voix modifiée", "La voix de " + p.first_name + " est enregistrée.");
       } else if (kind === "p-diff") {
         await api("personas/" + encodeURIComponent(pid), { method: "PATCH", body: { difficulty: val } }); toast("Difficulté modifiée", p.first_name + " : " + diff(val)[0] + ".");
+      } else if (kind === "p-loq") {
+        await api("personas/" + encodeURIComponent(pid), { method: "PATCH", body: { loquacite: val } }); toast("Loquacité modifiée", p.first_name + " : " + (LOQ[val] || val).toLowerCase() + ".");
       }
     } catch (e) { toast("Erreur", e.message, true); }
     await chargerPersAdmin(o.id); renderOffres();
@@ -939,6 +942,27 @@ details.sec[open] summary{margin-bottom:8px}
     }
     paint($("#view"), h + "</div>");
   }
+  // Réalisme (v0.13) : la proximité de la simulation avec les vrais appels de vente de LNP (part de parole du prospect, longueur
+  // de ses réponses, longues réponses, questions), mesurée à la fin de l’appel et gardée dans crm_sim_simulations.usage.realisme.
+  var LOQ = { bref: "Bref", moyen: "Moyenne", bavard: "Bavard" };
+  function loqDe(p) { var l = p && p.full_persona_data && p.full_persona_data.loquacite; return LOQ[l] ? l : "moyen"; }
+  function realismeCourt(r) {
+    if (!r || r.note == null) return "";
+    var t = r.ecarts && r.ecarts.length ? r.ecarts.join(" — ") : "Proche des vrais appels de vente";
+    return ' · <span style="color:var(' + (r.note >= 80 ? "--ok" : r.note >= 60 ? "--mid" : "--ko") + ')" title="' + esc(t) + '">réalisme ' + r.note + ' %</span>';
+  }
+  function realismeCarte(r) {
+    if (!r || r.tours_prospect == null) return "";
+    var c = r.cibles || {}, ligne = function (lib, v, k, unite) { return "<tr><td>" + lib + "</td><td><b>" + (v == null ? "—" : v + unite) + "</b></td><td>" + (c[k] ? c[k].cible + unite : "—") + "</td></tr>"; };
+    var h = '<section class="card" style="margin-top:16px"><div class="ct">Réalisme de la simulation' + (r.note != null ? " <small>" + r.note + " sur 100</small>" : "") + "</div>";
+    h += '<p class="muted small">Comparaison avec les vrais appels de vente de LNP (549 appels R1 analysés, de mai à novembre 2026).</p>';
+    h += '<div style="overflow:auto"><table class="t"><thead><tr><th>Mesure</th><th>Cette simulation</th><th>Vrais appels</th></tr></thead><tbody>' +
+      ligne("Part de parole du prospect", r.part_prospect, "part_prospect", " %") + ligne("Mots par réponse du prospect", r.mots_par_tour_prospect, "mots_par_tour_prospect", "") +
+      ligne("Réponses du prospect de plus de 80 mots", r.part_tours_longs, "part_tours_longs", " %") + ligne("Réponses du prospect avec une question", r.part_questions_prospect, "part_questions_prospect", " %") +
+      "<tr><td>Répliques</td><td><b>" + r.tours_prospect + " du prospect, " + r.tours_commercial + " du commercial</b></td><td>67 et 67</td></tr></tbody></table></div>";
+    if (r.ecarts && r.ecarts.length) h += '<ul class="muted small" style="margin:10px 0 0 18px">' + r.ecarts.map(function (e) { return "<li>" + esc(e) + "</li>"; }).join("") + "</ul>";
+    return h + "</section>";
+  }
   function ligneHist(r) {
     var st = statutDe(r), s = scoreDe(r), d = diff(r.difficulty), stl = ST_HIST[st];
     var col = s != null ? '<div class="hs ' + (s >= 80 ? "g" : s >= 60 ? "m" : "b") + '">' + s + '<span class="sr"> sur 100</span></div>'
@@ -947,7 +971,7 @@ details.sec[open] summary{margin-bottom:8px}
       (r.analysis && r.analysis.niveau && st === "completed" ? '<span class="pill b">' + esc(niveauLabel(r.analysis.niveau)) + "</span>" : "") +
       '<span class="pill">' + (r.voice ? "Voix" : "Texte") + '</span><span class="diff" style="background:' + d[1] + ";color:" + d[2] + '">' + d[0] + "</span></div>" +
       '<div class="l2">' + (A.admin && r.name ? "👤 " + esc(r.name) + " · " : "") + "◷ " + minutes(r.duration_seconds) + " · " + quand(r.started_at) + " · " + plur(r.messages || 0, "réplique") +
-      (r.rating ? " · " + "★".repeat(r.rating) + '<span class="sr"> (' + r.rating + " sur 5)</span>" : "") + "</div>" +
+      (r.rating ? " · " + "★".repeat(r.rating) + '<span class="sr"> (' + r.rating + " sur 5)</span>" : "") + realismeCourt(r.realisme) + "</div>" +
       '<div class="l3">' + esc(r.offer_name || "—") + " · " + esc(MODES[r.mode] || r.mode || "—") + (r.analysis && r.analysis.reason && st !== "completed" ? " · " + esc(r.analysis.reason) : "") + "</div></div>" +
       '<div class="ha">' + (st === "active" && r.user_id === A.me.id ? '<button type="button" class="btn p sm" data-go="#appel/' + r.id + '">▶ Reprendre</button>' : "") +
       (st !== "active" ? '<button type="button" class="btn sm" data-go="#resultat/' + r.id + '">' + (st === "completed" ? "Voir l’analyse" : "Ouvrir") + "</button>" : "") +
@@ -1753,7 +1777,7 @@ details.sec[open] summary{margin-bottom:8px}
     if (!R) return;
     var s = R.sim, an = R.an, res = an && an.result, ok = an && an.status === "completed" && res && res.dimensions;
     var h = '<div class="wrap"><div class="head"><div><h1>Analyse de l’appel avec ' + esc(s.prospect_name) + '</h1><p class="muted small">' + MODES[s.simulation_mode] + " · " + diff(s.difficulty)[0] + " · " + quand(s.started_at) +
-      " · " + minutes(s.duration_seconds) + " · " + plur(R.msgs.length, "réplique") + (an && an.completed_at ? " · analysée le " + jour(an.completed_at) : "") + "</p></div><span class=\"sp\"></span>" +
+      " · " + minutes(s.duration_seconds) + " · " + plur(R.msgs.length, "réplique") + (an && an.completed_at ? " · analysée le " + jour(an.completed_at) : "") + realismeCourt(s.usage && s.usage.realisme) + "</p></div><span class=\"sp\"></span>" +
       '<button type="button" class="btn" data-do="r-txt">⤓ Télécharger la conversation</button><button type="button" class="btn" data-go="#historique">Historique</button><button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button></div>';
     if (!ok) {
       var st = an ? an.status : null;
@@ -1762,7 +1786,7 @@ details.sec[open] summary{margin-bottom:8px}
         (A.admin ? '<button type="button" class="btn" data-do="r-reprendre">Relancer les analyses en attente</button>' : "") + "</div>";
       else if (st === "failed") h += '<div class="card empty"><div class="ico">⚠</div><b>L’analyse n’a pas abouti</b><p>' + esc(an.reason || "Une erreur est survenue pendant l’analyse.") + "</p></div>";
       else h += '<div class="card empty"><div class="ico">ℹ</div><b>Pas d’analyse pour cet appel</b><p>' + esc((an && an.reason) || (s.simulation_mode === "objections" ? "Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont." : s.status === "active" ? "L’appel est encore en cours." : "L’appel a été terminé sans analyse.")) + "</p></div>";
-      h += '<section class="card"><div class="ct">Conversation</div>' + transcription([]) + "</section></div>";
+      h += realismeCarte(s.usage && s.usage.realisme) + '<section class="card"><div class="ct">Conversation</div>' + transcription([]) + "</section></div>";
       paint($("#view"), h); return;
     }
     h += '<div class="tabs" role="tablist" aria-label="Analyse">' + ONGLETS.map(function (o) {
@@ -1807,6 +1831,7 @@ details.sec[open] summary{margin-bottom:8px}
       return "<div>" + esc(c.libelle || c.code) + mot + '</div><div><span class="pill ' + (c.etat === "active" ? "b" : "") + '">' + (c.etat === "active" ? "Active" : "Suspendue : constatée, jamais appliquée") + '</span></div><div><span class="pill ' + stt[1] + '">' + stt[0] + "</span></div>";
     }).join("") + "</div></section>";
     h += carteMiroir(res);
+    h += realismeCarte(R.sim.usage && R.sim.usage.realisme);
     return h;
   }
   function carteMiroir(res) {
@@ -1990,6 +2015,7 @@ details.sec[open] summary{margin-bottom:8px}
     if (t.dataset.do === "o-arch") { O.arch = t.checked; return renderOffres(); }
     if (t.dataset.pvoix) return actionProspect("p-voix", t.dataset.pvoix, t.value);
     if (t.dataset.pdiff) return actionProspect("p-diff", t.dataset.pdiff, t.value);
+    if (t.dataset.ploq) return actionProspect("p-loq", t.dataset.ploq, t.value);
     if (t.dataset.hf && t.dataset.hf !== "q") { HI[t.dataset.hf] = t.value; HI.page = 1; if (t.dataset.hf === "personne") { HI.rows = null; renderHistorique(); return chargerHistorique(); } return renderHistorique(); }
     if (t.dataset.r && t.type !== "number") { RG.edit[t.dataset.r] = t.type === "checkbox" ? t.checked : t.value; return renderReglages(); }
   });

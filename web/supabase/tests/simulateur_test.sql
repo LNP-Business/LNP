@@ -19,6 +19,7 @@ begin
   insert into crm_sim_messages (simulation_id, role, content) values (sim, 'commercial', 'Bonjour Claire'), (sim, 'prospect', 'Oui bonjour ?');
   insert into crm_sim_analyses (simulation_id, user_id, status, result) values (sim, s1, 'completed', '{"score_total": 72, "niveau": "diagnostic"}');
   insert into crm_sim_feedback (simulation_id, user_id, rating) values (sim, s1, 4);
+  update crm_sim_simulations set usage = '{"realisme": {"note": 72, "part_prospect": 44}}' where id = sim;
   insert into crm_sim_simulations (user_id, prospect_name, simulation_mode, difficulty) values (s2, 'Autre', 'objections', 'expert');
 end $$;
 set role authenticated;
@@ -33,7 +34,8 @@ begin
   assert (select count(*) from crm_sim_config) = 1, 'the settings';
   h := crm_sim_history(null, 50);
   assert jsonb_array_length(h) = 1 and (h->0->>'messages')::int = 2 and (h->0->>'rating')::int = 4
-    and (h->0->'analysis'->>'score')::int = 72 and h->0->>'offer_name' = 'Accompagnement LNP', 'the history row';
+    and (h->0->'analysis'->>'score')::int = 72 and h->0->>'offer_name' = 'Accompagnement LNP'
+    and (h->0->'realisme'->>'note')::int = 72, 'the history row (060: with the realism measure)';
   refused := false; begin insert into crm_sim_messages (simulation_id, role, content) select id, 'commercial', 'x' from crm_sim_simulations; exception when others then refused := true; end;
   assert refused, 'no message written from the browser';
   refused := false; begin update crm_sim_config set claude_model = 'claude-haiku-5-5'; exception when others then refused := true; end;

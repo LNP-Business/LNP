@@ -173,4 +173,6 @@ export interface Persona {
   // ========== NOUVEAU : messages initiaux pour les modes ==========
   pcmType?: 'travaillomane' | 'empathique' | 'promoteur' | 'perseverant';
   messagesInitiaux?: MessagesInitiaux;
+  // v0.13 : combien le prospect parle (sur de vrais appels, de 37 % à 56 % des mots selon la personne)
+  loquacite?: 'bref' | 'moyen' | 'bavard';
 }

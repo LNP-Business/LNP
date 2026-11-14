@@ -73,7 +73,7 @@ Deno.test("simulateur : lancer un appel complet, le prospect ne parle pas le pre
   const r = await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "full" });
   assertEquals(r.status, 201);
   const sim = await r.json();
-  assertEquals([sim.prospect_name, sim.difficulty, sim.prospect_profile, sim.messages.length, sim.version_referentiel], ["Claire", "difficile", "Difficile", 0, "v0.12"]);
+  assertEquals([sim.prospect_name, sim.difficulty, sim.prospect_profile, sim.messages.length, sim.version_referentiel], ["Claire", "difficile", "Difficile", 0, "v0.13"]);
   const d = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "diagnostic" })).json();
   assertEquals(d.messages.length, 1);
   assertEquals(d.messages[0].role, "prospect");
