@@ -1,7 +1,7 @@
 // node app/crm/cycle_fiche_live.js $PWD/app/lnp.html <dossier> — Cycle de vente (Romain 2026-11-14) : à droite, la fiche du lead,
-// la même que dans Leads (renderLead2 : Où il en est, appels et transcriptions, cycle de vente en bulles), posée par le CRM à la place
-// que réserve le bureau ; la barre « À faire » du bureau en dessous ; les touches du bureau marchent depuis la fiche ; la fiche s'en va
-// quand on revient à Leads. Cycles simulés, comme etapes_live.js.
+// copie exacte de celle de Leads (renderLead2 : À faire, Où il en est, appels et transcriptions, cycle de vente en bulles), posée par le
+// CRM à la place que réserve le bureau, la file des leads restant à gauche ; « Fait » dans la fiche compte dans la journée et ouvre le
+// prospect suivant ; les touches du bureau marchent depuis la fiche ; la fiche s'en va quand on revient à Leads. Cycles simulés.
 const { chromium } = require('playwright');
 const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
 (async () => {
@@ -59,7 +59,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   check('à droite, la fiche du lead sélectionné (la même que dans Leads)', f && s && f.name === s.name && f.where && f.calls, { f, s });
   check('la fiche occupe la place réservée par le bureau, sans fond grisé', f && pl && Math.abs(f.x - pl.x) < 2 && Math.abs(f.y - pl.y) < 2 && Math.abs(f.w - pl.w) < 2 && Math.abs(f.h - pl.h) < 2 && !f.scrim, { f, pl });
   check('la chronologie en bulles est dans la fiche', f && f.bulles > 0, f);
-  check('la barre « À faire » du bureau est sous la fiche, celle de la fiche est cachée', await dk.evaluate(() => { const t = document.querySelector('#det .todo2'), d = document.getElementById('dock'); return !!t && t.getBoundingClientRect().top >= d.getBoundingClientRect().bottom - 1 && !!document.querySelector('[data-do="snooze"]'); }) && f.todo === 'none', f);
+  check('la fiche a son propre « À faire », comme dans Leads, sans autre barre en dessous', f.todo !== 'none' && await dk.evaluate(() => !document.querySelector('#det .todo2')), f);
   await p.screenshot({ path: OUT + '/cycle-fiche.png' });
   // un autre lead : la fiche suit
   await dk.click('.qc[data-b="all"]'); await p.waitForTimeout(400);
@@ -78,6 +78,12 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   await p.screenshot({ path: OUT + '/cycle-fiche-trx.png' });
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   check('Échap ferme la transcription, la fiche reste', !(await cf.$('#layer2 .lr-trx')) && !!(await fiche()), null);
+  // « Fait » dans la fiche : compté dans la journée, le prospect suivant s'ouvre
+  const day = () => dk.evaluate(() => document.querySelector('#day summary').textContent);
+  const s3 = await sel(), inp = await cf.$('#layer .lr-dock [data-ltn]');
+  if (inp) { await inp.fill('Message envoyé'); await cf.click('#layer .lr-dock [data-ltdone]'); await p.waitForTimeout(900); }
+  const s4 = await sel();
+  check('« Fait » dans la fiche compte dans « Aujourd’hui » et ouvre le prospect suivant', !!inp && /1 prospect traité/.test(await day()) && s4 && s3 && s4.id !== s3.id, { inp: !!inp, day: await day(), s3, s4 });
   // retour à Leads : la fiche posée s'en va
   await cf.evaluate(() => { S.cx.tab = 'leads'; renderCRM(); }); await p.waitForTimeout(800);
   check('de retour dans Leads, la fiche posée s\'en va', !(await fiche()) && !(await cf.evaluate(() => document.getElementById('layer').innerHTML.trim())), null);
