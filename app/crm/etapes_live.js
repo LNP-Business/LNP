@@ -81,8 +81,9 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   if (scv) {
     await scv.evaluate(() => { S.showClosed = true; S.b = ''; render(); S.sel = 'c3'; render(); });
     await p.waitForTimeout(500);
-    const det = await scv.$eval('.et', e => e.innerText).catch(() => '');
-    check('Cycle de vente : la même liste d’étapes dans la fiche', /Ligne principale/.test(det) && /Relance après refus/.test(det) && /Appel honoré \(R2\)/.test(det), det);
+    // B en bulles (2026-11-14) : la fiche de Cycle de vente montre l'étape du lead, tirée de la même liste, dans son en-tête
+    const det = await scv.evaluate(() => ({ head: (document.querySelector('.dh2 .dc b') || {}).textContent || '', want: (LNP_ETAPES.of(LEADS.find(l => l.id === 'c3')) || {}).label || '' }));
+    check('Cycle de vente : l’étape du lead, tirée de la même liste, dans l’en-tête de la fiche', !!det.want && det.head === det.want, det);
     const opts = await scv.$$eval('select[data-sel="stg"] option', a => a.map(o => o.textContent));
     check('Cycle de vente : le filtre « Étape » propose les étapes partagées', ['Rattrapage', 'Relance après refus', 'Confirmation de présence', 'Payé'].every(w => opts.includes(w)), opts);
     await p.screenshot({ path: OUT + '/etapes-cycle.png' });

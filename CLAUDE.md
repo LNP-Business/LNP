@@ -70,6 +70,10 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (`LNP_SB_DOC`, dans `LNP_CRM_DOC` de `app/lnp.html`) : « Aujourd'hui » et « Fait aujourd'hui », « Demain » (touche D) et
   « Passer » (touche P), la journée gardée dans les préférences `salesday.<jour>`. Test `node app/cycle_day_test.js $PWD/app/lnp.html <dossier>`.
   Le module de Ma journée (`app/salesday_module.js`, `gen_salesday.py`) n'est plus affiché.
+- Cycle de vente en bulles (Romain, 2026-11-14) : une file étroite à deux onglets (« À traiter », « Tous »), l'en-tête du prospect
+  sur une ligne (étape, montant, commercial), le cycle de vente en conversation (le lead à gauche, l'équipe de vente à droite, la
+  dernière action encadrée en bas) et « À faire » tout en bas (`chatHTML`, `renderDet`, `rowHTML` dans `LNP_SB_DOC`). Tests
+  `node app/crm/sales_cycle_accept.js $PWD/app/lnp.html <dossier>` et `app/cycle_day_test.js`.
 - Alertes (Romain, 2026-11-09 : le CRM est la base des notifications, pas Slack) : `sla-tick` ouvre, fait monter et ferme les
   alertes toutes les 5 min (`crm_sla_alerts`, `crm_sync_sla_alerts`, migration 053) ; un commercial voit les alertes de ses
   prospects, un administrateur celles de toute l'équipe (`crm_sla_alerts_open`). Écran, pastille, bandeau et notification du
