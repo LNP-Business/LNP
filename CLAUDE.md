@@ -124,9 +124,10 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   Tests `node app/crm/etapes_live.js $PWD/app/lnp.html <dossier>` et `tests/refus_six_mois_test.sql`.
 - Leads et fiche d'un lead (Romain, 2026-11-14) : la barre de filtres sur une ligne, le tableau à la largeur de la page, une ligne
   par lead, l'État dans sa colonne avant Progrès, le nombre d'alertes à côté du prospect, sans colonnes Alertes ni Statut (`cxBar`, `cxLeads` dans `LNP_CRM_DOC`).
-  Fiche (édition web) : `renderLead2` ; à gauche À faire, Où il en est (toutes les étapes sous « Voir toutes les étapes »), Profil
-  et réponses du quiz, setter, paiement, appels et transcriptions (`LNP_CA.leadPanel`) ; à droite le cycle de vente en bulles
-  (`LNP_CHAT`). Test `node app/crm/etapes_live.js $PWD/app/lnp.html <dossier>`.
+  Fiche (édition web) : `renderLead2` ; à gauche « À faire », puis une seule fiche en lignes (Romain, 2026-11-14 : le plus lisible
+  possible ; `lrWhere`, `.lr-sheet`, `.ls-row`) : Étape (barre, « Toutes les étapes »), Dernière action, Prochaine action, Setter (trois
+  lignes, sauf « transmis »), Paiement, Appels (« Lire la transcription »), Profil (réponses du quiz repliées) ; à droite le cycle de
+  vente en bulles (`LNP_CHAT`). Test `node app/crm/etapes_live.js $PWD/app/lnp.html <dossier>`.
 - Fiche prospect et Ma journée : le cycle de vente en fil vertical et « À faire » (`app/crm/lead_feed.js`) ; déplacements du
   Pipeline et formulaire d'issue (`app/crm/outcome_ui.js`, `lnpMove` ; clôture et réouverture : migration 045 ;
   déplacement sans action et règles des tours : migration 047, `crm_move_cycle`).

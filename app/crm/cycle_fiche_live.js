@@ -51,7 +51,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   check('le bureau Cycle de vente est ouvert depuis « Cycle de vente » de la barre latérale', !!dk && await p.evaluate(() => location.hash === '#salescycle'), null);
   if (!dk) { console.log(bad.join('\n')); await b.close(); process.exit(1); }
   const fiche = () => cf.evaluate(() => { const d = document.querySelector('#layer .lr-dock'); if (!d) return null; const r = d.getBoundingClientRect();
-    return { name: (d.querySelector('#lT') || {}).textContent, x: r.left, y: r.top, w: r.width, h: r.height, where: !!d.querySelector('.lr-where'), calls: !!d.querySelector('.lr-calls'),
+    return { name: (d.querySelector('#lT') || {}).textContent, x: r.left, y: r.top, w: r.width, h: r.height, where: !!d.querySelector('.ls-where'), calls: !!d.querySelector('.ls-calls'),
       bulles: d.querySelectorAll('#lrChat .ch-row, #lrChat [class^="ch-b"]').length, todo: getComputedStyle(d.querySelector('.lr-todo') || d).display, scrim: !!document.querySelector('#layer .scrim') }; });
   const sel = () => dk.evaluate(() => { const r = document.querySelector('.row[aria-selected="true"]'); return r ? { id: r.dataset.id, name: r.innerText.split('\n')[0] } : null; });
   const place = () => dk.evaluate(() => { const d = document.getElementById('dock'); if (!d) return null; const r = d.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
@@ -67,7 +67,7 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
   s = await sel(); f = await fiche();
   check('la flèche bas ouvre le lead suivant et sa fiche', s && s0 && s.id !== s0.id && f && f.name === s.name, { s0, s, f });
   // une touche du bureau depuis la fiche
-  await cf.click('#layer .lr-dock .lr-where'); await p.keyboard.press('p'); await p.waitForTimeout(500);
+  await cf.click('#layer .lr-dock .ls-where'); await p.keyboard.press('p'); await p.waitForTimeout(500);
   const s2 = await sel(); f = await fiche();
   check('« P » appuyé dans la fiche passe au lead suivant', s2 && s2.id !== s.id && f && f.name === s2.name, { s, s2, f });
   // la transcription s'ouvre depuis la fiche
