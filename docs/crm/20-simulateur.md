@@ -113,6 +113,13 @@ Ce qui change (`VERSION_REFERENTIEL_SIMULATION = "v0.13"`, gardé sur chaque sim
   dessus).
 - **Style oral** en texte aussi (hésitations, phrases qui repartent), pas de didascalie.
 - `maxTokens` 900 (300 avant), fenêtre d'historique 60 messages (30 avant) pour tenir un appel de 130 répliques.
+- **Après le rejeu à la main** (`simulations/2026-11-14-camille-v0.13-option-B.md`, réalisme 80, seul écart : 43 % de réponses avec
+  une question) : le quota de questions passe à « une réponse sur quatre ou cinq, jamais deux de suite, deux réponses sans question
+  après une question sur l'offre », et les questions de l'offre et du style du prospect comptent dedans ; les faits de famille
+  (conjoint, enfant, projet, horaires) peuvent venir à confiance basse comme chez un vrai prospect, seul ce que ça leur coûte reste
+  verrouillé ; les derniers plafonds en mots hérités de la source (objectif « une phrase, pas plus », ancienneté et disponibilité
+  « 5 mots max », synthèse « 5-10 mots », réactions à l'écart « 5-15 mots ») deviennent des fourchettes de 10 à 40 mots avec un
+  repère concret.
 - **Plus de résistance par défaut** : sans analyse de signaux (mode voix, où elle n'est pas faite ; premier tour ; Haiku en échec), le
   prospect recevait à chaque tour « le commercial vient de poser une question faible » et répondait à côté (`getResistanceBehavior`).
   Trouvé en rejouant un appel à la main (`simulations/2026-11-14-camille-v0.13-option-B.md`) ; corrigé.

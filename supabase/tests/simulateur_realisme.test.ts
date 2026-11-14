@@ -67,7 +67,9 @@ Deno.test("v0.13 : les consignes du prospect viennent des vrais appels", () => {
   const p = buildGatedDiagnosticPrompt({ persona, offerData: offre as any, stateManager: sm, mode: "full" });
   assert(p.includes("55 mots par réponse"), "longueurs calibrées");
   assert(p.includes("tu racontes ta situation, 80-200 mots"), "le prospect parle au début");
-  assert(p.includes("environ une réponse sur quatre en contient une"), "le prospect pose des questions");
+  assert(p.includes("environ une réponse sur quatre ou cinq en contient une") && p.includes("jamais deux réponses de suite avec une question"), "le prospect pose des questions, sans en abuser (rejeu du 2026-11-14 : 43 %)");
+  assert(p.includes("peuvent venir comme repères concrets") && p.includes("Les faits, oui, comme un vrai prospect"), "les faits de famille passent, pas ce que ça fait");
+  assert(!p.includes("5 mots max") && !p.includes("une phrase, pas plus"), "plus de plafonds en mots hérités de la source");
   assert(!p.includes("Tu ne poses JAMAIS de question"), "plus d'interdiction des questions");
   assert(!p.includes("1-10 mots") && !p.includes("une question = une info"), "plus de réponses en 1-10 mots");
   assert(p.includes("Je suis prof titulaire, j'ai le droit ?") && p.includes("Il y a une garantie") && p.includes("taux horaire"), "l'offre : ce que le prospect sait, se demande, ses mots");
@@ -88,7 +90,7 @@ Deno.test("v0.13 : en objections, le prospect explique sa situation et pose des 
   const p = buildGatedObjectionsPrompt({ persona: { ...persona, loquacite: "bref" }, offerData: offre as any, stateManager: sm });
   assert(p.includes("30-80 mots par réponse"), "longueurs d'objection calibrées");
   assert(p.includes("100-200 mots, en récit"));
-  assert(p.includes("Tu poses des questions PRATIQUES, environ une réponse sur quatre"));
+  assert(p.includes("Tu poses des questions PRATIQUES, environ une réponse sur quatre ou cinq, jamais deux réponses de suite"));
   assert(!p.includes("3-20 mots") && !p.includes("MAX 20 mots"));
   assert(p.includes(LOQUACITE.bref));
 });

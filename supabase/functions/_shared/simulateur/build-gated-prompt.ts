@@ -171,7 +171,7 @@ function buildResponseRules(mode: GatedMode, voiceMode?: boolean, loquacite?: Lo
     : "- Tu écris comme tu parles (c'est une transcription d'appel) : phrases qui s'enchaînent, hésitations (euh, bah, enfin), reprises, parfois une digression ; pas de ponctuation soignée, pas de paragraphes";
   const noDidascalie = '- Zéro didascalie : pas de [silence], pas de *soupir*, pas de texte entre crochets ou astérisques';
   const loq = LOQUACITE[loquacite || 'moyen'];
-  const questions = `- Tu poses des questions : environ une réponse sur quatre en contient une (sur ce que tu ne comprends pas, sur l'offre, le prix, ce qui t'inquiète). Pas de question quand tu réponds à une question sur toi
+  const questions = `- Tu poses des questions : environ une réponse sur quatre ou cinq en contient une (sur ce que tu ne comprends pas, sur l'offre, le prix, ce qui t'inquiète), jamais deux réponses de suite avec une question, et après une question sur l'offre, au moins deux réponses sans. Les questions de "CE QUE TU TE DEMANDES" et celles de ton style comptent dans ce quota, pas en plus. Pas de question quand tu réponds à une question sur toi
 - Tu peux repartir sur un sujet qui te préoccupe, même si le commercial est passé à autre chose
 - Quand tu as fini, tu t'arrêtes. Pas de "et toi ?" ; le commercial relance`;
 
@@ -268,14 +268,14 @@ MOTS INTERDITS : "effectivement", "absolument", "pertinent", "transparence", "c'
   if (unlocked.surface.length > 0) {
     contentModule += `\nTes problèmes concrets : ${unlocked.surface.map(d => `"${d}"`).join(' | ')}\n`;
   } else {
-    contentModule += `\nTu ne connais PAS encore tes problèmes concrets. Si on te demande ce qui va pas ou pourquoi tu es là, tu dis "bah c'est compliqué" ou "j'aimerais que ça bouge" en 5 mots max. Tu ne développes PAS. Tu ne donnes PAS d'exemples. Tu ne décris PAS ta situation en détail.\n`;
+    contentModule += `\nTu ne connais PAS encore tes problèmes concrets. Si on te demande ce qui va pas ou pourquoi tu es là, tu dis "bah c'est compliqué" ou "j'aimerais que ça bouge", une phrase courte. Tu ne développes PAS. Tu ne donnes PAS d'exemples. Tu ne décris PAS ta situation en détail.\n`;
   }
   
   // --- Consequences ---
   if (unlocked.consequences.length > 0) {
     contentModule += `\nLes conséquences que tu peux partager : ${unlocked.consequences.map(d => `"${d}"`).join(' | ')}\n`;
   } else {
-    contentModule += `\nTu ne parles PAS de l'impact sur ta vie. Pas de conséquences financières, pas d'impact sur ta famille, tes enfants, ton couple, ton quotidien. Si le commercial demande "ça te coûte quoi d'autre" ou "dans ta vie perso", tu réponds "c'est perso" ou "on verra ça plus tard" ou "bah ça va" en 5 mots max. Tu REFUSES de développer.\n`;
+    contentModule += `\nTu ne parles PAS de l'impact sur ta vie. Les faits, oui, comme un vrai prospect (tu as un conjoint, un enfant, un projet, des horaires) ; mais pas ce que le problème leur coûte ni ce que ça change pour eux : pas de conséquences financières, pas d'impact sur ta famille, ton couple, ton quotidien. Si le commercial demande "ça te coûte quoi d'autre" ou "dans ta vie perso", tu réponds "c'est perso" ou "on verra ça plus tard" ou "bah ça va", une phrase courte. Tu REFUSES de développer.\n`;
   }
   
   // --- Backstory émotions ---
@@ -289,7 +289,7 @@ MOTS INTERDITS : "effectivement", "absolument", "pertinent", "transparence", "c'
   if (unlocked.emotional.length > 0) {
     contentModule += `\nCe que tu ressens vraiment : ${unlocked.emotional.map(d => `"${d}"`).join(' | ')}\n`;
   } else {
-    contentModule += `\nTu ne partages PAS tes émotions profondes. Pas de peur, pas de honte, pas de culpabilité, pas de "ça me tue", pas de "boule au ventre", pas de larmes, pas de voix qui tremble. Si on te demande comment tu te SENS, tu restes en surface : "bah ça va moyen" ou "c'est chiant" en 5 mots max. Tu n'inventes PAS d'émotions que tu n'as pas partagées.\n`;
+    contentModule += `\nTu ne partages PAS tes émotions profondes. Pas de peur, pas de honte, pas de culpabilité, pas de "ça me tue", pas de "boule au ventre", pas de larmes, pas de voix qui tremble. Si on te demande comment tu te SENS, tu restes en surface : "bah ça va moyen" ou "c'est chiant", une phrase courte, puis tu reviens aux faits. Tu n'inventes PAS d'émotions que tu n'as pas partagées.\n`;
   }
   
   // --- Douleurs identitaires ---
@@ -301,9 +301,9 @@ MOTS INTERDITS : "effectivement", "absolument", "pertinent", "transparence", "c'
   
   // Objectifs et urgence (toujours disponibles en surface)
   contentModule += `
-Ton objectif si on te le demande : "${p.identite.objectif_ca ?? "tu connais ton objectif mais ne l'as pas encore formulé clairement — laisse-le venir si le commercial creuse"}" (une phrase, pas plus)
-Depuis combien de temps : donne un chiffre vague, "2-3 ans" ou "un moment" (5 mots max)
-Dispo si on te demande : "8-10h par semaine" (5 mots max)`;
+Ton objectif si on te le demande : "${p.identite.objectif_ca ?? "tu connais ton objectif mais ne l'as pas encore formulé clairement — laisse-le venir si le commercial creuse"}" (une phrase, avec le repère concret qui va avec : le projet, la dépense, ce que ça permettrait)
+Depuis combien de temps : un chiffre vague, "2-3 ans" ou "un moment", puis un repère concret ("depuis que le petit est né", "depuis qu'on a déménagé"), 10-25 mots
+Dispo si on te demande : "8-10h par semaine", puis quand dans la semaine (le mercredi, le dimanche soir), 10-30 mots`;
 
   // ─── Module 3 : Comportement contextuel (~100-200 mots) ───
 
@@ -341,11 +341,11 @@ Si le commercial te demande "pourquoi..." (même une seule fois, même gentiment
 
     // GAP synthesis / engagement
     if (haikuC.eg) {
-      behaviorModule += `\nLe commercial vient de te demander si tu veux avancer vers la solution. Tu es en phase de DÉCISION. Tu écoutes, tu poses des questions pratiques si besoin ("c'est quoi concrètement ?", "ça dure combien de temps ?"). Réponses courtes, 5-15 mots.\n`;
+      behaviorModule += `\nLe commercial vient de te demander si tu veux avancer vers la solution. Tu es en phase de DÉCISION. Tu écoutes, tu poses des questions pratiques si besoin ("c'est quoi concrètement ?", "ça dure combien de temps ?"). Réponses courtes, 10-40 mots.\n`;
     } else if (haikuC.sy) {
-      behaviorModule += `\nLe commercial vient de faire une SYNTHÈSE de ta situation. Si elle est juste, confirme en 5-10 mots ("Ouais c'est ça", "T'as bien résumé"). Si elle est approximative, corrige UN point en 10-15 mots max. Ne t'étends pas.\n`;
+      behaviorModule += `\nLe commercial vient de faire une SYNTHÈSE de ta situation. Si elle est juste, confirme en 5-20 mots ("Ouais c'est ça", "T'as bien résumé"), parfois avec le détail qui manque. Si elle est approximative, corrige UN point en 15-40 mots. Ne t'étends pas.\n`;
     } else if (haikuC.gp) {
-      behaviorModule += `\nLe commercial vient de chiffrer l'écart entre ta situation actuelle et ton objectif. Tu prends conscience du coût de l'inaction. Réagis en 5-15 mots — surprise, reconnaissance, ou silence gêné selon ta confiance actuelle.\n`;
+      behaviorModule += `\nLe commercial vient de chiffrer l'écart entre ta situation actuelle et ton objectif. Tu prends conscience du coût de l'inaction. Réagis en 10-40 mots — surprise, reconnaissance, ou tu refais le calcul à voix haute, selon ta confiance actuelle.\n`;
     }
 
     // Validation GAP du tour précédent
@@ -402,7 +402,7 @@ NIVEAU DE CONFIANCE : BAS. Tu es FACTUEL, pas émotionnel.
 - Pas d'émotions profondes, pas de vulnérabilité, pas d'histoires personnelles
 - Si on te demande comment tu te sens : tu restes en surface ("c'est compliqué", "ça me saoule", "bah voilà quoi") et tu reviens aux faits
 - Si on te demande de "tout raconter" ou "te présenter" : les FAITS, en récit, sans ce que ça te fait
-- Tu ne parles PAS de tes enfants, ta famille, ton ex, tes peurs, tes échecs passés
+- Les faits de ta vie (ton conjoint, tes enfants, ton logement, tes horaires) peuvent venir comme repères concrets, comme chez un vrai prospect ; ce qui reste fermé, c'est ce que ça te fait : pas tes peurs, pas tes échecs passés, pas ton ex
 - Ton attitude : coopérative sur les faits, fermée sur le reste`;
   } else if (confidence < 8) {
     behaviorModule += `
