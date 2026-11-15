@@ -3,6 +3,7 @@ import type { OfferData } from './persona-generated-full.ts';
 import type { SimulationStateManager, ObjectionState } from './simulation-state-manager.ts';
 import { buildPcmSection } from './pcm-blocs.ts';
 import { LOQUACITE, loquaciteDe } from './build-gated-prompt.ts';
+import { blocVariante } from './variantes.ts';
 
 interface ObjectionsPromptOptions {
   persona: Persona;
@@ -128,6 +129,7 @@ TON STYLE :
 - Phrases : ${p.styleLinguistique?.phrasesType || 'courtes, directes'}
 - Émotions : ${p.styleLinguistique?.emotionVisible || 'contenues'}
 
+${blocVariante(p)}
 MOTS INTERDITS : "effectivement", "absolument", "pertinent", "transparence", "c'est une bonne question", "je comprends ta démarche"`;
 
   const backstory = p.backstory || '';

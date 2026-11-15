@@ -44,7 +44,7 @@ function modele(reponse = "Bah... franchement c'est compliqué, j'ai 9 500 € d
   return { f, appels };
 }
 
-function monter(opts: { reponse?: string; analyse?: any } = {}) {
+function monter(opts: { reponse?: string; analyse?: any; alea?: () => number } = {}) {
   const db = dbMemoire({ crm_sim_personas: [PERSONA], crm_sim_offers: [OFFRE], crm_sim_config: [{ id: 1, claude_model: "claude-sonnet-5-5", voice_mode_enabled: true }] });
   const m = modele(opts.reponse);
   const qui: Record<string, any> = {
@@ -52,7 +52,7 @@ function monter(opts: { reponse?: string; analyse?: any } = {}) {
     s2: { id: S2, email: "s2@lnp.fr", role: "sales", admin: false },
     adm: { id: ADM, email: "adm@lnp.fr", role: "admin", admin: true },
   };
-  const h = app({ db, anthropicKey: "sk-test", auth: (j) => Promise.resolve(qui[j] ?? null), fetchModele: m.f, analyse: opts.analyse });
+  const h = app({ db, anthropicKey: "sk-test", auth: (j) => Promise.resolve(qui[j] ?? null), fetchModele: m.f, analyse: opts.analyse, alea: opts.alea ?? (() => 0) });
   const req = (jeton: string, method: string, chemin: string, body?: unknown) =>
     h(new Request(`https://x.supabase.co/functions/v1/simulateur/${chemin}`, { method, headers: { authorization: `Bearer ${jeton}` }, body: body === undefined ? undefined : JSON.stringify(body) }));
   return { db, m, req };

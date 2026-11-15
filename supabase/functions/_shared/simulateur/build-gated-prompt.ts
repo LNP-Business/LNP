@@ -20,6 +20,7 @@
 import type { Persona } from './types.ts';
 import type { OfferData } from './persona-generated-full.ts';
 import type { SimulationStateManager, ContentSlots } from './simulation-state-manager.ts';
+import { blocVariante } from './variantes.ts';
 import { buildPcmSection } from './pcm-blocs.ts';
 
 export type GatedMode = 'diagnostic' | 'full' | 'objections';
@@ -249,7 +250,7 @@ TON STYLE :
 - Phrases : ${p.styleLinguistique?.phrasesType || 'courtes, directes'}
 - Émotions : ${p.styleLinguistique?.emotionVisible || 'contenues'}
 
-${buildResponseRules(mode, voiceMode, loquaciteDe(p))}
+${blocVariante(p)}${buildResponseRules(mode, voiceMode, loquaciteDe(p))}
 
 MOTS INTERDITS : "effectivement", "absolument", "pertinent", "transparence", "c'est une bonne question", "je comprends ta démarche"`;
 

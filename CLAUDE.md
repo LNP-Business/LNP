@@ -112,7 +112,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
     (Romain, 2026-11-14, `docs/crm/20-simulateur.md` § 5) : le prospect parle comme dans les 549 vrais appels R1 (46 % des mots, 55 mots
     par réponse, une question sur quatre réponses), loquacité par prospect, mesure de réalisme à la fin (`realisme.ts`). Le mode
     Objections est analysé (Romain, 2026-11-15, § 6 : gabarit « objections », phase R seule ramenée sur 100, contexte du briefing
-    donné à P1 et P2-R). Tests :
+    donné à P1 et P2-R). Variante du jour à chaque lancement (§ 7, `variantes.ts` : humeur, contexte, objection de plus, loquacité,
+    gardée dans `persona_data.variante`, visible après l'appel seulement). Tests :
     `deno test --allow-env --allow-read supabase/tests`, `web/supabase/tests/run.sh`, `node app/training/simulateur_test.js
     $PWD/app/training/simulateur.html <dossier>`.
   - Tests : `node app/training/<test>.js $PWD/app/lnp.html <dossier>`.

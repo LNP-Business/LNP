@@ -11,6 +11,8 @@ import { appelRapide, consignesProspect, fenetreGlissante, personaDepuisLigne, t
 import { diffuser, ErreurModele, MODELE_PROSPECT, MODELES_PROSPECT, type Bloc, type MessageModele, type Usage } from "./llm.ts";
 import { convertisseurFlux, nettoyerPourVoix, transcriptionVide, voixParDefaut, VOIX, type ReglagesVoix } from "./voix.ts";
 import { mesurerRealisme } from "./realisme.ts";
+import { appliquerVariante, tirerVariante } from "./variantes.ts";
+import { loquaciteDe } from "./build-gated-prompt.ts";
 
 export type Deps = {
   db: Db;
@@ -29,6 +31,7 @@ export type Deps = {
   offres?: (req: Request, chemin: string[], appelant: Appelant) => Promise<Response | null>;
   waitUntil?: (p: Promise<unknown>) => void;
   now?: () => Date;
+  alea?: () => number;   // le tirage de la variante du jour (Math.random en production, fixé dans les tests)
 };
 
 export const CORS = {
@@ -117,14 +120,16 @@ export function app(d: Deps) {
     const persona = personaDepuisLigne(row);
     if (mode === "objections" && !persona.objectionsMode) return erreur(400, "Ce prospect n'a pas les données requises pour le mode Objections.");
     const difficulty = ["moyen", "difficile", "expert"].includes(row.difficulty) ? row.difficulty : "moyen";
+    // la variante du jour (humeur, contexte, objection de plus, loquacité), sauf si l'appelant la refuse explicitement (variante: false)
+    const personaSim = b.variante === false ? persona : appliquerVariante(persona, tirerVariante(d.alea ?? Math.random, { loquacite: loquaciteDe(persona) }));
     const [sim] = await d.db.insert("crm_sim_simulations", {
       user_id: a.id, prospect_name: row.first_name || persona.identite?.prenom || "Prospect", prospect_profile: DIFF_LABEL[difficulty],
       persona_id: row.id, offer_id: row.offer_id, difficulty, simulation_mode: mode, call_structure: "lnp",
-      persona_data: persona, use_modular_prompt: true, version_referentiel: VERSION_REFERENTIEL_SIMULATION, voice: !!b.voiceMode,
+      persona_data: personaSim, use_modular_prompt: true, version_referentiel: VERSION_REFERENTIEL_SIMULATION, voice: !!b.voiceMode,
     });
     // en diagnostic et en objections, le prospect parle le premier (l'appel est déjà commencé)
     if (mode !== "full") {
-      const initial = mode === "objections" ? buildObjectionsFirstMessage(persona) : buildFirstMessage(persona, mode);
+      const initial = mode === "objections" ? buildObjectionsFirstMessage(personaSim) : buildFirstMessage(personaSim, mode);
       if (initial) await d.db.insert("crm_sim_messages", { simulation_id: sim.id, role: "prospect", content: initial });
     }
     return json({ ...sim, messages: await messagesDe(d.db, sim.id) }, 201);

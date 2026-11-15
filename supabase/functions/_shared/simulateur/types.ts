@@ -175,4 +175,6 @@ export interface Persona {
   messagesInitiaux?: MessagesInitiaux;
   // v0.13 : combien le prospect parle (sur de vrais appels, de 37 % à 56 % des mots selon la personne)
   loquacite?: 'bref' | 'moyen' | 'bavard';
+  // la variante du jour (variantes.ts) : humeur, contexte, objection de plus, loquacité tirées à la création de la simulation
+  variante?: Record<string, unknown>;
 }

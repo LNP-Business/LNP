@@ -154,3 +154,20 @@ Tests : `supabase/tests/simulateur_grille.test.ts` (« objections · … » : ga
 reprise), `simulateur_routes.test.ts`, `app/training/simulateur_test.js`. Non vérifié ici : la segmentation réelle de Haiku
 avec ce contexte sur une vraie simulation.
 
+## 7. La variante du jour : un prospect différent à chaque appel (Romain, 2026-11-15)
+
+Six prospects par offre, c'est vite appris par cœur. À chaque lancement, `variantes.ts` tire au sort ce qui change pour cet
+appel et le copie dans `crm_sim_simulations.persona_data.variante` ; le commercial ne le connaît pas avant l'appel (comme dans la
+vraie vie), il le découvre dans la page de résultat (« Aujourd'hui, le prospect : … ») et dans l'historique (`crm_sim_history`,
+060) :
+- **une humeur** (65 % des appels) : manque de temps (25 minutes au lieu de 45), journée épuisante, une formation déjà payée pour
+  rien, enthousiasme qui retombe au prix, interruptions, doute sur soi ;
+- **un contexte** (50 %) : dans la voiture, en salle des profs, le conjoint à côté qui écoute, dix minutes de retard ;
+- **une objection de plus** (60 %), ajoutée aux objections du prospect et traitée par le moteur comme les autres : la collègue
+  dont la formation n'a rien donné, attendre septembre, les avis sur Internet, les quatre heures par semaine, « un mois pour
+  voir », le statut ;
+- **la loquacité** : celle réglée par l'administrateur six fois sur dix, une autre sinon.
+Les consignes du prospect reçoivent un bloc « AUJOURD'HUI » (`blocVariante`) dans les deux modes. L'appelant peut refuser la
+variante (`variante: false` à la création : tests, démonstrations). Tests : `supabase/tests/simulateur_variantes.test.ts`,
+`web/supabase/tests/simulateur_test.sql`, `app/training/simulateur_test.js`.
+

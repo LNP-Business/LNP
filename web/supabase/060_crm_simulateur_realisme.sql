@@ -1,7 +1,8 @@
 -- 060 · Simulateur, référentiel v0.13 (Romain 2026-11-14 : « le simulateur parle très peu par rapport à la réalité des appels »).
 -- La mesure de réalisme de chaque simulation terminée (part de parole du prospect, mots par réponse, longues réponses,
 -- questions du prospect, comparées aux 549 vrais appels R1), écrite par la fonction `simulateur` dans
--- crm_sim_simulations.usage.realisme, est rendue dans l'historique (crm_sim_history). Peut être rejoué.
+-- crm_sim_simulations.usage.realisme, est rendue dans l'historique (crm_sim_history), avec la variante du jour du prospect
+-- (persona_data.variante : humeur, contexte, objection de plus, 2026-11-15). Peut être rejoué.
 create or replace function crm_sim_history(p_user uuid default null, p_limit int default 200) returns jsonb
 language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(x order by x->>'started_at' desc), '[]') from (
@@ -14,7 +15,7 @@ language sql stable security definer set search_path = public as $$
       'analysis', (select jsonb_build_object('id', a.id, 'status', a.status, 'reason', a.reason,
                      'score', a.result->'score_total', 'niveau', a.result->>'niveau') from crm_sim_analyses a where a.simulation_id = s.id),
       'rating', (select f.rating from crm_sim_feedback f where f.simulation_id = s.id),
-      'realisme', s.usage->'realisme') x
+      'realisme', s.usage->'realisme', 'variante', s.persona_data->'variante') x
     from crm_sim_simulations s
     left join crm_members m on m.id = s.user_id
     left join crm_sim_offers o on o.id = s.offer_id

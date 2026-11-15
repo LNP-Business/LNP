@@ -951,6 +951,13 @@ details.sec[open] summary{margin-bottom:8px}
     var t = r.ecarts && r.ecarts.length ? r.ecarts.join(" — ") : "Proche des vrais appels de vente";
     return ' · <span style="color:var(' + (r.note >= 80 ? "--ok" : r.note >= 60 ? "--mid" : "--ko") + ')" title="' + esc(t) + '">réalisme ' + r.note + ' %</span>';
   }
+  // La variante du jour du prospect (humeur, contexte, objection de plus), connue seulement après l'appel
+  function varianteCourte(v) { return v && v.libelle && v.libelle !== "Prospect tel quel" ? ' · <span title="La variante du jour du prospect, tirée au sort au lancement">' + esc(v.libelle) + "</span>" : ""; }
+  function varianteLigne(v) {
+    if (!v || !v.libelle) return "";
+    var d = [v.humeur_consigne, v.contexte_consigne, v.objection && v.objection.texte ? "Objection de plus : « " + v.objection.texte + " »" : null].filter(Boolean);
+    return '<p class="muted small" style="margin:0 0 12px"><b>Aujourd’hui, le prospect :</b> ' + esc(v.libelle) + (d.length ? ' <span title="' + esc(d.join(" ")) + '">ⓘ</span>' : "") + "</p>";
+  }
   function realismeCarte(r) {
     if (!r || r.tours_prospect == null) return "";
     var c = r.cibles || {}, ligne = function (lib, v, k, unite) { return "<tr><td>" + lib + "</td><td><b>" + (v == null ? "—" : v + unite) + "</b></td><td>" + (c[k] ? c[k].cible + unite : "—") + "</td></tr>"; };
@@ -971,7 +978,7 @@ details.sec[open] summary{margin-bottom:8px}
       (r.analysis && r.analysis.niveau && st === "completed" ? '<span class="pill b">' + esc(niveauLabel(r.analysis.niveau)) + "</span>" : "") +
       '<span class="pill">' + (r.voice ? "Voix" : "Texte") + '</span><span class="diff" style="background:' + d[1] + ";color:" + d[2] + '">' + d[0] + "</span></div>" +
       '<div class="l2">' + (A.admin && r.name ? "👤 " + esc(r.name) + " · " : "") + "◷ " + minutes(r.duration_seconds) + " · " + quand(r.started_at) + " · " + plur(r.messages || 0, "réplique") +
-      (r.rating ? " · " + "★".repeat(r.rating) + '<span class="sr"> (' + r.rating + " sur 5)</span>" : "") + realismeCourt(r.realisme) + "</div>" +
+      (r.rating ? " · " + "★".repeat(r.rating) + '<span class="sr"> (' + r.rating + " sur 5)</span>" : "") + realismeCourt(r.realisme) + varianteCourte(r.variante) + "</div>" +
       '<div class="l3">' + esc(r.offer_name || "—") + " · " + esc(MODES[r.mode] || r.mode || "—") + (r.analysis && r.analysis.reason && st !== "completed" ? " · " + esc(r.analysis.reason) : "") + "</div></div>" +
       '<div class="ha">' + (st === "active" && r.user_id === A.me.id ? '<button type="button" class="btn p sm" data-go="#appel/' + r.id + '">▶ Reprendre</button>' : "") +
       (st !== "active" ? '<button type="button" class="btn sm" data-go="#resultat/' + r.id + '">' + (st === "completed" ? "Voir l’analyse" : "Ouvrir") + "</button>" : "") +
@@ -1789,6 +1796,7 @@ details.sec[open] summary{margin-bottom:8px}
       h += realismeCarte(s.usage && s.usage.realisme) + '<section class="card"><div class="ct">Conversation</div>' + transcription([]) + "</section></div>";
       paint($("#view"), h); return;
     }
+    h += varianteLigne(s.persona_data && s.persona_data.variante);
     if (s.simulation_mode === "objections") h += '<p class="muted small" style="margin:0 0 12px">Mode Objections : l’appel est noté sur le traitement des objections et la décision (Résolution), ramené sur 100. Les autres dimensions sont hors périmètre : le diagnostic, l’écart et l’offre ont été joués avant le début de l’appel.</p>';
     h += '<div class="tabs" role="tablist" aria-label="Analyse">' + ONGLETS.map(function (o) {
       return '<button type="button" role="tab" id="tab-' + o[0] + '" data-k="tab-' + o[0] + '" data-tab="' + o[0] + '" aria-selected="' + (R.tab === o[0]) + '" aria-controls="panel" tabindex="' + (R.tab === o[0] ? 0 : -1) + '">' + o[1] + "</button>";
