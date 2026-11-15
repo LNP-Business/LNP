@@ -66,6 +66,14 @@ const FILE = 'file://' + process.argv[2], OUT = process.argv[3];
       if (new RegExp('\\b' + w + '\\b').test(s)) english.push(v + ':' + w);
   }
   check('aucun mot anglais (ni R2, ni Whop)', english.length === 0, english);
+  // grand écran (Romain 2026-11-15) : rien ne sort des cases de Rentabilité unitaire, la liste de l'équipe n'est pas coupée
+  await p.setViewportSize({ width: 1920, height: 950 }); await p.waitForTimeout(300);
+  await p.click('#app [aria-label="Vues"] button:has-text("Résultats")'); await p.waitForTimeout(900);
+  const fit = await p.evaluate(() => { const walk = (r) => { if (r.querySelector && r.querySelector('#ue')) return r; for (const e of r.querySelectorAll('*')) if (e.shadowRoot) { const y = walk(e.shadowRoot); if (y) return y; } return null; };
+    const r = walk(document); if (!r) return { found: false }; const out = [];
+    r.querySelectorAll('.uer').forEach(u => { const b = u.getBoundingClientRect(); u.querySelectorAll('.uel *').forEach(x => { const a = x.getBoundingClientRect(); if (a.width && (a.bottom > b.bottom + 1 || a.right > b.right + 1)) out.push(x.textContent.trim().slice(0, 30)); }); });
+    const t = r.querySelector('.team'); return { found: true, out, cut: t ? t.scrollHeight > t.clientHeight + 1 : false }; });
+  check('grand écran : Rentabilité unitaire tient dans ses cases, l’équipe n’est pas coupée', fit.found && !fit.out.length && !fit.cut, fit);
   check('aucune erreur dans la console', errs.length === 0, errs);
   ok.forEach(x => console.log('OK  ' + x)); bad.forEach(x => console.log('BAD ' + x));
   console.log(ok.length + ' contrôles réussis, ' + bad.length + ' en échec');

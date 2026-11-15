@@ -66,7 +66,8 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   Onglets Exécution, Qualité, Impact : `app/sales_exec_module.js`, onglets dans `gen_salescockpit.py` et
   `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migrations 050 et 060 : la cohorte « appels tenus » est le premier appel
   tenu du cycle ; les sources branchées sont rendues et, sans messages WhatsApp, les étapes qui les lisent disent « non mesuré ») ;
-  les onglets restent en haut quand la page défile ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
+  les onglets restent en haut quand la page défile ; Résultats : les cartes suivent leur contenu sur tous les écrans (plus de mode
+  « tient dans l'écran » à partir de 1700 px, Romain 2026-11-15) ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
 - Ma journée est fusionnée dans Cycle de vente (Romain, 2026-11-10) : plus d'entrée dans la barre latérale, `#salesday` ouvre
   Cycle de vente sur « Agir maintenant », un accès « salesday » donne Cycle de vente (`web/api/_screens.js`). Dans l'écran
   (`LNP_SB_DOC`, dans `LNP_CRM_DOC` de `app/lnp.html`) : « Aujourd'hui » et « Fait aujourd'hui », « Demain » (touche D) et
