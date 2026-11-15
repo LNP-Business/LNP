@@ -64,7 +64,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Barre latérale (groupes, entrées, logo) : `app/nav.py` ; nom, logo, couleurs, polices : `edition.json`.
 - Cockpit commercial : `proposal/sales-cockpit-v2.html` + `app/gen_sales_v2.py` ; son mode d'emploi : `gen_salescockpit.py`.
   Onglets Exécution, Qualité, Impact : `app/sales_exec_module.js`, onglets dans `gen_salescockpit.py` et
-  `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migration 050) ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
+  `salescockpit_logic.js`, chiffres de `crm_sales_execution` (migrations 050 et 060 : la cohorte « appels tenus » est le premier appel
+  tenu du cycle ; les sources branchées sont rendues et, sans messages WhatsApp, les étapes qui les lisent disent « non mesuré ») ;
+  les onglets restent en haut quand la page défile ; test `node app/sales_exec_test.js $PWD/app/lnp.html <dossier>`.
 - Ma journée est fusionnée dans Cycle de vente (Romain, 2026-11-10) : plus d'entrée dans la barre latérale, `#salesday` ouvre
   Cycle de vente sur « Agir maintenant », un accès « salesday » donne Cycle de vente (`web/api/_screens.js`). Dans l'écran
   (`LNP_SB_DOC`, dans `LNP_CRM_DOC` de `app/lnp.html`) : « Aujourd'hui » et « Fait aujourd'hui », « Demain » (touche D) et

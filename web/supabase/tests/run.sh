@@ -185,3 +185,7 @@ run 060_crm_simulateur_realisme.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_offre_lnp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/source_de_verite_test.sql | tail -1
+# 060 : Cockpit commercial, la cohorte des appels tenus = le premier appel tenu du cycle ; les sources branchées
+run 060_crm_cockpit_corrections.sql
+run 060_crm_cockpit_corrections.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_corrections_test.sql | tail -1

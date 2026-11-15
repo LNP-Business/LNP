@@ -1,6 +1,6 @@
 -- LNP CRM — Sales cockpit: a call belongs to who held it (web/supabase/040_crm_cockpit_rep_by_fathom.sql), after 039.
 -- Romain, 2026-11-04: the team rows gave a call to the owner of the iClosed calendar it was booked on; that calendar can
--- be shared (contact@antoine-lenglet.com: calls held by Lucas, Samantha, Nicolas, Valentina, Michael). The rep of a cycle
+-- be shared (one calendar used by the whole team). The rep of a cycle
 -- is now its CRM owner, else the person who recorded its latest recorded call in Fathom up to the cycle's close (a call
 -- after the sale, such as an onboarding call, is not the sale's), else the iClosed host.
 -- Antoine is a former sales rep (crm_sales_team.active = false). Totals do not change: only the team rows.
@@ -38,8 +38,8 @@ begin
     -- current team (crm_sales_team, active) get a row, the cycles of reps who left keep them and count in the totals only
     for m in select min(r.rep) as rep, st.name as name, array_agg(r.id) as ids from (
                -- 040 (Romain 2026-11-04): the call belongs to who held it, the person who recorded it in Fathom; the
-               -- iClosed calendar it was booked on only when no call of the cycle was recorded (shared calendars, such
-               -- as contact@antoine-lenglet.com, are used by the whole team)
+               -- iClosed calendar it was booked on only when no call of the cycle was recorded (a shared calendar
+               -- is used by the whole team)
                select c.id, coalesce(cm.member_key, nullif(split_part(coalesce(f.rec, h.host), '@', 1), ''), 'none') as rep,
                       coalesce(cm.full_name, initcap(nullif(split_part(split_part(coalesce(f.rec, h.host), '@', 1), '.', 1), '')), 'Non attribué') as name
                  from crm_cycles c left join crm_members cm on cm.id = c.owner_id
