@@ -177,11 +177,13 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/whatsapp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/alertes_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/setting_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/regle_absence_test.sql | tail -1
-psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_test.sql | tail -1
-psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_offre_lnp_test.sql | tail -1
 # 059 : le CRM est la seule source de vérité (iClosed : le lead, la date des RDV, un montant pour information) ; règles webinaire
 run 059_crm_source_de_verite.sql
 run 059_crm_source_de_verite.sql
+run 061_crm_simulateur_realisme.sql
+run 061_crm_simulateur_realisme.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_test.sql | tail -1
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/simulateur_offre_lnp_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/source_de_verite_test.sql | tail -1
 # 060 : Cockpit commercial, la cohorte des appels tenus = le premier appel tenu du cycle ; les sources branchées
 run 060_crm_cockpit_corrections.sql

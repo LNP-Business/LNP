@@ -170,7 +170,8 @@ export function verifierValidite(
     return { evaluable: false, motifs: ["disqualification_propre"] };
   }
 
-  if (p1.nb_prises_parole < VALIDITE.PRISES_PAROLE_MIN) {
+  const objections = mesures.type_appel === "objections";
+  if (p1.nb_prises_parole < (objections ? VALIDITE.PRISES_PAROLE_MIN_OBJECTIONS : VALIDITE.PRISES_PAROLE_MIN)) {
     motifs.push("appel_trop_court");
   }
 
@@ -181,7 +182,8 @@ export function verifierValidite(
     motifs.push("ratio_parole_insuffisant");
   }
 
-  if (VALIDITE.SEGMENT_L_REQUIS) {
+  // En mode objections, le diagnostic a été joué avant le transcript : son segment n'est pas exigé.
+  if (VALIDITE.SEGMENT_L_REQUIS && !objections) {
     const segL = p1.segments.find((s) => s.code === "L" && s.present);
     if (!segL) motifs.push("segment_diagnostic_absent");
   }
@@ -358,7 +360,9 @@ function calculerVerdicts(
     // R5 ne se code que si l'appel a présenté une offre. Demander une
     // décision suppose qu'il y ait quelque chose à décider : sans pitch,
     // l'absence d'ask n'est pas une faute.
+    // Simulation objections : l'offre et le prix ont été présentés avant le transcript, il y a donc bien une décision à demander.
     const offrePresentee =
+      mesures.type_appel === "objections" ||
       p1.moments?.["m1_premier_enonce_offre"]?.present === true || segmentPresent("A");
 
     if (!offrePresentee) {

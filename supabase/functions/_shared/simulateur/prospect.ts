@@ -237,8 +237,9 @@ export async function consignesProspect(p: {
   };
 }
 
-// La fenêtre glissante d'origine (simulation-limits.ts) : les 30 derniers messages, le premier toujours « user »
-export const MAX_HISTORY_MESSAGES = 30;
+// La fenêtre glissante (simulation-limits.ts d'origine : 30) : les 60 derniers messages, le premier toujours « user ».
+// v0.13 : un vrai appel R1 compte 134 prises de parole ; 60 messages = la moitié d'un appel, avec le cache des consignes.
+export const MAX_HISTORY_MESSAGES = 60;
 export function fenetreGlissante<T extends { role: "user" | "assistant"; content: string }>(msgs: T[]): T[] {
   if (msgs.length <= MAX_HISTORY_MESSAGES) return msgs;
   let s = msgs.slice(-MAX_HISTORY_MESSAGES);

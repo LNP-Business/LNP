@@ -10,6 +10,9 @@ import { VERSION_REFERENTIEL_SIMULATION } from "./referentiel-version.ts";
 import { appelRapide, consignesProspect, fenetreGlissante, personaDepuisLigne, type MessageSim } from "./prospect.ts";
 import { diffuser, ErreurModele, MODELE_PROSPECT, MODELES_PROSPECT, type Bloc, type MessageModele, type Usage } from "./llm.ts";
 import { convertisseurFlux, nettoyerPourVoix, transcriptionVide, voixParDefaut, VOIX, type ReglagesVoix } from "./voix.ts";
+import { mesurerRealisme } from "./realisme.ts";
+import { appliquerVariante, tirerVariante } from "./variantes.ts";
+import { loquaciteDe } from "./build-gated-prompt.ts";
 
 export type Deps = {
   db: Db;
@@ -28,6 +31,7 @@ export type Deps = {
   offres?: (req: Request, chemin: string[], appelant: Appelant) => Promise<Response | null>;
   waitUntil?: (p: Promise<unknown>) => void;
   now?: () => Date;
+  alea?: () => number;   // le tirage de la variante du jour (Math.random en production, fixé dans les tests)
 };
 
 export const CORS = {
@@ -116,14 +120,16 @@ export function app(d: Deps) {
     const persona = personaDepuisLigne(row);
     if (mode === "objections" && !persona.objectionsMode) return erreur(400, "Ce prospect n'a pas les données requises pour le mode Objections.");
     const difficulty = ["moyen", "difficile", "expert"].includes(row.difficulty) ? row.difficulty : "moyen";
+    // la variante du jour (humeur, contexte, objection de plus, loquacité), sauf si l'appelant la refuse explicitement (variante: false)
+    const personaSim = b.variante === false ? persona : appliquerVariante(persona, tirerVariante(d.alea ?? Math.random, { loquacite: loquaciteDe(persona) }));
     const [sim] = await d.db.insert("crm_sim_simulations", {
       user_id: a.id, prospect_name: row.first_name || persona.identite?.prenom || "Prospect", prospect_profile: DIFF_LABEL[difficulty],
       persona_id: row.id, offer_id: row.offer_id, difficulty, simulation_mode: mode, call_structure: "lnp",
-      persona_data: persona, use_modular_prompt: true, version_referentiel: VERSION_REFERENTIEL_SIMULATION, voice: !!b.voiceMode,
+      persona_data: personaSim, use_modular_prompt: true, version_referentiel: VERSION_REFERENTIEL_SIMULATION, voice: !!b.voiceMode,
     });
     // en diagnostic et en objections, le prospect parle le premier (l'appel est déjà commencé)
     if (mode !== "full") {
-      const initial = mode === "objections" ? buildObjectionsFirstMessage(persona) : buildFirstMessage(persona, mode);
+      const initial = mode === "objections" ? buildObjectionsFirstMessage(personaSim) : buildFirstMessage(personaSim, mode);
       if (initial) await d.db.insert("crm_sim_messages", { simulation_id: sim.id, role: "prospect", content: initial });
     }
     return json({ ...sim, messages: await messagesDe(d.db, sim.id) }, 201);
@@ -174,7 +180,7 @@ export function app(d: Deps) {
 
           let reponse = "";
           const gen = diffuser(d.anthropicKey, {
-            model: modele, maxTokens: 500, messages: chat,
+            model: modele, maxTokens: 900, messages: chat,
             system: [{ type: "text", text: consignes.prompt, cache_control: { type: "ephemeral" } }] as Bloc[],
           }, d.fetchModele);
           while (true) {
@@ -243,16 +249,19 @@ export function app(d: Deps) {
     }
     const t = now();
     const duree = reprise && sim.duration_seconds != null ? sim.duration_seconds : Math.floor((t.getTime() - new Date(sim.started_at).getTime()) / 1000);
-    if (!reprise) await d.db.update("crm_sim_simulations", { id }, { status: "completed", ended_at: t.toISOString(), duration_seconds: duree });
-    const terminee = { ...sim, status: "completed", ended_at: sim.ended_at ?? t.toISOString(), duration_seconds: duree };
+    // v0.13 : la mesure de réalisme de la simulation (part de parole, longueur des réponses, questions du prospect), gardée
+    // avec l'usage et lue dans l'historique
+    const messagesFin = await messagesDe(d.db, id);
+    const usageFin = { ...(sim.usage || {}), realisme: mesurerRealisme(messagesFin) };
+    if (!reprise) await d.db.update("crm_sim_simulations", { id }, { status: "completed", ended_at: t.toISOString(), duration_seconds: duree, usage: usageFin });
+    const terminee = { ...sim, status: "completed", ended_at: sim.ended_at ?? t.toISOString(), duration_seconds: duree, usage: usageFin };
     const relire = async () => (await d.db.select("crm_sim_simulations", { id }))[0];
-    // seuls l'appel complet et le diagnostic s'analysent ; le mode objections est refusé, même sans analyse demandée
-    const eligible = sim.simulation_mode === "full" || sim.simulation_mode === "diagnostic";
+    // les trois modes s'analysent (objections depuis le 2026-11-15 : la phase R seule) ; un mode inconnu est consigné « rejected »
+    const eligible = sim.simulation_mode === "full" || sim.simulation_mode === "diagnostic" || sim.simulation_mode === "objections";
     if (skip && eligible) return json({ simulation: await relire(), analysisId: null, skippedAnalysis: true, reason: "Analyse non demandée" });
     if (!d.analyse) return json({ simulation: await relire(), analysisId: null, skippedAnalysis: true, reason: "Analyse indisponible" });
-    const messages = await messagesDe(d.db, id);
     const offre = await chargerOffre(d.db, sim);
-    const r = await d.analyse.demarrer({ simulation: terminee, messages, appelant: a, offerName: offre?.name ?? null });
+    const r = await d.analyse.demarrer({ simulation: terminee, messages: messagesFin, appelant: a, offerName: offre?.name ?? null });
     return json({ simulation: await relire(), ...r });
   }
 
@@ -350,7 +359,7 @@ export function app(d: Deps) {
         let reponse = "";
         for (let essai = 0; essai <= 2; essai++) {
           let texte = "";
-          const gen = diffuser(d.anthropicKey, { model: modele, maxTokens: 500, messages: chat,
+          const gen = diffuser(d.anthropicKey, { model: modele, maxTokens: 900, messages: chat,
             system: [{ type: "text", text: consignes.prompt, cache_control: { type: "ephemeral" } }] as Bloc[] }, d.fetchModele);
           while (true) { const r = await gen.next(); if (r.done) { ajouterUsage(usage, "prospect", r.value || {}); break; } texte += r.value; }
           reponse = texte;

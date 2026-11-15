@@ -194,6 +194,9 @@ export const VALIDITE = {
 
   /** Nombre minimal de prises de parole pour qu'un appel soit analysable. */
   PRISES_PAROLE_MIN: 20,
+
+  /** Même seuil pour une simulation en mode objections, qui ne joue que la phase R. */
+  PRISES_PAROLE_MIN_OBJECTIONS: 12,
 } as const;
 
 /**
@@ -312,6 +315,14 @@ export const TEMPLATES: Record<TypeAppel, { items_exclus: CodeItem[]; libelle: s
     // normalement (ces items sortent du dénominateur, leur score vaut 0).
     items_exclus: ["A1", "A2", "A3", "R1", "R2", "R3", "R4", "R5"],
     libelle: "Simulation diagnostic — phases C, L et E uniquement",
+  },
+  objections: {
+    // Simulation en mode « objections » (2026-11-15) : le diagnostic, l'écart et
+    // l'offre ont été joués AVANT le premier tour (briefing du prospect), le prix
+    // vient d'être annoncé. Seul le traitement des objections et la demande de
+    // décision (R) sont dans le transcript : C, L, E et A sortent du dénominateur.
+    items_exclus: ["C1", "C2", "L1", "L2", "L3", "L4", "L5", "L6", "E1", "E2", "E3", "A1", "A2", "A3"],
+    libelle: "Simulation objections — phase R uniquement (Résolution), ramenée sur 100",
   },
 };
 
