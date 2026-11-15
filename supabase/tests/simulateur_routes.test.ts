@@ -44,7 +44,7 @@ function modele(reponse = "Bah... franchement c'est compliqué, j'ai 9 500 € d
   return { f, appels };
 }
 
-function monter(opts: { reponse?: string; analyse?: any } = {}) {
+function monter(opts: { reponse?: string; analyse?: any; alea?: () => number } = {}) {
   const db = dbMemoire({ crm_sim_personas: [PERSONA], crm_sim_offers: [OFFRE], crm_sim_config: [{ id: 1, claude_model: "claude-sonnet-5-5", voice_mode_enabled: true }] });
   const m = modele(opts.reponse);
   const qui: Record<string, any> = {
@@ -52,7 +52,7 @@ function monter(opts: { reponse?: string; analyse?: any } = {}) {
     s2: { id: S2, email: "s2@lnp.fr", role: "sales", admin: false },
     adm: { id: ADM, email: "adm@lnp.fr", role: "admin", admin: true },
   };
-  const h = app({ db, anthropicKey: "sk-test", auth: (j) => Promise.resolve(qui[j] ?? null), fetchModele: m.f, analyse: opts.analyse });
+  const h = app({ db, anthropicKey: "sk-test", auth: (j) => Promise.resolve(qui[j] ?? null), fetchModele: m.f, analyse: opts.analyse, alea: opts.alea ?? (() => 0) });
   const req = (jeton: string, method: string, chemin: string, body?: unknown) =>
     h(new Request(`https://x.supabase.co/functions/v1/simulateur/${chemin}`, { method, headers: { authorization: `Bearer ${jeton}` }, body: body === undefined ? undefined : JSON.stringify(body) }));
   return { db, m, req };
@@ -73,7 +73,7 @@ Deno.test("simulateur : lancer un appel complet, le prospect ne parle pas le pre
   const r = await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "full" });
   assertEquals(r.status, 201);
   const sim = await r.json();
-  assertEquals([sim.prospect_name, sim.difficulty, sim.prospect_profile, sim.messages.length, sim.version_referentiel], ["Claire", "difficile", "Difficile", 0, "v0.12"]);
+  assertEquals([sim.prospect_name, sim.difficulty, sim.prospect_profile, sim.messages.length, sim.version_referentiel], ["Claire", "difficile", "Difficile", 0, "v0.13"]);
   const d = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "diagnostic" })).json();
   assertEquals(d.messages.length, 1);
   assertEquals(d.messages[0].role, "prospect");
@@ -145,10 +145,10 @@ Deno.test("simulateur : annuler le dernier échange, terminer, noter une fois", 
   assertEquals((await req("s1", "POST", `simulations/${sim.id}/end`, { beacon: true })).status, 200);
 });
 
-Deno.test("simulateur : terminer sans analyse, et le mode objections n'est jamais analysé", async () => {
+Deno.test("simulateur : terminer sans analyse dans les trois modes ; le mode objections s'analyse comme les autres (2026-11-15)", async () => {
   const analyses: any[] = [];
   const { req } = monter({ analyse: {
-    demarrer: (p: any) => { analyses.push(p); return Promise.resolve({ analysisId: "rej", skippedAnalysis: true, reason: "Mode non analysé" }); },
+    demarrer: (p: any) => { analyses.push(p); return Promise.resolve({ analysisId: "a-obj", status: "processing" }); },
     aar: () => Promise.resolve(new Response("{}")),
   } });
   const a = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "full" })).json();
@@ -156,7 +156,10 @@ Deno.test("simulateur : terminer sans analyse, et le mode objections n'est jamai
   assertEquals([r.skippedAnalysis, r.reason, analyses.length], [true, "Analyse non demandée", 0]);
   const o = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "objections" })).json();
   const r2 = await (await req("s1", "POST", `simulations/${o.id}/end`, { skipAnalysis: true })).json();
-  assertEquals([r2.analysisId, analyses.length], ["rej", 1], "le refus du mode objections est toujours consigné");
+  assertEquals([r2.skippedAnalysis, r2.reason, analyses.length], [true, "Analyse non demandée", 0], "sans analyse demandée, rien n'est lancé en objections non plus");
+  const o2 = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "objections" })).json();
+  const r3 = await (await req("s1", "POST", `simulations/${o2.id}/end`, {})).json();
+  assertEquals([r3.analysisId, r3.status, analyses.length, analyses[0].simulation.simulation_mode], ["a-obj", "processing", 1, "objections"], "le mode objections est analysé");
 });
 
 Deno.test("simulateur : la fin par beacon porte le jeton dans le corps", async () => {

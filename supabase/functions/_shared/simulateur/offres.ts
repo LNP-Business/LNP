@@ -530,8 +530,14 @@ export function routesOffres(d: DepsOffres) {
     const racine = (slug(o.name).slice(0, 40).replace(/-+$/, "") || "offre");
     const pris = new Set<string>();
     let position = 0;
+    // v0.13 : la loquacité de chaque prospect (sur de vrais appels, la part de parole va de 37 % à 56 % selon la personne) :
+    // sur six prospects, un bref, deux bavards, trois moyens, toujours dans cet ordre pour que chaque offre ait les trois
+    const LOQUACITES = ["bavard", "moyen", "bref", "moyen", "bavard", "moyen"] as const;
     for (const { persona, item } of generes) {
       position++;
+      if (persona && typeof persona === "object" && !Array.isArray(persona) && !["bref", "moyen", "bavard"].includes(persona.loquacite)) {
+        persona.loquacite = LOQUACITES[(position - 1) % LOQUACITES.length];
+      }
       const id = persona.identite || {};
       const prenom = sansNul(String(id.prenom || item?.prenom || "Prospect")).slice(0, 80);
       let cle = `${racine}-${slug(prenom) || "prospect"}`.slice(0, 72);
@@ -768,6 +774,10 @@ export function routesOffres(d: DepsOffres) {
     if (b.difficulty !== undefined) {
       if (!["moyen", "difficile", "expert"].includes(b.difficulty)) return erreur(400, "Difficulté inconnue : moyen, difficile ou expert.");
       patch.difficulty = b.difficulty;
+    }
+    if (b.loquacite !== undefined) {
+      if (!["bref", "moyen", "bavard"].includes(b.loquacite)) return erreur(400, "Loquacité inconnue : bref, moyen ou bavard.");
+      patch.full_persona_data = { ...(p.full_persona_data || {}), loquacite: b.loquacite };
     }
     if (Object.keys(patch).length === 0) return erreur(400, "Rien à modifier.");
     const [row] = await d.db.update("crm_sim_personas", { id: r1 }, { ...patch, updated_at: maintenant() });

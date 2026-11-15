@@ -188,7 +188,7 @@ export interface MesuresDeterministes {
  *   Le template exclut les items A1-A3 (phase Align) et R1-R5 (phase Resolve)
  *   car ces phases ne sont pas jouées dans ce mode.
  */
-export type TypeAppel = "R1" | "R2" | "R3" | "setting" | "diagnostic";
+export type TypeAppel = "R1" | "R2" | "R3" | "setting" | "diagnostic" | "objections";
 export type IssueCommerciale = "closed" | "perdu" | "en_cours" | "disqualifie";
 
 // ─────────────────────────────────────────────────────────────

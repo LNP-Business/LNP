@@ -12,4 +12,10 @@ export interface OfferData {
     };
   };
   tools_taught?: Array<{ name?: string }>;
+  // ce que le prospect sait et se demande (module content_for_simulation de l'extraction de l'offre), lu depuis v0.13
+  content_for_simulation?: {
+    prospect_already_knows?: string[];
+    prospect_unclear_about?: string[];
+    vocabulary?: { terms_prospects_use?: string[] };
+  };
 }

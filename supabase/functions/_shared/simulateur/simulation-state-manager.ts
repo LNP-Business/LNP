@@ -279,7 +279,7 @@ export class SimulationStateManager {
   getResistanceBehavior(): string {
     const a = this.state.lastHaikuAnalysis;
     const r = this.config.resistance;
-    if (!a) return r.on_weak_question;
+    if (!a) return '';   // v0.13 : sans analyse (voix, premier tour, Haiku en échec), pas de réaction « question faible » par défaut
     if (a.question_type === 'dump_request') return r.on_dump_request;
     if (a.red_flags && a.red_flags.length > 0) return r.on_red_flag;
     if (a.commercial_quality === 'weak') return r.on_weak_question;

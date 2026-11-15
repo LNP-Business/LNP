@@ -34,9 +34,10 @@ const STUB = String.raw`
     crm_sim_personas: [
       { id: 'nadia-1', offer_id: '11111111-1111-1111-1111-111111111111', first_name: 'Nadia', age: 38, city: 'Lyon', profession: 'Professeure des écoles en reconversion', situation: 'Veut changer de métier', difficulty: 'moyen', consciousness_level: 3, voice_id: 'v-f1', position: 0, active: true, full_persona_data: nadia },
       { id: 'paul-2', offer_id: '11111111-1111-1111-1111-111111111111', first_name: 'Paul', age: 45, city: 'Nantes', profession: 'Responsable commercial dans l’industrie', situation: '', difficulty: 'difficile', consciousness_level: 2, voice_id: null, position: 1, active: true,
-        full_persona_data: { id: 'paul-2', identite: { prenom: 'Paul', gender: 'M', age: 45, ville: 'Nantes', metier: 'Responsable commercial', ca_actuel: null, objectif_ca: null } } }],
+        full_persona_data: { id: 'paul-2', loquacite: 'bavard', identite: { prenom: 'Paul', gender: 'M', age: 45, ville: 'Nantes', metier: 'Responsable commercial', ca_actuel: null, objectif_ca: null } } }],
     crm_sim_simulations: [
-      { id: 41, user_id: 'u1', status: 'completed', started_at: iso(now - 3 * 86400000), ended_at: iso(now - 3 * 86400000 + 900000), duration_seconds: 900, prospect_name: 'Nadia', persona_id: 'nadia-1', offer_id: '11111111-1111-1111-1111-111111111111', difficulty: 'moyen', simulation_mode: 'full', voice: false, persona_data: nadia },
+      { id: 41, user_id: 'u1', status: 'completed', started_at: iso(now - 3 * 86400000), ended_at: iso(now - 3 * 86400000 + 900000), duration_seconds: 900, prospect_name: 'Nadia', persona_id: 'nadia-1', offer_id: '11111111-1111-1111-1111-111111111111', difficulty: 'moyen', simulation_mode: 'full', voice: false, persona_data: Object.assign({}, nadia, { variante: { humeur: 'Manque de temps', humeur_consigne: 'Tu n’as que 25 minutes.', contexte: 'Dans la voiture', contexte_consigne: 'Tu es dans ta voiture.', objection: null, loquacite: 'moyen', libelle: 'Manque de temps · Dans la voiture' } }),
+        usage: { realisme: { tours_prospect: 9, tours_commercial: 9, mots_prospect: 160, mots_commercial: 520, part_prospect: 24, mots_par_tour_prospect: 18, mots_par_tour_commercial: 58, part_tours_longs: 0, part_questions_prospect: 11, cibles: { part_prospect: { cible: 46, min: 37, max: 56 }, mots_par_tour_prospect: { cible: 55, min: 40, max: 75 }, part_tours_longs: { cible: 20, min: 12, max: 30 }, part_questions_prospect: { cible: 25, min: 15, max: 35 } }, ecarts: ['Le prospect parle trop peu : 24 % des mots (vrais appels : 46)', 'Réponses du prospect trop courtes : 18 mots par réponse (vrais appels : 55)'], note: 31 } } },
       { id: 42, user_id: 'u1', status: 'active', started_at: iso(now - 600000), prospect_name: 'Paul', persona_id: 'paul-2', offer_id: '11111111-1111-1111-1111-111111111111', difficulty: 'difficile', simulation_mode: 'diagnostic', voice: false, persona_data: null },
       { id: 43, user_id: 'u2', status: 'completed', started_at: iso(now - 7200000), ended_at: iso(now - 6000000), duration_seconds: 1200, prospect_name: 'Nadia', persona_id: 'nadia-1', offer_id: '11111111-1111-1111-1111-111111111111', difficulty: 'moyen', simulation_mode: 'objections', voice: true, persona_data: nadia }],
     crm_sim_messages: [
@@ -66,7 +67,7 @@ const STUB = String.raw`
           { code: 'RETOUR_DIAGNOSTIC', libelle: 'Question de découverte reposée après la présentation', etat: 'suspendue', statut: 'non_declenchee', motif: '' }] } };
   }
   DB.crm_sim_analyses.push({ id: 'a41', simulation_id: 41, user_id: 'u1', status: 'completed', created_at: iso(now - 3 * 86400000 + 1000000), completed_at: iso(now - 3 * 86400000 + 1060000), result: resultat(48, 'insuffisant'), aar: null, miroir: null });
-  DB.crm_sim_analyses.push({ id: 'a43', simulation_id: 43, user_id: 'u2', status: 'rejected', reason: 'Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont.', created_at: iso(now - 6000000), result: null });
+  DB.crm_sim_analyses.push({ id: 'a43', simulation_id: 43, user_id: 'u2', status: 'rejected', reason: 'Conversation trop courte pour être analysée', created_at: iso(now - 6000000), result: null });
   window.__calls = []; window.__reads = {};
   function match(row, f) { return f.every(function (x) { return x[2] === 'in' ? x[1].indexOf(row[x[0]]) >= 0 : row[x[0]] === x[1]; }); }
   function from(table) {
@@ -94,7 +95,7 @@ const STUB = String.raw`
       return { id: s.id, user_id: s.user_id, name: m && m.full_name, status: s.status, started_at: s.started_at, ended_at: s.ended_at, duration_seconds: s.duration_seconds, prospect_name: s.prospect_name,
         persona_id: s.persona_id, offer_id: s.offer_id, offer_name: o && o.name, mode: s.simulation_mode, difficulty: s.difficulty, voice: s.voice,
         messages: DB.crm_sim_messages.filter(function (x) { return x.simulation_id === s.id; }).length,
-        analysis: a ? { id: a.id, status: a.status, reason: a.reason || null, score: a.result ? a.result.score_total : null, niveau: a.result ? a.result.niveau : null } : null, rating: fb ? fb.rating : null };
+        analysis: a ? { id: a.id, status: a.status, reason: a.reason || null, score: a.result ? a.result.score_total : null, niveau: a.result ? a.result.niveau : null } : null, rating: fb ? fb.rating : null, version_referentiel: s.version_referentiel || null, realisme: s.usage ? s.usage.realisme : null, variante: s.persona_data ? s.persona_data.variante : null };
     }).sort(function (a, b) { return a.started_at < b.started_at ? 1 : -1; });
   }
   var CRM = { from: from, rpc: function (fn, args) { return new Promise(function (r) { setTimeout(r, 15); }).then(function () { if (fn === 'crm_sim_history') return historique(args && args.p_user); throw new Error('rpc inconnue'); }); },
@@ -168,7 +169,7 @@ const STUB = String.raw`
       return json({ isNew: true, message: 'Nouvelle offre créée : lecture des sources, puis génération des prospects.', offer: o }, 202);
     }
     if (p[0] === 'personas' && m === 'DELETE') { DB.crm_sim_personas = DB.crm_sim_personas.filter(function (x) { return x.id !== p[1]; }); return json({ success: true }); }
-    if (p[0] === 'personas' && m === 'PATCH') { var pp = DB.crm_sim_personas.filter(function (x) { return x.id === p[1]; })[0]; Object.assign(pp, body); return json(pp); }
+    if (p[0] === 'personas' && m === 'PATCH') { var pp = DB.crm_sim_personas.filter(function (x) { return x.id === p[1]; })[0]; if (body.loquacite) { pp.full_persona_data = Object.assign({}, pp.full_persona_data, { loquacite: body.loquacite }); } else Object.assign(pp, body); return json(pp); }
     if (p[0] === 'offres') return json({ success: true }, 202);
     return json({ error: 'Route inconnue' }, 404);
   }
@@ -318,6 +319,15 @@ const WRAP = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>
   t = await visible(f, 'historique');
   check('the history: the three simulations of the person', (await f.$$('.hr')).length === 3 && /Analysée/.test(t) && /Appel en cours/.test(t), (await f.$$('.hr')).length);
   check('no person filter for a sales rep', !(await f.$('[data-hf="personne"]')), null);
+  check('v0.13: the realism of a simulation in the history', /réalisme 31 %/.test(t), t.match(/réalisme[^·]*/));
+  check('the variant in the history row', /Manque de temps · Dans la voiture/.test(t), null);
+  await f.click('.hr [data-go="#resultat/41"]'); await f.waitForSelector('#panel');
+  t = await visible(f, 'résultat 41');
+  check('v0.13: the realism card compares with the real calls', /Réalisme de la simulation/.test(t) && /31 sur 100/.test(t) && /Le prospect parle trop peu/.test(t) && /549 appels/.test(t) && /réalisme 31 %/.test(t), t.slice(0, 300));
+  check('the variant of the day, shown after the call only', /Aujourd’hui, le prospect : Manque de temps · Dans la voiture/.test(t), null);
+  await p.screenshot({ path: OUT + '/simulateur-realisme.png' });
+  await f.click('[data-go="#historique"]'); await f.waitForSelector('.hr');
+  t = await visible(f, 'historique');
   await f.selectOption('[data-hf="statut"]', 'completed'); await wait(30);
   check('the status filter', (await f.$$('.hr')).length === 2, (await f.$$('.hr')).length);
   await f.selectOption('[data-hf="statut"]', ''); await f.selectOption('[data-hf="tri"]', 'best'); await wait(30);
@@ -386,6 +396,9 @@ const WRAP = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>
   await g.press('.modal.wide', 'Escape'); await wait(30);
   await g.selectOption('[data-pvoix="paul-2"]', 'v-h2'); await wait(200);
   check('the voice of a prospect: PATCH personas/:id', (await ac()).some(c => c.m === 'PATCH' && c.path === 'personas/paul-2' && c.body.voice_id === 'v-h2'), null);
+  check('v0.13: a Loquacité column, Paul is « Bavard », Nadia « Moyenne » by default', await g.$eval('[data-ploq="paul-2"]', e => e.value) === 'bavard' && await g.$eval('[data-ploq="nadia-1"]', e => e.value) === 'moyen' && /Loquacité/.test(await g.textContent('table.t thead')), null);
+  await g.selectOption('[data-ploq="nadia-1"]', 'bref'); await wait(200);
+  check('the loquacité of a prospect: PATCH personas/:id {loquacite}', (await ac()).some(c => c.m === 'PATCH' && c.path === 'personas/nadia-1' && c.body.loquacite === 'bref') && /Loquacité modifiée/.test(await g.textContent('#toasts')), null);
   await g.click('[data-do="p-suppr"][data-v="paul-2"]'); await g.waitForSelector('[role="alertdialog"]');
   check('deleting a prospect asks first', /Supprimer ce prospect \?/.test(await g.textContent('[role="alertdialog"]')), null);
   await g.click('[data-x="no"]'); await wait(30);
@@ -413,7 +426,7 @@ const WRAP = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>
   await g.selectOption('[data-hf="personne"]', 'u2'); await g.waitForFunction(() => document.querySelectorAll('.hr').length === 1);
   check('filtered by person (crm_sim_history p_user)', /Sans analyse/.test(await g.textContent('.hl')), null);
   await g.click('.hr [data-go="#resultat/43"]'); await g.waitForSelector('.empty');
-  check('a rejected analysis: its French reason', /Le mode Objections n’est pas analysé/.test(await g.textContent('#view')), null);
+  check('a rejected analysis: its French reason', /Conversation trop courte pour être analysée/.test(await g.textContent('#view')), null);
   await A.ctx.close();
 
   // ---------------------------------------------------------------- outside LNP: the demo

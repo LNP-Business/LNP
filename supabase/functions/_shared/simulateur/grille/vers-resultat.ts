@@ -172,6 +172,7 @@ export function libelleMotif(motif: string | null): string {
 
 // ─── Cible de l'exercice — choisie par le CODE, jamais par un modèle ──
 const PILIERS_DRILL = ["L2", "L3", "E3", "A1", "R5"] as const;
+const PILIERS_DRILL_OBJECTIONS = ["R5", "R4", "R2", "R3", "R1"] as const;
 /** Ordre d'amont des conditions actives (le plus tôt dans l'appel d'abord). */
 const ORDRE_AMONT: CodeCondition[] = [
   "CADRE_NON_POSE",
@@ -228,9 +229,11 @@ export function choisirCibleDrill(analyse: ResultatAnalyse): CibleDrill | null {
       description: `Condition éliminatoire : ${LIBELLES_CONDITIONS[amont]}. ${CORRECTIFS_CONDITIONS[amont]}`,
     };
   }
+  // Simulation objections (phase R seule) : l'exercice peut viser chaque geste du traitement d'une objection, pas seulement la décision.
+  const piliers: readonly string[] = analyse.type_appel === "objections" ? PILIERS_DRILL_OBJECTIONS : PILIERS_DRILL;
   const candidats: { code: string; perdu: number }[] = [];
   for (const item of tousItems(analyse)) {
-    if (!(PILIERS_DRILL as readonly string[]).includes(item.code)) continue;
+    if (!piliers.includes(item.code)) continue;
     if (item.points_max <= 0) continue; // non évaluable / non applicable
     const perdu = item.points_max - item.points_obtenus;
     if (perdu > 0) candidats.push({ code: item.code, perdu });
@@ -239,11 +242,9 @@ export function choisirCibleDrill(analyse: ResultatAnalyse): CibleDrill | null {
   // Deux piliers à MOINS de 2 points d'écart sont à égalité → le plus en amont dans l'appel (ordre de PILIERS_DRILL).
   const maxPerdu = Math.max(...candidats.map((c) => c.perdu));
   const aEgalite = candidats.filter((c) => maxPerdu - c.perdu < 2);
-  const pire = [...aEgalite].sort(
-    (a, b) => (PILIERS_DRILL as readonly string[]).indexOf(a.code) - (PILIERS_DRILL as readonly string[]).indexOf(b.code),
-  )[0];
+  const pire = [...aEgalite].sort((a, b) => piliers.indexOf(a.code) - piliers.indexOf(b.code))[0];
   return {
-    type: TYPE_DRILL_PILIER[pire.code as (typeof PILIERS_DRILL)[number]],
+    type: TYPE_DRILL_PILIER[pire.code as (typeof PILIERS_DRILL)[number]] ?? "objection",
     cible: pire.code,
     description: `Pilier le plus coûteux de l'appel : ${pire.code} — ${LIBELLES_ITEMS[pire.code]} (${pire.perdu} points perdus).`,
   };

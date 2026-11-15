@@ -574,14 +574,19 @@ export function evaluerConditions(
   const prematurite = comparerPrematurite(p1, collecte);
 
   const statuts: Record<string, { statut: StatutCondition; motif: string | null }> = {
-    CADRE_NON_POSE: statutDepuisVerdict(verdicts.get("C2") ?? "non_evaluable"),
+    CADRE_NON_POSE:
+      // Simulation objections : le cadre appartient à la partie de l'appel jouée avant le transcript.
+      typeAppel === "objections"
+        ? { statut: "non_declenchee", motif: "cadre_hors_perimetre_objections" }
+        : statutDepuisVerdict(verdicts.get("C2") ?? "non_evaluable"),
 
     PITCH_AVANT_GAP:
       // DOCTRINE (validée 14/08/2026) : en R2 et R3, le gap a été validé
       // lors d'un appel antérieur ; refaire la découverte serait une faute
       // de vente. Cohérent avec le template R3 qui exclut déjà L1-L6.
-      typeAppel === "R2" || typeAppel === "R3"
-        ? { statut: "non_declenchee", motif: `gap_valide_en_appel_anterieur_${typeAppel}` }
+      // Simulation objections : l'écart a été validé avant le transcript (briefing du prospect).
+      typeAppel === "R2" || typeAppel === "R3" || typeAppel === "objections"
+        ? { statut: "non_declenchee", motif: typeAppel === "objections" ? "gap_valide_avant_la_simulation" : `gap_valide_en_appel_anterieur_${typeAppel}` }
         : prematurite,
 
     RETOUR_DIAGNOSTIC: (() => {

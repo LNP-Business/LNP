@@ -8,12 +8,12 @@ import type { Appelant, Db } from "../base.ts";
 import { config, erreur, json } from "../routes.ts";
 import { normaliserTranscriptSimulation } from "./pretraitement.ts";
 import type { TypeAppel } from "./moteur/types.ts";
-import { analyserGrille, calculerMiroir, redigerDrill, type CoutPrompt, type FetchModele, type ReponsesAAR } from "./pipeline.ts";
+import { analyserGrille, calculerMiroir, contexteSimulationObjections, redigerDrill, type CoutPrompt, type FetchModele, type ReponsesAAR } from "./pipeline.ts";
 import { comparerAARvsIA, NIVEAUX, versResultat, type NiveauAppel } from "./vers-resultat.ts";
 
 export const MESSAGE_TROP_COURT = "Conversation trop courte pour être analysée";
 export const MESSAGE_QUOTA_ATTEINT = "Analyse mise en attente — plafond quotidien atteint";
-export const MESSAGE_MODE_REFUSE = "Le mode Objections n'est pas analysé : seuls l'appel complet et le diagnostic le sont.";
+export const MESSAGE_MODE_REFUSE = "Ce mode de simulation n'est pas analysé.";
 export const MESSAGE_INTERROMPUE = "Analyse interrompue : plus de 30 minutes sans nouvelle.";
 const DEFAULT_DAILY_LIMIT = 10;
 const MINUTES_BLOQUEE = 30;
@@ -40,6 +40,7 @@ export function jourParis(d: Date): string {
 export function typeAppelDuMode(mode: string | null | undefined): TypeAppel | null {
   if (mode === "full") return "R1";
   if (mode === "diagnostic") return "diagnostic";
+  if (mode === "objections") return "objections";   // 2026-11-15 : la phase R seule, ramenée sur 100
   return null;
 }
 
@@ -88,14 +89,14 @@ export function creerAnalyse(deps: DepsAnalyse) {
   }
 
   // ---------- la chaîne en arrière-plan, puis l'enregistrement ----------
-  async function executer(id: string, transcript: string, typeAppel: TypeAppel, minutes: number | null): Promise<void> {
+  async function executer(id: string, transcript: string, typeAppel: TypeAppel, minutes: number | null, contexte: string | null = null): Promise<void> {
     const debut = now();
     const battement = setInterval(() => {
       db.update(TABLE, { id, status: "processing" }, { updated_at: now().toISOString() }).catch(() => {});
     }, 60_000);
     let couts: CoutPrompt[] = [];
     try {
-      const r = await analyserGrille(ctxModele, { transcript, typeAppel, dureeMinutes: minutes });
+      const r = await analyserGrille(ctxModele, { transcript, typeAppel, dureeMinutes: minutes, contexte });
       if (r.rejet) throw new Error(MOTIFS_REJET[r.motifRejet] ?? `Prétraitement rejeté : ${r.motifRejet}`);
       couts = [...r.coutDetail];
       const drill = await redigerDrill(ctxModele, r.analyse, couts).catch(() => null);
@@ -154,6 +155,8 @@ export function creerAnalyse(deps: DepsAnalyse) {
     const sim = p.simulation;
     const typeAppel = typeAppelDuMode(sim.simulation_mode);
     const transcript = normaliserTranscriptSimulation(p.messages || []);
+    // mode objections : le contexte joué avant le transcript (diagnostic, écart, prix), gardé avec une analyse mise en attente
+    const contexte = typeAppel === "objections" ? contexteSimulationObjections(sim.persona_data) : null;
     const [existante] = await db.select(TABLE, { simulation_id: sim.id });
     const t = now().toISOString();
 
@@ -172,14 +175,14 @@ export function creerAnalyse(deps: DepsAnalyse) {
     if (existante) {
       if (existante.status === "failed" || existante.status === "rejected") {
         if (!(await reserver())) {
-          await db.update(TABLE, { id: existante.id }, { status: "deferred", reason: MESSAGE_QUOTA_ATTEINT, transcript, type_appel: typeAppel, result: differe(jourParis(now()), true), updated_at: t });
+          await db.update(TABLE, { id: existante.id }, { status: "deferred", reason: MESSAGE_QUOTA_ATTEINT, transcript, type_appel: typeAppel, result: { ...differe(jourParis(now()), true), contexte }, updated_at: t });
           return { analysisId: existante.id, status: "deferred", deferred: true, deferredReason: MESSAGE_QUOTA_ATTEINT };
         }
         await db.update(TABLE, { id: existante.id }, {
           status: "processing", reason: null, transcript, type_appel: typeAppel, result: { _meta: { status: "processing" }, _modele: "grille" },
           cost: lances(existante.cost), attempts: (existante.attempts ?? 0) + 1, completed_at: null, updated_at: t,
         });
-        await lancer(executer(existante.id, transcript, typeAppel, await dureeMinutes(sim.id)));
+        await lancer(executer(existante.id, transcript, typeAppel, await dureeMinutes(sim.id), contexte));
         return { analysisId: existante.id, status: "processing" };
       }
       if (existante.status === "deferred") return { analysisId: existante.id, status: "deferred", deferred: true, deferredReason: MESSAGE_QUOTA_ATTEINT };
@@ -188,7 +191,7 @@ export function creerAnalyse(deps: DepsAnalyse) {
 
     // plafond quotidien atteint : en attente
     if (!(await reserver())) {
-      const row = await inserer({ simulation_id: sim.id, user_id: sim.user_id, status: "deferred", reason: MESSAGE_QUOTA_ATTEINT, type_appel: typeAppel, transcript, result: differe(jourParis(now())), updated_at: t });
+      const row = await inserer({ simulation_id: sim.id, user_id: sim.user_id, status: "deferred", reason: MESSAGE_QUOTA_ATTEINT, type_appel: typeAppel, transcript, result: { ...differe(jourParis(now())), contexte }, updated_at: t });
       return { analysisId: row.id, status: "deferred", deferred: true, deferredReason: MESSAGE_QUOTA_ATTEINT };
     }
     const row = await inserer({
@@ -200,7 +203,7 @@ export function creerAnalyse(deps: DepsAnalyse) {
       return row.status === "deferred" ? { analysisId: row.id, status: "deferred", deferred: true, deferredReason: MESSAGE_QUOTA_ATTEINT } : { analysisId: row.id, status: "processing" };
     }
     const minutes = sim.duration_seconds != null ? Math.round(Number(sim.duration_seconds) / 60) : null;
-    await lancer(executer(row.id, transcript, typeAppel, minutes));
+    await lancer(executer(row.id, transcript, typeAppel, minutes, contexte));
     return { analysisId: row.id, status: "processing" };
   }
 
@@ -284,7 +287,7 @@ export function creerAnalyse(deps: DepsAnalyse) {
       });
       if (!faites.length) continue;
       relancees++;
-      await lancer(executer(r.id, r.transcript, r.type_appel as TypeAppel, await dureeMinutes(r.simulation_id)));
+      await lancer(executer(r.id, r.transcript, r.type_appel as TypeAppel, await dureeMinutes(r.simulation_id), (r.result?.contexte as string | undefined) ?? null));
     }
     const restantes = (await db.select(TABLE, { status: "deferred" }, { select: "id" })).length;
     return json({ relancees, echouees, enAttente: restantes });

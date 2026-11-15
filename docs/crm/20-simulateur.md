@@ -36,7 +36,7 @@ Fonction Edge `simulateur` (supabase/functions/simulateur)
    ├─ fin : l'analyse (grille/) en arrière-plan, plafond quotidien (heure de Paris), file d'attente relancée toutes les 10 min
    └─ offres (offres.ts) : extraction de l'offre (10 modules), matrice de 6 prospects, 6 prospects complets, voix attribuées
 Tables : crm_sim_offers, crm_sim_personas, crm_sim_simulations, crm_sim_messages, crm_sim_feedback, crm_sim_analyses,
-         crm_sim_config (057) ; l'offre LNP (058).
+         crm_sim_config (057) ; l'offre LNP (058) ; l'historique avec la mesure de réalisme (061).
 ```
 
 Le prospect ne se livre que si on gagne sa confiance : une bonne question ouverte, une reformulation juste ou de l'empathie la font
@@ -58,7 +58,7 @@ les 18 tests de caractérisation d'origine (`supabase/tests/simulateur_etat.test
 ## 4. Fidèle, adapté, écarté
 
 Fidèle à la source : modes, difficultés, moteur d'état et ses seuils, prompts du prospect et des analyses (verbatim, neutralisés),
-fenêtre de 30 messages, annulation du dernier échange, fin par la page fermée, plafond et file des analyses, chaîne et moteur de la
+fenêtre de 60 messages (30 à l'origine, voir § 5), annulation du dernier échange, fin par la page fermée, plafond et file des analyses, chaîne et moteur de la
 grille d'analyse, auto-analyse et miroir, note de la simulation, génération des offres et des prospects, attribution des voix,
 textes de l'écran (traduits en français correct quand la source était en anglais ou sans accents).
 
@@ -79,3 +79,95 @@ Adapté (avec raison) :
 
 Non vérifié ici : les réponses réelles du modèle et de la voix (aucun appel réel pendant le portage, les tests simulent le modèle),
 l'accès aux voix ElevenLabs depuis le compte LNP, les temps de réponse en production.
+
+## 5. Référentiel v0.13 : un prospect qui parle comme dans les vrais appels (Romain, 2026-11-14)
+
+Constat : le prospect simulé parlait très peu (réponses de 5 à 15 mots, aucune question), loin des vrais appels de vente. Les 549 appels
+R1 de LNP enregistrés par Fathom de mai à novembre 2026 (10 minutes ou plus) donnent la référence, identique pour les ventes conclues et
+perdues :
+
+| Mesure (vrais appels)                         | Valeur                         |
+|-----------------------------------------------|--------------------------------|
+| Part de parole du prospect                    | 46 % des mots (37 à 56 %)      |
+| Répliques par appel                           | 134, dont 67 du prospect       |
+| Mots par réponse du prospect                  | 55 en moyenne, 26 en médiane   |
+| Réponses du prospect de plus de 80 mots       | 20 % (environ 14 par appel)    |
+| Réponses du prospect avec une question        | 1 sur 4 (18 questions par appel) |
+| Part de parole au début, pendant la présentation, aux objections | 67 %, 34-38 %, 44-45 % |
+
+Ce qui change (`VERSION_REFERENTIEL_SIMULATION = "v0.13"`, gardé sur chaque simulation) :
+- **Longueurs calibrées** (`build-gated-prompt.ts`, `build-gated-objections-prompt.ts`) : 55 mots par réponse en moyenne ; au début
+  le prospect raconte sa situation (80 à 200 mots) ; question fermée 5 à 15 mots, factuelle 20 à 50, ouverte 30 à 80, profonde 100 à
+  250 ; pendant la présentation 10 à 40 ; objections 30 à 80, un récit de 100 à 200 quand le commercial creuse.
+- **Des questions** : environ une réponse sur quatre en contient une (pratique, sur l'offre, sur le commercial) ; l'ancienne
+  interdiction (« tu ne poses jamais de question ») est retirée.
+- **La difficulté joue sur le contenu, plus sur la longueur** : un prospect fermé parle autant mais ne livre rien d'utile (vague,
+  généralités, digressions) ; les plafonds « MAX 20 mots », « MAX 2 phrases » des blocs de confiance, de difficulté et PCM sont
+  retirés. Un prospect difficile se contredit une fois dans l'appel, un expert deux fois (116 contradictions relevées sur 71 vrais
+  appels qualifiés).
+- **Loquacité** (`persona.loquacite` : bref, moyen, bavard) : attribuée à la génération (deux bavards, trois moyens, un bref sur six),
+  modifiable par un administrateur dans le tableau des prospects (`PATCH personas/:id {loquacite}`). Les prospects déjà générés sont
+  « moyen » tant qu'on ne les change pas.
+- **Ce que le prospect sait de l'offre** : les sections `prospect_already_knows`, `prospect_unclear_about` et les mots des prospects
+  de l'extraction de l'offre entrent dans le prompt (avant, le prospect ne savait rien de l'offre et ne pouvait pas poser de question
+  dessus).
+- **Style oral** en texte aussi (hésitations, phrases qui repartent), pas de didascalie.
+- `maxTokens` 900 (300 avant), fenêtre d'historique 60 messages (30 avant) pour tenir un appel de 130 répliques.
+- **Après le rejeu à la main** (`simulations/2026-11-14-camille-v0.13-option-B.md`, réalisme 80, seul écart : 43 % de réponses avec
+  une question) : le quota de questions passe à « une réponse sur quatre ou cinq, jamais deux de suite, deux réponses sans question
+  après une question sur l'offre », et les questions de l'offre et du style du prospect comptent dedans ; les faits de famille
+  (conjoint, enfant, projet, horaires) peuvent venir à confiance basse comme chez un vrai prospect, seul ce que ça leur coûte reste
+  verrouillé ; les derniers plafonds en mots hérités de la source (objectif « une phrase, pas plus », ancienneté et disponibilité
+  « 5 mots max », synthèse « 5-10 mots », réactions à l'écart « 5-15 mots ») deviennent des fourchettes de 10 à 40 mots avec un
+  repère concret.
+- **Plus de résistance par défaut** : sans analyse de signaux (mode voix, où elle n'est pas faite ; premier tour ; Haiku en échec), le
+  prospect recevait à chaque tour « le commercial vient de poser une question faible » et répondait à côté (`getResistanceBehavior`).
+  Trouvé en rejouant un appel à la main (`simulations/2026-11-14-camille-v0.13-option-B.md`) ; corrigé.
+- **Mesure de réalisme** (`realisme.ts`) : à la fin de chaque simulation, les quatre mesures ci-dessus sont calculées sur la
+  conversation et comparées aux cibles ; une note sur 100 et les écarts en français sont gardés dans `crm_sim_simulations.usage.realisme`
+  et rendus par `crm_sim_history` (061). L'historique affiche « réalisme N % », la page de résultat une carte « Réalisme de la
+  simulation » (cette simulation contre les vrais appels). Les simulations d'avant v0.13 n'ont pas de mesure.
+
+Tests : `supabase/tests/simulateur_realisme.test.ts` (mesure, prompts), `web/supabase/tests/simulateur_test.sql` (historique),
+`app/training/simulateur_test.js` (colonne Loquacité, réalisme à l'écran). Non vérifié ici : le comportement réel du modèle avec les
+nouvelles consignes ; la mesure de réalisme des premières simulations en production dira si les cibles sont atteintes.
+
+## 6. Le mode Objections est analysé (Romain, 2026-11-15)
+
+Jusqu'ici le mode Objections rendait l'échange sans note. Il passe par la même grille, avec un gabarit « objections »
+(`TEMPLATES.objections`, `typeAppelDuMode("objections")`) :
+- seule la phase R est notée (R1 accueil, R2 isolement, R3 clarification, R4 retour à la douleur, R5 demande de décision :
+  18 points), ramenée sur 100 ; C, L, E et A sont « hors du périmètre de ce mode de simulation » et sortent du dénominateur ;
+- le diagnostic, l'écart et l'offre ont été joués avant le premier tour (briefing du prospect) : le segment L n'est pas exigé,
+  12 prises de parole suffisent (20 pour un appel complet), R5 est noté même sans offre dans le transcript, les conditions
+  « cadre jamais posé » et « offre présentée avant l'écart » ne se déclenchent pas (`cadre_hors_perimetre_objections`,
+  `gap_valide_avant_la_simulation`) ;
+- P1 (segmentation) et P2-R (collecte) reçoivent un **contexte** (`{{CONTEXTE}}`, vide pour les autres modes) : le prix qui vient
+  d'être annoncé, les segments absents, et les paroles du prospect d'avant le transcript tirées du briefing (situation,
+  conséquences, émotion, objectif, écart validé), pour que le retour à la douleur (R4) avec ces mots compte ; le contexte est gardé
+  avec une analyse mise en attente (`result.contexte`) et rejoué à la reprise ;
+- l'exercice ciblé peut viser chaque geste R (R5, R4, R2, R3, R1), pas seulement la décision ;
+- écran : la fenêtre « Terminer l'appel ? » annonce le rapport dans les trois modes ; la page de résultat porte une ligne
+  « Mode Objections : noté sur le traitement des objections et la décision ».
+
+Tests : `supabase/tests/simulateur_grille.test.ts` (« objections · … » : gabarit, moteur, contexte, chaîne P1 → R → P3 → P4 et
+reprise), `simulateur_routes.test.ts`, `app/training/simulateur_test.js`. Non vérifié ici : la segmentation réelle de Haiku
+avec ce contexte sur une vraie simulation.
+
+## 7. La variante du jour : un prospect différent à chaque appel (Romain, 2026-11-15)
+
+Six prospects par offre, c'est vite appris par cœur. À chaque lancement, `variantes.ts` tire au sort ce qui change pour cet
+appel et le copie dans `crm_sim_simulations.persona_data.variante` ; le commercial ne le connaît pas avant l'appel (comme dans la
+vraie vie), il le découvre dans la page de résultat (« Aujourd'hui, le prospect : … ») et dans l'historique (`crm_sim_history`,
+061) :
+- **une humeur** (65 % des appels) : manque de temps (25 minutes au lieu de 45), journée épuisante, une formation déjà payée pour
+  rien, enthousiasme qui retombe au prix, interruptions, doute sur soi ;
+- **un contexte** (50 %) : dans la voiture, en salle des profs, le conjoint à côté qui écoute, dix minutes de retard ;
+- **une objection de plus** (60 %), ajoutée aux objections du prospect et traitée par le moteur comme les autres : la collègue
+  dont la formation n'a rien donné, attendre septembre, les avis sur Internet, les quatre heures par semaine, « un mois pour
+  voir », le statut ;
+- **la loquacité** : celle réglée par l'administrateur six fois sur dix, une autre sinon.
+Les consignes du prospect reçoivent un bloc « AUJOURD'HUI » (`blocVariante`) dans les deux modes. L'appelant peut refuser la
+variante (`variante: false` à la création : tests, démonstrations). Tests : `supabase/tests/simulateur_variantes.test.ts`,
+`web/supabase/tests/simulateur_test.sql`, `app/training/simulateur_test.js`.
+
