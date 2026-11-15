@@ -132,3 +132,25 @@ Tests : `supabase/tests/simulateur_realisme.test.ts` (mesure, prompts), `web/sup
 `app/training/simulateur_test.js` (colonne Loquacité, réalisme à l'écran). Non vérifié ici : le comportement réel du modèle avec les
 nouvelles consignes ; la mesure de réalisme des premières simulations en production dira si les cibles sont atteintes.
 
+## 6. Le mode Objections est analysé (Romain, 2026-11-15)
+
+Jusqu'ici le mode Objections rendait l'échange sans note. Il passe par la même grille, avec un gabarit « objections »
+(`TEMPLATES.objections`, `typeAppelDuMode("objections")`) :
+- seule la phase R est notée (R1 accueil, R2 isolement, R3 clarification, R4 retour à la douleur, R5 demande de décision :
+  18 points), ramenée sur 100 ; C, L, E et A sont « hors du périmètre de ce mode de simulation » et sortent du dénominateur ;
+- le diagnostic, l'écart et l'offre ont été joués avant le premier tour (briefing du prospect) : le segment L n'est pas exigé,
+  12 prises de parole suffisent (20 pour un appel complet), R5 est noté même sans offre dans le transcript, les conditions
+  « cadre jamais posé » et « offre présentée avant l'écart » ne se déclenchent pas (`cadre_hors_perimetre_objections`,
+  `gap_valide_avant_la_simulation`) ;
+- P1 (segmentation) et P2-R (collecte) reçoivent un **contexte** (`{{CONTEXTE}}`, vide pour les autres modes) : le prix qui vient
+  d'être annoncé, les segments absents, et les paroles du prospect d'avant le transcript tirées du briefing (situation,
+  conséquences, émotion, objectif, écart validé), pour que le retour à la douleur (R4) avec ces mots compte ; le contexte est gardé
+  avec une analyse mise en attente (`result.contexte`) et rejoué à la reprise ;
+- l'exercice ciblé peut viser chaque geste R (R5, R4, R2, R3, R1), pas seulement la décision ;
+- écran : la fenêtre « Terminer l'appel ? » annonce le rapport dans les trois modes ; la page de résultat porte une ligne
+  « Mode Objections : noté sur le traitement des objections et la décision ».
+
+Tests : `supabase/tests/simulateur_grille.test.ts` (« objections · … » : gabarit, moteur, contexte, chaîne P1 → R → P3 → P4 et
+reprise), `simulateur_routes.test.ts`, `app/training/simulateur_test.js`. Non vérifié ici : la segmentation réelle de Haiku
+avec ce contexte sur une vraie simulation.
+

@@ -2,6 +2,8 @@
 // Copiées mot pour mot des consignes d'origine (sans accents, comme à l'origine), sauf la neutralisation obligatoire : nom de la
 // méthode (« grille d'analyse »), noms des cinq étapes, noms de personnes et de produits des exemples. Fichier généré : ne pas
 // retoucher à la main sans relire les gardes de fin de fichier (chaque consigne garde exactement ses emplacements {{...}}).
+// Ajout LNP (2026-11-15) : l'emplacement {{CONTEXTE}} de P1 et de P2-R, vide sauf pour une simulation en mode objections, où il dit
+// que le diagnostic, l'écart et l'offre ont été joués avant le transcript (voir contexteSimulationObjections dans pipeline.ts).
 
 export const P1_SEGMENTATION = `Tu es un analyste qui SEGMENTE un appel de vente selon la grille d'analyse.
 Tu ne notes rien, tu ne juges rien, tu n'evalues aucune competence :
@@ -547,7 +549,7 @@ Renseigne-le uniquement dans ces cas, sinon laisse un tableau vide :
 Ne produis RIEN d'autre que ce JSON.
 Ne produis AUCUNE note, AUCUN verdict, AUCUNE annotation de competence.
 
-TRANSCRIPT :
+{{CONTEXTE}}TRANSCRIPT :
 {{TRANSCRIPT}}`;
 
 export const P2_ALIGNEMENT = `Tu es un auditeur qui COLLECTE des signaux dans la phase de
@@ -2201,7 +2203,7 @@ OBJECTIONS :
 SEGMENT_R :
 {{SEGMENT_R}}
 
-TRANSCRIPT :
+{{CONTEXTE}}TRANSCRIPT :
 {{TRANSCRIPT}}`;
 
 export const P3_VERIFICATEUR = `Tu es un verificateur. Cinq modeles ont collecte des signaux sur un appel

@@ -47,7 +47,7 @@ import {
   choisirCibleDrill, construirePointFaible, LIBELLES_ITEMS, LIBELLES_NIVEAU, versResultat,
 } from "../functions/_shared/simulateur/grille/vers-resultat.ts";
 import { normaliserTranscriptSimulation, pretraiter, ROLE_COMMERCIAL } from "../functions/_shared/simulateur/grille/pretraitement.ts";
-import { analyserGrille, extraireJson, remplir } from "../functions/_shared/simulateur/grille/pipeline.ts";
+import { analyserGrille, CONTEXTE_OBJECTIONS_DEFAUT, contexteSimulationObjections, extraireJson, remplir } from "../functions/_shared/simulateur/grille/pipeline.ts";
 import * as CONSIGNES from "../functions/_shared/simulateur/grille/prompts.ts";
 import { creerAnalyse, jourParis } from "../functions/_shared/simulateur/grille/index.ts";
 import { dbMemoire, type Appelant } from "../functions/_shared/simulateur/base.ts";
@@ -1197,15 +1197,128 @@ it("creerAnalyse a exactement la forme de Deps.analyse", () => {
   assert(typeof a.reprendre === "function");
 });
 
-it("demarrer · mode objections : ligne « rejected », aucun modèle", async () => {
+it("demarrer · mode inconnu : ligne « rejected », aucun modèle", async () => {
   const db = base(); const m = modeleSimule();
   const an = creerAnalyse({ db, anthropicKey: "k", fetchModele: m.fetchModele, now: () => MAINTENANT });
-  const r = await an.demarrer({ simulation: { id: 2, user_id: COMMERCIAL.id, simulation_mode: "objections" }, messages: MESSAGES, appelant: COMMERCIAL, offerName: null });
+  const r = await an.demarrer({ simulation: { id: 2, user_id: COMMERCIAL.id, simulation_mode: "bootcamp" }, messages: MESSAGES, appelant: COMMERCIAL, offerName: null });
   assertEquals(r.skippedAnalysis, true);
-  assertMatch(String(r.reason), /Objections/);
+  assertMatch(String(r.reason), /pas analysé/);
   const [row] = db.tables.crm_sim_analyses;
   assertEquals([row.id, row.status, row.result._modele, row.result.grille_rejet], [r.analysisId, "rejected", "grille", "type_appel_non_pris_en_charge"]);
   assertEquals(m.appels.length, 0);
+});
+
+// ═══ Mode objections analysé (2026-11-15) : la phase R seule, ramenée sur 100 ═══
+const MESSAGES_OBJECTIONS = [
+  { role: "prospect", content: "3 000 €... c'est pas donné quand même." },
+  { role: "commercial", content: "Je comprends. Quand tu dis pas donné, c'est par rapport à quoi exactement ?" },
+  { role: "prospect", content: "Par rapport à ce que je gagne avec les cours, 300 € par mois." },
+  { role: "commercial", content: "D'accord. Si on met le prix de côté une seconde, est-ce que l'accompagnement te paraît être la bonne solution pour toi ?" },
+  { role: "prospect", content: "Oui, ça oui. C'est vraiment l'argent." },
+  { role: "commercial", content: "Tu m'as dit tout à l'heure que tu n'arrivais pas à mettre de côté pour la maison. Qu'est-ce que ça change si dans six mois tu es toujours à 300 € ?" },
+  { role: "prospect", content: "Bah on n'achète pas. Ou plus petit." },
+  { role: "commercial", content: "Alors en deux fois 1 500 € sans frais, avec cinq élèves la mise est récupérée au troisième mois. On démarre lundi ?" },
+  { role: "prospect", content: "Il faut que j'en parle à mon mari." },
+  { role: "commercial", content: "Bien sûr. On se rappelle demain à 20 h 30 tous les trois, ça te va ?" },
+  { role: "prospect", content: "Oui, ça me va." },
+  { role: "commercial", content: "Parfait, je t'envoie l'invitation. À demain." },
+];
+function reponsesObjections(): Record<string, unknown> {
+  return {
+    ...reponsesParDefaut(),
+    P1: {
+      version_grille: "GRILLE_v1.0", unite_temporelle: "prise_de_parole", nb_prises_parole: 12,
+      segments: [
+        { code: "C", occurrence: 1, present: false, debut: null, fin: null, verbatim_debut: null },
+        { code: "L", occurrence: 1, present: false, debut: null, fin: null, verbatim_debut: null },
+        { code: "E", occurrence: 1, present: false, debut: null, fin: null, verbatim_debut: null },
+        { code: "A", occurrence: 1, present: false, debut: null, fin: null, verbatim_debut: null },
+        { code: "R", occurrence: 1, present: true, debut: 1, fin: 12, verbatim_debut: "3 000 €... c'est pas donné" },
+      ],
+      ordre_observe: ["R"], issue_structurelle: "prochain_pas_planifie", verbatim_disqualification: null, verbatim_engagement: null,
+      moments: { m1_premier_enonce_offre: { present: false, prise_de_parole: null, verbatim: null }, m6_prochain_pas: { present: true, prise_de_parole: 10, verbatim: "demain à 20 h 30" } },
+      objections: [
+        { id: "obj_1", type: "prix", prise_de_parole: 1, verbatim: "c'est pas donné", reprise_ulterieure: false, prise_de_parole_reprise: null },
+        { id: "obj_2", type: "decision", prise_de_parole: 9, verbatim: "Il faut que j'en parle à mon mari", reprise_ulterieure: false, prise_de_parole_reprise: null },
+      ], anomalies: [],
+    },
+    R: { nb_objections: 2,
+      objections: [
+        { id: "obj_1", r1_acknowledge: true, r1_verbatim: "Je comprends", r2_isolate: true, r2_avant_reponse: true, r3_clarify: true, r3_element_nouveau_prospect: true, r4_looping_present: true, r4_apres_aic: true, r4_mots_prospect: true, r4_verbatim_source: "mettre de côté pour la maison" },
+        { id: "obj_2", r1_acknowledge: true, r1_verbatim: "Bien sûr", r2_isolate: false, r3_clarify: false, r4_looping_present: false },
+      ],
+      cloture: { r5_ask_present: true, r5_verbatim: "On démarre lundi ?", r5_prochain_pas_pose: true }, bloquante: {}, anomalies: [] },
+  };
+}
+
+it("objections · le gabarit ne garde que R1-R5", () => {
+  const exclus = new Set(TEMPLATES.objections.items_exclus);
+  for (const code of ["C1", "C2", "L1", "L2", "L3", "L4", "L5", "L6", "E1", "E2", "E3", "A1", "A2", "A3"]) assert(exclus.has(code as any), `${code} exclu`);
+  for (const code of ["R1", "R2", "R3", "R4", "R5"]) assert(!exclus.has(code as any), `${code} gardé`);
+  assertEquals(TEMPLATES.objections.items_exclus.filter((c) => !ITEMS.some((i) => i.code === c)), []);
+});
+
+it("objections · le moteur : évaluable sans segment L, seule la phase R compte, aucune condition déclenchée", () => {
+  const rep = reponsesObjections();
+  const mesures: MesuresDeterministes = { ratio_parole_global: null, ratio_parole_segment_l: null, monologues_60s: null, duree_secondes: 300, type_appel: "objections", issue_commerciale: null };
+  const r = agreger(rep.P1 as SortieP1, { r: rep.R as any }, mesures);
+  assertEquals([r.evaluable, r.motifs_non_evaluable], [true, []]);
+  const items = r.etapes.flatMap((e) => e.items);
+  for (const i of items) {
+    if (i.code.startsWith("R")) assert(i.points_max > 0, `${i.code} noté`);
+    else assertEquals([i.code, i.verdict, i.points_max], [i.code, "non_applicable", 0]);
+  }
+  const R = r.etapes.find((e) => e.code === "R")!;
+  assertEquals(R.points_max, 18);
+  assertEquals(r.score_sur_100, Math.round(100 * R.points_obtenus / 18 * 10) / 10);
+  for (const c of r.conditions) assert(c.statut !== "declenchee", `${c.code} ${c.statut}`);
+  assertEquals(r.conditions.find((c) => c.code === "CADRE_NON_POSE")!.motif, "cadre_hors_perimetre_objections");
+  assertEquals(r.conditions.find((c) => c.code === "PITCH_AVANT_GAP")!.motif, "gap_valide_avant_la_simulation");
+  // en dessous de 12 prises de parole, trop court
+  const court = agreger({ ...(rep.P1 as SortieP1), nb_prises_parole: 8 }, { r: rep.R as any }, mesures);
+  assertEquals(court.motifs_non_evaluable, ["appel_trop_court"]);
+});
+
+it("objections · le contexte donné au modèle : prix, diagnostic joué avant, mots du prospect", () => {
+  assertMatch(CONTEXTE_OBJECTIONS_DEFAUT, /segments C, L, E et A sont ABSENTS/);
+  const persona = { objectionsMode: { prixOffre: "3 000 €" }, briefing: { diagnostic: {
+    situation_actuelle: { situation_negative: "Des fins de mois serrées", consequences: "Pas d'apport pour la maison", emotion_negative: "Ça me saoule" },
+    situation_desiree: { objectif_chiffre: "1 200 € par mois", timeline: "un an" },
+    gap: { actuel: 300, cible: 1200, ecart_mensuel: 900, cout_annuel_inaction: 10800, validation_prospect: "Oui c'est ça" } } } };
+  const c = contexteSimulationObjections(persona);
+  for (const m of ["Le prix (3 000 €) vient d'etre annonce", "Des fins de mois serrées", "Pas d'apport pour la maison", "1 200 € par mois", "300 → 1200 par mois, soit 900 par mois (10800 par an d'inaction)", "Oui c'est ça", "verbatim_source"]) assert(c.includes(m), m);
+  assertEquals(contexteSimulationObjections(null), CONTEXTE_OBJECTIONS_DEFAUT);
+});
+
+it("objections · demarrer : la chaîne n'appelle que P1, R, P3 et P4, avec le contexte ; résultat sur la seule Résolution", async () => {
+  const db = base(); const m = modeleSimule(reponsesObjections());
+  const an = creerAnalyse({ db, anthropicKey: "k", fetchModele: m.fetchModele, now: () => MAINTENANT });
+  const sim = { id: 2, user_id: COMMERCIAL.id, simulation_mode: "objections", duration_seconds: 300, persona_data: { objectionsMode: { prixOffre: "3 000 €" } } };
+  const r = await an.demarrer({ simulation: sim, messages: MESSAGES_OBJECTIONS, appelant: COMMERCIAL, offerName: "Offre" });
+  assertEquals(r.status, "processing");
+  assertEquals(m.appels.map((a) => a.nom), ["P1", "R", "P3", "P4"]);
+  const p1 = String(m.appels[0].body.messages[0].content);
+  assert(p1.includes("CONTEXTE DE CETTE CONVERSATION") && p1.includes("Le prix (3 000 €) vient d'etre annonce") && p1.includes("\nTRANSCRIPT :\n"), "P1 reçoit le contexte");
+  assert(String(m.appels[1].body.messages[0].content).includes("CONTEXTE DE CETTE CONVERSATION"), "P2-R aussi");
+  const row = db.tables.crm_sim_analyses.find((x) => x.id === r.analysisId)!;
+  assertEquals([row.status, row.type_appel], ["completed", "objections"]);
+  const res = row.result;
+  assertEquals([res.dimensions.structure.scoreMax, res.dimensions.diagnostic.scoreMax, res.dimensions.valeur.scoreMax, res.dimensions.pcm.scoreMax], [0, 0, 0, 0]);
+  assertEquals(res.dimensions.conclusion.scoreMax, 18);
+  assert(typeof res.score_total === "number" && res.score_total > 0 && res.score_total <= 100, `score ${res.score_total}`);
+  assertEquals(res.grille.eliminatoire_declenche, false);
+  assert(res.drill === null || res.drill.type === "objection", "l'exercice ne peut viser que la décision");
+  // une analyse mise en attente garde le contexte et le rejoue à la reprise
+  const db2 = base(0); const m2 = modeleSimule(reponsesObjections());
+  const an2 = creerAnalyse({ db: db2, anthropicKey: "k", fetchModele: m2.fetchModele, now: () => MAINTENANT });
+  const r2 = await an2.demarrer({ simulation: sim, messages: MESSAGES_OBJECTIONS, appelant: COMMERCIAL, offerName: "Offre" });
+  const att = db2.tables.crm_sim_analyses.find((x) => x.id === r2.analysisId)!;
+  assertEquals(att.status, "deferred");
+  assert(String(att.result.contexte).includes("3 000 €"));
+  db2.tables.crm_sim_config[0].daily_analysis_limit = 5;
+  await an2.reprendre({ id: "adm", email: "a@x.fr", role: "admin", admin: true } as Appelant);
+  assertEquals(att.status, "completed");
+  assert(String(m2.appels[0].body.messages[0].content).includes("Le prix (3 000 €)"), "le contexte est rejoué à la reprise");
 });
 
 it("demarrer · conversation trop courte : rien d'enregistré", async () => {

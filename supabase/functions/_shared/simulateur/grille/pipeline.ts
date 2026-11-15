@@ -56,12 +56,12 @@ const CONSIGNES = {
 };
 // Garde-fous : chaque consigne porte exactement les emplacements attendus.
 export const EMPLACEMENTS_ATTENDUS: Record<keyof typeof CONSIGNES, string[]> = {
-  p1Segmentation: ["{{TRANSCRIPT}}"],
+  p1Segmentation: ["{{TRANSCRIPT}}", "{{CONTEXTE}}"],
   p2Connexion: ["{{TRANSCRIPT}}", "{{SEGMENT_C}}", "{{MOMENTS}}"],
   p2Ecoute: ["{{TRANSCRIPT}}", "{{SEGMENT_L}}"],
   p2Exposition: ["{{TRANSCRIPT}}", "{{SEGMENT_E}}", "{{MOMENTS}}"],
   p2Alignement: ["{{TRANSCRIPT}}", "{{SEGMENTS}}", "{{MOMENTS}}", "{{GAP}}"],
-  p2Resolution: ["{{TRANSCRIPT}}", "{{OBJECTIONS}}", "{{SEGMENT_R}}"],
+  p2Resolution: ["{{TRANSCRIPT}}", "{{OBJECTIONS}}", "{{SEGMENT_R}}", "{{CONTEXTE}}"],
   p3Verificateur: ["{{TRANSCRIPT}}", "{{COLLECTE}}", "{{SEGMENTATION}}"],
   p4Exercice: ["{{CIBLE}}", "{{VERBATIMS}}"],
 };
@@ -157,7 +157,33 @@ export interface AnalyseComplete {
   pretraitement: Record<string, unknown>;
 }
 
-const TYPES_APPEL: TypeAppel[] = ["R1", "R2", "R3", "setting", "diagnostic"];
+const TYPES_APPEL: TypeAppel[] = ["R1", "R2", "R3", "setting", "diagnostic", "objections"];
+
+// ─── Simulation en mode objections : le contexte donné à P1 et à P2-R (le diagnostic, l'écart et l'offre ont été joués avant) ──
+export const CONTEXTE_OBJECTIONS_DEFAUT = [
+  "CONTEXTE DE CETTE CONVERSATION — simulation en mode Objections.",
+  "Le diagnostic, la synthese de l'ecart et la presentation de l'offre ont eu lieu AVANT le premier tour de parole : ils ne figurent pas dans le transcript. Le prix vient d'etre annonce.",
+  "Consequences : les segments C, L, E et A sont ABSENTS (present = false, sans bornes) ; le segment R va du premier au dernier tour de parole ; M1 et M2 sont absents SANS l'anomalie offre_non_localisee (l'offre a ete presentee hors transcript) ; ne cherche ni cadre, ni decouverte, ni synthese de l'ecart : il n'y en a pas a trouver.",
+].join("\n") + "\n";
+
+/** Le contexte d'une simulation objections, depuis le prospect joué (briefing : diagnostic déjà fait, prix de l'offre). */
+export function contexteSimulationObjections(personaData: any): string {
+  const prix = personaData?.objectionsMode?.prixOffre;
+  const dg = personaData?.briefing?.diagnostic;
+  const lignes = [CONTEXTE_OBJECTIONS_DEFAUT.trimEnd()];
+  if (prix) lignes[0] = lignes[0].replace("Le prix vient d'etre annonce.", `Le prix (${prix}) vient d'etre annonce.`);
+  if (dg) {
+    const sa = dg.situation_actuelle ?? {}, sd = dg.situation_desiree ?? {}, g = dg.gap ?? {};
+    lignes.push("PAROLES DU PROSPECT AVANT LE TRANSCRIPT (diagnostic deja fait). Pour R4, reprendre ces mots compte comme « mots du prospect » : verbatim_source = la citation ci-dessous, prise de parole 0.");
+    if (sa.situation_negative) lignes.push(`- situation : « ${sa.situation_negative} »`);
+    if (sa.consequences) lignes.push(`- consequences : « ${sa.consequences} »`);
+    if (sa.emotion_negative) lignes.push(`- emotion : « ${sa.emotion_negative} »`);
+    if (sd.objectif_chiffre) lignes.push(`- objectif : « ${sd.objectif_chiffre} »${sd.timeline ? ` (${sd.timeline})` : ""}`);
+    if (g.ecart_mensuel != null) lignes.push(`- ecart valide par le prospect : ${g.actuel ?? "?"} → ${g.cible ?? "?"} par mois, soit ${g.ecart_mensuel} par mois${g.cout_annuel_inaction != null ? ` (${g.cout_annuel_inaction} par an d'inaction)` : ""}`);
+    if (g.validation_prospect) lignes.push(`- validation de l'ecart : « ${g.validation_prospect} »`);
+  }
+  return lignes.join("\n") + "\n";
+}
 
 /** Rejoue uniquement le moteur depuis les sorties conservées (crm_sim_analyses.raw), sans modèle. */
 export function rejouerMoteur(p1: SortieP1, collecte: Collecte, verif: SortieVerifieur | null, mesures: MesuresDeterministes): ResultatAnalyse {
@@ -166,7 +192,7 @@ export function rejouerMoteur(p1: SortieP1, collecte: Collecte, verif: SortieVer
 
 export async function analyserGrille(
   ctx: { cle: string; fetchModele?: FetchModele },
-  entree: { transcript: string; typeAppel: TypeAppel; dureeMinutes: number | null },
+  entree: { transcript: string; typeAppel: TypeAppel; dureeMinutes: number | null; contexte?: string | null },
 ): Promise<RejetPretraitement | AnalyseComplete> {
   const debut = Date.now();
   // 0 · Type d'appel : rejet AVANT tout appel de modèle, pas de repli.
@@ -181,40 +207,50 @@ export async function analyserGrille(
   const couts: CoutPrompt[] = [];
   const echecs: string[] = [];
   const transcript = pre.transcriptFormate;
+  // Simulation objections : P1 et P2-R savent que le diagnostic, l'écart et l'offre ont été joués avant le transcript.
+  const objections = entree.typeAppel === "objections";
+  const contexte = objections ? (entree.contexte || CONTEXTE_OBJECTIONS_DEFAUT) : "";
 
   // 2 · P1 segmentation : sans P1, aucune borne de segment — l'échec est bloquant.
-  const resP1 = await appelPrompt(ctx, "P1_segmentation", MODELE_COLLECTE, remplir(P1_SEGMENTATION, { TRANSCRIPT: transcript }), couts, 8192);
+  const resP1 = await appelPrompt(ctx, "P1_segmentation", MODELE_COLLECTE, remplir(P1_SEGMENTATION, { TRANSCRIPT: transcript, CONTEXTE: contexte }), couts, 8192);
   if (!resP1.ok) throw new ErreurPipeline(`P1 en échec : ${resP1.erreur}`, "P1_segmentation");
   const p1 = resP1.data as SortieP1;
   const moments = JSON.stringify(p1.moments ?? {});
 
   // 3 · P2-C, P2-L, P2-E, P2-R en parallèle : un échec est consigné, la chaîne continue.
-  const [resC, resL, resE, resR] = await Promise.all([
-    appelPrompt(ctx, "P2_C_connexion", MODELE_COLLECTE, remplir(P2_CONNEXION, {
-      SEGMENT_C: segmentJson(p1, "C"), MOMENTS: moments, TRANSCRIPT: transcript,
-    }), couts, 4096),
-    appelPrompt(ctx, "P2_L_ecoute", MODELE_COLLECTE, remplir(P2_ECOUTE, {
-      SEGMENT_L: segmentJson(p1, "L"), TRANSCRIPT: transcript,
-    }), couts, 4096),
-    appelPrompt(ctx, "P2_E_exposition", MODELE_COLLECTE, remplir(P2_EXPOSITION, {
-      SEGMENT_E: segmentJson(p1, "E"), MOMENTS: moments, TRANSCRIPT: transcript,
-    }), couts, 4096),
-    appelPrompt(ctx, "P2_R_resolution", MODELE_COLLECTE, remplir(P2_RESOLUTION, {
-      OBJECTIONS: JSON.stringify(p1.objections ?? []), SEGMENT_R: segmentJson(p1, "R"), TRANSCRIPT: transcript,
-    }), couts, 4096),
-  ]);
-  const collecte: Collecte = {};
-  if (resC.ok) collecte.c = resC.data; else echecs.push("P2_C_connexion");
-  if (resL.ok) collecte.l = resL.data; else echecs.push("P2_L_ecoute");
-  if (resE.ok) collecte.e = resE.data; else echecs.push("P2_E_exposition");
-  if (resR.ok) collecte.r = resR.data; else echecs.push("P2_R_resolution");
-
-  // 4 · P2-A reçoit l'écart produit par P2-E (vide si P2-E a échoué).
-  const gap = resE.ok ? JSON.stringify((resE.data as any)?.e1 ?? {}) : "{}";
-  const resA = await appelPrompt(ctx, "P2_A_alignement", MODELE_COLLECTE, remplir(P2_ALIGNEMENT, {
-    SEGMENTS: JSON.stringify(p1.segments), MOMENTS: moments, GAP: gap, TRANSCRIPT: transcript,
+  //     En mode objections, seule la collecte R est faite : les autres phases sont hors du transcript (gabarit « objections »).
+  const collecteR = () => appelPrompt(ctx, "P2_R_resolution", MODELE_COLLECTE, remplir(P2_RESOLUTION, {
+    OBJECTIONS: JSON.stringify(p1.objections ?? []), SEGMENT_R: segmentJson(p1, "R"), TRANSCRIPT: transcript, CONTEXTE: contexte,
   }), couts, 4096);
-  if (resA.ok) collecte.a = resA.data; else echecs.push("P2_A_alignement");
+  const collecte: Collecte = {};
+  if (objections) {
+    const resR = await collecteR();
+    if (resR.ok) collecte.r = resR.data; else echecs.push("P2_R_resolution");
+  } else {
+    const [resC, resL, resE, resR] = await Promise.all([
+      appelPrompt(ctx, "P2_C_connexion", MODELE_COLLECTE, remplir(P2_CONNEXION, {
+        SEGMENT_C: segmentJson(p1, "C"), MOMENTS: moments, TRANSCRIPT: transcript,
+      }), couts, 4096),
+      appelPrompt(ctx, "P2_L_ecoute", MODELE_COLLECTE, remplir(P2_ECOUTE, {
+        SEGMENT_L: segmentJson(p1, "L"), TRANSCRIPT: transcript,
+      }), couts, 4096),
+      appelPrompt(ctx, "P2_E_exposition", MODELE_COLLECTE, remplir(P2_EXPOSITION, {
+        SEGMENT_E: segmentJson(p1, "E"), MOMENTS: moments, TRANSCRIPT: transcript,
+      }), couts, 4096),
+      collecteR(),
+    ]);
+    if (resC.ok) collecte.c = resC.data; else echecs.push("P2_C_connexion");
+    if (resL.ok) collecte.l = resL.data; else echecs.push("P2_L_ecoute");
+    if (resE.ok) collecte.e = resE.data; else echecs.push("P2_E_exposition");
+    if (resR.ok) collecte.r = resR.data; else echecs.push("P2_R_resolution");
+
+    // 4 · P2-A reçoit l'écart produit par P2-E (vide si P2-E a échoué).
+    const gap = resE.ok ? JSON.stringify((resE.data as any)?.e1 ?? {}) : "{}";
+    const resA = await appelPrompt(ctx, "P2_A_alignement", MODELE_COLLECTE, remplir(P2_ALIGNEMENT, {
+      SEGMENTS: JSON.stringify(p1.segments), MOMENTS: moments, GAP: gap, TRANSCRIPT: transcript,
+    }), couts, 4096);
+    if (resA.ok) collecte.a = resA.data; else echecs.push("P2_A_alignement");
+  }
 
   // 5 · P3 vérificateur : un échec laisse verif à null, le moteur agrège sans contestation.
   const resP3 = await appelPrompt(ctx, "P3_verificateur", MODELE_VERIFICATEUR, remplir(P3_VERIFICATEUR, {

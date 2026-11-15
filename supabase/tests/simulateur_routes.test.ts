@@ -145,10 +145,10 @@ Deno.test("simulateur : annuler le dernier échange, terminer, noter une fois", 
   assertEquals((await req("s1", "POST", `simulations/${sim.id}/end`, { beacon: true })).status, 200);
 });
 
-Deno.test("simulateur : terminer sans analyse, et le mode objections n'est jamais analysé", async () => {
+Deno.test("simulateur : terminer sans analyse dans les trois modes ; le mode objections s'analyse comme les autres (2026-11-15)", async () => {
   const analyses: any[] = [];
   const { req } = monter({ analyse: {
-    demarrer: (p: any) => { analyses.push(p); return Promise.resolve({ analysisId: "rej", skippedAnalysis: true, reason: "Mode non analysé" }); },
+    demarrer: (p: any) => { analyses.push(p); return Promise.resolve({ analysisId: "a-obj", status: "processing" }); },
     aar: () => Promise.resolve(new Response("{}")),
   } });
   const a = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "full" })).json();
@@ -156,7 +156,10 @@ Deno.test("simulateur : terminer sans analyse, et le mode objections n'est jamai
   assertEquals([r.skippedAnalysis, r.reason, analyses.length], [true, "Analyse non demandée", 0]);
   const o = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "objections" })).json();
   const r2 = await (await req("s1", "POST", `simulations/${o.id}/end`, { skipAnalysis: true })).json();
-  assertEquals([r2.analysisId, analyses.length], ["rej", 1], "le refus du mode objections est toujours consigné");
+  assertEquals([r2.skippedAnalysis, r2.reason, analyses.length], [true, "Analyse non demandée", 0], "sans analyse demandée, rien n'est lancé en objections non plus");
+  const o2 = await (await req("s1", "POST", "simulations", { personaId: "lnp-claire", simulationMode: "objections" })).json();
+  const r3 = await (await req("s1", "POST", `simulations/${o2.id}/end`, {})).json();
+  assertEquals([r3.analysisId, r3.status, analyses.length, analyses[0].simulation.simulation_mode], ["a-obj", "processing", 1, "objections"], "le mode objections est analysé");
 });
 
 Deno.test("simulateur : la fin par beacon porte le jeton dans le corps", async () => {

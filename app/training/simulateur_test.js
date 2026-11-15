@@ -67,7 +67,7 @@ const STUB = String.raw`
           { code: 'RETOUR_DIAGNOSTIC', libelle: 'Question de découverte reposée après la présentation', etat: 'suspendue', statut: 'non_declenchee', motif: '' }] } };
   }
   DB.crm_sim_analyses.push({ id: 'a41', simulation_id: 41, user_id: 'u1', status: 'completed', created_at: iso(now - 3 * 86400000 + 1000000), completed_at: iso(now - 3 * 86400000 + 1060000), result: resultat(48, 'insuffisant'), aar: null, miroir: null });
-  DB.crm_sim_analyses.push({ id: 'a43', simulation_id: 43, user_id: 'u2', status: 'rejected', reason: 'Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont.', created_at: iso(now - 6000000), result: null });
+  DB.crm_sim_analyses.push({ id: 'a43', simulation_id: 43, user_id: 'u2', status: 'rejected', reason: 'Conversation trop courte pour être analysée', created_at: iso(now - 6000000), result: null });
   window.__calls = []; window.__reads = {};
   function match(row, f) { return f.every(function (x) { return x[2] === 'in' ? x[1].indexOf(row[x[0]]) >= 0 : row[x[0]] === x[1]; }); }
   function from(table) {
@@ -424,7 +424,7 @@ const WRAP = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>
   await g.selectOption('[data-hf="personne"]', 'u2'); await g.waitForFunction(() => document.querySelectorAll('.hr').length === 1);
   check('filtered by person (crm_sim_history p_user)', /Sans analyse/.test(await g.textContent('.hl')), null);
   await g.click('.hr [data-go="#resultat/43"]'); await g.waitForSelector('.empty');
-  check('a rejected analysis: its French reason', /Le mode Objections n’est pas analysé/.test(await g.textContent('#view')), null);
+  check('a rejected analysis: its French reason', /Conversation trop courte pour être analysée/.test(await g.textContent('#view')), null);
   await A.ctx.close();
 
   // ---------------------------------------------------------------- outside LNP: the demo

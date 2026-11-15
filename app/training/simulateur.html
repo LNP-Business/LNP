@@ -1569,9 +1569,9 @@ details.sec[open] summary{margin-bottom:8px}
     if (!actif() || FINL) return;
     var obj = C.sim.simulation_mode === "objections", court = C.msgs.filter(function (m) { return !m.tmp; }).length < 4;
     FINL = layer({ alert: true, title: "Terminer l’appel ?", focus: '[data-x="cont"]',
-      body: '<p class="warnt">Cette action est irréversible.</p><p>' + (obj ? "Le mode Objections n’est pas analysé : l’appel sera simplement terminé." : "Un rapport d’analyse sera généré.") + "</p>" +
+      body: '<p class="warnt">Cette action est irréversible.</p><p>' + (obj ? "Un rapport d’analyse sera généré sur le traitement des objections et la décision." : "Un rapport d’analyse sera généré.") + "</p>" +
         (court ? '<p class="court">Attention : la conversation est très courte.</p>' : "") +
-        '<div class="acts"><button type="button" class="lnk" data-x="skip">Quitter sans analyser</button><span class="sp"></span><button type="button" class="btn" data-x="end">' + (obj ? "Terminer l’appel" : "Terminer et analyser") +
+        '<div class="acts"><button type="button" class="lnk" data-x="skip">Quitter sans analyser</button><span class="sp"></span><button type="button" class="btn" data-x="end">Terminer et analyser' +
         '</button><button type="button" class="btn p" data-x="cont">Continuer l’appel</button></div>',
       onEsc: function (L) { if (!C || !C.endBusy) { L.close(); FINL = null; } },
       onClick: function (b, L) {
@@ -1651,7 +1651,7 @@ details.sec[open] summary{margin-bottom:8px}
     C.fin = { r: r, id: r.analysisId || null, row: null, res: null, echec: null, polls: 0, timer: null, ecran: "", step: 1, envoi: false, aarFait: false,
       aar: { momentBienGere: "", momentDifficile: "", ceQueJeReferais: "", niveauEstime: "" } };
     if (r.deferred || r.status === "deferred") return ecranFin("differe");
-    if (!r.analysisId) return ecranFin(r.status === "rejected" || C.sim.simulation_mode === "objections" || (r.reason && !/court/i.test(r.reason)) ? "refus" : "court");
+    if (!r.analysisId) return ecranFin(r.status === "rejected" || (r.reason && !/court/i.test(r.reason)) ? "refus" : "court");
     sonder(); ecranFin("aar");
   }
   function finNettoyer() { if (C && C.fin) clearTimeout(C.fin.timer); $("#fin").innerHTML = ""; }
@@ -1710,7 +1710,7 @@ details.sec[open] summary{margin-bottom:8px}
       h = ecran("⚠", "a", "Conversation trop courte", "<p>La simulation n’a pas eu assez d’échanges pour générer une analyse. Relancez une simulation et essayez de prolonger la conversation.</p>",
         '<div class="acts" style="justify-content:center"><button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button></div>');
     } else if (F.ecran === "refus") {
-      h = ecran("ℹ", "a", "Pas d’analyse pour cet appel", "<p>" + esc(F.r.reason || "Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont.") + "</p>",
+      h = ecran("ℹ", "a", "Pas d’analyse pour cet appel", "<p>" + esc(F.r.reason || "Ce mode de simulation n’est pas analysé.") + "</p>",
         '<div class="acts" style="justify-content:center"><button type="button" class="btn" data-go="#resultat/' + C.sim.id + '">Revoir la conversation</button><button type="button" class="btn p" data-go="#nouvelle">Nouvelle simulation</button></div>');
     } else if (F.ecran === "differe") {
       h = ecran("⏳", "a", "Analyse mise en attente", "<p>" + esc(F.r.deferredReason || F.r.reason || "Analyse mise en attente : plafond quotidien atteint.") + "</p><p>Elle démarrera automatiquement dès qu’une place se libérera.</p>",
@@ -1785,10 +1785,11 @@ details.sec[open] summary{margin-bottom:8px}
       else if (st === "deferred") h += '<div class="card empty"><div class="ico">⏳</div><b>Analyse mise en attente</b><p>' + esc(an.reason || "Plafond quotidien atteint.") + "</p><p>Elle démarrera automatiquement dès qu’une place se libérera.</p>" +
         (A.admin ? '<button type="button" class="btn" data-do="r-reprendre">Relancer les analyses en attente</button>' : "") + "</div>";
       else if (st === "failed") h += '<div class="card empty"><div class="ico">⚠</div><b>L’analyse n’a pas abouti</b><p>' + esc(an.reason || "Une erreur est survenue pendant l’analyse.") + "</p></div>";
-      else h += '<div class="card empty"><div class="ico">ℹ</div><b>Pas d’analyse pour cet appel</b><p>' + esc((an && an.reason) || (s.simulation_mode === "objections" ? "Le mode Objections n’est pas analysé : seuls l’appel complet et le diagnostic le sont." : s.status === "active" ? "L’appel est encore en cours." : "L’appel a été terminé sans analyse.")) + "</p></div>";
+      else h += '<div class="card empty"><div class="ico">ℹ</div><b>Pas d’analyse pour cet appel</b><p>' + esc((an && an.reason) || (s.status === "active" ? "L’appel est encore en cours." : "L’appel a été terminé sans analyse.")) + "</p></div>";
       h += realismeCarte(s.usage && s.usage.realisme) + '<section class="card"><div class="ct">Conversation</div>' + transcription([]) + "</section></div>";
       paint($("#view"), h); return;
     }
+    if (s.simulation_mode === "objections") h += '<p class="muted small" style="margin:0 0 12px">Mode Objections : l’appel est noté sur le traitement des objections et la décision (Résolution), ramené sur 100. Les autres dimensions sont hors périmètre : le diagnostic, l’écart et l’offre ont été joués avant le début de l’appel.</p>';
     h += '<div class="tabs" role="tablist" aria-label="Analyse">' + ONGLETS.map(function (o) {
       return '<button type="button" role="tab" id="tab-' + o[0] + '" data-k="tab-' + o[0] + '" data-tab="' + o[0] + '" aria-selected="' + (R.tab === o[0]) + '" aria-controls="panel" tabindex="' + (R.tab === o[0] ? 0 : -1) + '">' + o[1] + "</button>";
     }).join("") + '</div><div id="panel" role="tabpanel" aria-labelledby="tab-' + R.tab + '" style="display:flex;flex-direction:column;gap:16px">' +

@@ -251,8 +251,8 @@ export function app(d: Deps) {
     if (!reprise) await d.db.update("crm_sim_simulations", { id }, { status: "completed", ended_at: t.toISOString(), duration_seconds: duree, usage: usageFin });
     const terminee = { ...sim, status: "completed", ended_at: sim.ended_at ?? t.toISOString(), duration_seconds: duree, usage: usageFin };
     const relire = async () => (await d.db.select("crm_sim_simulations", { id }))[0];
-    // seuls l'appel complet et le diagnostic s'analysent ; le mode objections est refusé, même sans analyse demandée
-    const eligible = sim.simulation_mode === "full" || sim.simulation_mode === "diagnostic";
+    // les trois modes s'analysent (objections depuis le 2026-11-15 : la phase R seule) ; un mode inconnu est consigné « rejected »
+    const eligible = sim.simulation_mode === "full" || sim.simulation_mode === "diagnostic" || sim.simulation_mode === "objections";
     if (skip && eligible) return json({ simulation: await relire(), analysisId: null, skippedAnalysis: true, reason: "Analyse non demandée" });
     if (!d.analyse) return json({ simulation: await relire(), analysisId: null, skippedAnalysis: true, reason: "Analyse indisponible" });
     const offre = await chargerOffre(d.db, sim);
