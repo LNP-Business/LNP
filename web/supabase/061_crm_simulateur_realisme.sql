@@ -1,4 +1,4 @@
--- 060 · Simulateur, référentiel v0.13 (Romain 2026-11-14 : « le simulateur parle très peu par rapport à la réalité des appels »).
+-- 061 · Simulateur, référentiel v0.13 (Romain 2026-11-14 : « le simulateur parle très peu par rapport à la réalité des appels »).
 -- La mesure de réalisme de chaque simulation terminée (part de parole du prospect, mots par réponse, longues réponses,
 -- questions du prospect, comparées aux 549 vrais appels R1), écrite par la fonction `simulateur` dans
 -- crm_sim_simulations.usage.realisme, est rendue dans l'historique (crm_sim_history), avec la variante du jour du prospect

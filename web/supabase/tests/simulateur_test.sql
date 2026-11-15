@@ -35,7 +35,7 @@ begin
   h := crm_sim_history(null, 50);
   assert jsonb_array_length(h) = 1 and (h->0->>'messages')::int = 2 and (h->0->>'rating')::int = 4
     and (h->0->'analysis'->>'score')::int = 72 and h->0->>'offer_name' = 'Accompagnement LNP'
-    and (h->0->'realisme'->>'note')::int = 72 and h->0->'variante'->>'libelle' = 'Manque de temps · Dans la voiture', 'the history row (060: with the realism measure and the variant)';
+    and (h->0->'realisme'->>'note')::int = 72 and h->0->'variante'->>'libelle' = 'Manque de temps · Dans la voiture', 'the history row (061: with the realism measure and the variant)';
   refused := false; begin insert into crm_sim_messages (simulation_id, role, content) select id, 'commercial', 'x' from crm_sim_simulations; exception when others then refused := true; end;
   assert refused, 'no message written from the browser';
   refused := false; begin update crm_sim_config set claude_model = 'claude-haiku-5-5'; exception when others then refused := true; end;

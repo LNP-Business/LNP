@@ -36,7 +36,7 @@ Fonction Edge `simulateur` (supabase/functions/simulateur)
    ├─ fin : l'analyse (grille/) en arrière-plan, plafond quotidien (heure de Paris), file d'attente relancée toutes les 10 min
    └─ offres (offres.ts) : extraction de l'offre (10 modules), matrice de 6 prospects, 6 prospects complets, voix attribuées
 Tables : crm_sim_offers, crm_sim_personas, crm_sim_simulations, crm_sim_messages, crm_sim_feedback, crm_sim_analyses,
-         crm_sim_config (057) ; l'offre LNP (058) ; l'historique avec la mesure de réalisme (060).
+         crm_sim_config (057) ; l'offre LNP (058) ; l'historique avec la mesure de réalisme (061).
 ```
 
 Le prospect ne se livre que si on gagne sa confiance : une bonne question ouverte, une reformulation juste ou de l'empathie la font
@@ -125,7 +125,7 @@ Ce qui change (`VERSION_REFERENTIEL_SIMULATION = "v0.13"`, gardé sur chaque sim
   Trouvé en rejouant un appel à la main (`simulations/2026-11-14-camille-v0.13-option-B.md`) ; corrigé.
 - **Mesure de réalisme** (`realisme.ts`) : à la fin de chaque simulation, les quatre mesures ci-dessus sont calculées sur la
   conversation et comparées aux cibles ; une note sur 100 et les écarts en français sont gardés dans `crm_sim_simulations.usage.realisme`
-  et rendus par `crm_sim_history` (060). L'historique affiche « réalisme N % », la page de résultat une carte « Réalisme de la
+  et rendus par `crm_sim_history` (061). L'historique affiche « réalisme N % », la page de résultat une carte « Réalisme de la
   simulation » (cette simulation contre les vrais appels). Les simulations d'avant v0.13 n'ont pas de mesure.
 
 Tests : `supabase/tests/simulateur_realisme.test.ts` (mesure, prompts), `web/supabase/tests/simulateur_test.sql` (historique),
@@ -159,7 +159,7 @@ avec ce contexte sur une vraie simulation.
 Six prospects par offre, c'est vite appris par cœur. À chaque lancement, `variantes.ts` tire au sort ce qui change pour cet
 appel et le copie dans `crm_sim_simulations.persona_data.variante` ; le commercial ne le connaît pas avant l'appel (comme dans la
 vraie vie), il le découvre dans la page de résultat (« Aujourd'hui, le prospect : … ») et dans l'historique (`crm_sim_history`,
-060) :
+061) :
 - **une humeur** (65 % des appels) : manque de temps (25 minutes au lieu de 45), journée épuisante, une formation déjà payée pour
   rien, enthousiasme qui retombe au prix, interruptions, doute sur soi ;
 - **un contexte** (50 %) : dans la voiture, en salle des profs, le conjoint à côté qui écoute, dix minutes de retard ;
