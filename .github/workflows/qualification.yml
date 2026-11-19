@@ -1,4 +1,4 @@
-# LNP lead qualification agent (call-analysis/qualification): run by hand on the most recent leads, results stored in
+# LNP lead qualification agent (analyse-appel/qualification): run by hand on the most recent leads, results stored in
 # crm_lead_qualifications (042). The repository is public: the log shows call ids, statuses and token counts only.
 name: lead-qualification
 on:
@@ -12,9 +12,9 @@ on:
         type: boolean
         default: false
   push:
-    paths: ["call-analysis/qualification/**", ".github/workflows/qualification.yml"]
+    paths: ["analyse-appel/qualification/**", ".github/workflows/qualification.yml"]
   pull_request:
-    paths: ["call-analysis/qualification/**", ".github/workflows/qualification.yml"]
+    paths: ["analyse-appel/qualification/**", ".github/workflows/qualification.yml"]
 env:
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}
 jobs:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install pytest && cd call-analysis/qualification && python3 -m pytest -q tests
+      - run: pip install pytest && cd analyse-appel/qualification && python3 -m pytest -q tests
   qualify:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -42,4 +42,4 @@ jobs:
       - name: Qualify the leads
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: python3 call-analysis/qualification/run.py --limit "${{ inputs.limit }}" ${{ inputs.again && '--again' || '' }}
+        run: python3 analyse-appel/qualification/executer.py --limit "${{ inputs.limit }}" ${{ inputs.again && '--again' || '' }}

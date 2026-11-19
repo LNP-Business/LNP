@@ -22,4 +22,4 @@ Documents voisins à garder en tête :
 - `LNP.md` : la marque et l'installation résumées.
 - `docs/lnp/GLOSSAIRE.md` : le vocabulaire français de l'application.
 - `docs/crm/` : la spécification détaillée du CRM (décisions, modèle de données, intégrations, écrans), écrite au fil du projet.
-- `call-analysis/` : le moteur d'analyse d'appel, sa méthodologie et ses propres règles (`call-analysis/CLAUDE.md`).
+- `analyse-appel/` : le moteur d'analyse d'appel, sa méthodologie et ses propres règles (`analyse-appel/CLAUDE.md`).

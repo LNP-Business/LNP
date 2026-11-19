@@ -3,7 +3,7 @@
 Ce chapitre décrit tout ce qui tourne côté serveur en dehors de la page et de l'édition web : les huit fonctions Edge de
 `supabase/functions/`, leurs modules partagés (`supabase/functions/_shared/`), les tâches planifiées qui les appellent, la
 configuration à faire chez chaque service externe, puis la chaîne d'analyse d'appel (worker Python, moteur
-`lnp_callqa`, passerelle `callqa-llm`, workflow GitHub Actions). Chaque fait vient du code ; le fichier est cité.
+`lnp_analyse`, passerelle `callqa-llm`, workflow GitHub Actions). Chaque fait vient du code ; le fichier est cité.
 Quand `docs/crm/` dit autre chose que le code, c'est le code qui fait foi (voir §13).
 
 Aucun secret n'apparaît ici : seuls les **noms** des secrets sont donnés.
@@ -22,7 +22,7 @@ Fournisseur ──POST──► <source>-in ──► crm_webhook_log (requête 
 
 pg_cron minute 23 ──► crm-import ?source=fathom&queue=1 ──► API Fathom ──► crm_import_recordings ──► crm_ca_jobs
 pg_cron */5 min   ──► sla-tick ──► crm_sla_snapshot ──► sla_rules.js ──► crm_sla_claim ──► Slack #sales-cycle
-GitHub Actions :07 ──► call-analysis/worker/run.py ──► crm_ca_claim ──► moteur ──► callqa-llm ──► API Anthropic
+GitHub Actions :07 ──► analyse-appel/executant/executer.py ──► crm_ca_claim ──► moteur ──► callqa-llm ──► API Anthropic
                                                                        └──► crm_ca_store / crm_ca_fail
 ```
 
@@ -585,9 +585,9 @@ Rien n'est journalisé : ni consigne, ni transcription.
 
 ## 9. Analyse d'appel
 
-Le moteur a ses propres règles : `call-analysis/CLAUDE.md` est à lire avant toute modification. Règle qui prime sur tout :
+Le moteur a ses propres règles : `analyse-appel/CLAUDE.md` est à lire avant toute modification. Règle qui prime sur tout :
 **le modèle extrait et cite, le code décide et note**. Les consignes envoyées au modèle
-(`call-analysis/engine/lnp_callqa/prompts/*.md`) restent en anglais.
+(`analyse-appel/moteur/lnp_analyse/consignes/*.md`) restent en anglais.
 
 ### 9.1 Données (`web/supabase/020_crm_call_analysis.sql`, 025, 034)
 
@@ -615,7 +615,7 @@ Le moteur a ses propres règles : `call-analysis/CLAUDE.md` est à lire avant to
 | `crm_ca_store(p_job, p_record, p_usage, p_engine)` | Job `running` obligatoire ; écrit enregistrement, tours, résultats et audit en une transaction ; job `done` ; événement `analysis_ready` (`source_id = analysis:<job>`, scores par compétence) |
 | `crm_ca_fail(p_job, p_error, p_final)` | Si non final et `attempts < 3` : de nouveau `queued` dans 10 min ; sinon `failed` |
 
-### 9.3 Le worker (`call-analysis/worker/`)
+### 9.3 Le worker (`analyse-appel/executant/`)
 
 Python, bibliothèque standard seulement. `run.py [--once] [--budget-min 300]` :
 
@@ -623,31 +623,31 @@ Python, bibliothèque standard seulement. `run.py [--once] [--budget-min 300]` :
 2. Boucle tant que le budget n'est pas épuisé : `crm_ca_claim({"p_worker": "gha:<hôte>"})` ; plus de job → fin.
 3. `GatewayClient(<SUPABASE_URL>/functions/v1/callqa-llm, clé, config.tiers, effort = CALLQA_EFFORT ou config.effort ou "low")`.
 4. `run_job(claim, client, rounds=True, workers=24, budget_s=90*60)` puis `crm_ca_store` avec
-   `usage = {tiers, seconds, effort}` et `ENGINE_VERSION = "lnp_callqa-1.0"`.
+   `usage = {tiers, seconds, effort}` et `VERSION_MOTEUR = "lnp_callqa-1.0"` (valeur enregistrée, inchangée).
 5. Échecs : `ModelErrors` (plus de la moitié des questions du modèle en erreur : l'enregistrement serait vide) et `TooLong`
    (budget de 90 min dépassé) → `crm_ca_fail(..., p_final = true)` ; `GatewayError` → final selon l'erreur ; toute autre
    exception → non final. Les journaux ne contiennent que des identifiants, statuts, scores et comptes de jetons.
 
 Modules :
 
-- `callqa_worker/supabase.py` : `POST /rest/v1/rpc/<nom>` avec la clé service role ; 4 tentatives sur erreur 5xx ou réseau
+- `executant_analyse/supabase.py` : `POST /rest/v1/rpc/<nom>` avec la clé service role ; 4 tentatives sur erreur 5xx ou réseau
   (attente 2, 4, 8 s) ; une erreur 4xx est levée aussitôt.
-- `callqa_worker/gateway.py` : client de modèle du moteur. Un niveau sans modèle (`fast`, `strong`, `arbiter`) → erreur
+- `executant_analyse/gateway.py` : client de modèle du moteur. Un niveau sans modèle (`fast`, `strong`, `arbiter`) → erreur
   finale. Corps `{model, system, prompt, max_tokens: 4000, effort, cache_prompt: pass_no >= 1}`. Effort par tâche
   (`TASK_EFFORT`) : `foundation.attribution` et `foundation.phases` = `default`, `spin.register` = `medium`, les autres =
   effort du job. 5 tentatives, délai 180 s, attente `min(2^(i+1), 30)` s ; `401`, `409` ou `502` avec `retry: false` →
   erreur finale ; `429`, `500`, `502`, `503`, `504` et erreurs réseau → nouvel essai. Cumule `calls`, `input_tokens`,
   `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens` par niveau.
-- `callqa_worker/prefetch.py` : le moteur pose ses questions une par une (environ 2 000 pour un appel d'une heure). Le worker
+- `executant_analyse/prefetch.py` : le moteur pose ses questions une par une (environ 2 000 pour un appel d'une heure). Le worker
   rejoue tout le pipeline (code pur) par **tours** : les réponses déjà reçues viennent d'un cache (clé = tâche, unité, passe,
   niveau, SHA-256 de `system + prompt`) ; une question sans réponse lève `Pending`, que le moteur traite comme une erreur
   pour ce tour ; le worker envoie en parallèle les questions de la première tâche en attente (passe 1 et arbitrages dont les
   trois passes sont connues d'abord, puis passes 2 et 3, qui lisent la consigne en cache), puis recommence. Quand un tour ne
   manque de rien, le résultat est celui d'une exécution séquentielle. 400 tours au plus.
-- `callqa_worker/job.py` : `build_context` (transcription analysée par `parse_transcript` avec la carte des intervenants,
+- `executant_analyse/job.py` : `build_context` (transcription analysée par `parse_transcript` avec la carte des intervenants,
   bibliothèque de cas, épisodes d'objection des appels précédents) et `result_record`.
 
-### 9.4 Le moteur (`call-analysis/engine/lnp_callqa`, résumé de `call-analysis/docs/ARCHITECTURE.md`)
+### 9.4 Le moteur (`analyse-appel/moteur/lnp_analyse`, résumé de `analyse-appel/docs/ARCHITECTURE.md`)
 
 Un **pipeline fixe** à trois couches : une fondation commune calculée une fois, de nombreuses petites tâches du modèle (une
 question fermée sur une unité, avec citations exactes), du code déterministe qui vérifie chaque citation et prend chaque
@@ -672,7 +672,7 @@ Exécution d'une tâche (30 tâches, une consigne par tâche dans `prompts/`) :
 Le code décide seul : vérifications de citations, ordres, lettre SPIN, sélections A / B / P du Gap, règle du mot pour mot
 (GB-22), portes et exclusions, niveaux d'item, notes d'appel et de période.
 
-**Contrat de sortie** (`call-analysis/docs/OUTPUT_CONTRACT.md`, `pipeline.result_record(ctx)`) :
+**Contrat de sortie** (`analyse-appel/docs/OUTPUT_CONTRACT.md`, `pipeline.result_record(ctx)`) :
 
 ```
 { call_id, sales_id, start_utc, timezone,
@@ -694,18 +694,18 @@ CompetenceResult = { competence, rules_version (ex. "GAP-1.3"),
 Coût mesuré (ARCHITECTURE.md §7) : effort `low`, cache de consigne et envoi de la passe 1 avant les passes 2 et 3 ont fait
 passer deux appels de 7,10 à 3,65 USD et de 10,15 à 4,40 USD.
 
-Commandes du moteur (`call-analysis/CLAUDE.md`) : `cd call-analysis/engine && python3 -m pytest -q tests` ;
+Commandes du moteur (`analyse-appel/CLAUDE.md`) : `cd analyse-appel/moteur && python3 -m pytest -q tests` ;
 `CALLQA_CORPUS=<dossier> python3 -m pytest -q tests` (cas de l'annexe B sur un autre corpus) ;
-`python3 -m lnp_callqa.pipeline transcript.txt --config call.json` (un appel, modèle réel).
+`python3 -m lnp_analyse.pipeline transcript.txt --config call.json` (un appel, modèle réel).
 
-### 9.5 Le workflow `.github/workflows/call-analysis.yml`
+### 9.5 Le workflow `.github/workflows/analyse-appel.yml`
 
-- `push` sur `main` et `pull_request` (chemins `call-analysis/**` et le workflow) → job `test` : Python 3.11, `pytest` ; si le
+- `push` sur `main` et `pull_request` (chemins `analyse-appel/**` et le workflow) → job `test` : Python 3.11, `pytest` ; si le
   secret `SUPABASE_SERVICE_ROLE_KEY` existe, télécharge `callqa-fixtures/transcripts.tar.gz` (bucket Storage privé) dans
-  `call-analysis/engine/tests/fixtures/transcripts`, sinon pose `CALLQA_SKIP_MISSING_CORPUS=1` (tests de l'annexe B sautés) ;
+  `analyse-appel/moteur/tests/fixtures/transcripts`, sinon pose `CALLQA_SKIP_MISSING_CORPUS=1` (tests de l'annexe B sautés) ;
   puis tests du moteur et du worker.
 - `schedule: "7 * * * *"` et `workflow_dispatch` (entrée `effort` : `low` ou `default`) → job `worker` : délai 150 min,
-  `concurrency: call-analysis-worker` sans annulation, ignoré sans le secret ; `python3 call-analysis/worker/run.py
+  `concurrency: analyse-appel-executant` sans annulation, ignoré sans le secret ; `python3 analyse-appel/executant/executer.py
   --budget-min 120` avec `SUPABASE_SERVICE_ROLE_KEY` et `CALLQA_EFFORT`.
 - `SUPABASE_URL` vient de la **variable** de dépôt `vars.SUPABASE_URL` (`https://<ref>.supabase.co`).
 
@@ -747,8 +747,8 @@ Commande : `deno test --allow-env --allow-read supabase/tests` (sans réseau ni 
 | `callqa_llm.test.ts` | Refus sans clé de service ; transmission d'une question avec cache des règles ; cache de la question et contrôle de l'effort ; mauvais modèle, clé absente, erreurs du fournisseur |
 
 Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`, `no_show_rule_test.sql`,
-`fathom_closest_test.sql`) ; moteur et worker `cd call-analysis/engine && python3 -m pytest -q tests`,
-`cd call-analysis/worker && python3 -m pytest -q tests`.
+`fathom_closest_test.sql`) ; moteur et worker `cd analyse-appel/moteur && python3 -m pytest -q tests`,
+`cd analyse-appel/executant && python3 -m pytest -q tests`.
 
 ## 12. Ordre de mise en place dans un nouveau projet
 
@@ -770,6 +770,6 @@ Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`
 | Fathom | Webhook + rapprochement nocturne (06 §2, §7) | Pas de webhook ; import horaire par l'API (minute 23), règles FL-1 à FL-6 |
 | Whop | Mapper `mappers/whop.ts`, `whop-checkout` (08) | Réception seulement, aucun mapper |
 | Fonctions prévues | `whop-checkout`, `claude-analyze`, `rules-tick`, `nurture-tick`, `reconcile`, `retention` | N'existent pas ; l'analyse d'appel passe par le worker GitHub et `callqa-llm` |
-| Analyse d'appel | `crm_call_analyses`, schéma v0 (09) | Tables `crm_ca_*` (020), moteur `lnp_callqa` |
-| Worker d'analyse | Toutes les 10 minutes (`call-analysis/PLAN.md` §2) | Chaque heure à la minute 7 |
-| Nombre de tests du moteur | 209 (`call-analysis/CLAUDE.md`) | Libellé d'étape « Engine (184 tests) » dans le workflow (simple libellé) |
+| Analyse d'appel | `crm_call_analyses`, schéma v0 (09) | Tables `crm_ca_*` (020), moteur `lnp_analyse` |
+| Worker d'analyse | Toutes les 10 minutes (`analyse-appel/PLAN.md` §2) | Chaque heure à la minute 7 |
+| Nombre de tests du moteur | 209 (`analyse-appel/CLAUDE.md`) | Libellé d'étape « Engine (184 tests) » dans le workflow (simple libellé) |

@@ -1,4 +1,4 @@
-# LNP call analysis (call-analysis/PLAN.md): engine and worker tests on every change; the worker runs every hour and on demand.
+# LNP call analysis (analyse-appel/PLAN.md): engine and worker tests on every change; the worker runs every hour and on demand.
 # GitHub secret needed: SUPABASE_SERVICE_ROLE_KEY (Supabase › Project settings › API keys). Without it the tests run without
 # the real transcripts (25 Annex B tests skipped) and the worker does nothing. The model key stays in Supabase
 # (function secret ANTHROPIC_API_KEY, read by the Edge Function callqa-llm).
@@ -6,9 +6,9 @@ name: Call analysis
 on:
   push:
     branches: [main]
-    paths: ["call-analysis/**", ".github/workflows/call-analysis.yml"]
+    paths: ["analyse-appel/**", ".github/workflows/analyse-appel.yml"]
   pull_request:
-    paths: ["call-analysis/**", ".github/workflows/call-analysis.yml"]
+    paths: ["analyse-appel/**", ".github/workflows/analyse-appel.yml"]
   schedule:
     - cron: "7 * * * *"
   workflow_dispatch:
@@ -43,22 +43,22 @@ jobs:
             echo "::notice::callqa-fixtures/transcripts.tar.gz not found in Storage: Annex B tests on real transcripts are skipped."
             echo "CALLQA_SKIP_MISSING_CORPUS=1" >> "$GITHUB_ENV"; exit 0
           fi
-          mkdir -p call-analysis/engine/tests/fixtures/transcripts
-          tar xzf /tmp/t.tgz -C call-analysis/engine/tests/fixtures/transcripts
+          mkdir -p analyse-appel/moteur/tests/fixtures/transcripts
+          tar xzf /tmp/t.tgz -C analyse-appel/moteur/tests/fixtures/transcripts
           rm /tmp/t.tgz
       - name: Engine (184 tests)
-        run: cd call-analysis/engine && python3 -m pytest -q tests
+        run: cd analyse-appel/moteur && python3 -m pytest -q tests
       - name: Worker
-        run: cd call-analysis/worker && python3 -m pytest -q tests
+        run: cd analyse-appel/executant && python3 -m pytest -q tests
       - name: Lite engine
-        run: cd call-analysis/lite && python3 -m pytest -q tests
+        run: cd analyse-appel/allege && python3 -m pytest -q tests
 
   worker:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 150
     concurrency:
-      group: call-analysis-worker
+      group: analyse-appel-executant
       cancel-in-progress: false
     steps:
       - name: Skip when the secret is not set yet
@@ -79,4 +79,4 @@ jobs:
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           CALLQA_EFFORT: ${{ inputs.effort || 'none' }}
-        run: python3 call-analysis/worker/run.py --budget-min 120
+        run: python3 analyse-appel/executant/executer.py --budget-min 120

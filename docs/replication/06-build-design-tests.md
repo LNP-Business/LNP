@@ -97,8 +97,8 @@ quel) et à la page de connexion OAuth (`web/api/oauth.js`).
 | SQL | `web/supabase/tests/run.sh` (Postgres 16 local, `PGHOST`, `PGUSER`) | 20 suites, sur des bases jetables, avec `supabase_stub.sql` |
 | Fonctions Edge | `deno test --allow-env --allow-read supabase/tests` | ingestion, mappers, import, pipeline, SLA, `callqa-llm` |
 | Connecteur et API | `cd web && npm ci && npm test` | OAuth, outils MCP, accès, sur un Supabase en mémoire |
-| Moteur d'analyse | `cd call-analysis/engine && python3 -m pytest -q tests` | méthodologie (cas de l'annexe B si les transcriptions sont disponibles) |
-| Worker d'analyse | `cd call-analysis/worker && python3 -m pytest -q tests` | file, préchargement, budget |
+| Moteur d'analyse | `cd analyse-appel/moteur && python3 -m pytest -q tests` | méthodologie (cas de l'annexe B si les transcriptions sont disponibles) |
+| Worker d'analyse | `cd analyse-appel/executant && python3 -m pytest -q tests` | file, préchargement, budget |
 | Écrans | Playwright sur `app/lnp.html` | chaque écran sans erreur et sans texte anglais (voir `CLAUDE.md`) |
 
 ## Intégration continue (`.github/workflows/`)
@@ -106,9 +106,9 @@ quel) et à la page de connexion OAuth (`web/api/oauth.js`).
 | Workflow | Déclencheurs | Tâches |
 |---|---|---|
 | `crm-functions.yml` | push sur `main` ou `crm-*`, PR touchant `supabase/`, `web/supabase/`, `app/crm/`, `web/api/`, `web/tests/`, `web/package*.json` ; manuel | `test` (Deno), `sql` (Postgres 16 + `data.test.js`), `connector` (`npm test`), `deploy` (depuis `main`, si `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF` existent : `supabase functions deploy <f> --remote=… --no-verify-jwt --yes`) |
-| `call-analysis.yml` | push et PR touchant `call-analysis/` ; toutes les heures (`7 * * * *`) ; manuel (effort `low` ou `default`) | `test` (moteur et worker ; télécharge les transcriptions de test depuis le stockage `callqa-fixtures` si la clé existe), `worker` (analyse les appels en file, budget 120 min) |
+| `analyse-appel.yml` | push et PR touchant `analyse-appel/` ; toutes les heures (`7 * * * *`) ; manuel (effort `low` ou `default`) | `test` (moteur et worker ; télécharge les transcriptions de test depuis le stockage `callqa-fixtures` si la clé existe), `worker` (analyse les appels en file, budget 120 min) |
 
-Point connu : le bucket `callqa-fixtures` n'existe pas dans le projet LNP, donc la tâche `test` de `call-analysis.yml` échoue au
+Point connu : le bucket `callqa-fixtures` n'existe pas dans le projet LNP, donc la tâche `test` de `analyse-appel.yml` échoue au
 téléchargement quand la clé est définie. Il faut soit créer ce bucket avec un corpus de transcriptions autorisé, soit faire sauter
 le téléchargement quand le fichier est absent.
 

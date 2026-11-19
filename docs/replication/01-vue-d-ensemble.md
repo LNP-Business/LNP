@@ -31,7 +31,7 @@ Outils externes ── webhooks / API ── Fonctions Edge Supabase (supabase/f
    toutes les 5 min : sla-tick → Slack (alertes du cycle de vente)
    Close, iClosed, Fathom : imports d'historique par crm-import (l'historique WhatsApp arrive par whatsapp-in à la connexion)
 
-Analyse d'appel ── GitHub Actions (call-analysis.yml, toutes les heures) ── worker Python
+Analyse d'appel ── GitHub Actions (analyse-appel.yml, toutes les heures) ── worker Python
    lit les appels en file (crm_ca_claim), interroge le modèle par la fonction Edge callqa-llm (Anthropic), écrit le résultat (crm_ca_store)
 
 Claude (claude.ai) ── connecteur MCP https://lnp-sales.vercel.app/api/mcp (OAuth 2.1) ── lecture du CRM avec le jeton de la personne
@@ -44,7 +44,7 @@ Principes :
   Postgres. Le navigateur lit à travers la sécurité au niveau des lignes (RLS) et écrit uniquement par des fonctions `crm_*`.
 - **Les sources ne parlent qu'à leur fonction** : chaque webhook est stocké brut (`crm_webhook_log`), puis transformé par
   `process-inbox`, ce qui permet de rejouer un traitement.
-- **Le modèle cite, le code décide** pour l'analyse d'appel (voir `call-analysis/CLAUDE.md`).
+- **Le modèle cite, le code décide** pour l'analyse d'appel (voir `analyse-appel/CLAUDE.md`).
 
 ## Services et comptes
 
@@ -76,8 +76,8 @@ Tous au nom de l'entreprise (pour LNP : e-mail LNP, jamais le compte d'une autre
 | `docs/crm/reference/sales-cycle-v6.html` | source de la vue Cycle de vente |
 | `web/` | édition web Vercel : `public/` (page et `lnp-web.js`), `api/` (routes), `kb/` (base de connaissances du connecteur), `supabase/` (migrations SQL et leurs tests), `tests/` (tests du connecteur), `vercel.json`, `package.json` |
 | `supabase/` | dossier de la CLI Supabase : `functions/` (fonctions Edge et `_shared/`), `tests/` (tests Deno), `config.toml` (`verify_jwt = false`) |
-| `call-analysis/` | moteur d'analyse (`engine/`), worker (`worker/`), méthodologie et contrats (`docs/`) |
-| `.github/workflows/` | `crm-functions.yml` (tests + déploiement des fonctions), `call-analysis.yml` (tests + worker horaire) |
+| `analyse-appel/` | moteur d'analyse (`engine/`), worker (`worker/`), méthodologie et contrats (`docs/`) |
+| `.github/workflows/` | `crm-functions.yml` (tests + déploiement des fonctions), `analyse-appel.yml` (tests + worker horaire) |
 | `docs/crm/` | spécification du CRM ; `docs/lnp/GLOSSAIRE.md` ; ce dossier |
 
 Les noms techniques `app/`, `LNP_*`, `lnp-web.js` sont des identifiants hérités : ils ne s'affichent nulle part et peuvent

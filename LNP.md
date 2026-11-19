@@ -39,7 +39,7 @@ Supabase qui n'est pas celle de LNP ; sa base ne contient que les données de LN
    `crm_settings.sla_alerts.link` = `https://lnp-sales.vercel.app/#crm`.
 4. **Vercel** : projet `lnp`, dossier racine `web/`, variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
    (sensible), `SITE_URL`. Premier administrateur : `BOOTSTRAP_TOKEN` le temps d'appeler `/api/bootstrap`, puis le retirer.
-5. **Analyse d'appel** (`.github/workflows/call-analysis.yml`) : variable de dépôt `SUPABASE_URL` et secret `SUPABASE_SERVICE_ROLE_KEY`
+5. **Analyse d'appel** (`.github/workflows/analyse-appel.yml`) : variable de dépôt `SUPABASE_URL` et secret `SUPABASE_SERVICE_ROLE_KEY`
    = la clé **secret** du projet (`sb_secret_…`, Project Settings › API Keys) : la fonction `callqa-llm` refuse l'ancienne clé `service_role`.
 
 Ne jamais mettre de clé dans ce dépôt.

@@ -886,7 +886,7 @@ de fermer. Bouton « J’ai compris ».
 
 Sources : `app/crm/call_analysis.js` (`LNP_CA` : fenêtre, pastilles, panneau de la fiche), `call_analysis_view.js`
 (`LNP_CAV.html` : rendu du dossier du moteur), `transcript_parse.js` (`LNP_TRANSCRIPT`), RPC `020_crm_call_analysis.sql`,
-`021_crm_call_analysis_board.sql`, `025`, `034`. Spécification de départ : `call-analysis/docs/SCREEN_SPEC.md`. Le moteur
+`021_crm_call_analysis_board.sql`, `025`, `034`. Spécification de départ : `analyse-appel/docs/SCREEN_SPEC.md`. Le moteur
 cite, le code décide et note ; ces fichiers n'affichent que ce que le moteur a stocké. Les codes du moteur restent en anglais
 dans le dossier ; seuls leurs libellés sont traduits (tables `WHY`, `STATUS`, `NATURE`, `SUBT`, `REACT`, `PCAT`…) ; les
 citations restent mot pour mot.
@@ -1011,7 +1011,7 @@ p_source = 'upload')`. Serveur : `admin` ou propriétaire, appel éligible (`crm
 caractères, rôles valides ; enregistre la transcription sur `crm_calls`, passe en échec les jobs encore en file
 (« remplacée par une nouvelle transcription »), crée un `crm_ca_jobs` en file et un événement `transcript_added`. La fenêtre
 passe à « Analyse en cours… ». Erreur : « Non enregistré : <message> ». Le travail est fait par le worker
-`.github/workflows/call-analysis.yml`.
+`.github/workflows/analyse-appel.yml`.
 
 ---
 
@@ -1168,7 +1168,7 @@ fermer un écran le cache, pas ses données.
   filtres Activité et Étape en plus ; modalités de paiement 1 / 2 / 3 / 4 / 6 au lieu de 1 / 2 / 3 ; durées en jours au-delà de
   72 h ; pas de bouton « i » propre ; envoi de messages WhatsApp, lien Whop et lien iClosed non branchés en direct ; la fenêtre d'analyse
   à 5 sections n'existe qu'en démo.
-- `call-analysis/docs/SCREEN_SPEC.md` : pas de « carte de l'appel » (frise des jalons) dans le rendu ; les gestes sont
+- `analyse-appel/docs/SCREEN_SPEC.md` : pas de « carte de l'appel » (frise des jalons) dans le rendu ; les gestes sont
   A · I · E · M (pas A · I · C) ; la découverte est par registre SPIN v1.2, pas par domaine ; l'analyse s'affiche dans la fiche
   prospect et non dans une fenêtre à part ; le bouton « Transcription » montre toute la transcription aux personnes autorisées.
 - `docs/crm/18-sales-cycle-slas.md` : conforme au code (mêmes seuils).
@@ -1194,6 +1194,6 @@ Incohérences observées dans le code, à reproduire ou corriger en connaissance
 - Qui remplit `crm_alerts` (lu par Encaissements à risque, `crm_reassign_cycle` et Realtime) : aucun fichier du dépôt n'y
   insère de ligne (seuls `003_crm_core.sql` la crée et `crm_merge_people` / `crm_reassign_cycle` la mettent à jour). En
   pratique, Encaissements à risque ne montre donc que les prochaines étapes en retard (code « SLA »).
-- Le contenu exact des dossiers d'analyse (`crm_ca_record`) dépend du moteur (`call-analysis/docs/OUTPUT_CONTRACT.md`) : seuls
+- Le contenu exact des dossiers d'analyse (`crm_ca_record`) dépend du moteur (`analyse-appel/docs/OUTPUT_CONTRACT.md`) : seuls
   les champs lus par `call_analysis_view.js` sont décrits ici.
 - La date `no_show_rule.since` et l'activation de la règle d'absence (`enabled`) en production ne sont pas dans le dépôt.

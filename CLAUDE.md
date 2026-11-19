@@ -194,19 +194,19 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 
 ## Analyse d'appel
 
-Le moteur (`call-analysis/`) a ses propres règles : lire `call-analysis/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
-le code décide et note. Les consignes envoyées au modèle (`call-analysis/engine/lnp_callqa/prompts/*.md`) restent en anglais :
-les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/call-analysis.yml`.
+Le moteur (`analyse-appel/`) a ses propres règles : lire `analyse-appel/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
+le code décide et note. Les consignes envoyées au modèle (`analyse-appel/moteur/lnp_analyse/consignes/*.md`) restent en anglais :
+les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/analyse-appel.yml`.
 La fiche d'un lead (ligne « Appels », `crm_ca_board`) liste et numérote les appels exactement comme l'analyse
 (`crm_ca_call_info`) : dans un cycle enregistré par Fathom, un appel de vente est un appel enregistré et son numéro est son rang
 (migration 062 : les absences ne décalent plus le R1 ; test `web/supabase/tests/ca_board_rounds_test.sql`).
-Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
-worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
-Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier
+Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `analyse-appel/qualification`) : chaque R1 analysé est qualifié par le
+worker de l'analyse (`executant_analyse/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
+Moteur allégé (`analyse-appel/allege`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier
 (phases, questions de découverte, écart, présentation de l'offre, objections après la présentation), le code vérifie
 chaque citation et calcule les notes avec les fonctions du moteur de référence. Choix par analyse :
 `update crm_ca_config set engine = 'lite';` (retour : `engine = 'full'`, valeur par défaut ; migration 035). Tests :
-`cd call-analysis/lite && python3 -m pytest -q tests` ; écarts avec la méthodologie : `call-analysis/lite/README.md`.
+`cd analyse-appel/allege && python3 -m pytest -q tests` ; écarts avec la méthodologie : `analyse-appel/allege/README.md`.
 
 ## Vérifier après un changement
 

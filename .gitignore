@@ -5,8 +5,8 @@ web/node_modules/
 
 # captured CRM webhook rows (personal data): never commit, export anonymised fixtures instead
 crm-rows*.json
-# call analysis: real prospect transcripts never go in the repository (call-analysis/CLAUDE.md)
-call-analysis/engine/tests/fixtures/transcripts/
-call-analysis/docs/screen/
+# call analysis: real prospect transcripts never go in the repository (analyse-appel/CLAUDE.md)
+analyse-appel/moteur/tests/fixtures/transcripts/
+analyse-appel/docs/screen/
 __pycache__/
 .pytest_cache/
