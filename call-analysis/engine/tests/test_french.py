@@ -23,6 +23,8 @@ def test_the_person_shift_works_in_french():
     assert T.key_expression_ok("je suis dépendante", "je suis dépendante de ma mère", "tu es dépendante de ta maman")[0]
     assert T.key_expression_ok("ça me bloque", "ça me bloque complètement", "et ça te bloque")[0]
     assert T.key_expression_ok("j'ai peur", "j'ai peur de me lancer", "t'as peur de te lancer")[0]
+    assert T.key_expression_ok("ça m'énerve", "franchement ça m'énerve", "et ça t'énerve")[0]
+    assert T.key_expression_ok("my son", "my son is sick", "your son is sick")[0]          # « son » stays a content word
 
 
 def test_english_is_read_as_before():

@@ -117,7 +117,7 @@ _UNIT_MAP = {"monthly": "month", "months": "month", "mo": "month", "yearly": "ye
              "hours": "hour", "hrs": "hour", "hr": "hour", "h": "hour", "clients": "client", "projects": "project",
              "days": "day", "daily": "day",
              # French (LNP, 2026-11-19)
-             "mois": "month", "mensuel": "month", "mensuels": "month", "mensuelle": "month", "an": "year", "ans": "year",
+             "mois": "month", "mensuel": "month", "mensuels": "month", "mensuelle": "month", "ans": "year",
              "année": "year", "années": "year", "annuel": "year", "annuelle": "year", "semaine": "week",
              "semaines": "week", "hebdo": "week", "heure": "hour", "heures": "hour", "jour": "day", "jours": "day",
              "élève": "client", "élèves": "client", "eleve": "client", "eleves": "client", "client": "client"}

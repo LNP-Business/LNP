@@ -87,14 +87,15 @@ REGISTER_LEXICON_FR = {
     "financial": ("argent", "revenu", "gagn", "salaire", "chiffre d'affaire", "euro", "prix", "paye", "paie", "dette",
                   "credit", "loyer", "factur", "financ", "rentab", "benefice", "client", "eleve", "vente", "vendre", "payer",
                   "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit"),
-    "time_load": ("temps", "heures", "heure ", "semaine", "week-end", "weekend", "emploi du temps", "planning", "charge", "occupe",
+    "time_load": ("temps", "heures", "heure ", "semaine", "week-end", "weekend", "emploi du temps", "charge de travail",
+                  "charge mentale", "occupe",
                   "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
                   "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
     "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
                         "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
-                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitim"),
+                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
 }
 for _reg, _ws in REGISTER_LEXICON_FR.items():
     REGISTER_LEXICON[_reg] = REGISTER_LEXICON[_reg] + _ws

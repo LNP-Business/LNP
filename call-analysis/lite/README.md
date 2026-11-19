@@ -10,6 +10,13 @@ Switch (per job, read by the worker from the claim): `update crm_ca_config set e
 
 ## What it measures (Romain, 2026-11-03)
 
+Phase rules checked by the code (2026-11-19): an offer description is a mention only when the return to discovery
+comes within 2 sales turns (PB-2, PB-17, `MENTION_RETURN_SALES_TURNS`); the pitch end is recomputed after the code moves
+the price or the start (PB-4). SPIN (2026-11-19): when the asked clause of a question names one register (SB-30 words,
+the last clause after a comma, SB-28), the register is read in the question, never in its answer (SB-27); an atom listed
+under an OUT question goes to the question whose answer holds its turn instead of being lost. Gap (2026-11-19): the
+restitution starts at its first restated clause, so an offer word said before it in the same turn does not cut it (GB-1).
+
 Phase rules checked by the code (Romain, 2026-11-03, `phases.py`): the first price is the sales' price **for the
 offer**, with the quoted sales turn that explains that offer (`lnp_offer_price`, `offer_explained`); an offer mention
 followed by a quoted discovery question is a mention, not the pitch start (`next_discovery_question`); a valid price
@@ -107,10 +114,12 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
 3. **No attribution check** (C1 merged / swapped / echo turns): only the code's diarization gate runs. A call with
    mislabelled turns is not repaired and its quotes may be rejected as `wrong_speaker`.
 4. **SPIN letters**: the model gives the letter after walking the gates in the prompt, instead of answering each gate
-   with its proof (§3); the code enforces the hard rules it can read in the text (validation tail, closed need-payoff)
-   but not "value about the offer" or "load of a solution" (they rely on the model's OUT reason). Segmentation (SEG-1
-   to SEG-8) is the model's listing, not the code inventory. SB-21 (action-plan N without a future state) is left to
-   the model's OUT `solution_load`.
+   with its proof (§3); the code enforces the hard rules it can read in the text: validation tail, closed need-payoff,
+   and since 2026-11-19 a tail alone ("Tu vois ?"), the load of a solution (time to dedicate, budget: `SOLUTION_LOAD`)
+   and a question about the offer (`OFFER_QUESTION`), in English and French. Segmentation (SEG-1 to SEG-8) is the
+   model's listing, not the code inventory. SB-21 (action-plan N without a future state) is left to the model's OUT
+   `solution_load`. The perimeter never starts on a social, logistic or framing question, whatever its letter
+   (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
 6. **Registers**: single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
@@ -126,9 +135,13 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    topic change (OB-8) is the model's single answer, checked to be a SALES turn before the next objection, not the
    engine's code-and-question walk turn by turn. (d) The deadlines found at detection (OB-2, OB-25) do not feed
    prevention; only S4's prevention facts do.
-9. **Language**: the code helpers of the engine (approval words, validation tails, person shift of GB-22, stop lists)
-   are English. The prompts accept French or English transcripts, but a French call is checked with English word
-   lists, as in the reference engine.
+9. **Language** (fixed 2026-11-19): the code helpers of the engine read French as well as English
+   (`engine/lnp_callqa/core/lang_fr.py`): words keep their accented letters and French elisions are split; stop words,
+   generic words, approvals, the GB-22 person shift (« je » → « tu », the language of the two passages decides), numbers
+   in words and « 1 500 », question forms, validation tails, echoes, register words, gap openers and validation
+   requests, offer words, objection markers and contradictions, units and compliments. Tests: `engine/tests/test_french.py`.
+   Before, a French call was checked with English lists: « épuisée » was cut into « puis » + « e », « de » passed as a
+   verbatim key expression, « pour » or « avec » made a follow-up.
 10. **Screen**: the objections table shows the first quote of each objection (`resistance.quote`); the other quotes
     are in `episodes[].quotes` until the screen reads them.
 

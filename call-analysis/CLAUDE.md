@@ -22,7 +22,7 @@ as evidence, and verdicts (gap present/absent, pitch compliant/non-compliant). R
 1. `docs/methodology/` — scoring (A), **bounding rules (B)** and calibration cases (C) per competence, plus
    `00_engine_common_part_C.md`. `docs/BOUNDING_INDEX.md` lists every bounding rule and where it is.
 2. `docs/memos/` — the human-readable LNP memos (PDF), one per competence.
-3. `engine/` — the reference implementation (Python, stdlib only), 209 tests.
+3. `engine/` — the reference implementation (Python, stdlib only), 224 tests (20 need the corpus of real transcripts).
 4. `docs/ARCHITECTURE.md`, `docs/OUTPUT_CONTRACT.md`, `docs/SCREEN_SPEC.md`, `docs/OPEN_DECISIONS.md`.
 If code and methodology disagree, the methodology wins: fix the code and add a test.
 
@@ -49,9 +49,15 @@ Five whole-transcript steps (phases, discovery, gap, pitch, objections after the
 the code checks every quote and reuses the engine's decision code (Gap and Pitch competences unchanged, through
 `shim.StepRunner`). Selected per job by `crm_ca_config.engine = 'lite'`. Read `lite/README.md` (approximations) first.
 
+## French calls (2026-11-19)
+The calls are in French. Every word list the code uses has its French twin in `engine/lnp_callqa/core/lang_fr.py`
+(stop words, generic words, approvals, person shift « je » → « tu », numbers…) or next to its English list (question
+forms, tails, registers, gap openers, offer words, objection markers): when you add an English word to a list, add its
+French form. Tests: `engine/tests/test_french.py`.
+
 ## Commands
 ```
-cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (209 tests)
+cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (199 pass; 20 need CALLQA_CORPUS)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
 cd lite && python3 -m pytest -q tests                                 # lite engine

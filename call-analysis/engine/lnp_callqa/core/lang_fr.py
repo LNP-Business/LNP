@@ -9,9 +9,10 @@ their accents; a list compared on accent-folded text (SPIN `_fold`) is folded wh
 from __future__ import annotations
 
 # Function words (C3 / GB-22 (d) "not generic", SB-17 content words, objections content words)
-STOP = set("""le la les l' un une des du de d' au aux à a et ou mais donc or ni car en dans sur sous pour par avec sans
+# (words that are also English content words are left out: « son » (my son), « car », « ton » (a ton of))
+STOP = set("""le la les l' un une des du de d' au aux à a et ou mais donc or ni en dans sur sous pour par avec sans
 chez vers entre que qu' qui quoi dont où ce cet cette ces c' ça cela ceci celui celle ceux celles il elle ils elles on nous vous
-tu te t' toi moi me m' je j' se s' lui leur leurs y mon ma mes ton ta tes son sa ses notre nos votre vos est es suis sont êtes
+tu te t' toi moi me m' je j' se s' lui leur leurs y mon ma mes ta tes sa ses notre nos votre vos est es suis sont êtes
 sommes être été était étais étaient serait ai as avons avez ont avoir eu avait avais fait fais faire ne n' pas plus moins très
 bien alors voilà ouais oui non euh ben bah hein comme si aussi encore déjà là ici ok okay d'accord parce puis quand comment
 pourquoi combien quel quelle quels quelles tout tous toute toutes même mêmes autre autres peu beaucoup trop assez juste
@@ -21,10 +22,10 @@ peut peux pouvoir veux veut vouloir va vais vas aller dit dis dire sais sait sav
 # Words too vague to carry a component of the gap alone (GB-22 (d))
 GENERIC = set("""chose choses truc trucs machin quelque chose tout tous vie gens personne monde façon manière moyen
 bien mal mieux bon bonne mauvais mauvaise dur dure facile difficile envie besoin faire fait fais avoir ai as être suis
-sentir sens sent savoir sais penser pense vouloir veux veut voudrais aimerais aime vraiment juste genre beaucoup""".split())
+sentir sens savoir sais penser pense vouloir veux veut voudrais aimerais aime vraiment juste genre beaucoup""".split())
 
 # A prospect's words restated by the sales (GB-22 (b)): first person → second person
-PERSON_SHIFT = {"je": "tu", "j'": "tu", "me": "te", "m'": "te", "moi": "toi", "mon": "ton", "ma": "ta", "mes": "tes",
+PERSON_SHIFT = {"je": "tu", "j'": "tu", "me": "te", "m'": "t'", "moi": "toi", "mon": "ton", "ma": "ta", "mes": "tes",
                 "nous": "vous", "notre": "votre", "nos": "vos", "suis": "es", "ai": "as", "vais": "vas", "sais": "sais",
                 "mien": "tien", "mienne": "tienne", "miens": "tiens", "miennes": "tiennes", "moi-même": "toi-même"}
 # Second-person forms written two ways ("t'as" / "tu as", "t'es" / "tu es"): the same token on both sides
