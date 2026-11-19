@@ -39,7 +39,37 @@ const { chromium } = require('playwright');
       listBoard: async () => board, listReasons: async () => [], addNote: async () => 1, subscribe: () => () => {},
       setterAction: async () => ({}), setSetter: async () => null, createLead: async () => 'new',
       caBoard: async () => [{ cycle_id: 'c1', call_id: 'k1', round: 1, start: iso(-80), status: 'done', job: 'j1', done_job: 'j1', transcript: true, scores: { SPIN: { score: 64, status: 'scored' }, GAP: { score: 50, status: 'scored', verdict: 'partial' }, PITCH: { score: 70, status: 'scored' }, OBJECTIONS: { score: 40, status: 'scored' } } }, { cycle_id: 'c2', call_id: 'k2', round: 1, start: iso(-20), status: 'done', job: 'j2', done_job: 'j2', transcript: true, scores: { SPIN: { score: 58, status: 'scored' } } }],
-      caRecord: async () => ({ status: 'ok', flags: [], phases: {}, meta: { duration: '45:00', person: 'Paul Payé' }, qualification: { status: 'À REVOIR', rules_version: 'qualification_lnp-v2.2', result: { statut: 'À REVOIR', confiance: 'basse', solution_aware: false, base: { motif: 'Portes à vérifier : Porte 3 — Décision et timing' }, portes: { metier: { statut: 'OUVERTE', raisons: [], preuve: 'je suis professeur de maths au lycée [00:15] / je donne aussi des cours le soir [02:10]' }, financement: { statut: 'FERMÉE', raisons: ['Aucune ressource : au RSA'], preuve: 'Je suis au RSA en ce moment [31:02]' }, decision_timing: { statut: 'NON VÉRIFIÉE', raisons: ['Date ou délai de démarrage non établi'], preuve: 'Je vais réfléchir [44:30]' } }, alertes: ['Synthèse des portes absente en fin de découverte', 'Contradiction du prospect : dit ne rien avoir puis cite une épargne'] } },  results: { SPIN: { competence: 'SPIN', status: 'scored', score: 64, items: [], details: {} }, GAP: { competence: 'GAP', status: 'scored', verdict: 'partial', score: 50, reasons: [] } }, turns: [{ role: 'SALES', speaker: 'Romain', ts: '00:00:04', text: 'Bonjour Paul, merci d’être là. On a 45 minutes ensemble : je vous propose de commencer par votre situation.' }, { role: 'PROSPECT', speaker: 'Paul', ts: '00:00:15', text: 'Avec plaisir. Je suis prof de maths au lycée depuis 12 ans, et j’ai envie de développer les cours particuliers.' }, { role: 'SALES', speaker: 'Romain', ts: '00:00:31', text: 'Qu’est-ce qui fait que vous cherchez maintenant ?' }, { role: 'PROSPECT', speaker: 'Paul', ts: '00:00:38', text: 'Je suis épuisé par la charge de travail, et je voudrais 2 000 € de plus par mois.' }] })
+      caRecord: async () => ({ status: 'ok', flags: [], meta: { duration: '45:00', person: 'Paul Payé' },
+        phases: { discovery_start: 'T010', discovery_end: 'T041', pitch_start: 'T050', first_price: 'T060' },
+        qualification: { status: 'À REVOIR', rules_version: 'qualification_lnp-v2.2', result: { statut: 'À REVOIR', confiance: 'basse', solution_aware: false, base: { motif: 'Portes à vérifier : Porte 3 — Décision et timing' }, portes: { metier: { statut: 'OUVERTE', raisons: [], preuve: 'je suis professeur de maths au lycée [00:15] / je donne aussi des cours le soir [02:10]' }, financement: { statut: 'FERMÉE', raisons: ['Aucune ressource : au RSA'], preuve: 'Je suis au RSA en ce moment [31:02]' }, decision_timing: { statut: 'NON VÉRIFIÉE', raisons: ['Date ou délai de démarrage non établi'], preuve: 'Je vais réfléchir [44:30]' } }, alertes: ['Synthèse des portes absente en fin de découverte', 'Contradiction du prospect : dit ne rien avoir puis cite une épargne'] } },
+        results: { SPIN: { competence: 'SPIN', status: 'scored', score: 64, items: [], details: {} },
+          GAP: { competence: 'GAP', status: 'scored', verdict: 'present', score: 55, reasons: [],
+            items: [{ id: 'G1', weight: 10, level: 2 }, { id: 'G2', weight: 10, level: 2 }, { id: 'G3', weight: 10, level: 2 }, { id: 'G4', weight: 20, level: 0 }, { id: 'G5', weight: 25, level: 1 }, { id: 'G6', weight: 25, level: 1 }],
+            details: { verdict: 'present', gap: { gap_value: 1200 },
+              selected_A: { turn: 'T010', quote: 'Aujourd’hui j’ai trois élèves, ça me rapporte 300 euros par mois', quantified: true },
+              selected_B: { turn: 'T030', quote: 'Je voudrais arriver à 1 500 euros par mois d’ici juin', quantified: true, horizon: 'juin' },
+              selected_P: { turn: 'T020', quote: 'Je ne sais pas me vendre auprès des parents' },
+              cost: [{ turn: 'T025', quote: 'Ça me prend tous mes week-ends pour presque rien', quantified: false }],
+              roadmap: { count: 2 },
+              restitution: { span: ['T040', 'T040'], turns: ['T040'], is_restitution: true, before_first_pitch: true, before_first_price: true,
+                conformity: { one_go: true, deviations: [] }, effective_outcome: 'confirmed',
+                validation: { turn: 'T041', quote: 'Oui, c’est exactement ça', outcome: 'confirmed' },
+                clauses: [
+                  { component: 'A', match: 'verbatim', key_expression: '300 euros par mois', sales_turn: 'T040', sales_quote: 'tu es à 300 euros par mois', source_turn: 'T010', source_quote: 'Aujourd’hui j’ai trois élèves, ça me rapporte 300 euros par mois' },
+                  { component: 'B', match: 'verbatim', key_expression: '1 500 euros par mois', sales_turn: 'T040', sales_quote: 'tu veux arriver à 1 500 euros par mois', source_turn: 'T030', source_quote: 'Je voudrais arriver à 1 500 euros par mois d’ici juin' },
+                  { component: 'PROBLEM', match: 'verbatim', key_expression: 'me vendre', sales_turn: 'T040', sales_quote: 'ce qui te bloque, c’est que tu ne sais pas te vendre', source_turn: 'T020', source_quote: 'Je ne sais pas me vendre auprès des parents' },
+                  { component: 'COST', match: 'paraphrased', key_expression: null, sales_turn: 'T040', sales_quote: 'et ça te fatigue beaucoup', source_turn: 'T025', source_quote: 'Ça me prend tous mes week-ends pour presque rien', reason: 'paraphrased' }] } } } },
+        turns: [
+          { id: 'T001', role: 'SALES', speaker: 'Romain', ts: '00:00:04', text: 'Bonjour Paul, merci d’être là.' },
+          { id: 'T010', role: 'PROSPECT', speaker: 'Paul', ts: '00:05:10', text: 'Aujourd’hui j’ai trois élèves, ça me rapporte 300 euros par mois.' },
+          { id: 'T020', role: 'PROSPECT', speaker: 'Paul', ts: '00:08:00', text: 'Je ne sais pas me vendre auprès des parents.' },
+          { id: 'T025', role: 'PROSPECT', speaker: 'Paul', ts: '00:10:00', text: 'Ça me prend tous mes week-ends pour presque rien.' },
+          { id: 'T030', role: 'PROSPECT', speaker: 'Paul', ts: '00:12:00', text: 'Je voudrais arriver à 1 500 euros par mois d’ici juin.' },
+          { id: 'T040', role: 'SALES', speaker: 'Romain', ts: '00:20:00', text: 'Si je résume : tu es à 300 euros par mois, tu veux arriver à 1 500 euros par mois, ce qui te bloque, c’est que tu ne sais pas te vendre, et ça te fatigue beaucoup.' },
+          { id: 'T041', role: 'PROSPECT', speaker: 'Paul', ts: '00:20:40', text: 'Oui, c’est exactement ça.' },
+          { id: 'T050', role: 'SALES', speaker: 'Romain', ts: '00:25:00', text: 'Je vous présente l’accompagnement.' },
+          { id: 'T060', role: 'SALES', speaker: 'Romain', ts: '00:35:00', text: 'L’investissement est de 3 000 euros.' },
+          { id: 'T070', role: 'PROSPECT', speaker: 'Paul', ts: '00:45:00', text: 'Merci, je vous redis.' }] })
     };
     // the analysis window reads the CRM of the page (window.parent.LNP_CRM): the same simulated analysis
     window.parent.LNP_CRM.caBoard = fake.caBoard; window.parent.LNP_CRM.caRecord = fake.caRecord;
@@ -61,6 +91,15 @@ const { chromium } = require('playwright');
   const rows = await cf.$$eval('.ca-scrim table.qx tbody tr', rs => rs.map(r => r.innerText.replace(/\s+/g, ' ').trim()));
   check('qualification : un tableau, une ligne par critère (Métier, Financement, Décision et timing)', rows.length === 3 && /^Métier/.test(rows[0]) && /^Financement/.test(rows[1]) && /^Décision et timing/.test(rows[2]), rows);
   check('qualification : validé, invalidé, à vérifier, avec une raison courte', /Validé/.test(rows[0]) && /Invalidé/.test(rows[1]) && /Aucune ressource/.test(rows[1]) && /À vérifier/.test(rows[2]), rows);
+  // l'écart : la chronologie lisible, le tableau élément par élément, ce qui manque
+  const gx = await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); if (!c) return null;
+    return { leg: [...c.querySelectorAll('.gx-ev')].map(e => e.innerText.replace(/\s+/g, ' ')), rows: [...c.querySelectorAll('table.gx tbody tr')].map(r => r.innerText.replace(/\s+/g, ' ')),
+      todo: [...c.querySelectorAll('.gx-todo li')].map(l => l.innerText.replace(/\s+/g, ' ')), formula: (c.querySelector('.gx-formula') || {}).innerText || '' }; });
+  check('écart : la légende de la chronologie, un repère par case avec son heure', gx && gx.leg.length === 5 && /Découverte 05:10/.test(gx.leg[0]) && /Reformulation 20:00/.test(gx.leg[1]) && /Validation 20:40/.test(gx.leg[2]) && /Prix 35:00/.test(gx.leg[4]), gx && gx.leg);
+  check('écart : un tableau Problème, Coût, A, B, Validation, prospect et commercial côte à côte', gx && gx.rows.length === 5 && /^Problème/.test(gx.rows[0]) && /Ses mots/.test(gx.rows[0]) && /^Coût/.test(gx.rows[1]) && /Paraphrase/.test(gx.rows[1]) && /tous mes week-ends/.test(gx.rows[1]) && /ça te fatigue/.test(gx.rows[1]) && /^Validation/.test(gx.rows[4]) && /« oui »/.test(gx.rows[4]), gx && gx.rows);
+  check('écart : ce qui manque pour un écart parfait, avec les points à gagner', gx && gx.todo.some(t => /chiffrer ce coût/.test(t) && /\+20/.test(t)) && gx.todo.some(t => /Reprendre ce coût avec ses mots/.test(t)) && gx.todo.some(t => /validation dans ses mots/.test(t) && /\+13/.test(t)), gx && gx.todo);
+  check('écart : la reformulation parfaite remplie avec ses mots', gx && /300 euros par mois/.test(gx.formula) && /1 500 euros par mois/.test(gx.formula) && /me vendre/.test(gx.formula), gx && gx.formula);
+  if (OUT) { await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); c.scrollIntoView(); document.querySelector('.ca-scrim').scrollTop -= 110; }); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart.png', fullPage: false }); await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop += 560); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart-manque.png' }); }
   const pw = await cf.$('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'); if (!pw) { console.log(bad.join('\n')); console.log((await win()).txt.slice(0, 1500)); process.exit(1); }
   await pw.scrollIntoViewIfNeeded(); await pw.hover(); await p.waitForTimeout(250);
   const pop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-pop'); return e && getComputedStyle(e).display !== 'none' ? e.innerText : null; });
