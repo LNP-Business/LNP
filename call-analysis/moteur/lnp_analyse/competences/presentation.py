@@ -195,7 +195,7 @@ def _valider_cat(rep: dict, ctx: ContexteAppel, id_unite: str) -> list[str]:
     return errs
 
 
-CATEGORIE = TacheModele("pitch.p_category", "strong", "pitch_category", _construire_cat, _valider_cat,
+CATEGORIE = TacheModele("pitch.p_category", "strong", "presentation_categorie", _construire_cat, _valider_cat,
                      cle=lambda a: a.get("category"))
 
 
@@ -224,7 +224,7 @@ def _valider_etape1(rep, ctx, id_unite):
     return errs
 
 
-ETAPE1 = TacheModele("pitch.step1", "strong", "pitch_step1", _construire_etape1, _valider_etape1,
+ETAPE1 = TacheModele("pitch.step1", "strong", "presentation_etape1", _construire_etape1, _valider_etape1,
                   cle=lambda a: [(a.get("step") or {}).get("start_turn"), len(a.get("other_blockers") or [])])
 
 
@@ -254,7 +254,7 @@ def _valider_etape2(rep, ctx, id_unite):
     return errs
 
 
-ETAPE2 = TacheModele("pitch.step2", "strong", "pitch_step2", _construire_etape2, _valider_etape2,
+ETAPE2 = TacheModele("pitch.step2", "strong", "presentation_etape2", _construire_etape2, _valider_etape2,
                   cle=lambda a: [(a.get("step") or {}).get("start_turn"),
                                  sorted({(m["mechanism"], m["kind"]) for m in a.get("mechanisms_stated") or []}),
                                  len((a.get("recitation") or {}).get("items") or [])])
@@ -279,7 +279,7 @@ def _valider_etape3(rep, ctx, id_unite):
     return errs
 
 
-ETAPE3 = TacheModele("pitch.step3", "strong", "pitch_step3", _construire_etape3, _valider_etape3,
+ETAPE3 = TacheModele("pitch.step3", "strong", "presentation_etape3", _construire_etape3, _valider_etape3,
                   cle=lambda a: [(a.get("step") or {}).get("start_turn"),
                                  [((a.get(k) or {}).get("value"), (a.get(k) or {}).get("unit")) for k in ("A", "B")],
                                  bool(a.get("deadline")), bool(a.get("image")), a.get("image_key_expression")])
@@ -307,7 +307,7 @@ def _valider_etape4(rep, ctx, id_unite):
     return errs
 
 
-ETAPE4 = TacheModele("pitch.step4", "strong", "pitch_step4", _construire_etape4, _valider_etape4,
+ETAPE4 = TacheModele("pitch.step4", "strong", "presentation_etape4", _construire_etape4, _valider_etape4,
                   cle=lambda a: sorted((c.get("turn"), c.get("library_id"), bool(c.get("profile_match")))
                                        for c in a.get("cases") or []))
 
@@ -336,7 +336,7 @@ def _construire_fenetre_feuille_route(ctx, unite):
             _afficher_fenetre(ctx, s, None))
 
 
-FEUILLE_ROUTE = TacheModele("pitch.roadmap", "strong", "pitch_roadmap", _construire_fenetre_feuille_route, _valider_feuille_route,
+FEUILLE_ROUTE = TacheModele("pitch.roadmap", "strong", "presentation_feuille_route", _construire_fenetre_feuille_route, _valider_feuille_route,
                     cle=lambda a: [(a.get("roadmap") or {}).get("start_turn"),
                                    sorted((s.get("turn"), bool(s.get("source"))) for s in a.get("steps") or [])])
 
@@ -370,7 +370,7 @@ def _valider_affirmations(rep, ctx, id_unite):
     return errs
 
 
-AFFIRMATIONS = TacheModele("pitch.claims", "strong", "pitch_claims", _construire_bloc(_entete_affirmations), _valider_affirmations,
+AFFIRMATIONS = TacheModele("pitch.claims", "strong", "presentation_affirmations", _construire_bloc(_entete_affirmations), _valider_affirmations,
                    cle=lambda a: sorted((c.get("turn"), c.get("kind"), c.get("library_id"), c.get("guarantee_ref"),
                                          bool(c.get("calculation"))) for c in a.get("claims") or []))
 
@@ -385,7 +385,7 @@ def _valider_promesses(rep, ctx, id_unite):
     return errs
 
 
-PROMESSES = TacheModele("pitch.promises", "strong", "pitch_promises", _construire_bloc(lambda c: "Find outcome promises."),
+PROMESSES = TacheModele("pitch.promises", "strong", "presentation_promesses", _construire_bloc(lambda c: "Find outcome promises."),
                      _valider_promesses,
                      cle=lambda a: sorted((p.get("turn"), p.get("action")) for p in a.get("promises") or []))
 
@@ -402,7 +402,7 @@ def _valider_adh(rep, ctx, id_unite):
     return errs
 
 
-ADHESION = TacheModele("pitch.adhesion", "fast", "pitch_adhesion", _construire_bloc(lambda c: "Find adhesion passages."),
+ADHESION = TacheModele("pitch.adhesion", "fast", "presentation_adhesion", _construire_bloc(lambda c: "Find adhesion passages."),
                      _valider_adh,
                      cle=lambda a: sorted((p.get("turn"), p.get("kind"), bool(p.get("concrete")),
                                            bool(p.get("comprehension_echo")), bool(p.get("postpone")))

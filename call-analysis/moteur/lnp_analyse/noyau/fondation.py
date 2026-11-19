@@ -80,7 +80,7 @@ def _valider_attr(rep: dict, ctx: ContexteAppel, unite: Any) -> list[str]:
     return errs
 
 
-ATTRIBUTION = TacheModele("foundation.attribution", "fast", "foundation_attribution", _construire_attr, _valider_attr,
+ATTRIBUTION = TacheModele("foundation.attribution", "fast", "fondation_attribution", _construire_attr, _valider_attr,
                         cle=lambda a: sorted((c["turn"], c["type"]) for c in a.get("cases", [])))
 
 
@@ -165,7 +165,7 @@ def _valider_ph(rep: dict, ctx: ContexteAppel, unite: Any) -> list[str]:
     return []
 
 
-PHASES = TacheModele("foundation.phases", "fast", "foundation_phases", _construire_ph,
+PHASES = TacheModele("foundation.phases", "fast", "fondation_phases", _construire_ph,
                    lambda a, c, u: _valider_ph(a, c, c.tour(u.split(":", 1)[-1]) if isinstance(u, str) else u),
                    cle=lambda a: [bool(a.get(k)) for k in ("offer_description", "screen_share", "followed_by_discovery",
                                                             "price_for_offer", "hypothetical", "decision_request")])

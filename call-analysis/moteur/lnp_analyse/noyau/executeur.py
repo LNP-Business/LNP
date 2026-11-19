@@ -58,7 +58,7 @@ class Executeur:
         self.client = client
         self.cfg = config or ConfigExecution()
         self.alea = random.Random(self.cfg.graine)
-        self.systeme_commun = charger_consigne("system_common")
+        self.systeme_commun = charger_consigne("systeme_commun")
 
     # -------------------------------------------------------------------------------------------
     def _demander(self, ctx: ContexteAppel, tache: TacheModele, id_unite: str, consigne: str, no_passe: int,

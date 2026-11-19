@@ -585,7 +585,7 @@ class _Taches:
                 if e:
                     errs.append(f"{e}:{n.get('turn')}")
             return errs
-        return TacheModele("obj.nominate", "fast", "objections_nominate", construire, valider,
+        return TacheModele("obj.nominate", "fast", "objections_nommer", construire, valider,
                          cle=lambda a: sorted(n["turn"] for n in a.get("nominations", []) or []))
 
     # -- resistance (OB-2, OB-3, OB-4, OB-24, OB-25, OB-26)
@@ -633,7 +633,7 @@ class _Taches:
                 e = _commercial_ok(ctx, Preuve(a.get("quote", "") or "", t.id), [t.id], mots_max=60)
                 return [e] if e else []
             return []
-        return TacheModele("obj.topic", "fast", "objections_topic", construire, valider,
+        return TacheModele("obj.topic", "fast", "objections_sujet", construire, valider,
                          cle=lambda a: [bool(a.get("new_subject")), bool(a.get("receive_and_leave"))])
 
     # -- per-episode gesture tasks
@@ -660,7 +660,7 @@ class _Taches:
             ep = self.unites[uid]
             e = _commercial_ok(ctx, Preuve(a.get("quote", ""), ep.reponse_com[0]), mots_min=1)
             return [e] if e else []
-        return TacheModele("obj.acknowledge", "fast", "objections_acknowledge", construire, valider,
+        return TacheModele("obj.acknowledge", "fast", "objections_accueillir", construire, valider,
                          cle=lambda a: [bool(a.get(k)) for k in ("receiving_marker", "neutral_reformulation",
                                                                  "elliptical_open_question", "contradiction")])
 
@@ -671,7 +671,7 @@ class _Taches:
                 e = _commercial_ok(ctx, Preuve(a.get("quote", ""), a.get("turn", "")), ep.reponse_com)
                 return [e] if e else []
             return []
-        return TacheModele("obj.isolate", "fast", "objections_isolate", lambda ctx, ep: self._texte_episode(ctx, ep),
+        return TacheModele("obj.isolate", "fast", "objections_isoler", lambda ctx, ep: self._texte_episode(ctx, ep),
                          valider, cle=lambda a: [bool(a.get("isolate")), a.get("turn") if a.get("isolate") else None])
 
     def explorer(self) -> TacheModele:
@@ -691,7 +691,7 @@ class _Taches:
                     if e:
                         errs.append("answer_" + e)
             return errs
-        return TacheModele("obj.explore", "fast", "objections_explore", construire, valider,
+        return TacheModele("obj.explore", "fast", "objections_explorer", construire, valider,
                          cle=lambda a: [bool(a.get("explore")), a.get("turn") if a.get("explore") else None,
                                         bool(a.get("open_question")), bool(a.get("elliptical")),
                                         bool(a.get("answered_with_content"))])
@@ -717,7 +717,7 @@ class _Taches:
                 if e:
                     errs.append("cost_" + e)
             return errs
-        return TacheModele("obj.gesture", "strong", "objections_gesture", lambda ctx, ep: self._texte_episode(ctx, ep),
+        return TacheModele("obj.gesture", "strong", "objections_geste", lambda ctx, ep: self._texte_episode(ctx, ep),
                          valider, cle=lambda a: [bool(a.get(k)) for k in booleens])
 
     def resolution(self) -> TacheModele:

@@ -69,7 +69,7 @@ def executer_s1(ctx: ContexteAppel, etapes: Etapes, cfg: dict, rejets: Rejets) -
         fenetre = (f"Read the questions asked in turns {ta} to {tb} only (their answers may continue after {tb}). "
                   + (f"The first pitch start or price is at {fin}: nothing from {fin} on is discovery (SB-34)."
                      if fin else "No pitch start or price was found: the whole call can be discovery."))
-        rep = etapes.demander("lite.s1_discovery", f"{ta}-{tb}", remplir(charger("s1_discovery"), fenetre=fenetre),
+        rep = etapes.demander("lite.s1_discovery", f"{ta}-{tb}", remplir(charger("s1_decouverte"), fenetre=fenetre),
                         cfg["max_tokens"]["S1"], rejouer_tronque=False)
         if rep.reponse is None and rep.raison_arret == "max_tokens" and b - a + 1 > cfg["s1_min_chunk_turns"]:
             milieu = (a + b) // 2
@@ -134,7 +134,7 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
         ctx.resultats["GAP"] = _a_revoir("GAP", "engine_error")
     else:
         flimite = ctx.phases.premier_prix or ctx.phases.demande_decision
-        consigne = remplir(charger("s2_gap"), ancres=ancres(ctx), limite=f"turn {flimite}" if flimite else "the end of the call",
+        consigne = remplir(charger("s2_ecart"), ancres=ancres(ctx), limite=f"turn {flimite}" if flimite else "the end of the call",
                       enonces=texte_enonces(ctx))
         tente.append("S2")
         s2 = etapes.demander("lite.s2_gap", "call", consigne, cfg["max_tokens"]["S2"])
@@ -150,7 +150,7 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
         ctx.resultats["PITCH"] = _sur(ctx, "PITCH", lambda: P.decider(ctx, {}))          # not applicable (§4)
     else:
         c = texte_contexte(ctx)
-        consigne = remplir(charger("s3_pitch"), ancres=ancres(ctx), vp=c["vp"], a=c["a"], b=c["b"], blocages=c["blockers"],
+        consigne = remplir(charger("s3_presentation"), ancres=ancres(ctx), vp=c["vp"], a=c["a"], b=c["b"], blocages=c["blockers"],
                       references=c["references"])
         tente.append("S3")
         s3 = etapes.demander("lite.s3_pitch", "call", consigne, cfg["max_tokens"]["S3"])

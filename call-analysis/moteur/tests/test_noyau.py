@@ -59,7 +59,7 @@ def test_regle_deux_citations_et_poids_na():
 def _tache():
     def valider(a, ctx, uid):
         return [] if citation_ok(ctx, Preuve(a.get("quote", ""), "T002", "PROSPECT")) is None else ["bad_quote"]
-    return TacheModele("t.x", "fast", "foundation_phases", lambda ctx, u: "q", valider, cle=lambda a: a["v"])
+    return TacheModele("t.x", "fast", "fondation_phases", lambda ctx, u: "q", valider, cle=lambda a: a["v"])
 
 
 def test_executeur_verifie_et_arbitre():
@@ -86,7 +86,7 @@ def test_executeur_reponse_de_forme_inattendue_rejetee_sans_plantage():
 
     def valider(a, ctx, uid):
         return [] if a["parts"][0] else ["empty_part"]           # a list expected; the model sent an object
-    t = TacheModele("t.y", "fast", "foundation_phases", lambda ctx, u: "q", valider, cle=lambda a: a["v"])
+    t = TacheModele("t.y", "fast", "fondation_phases", lambda ctx, u: "q", valider, cle=lambda a: a["v"])
     mc = ClientSimule({("t.y", "u4"): {"v": True, "parts": {"a": 1}}})
     r = Executeur(mc).executer(c, t, "u4", None)
     assert r.statut == "to_review" and r.reponse is None

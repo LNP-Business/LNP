@@ -70,7 +70,7 @@ class Etapes:
     ctx: ContexteAppel
     palier: str = "fast"
     effort: str = "low"
-    systeme: str = field(default_factory=lambda: charger("system"))
+    systeme: str = field(default_factory=lambda: charger("systeme"))
     prefixe: str = ""
 
     def __post_init__(self):

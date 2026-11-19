@@ -1108,15 +1108,15 @@ def valider_horizon(rep: dict, ctx: ContexteAppel, id_unite: str) -> list[str]:
     return []
 
 
-RESTITUTION = TacheModele("gap.restitution", "strong", "gap_restitution", construire_restitution, valider_restitution,
+RESTITUTION = TacheModele("gap.restitution", "strong", "ecart_restitution", construire_restitution, valider_restitution,
                         cle_restitution)
-VALIDATION = TacheModele("gap.validation", "strong", "gap_validation", construire_validation, valider_validation,
+VALIDATION = TacheModele("gap.validation", "strong", "ecart_validation", construire_validation, valider_validation,
                        cle_validation)
-A_ACTUEL = TacheModele("gap.a_current", "fast", "gap_a_current", construire_a_actuel, valider_a_actuel,
+A_ACTUEL = TacheModele("gap.a_current", "fast", "ecart_a_actuel", construire_a_actuel, valider_a_actuel,
                       cle=lambda a: bool(a.get("present_state")))
-BLOCAGE = TacheModele("gap.stopping", "fast", "gap_stopping", construire_blocage, valider_blocage,
+BLOCAGE = TacheModele("gap.stopping", "fast", "ecart_blocage", construire_blocage, valider_blocage,
                      cle=lambda a: bool(a.get("is_stopping_question")))
-HORIZON = TacheModele("gap.horizon", "fast", "gap_horizon", construire_horizon, valider_horizon,
+HORIZON = TacheModele("gap.horizon", "fast", "ecart_horizon", construire_horizon, valider_horizon,
                     cle=lambda a: [bool(a.get("horizon_quote")), a.get("binding")])
 
 

@@ -351,7 +351,7 @@ def tache_porte(u: Unite) -> TacheModele:
     def cle(a: dict) -> Any:
         return [(d.lettre, d.raison, "closed_need_payoff" in d.etiquettes) for _, d in decider_portes(a, u.attrs, u.sol.texte)] \
             + [bool(a.get("objection_clarification"))]
-    return TacheModele("spin.gates", "fast", "spin_gates", _construire_portes,
+    return TacheModele("spin.gates", "fast", "spin_portes", _construire_portes,
                      lambda a, c, uid: _valider_obj_porte(a, u.sol.texte), cle)
 
 
@@ -377,7 +377,7 @@ def tache_reouverture(u: Unite) -> TacheModele:
             return ["unknown_turn"]
         e = citation_ok(ctx, Preuve(a.get("quote", ""), et, COMMERCIAL), mots_min=2, mots_max=40)
         return [e] if e else []
-    return TacheModele("spin.reopen_end", "fast", "spin_reopen", _construire_reouverture, valider,
+    return TacheModele("spin.reopen_end", "fast", "spin_reouverture", _construire_reouverture, valider,
                      cle=lambda a: a.get("end_turn"))
 
 
@@ -494,7 +494,7 @@ def _valider_atomes(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
 
 
 def tache_atomes(u: Unite) -> TacheModele:
-    return TacheModele("spin.atoms", "strong", "spin_atoms", _construire_atomes, lambda a, c, uid: _valider_atomes(a, c, u),
+    return TacheModele("spin.atoms", "strong", "spin_atomes", _construire_atomes, lambda a, c, uid: _valider_atomes(a, c, u),
                      cle=lambda a: sorted((x.get("type"), x.get("turn"),
                                            x.get("domain") if x.get("type") == "IMPACT" else None)
                                           for x in a.get("atoms") or []))
@@ -644,7 +644,7 @@ def tache_lien(cand: Unite, ctx: ContexteAppel) -> TacheModele:
             if not any(_preuve_ok(a.get("quote"), s) for s in src if s):
                 return ["bad_quote"]
         return []
-    return TacheModele("spin.link", "fast", "spin_link", _construire_lien, valider, cle=lambda a: bool(a.get("same_object")))
+    return TacheModele("spin.link", "fast", "spin_lien", _construire_lien, valider, cle=lambda a: bool(a.get("same_object")))
 
 
 def trouver_chaines(etapes: list[MaillonChaine], meme_objet: Callable[[MaillonChaine, list[MaillonChaine], MaillonChaine], bool]
@@ -1055,7 +1055,7 @@ def _valider_registre(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
 
 def tache_registre(u: Unite) -> TacheModele:
     """One closed task per coded question of the discovery; the key compared across passes is the register."""
-    return TacheModele("spin.register", "fast", "spin_register", _construire_registre,
+    return TacheModele("spin.register", "fast", "spin_registre", _construire_registre,
                      lambda a, c, uid: _valider_registre(a, c, u), cle=lambda a: decider_registre(a))
 
 
