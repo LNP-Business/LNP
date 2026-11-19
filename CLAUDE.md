@@ -148,7 +148,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   alignement), puis « Pour un écart parfait » (ce qui manque, points à gagner d'après les items G1 à G6 du moteur, la reformulation
   parfaite remplie avec ses mots) ; affichage seulement, les règles restent celles du moteur. Objections : comme dans la Découverte,
   une lettre A · I · E · M ouvre sa citation dans une fenêtre posée sur le tableau, sous la lettre (`gPanel`, `.ob-pop`), refermée par
-  la même lettre ou sa croix ; le tableau garde sa hauteur ; test
+  la même lettre ou sa croix ; le tableau garde sa hauteur. Une lettre (SPIN dans la Découverte, A · I · E · M dans les Objections)
+  montre le passage concerné en clair et les répliques autour à 50 % (`ctxRows` : 2 avant et 2 après pour SPIN, 2 avant et 4 après
+  pour une objection) ; test
   `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>`.
 - Paramètres › Alertes : `gabarits/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/lnp-web.js`.
 - Connexion, équipe, accès par écran, interface `window.claude.use("user" | "crm")` : `web/public/lnp-web.js`.
