@@ -186,6 +186,9 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 Le moteur (`call-analysis/`) a ses propres règles : lire `call-analysis/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
 le code décide et note. Les consignes envoyées au modèle (`call-analysis/engine/lnp_callqa/prompts/*.md`) restent en anglais :
 les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/call-analysis.yml`.
+La fiche d'un lead (ligne « Appels », `crm_ca_board`) liste et numérote les appels exactement comme l'analyse
+(`crm_ca_call_info`) : dans un cycle enregistré par Fathom, un appel de vente est un appel enregistré et son numéro est son rang
+(migration 062 : les absences ne décalent plus le R1 ; test `web/supabase/tests/ca_board_rounds_test.sql`).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier

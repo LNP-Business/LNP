@@ -110,6 +110,8 @@ run 045_crm_pipeline_moves.sql
 run 045_crm_pipeline_moves.sql
 run 046_crm_qualif_in_analysis.sql
 run 046_crm_qualif_in_analysis.sql
+# 062 replaces the board of 046: the analysis tests below (call_analysis, qualif_in_analysis) run against it
+run 062_crm_ca_board_rounds.sql
 run 047_crm_pipeline_stage_moves.sql
 run 047_crm_pipeline_stage_moves.sql
 run 048_crm_admin_only_sees_all.sql
@@ -189,3 +191,7 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/source_de_verite_test.sql | tai
 run 060_crm_cockpit_corrections.sql
 run 060_crm_cockpit_corrections.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_corrections_test.sql | tail -1
+# 062 : la fiche liste et numérote les appels comme l'analyse (un R1 honoré après des absences n'est plus caché)
+run 062_crm_ca_board_rounds.sql
+run 062_crm_ca_board_rounds.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_board_rounds_test.sql | tail -1
