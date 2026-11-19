@@ -116,14 +116,24 @@ const { chromium } = require('playwright');
   // objections : la lettre ouvre sa citation sous l'objection qui la porte, un second clic la referme
   const obRows = () => cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /Objections/.test((x.querySelector('.serif') || {}).textContent || '') || /^\s*4\s*Objections/.test(x.textContent)); const t = c && c.querySelector('table'); return t ? [...t.querySelectorAll('tbody > tr')].map(r => ({ name: r.querySelector('b').textContent, pan: !!r.querySelector('.ob-pan'), txt: (r.querySelector('.ob-pan') || {}).innerText || '' })) : null; });
   let ob = await obRows();
+  const hBefore = await cf.evaluate(() => document.querySelectorAll('.ca-scrim table')[document.querySelectorAll('.ca-scrim table').length - 1].getBoundingClientRect().height);
   check('objections : deux objections, aucun détail ouvert au départ', ob && ob.length === 2 && !ob.some(r => r.pan), ob);
   await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
   ob = await obRows();
-  check('objections : la lettre A de la 2e objection ouvre sa citation sous cette objection', ob && !ob[0].pan && ob[1].pan && /Accueillie/.test(ob[1].txt) && /parler à deux/.test(ob[1].txt) && !(await cf.$('.ca-scrim table + .ob-pan')), ob);
+  check('objections : la lettre A de la 2e objection ouvre sa citation, sous cette objection', ob && !ob[0].pan && ob[1].pan && /Accueillie/.test(ob[1].txt) && /parler à deux/.test(ob[1].txt) && !(await cf.$('.ca-scrim table + .ob-pan')), ob);
+  const obPop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return { pos: getComputedStyle(e).position, x: !!e.querySelector('.ob-x') }; });
+  check('objections : une fenêtre posée par-dessus le tableau, avec une croix', obPop.pos === 'absolute' && obPop.x, obPop);
+  const hNow = await cf.evaluate(() => document.querySelectorAll('.ca-scrim table')[document.querySelectorAll('.ca-scrim table').length - 1].getBoundingClientRect().height);
+  check('objections : le tableau garde sa hauteur quand la fenêtre est ouverte', Math.abs(hNow - hBefore) < 2, { hBefore, hNow });
   if (OUT) { await cf.evaluate(() => document.querySelector('.ca-scrim .ob-pan').scrollIntoView({ block: 'center' })); await p.waitForTimeout(150); await p.screenshot({ path: OUT + '/objection-lettre.png' }); }
   await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
   ob = await obRows();
   check('objections : un second clic sur la lettre la referme', ob && !ob.some(r => r.pan), ob);
+  await cf.click('.ca-scrim [data-cav-ep="0"][data-cav-g="E"]'); await p.waitForTimeout(300);
+  ob = await obRows(); const opened = ob && ob[0].pan;
+  await cf.click('.ca-scrim .ob-pan .ob-x'); await p.waitForTimeout(300);
+  ob = await obRows();
+  check('objections : la croix en haut à droite referme la fenêtre', opened && ob && !ob.some(r => r.pan), { opened, ob });
   const pw = await cf.$('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'); if (!pw) { console.log(bad.join('\n')); console.log((await win()).txt.slice(0, 1500)); process.exit(1); }
   await pw.scrollIntoViewIfNeeded(); await pw.hover(); await p.waitForTimeout(250);
   const pop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-pop'); return e && getComputedStyle(e).display !== 'none' ? e.innerText : null; });
