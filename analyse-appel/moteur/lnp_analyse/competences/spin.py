@@ -74,54 +74,109 @@ ACCORD_MIN_REGISTRE = 0.92      # SB-33 : part, par appel, des registres décid�
 LEXIQUE_REGISTRE = {
     "financial": ("money", "income", "revenue", "earn", "salary", "cash", "price", "afford", "debt", "bills", "rent",
                   "financ", "profit", "dollar", "paid", "paying", "client", "customer", "project", "leads", "booking",
-                  "pipeline", "sales"),
+                  "pipeline", "sales",
+                  "argent", "revenu", "salaire", "gagne", "gagnais", "chiffre d'affaires", "prix", "tarif", "dette",
+                  "factur", "loyer", "benefice", "euro", "payer", "paye", "paie", "paiement", "les moyens", "fin de mois",
+                  "fins de mois", "eleves", "projet", "vente", "vendre", "reservation", "carnet de commandes"),
     "time_load": ("time", "hour", "week", "weekend", "schedule", "workload", "busy", "family", "kid", "child", "wife",
-                  "husband", "partner", "son", "daughter", "parent"),
+                  "husband", "partner", "son", "daughter", "parent",
+                  "temps", "heures", "une heure", "semaine", "planning", "horaire", "emploi du temps",
+                  "charge de travail", "deborde", "ma famille", "ta famille", "votre famille", "sa famille", "en famille",
+                  "vie de famille", "familial", "enfant", "gamin", "gosse", "bebe", "mon mari", "ton mari", "votre mari",
+                  "ma femme", "ta femme", "votre femme", "conjoint", "compagne", "compagnon", "fils", "fille"),
     "identity_status": ("future", "years from now", "long term", "long-term", "where do you see yourself",
-                        "where do you want to be", "become", "dream", "vision", "career", "legacy", "status"),
+                        "where do you want to be", "become", "dream", "vision", "career", "legacy", "status",
+                        "avenir", "futur", "long terme", "dans un an", "dans cinq ans", "dans 5 ans", "ou tu te vois",
+                        "ou vous vous voyez", "ou tu veux etre", "ou vous voulez etre", "ou tu veux en etre",
+                        "ou vous voulez en etre", "devenir", "rever", "reve ", "reves", "carriere", "statut",
+                        "reconver"),
     "mental_emotional": ("confiden", "believe in yourself", "self-belief", "motivat", "mindset", "fear", "doubt",
                          "feel", "emotion", "frustrat", "proud", "health", "stress", "anxi", "burnout", "burn out",
-                         "burned out", "exhaust", "tired", "sleep", "energy"),
+                         "burned out", "exhaust", "tired", "sleep", "energy",
+                         "confian", "croire en toi", "croire en vous", "croire en moi", "motiv", "etat d'esprit",
+                         "mental", "peur", "doute", "ressen", "sentiment", "frustre", "fier", "sante", "angoiss",
+                         "epuis", "fatigu", "sommeil", "dormir", "energie", "deprim", "moral", "culpabil", "honte",
+                         "te sens", "vous sentez", "me sens", "se sent"),
 }
 
 
-# =============================================================================================== S1 inventory
-# Lexicons ported from the SPIN reference inventory script (segment.py).
+# =============================================================================================== S1 inventaire
+# Lexiques portés du script d'inventaire du référentiel SPIN (segment.py), complétés des tournures françaises.
 def _replier(s: str) -> str:
+    """Minuscules, apostrophe droite, accents retirés, ponctuation (sauf l'apostrophe) remplacée par une espace."""
     s = unicodedata.normalize("NFD", (s or "").lower().replace("’", "'"))
     s = "".join(c for c in s if unicodedata.category(c) != "Mn")
     return re.sub(r"[^\w\s']", " ", s)
 
 
 ACCUEIL = set("yes yeah yep yup ok okay right sure fine exactly totally absolutely definitely correct true indeed "
-          "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love".split())
+          "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love "
+          # français, replié comme par _replier (sans accents)
+          "oui ouais ouaip d'accord dac exactement exact carrement clairement absolument totalement evidemment voila "
+          "super genial parfait top nickel bien excellent incroyable magnifique waouh mmh hum ah".split())
+# mots de remplissage d'une relance orale (SEG-7), en plus de ACCUEIL
+REMPLISSAGE = ("oh", "really", "so", "and", "hmm", "huh",
+               "vraiment", "donc", "et", "euh", "hein", "bon", "ben", "bah", "tres", "tout", "a", "fait", "c'est", "ca")
+# formes interrogatives sans point d'interrogation, sur la phrase en minuscules (accents gardés)
 INTERRO = re.compile(r"^(how|what|what's|whats|when|where|why|who|which|whose|do|does|did|are|is|was|were|have|has|"
                      r"had|can|could|would|will|should|shall|may|might|am|isn't|aren't|don't|doesn't|didn't|won't|"
-                     r"wouldn't|couldn't)\b")
+                     r"wouldn't|couldn't|"
+                     r"comment|combien|pourquoi|quand|où|qui|quel|quelle|quels|quelles|lequel|laquelle|"
+                     r"qu['’]est[- ]ce|est[- ]ce que|est[- ]ce qu['’]|c['’]est quoi|depuis quand|depuis combien|"
+                     r"[àa] quel|[àa] quelle|as[- ]tu|avez[- ]vous|es[- ]tu|[êe]tes[- ]vous|peux[- ]tu|pouvez[- ]vous|"
+                     r"veux[- ]tu|voulez[- ]vous|sais[- ]tu|savez[- ]vous|penses[- ]tu|pensez[- ]vous|"
+                     r"aurais[- ]tu|auriez[- ]vous|serais[- ]tu|seriez[- ]vous)\b")
+# demandes à l'impératif, sur la phrase repliée (_replier : sans accents, traits d'union devenus espaces)
 IMPERATIF = re.compile(r"^(tell me|walk me through|talk me through|describe|explain|help me understand|share with me|"
-                        r"give me a sense|paint me a picture)")
+                        r"give me a sense|paint me a picture|"
+                        r"dis moi|dites moi|dis m'en|dites m'en|raconte|parle moi|parlez moi|explique|decri|"
+                        r"aide moi a comprendre|aidez moi a comprendre|fais moi comprendre|faites moi comprendre|"
+                        r"partage avec moi|partagez avec moi|donne moi une idee|donnez moi une idee|detaille|developpe|"
+                        r"precise)")
+# queues de validation en fin de phrase, sur la phrase en minuscules (accents gardés ; espace permise avant « ? »)
 QUEUES = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"\byeah\?$", r"\bno\?$",
          r"\bis that it\?$", r"\bis that right\?$", r"\bam i right\?$", r"\bdoes that make sense\?$", r"\bfair\?$",
-         r"\byou know\?$", r"\bok\?$", r"\bokay\?$"]
+         r"\byou know\?$", r"\bok\?$", r"\bokay\?$",
+         r"\bnon\s*\?$", r"\bhein\s*\?$", r"\bc['’]est (bien )?[çc]a\s*\?$", r"\bpas vrai\s*\?$",
+         r"\bn['’]est[- ]ce pas\s*\?$", r"\btu vois\s*\?$", r"\bvous voyez\s*\?$", r"\bd['’]accord\s*\?$",
+         r"\bok\s+\?$", r"\boui\s*\?$", r"\bouais\s*\?$", r"\bexact\s*\?$", r"\bj['’]ai raison\s*\?$",
+         r"\bje me trompe\s*\?$", r"\bc['’]est (bien )?(juste|clair|logique)\s*\?$", r"\btu comprends\s*\?$",
+         r"\bvous comprenez\s*\?$", r"\btu me suis\s*\?$", r"\bvous me suivez\s*\?$",
+         r"\b[çc]a (te|vous) parle\s*\?$", r"\b[çc]a (a|fait) du sens\s*\?$", r"\b[çc]a fait sens\s*\?$"]
 QUEUE_SEULE = re.compile(r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
-                       r"isn't it)\s*\?$", re.I)
+                       r"isn't it|"
+                       r"non|hein|oui|ouais|exact|d['’]accord|c['’]est (bien )?[çc]a|pas vrai|n['’]est[- ]ce pas|tu vois|"
+                       r"vous voyez|j['’]ai raison|je me trompe|c['’]est (bien )?(juste|clair)|tu comprends|vous comprenez|"
+                       r"tu me suis|vous me suivez|[çc]a (te|vous) parle)\s*\?$", re.I)
 MOTS_VIDES = set(_replier("""the a an and or but so to of in on at for with that this it its is are was were be been i you he
 she we they me my your our their them there here what how when where why who which do does did have has had not no
 yes just like really very about from as if then than also can could would will should get got go going know think
 mean thing things kind sort lot little bit yeah okay right well one two some any more most much many even still now
-today make made want really actually maybe something anything everything people time""").split())
+today make made want really actually maybe something anything everything people time
+alors avec avoir dans donc elle elles etre etait etais fait faire mais nous vous leur leurs meme moins plus pour
+quand quel quelle quels quelles quoi sans sont tout tous toute toutes tres voila vraiment aussi encore deja juste
+comme comment combien pourquoi parce chose choses truc trucs genre enfin bref bien beaucoup ouais d'accord accord
+exactement peut aujourd'hui maintenant chaque autre autres ceux celle celui cette ceci cela entre depuis pendant
+avant apres jamais toujours souvent rien personne quelqu'un quelque quelques notre votre c'est j'ai j'avais
+qu'est qu'il qu'on c'etait n'est d'ailleurs suis sommes etes avez avons avais avait aura serait sera vont vais
+allez aller veux veut voulez vouloir pense penses pensez crois sais savez dire dis disais fois temps gens voir""").split())
 MOTS_OFFRE = re.compile(r"\b(program|programme|academy|our (method|course|coaching|mentorship|offer)|the course|"
-                         r"enroll|tuition|investment|price|cost|payment plan)\b")
+                         r"enroll|tuition|investment|price|cost|payment plan|"
+                         r"notre (m[ée]thode|formation|accompagnement|coaching|offre|acad[ée]mie|suivi)|"
+                         r"l['’]accompagnement|la formation|le coaching|le suivi|modules?|s[ée]ances?|"
+                         r"inscri(re|ption|s)|investissement|tarif|prix|co[ûu]ts?|paiement en (plusieurs|\d+) fois|"
+                         r"[ée]ch[ée]ancier)\b")
 LIGNE_SYSTEME = re.compile(r"SCREEN SHARING|https?://|WATCH:")
 
 
 def couper_phrases(texte: str) -> list[str]:
+    """Coupe après . ? ! devant une majuscule (accentuée comprise : « À », « Ça », « Œ »), un chiffre ou un guillemet."""
     t = re.sub(r"\s+", " ", texte or "").strip()
-    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9\"'])", t) if p.strip()]
+    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9À-ÖØ-ÞŒ\"'«“])", t) if p.strip()]
 
 
 def forme_question(s: str) -> Optional[str]:
-    """§2 Solicitation: final question mark, interrogative form without mark, or imperative of request."""
+    """§2 Sollicitation : point d'interrogation final, forme interrogative sans point, ou demande à l'impératif."""
     ns = s.strip().lower()
     if ns.endswith("?"):
         return "interrogative"
@@ -133,7 +188,7 @@ def forme_question(s: str) -> Optional[str]:
 
 
 def mots_contenu(s: str) -> set[str]:
-    """SB-17: content words (4 letters or more, outside the stop list) and numbers."""
+    """SB-17 : mots de contenu (4 lettres ou plus, hors de la liste des mots vides) et nombres."""
     sortie = {w for w in _replier(s).split() if len(w) >= MIN_MOTS_CONTENU and w not in MOTS_VIDES}
     for jet in re.findall(r"\$?\d[\d,.]*k?", (s or "").lower()):
         n = normaliser_nombre(jet)
@@ -144,7 +199,7 @@ def mots_contenu(s: str) -> set[str]:
 
 @dataclass
 class Unite:
-    """Internal unit of analysis: one solicitation with its deterministic attributes."""
+    """Unité d'analyse interne : une sollicitation avec ses attributs calculés par le code."""
     sol: Sollicitation
     tour: Tour
     rang: int
@@ -152,21 +207,22 @@ class Unite:
     preambule: str = ""
     prospect_prec: list[Tour] = field(default_factory=list)
     attrs: dict[str, Any] = field(default_factory=dict)
-    portes_: Optional[dict] = None             # resolved gate answer
+    portes_: Optional[dict] = None             # réponse des portes une fois résolue
     decision: Optional["DecisionLettre"] = None
-    fin_fenetre: Optional[str] = None         # end of the perimeter window the unit belongs to (exclusive)
+    fin_fenetre: Optional[str] = None         # fin (exclue) de la fenêtre du périmètre à laquelle l'unité appartient
     dans_perimetre: bool = False
     reouverture: Optional[int] = None
     tours_spontanes: list[str] = field(default_factory=list)
     texte_reponse: str = ""
-    suit_prec: bool = False               # this question reuses the previous answer (SB-17 / SB-19)
+    suit_prec: bool = False               # cette question reprend la réponse précédente (SB-17 / SB-19)
     sans_reponse: bool = False                 # SB-6
-    parties: list = field(default_factory=list)  # [(text, LetterDecision)] after a SEG-2 split
+    parties: list = field(default_factory=list)  # [(texte, DecisionLettre)] après une coupe SEG-2
 
 
 def inventaire(ctx: ContexteAppel) -> list[Unite]:
-    """S1: every sales sentence that is a solicitation becomes a unit (SEG-1); nothing is deleted, filters are
-    attributes. SEG-4: an isolated validation tail closes the previous sentence. SEG-8: sales turns only."""
+    """S1 : chaque phrase du commercial qui est une sollicitation devient une unité (SEG-1) ; rien n'est supprimé, les
+    filtres sont des attributs. SEG-4 : une queue de validation isolée ferme la phrase précédente. SEG-8 : tours du
+    commercial seulement."""
     unites: list[Unite] = []
     tours = [t for t in ctx.tours if not t.attribution_douteuse]
     for idx, t in enumerate(tours):
@@ -187,13 +243,13 @@ def inventaire(ctx: ContexteAppel) -> list[Unite]:
             attrs = {
                 "form": forme_question(s),
                 "validation_tail": any(re.search(p, bas) for p in QUEUES),                     # SEG-4
-                "backchannel": len(ws) <= 3 and all(w.strip("'") in ACCUEIL or w in ("oh", "really", "so", "and",
-                                                                                  "hmm", "huh") for w in ws),  # SEG-7
-                "alternative": bool(re.search(r"\bor\b", bas)) and bas.endswith("?"),         # SEG-3
-                "open_branch": bool(re.search(r"\bor (something else|anything else|other|not)\b", bas)),
-                "why": bool(re.search(r"\bwhy\b", bas)),
+                "backchannel": len(ws) <= 3 and all(w.strip("'") in ACCUEIL or w in REMPLISSAGE for w in ws),  # SEG-7
+                "alternative": bool(re.search(r"\b(or|ou)\b", bas)) and bas.endswith("?"),         # SEG-3
+                "open_branch": bool(re.search(r"\bor (something else|anything else|other|not)\b|"
+                                              r"\bou (pas|non|autre|quelque chose d['’]autre|rien)\b", bas)),
+                "why": bool(re.search(r"\b(why|pourquoi)\b", bas)),
                 "offer_mention": bool(MOTS_OFFRE.search(bas)),
-                "anchor_words": sorted(mots_contenu(s) & mots_pros),                        # SEG-5 anchoring
+                "anchor_words": sorted(mots_contenu(s) & mots_pros),                        # SEG-5 ancrage
                 "n_words": len(ws),
                 "stacked": len(qs) > 1,                                                       # SEG-1 / SB-6
                 "system": bool(LIGNE_SYSTEME.search(s)),

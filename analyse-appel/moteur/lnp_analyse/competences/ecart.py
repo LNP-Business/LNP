@@ -177,7 +177,8 @@ INTERROGATIF = re.compile(r"^(?:\W*)(?:(so |and |but |now |okay,? )?(do|does|did
                            r"|(?:donc |et |mais |alors |ok,? |d'accord,? )?"
                            r"(?:est-ce qu|(?!rendez-vous)\w+-(?:t-)?(?:tu|vous|il|elle|on)\b))")
 DEUXIEME_PERSONNE = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself", "yours",
-                     "tu", "vous", "t'", "t'as", "t'es", "t'étais", "t'avais", "t'en", "t'y", "te", "toi", "toi-même",
+                     "tu", "vous", "t'", "t'as", "t'es", "t'étais", "t'avais", "t'auras", "t'aurais", "t'en", "t'y", "te",
+                     "toi", "toi-même",
                      "vous-même", "vous-mêmes", "ton", "ta", "tes", "votre", "vos", "tien", "tienne", "tiens",
                      "tiennes", "vôtre", "vôtres"}
 # GB-1 : relances d'écoute et approbations courtes (un tour de 5 mots ou moins fait seulement de ces mots).

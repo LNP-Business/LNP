@@ -129,7 +129,8 @@ better hard easy want wants wanted feel feels felt like make makes made get gets
 thinks really just kind sort able""".split()) | set("""
 chose choses truc trucs machin quelque tout tous toute toutes rien n'importe façon facon manière maniere vie gens
 bon bonne bien mieux mal dur difficile facile veux veut voulais voulez vouloir envie sens sentir ressens
-faire fait fais avoir obtenir savoir sais sait pense penses pensez penser crois croire vraiment juste genre""".split())
+faire fait fais avoir obtenir savoir sais sait pense penses pensez penser crois croire vraiment juste genre
+beaucoup plein tellement voilà voila quoi bref enfin bon bah ben euh hein style""".split())
 
 _MOTS_NOMBRES = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
               "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20,

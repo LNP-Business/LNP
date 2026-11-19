@@ -1,4 +1,5 @@
-"""Gap formalisation (GAP-1.3): minimal pairs of Annex A (pure decisions) and Annex B cases on real transcripts."""
+"""Formalisation de l'écart (GAP-1.3) : paires minimales de l'annexe A (décisions pures), cas de l'annexe B sur de
+vraies transcriptions, et listes de mots françaises du module."""
 from __future__ import annotations
 import os
 
@@ -13,6 +14,7 @@ from lnp_analyse.noyau.fondation import reparer_attribution
 from lnp_analyse.noyau.client_modele import ClientSimule
 from lnp_analyse.noyau.modeles import Atome, ContexteAppel, Preuve, PROSPECT, COMMERCIAL, Sollicitation, Tour
 from lnp_analyse.noyau.executeur import Executeur
+from lnp_analyse.noyau.texte import jetons_propres, normaliser
 
 EXECUTIONS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 LIGNE = re.compile(r"^\[(T\d+\w?) ([\d:]+)\] (SALES|PROSPECT|OTHER): ?(.*)$")
@@ -26,7 +28,7 @@ DEFAUTS = {
 }
 
 
-# ------------------------------------------------------------------------------------------- helpers
+# ------------------------------------------------------------------------------------------- outils
 def charger_tours(appel_: str) -> list[Tour]:
     sortie = []
     for ligne in (EXECUTIONS / appel_ / "transcript_compact.txt").read_text(encoding="utf-8").splitlines():
@@ -66,7 +68,8 @@ def proposition(composante, tour_commercial, citation_commercial, tour_source=No
 
 
 def executeur(reponses: dict) -> Executeur:
-    """answers: {(task_id, unit_id_prefix): answer}; anything else gets the neutral default."""
+    """reponses : {(id de tâche, préfixe de l'id d'unité): réponse} ; tout le reste reçoit la réponse neutre par
+    défaut."""
     def fb(id_tache, id_unite, consigne, no_passe):
         for (tid, prefixe), a in reponses.items():
             if tid == id_tache and id_unite.startswith(prefixe):
@@ -81,7 +84,7 @@ def restit(ctx, debut, fin, propositions, nouveau_sujet=None) -> Restitution:
     return g.decider_restitution(ctx, sp, rep, "verified")
 
 
-# ------------------------------------------------------------------------------------------- pair 1 (GB-4)
+# ------------------------------------------------------------------------------------------- paire 1 (GB-4)
 PAIRE1 = [("S", "Where are you at right now?"), ("P", "I make about 2K a month right now from design work."),
          ("S", "And where do you want to be?"), ("P", "My goal is 10K a month within a year honestly."),
          ("S", "So your goal is 10K a month, right?")]
@@ -104,7 +107,7 @@ def test_paire_1b_restitution_a_deux_composantes_ne_passe_pas_la_porte():
     assert verdict == "absent" and raisons == ["problem_missing", "cost_missing"]
 
 
-# ------------------------------------------------------------------------------------------- pair 2 (gate, GB-5)
+# ------------------------------------------------------------------------------------------- paire 2 (porte, GB-5)
 PAIRE2 = [("S", "What's held you back?"), ("P", "Honestly confidence, I just don't have the confidence."),
          ("S", "And what has it cost you?"), ("P", "It's cost me three years of my life, three years.")]
 
@@ -133,13 +136,13 @@ def test_paire_2a_ecart_present():
     assert res.verdict == "present" and res.raisons == []
     assert res.details["validation_turn"] == "T006" and res.details["restitution_span"] == ["T005", "T005"]
     g6 = next(i for i in res.items if i.id == "G6")
-    assert g6.niveau == 1                                                             # confirmed, no content
-    assert res.note >= 25                                                           # §5.2: at least G5 = G6 = 1
+    assert g6.niveau == 1                                                             # confirmé, sans contenu
+    assert res.note >= 25                                                           # §5.2 : au moins G5 = G6 = 1
     assert res.details["validated_P"]["key_expression"] == "confidence"
 
 
 def test_paire_2b_offre_avant_validation_non_validee():
-    # long enough for signal S2 (no opener, no validation request: A1)
+    # assez long pour le signal S2 (ni ouverture ni demande de validation : A1)
     ctx = _paire2("So what's held you back is confidence, you just don't have the confidence, and it's cost you three "
                  "years, you've lost three years of your life. Let me show you how we fix that.",
                  "Okay sounds good to me.", "T007")
@@ -150,7 +153,7 @@ def test_paire_2b_offre_avant_validation_non_validee():
     assert r["validation"]["rule"] == "offer_mentioned_before_validation"           # GB-5, X8
 
 
-# ------------------------------------------------------------------------------------------- pair 3, 10, 11, 12 (GB-22..24)
+# ------------------------------------------------------------------------------------------- paires 3, 10, 11, 12 (GB-22..24)
 def _ctx_proposition(prospect: str, commercial: str):
     ctx = ctx_de(synth([("S", "Tell me more about that."), ("P", prospect), ("S", commercial)]))
     return ctx, Plage("T003", "T003", ["T003"], ["S2"])
@@ -192,7 +195,7 @@ def test_expression_cle_generique_rejetee():
 
 
 def test_un_chiffre_calcule_par_le_commercial_est_exclu():
-    """GB-24 / X12: the sales computes 30K, the prospect repeats it, the sales restates it."""
+    """GB-24 / X12 : le commercial calcule 30K, le prospect le répète, le commercial le reprend."""
     tours = synth([("S", "Six times five works out to roughly $30,000 you lost, right?"),
                    ("P", "Yeah I guess it's like 30,000 lost."),
                    ("S", "And that's potentially already cost you 30,000, maybe more.")])
@@ -205,7 +208,7 @@ def test_un_chiffre_calcule_par_le_commercial_est_exclu():
     assert c2.correspondance == "excluded" and c2.raison == "first_said_by_sales"
 
 
-# ------------------------------------------------------------------------------------------- pair 4, 5 (validation)
+# ------------------------------------------------------------------------------------------- paires 4, 5 (validation)
 def _ctx_val(reste: str, reponse: str):
     ctx = ctx_de(synth([("S", "What has it cost you?"), ("P", "Honestly it's cost me three years and my confidence."),
                         ("S", reste), ("P", reponse)]))
@@ -227,7 +230,7 @@ def test_paire_4b_simple_oui_confirme_meme_si_le_modele_dit_contenu():
     ctx, r = _ctx_val("So it's your confidence and three years, that's where you're at. Did I get that right?", "Yes.")
     vt, _ = g.tour_validation(ctx, r)
     sortie = g.decider_validation(ctx, r, vt, {"outcome": "confirmed_with_content", "content_quote": "Yes."})
-    assert sortie["outcome"] == "confirmed"                                            # C3 rule 5
+    assert sortie["outcome"] == "confirmed"                                            # C3, règle 5
 
 
 def test_paire_5a_demande_s3_repondue():
@@ -277,7 +280,7 @@ def test_gb26_repeter_les_mots_du_commercial_est_confirme():
     assert sortie["outcome"] == "confirmed"
 
 
-# ------------------------------------------------------------------------------------------- pair 6, 9a (components)
+# ------------------------------------------------------------------------------------------- paires 6, 9a (composantes)
 def test_paire_6a_autre_personne_pas_composante_6b_oui():
     ctx, sp = _ctx_proposition("I'm stuck at 2K a month.", "Amelia was exactly where you are, stuck at 2K. You're stuck at 2K")
     c6a = g.classer_proposition(ctx, proposition("A", "T003", "Amelia was exactly where you are, stuck at 2K", "T002", "stuck at 2K",
@@ -307,7 +310,7 @@ def test_paire_9b_cout_temps_et_argent_chiffre():
     assert c.correspondance == "verbatim" and c.atome_source == "a1"
 
 
-# ------------------------------------------------------------------------------------------- pair 7 (window)
+# ------------------------------------------------------------------------------------------- paire 7 (fenêtre)
 def test_paire_7a_7b_avant_et_apres_presentation():
     for presentation, attendu_ in (("T007", "present"), ("T005", "absent")):
         ctx = _paire2("So what's held you back is confidence, and it's cost you three years. Fair?", "Yeah, exactly.",
@@ -318,7 +321,7 @@ def test_paire_7a_7b_avant_et_apres_presentation():
             assert res.raisons == ["restitution_after_pitch"]                       # X3, GB-20
 
 
-# ------------------------------------------------------------------------------------------- pair 8 (corrections)
+# ------------------------------------------------------------------------------------------- paire 8 (corrections)
 PAIRE8 = [("S", "What's held you back?"), ("P", "Honestly confidence, I just don't have the confidence."),
          ("S", "And what has it cost you, in money?"), ("P", "It's cost me about 4K a month, every month."),
          ("S", "So what's held you back is confidence, and it's cost you about 4K a month. Did I get that right?"),
@@ -356,7 +359,7 @@ def test_paire_8b_correction_non_reformulee_echoue():
     assert res.verdict == "absent" and res.raisons == ["not_validated"]            # X9
 
 
-# ------------------------------------------------------------------------------------------- pairs 13..15 (formula)
+# ------------------------------------------------------------------------------------------- paires 13..15 (formule)
 def test_paire_15a_15b_meme_unite_et_unites_differentes():
     a = g.Enonce("A", "a1", "about 2K a month", "T002", "S", "Q1", None, "money", True, 2000, "USD/month", "SITUATION")
     b1 = g.Enonce("B", "b1", "10K a month", "T004", "N", "Q2", None, "money", True, 10000, "USD/month", "DESIRE")
@@ -382,7 +385,7 @@ def test_paire_14a_14b_un_blocage_et_plusieurs_blocages():
     ctx = ctx_de(tours, sols=sols, atomes=atomes)
     st = g.enonces_depuis_atomes(ctx)
     choix_p, regle = g.choisir_p(ctx, st["PROBLEM"], [sols[0]], ctx.atomes)
-    assert choix_p.id_atome == "p1" and regle == "tie_named_first"                     # GB-30 step 3
+    assert choix_p.id_atome == "p1" and regle == "tie_named_first"                     # GB-30 étape 3
     r14a = restit(ctx, "T005", "T005", [
         proposition("PROBLEM", "T005", "What's holding you back today is self-doubt", "T002", "self-doubt",
                as_holding_back=True),
@@ -398,7 +401,7 @@ def test_paire_14a_14b_un_blocage_et_plusieurs_blocages():
     assert len(g.blocages_feuille_route(ctx, None)) == 2                                   # GB-32
 
 
-# ------------------------------------------------------------------------------------------- GB-20 priority
+# ------------------------------------------------------------------------------------------- priorité GB-20
 def test_gb20_passage_apres_presentation_avant_cout_manquant():
     def R(comps, avant, issue="confirmed"):
         r = Restitution(Plage("T001", "T001", ["T001"], []), "verified")
@@ -416,10 +419,11 @@ def test_seuil_alerte_copilote():
     assert g.alerte_copilote([{"object": "x"}, {"object": "y"}, {"object": "z"}]) is False
 
 
-# =========================================================================================== Annex B, real calls
+# =========================================================================================== annexe B, vrais appels
 def test_B3_1_appel_001_ecart_present_G5_plafonne():
-    """B1.1 / B2.1 / B3.1: PROBLEM "support" (T028), COST "motivation" (T052) verbatim; "a lot of stress" not
-    verbatim (T050 "stressed"); B paraphrased; "No. Cool." confirmed; before pitch T085 and price T113."""
+    """B1.1 / B2.1 / B3.1 : PROBLEM "support" (T028) et COST "motivation" (T052) mot pour mot ; "a lot of stress"
+    pas mot pour mot (T050 "stressed") ; B paraphrasé ; "No. Cool." confirmé ; avant la présentation T085 et le prix
+    T113."""
     tours = charger_tours("001")
     sols = [sol("Q025", "T025", "P", tours[24].texte, ["T026", "T028"]),
             sol("Q033", "T033", "N", tours[32].texte, ["T034"]),
@@ -460,18 +464,18 @@ def test_B3_1_appel_001_ecart_present_G5_plafonne():
     stress = next(c for c in d["restitution"]["clauses"] if c["key_expression"] == "very stressed")
     assert stress["match"] == "paraphrased" and stress["reason"] == "not_in_restitution"   # GB-22 b
     niveaux = {i.id: i.niveau for i in res.items}
-    assert niveaux["G5"] == 1 and niveaux["G6"] == 1                                  # B3.1: G5 = 1
+    assert niveaux["G5"] == 1 and niveaux["G6"] == 1                                  # B3.1 : G5 = 1
     assert d["validated_P"]["turn"] == "T028" and d["selected_P"]["turn"] == "T028"
     assert d["selected_B"]["turn"] == "T034"
     assert res.note == g.note_appel(res.items) and res.note >= 25
 
 
 def test_B3_2_appel_049_ecart_present_chaque_composante_mot_pour_mot():
-    """B1.2 / B3.2: A "not in a steady paying gig" (T049), PROBLEM "as a need" (T071), COST "not sleeping well"
-    (T131), confirmed "Pretty much. Yes." (GB-16); G5 = 2 eligible (key expressions of 3 words or more)."""
+    """B1.2 / B3.2 : A "not in a steady paying gig" (T049), PROBLEM "as a need" (T071), COST "not sleeping well"
+    (T131), confirmé "Pretty much. Yes." (GB-16) ; G5 = 2 possible (expressions clés de 3 mots ou plus)."""
     tours = charger_tours("049")
     ctx = ctx_de(tours, decouverte="T024", presentation="T150")
-    # foundation C1: the sales question merged into T079 is split out before any competence runs (GB-21)
+    # fondation C1 : la question du commercial fusionnée dans T079 est séparée avant toute compétence (GB-21)
     reparer_attribution(ctx, [{"turn": "T079", "type": "merged",
                               "foreign_quote": "And when that fear showed up, how did it actually shape your actions?"}])
     assert ctx.tour("T079b").role == COMMERCIAL and "fear" not in ctx.tour("T079").texte.lower()
@@ -516,18 +520,19 @@ def test_B3_2_appel_049_ecart_present_chaque_composante_mot_pour_mot():
     assert all(comps[c]["match"] == "verbatim" for c in ("A", "B", "PROBLEM", "COST"))
     assert comps["PROBLEM"]["key_expression"] == "as a need"
     peur = next(c for c in d["restitution"]["clauses"] if c["key_expression"] == "fear")
-    assert peur["match"] == "paraphrased" and peur["reason"] == "not_in_source"   # sales words after C1 repair
+    assert peur["match"] == "paraphrased" and peur["reason"] == "not_in_source"   # mots du commercial après la réparation C1
     conf = d["restitution"]["conformity"]
     assert conf["long_key_expression"] and conf["single_P"] and conf["P_selected"]
     assert d["selected_A"]["turn"] == "T049" and d["selected_B"]["turn"] == "T025"
     niveaux = {i.id: i.niveau for i in res.items}
-    assert niveaux["G5"] == 2 and niveaux["G6"] == 1                                 # "pretty much" = confirmed
-    assert niveaux["G4"] == 1                                                         # cost in a domain, not quantified
+    assert niveaux["G5"] == 2 and niveaux["G6"] == 1                                 # "pretty much" = confirmé
+    assert niveaux["G4"] == 1                                                         # coût dans un domaine, pas chiffré
 
 
 def test_B3_9_appel_027_restitution_apres_presentation():
-    """B1.8 / B1.10 / B3.9: T050 is not a restitution (PROBLEM "finances" paraphrased, one component left, ends on a
-    new question); T090 complete and confirmed but after the screen share at T086."""
+    """B1.8 / B1.10 / B3.9 : T050 n'est pas une restitution (PROBLEM "finances" paraphrasé, une seule composante
+    restante, se termine par une nouvelle question) ; T090 complète et confirmée, mais après le partage d'écran en
+    T086."""
     tours = charger_tours("027")
     sols = [sol("Q032", "T032", "N", tours[31].texte, ["T033"]),
             sol("Q034", "T034", "S", tours[33].texte, ["T035"]),
@@ -575,7 +580,7 @@ def test_B3_9_appel_027_restitution_apres_presentation():
 
 
 def test_B4_1_appel_078_A_choisi_revenu_actuel_pas_passe():
-    """B4.1: A = "$87,000" (S answer), B = "a hundred" (same unit); "over $100,000" is a past income (X13)."""
+    """B4.1 : A = "$87,000" (réponse S), B = "a hundred" (même unité) ; "over $100,000" est un revenu passé (X13)."""
     tours = charger_tours("078")
     sols = [sol("Q045", "T045", "S", tours[44].texte, ["T046"]), sol("Q105", "T105", "N", tours[104].texte, ["T106"])]
     atomes = [atome("a87", "SITUATION", "T046", "$87,000", "S", "Q045", None, "money", True, 87000, "USD/year"),
@@ -588,15 +593,16 @@ def test_B4_1_appel_078_A_choisi_revenu_actuel_pas_passe():
     d = CompetenceEcart().executer(ctx, executeur(passe_)).details
     assert d["selected_A"]["quote"] == "$87,000" and d["selected_B"]["atom"] == "b100"
     assert d["selected_B"]["same_unit"] and d["diagnostics"]["gap_value"] == 13000
-    assert d["selected_B"]["horizon"] is None                                        # no deadline given
-    # without the present-state check the biggest, most recent figure (past income) would be taken: X13
+    assert d["selected_B"]["horizon"] is None                                        # aucune échéance donnée
+    # sans le contrôle de l'état actuel, le chiffre le plus grand et le plus récent (revenu passé) serait pris : X13
     d2 = CompetenceEcart().executer(ctx_de(tours, decouverte="T020", presentation="T185", sols=sols, atomes=atomes), executeur({})).details
     assert d2["selected_A"]["quote"] == "I made over $100,000"
 
 
 def test_B4_2_appel_024_plusieurs_blocages_et_feuille_route():
-    """B4.2 / B1.7: three blockers in one answer to a stopping question; restitution T103 restates two
-    (`several_blockers`, G5 capped); COST untraced so the gate fails; 3 roadmap blockers, no Copilot warning."""
+    """B4.2 / B1.7 : trois blocages dans une même réponse à une question de blocage ; la restitution T103 en reprend
+    deux (`several_blockers`, G5 plafonné) ; COST sans trace, donc la porte échoue ; 3 blocages pour la feuille de
+    route, pas d'alerte du Copilote."""
     tours = charger_tours("024")
     sols = [sol("Q041", "T041", "P", tours[40].texte, ["T042"])]
     atomes = [atome("p1", "BLOCKER", "T042", "maybe limiting self-beliefs or having self-doubts", "P", "Q041", "self-doubt"),
@@ -615,7 +621,7 @@ def test_B4_2_appel_024_plusieurs_blocages_et_feuille_route():
         ("gap.validation", "valid:T103"): {"outcome": "confirmed", "agreement_quote": "Yes."}}
     res = CompetenceEcart().executer(ctx, executeur(reponses))
     d = res.details
-    assert d["selected_P"]["rule"] in ("tie_named_first", "comes_back_most")       # GB-30 step 2/3 among the three
+    assert d["selected_P"]["rule"] in ("tie_named_first", "comes_back_most")       # GB-30 étape 2/3 entre les trois
     r = next(x for x in d["restitutions"] if x["span"][0] == "T103")
     assert "several_blockers" in r["conformity"]["deviations"]
     assert res.verdict == "absent" and res.raisons == ["cost_missing"]
@@ -629,4 +635,141 @@ def test_cles_du_contrat_d_etat_partage():
     for k in ("verdict", "validation_turn", "restitution_span", "selected_A", "selected_B", "selected_P",
               "validated_P", "roadmap_blockers", "cost"):
         assert k in d
-    assert d["roadmap"]["warning"] is True                                          # 1 blocker < 3 steps (GB-33)
+    assert d["roadmap"]["warning"] is True                                          # 1 blocage < 3 étapes (GB-33)
+
+
+# =========================================================================================== listes de mots françaises
+def _n(texte: str) -> str:
+    return normaliser(texte)
+
+
+@pytest.mark.parametrize("phrase", [
+    "Donc si je résume, tu donnes des cours de piano depuis trois ans.",
+    "Si j'ai bien compris, vous plafonnez à 800 euros par mois.",
+    "Corrige-moi si je me trompe, mais ton objectif c'est 2000 par mois.",
+    "OK, ce que j’entends, c'est que tu manques de temps.",          # apostrophe typographique
+    "Alors pour resumer, tu veux vivre de tes cours.",                # sans accent
+    "Laissez-moi reformuler ce que vous m'avez dit.",
+])
+def test_ouvertures_francaises(phrase):
+    assert g.OUVERTURES.search(" ".join(_n(phrase).split()[:g.S1_PREMIERS_MOTS]))
+
+
+def test_ouverture_absente_dans_une_question_de_decouverte():
+    assert not g.OUVERTURES.search(_n("Tu donnes des cours depuis combien de temps ?"))
+
+
+@pytest.mark.parametrize("texte", [
+    "Tu plafonnes à 800 euros et ça te coûte tes soirées. C'est bien ça ?",
+    "Tu plafonnes à 800 euros et ça te coûte tes soirées, non ?",
+    "Tu plafonnes à 800 euros et ça te coûte tes soirées. J'ai bien résumé ?",
+    "Vous plafonnez à 800 euros. Est-ce que je me trompe ?",
+    "Tu plafonnes à 800 euros. Ça te parle ?",
+    "Tu plafonnes à 800 euros. C'est ça?",
+    "Tu plafonnes à 800 euros. J'ai oublié quelque chose ?",
+    "Tu plafonnes à 800 euros. On est bien d'accord ?",
+])
+def test_demandes_de_validation_francaises(texte):
+    assert g.demande_validation(texte)                                               # S3
+
+
+def test_question_sur_un_nouveau_sujet_n_est_pas_une_demande_de_validation():
+    assert g.demande_validation("Tu plafonnes à 800 euros. Tu as combien d'élèves aujourd'hui ?") is None
+
+
+@pytest.mark.parametrize("demande,attendu_", [
+    ("J'ai oublié quelque chose ?", True), ("Est-ce que je me trompe ?", True), ("J'ai rien oublié ?", True),
+    ("Il te manque quelque chose ?", True), ("Je me suis trompé quelque part ?", True),
+    ("J'ai bien résumé ?", False), ("Qu'est-ce qui te manque pour te lancer ?", False),
+])
+def test_gb15_demandes_francaises_ou_un_non_vaut_accord(demande, attendu_):
+    assert bool(g.DEMANDE_MANQUANTE.search(_n(demande))) is attendu_
+
+
+def test_gb15_non_a_j_ai_oublie_quelque_chose_est_confirme():
+    ctx = ctx_de(synth([("S", "Qu'est-ce que ça t'a coûté ?"), ("P", "Honnêtement, ça m'a coûté trois ans et ma confiance."),
+                        ("S", "Ta confiance et trois ans. J'ai oublié quelque chose ?"), ("P", "Non.")]))
+    r = restit(ctx, "T003", "T003", [proposition("PROBLEM", "T003", "Ta confiance", "T002", "ma confiance"),
+                                     proposition("COST", "T003", "trois ans", "T002", "trois ans")])
+    vt, _ = g.tour_validation(ctx, r)
+    assert g.decider_validation(ctx, r, vt, {"outcome": "rejected"})["outcome"] == "confirmed"      # GB-15
+
+
+@pytest.mark.parametrize("texte,attendu_", [
+    ("Laisse-moi te montrer comment on t'aide à trouver tes élèves.", True),
+    ("Je vais vous montrer notre accompagnement.", True),
+    ("Dans notre programme, il y a trois étapes.", True),
+    ("Nos modules et nos séances sont en ligne.", True),
+    ("Avec notre coaching et notre suivi, tu avances vite.", True),
+    ("Je partage mon écran.", True),
+    ("Tu as suivi une formation l'an dernier et tu fais deux séances par semaine.", False),
+])
+def test_mots_de_l_offre_francais(texte, attendu_):
+    assert bool(g.MOTS_OFFRE.search(_n(texte))) is attendu_                         # GB-1, GB-5
+
+
+@pytest.mark.parametrize("question,attendu_", [
+    ("Qu'est-ce qui t'a retenu jusqu'ici ?", True), ("Qu'est-ce qui vous en empêche ?", True),
+    ("Qu'est-ce qui te bloque ?", True), ("Pourquoi tu ne l'as pas encore fait ?", True),
+    ("C'est quoi tes freins ?", True), ("Qu'est-ce qui se met en travers de ton chemin ?", True),
+    ("Qu'est-ce que tu as retenu de ta dernière formation ?", False), ("Tu as combien d'élèves ?", False),
+])
+def test_questions_de_blocage_francaises(question, attendu_):
+    assert bool(g.QUESTION_BLOCAGE.search(_n(question))) is attendu_                # GB-30 étape 1
+
+
+@pytest.mark.parametrize("commercial", ["et, pour reprendre tes mots, tu te sens nul.",
+                                        "et comme tu l'as dit, tu te sens nul.",
+                                        "et, avec vos propres mots, vous vous sentez nul."])
+def test_marqueurs_de_citation_francais(commercial):
+    ctx, sp = _ctx_proposition("Je me sens nul.", commercial)
+    c = g.classer_proposition(ctx, proposition("COST", "T003", commercial, "T002", "nul"), sp, None)
+    assert c.correspondance == "verbatim" and c.citation_explicite                  # GB-23
+
+
+def test_sans_marqueur_de_citation():
+    ctx, sp = _ctx_proposition("Je me sens nul.", "et tu te sens nul.")
+    c = g.classer_proposition(ctx, proposition("COST", "T003", "et tu te sens nul.", "T002", "nul"), sp, None)
+    assert c.correspondance == "verbatim" and not c.citation_explicite
+
+
+def test_s2_passage_dense_a_la_deuxieme_personne_en_francais():
+    """SUJET_TU, MOTS_AMORCE (« du coup ») et la coupure en propositions sur « et » / « mais » (A1 S2)."""
+    prospect = "Je donne des cours de piano depuis trois ans mais je plafonne à 800 euros par mois."
+    commercial = ("Du coup tu donnes des cours de piano depuis trois ans et tu plafonnes à 800 euros par mois, mais "
+                  "ton objectif c'est de vivre de tes cours de piano sereinement.")
+    ctx = ctx_de(synth([("P", prospect), ("S", commercial)]))
+    assert "S2" in g.signaux_candidats(ctx, ctx.tour("T002"), set(jetons_propres(prospect)))
+
+
+def test_sujet_tu_et_deuxieme_personne_francais():
+    assert {"tu", "vous", "t'as", "ton", "ta", "tes", "votre", "vos"} <= g.SUJET_TU
+    assert g.SUJET_TU <= g.DEUXIEME_PERSONNE
+    assert {"tu", "vous", "te", "toi", "tien", "vôtre"} <= g.DEUXIEME_PERSONNE
+
+
+@pytest.mark.parametrize("phrase,attendu_", [
+    ("Est-ce que tu as déjà des élèves", True), ("Donc as-tu déjà essayé", True), ("Pouvez-vous me dire", True),
+    ("Et a-t-il déjà payé", True), ("Donc tu as déjà des élèves", False), ("Rendez-vous pris pour jeudi", False),
+])
+def test_questions_sans_point_d_interrogation_en_francais(phrase, attendu_):
+    assert bool(g.INTERROGATIF.match(_n(phrase))) is attendu_
+
+
+@pytest.mark.parametrize("tour,attendu_", [
+    ("Ouais, d'accord.", True), ("Oui oui, c'est clair.", True), ("Ok, je vois.", True), ("Exactement.", True),
+    ("Ah ouais, carrément.", True), ("Tout à fait.", True), ("Bien sûr, voilà.", True),
+    ("Oui, mais pas trop.", False), ("Je donne des cours le soir.", False),
+])
+def test_relances_d_ecoute_francaises(tour, attendu_):
+    assert g.approbation_courte(tour) is attendu_                                    # GB-1
+
+
+def test_consignes_traduites_gardent_le_schema():
+    ctx, r = _ctx_val("Ta confiance et trois ans. C'est bien ça ?", "Oui.")
+    vt, _ = g.tour_validation(ctx, r)
+    consigne = g.construire_validation(ctx, (r, vt))
+    assert "TOUR DE VALIDATION : T004" in consigne
+    assert '"outcome": "confirmed_with_content|confirmed|corrected|rejected|none"' in consigne
+    md = (Path(g.__file__).parent.parent / "consignes" / "ecart_validation.md").read_text(encoding="utf-8")
+    assert "TOUR DE VALIDATION" in md and "confirmed_with_content" in md

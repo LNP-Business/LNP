@@ -1,149 +1,154 @@
-# Annex A · Bounding rules for objections
+# Annexe A · Règles de bornage des objections
 
-This annex says how the system finds, in a raw transcript, each resistance, its nature, the episode that follows it, the sales' gestures and the prospect's resolution. A rule that is not written here does not exist: an uncovered case goes to the arbiter with the label `uncovered_case` and becomes a new numbered rule.
+Cette annexe dit comment le système repère, dans une transcription brute, chaque résistance, sa nature, l'épisode qui la suit, les gestes du commercial et la résolution du prospect. Une règle qui n'est pas écrite ici n'existe pas : un cas non couvert va à l'arbitre avec l'étiquette `uncovered_case` et devient une nouvelle règle numérotée.
 
-## A1. Detecting a resistance
+Les appels de LNP sont en français ; les listes de marqueurs ci-dessous donnent les tournures françaises, puis les tournures anglaises des transcriptions de référence des tests, que le code reconnaît aussi.
 
-**OB-1 · Candidate.** The inventory (code) flags a prospect passage as a resistance candidate when it contains a marker of the lists below. Markers only nominate candidates; the model decides with the boundary tests (OB-3). The model may also nominate a resistance without any marker, with its quote.
+## A1. Repérer une résistance
 
-| Nature | Typical markers (English calls) |
+**OB-1 · Candidate.** L'inventaire (code) signale un passage du prospect comme résistance candidate quand il contient un marqueur des listes ci-dessous. Les marqueurs ne font que proposer des candidates ; le modèle décide avec les tests de frontière (OB-3). Le modèle peut aussi proposer une résistance sans aucun marqueur, avec sa citation.
+
+| Nature | Marqueurs typiques (appels en français ; appels en anglais) |
 |---|---|
-| Objection · price, money available | "too expensive", "a lot of money", "can't afford", "don't have the money", "out of my budget", "my credit", "financing" |
-| Objection · trust in offer, relevance | "not sure it works", "I've seen programs like this", "is it accredited", "I already know how to design", "I don't need…" |
-| Objection · time | "I don't have time", "with my job", "with the kids" (as a constraint on following the program) |
-| Objection · co-decider | "talk to my husband / wife / partner", "we decide together", "I need to check with" |
-| Anxiety · capability | "I'm scared", "I'm afraid", "I don't know if I can", "I'm not good enough", "I'll quit", "I always give up" |
-| Anxiety · choice | "what if it doesn't work", "I got burned before", "I don't want to make a mistake", "how do I know" |
-| Inertia | "not the right time", "maybe later", "after the holidays", "I'm okay for now", "I need to think about it" (without a reason), "let me sleep on it" |
+| Objection · prix, argent disponible | « trop cher », « beaucoup d'argent », « je n'ai pas les moyens », « je n'ai pas l'argent », « hors de mon budget », « mon crédit », « financement » ; "too expensive", "a lot of money", "can't afford", "don't have the money", "out of my budget", "my credit", "financing" |
+| Objection · confiance dans l'offre, pertinence | « pas sûr que ça marche », « j'ai déjà vu des programmes comme ça », « c'est certifié ? », « je sais déjà enseigner », « je n'ai pas besoin de… » ; "not sure it works", "I've seen programs like this", "is it accredited", "I already know how to design", "I don't need…" |
+| Objection · temps | « je n'ai pas le temps », « avec mon travail », « avec les enfants » (comme contrainte pour suivre le programme) ; "I don't have time", "with my job", "with the kids" |
+| Objection · codécideur | « en parler à mon mari / ma femme / mon conjoint », « on décide ensemble », « il faut que je voie avec » ; "talk to my husband / wife / partner", "we decide together", "I need to check with" |
+| Anxiété · capacité | « j'ai peur », « je crains », « je ne sais pas si j'en suis capable », « je ne suis pas assez bon », « je vais abandonner », « j'abandonne toujours » ; "I'm scared", "I'm afraid", "I don't know if I can", "I'm not good enough", "I'll quit", "I always give up" |
+| Anxiété · choix | « et si ça ne marche pas », « je me suis déjà fait avoir », « je ne veux pas me tromper », « comment je peux savoir » ; "what if it doesn't work", "I got burned before", "I don't want to make a mistake", "how do I know" |
+| Inertie | « pas le bon moment », « peut-être plus tard », « après les vacances », « ça va pour l'instant », « il faut que je réfléchisse » (sans raison), « laisse-moi la nuit pour y penser » ; "not the right time", "maybe later", "after the holidays", "I'm okay for now", "I need to think about it" (sans raison), "let me sleep on it" |
 
-**OB-2 · Exclusions at detection.**
-- A request for information ("how long is it?", "how many calls a week?", "is there a payment plan?") is not a resistance, unless the prospect states a reserve in the same turn.
-- A delay with a verifiable external reason ("I'm moving in January", "my severance ends in March") is a decision-circuit deadline, not inertia.
-- A decision-circuit fact stated neutrally during discovery ("my husband handles the money") is circuit information, not an objection. It becomes an objection when it is put forward as a reason not to decide now.
-- A conditional acceptance ("if I can pay monthly, then yes") is a decision criterion, not a resistance.
-- "I'll think about it" with a reason ("I need to see my numbers") is classified by the reason; without a reason, inertia.
+**OB-2 · Exclusions à la détection.**
+- Une demande d'information (« ça dure combien de temps ? », « combien d'appels par semaine ? », « il y a un paiement en plusieurs fois ? ») n'est pas une résistance, sauf si le prospect exprime une réserve dans le même tour.
+- Un délai avec une raison extérieure vérifiable (« je déménage en janvier », « mes indemnités s'arrêtent en mars ») est une échéance du circuit de décision, pas une inertie.
+- Un fait du circuit de décision énoncé de façon neutre pendant la découverte (« c'est mon mari qui gère l'argent ») est une information sur le circuit, pas une objection. Il devient une objection quand il est avancé comme une raison de ne pas décider maintenant.
+- Une acceptation sous condition (« si je peux payer tous les mois, alors oui ») est un critère de décision, pas une résistance.
+- « Je vais réfléchir » avec une raison (« il faut que je regarde mes comptes ») est classé selon la raison ; sans raison, c'est une inertie.
 
-**OB-3 · Nature: boundary tests.** In this order:
-1. Is the subject of the doubt the offer, its price or terms, the company, the sales, or a resource the prospect lacks (time, money, a co-decider's agreement)? → **objection**.
-2. Is the subject the prospect themselves (not managing, not lasting) → **anxiety · capability**; or their decision (choosing wrong, being fooled) → **anxiety · choice**.
-3. Is it attachment to the present, or postponement without an external reason? → **inertia**.
-"I'm not sure it works" is an objection; "I'm not sure I can do it" is an anxiety; "it's fine as it is" is an inertia.
+**OB-3 · Nature : tests de frontière.** Dans cet ordre :
+1. Le sujet du doute est-il l'offre, son prix ou ses conditions, l'entreprise, le commercial, ou un moyen qui manque au prospect (temps, argent, accord d'un codécideur) ? → **objection**.
+2. Le sujet est-il le prospect lui-même (ne pas y arriver, ne pas tenir) → **anxiété · capacité** ; ou sa décision (se tromper, se faire avoir) → **anxiété · choix**.
+3. Est-ce un attachement au présent, ou un report sans raison extérieure ? → **inertie**.
+« Je ne suis pas sûr que ça marche » est une objection ; « je ne suis pas sûr d'en être capable » est une anxiété ; « ça va comme ça » est une inertie.
 
-**OB-4 · Mixed passages.** One prospect passage expressing two natures ("I can't afford it and honestly I'm scared I'll quit again") opens **two episodes**, one per nature, sharing the same start turn. Each is judged on its own gesture.
+**OB-4 · Passages mixtes.** Un passage du prospect qui exprime deux natures (« je n'ai pas les moyens et franchement j'ai peur d'abandonner encore ») ouvre **deux épisodes**, un par nature, avec le même tour de début. Chacun est jugé sur son propre geste.
 
-**OB-5 · One resistance over several turns.** Consecutive prospect turns expressing the same resistance, separated only by sales backchannel ("mm-hmm", "I hear you") of 5 words or fewer, form one resistance.
+**OB-5 · Une résistance sur plusieurs tours.** Des tours consécutifs du prospect qui expriment la même résistance, séparés seulement par des relances d'écoute du commercial (« mm-hmm », « je t'entends ») de 5 mots ou moins, forment une seule résistance.
 
-## A2. Bounding the episode
+## A2. Borner l'épisode
 
-**OB-6 · Start.** The first turn of the resistance.
+**OB-6 · Début.** Le premier tour de la résistance.
 
-**OB-7 · Response.** Every sales turn after the resistance until the topic change.
+**OB-7 · Réponse.** Chaque tour du commercial après la résistance jusqu'au changement de sujet.
 
-**OB-8 · Topic change.** The first sales turn that (a) contains no content word of the resistance or of the response so far, and (b) introduces a new subject: a new discovery question, a new offer segment, logistics, or the close. Continuation markers ("so", "and", "also", "the other thing about that") with a reused word are not a topic change. The end of the call ends any open episode.
+**OB-8 · Changement de sujet.** Le premier tour du commercial qui (a) ne contient aucun mot de contenu de la résistance ni de la réponse jusque-là, et (b) introduit un nouveau sujet : une nouvelle question de découverte, un nouveau segment de l'offre, de la logistique, ou la conclusion. Les marqueurs de continuité (« donc », « et », « aussi », « l'autre chose là-dessus » ; "so", "and", "also", "the other thing about that") avec un mot repris ne sont pas un changement de sujet. La fin de l'appel termine tout épisode ouvert.
 
-**OB-9 · Reaction.** The prospect turns between the first sales response and the topic change. If the prospect raises a new resistance inside the episode, the current episode ends and a new one starts.
+**OB-9 · Réaction.** Les tours du prospect entre la première réponse du commercial et le changement de sujet. Si le prospect soulève une nouvelle résistance à l'intérieur de l'épisode, l'épisode en cours se termine et un nouveau commence.
 
-**OB-10 · Latent.** An episode is latent when the topic changes within 2 turns of the resistance (the resistance turn, at most one sales turn, then the topic change) and the prospect has made no reaction of 6 words or more. Computed by code from turn numbers.
+**OB-10 · Latente.** Un épisode est latent quand le sujet change dans les 2 tours suivant la résistance (le tour de la résistance, au plus un tour du commercial, puis le changement de sujet) et que le prospect n'a eu aucune réaction de 6 mots ou plus. Calculé par le code à partir des numéros de tour.
 
-**OB-11 · Recurrence.** A resistance of the same nature and theme (subtype) that appears after an earlier episode ended, in the same call or in the next call of the same cycle, opens a new episode linked to the earlier one (`recurrence_of`).
+**OB-11 · Récurrence.** Une résistance de même nature et de même thème (sous-type) qui apparaît après la fin d'un épisode précédent, dans le même appel ou dans l'appel suivant du même cycle, ouvre un nouvel épisode relié au précédent (`recurrence_of`).
 
-**OB-12 · Speakers.** Resistances from a co-decider (`OTHER`) are episodes like the prospect's. Turns marked `attribution_doubtful` are excluded.
+**OB-12 · Locuteurs.** Les résistances d'un codécideur (`OTHER`) sont des épisodes comme celles du prospect. Les tours marqués `attribution_doubtful` (attribution douteuse) sont exclus.
 
-## A3. Detecting the gestures
+## A3. Repérer les gestes
 
-**OB-13 · Acknowledge.** Read on the first sentence of the first response turn.
-- Acknowledged: a receiving marker without contradiction ("I hear you", "that makes total sense", "totally fair", "I understand", "good question", "I appreciate you sharing that") or a neutral reformulation of the resistance.
-- Not acknowledged: the first sentence starts with or contains a contradiction ("but", "actually", "no,", "that's not true", "the thing is", "I disagree") or a counter-argument.
+**OB-13 · Accueillir.** Se lit sur la première phrase du premier tour de réponse.
+- Accueillie : un marqueur d'accueil sans contradiction (« je t'entends », « ça se comprend tout à fait », « c'est normal », « je comprends », « bonne question », « merci de me le dire » ; "I hear you", "that makes total sense", "totally fair", "I understand", "good question", "I appreciate you sharing that") ou une reformulation neutre de la résistance.
+- Pas accueillie : la première phrase commence par une contradiction ou en contient une (« mais », « en fait », « non, », « ce n'est pas vrai », « le truc, c'est que », « je ne suis pas d'accord » ; "but", "actually", "no,", "that's not true", "the thing is", "I disagree") ou un contre-argument.
 
-**OB-14 · Isolate.** A sales solicitation that asks whether the resistance is the only obstacle: "apart from…", "other than…", "is that the only thing", "if we solved that, would you…", "is there anything else stopping you". Must be in the episode, before the answer.
+**OB-14 · Isoler.** Une sollicitation du commercial qui demande si la résistance est le seul obstacle : « à part… », « en dehors de… », « c'est la seule chose ? », « si on règle ça, est-ce que tu… », « est-ce qu'il y a autre chose qui t'arrête ? » ("apart from…", "other than…", "is that the only thing", "if we solved that, would you…", "is there anything else stopping you"). Doit être dans l'épisode, avant la réponse.
 
-**OB-15 · Explore.** A sales solicitation that asks the prospect to open up the resistance itself (an open question that reuses a word of the resistance): "when you say it's a lot, a lot compared to what?", "what makes you feel that?", "what happened last time?". Answered with content if the prospect's next turn adds something beyond agreement.
+**OB-15 · Explorer.** Une sollicitation du commercial qui demande au prospect d'ouvrir la résistance elle-même (une question ouverte qui reprend un mot de la résistance) : « quand tu dis que c'est beaucoup, beaucoup par rapport à quoi ? », « qu'est-ce qui te fait penser ça ? », « qu'est-ce qui s'est passé la dernière fois ? ». Avec une réponse de contenu si le tour suivant du prospect ajoute quelque chose au-delà de l'accord.
 
-**OB-16 · Matching gesture.** Judged against the nature (methodology §2):
-- objection → acknowledge, isolate, explore, then an answer tied to what the prospect said;
-- anxiety · capability → description of the support, framework, steps or accompaniment that remove the risk of not managing;
-- anxiety · choice → proof (comparable students' results), reversibility, guarantee;
-- inertia → a question leading the prospect to state the cost of staying where they are, answered by the prospect.
-"Partial" when the response contains the matching gesture and also an argument of the wrong kind (for example reassurance followed by a price argument).
+**OB-16 · Geste de réponse adapté.** Jugé par rapport à la nature (méthodologie § 2) :
+- objection → accueillir, isoler, explorer, puis une réponse reliée à ce que le prospect a dit ;
+- anxiété · capacité → description de l'accompagnement, du cadre, des étapes ou du suivi qui retirent le risque de ne pas y arriver ;
+- anxiété · choix → preuve (résultats d'élèves comparables), réversibilité, garantie ;
+- inertie → une question qui amène le prospect à dire le coût de rester où il est, avec une réponse du prospect.
+« Partiel » quand la réponse contient le geste adapté et aussi un argument du mauvais genre (par exemple une réassurance suivie d'un argument sur le prix).
 
-**OB-17 · Resolution.** Read on the reaction (OB-9):
-- **resolved:** the prospect states that the resistance no longer holds ("okay, at 900 a month I can do that"), reformulates it as answered, or moves forward on their own initiative (asks how to start, proposes a date);
-- **acknowledged:** agreement without content ("okay", "I see", "makes sense");
-- **persisting:** repeats or reinforces the resistance;
-- **latent:** OB-10.
-A "resolution" whose content was first stated by the sales and only approved ("so the payment plan solves it for you, right?" → "yeah") is **acknowledged**, not resolved.
+**OB-17 · Résolution.** Se lit sur la réaction (OB-9) :
+- **résolue :** le prospect dit que la résistance ne tient plus (« ok, à 900 par mois je peux le faire »), la reformule comme ayant reçu sa réponse, ou avance de lui-même (demande comment commencer, propose une date) ;
+- **accueillie :** accord sans contenu (« ok », « je vois », « ça se tient ») ;
+- **persistante :** répète ou renforce la résistance ;
+- **latente :** OB-10.
+Une « résolution » dont le contenu a d'abord été énoncé par le commercial et seulement approuvé (« donc le paiement en plusieurs fois, ça règle le problème pour toi, non ? » → « ouais ») est **accueillie**, pas résolue.
 
-## A4. Detecting prevention facts
+## A4. Repérer les faits de prévention
 
-**OB-18 · Before the price.** Prevention facts (decision maker, influencers, budget, deadline, past attempt defused) count only if stated by the prospect in a turn before the first price (Pitch annex, PB-3).
+**OB-18 · Avant le prix.** Les faits de prévention (décideur, personnes qui influencent, budget, échéance, tentative passée désamorcée) ne comptent que s'ils sont énoncés par le prospect dans un tour avant le premier prix (annexe de la présentation, PB-3).
 
-**OB-19 · Supposition.** A sales supposition not confirmed with content ("I assume you make the decisions?" → "mm-hmm") does not establish the fact; "yes, it's my decision" does.
+**OB-19 · Supposition.** Une supposition du commercial qui n'est pas confirmée avec du contenu (« j'imagine que c'est toi qui décides ? » → « mm-hmm ») n'établit pas le fait ; « oui, c'est ma décision » l'établit.
 
-## A4b. Rules added after the first calibration pass
+## A4b. Règles ajoutées après la première passe de calibration
 
-**OB-20 · Elliptical exploration.** An open question that refers back to the resistance by ellipsis, without reusing its words ("Compared to what?", "Why is that?", "In what way?"), placed directly after the resistance, counts as exploration (OB-15). A first response sentence that is such a question, with neither a receiving marker nor a contradiction, counts as acknowledged (OB-13).
+**OB-20 · Exploration elliptique.** Une question ouverte qui renvoie à la résistance par ellipse, sans en reprendre les mots (« Par rapport à quoi ? », « Pourquoi ça ? », « Dans quel sens ? »), placée juste après la résistance, compte comme exploration (OB-15). Une première phrase de réponse qui est une telle question, sans marqueur d'accueil ni contradiction, compte comme accueillie (OB-13).
 
-**OB-21 · Mindset reframe on an anxiety.** A response to an anxiety that reframes the belief ("everyone feels that before starting", "fear means it matters to you") without describing any support, framework or proof is a **partial** match (H1 = 1), tagged `mindset_reframe`. With support or proof added in the same episode, it becomes a full match.
+**OB-21 · Recadrage de l'état d'esprit sur une anxiété.** Une réponse à une anxiété qui recadre la croyance (« tout le monde ressent ça avant de commencer », « la peur veut dire que ça compte pour toi ») sans décrire aucun accompagnement, cadre ou preuve est une correspondance **partielle** (H1 = 1), étiquetée `mindset_reframe`. Avec un accompagnement ou une preuve ajoutés dans le même épisode, elle devient une correspondance complète.
 
-**OB-22 · Receive and leave in one turn.** A single sales turn that acknowledges the resistance and then moves to a new topic, without answering or exploring it, makes the episode **latent** (OB-10), whatever the length of the turn.
+**OB-22 · Recevoir et repartir dans le même tour.** Un seul tour du commercial qui accueille la résistance puis passe à un nouveau sujet, sans y répondre ni l'explorer, rend l'épisode **latent** (OB-10), quelle que soit la longueur du tour.
 
-**OB-23 · Commitment to a proposed answer.** When the sales proposes a concrete answer (a payment plan, a start date, a call with the spouse) and the prospect commits to it in their own words with a specific element ("You have a deal", "Okay, the 900 plan, let's do it", "Thursday 7 pm works for both of us"), the resolution is **resolved**. A bare "yeah" or "okay" to the same proposal stays **acknowledged** (OB-17).
+**OB-23 · Engagement sur une réponse proposée.** Quand le commercial propose une réponse concrète (un paiement en plusieurs fois, une date de début, un appel avec le conjoint) et que le prospect s'y engage avec ses propres mots et un élément précis (« Marché conclu », « Ok, la formule à 900, on y va », « Jeudi 19 h, ça nous va à tous les deux »), la résolution est **résolue**. Un simple « ouais » ou « ok » à la même proposition reste **accueillie** (OB-17).
 
-**OB-24 · Denied anxiety.** When the prospect explicitly denies one nature and asserts another ("I'm not scared, it's just the amount"), the episode takes the asserted nature only (here: objection · money available); no anxiety episode is opened.
+**OB-24 · Anxiété niée.** Quand le prospect nie explicitement une nature et en affirme une autre (« je n'ai pas peur, c'est juste le montant »), l'épisode prend seulement la nature affirmée (ici : objection · argent disponible) ; aucun épisode d'anxiété n'est ouvert.
 
-**OB-25 · External reason that also limits time.** A delay tied to an external, verifiable event that also reduces the prospect's availability ("it's wedding season, I'm booked until October") opens two records: a decision-circuit deadline (for prevention) and an objection · time (for handling).
+**OB-25 · Raison extérieure qui limite aussi le temps.** Un délai lié à un événement extérieur et vérifiable qui réduit aussi la disponibilité du prospect (« c'est la période des examens, je suis pris jusqu'en octobre ») ouvre deux enregistrements : une échéance du circuit de décision (pour la prévention) et une objection · temps (pour le traitement).
 
-**OB-26 · Attribution.** The diarization quality gate (Part C, C1) must flag `attribution_doubtful` turns before bounding. When the flag is missing, the model marks a turn as doubtful if its content contradicts its label (the sales' own name or offer described in the first person under a PROSPECT label); such turns are excluded from episodes.
+**OB-26 · Attribution.** La porte de qualité de la diarisation (Partie C, C1) doit signaler les tours `attribution_doubtful` avant le bornage. Quand le signal manque, le modèle marque un tour comme douteux si son contenu contredit son étiquette (le propre nom du commercial ou l'offre décrite à la première personne sous une étiquette PROSPECT) ; ces tours sont exclus des épisodes.
 
-**OB-27 · Scope: after the first price only.** (Romain, 2026-11-03.) A resistance is read only in a PROSPECT (or
-co-decider) turn that comes after the first price (Pitch anchor PB-3 / PB-18). Nothing said before the first price is
-an objection, an anxiety or an inertia: it is neither nominated, nor bounded, nor scored, even if it matches an OB-1
-marker. A call with no price has no episode (handling `not_applicable`). Prevention (A4, OB-18, OB-19) is unchanged: it
-still reads the facts stated before the first price, because those are not objections.
+**OB-27 · Portée : seulement après le premier prix.** (Romain, 2026-11-03.) Une résistance ne se lit que dans un tour
+PROSPECT (ou d'un codécideur) qui vient après le premier prix (ancre de la présentation PB-3 / PB-18). Rien de ce qui est
+dit avant le premier prix n'est une objection, une anxiété ou une inertie : ce n'est ni proposé, ni borné, ni noté, même si
+cela correspond à un marqueur de OB-1. Un appel sans prix n'a aucun épisode (traitement `not_applicable`). La prévention
+(A4, OB-18, OB-19) ne change pas : elle lit toujours les faits énoncés avant le premier prix, parce que ce ne sont pas des
+objections.
 
-## A5. Exclusion rules (summary)
+## A5. Règles d'exclusion (résumé)
 
-| # | Never counts as… | Case |
+| # | Ne compte jamais comme… | Cas |
 |---|---|---|
-| X1 | a resistance | A request for information; a conditional acceptance; a neutral circuit fact |
-| X2 | inertia | A delay with an external, verifiable reason (it is a deadline) |
-| X3 | resolved | Plain agreement; agreement to a resolution stated by the sales |
-| X4 | resolved | Any resistance that recurs later (it is re-scored H5 = 0) |
-| X5 | acknowledged by the sales | A first sentence that contradicts or argues |
-| X6 | isolation | "Anything else?" asked after the answer, at the end of the episode |
-| X7 | exploration | A closed question, or a question that does not reuse the resistance |
-| X8 | prevention | Facts stated after the first price; sales suppositions |
+| X1 | une résistance | Une demande d'information ; une acceptation sous condition ; un fait neutre sur le circuit |
+| X2 | une inertie | Un délai avec une raison extérieure et vérifiable (c'est une échéance) |
+| X3 | résolue | Un simple accord ; un accord sur une résolution énoncée par le commercial |
+| X4 | résolue | Toute résistance qui revient plus tard (elle est renotée H5 = 0) |
+| X5 | accueillie par le commercial | Une première phrase qui contredit ou argumente |
+| X6 | un isolement | « Autre chose ? » demandé après la réponse, à la fin de l'épisode |
+| X7 | une exploration | Une question fermée, ou une question qui ne reprend pas la résistance |
+| X8 | la prévention | Des faits énoncés après le premier prix ; des suppositions du commercial |
 
-## A6. Minimal pairs
+## A6. Paires minimales
 
-| # | Passage | Verdict | Why |
+Les passages sont donnés en français, avec entre parenthèses la phrase anglaise du test unitaire correspondant quand la forme exacte compte.
+
+| # | Passage | Verdict | Pourquoi |
 |---|---|---|---|
-| 1a | "How long is the program?" | Not a resistance | Information request (OB-2) |
-| 1b | "How long is it? Because honestly I don't have much time." | Objection · time | Reserve stated |
-| 2a | "I'm not sure it works." | Objection · trust | Doubt on the offer |
-| 2b | "I'm not sure I can do it." | Anxiety · capability | Doubt on self |
-| 3a | "Not right now, maybe after the holidays." | Inertia | No external reason |
-| 3b | "Not before January, I'm moving in December." | Deadline (circuit) | External reason (OB-2) |
-| 4a | "My husband handles our finances." (discovery) | Circuit fact | Neutral |
-| 4b | "I need to talk to my husband first." (after the price) | Objection · co-decider | Reason not to decide now |
-| 5a | Sales: "I hear you. Apart from the money, is anything else holding you back?" | Acknowledge + isolate | OB-13, OB-14 |
-| 5b | Sales: "But think about what it's costing you not to do it." | Not acknowledged | Contradiction first (OB-13) |
-| 6a | Prospect after a payment plan: "Okay, 900 a month I can actually do." | Resolved | Own words |
-| 6b | Sales: "So the payment plan works for you, right?" Prospect: "Yeah." | Acknowledged | Resolution stated by the sales (OB-17) |
-| 7a | Anxiety "I always give up" → Sales describes weekly check-ins and a mentor who follows up | Matching gesture | Support removes the risk |
-| 7b | Anxiety "I always give up" → Sales: "The price is really low compared to a degree" | Mismatched | Argues the offer against self-doubt |
-| 8a | Resistance, sales changes subject in the next turn, prospect silent | Latent | OB-10 |
-| 8b | Resistance, sales explores, prospect answers for 3 turns, then topic change | Not latent | Reaction present |
+| 1a | « Le programme dure combien de temps ? » | Pas une résistance | Demande d'information (OB-2) |
+| 1b | « Ça dure combien de temps ? Parce que franchement, je n'ai pas beaucoup de temps. » | Objection · temps | Réserve exprimée |
+| 2a | « Je ne suis pas sûr que ça marche. » ("I'm not sure it works.") | Objection · confiance | Doute sur l'offre |
+| 2b | « Je ne suis pas sûr d'en être capable. » ("I'm not sure I can do it.") | Anxiété · capacité | Doute sur soi |
+| 3a | « Pas maintenant, peut-être après les vacances. » | Inertie | Pas de raison extérieure |
+| 3b | « Pas avant janvier, je déménage en décembre. » | Échéance (circuit) | Raison extérieure (OB-2) |
+| 4a | « C'est mon mari qui gère nos finances. » (découverte) | Fait du circuit | Neutre |
+| 4b | « Il faut d'abord que j'en parle à mon mari. » (après le prix) | Objection · codécideur | Raison de ne pas décider maintenant |
+| 5a | Commercial : « Je t'entends. À part l'argent, est-ce qu'il y a autre chose qui te retient ? » | Accueillir + isoler | OB-13, OB-14 |
+| 5b | Commercial : « Mais pense à ce que ça te coûte de ne pas le faire. » | Pas accueillie | Contradiction d'abord (OB-13) |
+| 6a | Prospect après un paiement en plusieurs fois : « Ok, 900 par mois, ça je peux vraiment le faire. » | Résolue | Ses propres mots |
+| 6b | Commercial : « Donc le paiement en plusieurs fois, ça te va, non ? » Prospect : « Ouais. » ("So the payment plan works for you, right?" → "Yeah.") | Accueillie | Résolution énoncée par le commercial (OB-17) |
+| 7a | Anxiété « j'abandonne toujours » → le commercial décrit des points hebdomadaires et un mentor qui assure le suivi | Geste adapté | L'accompagnement retire le risque |
+| 7b | Anxiété « j'abandonne toujours » → Commercial : « Le prix est vraiment bas comparé à un diplôme » | Inadapté | Oppose l'offre à un doute sur soi |
+| 8a | Résistance, le commercial change de sujet au tour suivant, le prospect se tait | Latente | OB-10 |
+| 8b | Résistance, le commercial explore, le prospect répond pendant 3 tours, puis changement de sujet | Pas latente | Réaction présente |
 
-## A7. Detection reliability for objections
+## A7. Fiabilité de la détection pour les objections
 
-| Measure | Threshold |
+| Mesure | Seuil |
 |---|---|
-| Resistance recall on the gold set | ≥ 95 % |
-| Resistance precision | ≥ 85 % |
-| Nature agreement (objection / anxiety / inertia) | κ ≥ 0.80 |
-| Episode end: same turn ± 1 | ≥ 90 % |
-| Resolution level agreement | κ ≥ 0.80 |
-| Gesture items (acknowledge, isolate, explore, match) | κ ≥ 0.80 each |
+| Rappel des résistances sur le jeu de référence | ≥ 95 % |
+| Précision des résistances | ≥ 85 % |
+| Accord sur la nature (objection / anxiété / inertie) | κ ≥ 0,80 |
+| Fin de l'épisode : même tour ± 1 | ≥ 90 % |
+| Accord sur le niveau de résolution | κ ≥ 0,80 |
+| Items des gestes (accueillir, isoler, explorer, geste adapté) | κ ≥ 0,80 chacun |
 
-Until then the Objection Removal score is labelled "provisional". Most probable confusions: anxiety classified as objection (OB-3); information request taken as objection (OB-2); acknowledged taken as resolved (OB-17); late "anything else?" taken as isolation (X6).
+D'ici là, la note du traitement des objections est marquée « provisoire ». Confusions les plus probables : une anxiété classée comme objection (OB-3) ; une demande d'information prise pour une objection (OB-2) ; une résistance accueillie prise pour une résistance résolue (OB-17) ; un « autre chose ? » tardif pris pour un isolement (X6).
