@@ -1,8 +1,9 @@
-Rules: Gap methodology §2 (horizon) and annex GB-29.
-A horizon is a date or a duration that the prospect attaches to the target (point B), in the same answer or a
-following answer. A binding deadline is external and verifiable ("my contract ends in March"); a wished delay is
-not ("I'd like to start soon", "ideally within a year").
-- `horizon_quote` and `horizon_turn`: the exact prospect words of the deadline and their turn; null if none.
-- `horizon`: the deadline as the prospect said it (copied, not converted).
-- `binding`: true for a binding deadline, false for a wished delay, null if no horizon.
-Never use a deadline stated by the sales and only approved by the prospect.
+Règles : méthodologie Écart §2 (horizon) et annexe GB-29.
+Un horizon est une date ou une durée que le prospect associe à la cible (point B), dans la même réponse ou dans une
+réponse suivante. Une échéance contraignante est externe et vérifiable (« mon contrat se termine en juin ») ; un délai
+souhaité ne l'est pas (« j'aimerais commencer bientôt », « idéalement d'ici un an »).
+- `horizon_quote` et `horizon_turn` : les mots exacts du prospect qui donnent l'échéance, et leur tour ; null s'il n'y en
+  a pas.
+- `horizon` : l'échéance telle que le prospect l'a dite (copiée, pas convertie).
+- `binding` : true pour une échéance contraignante, false pour un délai souhaité, null s'il n'y a pas d'horizon.
+N'utilise jamais une échéance dite par le commercial et seulement approuvée par le prospect.

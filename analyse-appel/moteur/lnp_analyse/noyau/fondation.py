@@ -1,9 +1,10 @@
-"""Shared foundation, computed once per call before any competence (stages S0, C1, S2).
+"""Socle commun, calculé une fois par appel avant toute compétence (étapes S0, C1, S2).
 
-S0  parse and normalise the transcript into numbered turns
-C1  diarization quality gate + attribution check (merged / swapped / echo turns) and repair
-S2  phase map: pitch start, offer mentions, first price, early price, decision request (Pitch annex PB-1..PB-4,
-    PB-17..PB-19). The discovery start is set by the SPIN module (SB-1/SB-2).
+S0  lire et normaliser la transcription en tours numérotés
+C1  contrôle de qualité de la diarisation + vérification de l'attribution (tours fusionnés, inversés, en écho) et réparation
+S2  carte des phases : début de la présentation de l'offre, mentions de l'offre, premier prix, prix précoce, demande de
+    décision (annexe Présentation PB-1 à PB-4, PB-17 à PB-19). Le début de la découverte est placé par le module SPIN
+    (SB-1 / SB-2).
 """
 from __future__ import annotations
 
@@ -19,8 +20,8 @@ LIGNE = re.compile(r"^\[?(?:T\d+\s+)?(\d{1,2}:\d{2}(?::\d{2})?)\]?\s*([^:]{1,80}
 
 # ------------------------------------------------------------------------------------------- S0
 def lire_transcription(brut: str, carte_locuteurs: dict[str, str]) -> list[Tour]:
-    """Lines like "[00:06] Valentino Dooneson-Pereira: text". Unknown speakers map to OTHER.
-    Consecutive lines of the same speaker are joined (wrapped lines)."""
+    """Lignes du type « [00:06] Valentino Dooneson-Pereira: texte ». Un locuteur inconnu devient OTHER.
+    Les lignes consécutives d'un même locuteur sont réunies (lignes coupées)."""
     tours: list[Tour] = []
     for ligne in brut.splitlines():
         ligne = ligne.strip()
@@ -34,7 +35,7 @@ def lire_transcription(brut: str, carte_locuteurs: dict[str, str]) -> list[Tour]
         ts, loc, texte = m.groups()
         role = carte_locuteurs.get(loc.strip(), AUTRE)
         if role not in (COMMERCIAL, PROSPECT, AUTRE):
-            role = {"sales": COMMERCIAL, "prospect": PROSPECT}.get(role.lower(), AUTRE)
+            role = {"sales": COMMERCIAL, "commercial": COMMERCIAL, "prospect": PROSPECT}.get(role.lower(), AUTRE)
         if tours and tours[-1].locuteur == loc.strip():
             tours[-1].texte += " " + texte
             continue
@@ -61,12 +62,12 @@ def porte_diarisation(ctx: ContexteAppel, part_max: float = 0.92, mots_min_prosp
 
 # ------------------------------------------------------------------------------------------- C1
 def _construire_attr(ctx: ContexteAppel, bloc_: list[Tour]) -> str:
-    return ("Read each turn against its speaker label and list every case of: (1) merged turn (a turn that "
-            "contains the other role's speech), (2) swapped turn (content that can only belong to the other role), "
-            "(3) echo (the same sentence under both labels within 3 turns).\n"
-            "For a merged turn, give `boundary_quote`: the exact words where the other role's speech starts, and "
-            "`foreign_quote`: the exact foreign part. Answer JSON: {\"cases\": [{\"turn\": \"T012\", \"type\": "
-            "\"merged|swapped|echo\", \"foreign_quote\": \"...\", \"boundary_quote\": \"...\"}]}\n\nTRANSCRIPT\n" +
+    return ("Lis chaque tour en regard de son étiquette de locuteur et liste chaque cas de : (1) tour fusionné (un tour "
+            "qui contient des paroles de l'autre rôle), (2) tour inversé (un contenu qui ne peut appartenir qu'à l'autre "
+            "rôle), (3) écho (la même phrase sous les deux étiquettes à moins de 3 tours d'écart).\n"
+            "Pour un tour fusionné, donne `boundary_quote` : les mots exacts où commencent les paroles de l'autre rôle, et "
+            "`foreign_quote` : la partie étrangère exacte. Réponds en JSON : {\"cases\": [{\"turn\": \"T012\", \"type\": "
+            "\"merged|swapped|echo\", \"foreign_quote\": \"...\", \"boundary_quote\": \"...\"}]}\n\nTRANSCRIPTION\n" +
             "\n".join(f"[{t.id} {t.ts}] {t.role}: {t.texte}" for t in bloc_))
 
 
@@ -85,8 +86,9 @@ ATTRIBUTION = TacheModele("foundation.attribution", "fast", "fondation_attributi
 
 
 def reparer_attribution(ctx: ContexteAppel, cas_: list[dict]) -> None:
-    """Split merged turns at the quoted boundary, relabel swapped turns, drop echoes. Turn ids are kept stable:
-    the foreign part of a merged turn becomes a sub-turn "T050b" inserted right after (ids stay sortable)."""
+    """Coupe les tours fusionnés à la limite citée, réétiquette les tours inversés, écarte les échos. Les identifiants
+    des tours restent stables : la partie étrangère d'un tour fusionné devient un sous-tour « T050b » inséré juste après
+    (les identifiants restent dans l'ordre)."""
     par_id = {t.id: t for t in ctx.tours}
     nouveaux_tours: list[Tour] = []
     touche_ = set()
@@ -102,7 +104,7 @@ def reparer_attribution(ctx: ContexteAppel, cas_: list[dict]) -> None:
             t.role, t.repare = autre, True
             nouveaux_tours.append(t)
         elif c["type"] == "echo":
-            t.attribution_douteuse = True       # the echoed copy is excluded from every computation
+            t.attribution_douteuse = True       # la copie en écho est écartée de tous les calculs
             nouveaux_tours.append(t)
         else:
             fq = c.get("foreign_quote", "")
@@ -112,7 +114,7 @@ def reparer_attribution(ctx: ContexteAppel, cas_: list[dict]) -> None:
                 nouveaux_tours.append(t)
                 continue
             brut = t.texte
-            # map normalised index back approximately on the raw text (same length after whitespace collapse)
+            # reporter à peu près la position normalisée sur le texte brut (même longueur une fois les espaces réduits)
             n_brut = re.sub(r"\s+", " ", brut)
             propre_a, etranger, propre_b = n_brut[:i].strip(), n_brut[i:i + len(fq)].strip(), n_brut[i + len(fq):].strip()
             t.texte, t.repare = (propre_a + " " + propre_b).strip() or propre_a, True
@@ -135,12 +137,26 @@ def executer_attribution(ctx: ContexteAppel, executeur: Executeur, taille_bloc: 
     reparer_attribution(ctx, cas_)
 
 
-# ------------------------------------------------------------------------------------------- S2 phase map
+# ------------------------------------------------------------------------------------------- S2 carte des phases
+# Filtres des tours candidats (le modèle répond ensuite pour chacun) : tournures anglaises (transcriptions des tests),
+# puis françaises.
 INDICES_OFFRE = re.compile(r"\b(the program|the mentorship|the academy|what we do|the way we help|how it works|"
-                        r"pillar|module|six-month|6-month|let me show you|share my screen|my screen)\b", re.I)
-MONTANT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?)\b|\b\d{1,3},\d{3}\b)", re.I)
+                        r"pillar|module|six-month|6-month|let me show you|share my screen|my screen|"
+                        r"(le|notre|ce) programme|(l['’]|notre |cet )accompagnement|(la|notre|cette) formation|"
+                        r"(le|notre|ce) coaching|(l['’]|notre )acad[ée]mie|(le|notre) suivi|modules?|s[ée]ances?|"
+                        r"piliers?|ce qu['’]on fait|ce que (nous faisons|je fais)|comment (on|je) (t['’]|vous )?aide|"
+                        r"comment [çc]a (marche|fonctionne|se passe)|(six|6) mois|"
+                        r"je (vais|veux) (te|vous) montrer|(je )?(te |vous )?partage(r)? (mon|l['’]) ?[ée]cran|mon [ée]cran)\b",
+                        re.I)
+MONTANT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?|balles)\b|"
+                     r"\b\d{1,3},\d{3}\b|\b\d[\d,.]*\s?k?€|\b\d{1,3}\s\d{3}\b)", re.I)
 DECISION = re.compile(r"\b(ready to (get started|move forward|start)|what would you like to do|do you want to "
-                      r"(join|move forward|get started)|shall we get you started|how would you like to proceed)\b", re.I)
+                      r"(join|move forward|get started)|shall we get you started|how would you like to proceed|"
+                      r"pr[êe]te?s? [àa] (d[ée]marrer|commencer|te lancer|vous lancer|y aller|(nous )?rejoindre)|"
+                      r"qu['’]est[- ]ce que (tu veux|vous voulez|tu aimerais|vous aimeriez|tu souhaites|vous souhaitez) faire|"
+                      r"(tu veux|vous voulez|tu souhaites|vous souhaitez) (nous )?rejoindre|"
+                      r"(tu veux|vous voulez|tu souhaites|vous souhaitez) (te |vous )?lancer|on (y va|se lance|d[ée]marre)|"
+                      r"comment (tu veux|vous voulez|tu souhaites|vous souhaitez) proc[ée]der)\b", re.I)
 
 
 def candidats_phase(ctx: ContexteAppel) -> list[Tour]:
@@ -151,11 +167,11 @@ def candidats_phase(ctx: ContexteAppel) -> list[Tour]:
 def _construire_ph(ctx: ContexteAppel, t: Tour) -> str:
     i = ctx.tours.index(t)
     fenetre = ctx.tours[max(0, i - 3): i + 6]
-    return (f"TARGET TURN: {t.id}\nAnswer about the TARGET TURN only, using the rules of the phase map.\n"
-            "JSON: {\"offer_description\": bool, \"screen_share\": bool, \"followed_by_discovery\": bool, "
+    return (f"TOUR CIBLE : {t.id}\nRéponds sur le TOUR CIBLE seulement, avec les règles de la carte des phases.\n"
+            "JSON : {\"offer_description\": bool, \"screen_share\": bool, \"followed_by_discovery\": bool, "
             "\"price_for_offer\": bool, \"amount\": number|null, \"hypothetical\": bool, \"range\": [min,max]|null, "
-            "\"decision_request\": bool, \"quote\": \"exact words of the target turn that justify the true answers\"}\n\n"
-            "CONTEXT\n" + "\n".join(f"[{x.id} {x.ts}] {x.role}: {x.texte}" for x in fenetre))
+            "\"decision_request\": bool, \"quote\": \"mots exacts du tour cible qui justifient les réponses true\"}\n\n"
+            "CONTEXTE\n" + "\n".join(f"[{x.id} {x.ts}] {x.role}: {x.texte}" for x in fenetre))
 
 
 def _valider_ph(rep: dict, ctx: ContexteAppel, unite: Any) -> list[str]:
@@ -172,11 +188,11 @@ PHASES = TacheModele("foundation.phases", "fast", "fondation_phases", _construir
 
 
 def decider_phases(ctx: ContexteAppel, reponses: dict[str, dict]) -> None:
-    """Code decision of PB-1, PB-2/PB-17, PB-3/PB-18, PB-19, PB-4."""
+    """Décision par le code de PB-1, PB-2 / PB-17, PB-3 / PB-18, PB-19, PB-4."""
     ph = ctx.phases
     prix_ref = (ctx.reference_offre or {}).get("price")
     tours_commercial = [t for t in ctx.tours if t.role == COMMERCIAL and not t.attribution_douteuse]
-    # pitch start
+    # début de la présentation de l'offre
     for t in tours_commercial:
         a = reponses.get(t.id) or {}
         if a.get("offer_description") or a.get("screen_share"):
@@ -184,19 +200,19 @@ def decider_phases(ctx: ContexteAppel, reponses: dict[str, dict]) -> None:
                 ph.mentions_offre.append(t.id)          # PB-2 / PB-17
                 continue
             if a.get("screen_share") and not a.get("offer_description"):
-                suiv = [x for x in tours_commercial if ctx.n(x.id) > ctx.n(t.id)][:2]   # PB-1: offer description within 2 sales turns
+                suiv = [x for x in tours_commercial if ctx.n(x.id) > ctx.n(t.id)][:2]   # PB-1 : description de l'offre dans les 2 tours suivants du commercial
                 if not any((reponses.get(x.id) or {}).get("offer_description") for x in suiv):
                     continue
             ph.debut_presentation = t.id
             ph.preuve["pitch_start"] = Preuve(a.get("quote", ""), t.id, COMMERCIAL)
             break
-    # first price
+    # premier prix
     for t in tours_commercial:
         a = reponses.get(t.id) or {}
         if not a.get("price_for_offer") or a.get("hypothetical"):
             continue
         mont = a.get("amount") or (a.get("range") or [None])[0]
-        if prix_ref and mont and not (0.3 * prix_ref <= mont <= 3 * prix_ref):   # PB-18 plausibility
+        if prix_ref and mont and not (0.3 * prix_ref <= mont <= 3 * prix_ref):   # PB-18 vraisemblance
             ph.signaux.append(f"amount_doubtful:{t.id}")
             continue
         if ph.debut_presentation and ctx.n(t.id) < ctx.n(ph.debut_presentation):

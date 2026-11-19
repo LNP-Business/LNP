@@ -1,32 +1,36 @@
-Rules: Gap annex GB-1 to GB-7, GB-22, GB-23, GB-27, GB-31 (components of a restitution). You do not decide whether
-the passage is a restitution, whether a component is verbatim or whether the gap is present: the code does.
+Règles : annexe Écart GB-1 à GB-7, GB-22, GB-23, GB-27, GB-31 (composantes d'une restitution). Tu ne décides ni si le
+passage est une restitution, ni si une composante est reprise mot pour mot, ni si l'écart est présent : c'est le code
+qui décide.
 
-The four components (each one only ever exists as the prospect's own words):
-- PROBLEM: what is not working and keeps the prospect from reaching the desired state (a lack, a blocker, a fear,
-  a past failure, a constraint).
-- COST: what the problem costs the prospect, or what staying in the current situation costs (money, time, clients,
-  family, health, self-belief, lost opportunity). A current income, a price or a budget is never a cost.
-- A: where the prospect is today (current state, current figure).
-- B: where the prospect wants to go (target, desired state).
+Les quatre composantes (chacune n'existe jamais que dans les propres mots du prospect) :
+- PROBLEM : ce qui ne marche pas et empêche le prospect d'atteindre l'état souhaité (un manque, un blocage, une peur,
+  un échec passé, une contrainte).
+- COST : ce que le problème coûte au prospect, ou ce que lui coûte de rester dans sa situation actuelle (argent, temps,
+  clients, famille, santé, confiance en soi, occasion perdue). Un revenu actuel, un prix ou un budget n'est jamais un coût.
+- A : là où le prospect en est aujourd'hui (état actuel, chiffre actuel).
+- B : là où le prospect veut aller (cible, état souhaité).
 
-For each clause of the SALES turns of the span that restates one component:
-- `component`: PROBLEM, COST, A or B.
-- `sales_turn`, `sales_quote`: the exact sales words of the clause (2 to 40 words, one SALES turn of the span).
-- `about_prospect`: false if the clause is about another person (a former student, a testimonial, "most people",
-  "a lot of people in your position") (GB-6). A comparison inside a clause about the prospect is ignored.
-- `declarative`: true for a statement, or a statement followed by a validation tail ("..., right?"); false for a
-  question.
-- `source_turn`: the earlier PROSPECT turn whose statement the clause restates; if the prospect said it several
-  times, cite the turn whose words the sales reuses (GB-27). `PRIOR<k>` for the k-th prior input (application
-  form, earlier call). null if the prospect never said it (a cost or a problem introduced by the sales).
-- `key_expression`: the words of the source turn that carry the component (for PROBLEM the obstacle, for COST the
-  consequence or the amount, for A and B the state or the value), copied character for character from the SOURCE
-  turn, and that the sales repeats. Never a generic phrase ("you want to", "a lot of things"). If the sales
-  paraphrased, still copy the prospect's words from the source: the code will find that they are not repeated.
-- `as_holding_back` (PROBLEM only): true if the clause presents this blocker as what holds the prospect back
-  ("what's holding you back is...", "the biggest thing getting in the way", "what's missing for you").
-- Ignore clauses placed after the first mention of the offer (program, mentorship, academy, "what we do",
-  "how we help").
-- `ends_with_new_topic_question`: true if the last sentence of the span is a question on a new topic (not a
-  request to validate what was just said, such as "Did I get that right?", "Is that fair?", "Anything I missed?").
-  Then give its exact words in `new_topic_question_quote`.
+Pour chaque proposition des tours SALES (le commercial) de la plage qui reprend une composante :
+- `component` : PROBLEM, COST, A ou B.
+- `sales_turn`, `sales_quote` : les mots exacts du commercial pour cette proposition (2 à 40 mots, dans un seul tour
+  SALES de la plage).
+- `about_prospect` : false si la proposition parle d'une autre personne (un ancien participant, un témoignage, « la
+  plupart des gens », « beaucoup de gens dans ta situation ») (GB-6). Une comparaison à l'intérieur d'une proposition
+  sur le prospect est ignorée.
+- `declarative` : true pour une affirmation, ou une affirmation suivie d'une queue de validation (« …, non ? »,
+  « …, c'est ça ? ») ; false pour une question.
+- `source_turn` : le tour PROSPECT antérieur dont la proposition reprend l'énoncé ; si le prospect l'a dit plusieurs
+  fois, cite le tour dont le commercial réutilise les mots (GB-27). `PRIOR<k>` pour la k-ième entrée antérieure
+  (formulaire de candidature, appel précédent). null si le prospect ne l'a jamais dit (un coût ou un problème apporté
+  par le commercial).
+- `key_expression` : les mots du tour source qui portent la composante (pour PROBLEM l'obstacle, pour COST la
+  conséquence ou le montant, pour A et B l'état ou la valeur), copiés caractère pour caractère depuis le tour SOURCE,
+  et que le commercial répète. Jamais une formule générique (« tu veux », « plein de choses »). Si le commercial a
+  paraphrasé, copie quand même les mots du prospect depuis la source : le code verra qu'ils ne sont pas repris.
+- `as_holding_back` (PROBLEM seulement) : true si la proposition présente ce blocage comme ce qui retient le prospect
+  (« ce qui te retient, c'est… », « le plus gros frein », « ce qui te manque »).
+- Ignore les propositions placées après la première mention de l'offre (programme, mentorat, académie, « ce qu'on
+  fait », « comment on t'aide »).
+- `ends_with_new_topic_question` : true si la dernière phrase de la plage est une question sur un nouveau sujet (et non
+  une demande de valider ce qui vient d'être dit, comme « J'ai bien résumé ? », « C'est juste ? », « J'ai oublié quelque
+  chose ? »). Donne alors ses mots exacts dans `new_topic_question_quote`.

@@ -26,8 +26,17 @@ def normaliser(s: Optional[str]) -> str:
 _LETTRES = "a-z0-9à-öø-ÿœæ"
 
 
+# Espace des milliers à la française (« 2 000 », « 10 000 € », y compris les espaces insécables U+00A0 et U+202F,
+# ramenées à une espace par normaliser) : les groupes de trois chiffres sont recollés au nombre qui les précède.
+_MILLIERS_FR = re.compile(r"(?<![\d.,])(\d{1,3})((?:\s\d{3})+)(?![\d.,]?\d)")
+
+
+def recoller_milliers(s: str) -> str:
+    return _MILLIERS_FR.sub(lambda m: m.group(1) + re.sub(r"\s", "", m.group(2)), s)
+
+
 def mots(s: str) -> list[str]:
-    return re.findall(rf"[{_LETTRES}$€£][{_LETTRES}'$€£,.\-]*", normaliser(s))
+    return re.findall(rf"[{_LETTRES}$€£][{_LETTRES}'$€£,.\-]*", recoller_milliers(normaliser(s)))
 
 
 def jetons_propres(s: str) -> list[str]:
@@ -133,9 +142,14 @@ _MILLIERS = ("thousand", "grand", "k", "mille")   # « ten thousand », « 5 gra
 
 
 def normaliser_nombre(jet: str) -> Optional[str]:
-    """PB-21 : 10K = 10,000 = 10 000 $ = ten thousand (dix mille) ; la devise est ignorée. Rend les chiffres canoniques ou None."""
-    t = jet.lower().strip("$€£.,")
-    m = re.fullmatch(r"(\d+(?:[.,]\d+)*)(k|grand|m)?", t)
+    """PB-21 : 10K = 10,000 = $10,000 = ten thousand = 10 000 € = dix mille ; la devise est ignorée. Rend les chiffres
+    canoniques ou None.
+
+    Virgule : suivie d'exactement trois chiffres (« 2,000 », « 1,500.50 »), c'est le séparateur des milliers anglais ;
+    sinon c'est la virgule décimale française (« 2,5 », « 2,50 », « 2,5 k€ »). Espace entre groupes de trois chiffres :
+    séparateur des milliers français (« 2 000 »)."""
+    t = recoller_milliers(re.sub(r"\s+", " ", jet.lower()).strip()).strip("$€£., ")
+    m = re.fullmatch(r"(\d+(?:[.,]\d+)*)(?: ?(k)|(grand|m))?", t)
     if not m:
         return str(_MOTS_NOMBRES[t]) if t in _MOTS_NOMBRES else None
     brut = m.group(1)
@@ -144,7 +158,7 @@ def normaliser_nombre(jet: str) -> Optional[str]:
         v = float(brut)
     except ValueError:
         return None
-    mult = {"k": 1e3, "grand": 1e3, "m": 1e6}.get(m.group(2) or "", 1)
+    mult = {"k": 1e3, "grand": 1e3, "m": 1e6}.get(m.group(2) or m.group(3) or "", 1)
     v *= mult
     return str(int(v)) if v == int(v) else str(v)
 
@@ -165,7 +179,7 @@ def canon(jetons: list[str], decalage: bool) -> list[str]:
     while i < len(jetons):
         t = jetons[i]
         suiv = jetons[i + 1] if i + 1 < len(jetons) else ""
-        if normaliser_nombre(t) and suiv in _MILLIERS:
+        if normaliser_nombre(t) and suiv.strip("$€£") in _MILLIERS:     # « 2,5 k€ »
             sortie.append(str(int(float(normaliser_nombre(t)) * 1000)))
             i += 2
             continue

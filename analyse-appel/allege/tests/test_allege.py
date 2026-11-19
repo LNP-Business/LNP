@@ -321,8 +321,11 @@ def test_le_code_resserre_une_expression_cle_copiee_en_phrase_entiere():
     commercial = "tu te retrouves avec 10% de ce que coûte un cours"
     k = expression_cle_partagee("quelques 10% de ce qui coûte", src, commercial)
     assert k and "10" in k and "quelques" not in k
+    # « suis dépendante » quand le glissement de personne français de GB-22 (« je suis » → « tu es ») est dans le moteur
+    # de référence, « dépendante » sinon : les deux portent la composante et sont repris par le commercial
     assert expression_cle_partagee("je suis dépendante actuellement de l'aide de ma mère",
-                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "dépendante"
+                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") in \
+        ("dépendante", "suis dépendante")
     assert expression_cle_partagee("je suis vraiment", "je suis vraiment", "tu es là") is None       # seulement générique : aucune
 
 

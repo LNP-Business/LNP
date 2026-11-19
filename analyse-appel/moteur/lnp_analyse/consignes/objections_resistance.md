@@ -1,35 +1,43 @@
-# Objections · is this passage a resistance, and what is the subject of the doubt (OB-2, OB-3, OB-4, OB-24, OB-25, OB-26)
+# Objections · ce passage est-il une résistance, et quel est le sujet du doute ? (OB-2, OB-3, OB-4, OB-24, OB-25, OB-26)
 
-You read ONE target turn (with a few turns of context) and describe the doubts it expresses. You do not decide the
-nature: you name the subject of each doubt from the closed list; the code applies the boundary tests in order.
+Tu lis UN tour cible (TOUR CIBLE, avec quelques tours de contexte) et tu décris les doutes qu'il exprime. Tu ne décides
+pas la nature : tu nommes le sujet de chaque doute dans la liste fermée ; le code applique les tests de frontière dans
+l'ordre.
 
-Step 1 · exclusions (OB-2). Set "exclusion" to:
-- "information_request": a question for information ("how long is it?", "is there a payment plan?") with no reserve
-  stated in the same turn;
-- "external_deadline": a delay with an external, verifiable reason ("I'm moving in January", "my severance ends in March");
-- "circuit_fact": a decision-circuit fact stated neutrally ("my husband handles our finances"). It is NOT a
-  circuit fact when it is put forward as a reason not to decide now ("I need to talk to my husband first");
-- "conditional_acceptance": "if I can pay monthly, then yes" (a decision criterion);
-- "none": none of these.
-"I'll think about it" with a reason is described by its reason ("I need to see my numbers" = money); without a reason
-it is a postponement.
+Étape 1 · exclusions (OB-2). Mets dans "exclusion" :
+- "information_request" : une question pour s'informer (« ça dure combien de temps ? », « on peut payer en plusieurs
+  fois ? ») sans réserve exprimée dans le même tour ;
+- "external_deadline" : un délai avec une raison externe et vérifiable (« je déménage en janvier », « mes allocations
+  chômage s'arrêtent en mars ») ;
+- "circuit_fact" : un fait du circuit de décision dit de façon neutre (« c'est mon mari qui gère nos finances »). Ce
+  n'est PAS un fait du circuit quand il est avancé comme une raison de ne pas décider maintenant (« il faut d'abord que
+  j'en parle à mon mari ») ;
+- "conditional_acceptance" : « si je peux payer tous les mois, alors oui » (un critère de décision) ;
+- "none" : aucun de ces cas.
+« Je vais réfléchir » avec une raison se décrit par sa raison (« il faut que je regarde mes comptes » = l'argent) ; sans
+raison, c'est un report.
 
-Step 2 · doubts. For each distinct doubt in the turn, give its exact quote and its subject(s) from this closed list:
-- "price" (the amount is too high, the price of instalments), "money_available" (the prospect lacks the money now),
-  "offer_trust" (does it work, is it legit, trust in the company or the sales), "offer_relevance" (I don't need it,
-  I already know), "time" (no time / bandwidth to follow the program), "co_decider" (needs someone else's agreement
-  before deciding);
-- "self_capability" (not managing, not lasting, not good enough), "own_decision" (choosing wrong, being fooled again);
-- "present_attachment" ("it's fine as it is", "I'm good for now"), "postponement" (later, after the holidays, no reason).
-A passage expressing two different doubts ("I can't afford it and I'm scared I'll quit again") gives two doubts (OB-4).
-A word such as "scared" does not make an anxiety by itself: name what the prospect is scared OF.
-If the prospect explicitly denies a doubt ("I'm not scared, it's just the amount"), list the denied subject in
-"denied_subjects" and do not list it as a doubt (OB-24).
-With exclusion "external_deadline", list a "time" doubt only if the event also removes the prospect's availability
-("it's wedding season, I'm booked until October") (OB-25), and give the deadline.
+Étape 2 · doutes. Pour chaque doute distinct du tour, donne sa citation exacte et son ou ses sujets dans cette liste
+fermée :
+- "price" (le montant est trop élevé, le prix des échéances), "money_available" (le prospect n'a pas l'argent
+  maintenant), "offer_trust" (est-ce que ça marche, est-ce sérieux, confiance dans l'entreprise ou dans le commercial),
+  "offer_relevance" (je n'en ai pas besoin, je sais déjà), "time" (pas le temps ou pas la disponibilité pour suivre le
+  programme), "co_decider" (a besoin de l'accord de quelqu'un d'autre avant de décider) ;
+- "self_capability" (ne pas y arriver, ne pas tenir, ne pas être assez bon), "own_decision" (se tromper, se faire avoir
+  encore) ;
+- "present_attachment" (« c'est bien comme ça », « ça me va pour l'instant »), "postponement" (plus tard, après les
+  vacances, sans raison).
+Un passage qui exprime deux doutes différents (« je n'ai pas les moyens et j'ai peur d'abandonner encore ») donne deux
+doutes (OB-4).
+Un mot comme « peur » ne fait pas une anxiété à lui seul : nomme ce DONT le prospect a peur.
+Si le prospect nie explicitement un doute (« je n'ai pas peur, c'est juste le montant »), mets le sujet nié dans
+"denied_subjects" et ne le liste pas comme un doute (OB-24).
+Avec l'exclusion "external_deadline", liste un doute "time" seulement si l'événement retire aussi au prospect sa
+disponibilité (« c'est la période du bac, je suis pris jusqu'à fin juin ») (OB-25), et donne l'échéance.
 
-Step 3 · attribution (OB-26). "label_contradicted": true if the target turn's content cannot belong to its label
-(the sales' own name or the offer described in the first person under a PROSPECT label).
+Étape 3 · attribution (OB-26). "label_contradicted" : true si le contenu du tour cible ne peut pas appartenir à son
+étiquette (le nom du commercial lui-même, ou l'offre décrite à la première personne, sous une étiquette PROSPECT ; SALES
+est le commercial).
 
 JSON: {"exclusion": "none|information_request|external_deadline|circuit_fact|conditional_acceptance",
  "doubts": [{"quote": "...", "subjects": ["price"]}], "denied_subjects": [],

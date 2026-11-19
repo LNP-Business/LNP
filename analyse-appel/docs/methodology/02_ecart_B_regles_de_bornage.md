@@ -1,208 +1,212 @@
-# Annex A · Bounding rules for the gap
+# Annexe A · Règles de bornage de l'écart
 
-This annex says how the system finds, in a raw transcript, a restitution of the gap, its components and the prospect's validation. It is written so that two human annotators and the machine reach the same result on the same call. A rule that is not written here does not exist: an uncovered case goes to the arbiter with the label `uncovered_case` and becomes a new numbered rule in the next version.
+Cette annexe dit comment le système trouve, dans une transcription brute, une restitution de l'écart, ses composants et la validation du prospect. Elle est écrite pour que deux annotateurs humains et la machine arrivent au même résultat sur le même appel. Une règle qui n'est pas écrite ici n'existe pas : un cas non couvert va à l'arbitre avec l'étiquette `uncovered_case` et devient une nouvelle règle numérotée dans la version suivante.
 
-## A1. The unit: the restitution candidate
+Les rôles des tours de parole s'écrivent comme dans la transcription : `SALES` (le commercial), `PROSPECT` (le prospect), `OTHER` (une autre personne, par exemple un codécideur).
 
-A **restitution candidate** is a sales passage, inside the phase window (A2), that the inventory stage (code) flags because it meets **at least one** of these signals (union, not intersection):
+Les exemples sont donnés en français, suivis des tournures anglaises des transcriptions de référence (« en anglais … »). Les listes de la règle GB-22 (changement de personne, mots vides, mots génériques) sont celles du code, telles quelles. Les paires minimales de A5 restent en anglais, comme dans les tests du moteur qui les reprennent, avec une traduction entre parenthèses.
 
-| Signal | Detection | Examples |
+## A1. L'unité : la restitution candidate
+
+Une **restitution candidate** est un passage du commercial, dans la fenêtre de phase (A2), que l'étape d'inventaire (code) signale parce qu'il remplit **au moins un** de ces signaux (union, pas intersection) :
+
+| Signal | Détection | Exemples |
 |---|---|---|
-| S1 Opener | The sales passage starts with, or contains within its first 20 words, a playback marker | "So from what I'm hearing", "Let me play that back", "If I understood correctly", "Correct me if I'm wrong", "So just to recap", "What I'm hearing is", "Let me make sure I got this", "So basically where you're at is", "So to summarise" |
-| S2 Dense second-person passage | A sales turn of 25 words or more, in which at least two clauses have the prospect as subject ("you", "your") and carry a word or number the prospect used earlier | "So you're at about 2K, you've been doing this on the side for three years, and you want to replace your salary…" |
-| S3 Validation request | A sales passage ending with a validation request about what was just said | "Did I get that right?", "Is that fair?", "Is that accurate?", "Anything I missed?", "Would you say that's where you're at?" |
+| S1 Ouverture | Le passage du commercial commence par un marqueur de restitution, ou en contient un dans ses 20 premiers mots | « Si je comprends bien », « Laisse-moi reformuler », « Corrige-moi si je me trompe », « Pour résumer », « Ce que j'entends, c'est », « Je veux être sûr d'avoir bien compris », « Donc en gros, là où tu en es » ; en anglais « So from what I'm hearing », « Let me play that back », « If I understood correctly », « Correct me if I'm wrong », « So just to recap », « What I'm hearing is », « Let me make sure I got this », « So basically where you're at is », « So to summarise » |
+| S2 Passage dense à la deuxième personne | Un tour du commercial de 25 mots ou plus, dans lequel au moins deux propositions ont le prospect pour sujet (« tu », « ton », « vous » ; en anglais « you », « your ») et portent un mot ou un nombre que le prospect a employé plus tôt | « Donc tu es à environ 2 000, tu fais ça à côté depuis trois ans, et tu veux remplacer ton salaire… » |
+| S3 Demande de validation | Un passage du commercial qui se termine par une demande de validation sur ce qui vient d'être dit | « C'est bien ça ? », « C'est juste ? », « J'ai oublié quelque chose ? », « Tu dirais que c'est là où tu en es ? » ; en anglais « Did I get that right? », « Is that fair? », « Is that accurate? », « Anything I missed? », « Would you say that's where you're at? » |
 
-The inventory never deletes a candidate. The model then decides, for each candidate, whether it is a restitution (GB-4) and which components it contains (GB-3). Candidates rejected by the model are kept with the reason, for audit.
+L'inventaire ne supprime jamais une candidate. Le modèle décide ensuite, pour chaque candidate, si c'est une restitution (GB-4) et quels composants elle contient (GB-3). Les candidates rejetées par le modèle sont gardées avec la raison, pour l'audit.
 
-## A2. The phase window
+## A2. La fenêtre de phase
 
-- **Start:** the start of the discovery perimeter (SPIN methodology, §2).
-- **End:** the first pitch start or the first price, whichever comes first (phase map, Part C stage S2).
-- A candidate after the end is still recorded (for diagnostics) with `after_pitch = true` or `after_price = true`. It can never pass the absence gate.
+- **Début :** le début du périmètre de la découverte (méthodologie SPIN, §2).
+- **Fin :** le premier début de la présentation de l'offre ou le premier prix, selon ce qui vient en premier (carte des phases, partie C étape S2).
+- Une candidate après la fin est quand même enregistrée (pour les diagnostics) avec `after_pitch = true` ou `after_price = true`. Elle ne peut jamais passer la porte d'absence.
 
-## A3. Numbered rules
+## A3. Règles numérotées
 
-**GB-1 · Span.** A restitution starts at its first component statement (or at its opener, if the opener comes first) and ends at the first of: a prospect turn of 6 words or more; a sales solicitation on a new topic (it does not reuse any word of the restated components); the first mention of the offer (program, mentorship, academy, "what we do", "how we help"). Prospect turns of 5 words or fewer made only of approval or backchannel ("yeah", "mm-hmm", "right", "exactly") do not end the span: the sales turns on either side are merged.
+**GB-1 · Plage.** Une restitution commence à sa première affirmation de composant (ou à son ouverture, si l'ouverture vient avant) et se termine au premier de ces événements : un tour du prospect de 6 mots ou plus ; une sollicitation du commercial sur un nouveau sujet (elle ne reprend aucun mot des composants restitués) ; la première mention de l'offre (programme, accompagnement, académie, « ce qu'on fait », « comment on aide » ; en anglais « what we do », « how we help »). Les tours du prospect de 5 mots ou moins faits seulement d'approbation ou de relance d'écoute (« ouais », « mm-hmm », « d'accord », « exactement » ; en anglais « yeah », « mm-hmm », « right », « exactly ») ne terminent pas la plage : les tours du commercial de part et d'autre sont réunis.
 
-**GB-2 · One restitution or two.** Two sales passages separated by a prospect turn of 6 words or more are two restitutions. Their components are never pooled. If the second passage only adds components ("and on top of that…"), it is evaluated as a separate restitution with its own validation.
+**GB-2 · Une restitution ou deux.** Deux passages du commercial séparés par un tour du prospect de 6 mots ou plus sont deux restitutions. Leurs composants ne sont jamais mis en commun. Si le second passage ne fait qu'ajouter des composants (« et en plus de ça… »), il est évalué comme une restitution à part, avec sa propre validation.
 
-**GB-3 · Component recognition.** A clause of the restitution counts as a component only if all three conditions hold:
-- (a) it is about the prospect (subject "you", "your", or the prospect's name), not about another person;
-- (b) it is declarative, or declarative followed by a validation tail ("…, right?");
-- (c) it restates an earlier prospect statement of the same component (`problem_statements`, `cost_statements`, `A_statements`, `B_statements`) **in the prospect's exact words**. The model gives the id of the source statement and copies the **key expression** it reuses (GB-22). The code then classifies the clause: **verbatim** if the key expression is found exactly in the source prospect turn and in the sales clause (GB-22); **paraphrased** if the model links a source but the code finds no key expression in both; **untraced** if no source exists.
-Only a **verbatim** clause is a component. A paraphrased or untraced clause is not a component: it does not count for GB-4 (two components), for the absence gate or for G5. It is kept as a diagnostic (`paraphrased_component`) so that the coaching can show the sales the exact words the prospect had used.
+**GB-3 · Reconnaissance d'un composant.** Une proposition de la restitution ne compte comme composant que si les trois conditions sont remplies :
+- (a) elle porte sur le prospect (sujet « tu », « ton », « vous », ou le prénom du prospect ; en anglais « you », « your »), pas sur une autre personne ;
+- (b) elle est déclarative, ou déclarative suivie d'une queue de validation (« ..., non ? », « ..., c'est ça ? » ; en anglais « …, right? ») ;
+- (c) elle restitue une affirmation antérieure du prospect pour le même composant (`problem_statements`, `cost_statements`, `A_statements`, `B_statements`) **avec les mots exacts du prospect**. Le modèle donne l'identifiant de l'affirmation source et copie l'**expression clé** qu'elle reprend (GB-22). Le code classe ensuite la proposition : **mot pour mot** (verbatim) si l'expression clé se retrouve exactement dans le tour source du prospect et dans la proposition du commercial (GB-22) ; **paraphrasée** (paraphrased) si le modèle relie une source mais que le code ne trouve aucune expression clé dans les deux ; **sans source** (untraced) si aucune source n'existe.
+Seule une proposition **mot pour mot** est un composant. Une proposition paraphrasée ou sans source n'est pas un composant : elle ne compte ni pour GB-4 (deux composants), ni pour la porte d'absence, ni pour G5. Elle est gardée comme diagnostic (`paraphrased_component`) pour que l'accompagnement puisse montrer au commercial les mots exacts que le prospect avait employés.
 
-**GB-4 · Restitution or not.** A candidate is a restitution only if it contains **at least two** components (GB-3). A single restated component closed by a tail ("So your goal is 10K, right?") is not a restitution: in SPIN it is an OUT `agreement` question.
+**GB-4 · Restitution ou pas.** Une candidate n'est une restitution que si elle contient **au moins deux** composants (GB-3). Un seul composant restitué fermé par une queue (« Donc ton objectif, c'est 10 000, c'est ça ? ») n'est pas une restitution : en SPIN, c'est une question OUT `agreement`.
 
-**GB-5 · Restitution or pitch.** If the passage restates components and then links them to the offer in the same turn ("…and that's exactly what we help with"), the restitution ends at the first offer word (GB-1). The prospect's next turn is then a reaction to the pitch, not a validation, unless the sales explicitly asks for validation of the restatement before mentioning the offer.
+**GB-5 · Restitution ou présentation de l'offre.** Si le passage restitue des composants puis les relie à l'offre dans le même tour (« …et c'est exactement là-dessus qu'on aide »), la restitution se termine au premier mot de l'offre (GB-1). Le tour suivant du prospect est alors une réaction à la présentation de l'offre, pas une validation, sauf si le commercial demande explicitement la validation de la restitution avant de mentionner l'offre.
 
-**GB-6 · Restitution or story.** Clauses about another person (a former student, a testimonial, "a lot of people in your position…") are never components, even if they mirror the prospect's situation.
+**GB-6 · Restitution ou histoire.** Les propositions sur une autre personne (une ancienne élève, un témoignage, « beaucoup de gens dans ta situation… ») ne sont jamais des composants, même si elles ressemblent à la situation du prospect.
 
-**GB-7 · The cost component.** A COST clause must state a consequence of the problem in another domain, or what staying in the current situation costs (money, time, clients, family, health, self-belief, lost opportunity), and must restate a prospect `cost_statement` verbatim (GB-22). A cost introduced for the first time by the sales in the restitution ("and I imagine that's costing you sleep") is untraced and does not count, even if the prospect says "yeah". A current income figure is never a cost.
+**GB-7 · Le composant coût.** Une proposition COST doit énoncer une conséquence du problème dans un autre domaine, ou ce que coûte de rester dans la situation actuelle (argent, temps, clients, famille, santé, confiance en soi, occasion perdue), et doit restituer mot pour mot une `cost_statement` du prospect (GB-22). Un coût introduit pour la première fois par le commercial dans la restitution (« et j'imagine que ça te fait perdre le sommeil ») est sans source et ne compte pas, même si le prospect dit « ouais ». Un chiffre de revenu actuel n'est jamais un coût.
 
-**GB-8 · The validation turn.** The validation is the first prospect turn of 6 words or more after the end of the span, or, if the prospect only answers with a short approval, that short turn. It is read against the restitution, not against anything else:
-- if the sales' last sentence before the prospect speaks is an unrelated question (GB-9), there is no validation;
-- if the sales asked for validation (S3), the prospect's answer is the validation.
+**GB-8 · Le tour de validation.** La validation est le premier tour du prospect de 6 mots ou plus après la fin de la plage ou, si le prospect ne répond que par une courte approbation, ce tour court. Elle est lue par rapport à la restitution, pas par rapport à autre chose :
+- si la dernière phrase du commercial avant que le prospect parle est une question sans rapport (GB-9), il n'y a pas de validation ;
+- si le commercial a demandé une validation (S3), la réponse du prospect est la validation.
 
-**GB-9 · Validation captured by another question.** If the restitution turn ends with a question on a new topic ("…, and how many hours a week could you put in?"), the prospect's answer responds to that question: outcome `none`.
+**GB-9 · Validation captée par une autre question.** Si le tour de restitution se termine par une question sur un nouveau sujet (« …, et tu pourrais y mettre combien d'heures par semaine ? »), la réponse du prospect répond à cette question : issue `none`.
 
-**GB-10 · Validation outcomes.**
+**GB-10 · Issues de la validation.**
 
-| Outcome | The prospect turn… | Example |
+| Issue | Le tour du prospect… | Exemple |
 |---|---|---|
-| `confirmed_with_content` | agrees and adds something of their own: a precision, a number, an emotion, a new element, a reformulation | "Yes, and honestly it's been eating at me for years." |
-| `confirmed` | agrees without new content | "Yeah, exactly." "That's right." "100 %." |
-| `corrected` | corrects one or more components | "Not quite, it's more like 3K, not 4K." |
-| `rejected` | disagrees with the restitution as a whole | "No, that's not really it." |
-| `none` | no response to the restitution (GB-9), or topic change by the sales before the prospect answers | — |
+| `confirmed_with_content` | est d'accord et ajoute quelque chose de lui : une précision, un nombre, une émotion, un élément nouveau, une reformulation | « Oui, et franchement ça me ronge depuis des années. » |
+| `confirmed` | est d'accord sans contenu nouveau | « Ouais, exactement. » « C'est ça. » « À 100 %. » |
+| `corrected` | corrige un ou plusieurs composants | « Pas tout à fait, c'est plutôt 3 000, pas 4 000. » |
+| `rejected` | n'est pas d'accord avec la restitution dans son ensemble | « Non, ce n'est pas vraiment ça. » |
+| `none` | pas de réponse à la restitution (GB-9), ou changement de sujet par le commercial avant que le prospect réponde | — |
 
-A `corrected` outcome passes the gate only if the sales restates the corrected component in a new restitution and that new restitution is `confirmed` or `confirmed_with_content`.
+Une issue `corrected` ne passe la porte que si le commercial restitue le composant corrigé dans une nouvelle restitution et que cette nouvelle restitution est `confirmed` ou `confirmed_with_content`.
 
-**GB-11 · Several restitutions.** The gate is evaluated on every restitution in the window; the gap is present if at least one passes. The items G5 and G6 are scored on the last restitution that passes the gate.
+**GB-11 · Plusieurs restitutions.** La porte est évaluée sur chaque restitution de la fenêtre ; l'écart est présent si au moins une passe. Les items G5 et G6 sont notés sur la dernière restitution qui passe la porte.
 
-**GB-12 · Speakers.** Only a `SALES` turn can be a restitution. The validation must come from the prospect, or from a co-decider labelled `OTHER` if the co-decider is the one the restitution addresses. A turn marked `attribution_doubtful` cannot be a restitution or a validation.
+**GB-12 · Locuteurs.** Seul un tour `SALES` peut être une restitution. La validation doit venir du prospect, ou d'un codécideur étiqueté `OTHER` si c'est au codécideur que la restitution s'adresse. Un tour marqué `attribution_doubtful` ne peut être ni une restitution ni une validation.
 
-**GB-13 · Follow-up calls.** In a call where the pitch resumes after an earlier call of the same cycle, the restitution and its validation must happen in this call, before the pitch resumes. Its components may be traced to prospect statements of the earlier call.
+**GB-13 · Appels de relance.** Dans un appel où la présentation de l'offre reprend après un appel antérieur du même cycle, la restitution et sa validation doivent avoir lieu dans cet appel, avant que la présentation reprenne. Ses composants peuvent avoir pour source des affirmations du prospect de l'appel antérieur.
 
-## A3b. Rules added after the first calibration pass
+## A3b. Règles ajoutées après la première passe de calibration
 
-**GB-14 · Which pitch start.** The phase window ends at the pitch start defined by the Pitch annex, PB-1 and PB-17: an announced screen share is the pitch start only if an offer description follows within 2 sales turns; otherwise the pitch starts at the first offer description. The same anchor is used by the four competences of a call.
+**GB-14 · Quel début de la présentation de l'offre.** La fenêtre de phase se termine au début de la présentation de l'offre défini par l'annexe de la présentation de l'offre, PB-1 et PB-17 : un partage d'écran annoncé n'est le début de la présentation que si une description de l'offre suit dans les 2 tours du commercial ; sinon la présentation commence à la première description de l'offre. La même ancre sert aux quatre compétences d'un appel.
 
-**GB-15 · "No" to "did I miss anything?".** When the validation request asks whether something is missing or wrong ("Did I miss anything?", "Anything I got wrong?"), an answer "No", "No, that's it", "Nope, that's everything" is `confirmed`; with an added element it is `confirmed_with_content`.
+**GB-15 · « Non » à « j'ai oublié quelque chose ? ».** Quand la demande de validation demande si quelque chose manque ou est faux (« J'ai oublié quelque chose ? », « Il y a quelque chose que j'ai mal compris ? » ; en anglais « Did I miss anything? », « Anything I got wrong? »), une réponse « Non », « Non, c'est tout », « Non, c'est bon, tu as tout » (en anglais « No », « No, that's it », « Nope, that's everything ») est `confirmed` ; avec un élément ajouté, elle est `confirmed_with_content`.
 
-**GB-16 · Partial agreement.** An answer that agrees with a qualifier and then corrects ("99 %, except it's more like 3K") is `corrected`. An answer that agrees with a qualifier and no correction ("pretty much", "more or less") is `confirmed`.
+**GB-16 · Accord partiel.** Une réponse qui est d'accord avec une réserve puis corrige (« à 99 %, sauf que c'est plutôt 3 000 ») est `corrected`. Une réponse qui est d'accord avec une réserve et sans correction (« à peu près », « plus ou moins ») est `confirmed`.
 
-**GB-17 · Emotional reaction.** An emotional response to the restitution ("Why do you have to go saying that?", tears, "that hurts to hear") without disagreement on its content is `confirmed_with_content`: the prospect owns the restated problem. With an explicit disagreement, it is `rejected`.
+**GB-17 · Réaction émotionnelle.** Une réponse émotionnelle à la restitution (« Pourquoi tu dis ça ? », des larmes, « ça fait mal à entendre ») sans désaccord sur son contenu est `confirmed_with_content` : le prospect fait sien le problème restitué. Avec un désaccord explicite, elle est `rejected`.
 
-**GB-18 · Cost played down.** If the prospect's own statements minimise the cost ("it wouldn't necessarily be bad", "I'm fine for now") and the sales restates it as a heavy cost ("you'd be settling"), the COST component is untraced (GB-7): the sales' framing is not the prospect's cost.
+**GB-18 · Coût minimisé.** Si les propres affirmations du prospect minimisent le coût (« ce ne serait pas forcément mal », « ça va pour l'instant ») et que le commercial le restitue comme un coût lourd (« tu te contenterais de ça »), le composant COST est sans source (GB-7) : la façon dont le commercial présente les choses n'est pas le coût du prospect.
 
-**GB-19 · Notes from earlier touchpoints.** Information the prospect gave before the call can be a source only if the prospect's own words are stored (the text they typed in the application form, a recorded earlier call). Setter's notes and CRM summaries are someone else's words: they are never a verbatim source. A component restated from them counts only if the prospect, in the validation turn, states it again **in their own words** (`confirmed_with_content`); that validation quote then becomes the component's source.
+**GB-19 · Notes des contacts antérieurs.** Une information que le prospect a donnée avant l'appel ne peut être une source que si les propres mots du prospect sont gardés (le texte qu'il a tapé dans le formulaire de candidature, un appel antérieur enregistré). Les notes du setter et les résumés du CRM sont les mots de quelqu'un d'autre : ils ne sont jamais une source mot pour mot. Un composant restitué à partir d'eux ne compte que si le prospect, dans le tour de validation, le redit **avec ses propres mots** (`confirmed_with_content`) ; cette citation de la validation devient alors la source du composant.
 
-**GB-20 · Absence reasons: priority and plurality.** The absence verdict stores every failed condition, and displays one main reason in this priority: `no_restitution` > `restitution_after_pitch` (when a passing restitution exists only after the pitch) > `problem_missing` > `cost_missing` > `not_validated`. Example: a pre-pitch restitution without cost and a complete one after the pitch gives the main reason `restitution_after_pitch`, with `cost_missing` stored as secondary.
+**GB-20 · Raisons d'absence : priorité et pluralité.** Le verdict d'absence garde chaque condition non remplie, et affiche une raison principale dans cet ordre de priorité : `no_restitution` > `restitution_after_pitch` (quand une restitution qui passe n'existe qu'après la présentation de l'offre) > `problem_missing` > `cost_missing` > `not_validated`. Exemple : une restitution sans coût avant la présentation de l'offre et une complète après donnent la raison principale `restitution_after_pitch`, avec `cost_missing` gardée en raison secondaire.
 
-**GB-21 · Merged turns.** Applies the diarization rule of Part C (C1): a sales tail or question found inside a prospect turn is reattributed to the sales before GB-8 is applied; if the split cannot be found, the turn is `attribution_doubtful` and cannot serve as a validation.
-
-
-## A3c. The verbatim rules (version 1.2)
-
-These rules make the prospect's exact words the backbone of the gap. They take precedence over any earlier rule of this annex.
-
-**GB-22 · Key expression.** For each restated component, the model copies the **key expression**: the words of the prospect source quote that carry the component, which the sales repeats. The code accepts it only if all four conditions hold:
-- (a) **it is in the source:** it is an exact substring of the cited prospect turn (normalised comparison of Part C, C3);
-- (b) **it is in the restitution:** it is found in the sales clause after the allowed transformations only: person shift (I → you, me → you, my → your, mine → yours, myself → yourself, we → you, our → your, us → you, am → are, I'm → you're, I've → you've, I'd → you'd, I'll → you'll, was → were); singular / plural of the same noun ("self-doubts" = "self-doubt"); number normalisation of the Pitch annex, PB-21 ("10K" = "10,000"). **Nothing else:** no synonym, no other word form ("stressed" ≠ "stress", "fulfill" ≠ "unfulfilling", "scared" ≠ "fear"), no reordering;
-- (c) **it carries the component:** it contains the head of the component: for PROBLEM, the word or words naming the obstacle ("support", "resources", "overthinking", "fear", "as a need"); for COST, the consequence or the amount ("miserable", "motivation", "not sleeping well", "time", "2K a month"); for A and B, the state or the value ("not in a steady paying gig", "10K", "my own business");
-- (d) **it is not generic:** it contains at least one word outside the stop list and outside the generic list (thing, things, stuff, something, everything, way, lot, life, people, good, bad, better, hard, easy, want, feel, like, make, get, know, think, really, just, kind, sort, able). "You want to" or "a lot of things" is never a key expression.
-Conditions (a), (b) and (d) are checked by code; (c) is answered by the model and checked by the three passes (Part C, C4).
-
-**GB-23 · Quoting marker.** A sales clause that explicitly quotes the prospect ("in your words", "as you said", "you used the word…") still needs a key expression (GB-22): the marker alone proves nothing. With a key expression, the marker is recorded (`explicit_quote = true`) as a coaching strength.
-
-**GB-24 · Figures.** A quantified component is verbatim through its figure only if the figure is the prospect's (GB-22 b, after normalisation). A figure rounded, converted, annualised or computed by the sales ("so that's about 30K a year") is the sales' figure: the component can still be verbatim through another key expression, but the figure never counts for G1 to G4 (X10).
-
-**GB-25 · Correction.** After a `corrected` validation, the new restitution must contain the prospect's correction verbatim ("more like 3K" → "3K"). A new restitution that keeps the sales' wording or another figure is not a restatement of the correction: the gate fails (X9).
-
-**GB-26 · Validation in the prospect's words.** The validation outcome is proved by an exact prospect quote (Part C, C3). For `confirmed_with_content`, the added content is quoted from the validation turn and must be the prospect's own content, not a repetition of the sales' restitution: a prospect who repeats the sales' words back ("yes, I'm stuck in the hamster wheel" after the sales said "hamster wheel") is `confirmed`, not `confirmed_with_content`.
-
-**GB-27 · Several possible sources.** When the same component was stated several times by the prospect, any of those statements can be the source; the model cites the one whose words the sales reuses. A clause verbatim on one source and paraphrased on another is verbatim.
+**GB-21 · Tours fusionnés.** Applique la règle d'attribution des locuteurs de la partie C (C1) : une queue ou une question du commercial trouvée à l'intérieur d'un tour du prospect est rendue au commercial avant d'appliquer GB-8 ; si on ne trouve pas où couper, le tour est `attribution_doubtful` et ne peut pas servir de validation.
 
 
-## A3d. The gap formula (version 1.3)
+## A3c. Les règles du mot pour mot (version 1.2)
 
-These rules select, from the prospect's quotes, the A, B and P that the restitution must restate (methodology §2.1). Selection is done **before** reading the restitution, so that the sales' choice never decides what the right A, B or P is. Every selected element is an exact prospect quote (verbatim principle).
+Ces règles font des mots exacts du prospect la colonne vertébrale de l'écart. Elles l'emportent sur toute règle antérieure de cette annexe.
 
-**GB-28 · Selecting A.** Candidates: prospect quotes in the answer spans (SPIN annex, SB-5) of **S** or **I** solicitations that describe a current state (SITUATION, or IMPACT stating where he is now). A is the candidate on **the dimension that B targets**: same unit as B when B is quantified (monthly income, clients per month, hours). If several candidates share that unit, the most recent before the first restitution. Never A: the biggest figure of the call when it is on another dimension (a past income, savings, a household budget, a mortgage), a figure stated by the sales and approved (X12). If B is not quantified, A is the current-state quote on the same object as B (SB-16).
+**GB-22 · Expression clé.** Pour chaque composant restitué, le modèle copie l'**expression clé** : les mots de la citation source du prospect qui portent le composant et que le commercial répète. Le code ne l'accepte que si les quatre conditions sont remplies :
+- (a) **elle est dans la source :** c'est une sous-chaîne exacte du tour du prospect cité (comparaison normalisée de la partie C, C3) ;
+- (b) **elle est dans la restitution :** on la retrouve dans la proposition du commercial après les seules transformations permises : changement de personne (I → you, me → you, my → your, mine → yours, myself → yourself, we → you, our → your, us → you, am → are, I'm → you're, I've → you've, I'd → you'd, I'll → you'll, was → were ; constante du code `CHANGEMENT_PERSONNE`) ; singulier / pluriel du même nom (« self-doubts » = « self-doubt ») ; normalisation des nombres de l'annexe de la présentation de l'offre, PB-21 (« 10K » = « 10,000 »). **Rien d'autre :** pas de synonyme, pas d'autre forme du mot (« stressed » ≠ « stress », « fulfill » ≠ « unfulfilling », « scared » ≠ « fear » ; en français « stressée » ≠ « stress », « peur » ≠ « effrayée »), pas de changement d'ordre ;
+- (c) **elle porte le composant :** elle contient la tête du composant : pour PROBLEM, le ou les mots qui nomment l'obstacle (« support », « resources », « overthinking », « fear », « as a need ») ; pour COST, la conséquence ou le montant (« miserable », « motivation », « not sleeping well », « time », « 2K a month ») ; pour A et B, l'état ou la valeur (« not in a steady paying gig », « 10K », « my own business ») ;
+- (d) **elle n'est pas générique :** elle contient au moins un mot hors de la liste des mots vides (`MOTS_VIDES`) et hors de la liste des mots génériques (`GENERIQUES` : thing, things, stuff, something, everything, way, lot, life, people, good, bad, better, hard, easy, want, feel, like, make, get, know, think, really, just, kind, sort, able). « You want to » (tu veux) ou « a lot of things » (plein de choses) n'est jamais une expression clé.
+Les conditions (a), (b) et (d) sont vérifiées par le code ; (c) est répondue par le modèle et contrôlée par les trois passes (partie C, C4).
 
-**GB-29 · Selecting B.** Candidates: prospect quotes in the answer spans of **N** solicitations stating a target. B is the target expressed in A's unit; its horizon is attached if the prospect gave one in the same or a following N answer (binding or wished, §2). A target stated outside an N answer is recorded (`B_outside_N`) but is not selected (to validate). If no N answer contains a target, `selected_B = null`.
+**GB-23 · Marqueur de citation.** Une proposition du commercial qui cite explicitement le prospect (« pour reprendre tes mots », « comme tu l'as dit », « tu as employé le mot… » ; en anglais « in your words », « as you said », « you used the word… ») a quand même besoin d'une expression clé (GB-22) : le marqueur seul ne prouve rien. Avec une expression clé, le marqueur est enregistré (`explicit_quote = true`) comme un point fort pour l'accompagnement.
 
-**GB-30 · Selecting P (one single blocker).** Candidates: blockers (PAIN or BLOCKER atoms, SPIN annex) in prospect answers to **P** solicitations. In this order:
-1. **Named when asked.** If the sales asked what stops him ("what's held you back?", "what's stopping you?", "what's getting in the way?", "why haven't you done it yet?"), P is the blocker of the prospect's answer to the first such question. If that answer names several blockers, go to step 2 among them only.
-2. **Comes back to most.** Otherwise, P is the blocker whose object (SB-16) appears in the largest number of distinct prospect turns before the first restitution.
-3. **Tie-break.** The one named first in answer to the stopping question; if still tied, the most recent (to validate).
-The code applies the order; the model only supplies the atoms, their object labels and the stopping questions, with quotes.
+**GB-24 · Chiffres.** Un composant chiffré n'est mot pour mot par son chiffre que si le chiffre est celui du prospect (GB-22 b, après normalisation). Un chiffre arrondi, converti, ramené à l'année ou calculé par le commercial (« donc ça fait à peu près 30 000 par an ») est le chiffre du commercial : le composant peut quand même être mot pour mot grâce à une autre expression clé, mais le chiffre ne compte jamais pour G1 à G4 (X10).
 
-**GB-31 · Formula conformity of a restitution.** A restitution conforms to the formula when it restates, verbatim (GB-22): the selected A, the selected B, and **one single blocker as what holds him back**, which is the selected P. Two clauses on the same object count as one blocker. Deviations, stored for coaching: `A_not_selected` (another figure, typically the biggest one), `unit_mismatch` (A and B restated in different units), `several_blockers` (two or more blocker objects restated as what holds him back), `P_not_selected`. The order A → B → P is the recommended order of the sentence; it is not checked (to validate). Conformity is required for G5 level 2; it is never required for the absence gate.
+**GB-25 · Correction.** Après une validation `corrected`, la nouvelle restitution doit contenir mot pour mot la correction du prospect (« plutôt 3 000 » → « 3 000 »). Une nouvelle restitution qui garde la formulation du commercial ou un autre chiffre ne restitue pas la correction : la porte échoue (X9).
 
-**GB-32 · Roadmap blockers.** `roadmap_blockers` = the distinct blocker objects (SB-16) stated by the prospect in answers to **P** or **I** solicitations, before the first pitch, each with its exact quote. Same object stated several times counts once. Blockers prompted by the sales and only approved do not count (X12). The selected P is included in the count (to confirm).
+**GB-26 · Validation dans les mots du prospect.** L'issue de la validation est prouvée par une citation exacte du prospect (partie C, C3). Pour `confirmed_with_content`, le contenu ajouté est cité depuis le tour de validation et doit être le contenu propre du prospect, pas une répétition de la restitution du commercial : un prospect qui répète les mots du commercial (« oui, je tourne en rond comme un hamster dans sa roue » après que le commercial a dit « hamster dans sa roue ») est `confirmed`, pas `confirmed_with_content`.
 
-**GB-33 · Copilot warning.** Before generating the roadmap page of the pitch, the Copilot reads `roadmap_blockers.count`: with fewer than 3 for a 3-step roadmap (in general, fewer than the number of steps), it warns the sales (`roadmap_insufficient_blockers`) and shows which blockers are ticked. The warning is a coaching diagnostic: it does not change the Gap score.
+**GB-27 · Plusieurs sources possibles.** Quand le même composant a été dit plusieurs fois par le prospect, n'importe laquelle de ces affirmations peut être la source ; le modèle cite celle dont le commercial reprend les mots. Une proposition mot pour mot sur une source et paraphrasée sur une autre est mot pour mot.
 
-**GB-34 · In one go.** The gap exists only if PROBLEM and COST are restated in the **same restitution** (one span, GB-1) and that restitution is validated. Components restated in different restitutions are never added up (GB-2), whatever their timing: a gap given in pieces, with the prospect speaking in between, is not a gap. The span and its duration (start and end timestamps) are stored and displayed with the gap.
 
-## A4. Exclusion rules (summary)
+## A3d. La formule de l'écart (version 1.3)
 
-These cases never count, whatever else is true:
+Ces règles sélectionnent, dans les citations du prospect, le A, le B et le P que la restitution doit reprendre (méthodologie §2.1). La sélection se fait **avant** de lire la restitution, pour que le choix du commercial ne décide jamais quel est le bon A, B ou P. Chaque élément sélectionné est une citation exacte du prospect (principe du mot pour mot).
 
-| # | Never counts as… | Case |
+**GB-28 · Sélection de A.** Candidats : citations du prospect dans les plages de réponse (annexe SPIN, SB-5) des sollicitations **S** ou **I** qui décrivent un état actuel (SITUATION, ou IMPACT qui dit où il en est maintenant). A est le candidat sur **la dimension que vise B** : même unité que B quand B est chiffré (revenu mensuel, clients par mois, heures). Si plusieurs candidats ont cette unité, le plus récent avant la première restitution. Jamais A : le plus gros chiffre de l'appel quand il est sur une autre dimension (un revenu passé, une épargne, un budget du foyer, un crédit immobilier), un chiffre énoncé par le commercial et approuvé (X12). Si B n'est pas chiffré, A est la citation d'état actuel sur le même objet que B (SB-16).
+
+**GB-29 · Sélection de B.** Candidats : citations du prospect dans les plages de réponse des sollicitations **N** qui énoncent un objectif. B est l'objectif exprimé dans l'unité de A ; son horizon y est rattaché si le prospect en a donné un dans la même réponse N ou une réponse N suivante (contraignant ou souhaité, §2). Un objectif énoncé en dehors d'une réponse N est enregistré (`B_outside_N`) mais n'est pas sélectionné (à valider). Si aucune réponse N ne contient d'objectif, `selected_B = null`.
+
+**GB-30 · Sélection de P (un seul blocage).** Candidats : les blocages (atomes PAIN ou BLOCKER, annexe SPIN) dans les réponses du prospect aux sollicitations **P**. Dans cet ordre :
+1. **Nommé quand on le lui a demandé.** Si le commercial a demandé ce qui l'arrête (« qu'est-ce qui t'a retenu ? », « qu'est-ce qui t'arrête ? », « qu'est-ce qui te bloque ? », « pourquoi tu ne l'as pas encore fait ? » ; en anglais « what's held you back? », « what's stopping you? », « what's getting in the way? », « why haven't you done it yet? »), P est le blocage de la réponse du prospect à la première de ces questions. Si cette réponse nomme plusieurs blocages, passer à l'étape 2 parmi eux seulement.
+2. **Celui auquel il revient le plus.** Sinon, P est le blocage dont l'objet (SB-16) apparaît dans le plus grand nombre de tours distincts du prospect avant la première restitution.
+3. **Départage.** Celui nommé en premier en réponse à la question sur ce qui l'arrête ; en cas d'égalité encore, le plus récent (à valider).
+Le code applique l'ordre ; le modèle fournit seulement les atomes, leurs étiquettes d'objet et les questions sur ce qui l'arrête, avec des citations.
+
+**GB-31 · Conformité d'une restitution à la formule.** Une restitution est conforme à la formule quand elle reprend, mot pour mot (GB-22) : le A sélectionné, le B sélectionné, et **un seul blocage comme ce qui le bloque**, qui est le P sélectionné. Deux propositions sur le même objet comptent pour un seul blocage. Écarts, gardés pour l'accompagnement : `A_not_selected` (un autre chiffre, en général le plus gros), `unit_mismatch` (A et B restitués dans des unités différentes), `several_blockers` (deux objets de blocage ou plus restitués comme ce qui le bloque), `P_not_selected`. L'ordre A → B → P est l'ordre conseillé de la phrase ; il n'est pas vérifié (à valider). La conformité est exigée pour le niveau 2 de G5 ; elle n'est jamais exigée pour la porte d'absence.
+
+**GB-32 · Blocages de la feuille de route.** `roadmap_blockers` = les objets de blocage distincts (SB-16) dits par le prospect en réponse à des sollicitations **P** ou **I**, avant la première présentation de l'offre, chacun avec sa citation exacte. Un même objet dit plusieurs fois compte une fois. Les blocages soufflés par le commercial et seulement approuvés ne comptent pas (X12). Le P sélectionné est inclus dans le compte (à confirmer).
+
+**GB-33 · Avertissement du Copilot.** Avant de générer la page de la feuille de route de la présentation de l'offre, le Copilot lit `roadmap_blockers.count` : avec moins de 3 pour une feuille de route de 3 étapes (en général, moins que le nombre d'étapes), il avertit le commercial (`roadmap_insufficient_blockers`) et montre quels blocages sont relevés. L'avertissement est un diagnostic d'accompagnement : il ne change pas la note de l'écart.
+
+**GB-34 · D'un seul tenant.** L'écart n'existe que si PROBLEM et COST sont restitués dans la **même restitution** (une seule plage, GB-1) et que cette restitution est validée. Des composants restitués dans des restitutions différentes ne s'additionnent jamais (GB-2), quel que soit leur moment : un écart donné en morceaux, avec le prospect qui parle entre les deux, n'est pas un écart. La plage et sa durée (horodatages de début et de fin) sont gardées et affichées avec l'écart.
+
+## A4. Règles d'exclusion (résumé)
+
+Ces cas ne comptent jamais, quoi qu'il en soit par ailleurs :
+
+| n° | Ne compte jamais comme… | Cas |
 |---|---|---|
-| X1 | a gap | No restitution containing PROBLEM and COST, validated, before the first pitch and the first price (absence rule) |
-| X2 | a restitution | A single restated component, even closed by "right?" |
-| X3 | a restitution | Any passage after the first pitch or the first price |
-| X4 | a component | A clause about another person, a testimonial, a generality ("most people…") |
-| X5 | a component | A clause with no earlier prospect source (untraced), including a cost invented by the sales |
-| X11 | a component | A clause that paraphrases the prospect: synonym, summary, other word form, no key expression found in both texts (GB-3, GB-22) |
-| X13 | the selected A | The biggest figure of the call on another dimension than B (past income, savings, budget); a figure outside S and I answers (GB-28) |
-| X14 | the single P | A list of blockers restated together as what holds him back; it is `several_blockers` (GB-31) |
-| X15 | a gap | PROBLEM and COST restated in different restitutions, with the prospect speaking in between (GB-34) |
-| X12 | a component or a figure | Words or figures first stated, rounded or computed by the sales, including setter's notes and CRM summaries (GB-19, GB-24) |
-| X6 | a cost | A current income, a price, a budget |
-| X7 | a validation | The answer to another question asked at the end of the restitution |
-| X8 | a validation | A reaction that comes after the sales has already mentioned the offer |
-| X9 | a validation | A corrected restitution that the sales did not restate |
-| X10 | a prospect statement | Content first said by the sales and only approved by the prospect (`prompted_by_sales`) |
+| X1 | un écart | Aucune restitution contenant PROBLEM et COST, validée, avant la première présentation de l'offre et le premier prix (règle d'absence) |
+| X2 | une restitution | Un seul composant restitué, même fermé par « ..., non ? » |
+| X3 | une restitution | Tout passage après la première présentation de l'offre ou le premier prix |
+| X4 | un composant | Une proposition sur une autre personne, un témoignage, une généralité (« la plupart des gens… ») |
+| X5 | un composant | Une proposition sans source antérieure chez le prospect (sans source), y compris un coût inventé par le commercial |
+| X11 | un composant | Une proposition qui paraphrase le prospect : synonyme, résumé, autre forme du mot, aucune expression clé trouvée dans les deux textes (GB-3, GB-22) |
+| X13 | le A sélectionné | Le plus gros chiffre de l'appel sur une autre dimension que B (revenu passé, épargne, budget) ; un chiffre hors des réponses S et I (GB-28) |
+| X14 | l'unique P | Une liste de blocages restitués ensemble comme ce qui le bloque ; c'est `several_blockers` (GB-31) |
+| X15 | un écart | PROBLEM et COST restitués dans des restitutions différentes, avec le prospect qui parle entre les deux (GB-34) |
+| X12 | un composant ou un chiffre | Des mots ou des chiffres énoncés d'abord, arrondis ou calculés par le commercial, y compris les notes du setter et les résumés du CRM (GB-19, GB-24) |
+| X6 | un coût | Un revenu actuel, un prix, un budget |
+| X7 | une validation | La réponse à une autre question posée à la fin de la restitution |
+| X8 | une validation | Une réaction qui vient après que le commercial a déjà mentionné l'offre |
+| X9 | une validation | Une restitution corrigée que le commercial n'a pas restituée à nouveau |
+| X10 | une affirmation du prospect | Un contenu dit d'abord par le commercial et seulement approuvé par le prospect (`prompted_by_sales`) |
 
-Counter-exclusions: a validation tail ("…, right?") at the end of a restitution of two components or more does **not** disqualify it (unlike a SPIN question, where the tail makes it OUT); a restitution spread over several sales turns separated only by short approvals is one restitution (GB-1).
+Contre-exclusions : une queue de validation (« ..., non ? ») à la fin d'une restitution de deux composants ou plus ne la disqualifie **pas** (contrairement à une question SPIN, où la queue en fait un OUT) ; une restitution étalée sur plusieurs tours du commercial séparés seulement par de courtes approbations est une seule restitution (GB-1).
 
-## A5. Minimal pairs
+## A5. Paires minimales
 
-Pairs of passages that differ by one element and change the verdict. They are the training material of annotators and the non-regression set of the machine.
+Paires de passages qui ne diffèrent que d'un élément et qui changent le verdict. Elles servent à former les annotateurs et d'ensemble de non-régression de la machine.
 
-| # | Passage | Verdict | Why |
+| n° | Passage | Verdict | Pourquoi |
 |---|---|---|---|
-| 1a | "So your goal is 10K a month, right?" | Not a restitution | One component (GB-4) |
-| 1b | "So you're at 2K, your goal is 10K a month, right?" | Restitution (A, B) | Two components; but no PROBLEM/COST, cannot pass the gate |
-| 2a | "So what's held you back is confidence, and it's cost you three years. Fair?" → "Yeah, exactly." | Gap present | PROBLEM + COST + confirmed |
-| 2b | Same restitution → sales continues: "Let me show you how we fix that." | Gap absent (`not_validated`) | No prospect validation before the offer (GB-5) |
-| 3a | Prospect earlier: "I've lost so much time." Restitution: "…and you've lost so much time." | COST verbatim | Key expression "lost so much time" after the person shift (GB-22) |
-| 3c | Prospect earlier: "I've lost so much time." Restitution: "…and you've wasted years on this." | COST paraphrased: not a component | No key expression in both texts (X11) |
-| 3b | Prospect never mentioned a cost. Restitution: "…and that's probably costing you a lot of money." | COST untraced | Invented by the sales (GB-7) |
-| 4a | "…that's where you're at. Did I get that right?" → "Yes, and my husband doesn't believe in it either." | `confirmed_with_content` | New element |
-| 4b | "…that's where you're at. Did I get that right?" → "Yes." | `confirmed` | No new content |
-| 5a | "…and that's what's been holding you back. Is that fair?" → "Yeah." | Validation of the restitution | S3 request answered |
-| 5b | "…and that's what's been holding you back. How many hours a week can you commit?" → "Maybe 10." | `none` | Answer to another question (GB-9) |
-| 6a | "Amelia was exactly where you are, stuck at 2K…" | Not a component | Another person (GB-6) |
-| 6b | "You're stuck at 2K, like Amelia was…" | Component A | About the prospect; the comparison is ignored |
-| 7a | Restitution before the screen share | Can pass the gate | Before the pitch |
-| 7b | Same restitution after the screen share | Cannot pass the gate | After the pitch (X3) |
-| 8a | "…it's more like 3K." Sales: "Got it, 3K, and you want 10K…" → "Exactly." | Gate passed | Corrected then re-confirmed |
-| 8b | "…it's more like 3K." Sales: "Got it. So let me show you the program." | Gate failed (`not_validated`) | Correction not restated (X9) |
-| 9a | "You make 4K at your job." (as COST) | Not a cost | Income (X6) |
-| 13a | Prospect: "I make 87,000 now… I used to make over 100,000." Later: "ideally a hundred." | selected A = 87,000; B = a hundred | A is the figure he wants to move (GB-28) |
-| 13b | Same call, restitution: "You used to make over 100K and you want to get back there." | `A_not_selected` | The biggest figure, a past income (X13) |
-| 14a | "What's held you back?" → "One, self-doubt. Two, change is scary." Restitution: "…and what's holding you back today is self-doubt." | Single P, conforms if self-doubt is the selected P | GB-30, GB-31 |
-| 14b | Same answer. Restitution: "…what's holding you back is self-doubt, fear of change, and not knowing the next step." | `several_blockers`: G5 capped at 1 | X14; the other two become roadmap steps (GB-32) |
-| 15a | A "2K a month", B "10K a month" | Same unit | G3 can reach 2 |
-| 15b | A "2K a month", B "to quit my job" | `unit_mismatch` | B not in A's unit (GB-29) |
-| 9b | "You're spending 20 hours a week on admin work that pays 23 dollars an hour." | COST, quantified | Consequence in time and money |
-| 10a | Prospect: "Oh, very stressed." Restitution: "…and you've been very stressed." | COST verbatim | "very stressed" |
-| 10b | Prospect: "Oh, very stressed." Restitution: "…there's been a lot of stress." | Not verbatim | Other word form, "stressed" ≠ "stress" (GB-22 b) |
-| 11a | Prospect: "I'm making about 1,800 a month." Restitution: "…you're at 1,800 a month…" | A verbatim, figure counts | Prospect's figure |
-| 11b | Prospect: "I'm making about 1,800 a month." Restitution: "…you're at roughly 2K…" | A not verbatim, figure does not count | Rounded by the sales (GB-24) |
-| 12a | Prospect: "Failure." Restitution: "…which, in your words, is failure." | COST verbatim, `explicit_quote` | Head word reused exactly (GB-22, GB-23) |
-| 12b | Prospect: "I wouldn't be happy." Restitution: "…and in your words you'd be stuck in the hamster wheel." | Not verbatim | The marker does not replace the key expression (GB-23) |
+| 1a | "So your goal is 10K a month, right?" (donc ton objectif, c'est 10 000 par mois, c'est ça ?) | Pas une restitution | Un seul composant (GB-4) |
+| 1b | "So you're at 2K, your goal is 10K a month, right?" (donc tu es à 2 000, ton objectif c'est 10 000 par mois, c'est ça ?) | Restitution (A, B) | Deux composants ; mais ni PROBLEM ni COST, ne peut pas passer la porte |
+| 2a | "So what's held you back is confidence, and it's cost you three years. Fair?" (donc ce qui t'a retenu, c'est la confiance, et ça t'a coûté trois ans. C'est juste ?) → "Yeah, exactly." (ouais, exactement) | Écart présent | PROBLEM + COST + confirmée |
+| 2b | Même restitution → le commercial continue : "Let me show you how we fix that." (je vais te montrer comment on règle ça) | Écart absent (`not_validated`) | Pas de validation du prospect avant l'offre (GB-5) |
+| 3a | Le prospect, plus tôt : "I've lost so much time." (j'ai perdu tellement de temps) Restitution : "…and you've lost so much time." (…et tu as perdu tellement de temps) | COST mot pour mot | Expression clé « lost so much time » après le changement de personne (GB-22) |
+| 3c | Le prospect, plus tôt : "I've lost so much time." Restitution : "…and you've wasted years on this." (…et tu as gâché des années là-dessus) | COST paraphrasé : pas un composant | Aucune expression clé dans les deux textes (X11) |
+| 3b | Le prospect n'a jamais parlé d'un coût. Restitution : "…and that's probably costing you a lot of money." (…et ça te coûte sûrement beaucoup d'argent) | COST sans source | Inventé par le commercial (GB-7) |
+| 4a | "…that's where you're at. Did I get that right?" (…c'est là où tu en es. C'est bien ça ?) → "Yes, and my husband doesn't believe in it either." (oui, et mon mari n'y croit pas non plus) | `confirmed_with_content` | Élément nouveau |
+| 4b | "…that's where you're at. Did I get that right?" → "Yes." (oui) | `confirmed` | Pas de contenu nouveau |
+| 5a | "…and that's what's been holding you back. Is that fair?" (…et c'est ce qui te retient. C'est juste ?) → "Yeah." (ouais) | Validation de la restitution | Demande S3 à laquelle le prospect répond |
+| 5b | "…and that's what's been holding you back. How many hours a week can you commit?" (…et c'est ce qui te retient. Tu peux y consacrer combien d'heures par semaine ?) → "Maybe 10." (peut-être 10) | `none` | Réponse à une autre question (GB-9) |
+| 6a | "Amelia was exactly where you are, stuck at 2K…" (Amelia était exactement là où tu en es, bloquée à 2 000…) | Pas un composant | Une autre personne (GB-6) |
+| 6b | "You're stuck at 2K, like Amelia was…" (tu es bloquée à 2 000, comme Amelia l'était…) | Composant A | Porte sur le prospect ; la comparaison est ignorée |
+| 7a | Restitution avant le partage d'écran | Peut passer la porte | Avant la présentation de l'offre |
+| 7b | Même restitution après le partage d'écran | Ne peut pas passer la porte | Après la présentation de l'offre (X3) |
+| 8a | "…it's more like 3K." (…c'est plutôt 3 000) Le commercial : "Got it, 3K, and you want 10K…" (d'accord, 3 000, et tu veux 10 000…) → "Exactly." (exactement) | Porte passée | Corrigée puis confirmée à nouveau |
+| 8b | "…it's more like 3K." Le commercial : "Got it. So let me show you the program." (d'accord. Alors je te montre le programme) | Porte échouée (`not_validated`) | Correction non restituée (X9) |
+| 9a | "You make 4K at your job." (tu gagnes 4 000 dans ton travail) (comme COST) | Pas un coût | Revenu (X6) |
+| 13a | Le prospect : "I make 87,000 now… I used to make over 100,000." (je gagne 87 000 maintenant… avant je gagnais plus de 100 000) Plus tard : "ideally a hundred." (idéalement cent) | A sélectionné = 87 000 ; B = cent | A est le chiffre qu'il veut faire bouger (GB-28) |
+| 13b | Même appel, restitution : "You used to make over 100K and you want to get back there." (avant tu gagnais plus de 100 000 et tu veux y revenir) | `A_not_selected` | Le plus gros chiffre, un revenu passé (X13) |
+| 14a | "What's held you back?" (qu'est-ce qui t'a retenu ?) → "One, self-doubt. Two, change is scary." (un, le doute de moi. Deux, le changement fait peur) Restitution : "…and what's holding you back today is self-doubt." (…et ce qui te bloque aujourd'hui, c'est le doute de toi) | P unique, conforme si le doute de soi est le P sélectionné | GB-30, GB-31 |
+| 14b | Même réponse. Restitution : "…what's holding you back is self-doubt, fear of change, and not knowing the next step." (…ce qui te bloque, c'est le doute de toi, la peur du changement et le fait de ne pas savoir quelle est la prochaine étape) | `several_blockers` : G5 plafonné à 1 | X14 ; les deux autres deviennent des étapes de la feuille de route (GB-32) |
+| 15a | A « 2K a month » (2 000 par mois), B « 10K a month » (10 000 par mois) | Même unité | G3 peut atteindre 2 |
+| 15b | A « 2K a month », B « to quit my job » (quitter mon travail) | `unit_mismatch` | B n'est pas dans l'unité de A (GB-29) |
+| 9b | "You're spending 20 hours a week on admin work that pays 23 dollars an hour." (tu passes 20 heures par semaine sur du travail administratif payé 23 dollars de l'heure) | COST, chiffré | Conséquence en temps et en argent |
+| 10a | Le prospect : "Oh, very stressed." (oh, très stressée) Restitution : "…and you've been very stressed." (…et tu as été très stressée) | COST mot pour mot | « very stressed » |
+| 10b | Le prospect : "Oh, very stressed." Restitution : "…there's been a lot of stress." (…il y a eu beaucoup de stress) | Pas mot pour mot | Autre forme du mot, « stressed » ≠ « stress » (GB-22 b) |
+| 11a | Le prospect : "I'm making about 1,800 a month." (je gagne à peu près 1 800 par mois) Restitution : "…you're at 1,800 a month…" (…tu es à 1 800 par mois…) | A mot pour mot, le chiffre compte | Chiffre du prospect |
+| 11b | Le prospect : "I'm making about 1,800 a month." Restitution : "…you're at roughly 2K…" (…tu es à environ 2 000…) | A pas mot pour mot, le chiffre ne compte pas | Arrondi par le commercial (GB-24) |
+| 12a | Le prospect : "Failure." (l'échec) Restitution : "…which, in your words, is failure." (…ce qui, pour reprendre tes mots, est l'échec) | COST mot pour mot, `explicit_quote` | Mot principal repris exactement (GB-22, GB-23) |
+| 12b | Le prospect : "I wouldn't be happy." (je ne serais pas heureuse) Restitution : "…and in your words you'd be stuck in the hamster wheel." (…et pour reprendre tes mots, tu serais coincée comme un hamster dans sa roue) | Pas mot pour mot | Le marqueur ne remplace pas l'expression clé (GB-23) |
 
-## A6. Detection reliability for the gap
+## A6. Fiabilité de la détection pour l'écart
 
-The engine is trusted to identify gaps only when, on the gold set of Part C (C7):
+On ne fait confiance au moteur pour repérer les écarts que lorsque, sur l'ensemble de référence de la partie C (C7) :
 
-| Measure | Definition | Threshold |
+| Mesure | Définition | Seuil |
 |---|---|---|
-| Restitution recall | Restitutions of the gold set that the machine also identifies (same span ± 1 turn) | ≥ 95 % |
-| Restitution precision | Machine restitutions that are restitutions in the gold set | ≥ 85 % |
-| Component agreement | Same components on matched restitutions | κ ≥ 0.80 |
-| Validation agreement | Same outcome on matched restitutions | κ ≥ 0.80 |
-| Gate agreement | Same "present / absent" verdict per call | ≥ 95 % |
-| Formula selection agreement | Same selected A, B and P per call, between annotators and machine | ≥ 90 % per slot |
-| Roadmap count agreement | Same `roadmap_blockers.count` per call (± 0) | ≥ 85 % |
-| Key expression agreement | Same verbatim / paraphrased classification per restated component, between annotators and machine | κ ≥ 0.85 |
-| Verbatim check | Key expressions found by code in both the source and the sales clause, on accepted components | 100 % (deterministic; anything else is a defect) |
+| Rappel des restitutions | Restitutions de l'ensemble de référence que la machine repère aussi (même plage ± 1 tour) | ≥ 95 % |
+| Précision des restitutions | Restitutions de la machine qui sont des restitutions dans l'ensemble de référence | ≥ 85 % |
+| Accord sur les composants | Mêmes composants sur les restitutions appariées | κ ≥ 0,80 |
+| Accord sur la validation | Même issue sur les restitutions appariées | κ ≥ 0,80 |
+| Accord sur la porte | Même verdict « présent / absent » par appel | ≥ 95 % |
+| Accord sur la sélection de la formule | Mêmes A, B et P sélectionnés par appel, entre annotateurs et machine | ≥ 90 % par case |
+| Accord sur le compte de la feuille de route | Même `roadmap_blockers.count` par appel (± 0) | ≥ 85 % |
+| Accord sur les expressions clés | Même classement mot pour mot / paraphrasé par composant restitué, entre annotateurs et machine | κ ≥ 0,85 |
+| Contrôle du mot pour mot | Expressions clés trouvées par le code à la fois dans la source et dans la proposition du commercial, sur les composants acceptés | 100 % (déterministe ; tout le reste est un défaut) |
 
-Until then the Gap score is labelled "provisional". The most probable confusions, and where to act: restitution missed because no opener was used (strengthen signal S2); single-component tail taken as a restitution (GB-4); answer to a final question taken as validation (GB-9); cost invented by the sales accepted (GB-7); paraphrase accepted as a component, or a generic phrase taken as a key expression (GB-22).
+D'ici là, la note de l'écart porte la mention « provisoire ». Les confusions les plus probables, et où agir : restitution manquée parce qu'aucune ouverture n'a été employée (renforcer le signal S2) ; queue à un seul composant prise pour une restitution (GB-4) ; réponse à une question finale prise pour une validation (GB-9) ; coût inventé par le commercial accepté (GB-7) ; paraphrase acceptée comme composant, ou expression générique prise pour une expression clé (GB-22).

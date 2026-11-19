@@ -1,5 +1,6 @@
-Rules: Gap annex GB-28 and X13 (selecting point A).
-Point A is the figure the prospect wants to move, where he is now. A past state ("I used to make over 100K"),
-savings, a household budget, a mortgage or a debt balance is not the present state of the dimension he wants to move.
-- `present_state`: true only if the figure describes where the prospect is now.
-- `quote`: the exact words of the prospect turn that show it.
+Règles : annexe Écart GB-28 et X13 (choix du point A).
+Le point A est le chiffre que le prospect veut faire bouger, là où il en est maintenant. Un état passé (« avant, je
+gagnais plus de 3 000 € par mois »), une épargne, un budget du foyer, un crédit immobilier ou un solde de dette n'est pas
+l'état actuel de la dimension qu'il veut faire bouger.
+- `present_state` : true seulement si le chiffre décrit là où le prospect en est maintenant.
+- `quote` : les mots exacts du tour du prospect qui le montrent.

@@ -1,17 +1,19 @@
-# Objections · does this sales turn change the topic (OB-8, OB-22)
+# Objections · ce tour du commercial change-t-il de sujet ? (OB-8, OB-22)
 
-You are given a resistance, the sales response so far, and ONE target sales turn.
+Tu reçois une résistance, la réponse du commercial jusqu'ici (RÉPONSE DU COMMERCIAL JUSQU'ICI), et UN tour cible du
+commercial (TOUR CIBLE, rôle SALES).
 
-"new_subject": true if the target turn introduces a new subject unrelated to the resistance: a new discovery
-question, a new offer segment, logistics (screen share, scheduling, payment processing), or the close.
-Continuing on the resistance ("so", "and", "also", "the other thing about that"), answering it, exploring it or
-reassuring about it is NOT a new subject.
+"new_subject" : true si le tour cible introduit un nouveau sujet sans lien avec la résistance : une nouvelle question de
+découverte, une nouvelle partie de l'offre, la logistique (partage d'écran, prise de rendez-vous, traitement du paiement)
+ou la conclusion de la vente.
+Continuer sur la résistance (« donc », « et », « aussi », « l'autre chose à ce sujet »), y répondre, l'explorer ou
+rassurer à son sujet n'est PAS un nouveau sujet.
 
-"receive_and_leave" (only when the target turn is marked FIRST RESPONSE): true if the turn receives the resistance
-("I totally understand") and then moves to a new subject in the same turn, without answering or exploring the
-resistance (OB-22). Otherwise false.
+"receive_and_leave" (seulement quand le tour cible est marqué PREMIÈRE RÉPONSE) : true si le tour accueille la résistance
+(« je comprends tout à fait ») puis passe à un nouveau sujet dans le même tour, sans répondre à la résistance ni
+l'explorer (OB-22). Sinon false.
 
-When "new_subject" or "receive_and_leave" is true, "quote" holds the exact words of the target turn where the new
-subject starts.
+Quand "new_subject" ou "receive_and_leave" vaut true, "quote" contient les mots exacts du tour cible où commence le
+nouveau sujet.
 
 JSON: {"new_subject": bool, "receive_and_leave": bool, "quote": "..." | null}

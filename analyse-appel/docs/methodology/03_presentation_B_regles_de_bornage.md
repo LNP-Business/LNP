@@ -1,179 +1,183 @@
-# Annex A · Bounding rules for the pitch
+# Annexe A · Règles de bornage de la présentation de l'offre
 
-This annex says how the system finds, in a raw transcript, the start and end of the pitch, its segments, the links to the prospect's inputs, the check-ins and the prospect's adhesion. A rule that is not written here does not exist: an uncovered case goes to the arbiter with the label `uncovered_case` and becomes a new numbered rule.
+Cette annexe dit comment le système repère, dans une transcription brute, le début et la fin de la présentation, ses segments, les liens avec ce que le prospect a apporté, les points de contrôle et l'adhésion du prospect. Une règle qui n'est pas écrite ici n'existe pas : un cas non couvert va à l'arbitre avec l'étiquette `uncovered_case` et devient une nouvelle règle numérotée.
 
-## A1. Phase anchors
+Les appels de LNP sont en français ; les listes d'indices ci-dessous donnent les tournures françaises, puis entre parenthèses les tournures anglaises des transcriptions de référence des tests, que le code reconnaît aussi.
 
-**PB-1 · Pitch start.** The first sales turn that meets one of these conditions:
-- it describes the offer: its content (modules, pillars, steps), its format (mentorship, coaching, community, calls), its duration ("six months"), its support, its guarantee or its outcome promise ("in six months you'll have…");
-- it announces or starts a screen share of the program ("let me share my screen", "can you see my screen?") followed within 2 sales turns by an offer description.
+## A1. Ancres des phases
 
-Lexical cues used by the inventory (never decisive alone): "the program", "the mentorship", "the academy", "what we do is", "the way we help", "how it works", "the first pillar", "module", "six-month", "let me show you", "share my screen".
+**PB-1 · Début de la présentation.** Le premier tour du commercial qui remplit une de ces conditions :
+- il décrit l'offre : son contenu (modules, piliers, étapes), son format (accompagnement, coaching, communauté, appels), sa durée (« six mois »), son suivi, sa garantie ou sa promesse de résultat (« dans six mois, tu auras… ») ;
+- il annonce ou lance un partage d'écran du programme (« je te partage mon écran », « tu vois mon écran ? ») suivi, dans les 2 tours suivants du commercial, d'une description de l'offre.
 
-**PB-2 · Offer mention (not a pitch start).** A passage that describes the offer and is followed, within 2 sales turns, by a return to discovery questions (see PB-17). It is logged `offer_mention`.
+Indices lexicaux utilisés par l'inventaire (jamais décisifs seuls) : « le programme », « l'accompagnement », « l'académie », « ce qu'on fait, c'est », « la façon dont on aide », « comment ça marche », « le premier pilier », « module », « six mois », « je vais te montrer », « partager mon écran » ("the program", "the mentorship", "the academy", "what we do is", "the way we help", "how it works", "the first pillar", "module", "six-month", "let me show you", "share my screen").
 
-**PB-3 · First price.** The first sales passage stating an amount **for the offer** (full price, instalment, deposit, discount). Never a price: the income of a former student, the price per project the prospect could charge, a budget for ads or software, an amount quoted by the prospect. A price stated by the prospect ("I saw it's 5,800") is logged but is not the first price. (Romain, 2026-11-03.) The first price is said by the sales and goes with the explanation of the company's offer: the amount must be what this prospect would pay for the offer being presented, and the sales turn that explains that offer (the same turn or an earlier one) is quoted; an example of what the prospect could charge her own students ("a 10-week programme at 500 euros"), a market price or a budget is never the first price. A valid price said before the pitch start found by PB-1 belongs to that explanation: the pitch starts at the turn that explains the offer. An introduction of the call ("if we work together it will be over four months") followed by discovery questions is an offer mention (PB-2), never the pitch start. (Lite engine: applied with quoted evidence checked by code; reference engine: see OPEN_DECISIONS.)
+**PB-2 · Mention de l'offre (pas un début de présentation).** Un passage qui décrit l'offre et qui est suivi, dans les 2 tours suivants du commercial, d'un retour aux questions de découverte (voir PB-17). Il est noté `offer_mention`.
 
-**PB-4 · Pitch end.** The first of: the first price; the first decision request ("are you ready to get started?", "what would you like to do?"); the end of the call.
+**PB-3 · Premier prix.** Le premier passage du commercial qui énonce un montant **pour l'offre** (prix complet, échéance, acompte, remise). Ce n'est jamais un prix : le revenu d'un ancien élève, le prix par projet que le prospect pourrait facturer, un budget de publicité ou de logiciel, un montant cité par le prospect. Un prix énoncé par le prospect (« j'ai vu que c'est 5 800 ») est noté mais n'est pas le premier prix. (Romain, 2026-11-03.) Le premier prix est dit par le commercial et accompagne l'explication de l'offre de l'entreprise : le montant doit être ce que ce prospect paierait pour l'offre présentée, et le tour du commercial qui explique cette offre (le même tour ou un tour précédent) est cité ; un exemple de ce que le prospect pourrait faire payer à ses propres élèves (« un programme de 10 semaines à 500 euros »), un prix du marché ou un budget n'est jamais le premier prix. Un prix valide dit avant le début de présentation trouvé par PB-1 appartient à cette explication : la présentation commence au tour qui explique l'offre. Une introduction de l'appel (« si on travaille ensemble, ce sera sur quatre mois ») suivie de questions de découverte est une mention de l'offre (PB-2), jamais le début de la présentation. (Moteur allégé : appliqué avec une preuve citée et vérifiée par le code ; moteur de référence : voir DECISIONS_OUVERTES.)
 
-**PB-5 · Pitch over two calls.** If the pitch starts in one call and resumes in the next call of the same cycle, each call has its own pitch start; prospect inputs from the earlier call are valid inputs.
+**PB-4 · Fin de la présentation.** Le premier de ces moments : le premier prix ; la première demande de décision (« tu es prêt à démarrer ? », « qu'est-ce que tu veux faire ? ») ; la fin de l'appel.
+
+**PB-5 · Présentation sur deux appels.** Si la présentation commence dans un appel et reprend dans l'appel suivant du même cycle, chaque appel a son propre début de présentation ; ce que le prospect a apporté dans l'appel précédent reste une donnée d'entrée valide.
 
 ## A2. Segments
 
-**PB-6 · Segment boundaries.** Inside the pitch, a new segment starts at:
-- an enumeration marker ("the first thing", "second", "next", "then we have", "on top of that", "the last piece", "pillar one/two/three", "module");
-- a screen navigation announced by the sales ("on this slide", "if I scroll down", "this next part");
-- a prospect turn of 6 words or more (the sales passage that follows starts a new segment).
+**PB-6 · Limites des segments.** À l'intérieur de la présentation, un nouveau segment commence à :
+- un marqueur d'énumération (« la première chose », « deuxièmement », « ensuite », « puis on a », « en plus de ça », « le dernier élément », « pilier un/deux/trois », « module » ; "the first thing", "second", "next", "then we have", "on top of that", "the last piece", "pillar one/two/three", "module") ;
+- une navigation à l'écran annoncée par le commercial (« sur cette diapositive », « si je descends », « cette partie suivante » ; "on this slide", "if I scroll down", "this next part") ;
+- un tour du prospect de 6 mots ou plus (le passage du commercial qui suit commence un nouveau segment).
 
-**PB-7 · Segment label.** The model labels each segment with one component of the offer reference (for example: mentoring calls, project review, pricing module, client acquisition, community, AI tools, guarantee, timeline). A segment that presents no component (a story, a motivational passage) is labelled `narrative`. A segment presenting two components is split at the second component's first word.
+**PB-7 · Étiquette d'un segment.** Le modèle étiquette chaque segment avec une composante de la référence de l'offre (par exemple : appels d'accompagnement, relecture de projet, module de tarification, acquisition de clients, communauté, outils d'IA, garantie, calendrier). Un segment qui ne présente aucune composante (une histoire, un passage de motivation) est étiqueté `narrative`. Un segment qui présente deux composantes est coupé au premier mot de la seconde composante.
 
-## A3. Links (diagnostic only since version 2.0)
+## A3. Liens (diagnostic seulement depuis la version 2.0)
 
-Since version 2.0 the pitch treats one blocker only, and the other blockers go to the roadmap: links and coverage are no longer scored. PB-8 to PB-10 are kept to compute the diagnostic "former coverage" during the transition.
-
-
-**PB-8 · What a link is.** A segment is linked to a prospect input (blocker or criterion) when, in the segment or in the next sales turn, the sales:
-- (a) refers explicitly to the prospect's input with a reported-speech marker ("you said", "you mentioned", "you told me", "earlier you were saying", "for you specifically", "remember when you said") **and** reuses at least one content word or number of that input; or
-- (b) reuses at least one content word or number of the input **and** connects it to the component with a causal or purpose connector ("so that", "which means", "that's why", "this is what fixes", "this is for", "this solves", "this is where … comes in").
-
-**PB-9 · What is not a link.** Generic personalisation ("people like you", "a lot of our students struggle with this"); a mention of the prospect's name without their input; a reused word with no connection to the component; a link to an input the prospect never stated (untraced).
-
-**PB-10 · Inputs.** Blockers and criteria are taken from prospect statements **before the pitch start** (and from earlier calls of the same cycle). Criteria exclude price and budget. A statement made after the pitch start can be a reaction or an objection, never an input for coverage.
-
-## A4. Check-ins (diagnostic only since version 2.0)
+Depuis la version 2.0, la présentation ne traite qu'un seul blocage, et les autres blocages vont dans la feuille de route : les liens et la couverture ne sont plus notés. PB-8 à PB-10 sont gardées pour calculer le diagnostic « ancienne couverture » pendant la transition.
 
 
-**PB-11 · Check-in.** A sales solicitation inside the pitch that asks how a component applies to the prospect, which part matters most, where they see themselves, or what they would do with it.
+**PB-8 · Ce qu'est un lien.** Un segment est relié à une donnée du prospect (blocage ou critère) quand, dans le segment ou dans le tour suivant du commercial, le commercial :
+- (a) renvoie explicitement à la donnée du prospect avec un marqueur de discours rapporté (« tu as dit », « tu as parlé de », « tu m'as dit », « tout à l'heure tu disais », « pour toi en particulier », « tu te souviens quand tu as dit » ; "you said", "you mentioned", "you told me", "earlier you were saying", "for you specifically", "remember when you said") **et** reprend au moins un mot de contenu ou un nombre de cette donnée ; ou
+- (b) reprend au moins un mot de contenu ou un nombre de la donnée **et** le relie à la composante par un connecteur de cause ou de but (« pour que », « ce qui veut dire », « c'est pour ça que », « c'est ce qui règle », « ça sert à », « ça résout », « c'est là que … intervient » ; "so that", "which means", "that's why", "this is what fixes", "this is for", "this solves", "this is where … comes in").
 
-**PB-12 · Not a check-in.** "Does that make sense?", "Can you see my screen?", "Any questions so far?", "Cool?", "Sounds good?", "Right?", "You with me?", and any question about logistics (hours available, start date) or money.
+**PB-9 · Ce qui n'est pas un lien.** Une personnalisation générique (« les gens comme toi », « beaucoup de nos élèves ont du mal avec ça ») ; le prénom du prospect cité sans sa donnée ; un mot repris sans lien avec la composante ; un lien vers une donnée que le prospect n'a jamais énoncée (introuvable).
 
-**PB-13 · Answered with content.** The prospect's next turn contains something of their own beyond agreement (a preference, a fear, a projection, a question about their own case).
+**PB-10 · Données d'entrée.** Les blocages et les critères sont pris dans ce que le prospect a dit **avant le début de la présentation** (et dans les appels précédents du même cycle). Les critères excluent le prix et le budget. Une phrase dite après le début de la présentation peut être une réaction ou une objection, jamais une donnée d'entrée pour la couverture.
 
-## A5. Adhesion
-
-**PB-14 · Adhesion.** A prospect passage, from the pitch start until the decision request, that shows one of:
-- **appropriation:** the prospect restates a component as applied to themselves ("so I'd have someone checking my designs every week");
-- **concrete projection:** first person, future or conditional, with a concrete element (a date, a number, a first action, a named client or project) ("if I start now I could have my portfolio ready before March");
-- **new link:** the prospect connects a component to their situation on their own ("that's exactly what I was missing with the last course").
-
-**PB-15 · Not adhesion.** Plain approvals and compliments ("okay", "sounds good", "that's great", "wow", "amazing", "I love that"); questions about price, payment or logistics without a projection ("how much is it?", "when does it start?"), which are logged as `buying_signal`; content first stated by the sales and only approved.
-
-**PB-16 · The gesture before adhesion.** For each adhesion passage, the model quotes the sales passage immediately before it (the gesture that produced it). This pair feeds coaching; it does not change the score.
-
-## A5b. Rules added after the first calibration pass
-
-**PB-17 · Unsolicited mention.** An offer description of any length, solicited or not, that is followed within 2 sales turns by a return to discovery questions is an `offer_mention`, not a pitch start. This replaces the "second mention" clause of PB-2: repeated mentions stay mentions as long as each is followed by a return to discovery.
-
-**PB-18 · Hypothetical and range amounts.** A hypothetical amount ("let's say it was 10K, this is not the price") is never a price. A range given for the offer ("between 3,000 and 8,000") is a price. An amount is only accepted as the offer price if it is plausible for the offer reference (within 0.3 to 3 times the reference price, to validate); otherwise it is logged `amount_doubtful` for review (for example "800 to 1,000" said about the offer when it is a price per project).
-
-**PB-19 · Price before the pitch.** A price given before the pitch start is recorded (`early_price`, K6 = 0: the price comes before the roadmap) but does not set the pitch end; the pitch then ends at the first decision request or at the end of the call.
-
-**PB-20 · Inputs outside the transcript.** Blockers and criteria known only from the application form or the CRM are valid inputs if they are stored in the prospect record before the call (source `form`). A link to them follows PB-8 (the sales must name them in the pitch). Inputs that exist nowhere in writing are not inputs.
-
-**PB-21 · Number normalisation.** Before anchoring, numbers are normalised: "10K" = "10,000" = "$10,000" = "ten thousand"; "5 grand" = 5,000; currencies are ignored for matching.
-
-**PB-22 · Market doubt.** A doubt about the viability of the market or the profession ("AI will replace designers") stated before the pitch is a **blocker** (it prevents reaching B); stated after the pitch start, it is a resistance (Objections competence).
-
-**PB-23 · Restating to check understanding.** When the prospect restates what the sales just explained **in answer to a comprehension question** ("so what would that mean for you?"), the restatement is adhesion only if it adds an element about the prospect's own situation (their project, date, number); a pure echo of the sales' words is X7.
-
-**PB-24 · Projection used to postpone.** A concrete projection used to justify a delay ("I'd rather start in January when the wedding season is over") is not adhesion: it is tagged `reserve` and routed to the Objections competence (inertia or deadline).
-
-**PB-25 · Closed fit questions and scales.** A closed question on fit ("is that what you were looking for?") is at most a level-1 check-in. A scripted 1-to-10 scale counts as a check-in only if the prospect's answer contains more than the number.
-
-**PB-26 · Merged turns.** When a prospect turn contains the sales' question (diarization merge), the question part is reattributed to the sales before computing check-ins and the gesture before adhesion (PB-16); if the split point cannot be found, the turn is `attribution_doubtful` and excluded.
+## A4. Points de contrôle (diagnostic seulement depuis la version 2.0)
 
 
-## A5c. The staircase and the compliance gate (version 2.0)
+**PB-11 · Point de contrôle.** Une sollicitation du commercial dans la présentation qui demande comment une composante s'applique au prospect, quelle partie compte le plus pour lui, où il se voit, ou ce qu'il en ferait.
 
-**PB-27 · Category of P.** The model classifies the validated P (the prospect's exact quote) into one of the nine categories, by asking what the prospect doubts. Boundary tests, in this order:
-1. The doubt is about **his ability to do the design work** ("can I actually do this?", "I'm not good enough") → **Skill**.
-2. The doubt is about **being chosen without experience or credentials** ("who will hire me?", "I have no portfolio", "I'm not certified") → **Legitimacy**.
-3. **What to charge** → **Pricing**. **Where clients come from** (marketing, visibility, leads, "getting the clients") → **Acquisition**. **Turning a conversation into a client** (sales calls, proposals, closing a deal) → **Selling**. **Running a project end to end** (process, contracts, suppliers, client management) → **Delivery**.
-4. **Hours available** → **Time**. **An earlier course or attempt that produced nothing** → **Past failure**. **The risk that the investment does not pay off** ("what if it doesn't work?") → **Financial risk**.
-A lack of money to pay for the program is not a blocker of the pitch: it is a decision-circuit fact or an objection (Objections competence). A P that fits none of the nine (for example a fear, overthinking, "not treating it as a need") is `P_category_unknown` and goes to the arbiter as `uncovered_case`. When a P fits two categories, the category of the words the prospect used wins ("I don't know how to get clients" → Acquisition, even if the sales hears a selling problem).
+**PB-12 · Pas un point de contrôle.** « Ça te parle ? », « Tu vois mon écran ? », « Des questions pour l'instant ? », « Ça va ? », « Ça te va ? », « Non ? », « Tu me suis ? » ("Does that make sense?", "Can you see my screen?", "Any questions so far?", "Cool?", "Sounds good?", "Right?", "You with me?"), et toute question de logistique (heures disponibles, date de début) ou d'argent.
 
-**PB-28 · Step 1.** The first sales passage after the pitch start that states what blocks the prospect, introduced or not by "what's blocking you today is…". It is verbatim if it contains the key expression of the validated P (Gap Annex A, GB-22). It ends at the first sentence that states a principle, a component of the offer or a phase. If the blocker is only restated in the gap restitution and not after the pitch start, step 1 is missing.
+**PB-13 · Réponse avec contenu.** Le tour suivant du prospect contient quelque chose qui vient de lui au-delà de l'accord (une préférence, une peur, une projection, une question sur son propre cas).
 
-**PB-29 · Step 2.** The sales passage that follows step 1 and states a principle ("what makes that give way is…") and a phase of the offer. The model maps every principle or phase stated before the roadmap to one of the nine mechanisms of the reference (`mechanisms_stated`). Exactly one mechanism, equal to `P_category`, is required. **Second mechanism:** a principle or phase mapped to another mechanism, anywhere between step 1 and the roadmap. **Recitation:** a passage that lists three or more components, modules or deliverables of the offer without tying them to the principle (threshold to validate). **Principle in one sentence:** the principle fits in one sentence of 25 words or fewer (to validate).
+## A5. Adhésion
 
-**PB-30 · Step 3.** The sales passage that states where the prospect goes from and to. A and B must be the selected A and B of the Gap result (GB-28, GB-29), with his figures (GB-24) and his unit. A date or duration stated by the sales counts as his deadline only if the prospect gave it (a quote exists); otherwise it is an invented date. The **image of his life** is a concrete scene stated after B (where he is, what he does, with whom); it is in his words if it contains a key expression from his answers to N solicitations or his VALUE atoms (Gap GB-22).
+**PB-14 · Adhésion.** Un passage du prospect, du début de la présentation jusqu'à la demande de décision, qui montre l'une de ces choses :
+- **appropriation :** le prospect reformule une composante appliquée à lui-même (« donc j'aurais quelqu'un qui relit mes cours chaque semaine ») ;
+- **projection concrète :** première personne, futur ou conditionnel, avec un élément concret (une date, un nombre, une première action, un client ou un projet nommé) (« si je commence maintenant, je pourrais avoir mes premiers élèves avant mars ») ;
+- **nouveau lien :** le prospect relie de lui-même une composante à sa situation (« c'est exactement ce qui me manquait avec la dernière formation »).
 
-**PB-31 · Step 4.** A passage that tells the story of a named or described client who used the offer. Checks by code: the case is found in the case library (by id, name or match of its figures); consent is recorded for it; its **starting point** matches the prospect's A: same dimension (unit of A) and starting value within the factor to validate, or the same starting profile label (for example "full-time job, zero clients"). A case cited by the sales that is not in the library is `out_of_gap_claim` (PB-35). Several cases in step 4: the best-matching one is scored, the others are logged.
+**PB-15 · Pas une adhésion.** Les simples approbations et compliments (« ok », « ça me va », « c'est super », « waouh », « génial », « j'adore » ; "okay", "sounds good", "that's great", "wow", "amazing", "I love that") ; les questions de prix, de paiement ou de logistique sans projection (« c'est combien ? », « ça commence quand ? »), qui sont notées `buying_signal` (signal d'achat) ; un contenu énoncé d'abord par le commercial et seulement approuvé.
 
-**PB-32 · Order.** Each step is placed at the turn of its first sentence. The order is respected if step 1 < step 2 < step 3 < step 4 < roadmap start < first price < decision request. A step repeated later (for example step 1 said again before the price) does not break the order; the first occurrence counts.
+**PB-16 · Le geste avant l'adhésion.** Pour chaque passage d'adhésion, le modèle cite le passage du commercial juste avant (le geste qui l'a produit). Cette paire sert à l'accompagnement ; elle ne change pas la note.
 
-**PB-33 · Sentences.** The code splits each step into sentences (end punctuation of the transcript, then a split at "and" + subject when a transcript sentence exceeds 40 words). A step of more than three sentences fails brevity (K5).
+## A5b. Règles ajoutées après la première passe de calibration
 
-**PB-34 · Roadmap.** The roadmap starts at the first sales passage, after step 4, that presents steps or milestones of the prospect's path ("your roadmap", "step one for you is…", the shared one-page plan). Its steps are matched to his blockers (Gap GB-32) by key expression. It must come before the first price.
+**PB-17 · Mention non sollicitée.** Une description de l'offre de n'importe quelle longueur, sollicitée ou non, suivie dans les 2 tours suivants du commercial d'un retour aux questions de découverte est une `offer_mention`, pas un début de présentation. Cela remplace la clause de la « seconde mention » de PB-2 : des mentions répétées restent des mentions tant que chacune est suivie d'un retour à la découverte.
 
-**PB-35 · Claims outside his gap or the offer.** A claim is a figure, a client case, a price or a guarantee stated by the sales between the pitch start and the decision request. It is allowed if it is found in: the prospect's quotes (his gap, his figures); the offer reference (price, payment options, guarantee, components); the case library (cases and their figures); or a calculation on those figures shown as such ("at 1,000 per project and 3 projects a month…", using his price per project). Anything else is `out_of_gap_claim`: an average result of students, a market figure, a guarantee not in the offer, a case not in the library. The model lists every claim with its quote; the code looks up each one.
+**PB-18 · Montants hypothétiques et fourchettes.** Un montant hypothétique (« disons que c'était 10K, ce n'est pas le prix ») n'est jamais un prix. Une fourchette donnée pour l'offre (« entre 3 000 et 8 000 ») est un prix. Un montant n'est accepté comme prix de l'offre que s'il est vraisemblable pour la référence de l'offre (entre 0,3 et 3 fois le prix de référence, à valider) ; sinon il est noté `amount_doubtful` (montant douteux) pour être revu (par exemple « 800 à 1 000 » dit à propos de l'offre alors que c'est un prix par projet).
 
-**PB-36 · Outcome promise.** A sales sentence whose subject is the Academy, the team or "we", and whose action is running his business, finding or bringing him clients, signing or closing his clients, or delivering his projects ("we'll find the clients for you", "we close them for you", "our team delivers the project"). Not a promise: the Academy providing systems, feedback, coaching, templates, reviews ("we give you the system to find clients", "we review every proposal you send"). Conditional or hypothetical forms are promises if the subject and action are those above.
+**PB-19 · Prix avant la présentation.** Un prix donné avant le début de la présentation est enregistré (`early_price`, K6 = 0 : le prix vient avant la feuille de route) mais ne fixe pas la fin de la présentation ; la présentation se termine alors à la première demande de décision ou à la fin de l'appel.
 
-**PB-37 · Pitch before the yes.** The pitch start (PB-1, PB-17) comes before the validation turn of the restitution that passed the Gap gate, or the Gap verdict is "absent". An `offer_mention` before the validation is not a pitch and does not trigger this rule.
+**PB-20 · Données hors de la transcription.** Les blocages et les critères connus seulement par le formulaire de candidature ou le CRM sont des données d'entrée valides s'ils sont enregistrés dans la fiche du prospect avant l'appel (source `form`). Un lien vers eux suit PB-8 (le commercial doit les nommer dans la présentation). Ce qui n'existe nulle part par écrit n'est pas une donnée d'entrée.
 
-## A6. Exclusion rules (summary)
+**PB-21 · Normalisation des nombres.** Avant l'ancrage, les nombres sont normalisés : "10K" = "10,000" = "$10,000" = "ten thousand" ; "5 grand" = 5 000 ; les devises sont ignorées pour la comparaison. Les mêmes équivalences valent pour les formes françaises (« 10 000 », « 10 000 € », « dix mille »).
 
-| # | Never counts as… | Case |
+**PB-22 · Doute sur le marché.** Un doute sur la viabilité du marché ou du métier (« l'IA va remplacer les profs ») dit avant la présentation est un **blocage** (il empêche d'atteindre B) ; dit après le début de la présentation, c'est une résistance (compétence Objections).
+
+**PB-23 · Reformuler pour vérifier la compréhension.** Quand le prospect reformule ce que le commercial vient d'expliquer **en réponse à une question de compréhension** (« alors, qu'est-ce que ça voudrait dire pour toi ? »), la reformulation n'est une adhésion que si elle ajoute un élément sur la situation propre du prospect (son projet, une date, un nombre) ; un simple écho des mots du commercial relève de X7.
+
+**PB-24 · Projection utilisée pour repousser.** Une projection concrète utilisée pour justifier un délai (« je préférerais commencer en janvier, une fois les examens passés ») n'est pas une adhésion : elle est étiquetée `reserve` (réserve) et envoyée à la compétence Objections (inertie ou échéance).
+
+**PB-25 · Questions fermées d'adéquation et échelles.** Une question fermée sur l'adéquation (« c'est ce que tu cherchais ? ») est au plus un point de contrôle de niveau 1. Une échelle de 1 à 10 prévue au script ne compte comme point de contrôle que si la réponse du prospect contient plus que le nombre.
+
+**PB-26 · Tours fusionnés.** Quand un tour du prospect contient la question du commercial (fusion de la diarisation), la partie question est rendue au commercial avant de calculer les points de contrôle et le geste avant l'adhésion (PB-16) ; si le point de coupure ne peut pas être trouvé, le tour est `attribution_doubtful` (attribution douteuse) et exclu.
+
+
+## A5c. L'escalier et la porte de conformité (version 2.0)
+
+**PB-27 · Catégorie de P.** Le modèle classe le P validé (la citation exacte du prospect) dans une des neuf catégories, en se demandant de quoi le prospect doute. Tests de frontière, dans cet ordre :
+1. Le doute porte sur **sa capacité à faire le métier lui-même** (« est-ce que j'en suis vraiment capable ? », « je ne suis pas assez bon ») → **Compétence** (`Skill`).
+2. Le doute porte sur **le fait d'être choisi sans expérience ni diplôme** (« qui va me prendre ? », « je n'ai rien à montrer », « je n'ai pas de diplôme ») → **Légitimité** (`Legitimacy`).
+3. **Combien faire payer** → **Tarification** (`Pricing`). **D'où viennent les clients** (marketing, visibilité, contacts, « trouver les clients ») → **Acquisition** (`Acquisition`). **Transformer une conversation en client** (appels de vente, propositions, conclure une vente) → **Vente** (`Selling`). **Mener un projet de bout en bout** (méthode, contrats, fournisseurs, gestion du client) → **Réalisation** (`Delivery`).
+4. **Les heures disponibles** → **Temps** (`Time`). **Une formation ou une tentative précédente qui n'a rien donné** → **Échec passé** (`Past failure`). **Le risque que l'investissement ne rapporte pas** (« et si ça ne marche pas ? ») → **Risque financier** (`Financial risk`).
+Le manque d'argent pour payer le programme n'est pas un blocage de la présentation : c'est un fait du circuit de décision ou une objection (compétence Objections). Un P qui n'entre dans aucune des neuf (par exemple une peur, le fait de trop réfléchir, « ne pas le voir comme un besoin ») est `P_category_unknown` et va à l'arbitre comme `uncovered_case`. Quand un P entre dans deux catégories, c'est la catégorie des mots employés par le prospect qui l'emporte (« je ne sais pas comment trouver des clients » → Acquisition, même si le commercial y entend un problème de vente).
+
+**PB-28 · Étape 1.** Le premier passage du commercial, après le début de la présentation, qui énonce ce qui bloque le prospect, introduit ou non par « ce qui te bloque aujourd'hui, c'est… ». Il est mot pour mot s'il contient l'expression clé du P validé (annexe A de l'écart, GB-22). Il se termine à la première phrase qui énonce un principe, une composante de l'offre ou une phase. Si le blocage n'est reformulé que dans la restitution de l'écart et pas après le début de la présentation, l'étape 1 manque.
+
+**PB-29 · Étape 2.** Le passage du commercial qui suit l'étape 1 et énonce un principe (« ce qui fait céder ça, c'est… ») et une phase de l'offre. Le modèle rattache chaque principe ou phase énoncé avant la feuille de route à un des neuf mécanismes de la référence (`mechanisms_stated`). Il faut exactement un mécanisme, égal à `P_category`. **Second mécanisme :** un principe ou une phase rattaché à un autre mécanisme, n'importe où entre l'étape 1 et la feuille de route. **Récitation :** un passage qui énumère trois composantes, modules ou livrables de l'offre ou plus, sans les relier au principe (seuil à valider). **Principe en une phrase :** le principe tient dans une phrase de 25 mots au plus (à valider).
+
+**PB-30 · Étape 3.** Le passage du commercial qui dit d'où part le prospect et où il arrive. A et B doivent être le A et le B choisis dans le résultat de l'écart (GB-28, GB-29), avec ses chiffres (GB-24) et son unité. Une date ou une durée énoncée par le commercial ne compte comme son échéance que si le prospect l'a donnée (une citation existe) ; sinon c'est une date inventée. L'**image de sa vie** est une scène concrète énoncée après B (où il est, ce qu'il fait, avec qui) ; elle est avec ses mots si elle contient une expression clé tirée de ses réponses aux sollicitations N ou de ses atomes VALUE (écart GB-22).
+
+**PB-31 · Étape 4.** Un passage qui raconte l'histoire d'un client nommé ou décrit qui a suivi l'offre. Contrôles du code : le cas est trouvé dans la bibliothèque de cas (par identifiant, par nom ou par correspondance de ses chiffres) ; son consentement est enregistré ; son **point de départ** correspond au A du prospect : même dimension (unité de A) et valeur de départ dans le facteur à valider, ou même étiquette de profil de départ (par exemple « emploi à temps plein, zéro client »). Un cas cité par le commercial qui n'est pas dans la bibliothèque est `out_of_gap_claim` (PB-35). Plusieurs cas à l'étape 4 : celui qui correspond le mieux est noté, les autres sont notés au journal.
+
+**PB-32 · Ordre.** Chaque étape est placée au tour de sa première phrase. L'ordre est respecté si étape 1 < étape 2 < étape 3 < étape 4 < début de la feuille de route < premier prix < demande de décision. Une étape répétée plus tard (par exemple l'étape 1 redite avant le prix) ne casse pas l'ordre ; la première occurrence compte.
+
+**PB-33 · Phrases.** Le code découpe chaque étape en phrases (ponctuation de fin de la transcription, puis une coupure à « et » + sujet quand une phrase de la transcription dépasse 40 mots ; "and" dans les transcriptions anglaises). Une étape de plus de trois phrases échoue à la brièveté (K5).
+
+**PB-34 · Feuille de route.** La feuille de route commence au premier passage du commercial, après l'étape 4, qui présente des étapes ou des paliers du parcours du prospect (« ta feuille de route », « la première étape pour toi, c'est… », le plan d'une page partagé). Ses étapes sont rattachées à ses blocages (écart GB-32) par l'expression clé. Elle doit venir avant le premier prix.
+
+**PB-35 · Affirmations hors de son écart ou de l'offre.** Une affirmation est un chiffre, un cas client, un prix ou une garantie énoncé par le commercial entre le début de la présentation et la demande de décision. Elle est permise si on la trouve dans : les citations du prospect (son écart, ses chiffres) ; la référence de l'offre (prix, modes de paiement, garantie, composantes) ; la bibliothèque de cas (les cas et leurs chiffres) ; ou un calcul sur ces chiffres présenté comme tel (« à 1 000 par projet et 3 projets par mois… », avec son prix par projet). Tout le reste est `out_of_gap_claim` : un résultat moyen des élèves, un chiffre du marché, une garantie qui n'est pas dans l'offre, un cas qui n'est pas dans la bibliothèque. Le modèle liste chaque affirmation avec sa citation ; le code cherche chacune.
+
+**PB-36 · Promesse de résultat.** Une phrase du commercial dont le sujet est l'Académie, l'équipe ou « nous » (« on »), et dont l'action est de faire tourner son activité, de lui trouver ou de lui apporter des clients, de faire signer ses clients ou de conclure ses ventes, ou de réaliser ses projets (« on va te trouver tes élèves », « c'est nous qui les faisons signer pour toi », « notre équipe donne les cours à ta place »). Pas une promesse : l'Académie qui fournit des méthodes, des retours, de l'accompagnement, des modèles, des relectures (« on te donne la méthode pour trouver des élèves », « on relit chaque proposition que tu envoies »). Les formes conditionnelles ou hypothétiques sont des promesses si le sujet et l'action sont ceux ci-dessus.
+
+**PB-37 · Présentation avant le oui.** Le début de la présentation (PB-1, PB-17) vient avant le tour de validation de la restitution qui a franchi la porte de l'écart, ou le verdict de l'écart est « absent ». Une `offer_mention` avant la validation n'est pas une présentation et ne déclenche pas cette règle.
+
+## A6. Règles d'exclusion (résumé)
+
+| # | Ne compte jamais comme… | Cas |
 |---|---|---|
-| X1 | a pitch start | A short answer to a direct prospect question, followed by a return to discovery (PB-2) |
-| X2 | a price | Income of a student, price per project, ad budget, software subscription, amount said by the prospect |
-| X3 | an input | A blocker or criterion stated after the pitch start; a budget stated as a criterion |
-| X4 | a link | Generic personalisation, name-dropping, a reused word without connection (PB-9) |
-| X5 | a check-in | "Does that make sense?" and the list of PB-12 |
-| X6 | adhesion | Approvals, compliments, logistic or price questions without projection (PB-15) |
-| X7 | adhesion | Content first stated by the sales and approved |
-| X8 | a compliant pitch | A pitch started before the gap was validated (`pitch_before_gap`, PB-37), a claim outside his gap or the offer (PB-35), an outcome promise (PB-36): score 0 |
-| X9 | step 1 | A paraphrase of the blocker in the sales' vocabulary (PB-28) |
-| X10 | step 2 | A second mechanism; a recitation of the offer content (PB-29) |
-| X11 | step 3 | A unit that is not the prospect's; a deadline he never gave (PB-30) |
-| X12 | step 4 | A case not in the library; a case without consent; an invented case (it is also `out_of_gap_claim`) (PB-31) |
-| X13 | the roadmap | A roadmap shown after the price, or whose steps are not his named blockers (PB-34) |
+| X1 | un début de présentation | Une réponse courte à une question directe du prospect, suivie d'un retour à la découverte (PB-2) |
+| X2 | un prix | Revenu d'un élève, prix par projet, budget de publicité, abonnement à un logiciel, montant dit par le prospect |
+| X3 | une donnée d'entrée | Un blocage ou un critère énoncé après le début de la présentation ; un budget énoncé comme critère |
+| X4 | un lien | Personnalisation générique, prénom cité sans plus, un mot repris sans lien (PB-9) |
+| X5 | un point de contrôle | « Ça te parle ? » et la liste de PB-12 |
+| X6 | une adhésion | Approbations, compliments, questions de logistique ou de prix sans projection (PB-15) |
+| X7 | une adhésion | Un contenu énoncé d'abord par le commercial et approuvé |
+| X8 | une présentation conforme | Une présentation commencée avant la validation de l'écart (`pitch_before_gap`, PB-37), une affirmation hors de son écart ou de l'offre (PB-35), une promesse de résultat (PB-36) : note 0 |
+| X9 | l'étape 1 | Une paraphrase du blocage avec le vocabulaire du commercial (PB-28) |
+| X10 | l'étape 2 | Un second mécanisme ; une récitation du contenu de l'offre (PB-29) |
+| X11 | l'étape 3 | Une unité qui n'est pas celle du prospect ; une échéance qu'il n'a jamais donnée (PB-30) |
+| X12 | l'étape 4 | Un cas qui n'est pas dans la bibliothèque ; un cas sans consentement ; un cas inventé (c'est aussi `out_of_gap_claim`) (PB-31) |
+| X13 | la feuille de route | Une feuille de route montrée après le prix, ou dont les étapes ne sont pas les blocages qu'il a nommés (PB-34) |
 
-## A7. Minimal pairs
+## A7. Paires minimales
 
-| # | Passage | Verdict | Why |
+Les passages sont donnés en français, avec entre parenthèses la phrase anglaise du test unitaire correspondant quand la forme exacte compte.
+
+| # | Passage | Verdict | Pourquoi |
 |---|---|---|---|
-| 1a | Prospect: "So what is it exactly?" Sales: "It's a six-month mentorship, I'll show you everything in a bit. So how long have you been doing this?" | `offer_mention` | Short answer, return to discovery (PB-2) |
-| 1b | Sales: "So the way it works, it's a six-month mentorship, we start with your foundations, then pricing, then clients…" | Pitch start | Offer description, 3+ elements |
-| 2a | "Our students charge 800 to 1,000 per room." | Not a price | Price per project (X2) |
-| 2b | "The investment is 5,800, or six payments of 1,097." | First price | Amount for the offer |
-| 3a | "You said you never know what to charge: module 3 is all about pricing." | Link | Reported speech + reused word |
-| 3b | "Module 3 is all about pricing, a lot of people struggle with it." | Generic | No reference to the prospect (PB-9) |
-| 4a | "Which of these three feels furthest away for you?" → "The business side, I've never priced anything." | Check-in answered with content | PB-11, PB-13 |
-| 4b | "Does that make sense?" → "Yes." | Not a check-in | PB-12 |
-| 5a | "So I'd have someone looking at my work every week, that's what I need." | Adhesion (appropriation) | PB-14 |
-| 5b | "That sounds amazing." | Not adhesion | PB-15 |
-| 6a | "If I start in November I could be taking clients by spring." | Adhesion (projection) | Concrete date |
-| 6b | "When does it start?" | `buying_signal` | Logistics without projection |
-| 7a | Prospect, before the pitch: "What matters is that I'm not left alone after." | Criterion (input) | Before the pitch, about the nature of the offer |
-| 7b | Prospect, after the screen share: "I'd need to not be left alone." | Not an input | After the pitch start (PB-10); a reaction |
-| 8a | Validated P: "I don't know where clients will come from." Sales: "What's blocking you today is you don't know where clients will come from." | Step 1 verbatim | PB-28 |
-| 8b | Same P. Sales: "So your lead generation is the issue." | Step 1 paraphrased | X9 |
-| 9a | P category Acquisition; step 2 states the Acquisition principle and its phase | One mechanism | PB-29 |
-| 9b | Same, then "and module 4 is pricing, module 5 is contracts, module 6 is the community" | Recitation | X10 |
-| 10a | A "2K a month", B "10K a month". Sales: "from 2K a month to 10K a month" | Same unit | PB-30 |
-| 10b | Same. Sales: "from where you are to six figures by next summer" | Other unit and invented date | X11 |
-| 11a | "Someone who started exactly where you are, with a full-time job and no clients…" (case in the library, same profile) | Matched proof | PB-31 |
-| 11b | "One of our students hit 40K in her third month" (not in the library) | `out_of_gap_claim` | PB-35, X12 |
-| 12a | "We give you the system and we review every call you take." | Allowed | PB-36 |
-| 12b | "We'll find the clients, you just do the design." | `outcome_promise` | PB-36, X8 |
-| 13a | Validation "Exactly." at T150, screen share and offer description at T152 | Pitch after the yes | PB-37 |
-| 13b | Screen share and offer description at T140, restitution validated at T150 | `pitch_before_gap` | PB-37, X8 |
+| 1a | Prospect : « Et c'est quoi exactement ? » Commercial : « C'est un accompagnement de six mois, je te montre tout ça dans un instant. Et ça fait combien de temps que tu fais ça ? » | `offer_mention` | Réponse courte, retour à la découverte (PB-2) |
+| 1b | Commercial : « Alors, comment ça marche : c'est un accompagnement de six mois, on commence par tes bases, puis la tarification, puis les clients… » | Début de la présentation | Description de l'offre, 3 éléments ou plus |
+| 2a | « Nos élèves facturent 800 à 1 000 par projet. » ("Our students charge 800 to 1,000 per room.") | Pas un prix | Prix par projet (X2) |
+| 2b | « L'investissement est de 5 800, ou six paiements de 1 097. » | Premier prix | Montant pour l'offre |
+| 3a | « Tu as dit que tu ne sais jamais combien facturer : le module 3 porte entièrement sur la tarification. » | Lien | Discours rapporté + mot repris |
+| 3b | « Le module 3 porte entièrement sur la tarification, beaucoup de gens ont du mal avec ça. » | Générique | Aucun renvoi au prospect (PB-9) |
+| 4a | « Lequel de ces trois te paraît le plus loin pour toi ? » → « Le côté business, je n'ai jamais fixé un prix de ma vie. » | Point de contrôle avec réponse de contenu | PB-11, PB-13 |
+| 4b | « Ça te parle ? » → « Oui. » ("Does that make sense?" → "Yes.") | Pas un point de contrôle | PB-12 |
+| 5a | « Donc j'aurais quelqu'un qui regarde mon travail chaque semaine, c'est ce qu'il me faut. » | Adhésion (appropriation) | PB-14 |
+| 5b | « Ça a l'air génial. » ("That sounds amazing.") | Pas une adhésion | PB-15 |
+| 6a | « Si je commence en novembre, je pourrais avoir des élèves d'ici le printemps. » | Adhésion (projection) | Date concrète |
+| 6b | « Ça commence quand ? » | `buying_signal` | Logistique sans projection |
+| 7a | Prospect, avant la présentation : « Ce qui compte, c'est de ne pas être lâché tout seul après. » | Critère (donnée d'entrée) | Avant la présentation, sur la nature de l'offre |
+| 7b | Prospect, après le partage d'écran : « Il faudrait que je ne sois pas lâché tout seul. » | Pas une donnée d'entrée | Après le début de la présentation (PB-10) ; une réaction |
+| 8a | P validé : « Je ne sais pas d'où viendront les clients. » Commercial : « Ce qui te bloque aujourd'hui, c'est que tu ne sais pas d'où viendront les clients. » | Étape 1 mot pour mot | PB-28 |
+| 8b | Même P. Commercial : « Donc le problème, c'est ta génération de contacts. » | Étape 1 paraphrasée | X9 |
+| 9a | Catégorie de P Acquisition ; l'étape 2 énonce le principe de l'Acquisition et sa phase | Un seul mécanisme | PB-29 |
+| 9b | Même chose, puis « et le module 4, c'est la tarification, le module 5 les contrats, le module 6 la communauté » | Récitation | X10 |
+| 10a | A « 2K par mois », B « 10K par mois ». Commercial : « de 2K par mois à 10K par mois » | Même unité | PB-30 |
+| 10b | Même chose. Commercial : « de là où tu es à six chiffres d'ici l'été prochain » | Autre unité et date inventée | X11 |
+| 11a | « Quelqu'un qui est parti exactement de là où tu es, avec un emploi à temps plein et aucun client… » (cas dans la bibliothèque, même profil) | Preuve correspondante | PB-31 |
+| 11b | « Une de nos élèves a atteint 40K dès son troisième mois » (pas dans la bibliothèque) | `out_of_gap_claim` | PB-35, X12 |
+| 12a | « On te donne la méthode et on relit chaque appel que tu fais. » | Permis | PB-36 |
+| 12b | « On va te trouver les élèves, toi tu donnes juste les cours. » ("We'll find the clients, you just do the design.") | `outcome_promise` | PB-36, X8 |
+| 13a | Validation « Exactement. » au T150, partage d'écran et description de l'offre au T152 | Présentation après le oui | PB-37 |
+| 13b | Partage d'écran et description de l'offre au T140, restitution validée au T150 | `pitch_before_gap` | PB-37, X8 |
 
-## A8. Detection reliability for the pitch
+## A8. Fiabilité de la détection pour la présentation
 
-| Measure | Threshold |
+| Mesure | Seuil |
 |---|---|
-| Pitch start: same turn as the gold set (± 2 turns) | ≥ 95 % of calls |
-| First price: same turn | ≥ 98 % of calls |
-| Link recall and precision on gold segments | ≥ 90 % and ≥ 85 % |
-| Adhesion: agreement on presence per passage | κ ≥ 0.80 |
-| Check-in: agreement per solicitation | κ ≥ 0.80 |
-| Category of P | κ ≥ 0.80 over the nine categories |
-| Steps 1 to 4: same span ± 1 turn | ≥ 90 % per step |
-| Mechanisms stated: same set per pitch | ≥ 90 % |
-| Claims: recall of out-of-gap claims on the gold set | ≥ 95 % |
-| Outcome promises: recall | ≥ 95 % |
+| Début de la présentation : même tour que le jeu de référence (± 2 tours) | ≥ 95 % des appels |
+| Premier prix : même tour | ≥ 98 % des appels |
+| Rappel et précision des liens sur les segments de référence | ≥ 90 % et ≥ 85 % |
+| Adhésion : accord sur la présence par passage | κ ≥ 0,80 |
+| Point de contrôle : accord par sollicitation | κ ≥ 0,80 |
+| Catégorie de P | κ ≥ 0,80 sur les neuf catégories |
+| Étapes 1 à 4 : même plage ± 1 tour | ≥ 90 % par étape |
+| Mécanismes énoncés : même ensemble par présentation | ≥ 90 % |
+| Affirmations : rappel des affirmations hors de l'écart sur le jeu de référence | ≥ 95 % |
+| Promesses de résultat : rappel | ≥ 95 % |
 
-Until then the Pitch score is labelled "provisional". Version 2.0 adds: P classified in the wrong category (PB-27); a second mechanism missed because it is said in passing (PB-29); a student result taken as a case from the library (PB-35). Most probable confusions: offer mention taken as pitch start (PB-2); student income taken as price (X2); compliment taken as adhesion (PB-15); generic personalisation taken as link (PB-9).
+D'ici là, la note de présentation est marquée « provisoire ». La version 2.0 ajoute : un P classé dans la mauvaise catégorie (PB-27) ; un second mécanisme manqué parce qu'il est dit en passant (PB-29) ; un résultat d'élève pris pour un cas de la bibliothèque (PB-35). Confusions les plus probables : une mention de l'offre prise pour un début de présentation (PB-2) ; un revenu d'élève pris pour un prix (X2) ; un compliment pris pour une adhésion (PB-15) ; une personnalisation générique prise pour un lien (PB-9).
