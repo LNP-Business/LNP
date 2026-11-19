@@ -9,7 +9,7 @@
   "use strict";
   var COMP = [["SPIN", "Découverte"], ["GAP", "Écart"], ["PITCH", "Présentation de l'offre"], ["OBJECTIONS", "Objections"]];
   var CSS = [
-    ".ca-scrim{position:fixed;inset:0;z-index:1020;background:rgba(27,27,24,.55);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:28px 16px}.ca-scrim.ca-full{padding-top:84px}",
+    ".ca-scrim{position:fixed;inset:0;z-index:1020;background:rgba(27,27,24,.55);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:28px 16px}.ca-scrim.ca-full{padding:0;display:block;background:#F7F8FB}.ca-full .ca-dlg{width:100%;max-width:none;min-height:100%;border-radius:0;box-shadow:none}.ca-full .ca-top{position:sticky;top:0;z-index:30;border-radius:0;padding-right:96px;box-shadow:0 1px 0 #E3ECFB}",
     ".ca-dlg{width:1180px;max-width:100%;background:#F6F4EF;border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.3);font-family:'IBM Plex Sans',system-ui,sans-serif;color:#1B1B18}",
     ".ca-top{background:#fff;border-bottom:1px solid #E3DFD5;border-radius:16px 16px 0 0;padding:20px 26px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}",
     ".ca-av{width:46px;height:46px;border-radius:10px;background:linear-gradient(160deg,#D9B46A,#9A6614);color:#fff;display:flex;align-items:center;justify-content:center;font:600 22px Fraunces,Georgia,serif}",
