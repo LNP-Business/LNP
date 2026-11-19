@@ -207,7 +207,10 @@ lettres accentuées, mots vides, « je » → « tu », nombres, formes de quest
 d'objection. Le code applique aussi au moteur allégé les règles dures de la découverte (charge de la solution, question sur l'offre),
 le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une mention de l'offre (PB-2) et le registre lu dans la question
 quand elle nomme un domaine (SB-27). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
-Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier
+Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 USD avec la
+vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
+lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et
+reconstruit les répliques ; plus de 10 % de phrases indécises → appel exclu), puis cinq questions au modèle sur l'appel entier
 (phases, questions de découverte, écart, présentation de l'offre, objections après la présentation), le code vérifie
 chaque citation et calcule les notes avec les fonctions du moteur de référence. Choix par analyse :
 `update crm_ca_config set engine = 'lite';` (retour : `engine = 'full'`, valeur par défaut ; migration 035). Tests :

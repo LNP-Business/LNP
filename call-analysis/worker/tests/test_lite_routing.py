@@ -23,8 +23,8 @@ def test_job_routes_engine_lite_to_the_lite_engine():
     c = lite_claim()
     client = MockLiteClient(sc.ANSWERS)
     rec = run_job(c, client, rounds=True, workers=24)
-    assert rec["meta"]["engine"] == "lite" and engine_of(c) == "lite" and engine_version(c) == "callqa-lite-1.0"
-    assert {x["task"] for x in client.calls} == {"lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
+    assert rec["meta"]["engine"] == "lite" and engine_of(c) == "lite" and engine_version(c) == "callqa-lite-1.1"
+    assert {x["task"] for x in client.calls} == {"lite.sv_voices", "lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
                                                   "lite.s4_objections"}
     assert all(x["tier"] == "fast" and x["effort"] == "low" for x in client.calls)
     assert set(rec["results"]) == {"SPIN", "GAP", "PITCH", "OBJECTIONS"} and rec["results"]["GAP"]["verdict"] == "present"
@@ -84,6 +84,6 @@ def test_loop_stores_a_lite_record_with_the_lite_version(monkeypatch):
     monkeypatch.setattr("sys.argv", ["run.py"])
     assert loop.main() == 0
     name, args = [x for x in stored if x[0] == "crm_ca_store"][0]   # an R1: crm_qualif_context comes first (046)
-    assert name == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.0"
+    assert name == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.1"
     assert args["p_record"]["meta"]["engine"] == "lite"
     assert args["p_usage"]["engine"] == "lite" and args["p_usage"]["effort"] == "low"

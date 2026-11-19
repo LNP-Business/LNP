@@ -1,4 +1,4 @@
-"""The lite pipeline: foundation (code) → S0 phases → S1 discovery → S2 gap → S3 pitch → S4 objections → call record.
+"""The lite pipeline: foundation (code) → SV voices → S0 phases → S1 discovery → S2 gap → S3 pitch → S4 objections → call record.
 
 `analyse(ctx, client, config)` returns the same record as lnp_callqa.pipeline.result_record (OUTPUT_CONTRACT.md),
 plus `meta` ({"engine": "lite", "version", "steps": what the code dropped per step}). The model is asked one question per
@@ -24,13 +24,16 @@ from .pitch import context_text, run_pitch
 from .shim import Drops
 from .spin import SpinFacts, run_spin
 from .steps import Steps, fill, load
+from .voices import run_voices
 
 DEFAULTS: dict[str, Any] = {
     "tier": "fast",                 # crm_ca_config.tiers.fast (claude-haiku-5-5)
     "effort": "low",                # thinking on, kept short
     "s1_chunk_turns": 160,          # turns of discovery per S1 call (a split happens anyway if an answer is cut)
     "s1_min_chunk_turns": 30,
-    "max_tokens": {"S0": 6000, "S1": 16000, "S2": 8000, "S3": 10000, "S4": 10000},
+    "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
+    "sv_min_chunk_lines": 40,
+    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
 
@@ -101,7 +104,9 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
     cfg["max_tokens"] = {**DEFAULTS["max_tokens"], **((config or {}).get("max_tokens") or {})}
     drops = Drops()
     meta = {"engine": "lite", "version": LITE_VERSION, "tier": cfg["tier"], "effort": cfg["effort"]}
-    diarization_gate(ctx)                                    # C1 (code); no model attribution check in lite
+    if ctx.lines:                                            # C1: the model lists the wrong labels, the code repairs
+        meta["voices"] = run_voices(ctx, client, cfg, drops)
+    diarization_gate(ctx)                                    # C1 (code): word shares, after the repair
     if ctx.status != "ok":
         for name, rv in RULES.items():
             ctx.results[name] = CompetenceResult(name, rv, status="excluded", reasons=[ctx.status])
