@@ -9,7 +9,7 @@
   "use strict";
   var COMP = [["SPIN", "Découverte"], ["GAP", "Écart"], ["PITCH", "Présentation de l'offre"], ["OBJECTIONS", "Objections"]];
   var CSS = [
-    ".ca-scrim{position:fixed;inset:0;z-index:200;background:rgba(27,27,24,.55);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:28px 16px}",
+    ".ca-scrim{position:fixed;inset:0;z-index:1020;background:rgba(27,27,24,.55);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:28px 16px}.ca-scrim.ca-full{padding-top:84px}",
     ".ca-dlg{width:1180px;max-width:100%;background:#F6F4EF;border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.3);font-family:'IBM Plex Sans',system-ui,sans-serif;color:#1B1B18}",
     ".ca-top{background:#fff;border-bottom:1px solid #E3DFD5;border-radius:16px 16px 0 0;padding:20px 26px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}",
     ".ca-av{width:46px;height:46px;border-radius:10px;background:linear-gradient(160deg,#D9B46A,#9A6614);color:#fff;display:flex;align-items:center;justify-content:center;font:600 22px Fraunces,Georgia,serif}",
@@ -64,7 +64,16 @@
     if (!C || !C.caBoard) { frame(ctx); return body('<div class="ca-ban">L\'analyse d\'appel fonctionne dans la version web, où le CRM est en ligne.</div>'); }
     var row = rowOf(callId);
     if (!row) { try { window.LNP_CA_ROWS = await C.caBoard(); } catch (e) { console.error(e); } row = rowOf(callId); }
-    if (row && !ctx.add && (row.job || row.done_job) && API.showInLead && API.showInLead(row.cycle_id, callId)) return;
+    // an analysed call (2026-11-19): its analysis (Découverte SPIN, Écart, Présentation, Objections, qualification) opens in
+    // this window, above the lead record; the record no longer has an « Analyse » tab to show it in
+    if (row && !ctx.add && (row.job || row.done_job)) {
+      select(row.cycle_id, callId);
+      frame({ person: ctx.person, round: row.round, when: fmtWhen(row.start) });
+      CUR = { callId: callId, ctx: ctx, row: row };
+      body(leadView(row.cycle_id, { person: ctx.person, sales: ctx.sales }));
+      W.classList.add("ca-full");
+      return;
+    }
     frame(ctx);
     CUR = { callId: callId, ctx: ctx, row: row };
     if (!row) return body('<div class="ca-ban">Cet appel n\'est pas analysé : seuls les appels de vente R1 et R2 passés le sont (pas les appels d\'intégration ni d\'étude de cas), et seuls un administrateur ou le commercial attitré du prospect voient l\'analyse.</div>');
