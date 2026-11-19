@@ -1,158 +1,162 @@
-# Competence 4 · Objection Removal
-_Scoring methodology: how the system measures whether the sales prevented objections upstream and removed those raised, until the prospect, in their own words, no longer holds them_
+# Compétence 4 · Traitement des objections
+_Méthodologie de notation : comment le système mesure si le commercial a prévenu les objections en amont et levé celles qui ont été soulevées, jusqu'à ce que le prospect, avec ses propres mots, ne les tienne plus_
 
-**Version:** Version 1.1 · 25 October 2026  
-**Status:** Draft for validation by the methodology owner. Values marked "to validate" are proposals.  
-**Scope:** All sales calls of a cycle (first call, follow-ups, decision calls). Sources: LNP verbatim reference v2 (objection triplet, anxiety, inertia, past attempt, decision circuit), analysis of 95 real calls.  
-# 1. What this competence measures
+**Version :** version 1.1 · 25 octobre 2026  
+**Statut :** brouillon à valider par le responsable de la méthodologie. Les valeurs marquées « à valider » sont des propositions.  
+**Périmètre :** tous les appels de vente d'un cycle (premier appel, appels de suivi, appels de décision). Sources : référence verbatim LNP v2 (triplet de l'objection, anxiété, inertie, tentative passée, circuit de décision), analyse de 95 vrais appels.  
+# 1. Ce que mesure cette compétence
 
-**Definition.** Objection removal covers two things: **preventing** the resistances that can be anticipated (decision circuit, budget, timing) before the price, and **removing** each resistance the prospect raises after the first price (OB-27), with the gesture that fits its nature, until the prospect states that it no longer holds.
+**Définition.** Le traitement des objections couvre deux choses : **prévenir** les résistances qu'on peut anticiper (circuit de décision, budget, moment) avant le prix, et **lever** chaque résistance que le prospect soulève après le premier prix (OB-27), avec le geste qui convient à sa nature, jusqu'à ce que le prospect dise qu'elle ne tient plus.
 
-**What success means, in one sentence.** The sales succeeded when every resistance raised was identified for what it is (objection, anxiety or inertia), received the matching gesture, was acknowledged, isolated and explored before being answered, and ended with the prospect saying in their own words that it was resolved, without coming back later in the call or the cycle; and when the decision circuit and budget were qualified before the price.
+**Ce que veut dire réussir, en une phrase.** Le commercial a réussi quand chaque résistance soulevée a été reconnue pour ce qu'elle est (objection, anxiété ou inertie), a reçu le geste adapté, a été accueillie, isolée et explorée avant qu'on y réponde, et s'est terminée avec le prospect disant avec ses propres mots qu'elle était résolue, sans revenir plus tard dans l'appel ou dans le cycle ; et quand le circuit de décision et le budget ont été qualifiés avant le prix.
 
-**The distinction that governs everything.** Three resistances look alike and call for opposite gestures (verbatim reference v2, §6.3). Treating an anxiety as an objection means arguing against someone who doubts themselves, the surest way to lose a sale already won. Treating an inertia as an objection answers a question the prospect did not ask.
+**La distinction qui gouverne tout.** Trois résistances se ressemblent et appellent des gestes opposés (référence verbatim v2, § 6.3). Traiter une anxiété comme une objection, c'est argumenter contre quelqu'un qui doute de lui-même : le moyen le plus sûr de perdre une vente déjà gagnée. Traiter une inertie comme une objection, c'est répondre à une question que le prospect n'a pas posée.
 
-| Nature | The prospect doubts… | Example | Expected gesture |
+| Nature | Le prospect doute… | Exemple | Geste attendu |
 |---|---|---|---|
-| Objection | the offer, the price, the terms, the company, the sales; or a resource constraint (time, money) | "It's a lot of money." "I'm not sure it works." | Treat: acknowledge, isolate, explore, answer |
-| Anxiety · capability | themselves: not managing, not lasting | "I'm not sure I can do it." | Reassure with framework and support, never with arguments about the offer |
-| Anxiety · choice | their decision: choosing wrong, being fooled | "What if I get burned again?" | Reassure with proof, reversibility, guarantee |
-| Inertia | nothing about the future: attachment to the present | "It's not the right moment." "It's fine as it is." | Make the cost of doing nothing explicit and quantified, in the prospect's words |
+| Objection | de l'offre, du prix, des conditions, de l'entreprise, du commercial ; ou une contrainte de moyens (temps, argent) | « C'est beaucoup d'argent. » « Je ne suis pas sûr que ça marche. » | Traiter : accueillir, isoler, explorer, répondre |
+| Anxiété · capacité | de lui-même : ne pas y arriver, ne pas tenir | « Je ne suis pas sûr d'en être capable. » | Rassurer par le cadre et l'accompagnement, jamais par des arguments sur l'offre |
+| Anxiété · choix | de sa décision : se tromper, se faire avoir | « Et si je me fais encore avoir ? » | Rassurer par des preuves, la réversibilité, la garantie |
+| Inertie | de rien qui touche à l'avenir : attachement au présent | « Ce n'est pas le bon moment. » « Ça va comme ça. » | Rendre explicite et chiffré le coût de ne rien faire, avec les mots du prospect |
 
-A **past attempt** ("I already paid for a course and did nothing with it") is not a resistance in itself but predicts one; it is used for prevention (§5, R2).
+Une **tentative passée** (« j'ai déjà payé une formation et je n'en ai rien fait ») n'est pas une résistance en soi mais en annonce une ; elle sert à la prévention (§ 5, R2).
 
-# Part A · Definitions
-The rules that find each element in a raw transcript (units, start and end markers, segmentation, exclusions and minimal pairs) are in **Annex A · Bounding rules**. **Annex B** gives real annotated cases for calibration. A verdict that cannot be reached with these rules goes to the arbiter as an uncovered case.
+# Partie A · Définitions
+Les règles qui repèrent chaque élément dans une transcription brute (unités, marqueurs de début et de fin, découpage, exclusions et paires minimales) sont dans l'**annexe A · Règles de bornage**. L'**annexe B** donne de vrais cas annotés pour la calibration. Un verdict qui ne peut pas être atteint avec ces règles va à l'arbitre comme cas non couvert.
 
-# 2. Units
+# 2. Unités
 
-**Resistance episode.** Starts at a prospect passage expressing an objection, anxiety or inertia (extracted under the verbatim reference rules, with its exclusions: a request for information such as "how long is it?" is not an objection; a delay with a verifiable external reason, "I'm moving in January", is a decision-circuit deadline, not inertia). The episode contains:
-1. the **resistance** (prospect quote);
-2. the **sales response**: every sales turn until the topic changes (empty if none);
-3. the **prospect reaction**: the prospect's turns after the response, until the topic changes (empty if none).
+**Épisode de résistance.** Commence à un passage du prospect qui exprime une objection, une anxiété ou une inertie (extrait selon les règles de la référence verbatim, avec ses exclusions : une demande d'information comme « ça dure combien de temps ? » n'est pas une objection ; un délai avec une raison extérieure vérifiable, « je déménage en janvier », est une échéance du circuit de décision, pas une inertie). L'épisode contient :
+1. la **résistance** (citation du prospect) ;
+2. la **réponse du commercial** : chaque tour du commercial jusqu'au changement de sujet (vide s'il n'y en a pas) ;
+3. la **réaction du prospect** : les tours du prospect après la réponse, jusqu'au changement de sujet (vide s'il n'y en a pas).
 
-**Topic change.** The episode ends when the sales moves to another subject (a new question or statement unrelated to the resistance), or when the call ends. The model marks the turn; the code counts the turns.
+**Changement de sujet.** L'épisode se termine quand le commercial passe à un autre sujet (une nouvelle question ou une affirmation sans rapport avec la résistance), ou quand l'appel se termine. Le modèle marque le tour ; le code compte les tours.
 
-**Same resistance.** Two passages belong to the same resistance when they share nature and theme (for example objection · price). A resistance raised again after its episode ended is a **recurrence**; it opens a new episode linked to the first one.
+**Même résistance.** Deux passages appartiennent à la même résistance quand ils ont la même nature et le même thème (par exemple objection · prix). Une résistance soulevée à nouveau après la fin de son épisode est une **récurrence** ; elle ouvre un nouvel épisode relié au premier.
 
-**Gesture steps (for objections).**
-- **Acknowledge:** the first sales turn after the resistance receives it without contradiction (no immediate "but", no defence, no counter-argument in the first sentence).
-- **Isolate:** the sales checks whether this is the only thing standing in the way ("Apart from the money, is there anything else that would stop you?").
-- **Explore:** the sales asks an open question about the resistance itself, and the prospect answers with content ("When you say it's a lot, a lot compared to what?").
-- **Answer:** the sales responds with information, proof or a reframing tied to what the prospect said while exploring.
+**Étapes du geste (pour les objections).**
+- **Accueillir :** le premier tour du commercial après la résistance la reçoit sans contradiction (pas de « mais » immédiat, pas de défense, pas de contre-argument dans la première phrase).
+- **Isoler :** le commercial vérifie si c'est la seule chose qui fait obstacle (« À part l'argent, est-ce qu'il y a autre chose qui t'arrêterait ? »).
+- **Explorer :** le commercial pose une question ouverte sur la résistance elle-même, et le prospect répond avec du contenu (« Quand tu dis que c'est beaucoup, beaucoup par rapport à quoi ? »).
+- **Répondre :** le commercial répond par une information, une preuve ou un recadrage relié à ce que le prospect a dit pendant l'exploration.
 
-**Matching gesture (for anxiety and inertia).**
-- Anxiety · capability: the response describes the support, framework, steps or accompaniment that remove the risk of not managing. Arguments about the price or the content of the offer do not match.
-- Anxiety · choice: the response provides proof (comparable student results), reversibility or a guarantee.
-- Inertia: the response leads the prospect to state the cost of staying where they are, in their own words, ideally quantified ("If nothing changes, where are you in a year?" answered by the prospect).
+**Geste de réponse adapté (pour l'anxiété et l'inertie).**
+- Anxiété · capacité : la réponse décrit l'accompagnement, le cadre, les étapes ou le suivi qui retirent le risque de ne pas y arriver. Les arguments sur le prix ou sur le contenu de l'offre ne conviennent pas.
+- Anxiété · choix : la réponse apporte une preuve (résultats d'élèves comparables), la réversibilité ou une garantie.
+- Inertie : la réponse amène le prospect à dire le coût de rester où il est, avec ses propres mots, idéalement chiffré (« Si rien ne change, tu en es où dans un an ? », avec une réponse du prospect).
 
-**Resolution levels (read on the prospect reaction).**
-- **Resolved:** the prospect states in their own words that the resistance no longer holds, reformulates it as answered, or moves forward on their own initiative ("Okay, if I can pay in instalments then it's doable for me").
-- **Acknowledged:** the prospect accepts without content ("okay", "I see", "makes sense").
-- **Latent:** no prospect reaction, or the sales changed the subject within 2 turns of the resistance without any reaction (verbatim reference rule). The system counts it as handled, but the prospect never confirmed: it is the one that comes back as "I'll think about it".
-- **Persisting:** the prospect repeats or reinforces the resistance.
+**Niveaux de résolution (lus dans la réaction du prospect).**
+- **Résolue :** le prospect dit avec ses propres mots que la résistance ne tient plus, la reformule comme ayant reçu sa réponse, ou avance de lui-même (« Ok, si je peux payer en plusieurs fois, alors c'est faisable pour moi »).
+- **Accueillie :** le prospect accepte sans contenu (« ok », « je vois », « ça se tient »).
+- **Latente :** pas de réaction du prospect, ou le commercial a changé de sujet dans les 2 tours suivant la résistance sans aucune réaction (règle de la référence verbatim). Le système la compte comme traitée, mais le prospect ne l'a jamais confirmé : c'est celle qui revient sous la forme « je vais réfléchir ».
+- **Persistante :** le prospect répète ou renforce la résistance.
 
-# Part B · Mechanism and scoring
+# Partie B · Mécanisme et notation
 
-# 3. What the system extracts
+# 3. Ce que le système extrait
 
-| Field | Closed question to the model | Evidence |
+| Champ | Question fermée posée au modèle | Preuve |
 |---|---|---|
-| `resistances` | Which prospect passages express an objection, an anxiety or an inertia? Nature, sub-type (price, money available, time, trust in offer, relevance, co-decider, timing, capability, choice) | Exact prospect quote, turn |
-| `response_turns` | Which sales turns respond to it, until the topic changes? | Turn numbers, exact quotes |
-| `acknowledge` | Does the first response turn receive the resistance without contradiction? | yes / no, quote |
-| `isolate` | Does the sales check whether it is the only obstacle? | yes / no, quote |
-| `explore` | Does the sales ask an open question about the resistance? Does the prospect answer with content? | quotes |
-| `gesture_match` | For anxiety and inertia: does the response use the matching gesture defined in §2? | yes / partial / no, quote |
-| `reaction` | Resolution level: resolved, acknowledged, latent, persisting | Prospect quote (none for latent) |
-| `prompted_resolution` | Was the "resolution" content stated by the sales and only approved? | yes / no |
+| `resistances` | Quels passages du prospect expriment une objection, une anxiété ou une inertie ? Nature, sous-type (prix, argent disponible, temps, confiance dans l'offre, pertinence, codécideur, moment, capacité, choix) | Citation exacte du prospect, tour |
+| `response_turns` | Quels tours du commercial y répondent, jusqu'au changement de sujet ? | Numéros de tour, citations exactes |
+| `acknowledge` | Le premier tour de réponse reçoit-il la résistance sans contradiction ? | oui / non, citation |
+| `isolate` | Le commercial vérifie-t-il que c'est le seul obstacle ? | oui / non, citation |
+| `explore` | Le commercial pose-t-il une question ouverte sur la résistance ? Le prospect répond-il avec du contenu ? | citations |
+| `gesture_match` | Pour l'anxiété et l'inertie : la réponse utilise-t-elle le geste adapté défini au § 2 ? | oui / partiel / non, citation |
+| `reaction` | Niveau de résolution : résolue, accueillie, latente, persistante | Citation du prospect (aucune pour une latente) |
+| `prompted_resolution` | Le contenu de la « résolution » a-t-il été énoncé par le commercial et seulement approuvé ? | oui / non |
 
-**Computed by code:** turns between the resistance and the topic change; latent rule (topic change within 2 turns and no prospect reaction); recurrence (same nature and theme later in the call, or in the next call of the same cycle); position of each episode relative to the first price.
+Les noms des champs restent ceux de l'enregistrement (en anglais).
 
-**Prevention fields (extracted once per call):**
+**Calculé par le code :** tours entre la résistance et le changement de sujet ; règle de la latente (changement de sujet dans les 2 tours et pas de réaction du prospect) ; récurrence (même nature et même thème plus tard dans l'appel, ou dans l'appel suivant du même cycle) ; position de chaque épisode par rapport au premier prix.
 
-| Field | Closed question | Evidence |
+**Champs de la prévention (extraits une fois par appel) :**
+
+| Champ | Question fermée | Preuve |
 |---|---|---|
-| `decision_maker` | Did the prospect state who decides, before the first price? | Prospect quote |
-| `influencers` | Did the prospect state whether someone else weighs on the decision (spouse, partner, family), before the first price? | Prospect quote |
-| `budget` | Did the prospect state their budget or financial capacity themselves, before the first price? | Prospect quote |
-| `deadline` | Did the prospect state a binding deadline or a wished horizon, before the first price? | Prospect quote, binding / wished |
-| `past_attempt_defused` | When the prospect mentioned a failed past attempt, did the sales explore what did not work and state, before the price, what is different this time? | Sales and prospect quotes |
+| `decision_maker` | Le prospect a-t-il dit qui décide, avant le premier prix ? | Citation du prospect |
+| `influencers` | Le prospect a-t-il dit si quelqu'un d'autre pèse sur la décision (conjoint, associé, famille), avant le premier prix ? | Citation du prospect |
+| `budget` | Le prospect a-t-il énoncé lui-même son budget ou sa capacité financière, avant le premier prix ? | Citation du prospect |
+| `deadline` | Le prospect a-t-il énoncé une échéance impérative ou un horizon souhaité, avant le premier prix ? | Citation du prospect, impérative / souhaitée |
+| `past_attempt_defused` | Quand le prospect a parlé d'une tentative passée qui a échoué, le commercial a-t-il exploré ce qui n'a pas marché et dit, avant le prix, ce qui est différent cette fois ? | Citations du commercial et du prospect |
 
-A supposition of the sales not confirmed by the prospect ("I imagine you're the one deciding?" with no answer) does not count.
+Une supposition du commercial que le prospect ne confirme pas (« j'imagine que c'est toi qui décides ? », sans réponse) ne compte pas.
 
-# 4. Applicability
+# 4. Applicabilité
 
-| Situation | Status |
+| Situation | Statut |
 |---|---|
-| At least one resistance episode | Handling: `scored`. Prevention: `scored` if a price was given in the call |
-| No resistance, price given | Handling: `not_applicable`. Prevention: `scored`. Call score = prevention score |
-| No resistance, no price | `not_applicable` |
+| Au moins un épisode de résistance | Traitement : `scored` (noté). Prévention : `scored` si un prix a été donné dans l'appel |
+| Aucune résistance, prix donné | Traitement : `not_applicable` (sans objet). Prévention : `scored`. Note de l'appel = note de prévention |
+| Aucune résistance, aucun prix | `not_applicable` |
 
-# 5. The Objection Removal score
+# 5. La note du traitement des objections
 
-**Call score = 70 % × Handling score + 30 % × Prevention score** when both apply; otherwise the one that applies, on 100.
+**Note de l'appel = 70 % × note de traitement + 30 % × note de prévention** quand les deux s'appliquent ; sinon celle qui s'applique, sur 100.
 
-### 5.1 Handling score (per episode, then averaged)
+### 5.1 Note de traitement (par épisode, puis en moyenne)
 
-Each episode gets five items scored 0, 1 or 2. **Episode score = Σ (weight × level / 2)** on 100. **Handling score = mean of episode scores**, each episode weighted by its nature: anxiety and inertia episodes weigh 1.5, objection episodes 1 (they are the ones most often mishandled; proposal, to validate).
+Chaque épisode reçoit cinq items notés 0, 1 ou 2. **Note de l'épisode = Σ (poids × niveau / 2)** sur 100. **Note de traitement = moyenne des notes des épisodes**, chaque épisode pondéré par sa nature : les épisodes d'anxiété et d'inertie pèsent 1,5, les épisodes d'objection 1 (ce sont ceux qui sont le plus souvent mal traités ; proposition, à valider).
 
-| Item | Weight | Level 0 | Level 1 | Level 2 |
+| Item | Poids | Niveau 0 | Niveau 1 | Niveau 2 |
 |---|---|---|---|---|
-| H1 Right gesture | 25 | Gesture of another nature (argues against an anxiety, answers an inertia with features) | Partial match | Matching gesture as defined in §2 |
-| H2 Acknowledge | 10 | Contradiction or defence in the first response turn | — | Received without contradiction |
-| H3 Isolate and explore | 20 | Neither | One of the two | Both, and the prospect answered the exploration with content |
-| H4 Resolution | 35 | Latent or persisting | Acknowledged | Resolved, in the prospect's own words, not prompted |
-| H5 No recurrence | 10 | Recurs later in the call or in the next call of the cycle | — | Does not recur |
+| H1 Bon geste | 25 | Geste d'une autre nature (argumente contre une anxiété, répond à une inertie par des caractéristiques) | Correspondance partielle | Geste adapté tel que défini au § 2 |
+| H2 Accueillir | 10 | Contradiction ou défense dans le premier tour de réponse | — | Reçue sans contradiction |
+| H3 Isoler et explorer | 20 | Ni l'un ni l'autre | L'un des deux | Les deux, et le prospect a répondu à l'exploration avec du contenu |
+| H4 Résolution | 35 | Latente ou persistante | Accueillie | Résolue, avec les propres mots du prospect, sans avoir été soufflée |
+| H5 Pas de récurrence | 10 | Revient plus tard dans l'appel ou dans l'appel suivant du cycle | — | Ne revient pas |
 
-For anxiety and inertia, H3 reads "explore" only (isolating an anxiety is not required): level 2 if the sales explored and the prospect answered with content, level 1 if explored without content, 0 otherwise.
+Pour l'anxiété et l'inertie, H3 ne lit que « explorer » (isoler une anxiété n'est pas demandé) : niveau 2 si le commercial a exploré et que le prospect a répondu avec du contenu, niveau 1 si exploré sans contenu, 0 sinon.
 
-H5 is provisional until the next call of the cycle is analysed or the cycle closes; until then it is scored on the current call only.
+H5 est provisoire jusqu'à ce que l'appel suivant du cycle soit analysé ou que le cycle se ferme ; d'ici là, il est noté sur l'appel en cours seulement.
 
-### 5.2 Prevention score
+### 5.2 Note de prévention
 
-| Item | Weight | Level 0 | Level 1 | Level 2 |
+| Item | Poids | Niveau 0 | Niveau 1 | Niveau 2 |
 |---|---|---|---|---|
-| R1 Decision circuit | 40 | Neither decision maker nor influencers known before the price | One of the two | Both stated by the prospect before the price |
-| R2 Budget and deadline | 40 | Neither | One of the two | Budget stated by the prospect and a deadline (binding counts double in diagnostics) before the price |
-| R3 Past attempt defused | 20 | A failed past attempt was mentioned and not addressed before the price | Explored, but what differs this time not stated | Explored and the difference stated before the price; or no past attempt mentioned (scored 2, flagged `not_triggered`) |
+| R1 Circuit de décision | 40 | Ni le décideur ni les personnes qui influencent connus avant le prix | L'un des deux | Les deux énoncés par le prospect avant le prix |
+| R2 Budget et échéance | 40 | Ni l'un ni l'autre | L'un des deux | Budget énoncé par le prospect et une échéance (une échéance impérative compte double dans les diagnostics) avant le prix |
+| R3 Tentative passée désamorcée | 20 | Une tentative passée qui a échoué a été évoquée et pas traitée avant le prix | Explorée, mais ce qui diffère cette fois n'est pas dit | Explorée et la différence dite avant le prix ; ou aucune tentative passée évoquée (noté 2, signalé `not_triggered`) |
 
-**Why these weights.** Resolution (35 % of an episode) is the only proof the resistance is gone; the right gesture (25 %) decides whether resolution is even possible. Prevention weighs 30 % of the call because a resistance avoided is worth more than a resistance removed, but it can only be read on facts stated before the price. Proposals, to validate.
+**Pourquoi ces poids.** La résolution (35 % d'un épisode) est la seule preuve que la résistance a disparu ; le bon geste (25 %) décide si la résolution est seulement possible. La prévention pèse 30 % de l'appel parce qu'une résistance évitée vaut plus qu'une résistance levée, mais elle ne peut se lire que sur des faits énoncés avant le prix. Propositions, à valider.
 
-# 6. How the system knows the sales succeeded
+# 6. Comment le système sait que le commercial a réussi
 
-1. **Resolution is said by the prospect.** H4 at level 2 requires a prospect quote showing the resistance no longer holds; an "okay" is level 1; silence is level 0. Content first stated by the sales and approved is discarded.
-2. **A latent objection is detected mechanically.** Topic change within 2 turns with no prospect reaction is computed from turn numbers, not judged.
-3. **The nature is classified before the gesture is judged.** The model classifies objection, anxiety or inertia with the boundary tests of the verbatim reference (subject of the doubt: the offer → objection; themselves or their decision → anxiety; attachment to the present → inertia). The gesture is then judged against the nature, never against a generic script.
-4. **Recurrence closes the loop.** A resistance that comes back means the earlier "resolution" was not one; H5 and the linked episodes show it.
-5. **Prevention is dated.** Decision circuit and budget only count if stated before the first price, checked on turn numbers.
+1. **La résolution est dite par le prospect.** H4 au niveau 2 demande une citation du prospect qui montre que la résistance ne tient plus ; un « ok » est au niveau 1 ; le silence est au niveau 0. Un contenu énoncé d'abord par le commercial et approuvé est écarté.
+2. **Une objection latente est détectée mécaniquement.** Le changement de sujet dans les 2 tours sans réaction du prospect est calculé à partir des numéros de tour, pas jugé.
+3. **La nature est classée avant que le geste soit jugé.** Le modèle classe objection, anxiété ou inertie avec les tests de frontière de la référence verbatim (sujet du doute : l'offre → objection ; lui-même ou sa décision → anxiété ; attachement au présent → inertie). Le geste est ensuite jugé par rapport à la nature, jamais par rapport à un script générique.
+4. **La récurrence ferme la boucle.** Une résistance qui revient veut dire que la « résolution » précédente n'en était pas une ; H5 et les épisodes reliés le montrent.
+5. **La prévention est datée.** Le circuit de décision et le budget ne comptent que s'ils sont énoncés avant le premier prix, vérifié sur les numéros de tour.
 
-# 7. Coaching diagnostics (displayed, never scored)
+# 7. Diagnostics d'accompagnement (affichés, jamais notés)
 
-| Diagnostic | Computation |
+| Diagnostic | Calcul |
 |---|---|
-| Resistance mix | Share of objections, anxieties (capability / choice), inertias, by theme |
-| Latent rate | Share of episodes ending latent |
-| Mismatch rate | Share of anxiety and inertia episodes answered with an objection gesture |
-| Time to resolution | Turns and minutes from resistance to resolution |
-| Resistances after price | Share of episodes opened after the first price (high values point to weak prevention) |
-| Most recurrent themes | The themes that come back across calls of the same cycle |
+| Répartition des résistances | Part des objections, des anxiétés (capacité / choix), des inerties, par thème |
+| Taux de latentes | Part des épisodes qui se terminent en latente |
+| Taux de geste inadapté | Part des épisodes d'anxiété et d'inertie qui ont reçu un geste d'objection |
+| Délai de résolution | Tours et minutes entre la résistance et la résolution |
+| Résistances après le prix | Part des épisodes ouverts après le premier prix (des valeurs élevées signalent une prévention faible) |
+| Thèmes les plus récurrents | Les thèmes qui reviennent d'un appel à l'autre dans le même cycle |
 
-**Reference observed on Valentino (95 calls, verbatim extraction):** 81 % of objections received a prospect reaction after the response; 52 % of calls with an objection left at least one latent; 70 % of calls with an objection ended with a sale or a dated follow-up. The most frequent themes were money not available, timing, price, offer fit and financing refused. Nature-gesture matching and isolation were not measured in that first analysis.
+**Référence observée sur Valentino (95 appels, extraction verbatim) :** 81 % des objections ont reçu une réaction du prospect après la réponse ; 52 % des appels avec une objection en ont laissé au moins une latente ; 70 % des appels avec une objection se sont terminés par une vente ou une relance datée. Les thèmes les plus fréquents étaient l'argent non disponible, le moment, le prix, l'adéquation de l'offre et le financement refusé. La correspondance entre nature et geste et l'isolement n'ont pas été mesurés dans cette première analyse.
 
-# 8. Worked examples
-Illustrative cases, adapted and shortened from real calls. In production, every piece of evidence is an exact quote checked against the transcript.
+# 8. Exemples commentés
+Cas d'illustration, adaptés et raccourcis à partir de vrais appels. En production, chaque preuve est une citation exacte vérifiée dans la transcription.
 
-| Case | Nature | Verdict |
+| Cas | Nature | Verdict |
 |---|---|---|
-| "I don't have the money right now." Sales: "I hear you. Apart from the money, is there anything else holding you back?" Prospect: "No, it's really just that." Sales explores, offers instalments. Prospect: "Okay, at 900 a month I can make that work." | Objection · money available | H1 2, H2 2, H3 2, H4 2 |
-| "I'm scared I won't be good enough." Sales: "Our price is actually very competitive." | Anxiety · capability | H1 0 (argues the offer against a self-doubt) |
-| "I'm scared I won't be good enough." Sales: "What makes you feel that?" … "This is why every project is reviewed by your mentor before it goes to a client." Prospect: "That would help, I wouldn't be alone." | Anxiety · capability | H1 2, H3 2, H4 2 |
-| "Maybe after the holidays, it's not the right time." Sales: "If nothing changes until then, where are you in January?" Prospect: "Same place, still stuck in this job, another 3 months lost." | Inertia | H1 2 (cost of inaction stated by the prospect) |
-| "I need to talk to my husband." Sales moves straight to booking a slot | Objection · co-decider | H4 0 if no prospect reaction on the substance (latent); and R1 shows the influencer was not known before the price |
-| "It's a lot of money" in call 1, resolved; comes back in call 2 | Objection · price | Call 1 H5 = 0 once call 2 is analysed |
+| « Je n'ai pas l'argent en ce moment. » Commercial : « Je t'entends. À part l'argent, est-ce qu'il y a autre chose qui te retient ? » Prospect : « Non, c'est vraiment juste ça. » Le commercial explore, propose un paiement en plusieurs fois. Prospect : « Ok, à 900 par mois, je peux y arriver. » | Objection · argent disponible | H1 2, H2 2, H3 2, H4 2 |
+| « J'ai peur de ne pas être à la hauteur. » Commercial : « Notre prix est en fait très compétitif. » | Anxiété · capacité | H1 0 (oppose l'offre à un doute sur soi) |
+| « J'ai peur de ne pas être à la hauteur. » Commercial : « Qu'est-ce qui te fait penser ça ? » … « C'est pour ça que chaque cours est relu par ton mentor avant que tu le donnes à un élève. » Prospect : « Ça m'aiderait, je ne serais pas tout seul. » | Anxiété · capacité | H1 2, H3 2, H4 2 |
+| « Peut-être après les vacances, ce n'est pas le bon moment. » Commercial : « Si rien ne change d'ici là, tu en es où en janvier ? » Prospect : « Au même endroit, toujours coincé dans ce boulot, encore 3 mois de perdus. » | Inertie | H1 2 (coût de l'inaction dit par le prospect) |
+| « Il faut que j'en parle à mon mari. » Le commercial passe directement à la prise d'un créneau | Objection · codécideur | H4 0 s'il n'y a pas de réaction du prospect sur le fond (latente) ; et R1 montre que la personne qui influence n'était pas connue avant le prix |
+| « C'est beaucoup d'argent » dans l'appel 1, résolue ; revient dans l'appel 2 | Objection · prix | Appel 1 H5 = 0 une fois l'appel 2 analysé |
 
-# 9. Output contract
+# 9. Contrat de sortie
+
+Les clés et les valeurs fermées (`"objection"`, `"money_available"`, `"resolved"`…) restent en anglais (format enregistré, voir `docs/CONTRAT_DE_SORTIE.md`).
 
 ```
 {
@@ -175,10 +179,10 @@ Illustrative cases, adapted and shortened from real calls. In production, every 
 }
 ```
 
-# 10. Decisions to validate
+# 10. Décisions à valider
 
-- The 70 / 30 split between handling and prevention.
-- The episode weights (25 / 10 / 20 / 35 / 10) and the 1.5 weight of anxiety and inertia episodes.
-- Whether a "no resistance" call should score its prevention alone (current proposal) or be marked not applicable.
-- The latent rule (topic change within 2 turns without reaction), taken from the verbatim reference.
+- La répartition 70 / 30 entre le traitement et la prévention.
+- Les poids des épisodes (25 / 10 / 20 / 35 / 10) et le poids de 1,5 des épisodes d'anxiété et d'inertie.
+- Un appel « sans résistance » doit-il noter sa prévention seule (proposition actuelle) ou être marqué sans objet.
+- La règle de la latente (changement de sujet dans les 2 tours sans réaction), tirée de la référence verbatim.
 ---
