@@ -155,8 +155,8 @@ MARQUEUR_CITATION = re.compile(r"\b(in your (own )?words|as you said|you used th
                             r"c'est (?:toi qui l'as|vous qui l'avez) dit|ce sont (?:tes|vos) (?:propres )?mots|"
                             r"je (?:te|vous) cite)\b")
 # A1 S2 : premier mot d'une proposition dont le prospect est le sujet (après les mots d'amorce). Formes françaises :
-# « tu », « vous », « t'as », « t'es », possessifs « ton », « ta », « tes », « votre », « vos ». « t' » seul est le
-# jeton que laisse `jetons_propres` devant un mot accentué (« t'étais »), tant que son découpage ignore les accents.
+# « tu », « vous », « t'as », « t'es », possessifs « ton », « ta », « tes », « votre », « vos ». « t' » seul couvre une
+# transcription où l'apostrophe est suivie d'une espace (« t' étais »).
 SUJET_TU = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself",
             "tu", "vous", "t'", "t'as", "t'es", "t'étais", "t'avais", "t'auras", "t'aurais", "t'en", "t'y", "toi",
             "toi-même", "vous-même", "vous-mêmes", "ton", "ta", "tes", "votre", "vos"}
