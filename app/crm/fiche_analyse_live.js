@@ -1,6 +1,6 @@
 // node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier> — le lien « Analyse » de la fiche d'un lead (Leads et Cycle de vente)
-// ouvre l'analyse de l'appel (Découverte SPIN, Écart, Présentation de l'offre, Objections) dans une fenêtre au-dessus de la
-// fiche (2026-11-19 : la fiche n'a plus d'onglet « Analyse », le lien ne faisait plus rien). Cycles et analyse simulés.
+// ouvre l'analyse de l'appel (Découverte SPIN, Écart, Présentation de l'offre, Objections) en plein écran, le nom du lead et la croix
+// restant en haut au défilement ; la qualification en tableau, le détail au survol (Romain 2026-11-19). Cycles et analyse simulés.
 const { chromium } = require('playwright');
 (async () => {
   const OUT = process.argv[3]; const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
@@ -39,8 +39,10 @@ const { chromium } = require('playwright');
       listBoard: async () => board, listReasons: async () => [], addNote: async () => 1, subscribe: () => () => {},
       setterAction: async () => ({}), setSetter: async () => null, createLead: async () => 'new',
       caBoard: async () => [{ cycle_id: 'c1', call_id: 'k1', round: 1, start: iso(-80), status: 'done', job: 'j1', done_job: 'j1', transcript: true, scores: { SPIN: { score: 64, status: 'scored' }, GAP: { score: 50, status: 'scored', verdict: 'partial' }, PITCH: { score: 70, status: 'scored' }, OBJECTIONS: { score: 40, status: 'scored' } } }, { cycle_id: 'c2', call_id: 'k2', round: 1, start: iso(-20), status: 'done', job: 'j2', done_job: 'j2', transcript: true, scores: { SPIN: { score: 58, status: 'scored' } } }],
-      caRecord: async () => ({ status: 'ok', flags: [], phases: {}, meta: { duration: '45:00' }, results: { SPIN: { competence: 'SPIN', status: 'scored', score: 64, items: [], details: {} }, GAP: { competence: 'GAP', status: 'scored', verdict: 'partial', score: 50, reasons: [] } }, turns: [{ role: 'SALES', speaker: 'Romain', ts: '00:00:04', text: 'Bonjour Paul, merci d’être là. On a 45 minutes ensemble : je vous propose de commencer par votre situation.' }, { role: 'PROSPECT', speaker: 'Paul', ts: '00:00:15', text: 'Avec plaisir. Je suis prof de maths au lycée depuis 12 ans, et j’ai envie de développer les cours particuliers.' }, { role: 'SALES', speaker: 'Romain', ts: '00:00:31', text: 'Qu’est-ce qui fait que vous cherchez maintenant ?' }, { role: 'PROSPECT', speaker: 'Paul', ts: '00:00:38', text: 'Je suis épuisé par la charge de travail, et je voudrais 2 000 € de plus par mois.' }] })
+      caRecord: async () => ({ status: 'ok', flags: [], phases: {}, meta: { duration: '45:00', person: 'Paul Payé' }, qualification: { status: 'À REVOIR', rules_version: 'qualification_lnp-v2.2', result: { statut: 'À REVOIR', confiance: 'basse', solution_aware: false, base: { motif: 'Portes à vérifier : Porte 3 — Décision et timing' }, portes: { metier: { statut: 'OUVERTE', raisons: [], preuve: 'je suis professeur de maths au lycée [00:15] / je donne aussi des cours le soir [02:10]' }, financement: { statut: 'FERMÉE', raisons: ['Aucune ressource : au RSA'], preuve: 'Je suis au RSA en ce moment [31:02]' }, decision_timing: { statut: 'NON VÉRIFIÉE', raisons: ['Date ou délai de démarrage non établi'], preuve: 'Je vais réfléchir [44:30]' } }, alertes: ['Synthèse des portes absente en fin de découverte', 'Contradiction du prospect : dit ne rien avoir puis cite une épargne'] } },  results: { SPIN: { competence: 'SPIN', status: 'scored', score: 64, items: [], details: {} }, GAP: { competence: 'GAP', status: 'scored', verdict: 'partial', score: 50, reasons: [] } }, turns: [{ role: 'SALES', speaker: 'Romain', ts: '00:00:04', text: 'Bonjour Paul, merci d’être là. On a 45 minutes ensemble : je vous propose de commencer par votre situation.' }, { role: 'PROSPECT', speaker: 'Paul', ts: '00:00:15', text: 'Avec plaisir. Je suis prof de maths au lycée depuis 12 ans, et j’ai envie de développer les cours particuliers.' }, { role: 'SALES', speaker: 'Romain', ts: '00:00:31', text: 'Qu’est-ce qui fait que vous cherchez maintenant ?' }, { role: 'PROSPECT', speaker: 'Paul', ts: '00:00:38', text: 'Je suis épuisé par la charge de travail, et je voudrais 2 000 € de plus par mois.' }] })
     };
+    // the analysis window reads the CRM of the page (window.parent.LNP_CRM): the same simulated analysis
+    window.parent.LNP_CRM.caBoard = fake.caBoard; window.parent.LNP_CRM.caRecord = fake.caRecord;
     await window.lnpCrmLive(fake);
   });
   await p.waitForTimeout(1200);
@@ -52,7 +54,26 @@ const { chromium } = require('playwright');
   let w = await win();
   check('Leads : « Analyse » ouvre la fenêtre de l’analyse', !!w, null);
   check('la fenêtre montre l’analyse : Découverte, Écart, Présentation de l’offre, Objections', w && /DÉCOUVERTE/i.test(w.txt) && /ÉCART/i.test(w.txt) && /PRÉSENTATION DE L.OFFRE/i.test(w.txt) && /OBJECTIONS/i.test(w.txt), w && w.txt.slice(0, 300));
-  check('la fenêtre est au-dessus de la fiche', w && w.onTop, w && w.z);
+  check('l’analyse est au-dessus de la fiche', w && w.onTop, w && w.z);
+  const lay = await cf.evaluate(() => { const w = document.querySelector('.ca-scrim'), d = w.querySelector('.ca-dlg').getBoundingClientRect();
+    return { w: d.width, vw: innerWidth, top: d.top, left: d.left }; });
+  check('l’analyse prend tout l’écran, comme un nouvel écran', Math.abs(lay.w - lay.vw) < 20 && lay.top < 4 && lay.left < 4, lay);
+  const rows = await cf.$$eval('.ca-scrim table.qx tbody tr', rs => rs.map(r => r.innerText.replace(/\s+/g, ' ').trim()));
+  check('qualification : un tableau, une ligne par critère (Métier, Financement, Décision et timing)', rows.length === 3 && /^Métier/.test(rows[0]) && /^Financement/.test(rows[1]) && /^Décision et timing/.test(rows[2]), rows);
+  check('qualification : validé, invalidé, à vérifier, avec une raison courte', /Validé/.test(rows[0]) && /Invalidé/.test(rows[1]) && /Aucune ressource/.test(rows[1]) && /À vérifier/.test(rows[2]), rows);
+  const pw = await cf.$('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'); if (!pw) { console.log(bad.join('\n')); console.log((await win()).txt.slice(0, 1500)); process.exit(1); }
+  await pw.scrollIntoViewIfNeeded(); await pw.hover(); await p.waitForTimeout(250);
+  const pop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-pop'); return e && getComputedStyle(e).display !== 'none' ? e.innerText : null; });
+  check('survol de la raison : le détail (pourquoi, ce que le prospect a dit, pour valider)', pop && /RSA/.test(pop) && /Je suis au RSA/.test(pop) && /Pour valider/i.test(pop), pop);
+  if (OUT) await p.screenshot({ path: OUT + '/qualif-survol.png' });
+  const up = await cf.evaluate(() => { const w = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'), pp = w.querySelector('.qx-pop').getBoundingClientRect(); return { bottom: Math.round(pp.bottom), top: Math.round(pp.top), vh: innerHeight }; });
+  check('le détail reste dans l’écran (il s’ouvre vers le haut près du bas)', up.top >= 0 && up.bottom <= up.vh, up);
+  await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop = 1500); await p.waitForTimeout(300);
+  const hd = await cf.evaluate(() => { const t = document.querySelector('.ca-scrim .ca-top').getBoundingClientRect(), x = document.querySelector('.ca-scrim .ca-x').getBoundingClientRect();
+    return { top: Math.round(t.top), name: document.querySelector('.ca-scrim #ca-t').textContent, xTop: Math.round(x.top), scrolled: document.querySelector('.ca-scrim').scrollTop }; });
+  check('en défilant, le nom du lead et la croix restent en haut', hd.scrolled > 500 && hd.top === 0 && hd.xTop > 0 && hd.xTop < 80 && hd.name === 'Paul Payé', hd);
+  if (OUT) await p.screenshot({ path: OUT + '/analyse-defile.png' });
+  if (OUT) await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop = 0);
   if (OUT) await p.screenshot({ path: OUT + '/fiche-analyse.png' });
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   check('Échap ferme la fenêtre, la fiche reste ouverte', !(await win()) && await cf.evaluate(() => !!document.querySelector('#layer .ls-calls')), null);

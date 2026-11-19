@@ -141,8 +141,10 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   déplacement sans action et règles des tours : migration 047, `crm_move_cycle`).
 - Analyse d'appel (écran) : `app/crm/call_analysis.js`, `call_analysis_view.js`, `transcript_parse.js` ; les codes du moteur
   sont traduits à l'affichage, les citations restent mot pour mot. Le lien « Analyse » de la fiche (Leads et Cycle de vente) et
-  celui de l'historique ouvrent l'analyse complète dans une fenêtre au-dessus de la fiche (`LNP_CA.open` → `leadView`, 2026-11-19 :
-  la fiche n'a plus d'onglet « Analyse ») ; test `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>`.
+  celui de l'historique ouvrent l'analyse complète en plein écran, le nom du lead et la croix restant en haut au défilement
+  (`LNP_CA.open` → `leadView`, `.ca-full`, Romain 2026-11-19). La qualification y est un tableau (Critère, Résultat, Pourquoi :
+  `qualification` dans `LNP_CAV` de `app/lnp.html`), le détail au survol de la raison ; test
+  `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>`.
 - Paramètres › Alertes : `gabarits/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/lnp-web.js`.
 - Connexion, équipe, accès par écran, interface `window.claude.use("user" | "crm")` : `web/public/lnp-web.js`.
 
