@@ -75,37 +75,68 @@ OPENERS = re.compile(
     r"play back what i'?(m|ve) (been )?hear(d|ing)|if i understood (you )?correctly|correct me if i'?m wrong|"
     r"just to recap|so to recap|to recap|what i'?m hearing is|let me make sure i (got|get|understand)|"
     r"so basically where you'?re at is|so to summari[sz]e|to summari[sz]e|"
-    r"relay what i'?ve been hearing|reflect back)\b")
+    r"relay what i'?ve been hearing|reflect back|"
+    # French (LNP, 2026-11-19)
+    r"si je résume|si je reformule|pour résumer|en résumé|si j'ai bien compris|si je comprends bien|"
+    r"corrige-moi si je me trompe|corrigez-moi si je me trompe|ce que j'entends|ce que je comprends|"
+    r"si je récapitule|pour récapituler|donc si je reprends|je reprends ce que tu|je reprends ce que vous|"
+    r"là où tu en es|aujourd'hui tu es)\b")
 # A1 S3 validation requests (end of the passage)
 VALIDATION_REQUEST = re.compile(
     r"(did i get (that|this|it|everything) right|have i got (that|this|it) right|got that right|is that fair|"
     r"fair\??$|is that accurate|is that right|is that correct|correct\??$|right\?$|anything i(?:'ve)? missed|"
     r"(think|did|have) i(?:'ve)? miss(ed)? anything|anything i got wrong|did i miss anything|"
     r"am i missing (something|anything)|missing something|would you say that'?s where you'?re at|"
-    r"does that sound (about )?right|does that resonate|are we on the same page|same page)")
+    r"does that sound (about )?right|does that resonate|are we on the same page|same page|"
+    # French (LNP, 2026-11-19)
+    r"c'est (bien )?ça\s*\?|est-ce que c'est (bien )?ça|j'ai (bien )?compris\s*\?|est-ce que j'ai (bien )?compris|"
+    r"je me trompe\s*\?|j'ai oublié quelque chose|j'ai raté quelque chose|il manque quelque chose|"
+    r"tu te retrouves (là-dedans|dans ce que je dis)|vous vous retrouvez|ça te parle\s*\?|ça vous parle\s*\?|"
+    r"c'est juste\s*\?|on est d'accord\s*\?|t'es d'accord\s*\?|tu es d'accord\s*\?|vous êtes d'accord\s*\?|"
+    r"c'est bien ça que tu vis|ça résume bien)")
 # GB-15: "did I miss anything?" family: a bare "no" is agreement
-MISSING_REQUEST = re.compile(r"(miss(ed|ing)? (anything|something)|anything i(?:'ve)? missed|got (anything )?wrong)")
+MISSING_REQUEST = re.compile(r"(miss(ed|ing)? (anything|something)|anything i(?:'ve)? missed|got (anything )?wrong|"
+                             r"oublié quelque chose|raté quelque chose|il manque quelque chose|je me trompe)")
 # GB-1 / GB-5: first mention of the offer ends the span
 OFFER_WORDS = re.compile(
     r"\b(our program|the program|the mentorship|the academy|what we do|how we help|how we can help|"
-    r"how our program|let me show you|show you how we|share my screen)\b")
+    r"how our program|let me show you|show you how we|share my screen|"
+    # French (LNP, 2026-11-19)
+    r"l'accompagnement|notre accompagnement|le programme|notre programme|notre méthode|ce qu'on fait|"
+    r"comment on t'aide|comment on vous aide|je vais te montrer|je vais vous montrer|je partage mon écran|"
+    r"je te partage mon écran|je vous partage mon écran)\b")
 # GB-30 step 1: stopping questions (code detection; the model is asked only when this does not match)
 STOPPING_Q = re.compile(
     r"(held you back|holding you back|hold you back|stopp(ed|ing) you|stops you|getting in the way|"
     r"standing in the way|in your way|why haven'?t you|prevented you|what'?s been in the way|kept you from|"
-    r"keeping you from)")
+    r"keeping you from|"
+    # French (LNP, 2026-11-19)
+    r"qu'est-ce qui te bloque|qu'est-ce qui vous bloque|qu'est-ce qui t'a bloqué|qu'est-ce qui vous a bloqué|"
+    r"qu'est-ce qui t'empêche|qu'est-ce qui vous empêche|qu'est-ce qui t'a empêché|qu'est-ce qui vous a empêché|"
+    r"pourquoi tu n'as pas|pourquoi vous n'avez pas|pourquoi tu n'y es pas|qu'est-ce qui te freine|"
+    r"qu'est-ce qui vous freine|ce qui te retient|ce qui vous retient)")
 # GB-23 quoting markers
 QUOTING_MARKER = re.compile(r"\b(in your (own )?words|as you said|you used the word|from your words|"
-                            r"like you said|you said it yourself)\b")
-SUBJECT_YOU = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself"}
+                            r"like you said|you said it yourself|"
+                            r"comme tu (l'as |me l'as )?dit|comme vous (l'avez |me l'avez )?dit|avec tes mots|avec vos mots|"
+                            r"tu as dit|vous avez dit|pour reprendre tes mots|pour reprendre vos mots)\b")
+SUBJECT_YOU = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself", "tu", "t'", "vous", "ton", "ta", "tes",
+               "votre", "vos"}
 LEAD_WORDS = {"so", "and", "but", "now", "then", "also", "obviously", "basically", "like", "well", "okay", "right",
-              "currently", "today", "ultimately", "essentially", "just"}
+              "currently", "today", "ultimately", "essentially", "just",
+              "donc", "et", "mais", "alors", "aujourd'hui", "aussi", "bon", "bah", "ben", "voilà", "ok", "okay", "en", "fait",
+              "du", "coup", "finalement", "actuellement", "là", "en gros", "concrètement", "juste"}
 # yes/no questions without a final "?" (wh-starts are kept: "what's holding you back is X" is declarative)
 INTERROGATIVE = re.compile(r"^(?:\W*)(so |and |but |now |okay,? )?(do|does|did|are|is|can|could|would|will|have|has)"
-                           r" (you|we|i|that|this|it)\b")
-SECOND_PERSON = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself", "yours"}
+                           r" (you|we|i|that|this|it)\b"
+                           r"|^(?:\W*)(donc |et |alors |mais |ok,? |d'accord,? )?(est-ce que|est-ce qu'|as-tu|avez-vous|es-tu|"
+                           r"êtes-vous|peux-tu|pouvez-vous|veux-tu|voulez-vous)\b")
+SECOND_PERSON = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself", "yours", "tu", "t'", "te", "toi",
+                 "ton", "ta", "tes", "vous", "votre", "vos"}
 BACKCHANNEL = {"yeah", "yes", "yep", "mm", "mhm", "hmm", "mm-hmm", "uh-huh", "okay", "ok", "cool", "right", "sure",
-               "got", "it", "exactly", "totally", "true", "no", "nope", "oh", "wow", "great", "perfect", "nice"}
+               "got", "it", "exactly", "totally", "true", "no", "nope", "oh", "wow", "great", "perfect", "nice",
+               "oui", "ouais", "d'", "accord", "exactement", "exact", "voilà", "non", "ah", "super", "parfait", "carrément",
+               "effectivement", "mmh", "hum", "bien", "sûr", "tout", "à", "fait", "c'", "est", "ça", "vrai"}
 
 
 # ------------------------------------------------------------------------------------------- small helpers
@@ -510,16 +541,41 @@ def build_spans(ctx: CallContext, flagged: dict[str, list[str]]) -> list[Span]:
     return spans
 
 
-def offer_cut(ctx: CallContext, span: Span) -> Optional[tuple[str, int]]:
-    """GB-1 / GB-5: position of the first offer word inside the span (sales turns)."""
+def offer_cut(ctx: CallContext, span: Span, start: Optional[tuple[str, int]] = None) -> Optional[tuple[str, int]]:
+    """GB-1 / GB-5: position of the first offer word inside the span (sales turns).
+
+    start (turn, position): the first component statement; the restitution starts there (GB-1), so an offer word said
+    before it in the same turn does not end it (LNP, 2026-11-19: « dans notre accompagnement, on préconise 4 heures…
+    En fait, je comprends que dans ta situation… »)."""
     for tid in span.turns:
         t = ctx.turn(tid)
         if t.role != SALES:
             continue
-        m = OFFER_WORDS.search(norm(t.text))
+        if start and ctx.n(tid) < ctx.n(start[0]):
+            continue
+        frm = start[1] if start and tid == start[0] else 0
+        m = OFFER_WORDS.search(norm(t.text), frm)
         if m:
             return tid, m.start()
     return None
+
+
+def first_statement(ctx: CallContext, clauses: list) -> Optional[tuple[str, int]]:
+    """The position of the first restated clause the model quoted (its sales turn, the quote's place in it)."""
+    best = None
+    for c in clauses or []:
+        tid, q = c.get("sales_turn"), c.get("sales_quote")
+        if not tid or not q:
+            continue
+        try:
+            i = norm(ctx.turn(tid).text).find(norm(q))
+        except KeyError:
+            continue
+        if i < 0:
+            continue
+        if best is None or (ctx.n(tid), i) < (ctx.n(best[0]), best[1]):
+            best = (tid, i)
+    return best
 
 
 def _before_cut(ctx: CallContext, tid: str, quote: str, cut: Optional[tuple[str, int]]) -> bool:
@@ -655,7 +711,7 @@ def decide_restitution(ctx: CallContext, span: Span, ans: Optional[dict], status
     r.after_price = bool(ctx.phases.first_price) and not ctx.before(span.end, ctx.phases.first_price)
     if wend is None:
         r.after_pitch = r.after_price = False
-    r.offer_cut = offer_cut(ctx, span)
+    r.offer_cut = offer_cut(ctx, span, first_statement(ctx, (ans or {}).get("clauses")))
     last_sales = ctx.turn(span.end)
     r.request = validation_request(last_sales.text)
     if ans is None:

@@ -321,5 +321,6 @@ def test_the_code_narrows_a_key_expression_copied_as_a_whole_sentence():
     k = shared_key_expression("quelques 10% de ce qui coûte", src, sales)
     assert k and "10" in k and "quelques" not in k
     assert shared_key_expression("je suis dépendante actuellement de l'aide de ma mère",
-                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "dépendante"
+                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "suis dépendante"
+    # (2026-11-19: the person shift is French too, so « je suis » is found in the sales' « es »: the longest shared run)
     assert shared_key_expression("je suis vraiment", "je suis vraiment", "tu es là") is None       # generic only: none

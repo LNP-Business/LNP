@@ -30,6 +30,7 @@ from ..core.models import (PROSPECT, SALES, Atom, CallContext, CompetenceResult,
                            Solicitation, Turn)
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core import lang_fr as FR
 from ..core.text import approval_only, norm, norm_number, quote_ok
 
 # =============================================================================================== constants
@@ -81,6 +82,22 @@ REGISTER_LEXICON = {
                          "feel", "emotion", "frustrat", "proud", "health", "stress", "anxi", "burnout", "burn out",
                          "burned out", "exhaust", "tired", "sleep", "energy"),
 }
+# LNP (2026-11-19): the same domains in French, accent-folded like the text they are matched on (word starts)
+REGISTER_LEXICON_FR = {
+    "financial": ("argent", "revenu", "gagn", "salaire", "chiffre d'affaire", "euro", "prix", "paye", "paie", "dette",
+                  "credit", "loyer", "factur", "financ", "rentab", "benefice", "client", "eleve", "vente", "vendre", "payer",
+                  "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit"),
+    "time_load": ("temps", "heures", "heure ", "semaine", "week-end", "weekend", "emploi du temps", "planning", "charge", "occupe",
+                  "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
+                  "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
+    "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
+                        "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees"),
+    "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
+                         "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
+                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitim"),
+}
+for _reg, _ws in REGISTER_LEXICON_FR.items():
+    REGISTER_LEXICON[_reg] = REGISTER_LEXICON[_reg] + _ws
 
 
 # =============================================================================================== S1 inventory
@@ -92,24 +109,46 @@ def _fold(s: str) -> str:
 
 
 ACK = set("yes yeah yep yup ok okay right sure fine exactly totally absolutely definitely correct true indeed "
-          "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love".split())
+          "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love "
+          # French, accent-folded (LNP, 2026-11-19)
+          "oui ouais ouai d'accord daccord exactement exact parfait super top genial nickel voila carrement "
+          "effectivement evidemment absolument ah bon bien tres merci hum mmh hein".split())
 INTERRO = re.compile(r"^(how|what|what's|whats|when|where|why|who|which|whose|do|does|did|are|is|was|were|have|has|"
                      r"had|can|could|would|will|should|shall|may|might|am|isn't|aren't|don't|doesn't|didn't|won't|"
-                     r"wouldn't|couldn't)\b")
+                     r"wouldn't|couldn't)\b"
+                     # French (LNP, 2026-11-19): a question word or an inversion at the head of the clause
+                     r"|^(?:(?:et|alors|donc|du coup|ok|okay|d'accord|mais|bon|bah)[ ,]+)*"
+                     r"(est-ce|qu'est-ce|que|quoi|comment|combien|pourquoi|quand|où|quel|quelle|quels|quelles|qui|lequel|"
+                     r"laquelle|as-tu|avez-vous|es-tu|êtes-vous|peux-tu|pouvez-vous|veux-tu|voulez-vous|sais-tu|"
+                     r"savez-vous|penses-tu|pensez-vous|c'est quoi|ça fait combien|t'as|t'es)\b")
 IMPERATIVE = re.compile(r"^(tell me|walk me through|talk me through|describe|explain|help me understand|share with me|"
-                        r"give me a sense|paint me a picture)")
+                        r"give me a sense|paint me a picture"
+                        # French, accent-folded (the hyphen of "dis-moi" becomes a space)
+                        r"|(?:(?:et|alors|donc|du coup|ok)\s+)*(dis moi|dites moi|raconte moi|racontez moi|explique moi|"
+                        r"expliquez moi|decris|decrivez|parle moi|parlez moi|aide moi a comprendre|"
+                        r"aidez moi a comprendre))")
 TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"\byeah\?$", r"\bno\?$",
          r"\bis that it\?$", r"\bis that right\?$", r"\bam i right\?$", r"\bdoes that make sense\?$", r"\bfair\?$",
-         r"\byou know\?$", r"\bok\?$", r"\bokay\?$"]
+         r"\byou know\?$", r"\bok\?$", r"\bokay\?$",
+         # French (LNP, 2026-11-19), with the space a French transcript puts before "?"
+         r"\bnon\s*\?$", r"\bhein\s*\?$", r"\bc'est ça\s*\?$", r"\bc'est bien ça\s*\?$", r"\bd'accord\s*\?$",
+         r"\bok\s*\?$", r"\bt'es d'accord\s*\?$", r"\btu vois\s*\?$", r"\bvous voyez\s*\?$", r"\bça te parle\s*\?$",
+         r"\bça vous parle\s*\?$", r"\bn'est-ce pas\s*\?$", r"\bc'est clair\s*\?$", r"\bc'est bon\s*\?$",
+         r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$"]
 TAIL_ONLY = re.compile(r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
-                       r"isn't it)\s*\?$", re.I)
+                       r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|tu vois|vous voyez|n'est-ce pas|ça te parle|"
+                       r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va)\s*\?$", re.I)
 STOP = set(_fold("""the a an and or but so to of in on at for with that this it its is are was were be been i you he
 she we they me my your our their them there here what how when where why who which do does did have has had not no
 yes just like really very about from as if then than also can could would will should get got go going know think
 mean thing things kind sort lot little bit yeah okay right well one two some any more most much many even still now
-today make made want really actually maybe something anything everything people time""").split())
+today make made want really actually maybe something anything everything people time""").split()) | \
+    {_fold(w).strip() for w in FR.STOP if _fold(w).strip()}
 OFFER_WORDS = re.compile(r"\b(program|programme|academy|our (method|course|coaching|mentorship|offer)|the course|"
-                         r"enroll|tuition|investment|price|cost|payment plan)\b")
+                         r"enroll|tuition|investment|price|cost|payment plan|"
+                         # French (LNP, 2026-11-19)
+                         r"accompagnement|formation|notre (méthode|offre|coaching|programme)|investissement|prix|tarif|"
+                         r"paiement|mensualités?|en plusieurs fois)\b")
 SYSTEM_LINE = re.compile(r"SCREEN SHARING|https?://|WATCH:")
 
 
@@ -187,9 +226,10 @@ def inventory(ctx: CallContext) -> list[Unit]:
                 "validation_tail": any(re.search(p, low) for p in TAILS),                     # SEG-4
                 "backchannel": len(ws) <= 3 and all(w.strip("'") in ACK or w in ("oh", "really", "so", "and",
                                                                                   "hmm", "huh") for w in ws),  # SEG-7
-                "alternative": bool(re.search(r"\bor\b", low)) and low.endswith("?"),         # SEG-3
-                "open_branch": bool(re.search(r"\bor (something else|anything else|other|not)\b", low)),
-                "why": bool(re.search(r"\bwhy\b", low)),
+                "alternative": bool(re.search(r"\b(or|ou)\b", low)) and low.endswith("?"),    # SEG-3
+                "open_branch": bool(re.search(r"\bor (something else|anything else|other|not)\b|"
+                                              r"\bou (autre chose|pas|quelque chose d'autre|non)\b", low)),
+                "why": bool(re.search(r"\b(why|pourquoi)\b", low)),
                 "offer_mention": bool(OFFER_WORDS.search(low)),
                 "anchor_words": sorted(content_words(s) & pros_words),                        # SEG-5 anchoring
                 "n_words": len(ws),
@@ -600,7 +640,10 @@ def build_atoms(ctx: CallContext, u: Unit, raw_atoms: list[dict], start_index: i
 
 # =============================================================================================== follow-up
 ECHO = re.compile(r"^(and )?(tell me more|how so|what else|meaning|what do you mean|in what way|what way|like what|"
-                  r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$")
+                  r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$"
+                  # French (LNP, 2026-11-19)
+                  r"|^(et )?(c'est-à-dire|comment ça|dans quel sens|par exemple|quoi d'autre|et après|et ensuite|"
+                  r"à quel point|dis-m'en plus|raconte|pourquoi|comment|vraiment|genre|c'est-à-dire)\b.{0,25}\?*$")
 
 
 def follows_up(prev_answer: str, question: str, preamble: str = "") -> bool:
