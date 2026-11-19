@@ -1,5 +1,5 @@
-"""End-to-end smoke test: the full pipeline on a real transcript, with a model that finds nothing.
-Checks the fixed stage order, the shared state and that no competence crashes."""
+"""Test de bout en bout : toute la chaîne d'analyse sur une vraie transcription, avec un modèle qui ne trouve rien.
+Vérifie l'ordre fixe des étapes, l'état partagé et qu'aucune compétence ne plante."""
 import os
 import re
 from pathlib import Path
@@ -33,8 +33,8 @@ def test_l_analyse_tourne_de_bout_en_bout_sans_erreur_moteur():
     assert all(r.raisons != ["engine_error"] for r in ctx.resultats.values())
     assert ordre[0] == "foundation" and ordre.index("spin") < ordre.index("gap")
     enr = enregistrement_resultat(ctx)
-    assert enr["results"]["GAP"]["verdict"] == "absent"          # nothing found -> no restitution
-    assert enr["audit"], "every model pass is audited"
+    assert enr["results"]["GAP"]["verdict"] == "absent"          # rien de trouvé -> pas de restitution
+    assert enr["audit"], "chaque passe du modèle est inscrite au journal d'audit"
 
 
 def test_diarisation_suspecte_exclut_toutes_les_competences():

@@ -1,51 +1,55 @@
-Rules: SPIN Annex A SB-26 to SB-35 (register of a question). Answer one closed question about ONE sales question
-of the discovery: which domain does this question make the prospect talk about? You only name the domain and quote
-the words that show it; the code turns the domain into a register.
+Règles : SPIN, annexe A, SB-26 à SB-35 (registre d'une question). Réponds à une seule question fermée sur UNE question du
+commercial pendant la découverte : de quel domaine cette question fait-elle parler le prospect ? Tu nommes seulement le
+domaine et tu cites les mots qui le montrent ; le code change le domaine en registre.
 
-Domains (pick exactly one):
-- money: income, revenue, earnings, prices, debt, bills, savings, what something costs in money.
-- clients: clients, customers, projects, leads, bookings, sales made, the pipeline.
-- time: time, hours, the week, weekends, the schedule, the workload.
-- family: family, children, partner, parents, the people at home.
-- future: where the prospect wants to be, who they want to become, their career or status ahead, the gap
-  between where they are and where they want to be (not a target amount of money or clients: that is money or clients).
-- self_belief: confidence, belief in oneself, motivation, mindset, fear, doubt, feelings, emotions.
-- health: health, stress, anxiety, burnout, exhaustion, sleep, energy.
-- other: a subject that is none of the seven above (a tool, a place, a method, a hobby).
-- none: nothing named and nothing pointed to.
+Domaines (en choisir exactement un) :
+- money : revenus, chiffre d'affaires, gains, prix, dettes, factures, économies, ce que quelque chose coûte en argent.
+- clients : clients, élèves, projets, prospects, réservations, ventes faites, le carnet de commandes (pipeline).
+- time : le temps, les heures, la semaine, les week-ends, l'emploi du temps, la charge de travail.
+- family : la famille, les enfants, le conjoint, ses parents, les personnes à la maison.
+- future : où le prospect veut en être, qui il ou elle veut devenir, sa carrière ou son statut à venir, l'écart entre où il
+  ou elle en est et où il ou elle veut en être (pas un montant d'argent ou un nombre de clients visé : c'est money ou clients).
+- self_belief : la confiance, la croyance en soi, la motivation, l'état d'esprit, la peur, le doute, les sentiments, les
+  émotions.
+- health : la santé, le stress, l'anxiété, l'épuisement professionnel (burn-out), l'épuisement, le sommeil, l'énergie.
+- other : un sujet qui n'est aucun des sept ci-dessus (un outil, un lieu, une méthode, un loisir).
+- none : rien de nommé et rien de désigné.
 
-How to read the question (fixed order, the first rule that applies decides):
-1. SB-28 · Asked over premise. If the question names one of the seven domains as what the prospect should talk
-   about, that domain decides, even if another domain is named as a premise. "With your clients being so up and
-   down, what impact is that having on your income?" asks about income: money (clients is the premise). If two
-   domains are both asked, the first one asked, in reading order, decides; in a series of questions in one turn, the
-   first question asked decides. basis = "named"; quote = the words of the SOLICITATION (or of its preamble) that name
-   the asked domain, 1 to 12 words.
-2. SB-29 · Subject named in the question. If the question asks about a subject it names itself, and that subject is in
-   one of the seven domains ("has that fear of failure cost you anything?", "where does that belief come from?",
-   "how long have the aches and pains been going on?"), the domain of that subject decides. basis = "named";
-   quote = the words naming the subject.
-3. SB-35 · Open question: its effect decides. Any other question (it names none of the seven domains: "is it plausible
-   for you right now?", "what's riskier for you?", "what made you book this call?", "how has that impacted you?") takes
-   the domain the PROSPECT'S ANSWER TO IT talks about, the effect the question had. basis = "answer";
-   reference_turn = the id of the answer turn; quote = the prospect's exact words in that turn that show the domain,
-   1 to 12 words. If the answer talks about several domains, the first one in the answer decides. If the answer talks
-   about none of the seven: asked_domain = "other", basis = "answer", with the quote of what it talks about.
-4. Only when there is NO answer ("(no answer)" below): SB-29 · Reference. A question that points back with "that",
-   "it", "this" takes the domain of what it points to, read in the LAST PROSPECT TURNS given. basis = "reference";
-   reference_turn = that turn id; quote = the prospect's exact words, 1 to 12 words. Words like "personally", "your
-   life", "you" do not name a domain. Nothing named and nothing pointed to: asked_domain = "none", basis = "none",
-   quote = null (or asked_domain = "other", basis = "none", for a subject outside the seven).
+Comment lire la question (ordre fixe, la première règle qui s'applique décide) :
+1. SB-28 · Ce qui est demandé passe avant la prémisse. Si la question nomme l'un des sept domaines comme ce dont le prospect
+   doit parler, ce domaine décide, même si un autre domaine est nommé comme prémisse. « Avec des élèves qui vont et viennent
+   comme ça, quel impact ça a sur tes revenus ? » demande les revenus : money (les élèves sont la prémisse). Si deux domaines
+   sont demandés tous les deux, le premier demandé, dans l'ordre de lecture, décide ; dans une série de questions dans un même
+   tour, la première question posée décide. basis = "named" ; quote = les mots de la SOLLICITATION (ou de son préambule) qui
+   nomment le domaine demandé, 1 à 12 mots.
+2. SB-29 · Sujet nommé dans la question. Si la question porte sur un sujet qu'elle nomme elle-même, et que ce sujet est dans
+   l'un des sept domaines (« cette peur de l'échec, elle t'a coûté quelque chose ? », « d'où elle vient, cette croyance ? »,
+   « ça fait combien de temps que tu as ces douleurs ? »), le domaine de ce sujet décide. basis = "named" ;
+   quote = les mots qui nomment le sujet.
+3. SB-35 · Question ouverte : son effet décide. Toute autre question (elle ne nomme aucun des sept domaines : « est-ce que
+   c'est envisageable pour toi en ce moment ? », « qu'est-ce qui est le plus risqué pour toi ? », « qu'est-ce qui t'a donné
+   envie de réserver cet appel ? », « en quoi ça t'a touché ? ») prend le domaine dont parle la
+   RÉPONSE DU PROSPECT À CETTE QUESTION, l'effet que la question a eu. basis = "answer" ;
+   reference_turn = l'identifiant du tour de réponse ; quote = les mots exacts du prospect dans ce tour qui montrent le
+   domaine, 1 à 12 mots. Si la réponse parle de plusieurs domaines, le premier dans la réponse décide. Si la réponse ne parle
+   d'aucun des sept : asked_domain = "other", basis = "answer", avec la citation de ce dont elle parle.
+4. Seulement quand il n'y a PAS de réponse (« (pas de réponse) » ci-dessous) : SB-29 · Référence. Une question qui renvoie en
+   arrière avec « ça », « cela », « ce » (ou un pronom : « tu le vis comment ? ») prend le domaine de ce qu'elle désigne,
+   lu dans les DERNIERS TOURS DU PROSPECT donnés. basis = "reference" ; reference_turn = l'identifiant de ce tour ;
+   quote = les mots exacts du prospect, 1 à 12 mots. Des mots comme « personnellement », « ta vie », « toi », « vous » ne
+   nomment pas de domaine. Rien de nommé et rien de désigné : asked_domain = "none", basis = "none", quote = null (ou
+   asked_domain = "other", basis = "none", pour un sujet hors des sept).
 
-Bounds:
-- "feel", "emotionally", "frustrated", "proud" are feelings: self_belief. "stressed", "tired", "burned out": health.
-  Both give the same register; pick the one the words name.
-- A target in money or clients ("how much do you want to make?", "how many clients do you want?") is money or
-  clients, not future. "Where do you want to be in a year?" with no amount is future.
-- Time words that only date the question ("today", "right now", "last year", "in 12 months") are not the time
-  domain; the time domain is about the prospect's hours, schedule or load.
-- Do not guess from the letter of the question (S, P, I, N): the letter never decides the domain.
-- Rules 1 and 2 read the question only; rule 3 reads the answer only. Never use rule 3 when rule 1 or 2 applies, and
-  never use "named" with "other": a question about a subject outside the seven domains is an open question (rule 3).
+Bornes :
+- « ressentir », « émotionnellement », « frustré », « fier » sont des sentiments : self_belief. « stressé », « fatigué »,
+  « épuisé », « en burn-out » : health. Les deux donnent le même registre ; choisis celui que les mots nomment.
+- Une cible en argent ou en clients (« combien tu veux gagner ? », « combien d'élèves tu veux avoir ? ») est money ou
+  clients, pas future. « Où est-ce que tu veux en être dans un an ? » sans montant est future.
+- Les mots de temps qui ne font que dater la question (« aujourd'hui », « en ce moment », « l'année dernière », « dans
+  12 mois ») ne sont pas le domaine time ; le domaine time porte sur les heures, l'emploi du temps ou la charge du prospect.
+- Ne devine pas à partir de la lettre de la question (S, P, I, N) : la lettre ne décide jamais le domaine.
+- Les règles 1 et 2 lisent la question seulement ; la règle 3 lit la réponse seulement. N'utilise jamais la règle 3 quand
+  la règle 1 ou 2 s'applique, et n'utilise jamais "named" avec "other" : une question sur un sujet hors des sept domaines est
+  une question ouverte (règle 3).
 
-JSON: {"asked_domain": "money", "basis": "named", "quote": "your income", "reference_turn": null}
+JSON : {"asked_domain": "money", "basis": "named", "quote": "tes revenus", "reference_turn": null}

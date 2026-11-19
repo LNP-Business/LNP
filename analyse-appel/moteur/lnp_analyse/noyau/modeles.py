@@ -1,7 +1,7 @@
-"""Shared data model of the LNP call analysis engine.
+"""Modèle de données commun du moteur d'analyse des appels de LNP.
 
-Every object that carries a claim about the transcript carries its Evidence
-(exact quote + turn). Competence modules read and write the CallContext only.
+Tout objet qui affirme quelque chose sur la transcription porte sa Preuve (citation exacte + tour).
+Les modules des compétences ne lisent et n'écrivent que le ContexteAppel.
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import Any, Optional
 COMMERCIAL, PROSPECT, AUTRE = "SALES", "PROSPECT", "OTHER"
 
 
-# Format enregistré (docs/OUTPUT_CONTRACT.md) : l'analyse stockée, lue par l'écran, la base et le connecteur, garde ses clés
+# Format enregistré (docs/CONTRAT_DE_SORTIE.md) : l'analyse stockée, lue par l'écran, la base et le connecteur, garde ses clés
 # d'origine. Les champs des objets du moteur ont des noms français ; vers_dict les écrit sous leur clé enregistrée.
 CHAMPS_ENREGISTRES = {
     "approfondi": "followed_up",
@@ -155,8 +155,8 @@ def vers_dict(obj: Any) -> Any:
 class Tour:
     id: str                 # "T001"
     n: int                  # 1
-    ts: str                 # "mm:ss" or "h:mm:ss"
-    locuteur: str            # raw label
+    ts: str                 # "mm:ss" ou "h:mm:ss"
+    locuteur: str            # étiquette brute
     role: str               # SALES / PROSPECT / OTHER
     texte: str
     attribution_douteuse: bool = False
@@ -167,7 +167,7 @@ class Tour:
 class Preuve:
     citation: str
     tour: str
-    role: Optional[str] = None      # expected role of the speaker, checked by code
+    role: Optional[str] = None      # rôle attendu du locuteur, vérifié par le code
 
     def vers_dict(self) -> dict:
         return vers_dict(self)
@@ -189,12 +189,12 @@ class CartePhases:
 
 @dataclass
 class Sollicitation:
-    """A sales solicitation (SPIN bounding reference, SEG-1..8)."""
+    """Une sollicitation du commercial (règles de bornage SPIN, SEG-1 à SEG-8)."""
     id: str
     tour: str
     texte: str
     lettre: Optional[str] = None      # S / P / I / N / OUT
-    raison_hors: Optional[str] = None  # nothing, info_solution, solution_load, sales_list, agreement, absent
+    raison_hors: Optional[str] = None  # nothing, offer_info, solution_load, sales_list, agreement, absent
     etiquettes: list[str] = field(default_factory=list)
     tours_reponse: list[str] = field(default_factory=list)
     approfondi: bool = False
@@ -203,13 +203,13 @@ class Sollicitation:
 
 @dataclass
 class Atome:
-    """A prospect atom (SPIN annex A3): SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE."""
+    """Un atome du prospect (annexe SPIN A3) : SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE."""
     id: str
     type: str
     preuve: Preuve
-    id_sollicitation: Optional[str] = None   # the solicitation whose answer contains it
-    lettre: Optional[str] = None            # letter of that solicitation
-    objet: Optional[str] = None            # object label (SB-16)
+    id_sollicitation: Optional[str] = None   # la sollicitation dont la réponse le contient
+    lettre: Optional[str] = None            # lettre de cette sollicitation
+    objet: Optional[str] = None            # libellé de l'objet (SB-16)
     domaine: Optional[str] = None            # money, time, clients, family, health, self-belief, future
     quantifie: bool = False
     valeur: Optional[float] = None
@@ -222,7 +222,7 @@ class Atome:
 class NoteItem:
     id: str
     poids: float
-    niveau: Optional[int]                     # 0, 1, 2 or None (not applicable)
+    niveau: Optional[int]                     # 0, 1, 2 ou None (non applicable)
     preuve: list[Preuve] = field(default_factory=list)
     remarque: str = ""
 
@@ -232,7 +232,7 @@ class ResultatCompetence:
     competence: str
     version_regles: str
     statut: str = "scored"                   # scored / not_applicable / excluded / to_review
-    verdict: Optional[str] = None            # e.g. present / absent / compliant / non_compliant
+    verdict: Optional[str] = None            # par exemple present / absent / compliant / non_compliant
     raisons: list[str] = field(default_factory=list)
     note: Optional[int] = None
     items: list[NoteItem] = field(default_factory=list)
@@ -254,16 +254,16 @@ class ContexteAppel:
     tours: list[Tour]
     reference_offre: dict[str, Any] = field(default_factory=dict)
     bibliotheque_cas: list[dict[str, Any]] = field(default_factory=list)
-    entrees_anterieures: list[dict[str, Any]] = field(default_factory=list)   # form text, earlier calls of the cycle
+    entrees_anterieures: list[dict[str, Any]] = field(default_factory=list)   # texte du formulaire, appels précédents du cycle
     statut: str = "ok"                       # ok / no_transcript / no_diarization / diarization_suspect
     signaux: list[str] = field(default_factory=list)
     phases: CartePhases = field(default_factory=CartePhases)
     sollicitations: list[Sollicitation] = field(default_factory=list)
     atomes: list[Atome] = field(default_factory=list)
     resultats: dict[str, ResultatCompetence] = field(default_factory=dict)
-    audit: list[dict[str, Any]] = field(default_factory=list)          # every model pass, arbitration, error
+    audit: list[dict[str, Any]] = field(default_factory=list)          # chaque passe du modèle, arbitrage, erreur
 
-    # ---- helpers -------------------------------------------------------------
+    # ---- outils ---------------------------------------------------------------
     def tour(self, tid: str) -> Tour:
         return self._indexer()[tid]
 
@@ -276,14 +276,14 @@ class ContexteAppel:
         return self._idx
 
     def n(self, tid: Optional[str]) -> Optional[int]:
-        """Position of a turn in the (repaired) transcript; repaired sub-turns ("T050b") sort right after."""
+        """Position d'un tour dans la transcription (réparée) ; les sous-tours réparés (« T050b ») se rangent juste après."""
         if tid is None:
             return None
         self._indexer()
         return self._pos[tid]
 
     def avant(self, a: Optional[str], b: Optional[str]) -> bool:
-        """True if turn a is strictly before turn b (b None = end of call)."""
+        """Vrai si le tour a est strictement avant le tour b (b None = fin de l'appel)."""
         if a is None:
             return False
         return b is None or self.n(a) < self.n(b)
@@ -294,6 +294,6 @@ class ContexteAppel:
         return self.tours[s:e]
 
     def afficher(self, tours: Optional[list[Tour]] = None) -> str:
-        """Compact transcript fed to the model: one line per turn."""
+        """Transcription compacte donnée au modèle : une ligne par tour."""
         tours = self.tours if tours is None else tours
         return "\n".join(f"[{t.id} {t.ts}] {t.role}: {t.texte}" for t in tours if not t.attribution_douteuse)

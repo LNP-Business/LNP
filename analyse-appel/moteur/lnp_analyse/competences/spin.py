@@ -188,8 +188,10 @@ def forme_question(s: str) -> Optional[str]:
 
 
 def mots_contenu(s: str) -> set[str]:
-    """SB-17 : mots de contenu (4 lettres ou plus, hors de la liste des mots vides) et nombres."""
-    sortie = {w for w in _replier(s).split() if len(w) >= MIN_MOTS_CONTENU and w not in MOTS_VIDES}
+    """SB-17 : mots de contenu (4 lettres ou plus, hors de la liste des mots vides) et nombres. L'élision française est
+    retirée avant (« d'élèves » compte comme « élèves »)."""
+    sortie = {w for w in (re.sub(r"^(?:[cdjlmnst]|qu)'", "", x) for x in _replier(s).split())
+              if len(w) >= MIN_MOTS_CONTENU and w not in MOTS_VIDES}
     for jet in re.findall(r"\$?\d[\d,.]*k?", (s or "").lower()):
         n = normaliser_nombre(jet)
         if n is not None:

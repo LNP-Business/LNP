@@ -1,6 +1,7 @@
-"""Test harness only (no rule): the Annex B tests read real transcripts that are kept out of git (CLAUDE.md).
-CI downloads them from the private Storage bucket callqa-fixtures. When they are absent and CALLQA_SKIP_MISSING_CORPUS=1,
-a test that fails only because a transcript file is missing is reported as skipped instead of failed."""
+"""Outillage des tests seulement (aucune règle) : les tests de l'annexe B lisent de vraies transcriptions gardées hors de
+git (CLAUDE.md). L'intégration continue les télécharge depuis le compartiment de stockage privé callqa-fixtures. Quand elles
+sont absentes et que CALLQA_SKIP_MISSING_CORPUS=1, un test qui échoue seulement parce qu'un fichier de transcription manque
+est compté comme ignoré au lieu d'échoué."""
 import os
 
 import pytest
@@ -12,4 +13,4 @@ def pytest_runtest_makereport(item, call):
     rep_ = issue.get_result()
     if os.environ.get("CALLQA_SKIP_MISSING_CORPUS") == "1" and call.excinfo is not None \
             and call.excinfo.errisinstance(FileNotFoundError) and "transcript_compact" in str(call.excinfo.value):
-        rep_.outcome, rep_.longrepr = "skipped", (str(item.fspath), 0, "Skipped: real transcripts not available")
+        rep_.outcome, rep_.longrepr = "skipped", (str(item.fspath), 0, "Ignoré : vraies transcriptions absentes")

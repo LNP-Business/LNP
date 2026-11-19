@@ -1,4 +1,5 @@
-"""Period aggregation (Part C, C5 and C6): windows, mean score, intervals, delta, levels, floor rule."""
+"""Agrégation par période (partie C, C5 et C6) : fenêtres, note moyenne, intervalles, écart à la période précédente,
+niveaux, règle du plancher."""
 from __future__ import annotations
 
 import math
@@ -7,7 +8,7 @@ from statistics import mean, stdev
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-# Student t quantiles t(0.975, df) for df = 1..30, then normal approximation
+# Quantiles t(0,975, ddl) de la loi de Student pour ddl = 1 à 30, puis approximation par la loi normale
 _T975 = [12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145,
          2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048,
          2.045, 2.042]
@@ -23,7 +24,7 @@ def jour_local(debut_utc: str, tz: str) -> date:
 
 
 def bornes_fenetre(genre: str, aujourdhui: date) -> tuple[Optional[date], Optional[date], Optional[date], Optional[date]]:
-    """Returns (start, end_inclusive, cmp_start, cmp_end_inclusive)."""
+    """Rend (début, fin_incluse, début_comparaison, fin_comparaison_incluse)."""
     if genre == "7d":
         s = aujourdhui - timedelta(days=6)
         return s, aujourdhui, s - timedelta(days=7), s - timedelta(days=1)
@@ -51,7 +52,7 @@ def niveau(note: float) -> str:
 
 
 def periode(resultats: list[dict], competence: str, genre: str, aujourdhui: date, tz: str) -> dict:
-    """results: [{"start_utc", "status", "score", "items": [{"id","level"}], ...}] for one sales, one competence."""
+    """resultats : [{"start_utc", "status", "score", "items": [{"id","level"}], ...}] pour un commercial et une compétence."""
     s, e, cs, ce = bornes_fenetre(genre, aujourdhui)
 
     def dans_fen(r, a, b):
@@ -74,7 +75,7 @@ def periode(resultats: list[dict], competence: str, genre: str, aujourdhui: date
     moitie = t975(n - 1) * stdev(xs) / math.sqrt(n)
     sortie.update(score=round(m, 1), ci=(max(0, round(m - moitie, 1)), min(100, round(m + moitie, 1))),
                ci_display="always" if n < 20 else "hover")
-    # item rates and floor rule
+    # taux par item et règle du plancher
     ids = sorted({i["id"] for r in note_ for i in r["items"]})
     taux_ = {}
     for iid in ids:
@@ -89,7 +90,7 @@ def periode(resultats: list[dict], competence: str, genre: str, aujourdhui: date
         niv = "Developing"
         sortie["floor_rule"] = True
     sortie["level"] = niv
-    # delta
+    # écart à la période de comparaison
     if cs is not None:
         prec = [r["score"] for r in resultats if dans_fen(r, cs, ce) and r["status"] == "scored" and r.get("score") is not None]
         if len(prec) >= 5:
@@ -100,7 +101,8 @@ def periode(resultats: list[dict], competence: str, genre: str, aujourdhui: date
 
 
 def goulot(periodes: list[dict]) -> Optional[str]:
-    """Lowest period score among competences with >= 5 evaluable calls; ties: lowest level-2 rate."""
+    """Note de période la plus basse parmi les compétences qui ont au moins 5 appels évaluables ; à égalité : le taux de
+    niveau 2 le plus bas."""
     ok = [p for p in periodes if p.get("n_scored", 0) >= 5 and p.get("score") is not None]
     if not ok:
         return None

@@ -1,7 +1,7 @@
-Rules: Part C, C1 (attribution check).
-- merged turn: a turn that contains the other role's speech, typically a sales question or a "right?" tail at the
-  start or end of a prospect turn, or a prospect answer at the end of a sales turn.
-- swapped turn: content that can only belong to the other role (the sales' own name, the offer described in the
-  first person, the prospect's personal facts stated as "I" under a SALES label).
-- echo: the same sentence repeated under both labels within 3 turns.
-List only clear cases. For a merged turn, foreign_quote is the exact foreign part (it may exceed 40 words).
+Règles : partie C, C1 (vérification de l'attribution).
+- tour fusionné (merged) : un tour qui contient des paroles de l'autre rôle, typiquement une question du commercial ou une
+  queue « …, non ? » au début ou à la fin d'un tour du prospect, ou une réponse du prospect à la fin d'un tour du commercial.
+- tour inversé (swapped) : un contenu qui ne peut appartenir qu'à l'autre rôle (le prénom du commercial lui-même, l'offre
+  décrite à la première personne, les faits personnels du prospect dits avec « je » sous une étiquette SALES).
+- écho (echo) : la même phrase répétée sous les deux étiquettes à moins de 3 tours d'écart.
+Ne liste que les cas nets. Pour un tour fusionné, foreign_quote est la partie étrangère exacte (elle peut dépasser 40 mots).

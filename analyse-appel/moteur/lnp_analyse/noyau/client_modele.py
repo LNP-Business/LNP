@@ -1,8 +1,9 @@
-"""Model access. The engine never lets a model score: a model answers closed questions with quotes.
+"""Accès au modèle. Le moteur ne laisse jamais un modèle noter : un modèle répond à des questions fermées, avec des citations.
 
-`ModelClient.ask` returns parsed JSON. Two implementations:
-- AnthropicClient: real calls (needs the `anthropic` package and an API key; model ids are configuration).
-- MockClient: replays recorded answers keyed by task id and unit id (tests, offline runs).
+`ClientModele.demander` rend le JSON lu. Deux mises en œuvre :
+- ClientAnthropic : vrais appels (demande le paquet `anthropic` et une clé d'API ; les identifiants des modèles sont de la
+  configuration).
+- ClientSimule : rejoue des réponses enregistrées, rangées par identifiant de tâche et d'unité (tests, exécutions hors ligne).
 """
 from __future__ import annotations
 
@@ -25,18 +26,19 @@ def empreinte_consigne(systeme: str, consigne: str) -> str:
 def lire_json(texte: str) -> dict[str, Any]:
     m = re.search(r"\{.*\}", texte, re.S)
     if not m:
-        raise ValueError("no JSON object in model output")
+        raise ValueError("aucun objet JSON dans la réponse du modèle")
     return json.loads(m.group(0))
 
 
 class ClientAnthropic:
-    """Thin wrapper. Model identifiers per tier are configuration, never hard-coded business facts.
+    """Enveloppe légère. Les identifiants des modèles par palier sont de la configuration, jamais des faits métier écrits
+    en dur.
 
-    tiers: {"fast": "<model id>", "strong": "<model id>", "arbiter": "<model id>"}
+    paliers : {"fast": "<identifiant du modèle>", "strong": "<identifiant du modèle>", "arbiter": "<identifiant du modèle>"}
     """
 
     def __init__(self, paliers: dict[str, str], max_tokens: int = 4000, temperature: float = 0.0):
-        import anthropic  # optional dependency
+        import anthropic  # dépendance facultative
         self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
         self.paliers, self.max_tokens, self.temperature = paliers, max_tokens, temperature
 
@@ -49,8 +51,8 @@ class ClientAnthropic:
 
 
 class ClientSimule:
-    """Replays answers. `answers[(task_id, unit_id)]` is either one dict (same answer on every pass)
-    or a list of dicts (one per pass; the arbiter is pass 0). A callable can also be given."""
+    """Rejoue des réponses. `reponses[(id_tache, id_unite)]` est soit un dict (même réponse à chaque passe), soit une
+    liste de dicts (un par passe ; l'arbitre est la passe 0). On peut aussi donner une fonction (`repli`)."""
 
     def __init__(self, reponses: Optional[dict] = None, repli: Optional[Callable] = None):
         self.reponses = reponses or {}
@@ -63,7 +65,7 @@ class ClientSimule:
         if a is None and self.repli:
             return self.repli(id_tache, id_unite, consigne, no_passe)
         if a is None:
-            raise KeyError(f"no mock answer for {(id_tache, id_unite)}")
+            raise KeyError(f"aucune réponse simulée pour {(id_tache, id_unite)}")
         if isinstance(a, list):
             return a[min(max(no_passe - 1, 0), len(a) - 1)] if no_passe else a[-1]
         return a

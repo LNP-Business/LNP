@@ -1,8 +1,10 @@
-"""Tests of the SPIN discovery module (SPIN-1.1).
+"""Tests du module de découverte SPIN (SPIN-1.1).
 
-Part 1: pure decision tests on synthetic inputs (letters, atoms, follow-up, chains, items, applicability).
-Part 2: full module runs with MockClient on synthetic calls.
-Part 3: Annex B calibration cases on real transcripts (tests/fixtures/transcripts/NNN/transcript_compact.txt).
+Partie 1 : tests de décision purs sur des entrées synthétiques (lettres, atomes, approfondissement, chaînes, items,
+applicabilité).
+Partie 2 : exécutions complètes du module avec ClientSimule sur des appels synthétiques.
+Partie 3 : cas de calibration de l'annexe B sur de vraies transcriptions (tests/fixtures/transcripts/NNN/transcript_compact.txt).
+Partie 4 : listes de mots françaises et consignes en français.
 """
 from __future__ import annotations
 import os
@@ -21,9 +23,9 @@ EXECUTIONS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "f
 LIGNE = re.compile(r"^\[(T\d+[a-z]?) ([\d:]+)\] (SALES|PROSPECT|OTHER): ?(.*)$")
 
 
-# =============================================================================================== helpers
+# =============================================================================================== outils
 def porte(texte: str, lettre: str, raison: str | None = None, citation: str | None = None, **surcharge) -> dict:
-    """A gate answer that makes the code decide `letter` (quotes are the first words of the solicitation)."""
+    """Une réponse des portes qui fait décider `lettre` au code (les citations sont les premiers mots de la sollicitation)."""
     q = citation or " ".join(texte.split()[:3])
     g = {"is_solicitation": True, "attribution_doubtful": False, "routing": None,
          "g1": {"reason": None, "quote": None},
@@ -65,7 +67,7 @@ def _consigne_sollicitation(consigne: str) -> str:
 
 
 def repli(id_tache, id_unite, consigne, no_passe):
-    """Default model readings: OUT `nothing`, no atom, no link, no reopening end."""
+    """Lectures du modèle par défaut : OUT `nothing`, aucun atome, aucun lien, pas de fin de réouverture."""
     if id_tache == "spin.gates":
         return porte(_consigne_sollicitation(consigne), "OUT", "nothing")
     if id_tache == "spin.atoms":
@@ -75,7 +77,7 @@ def repli(id_tache, id_unite, consigne, no_passe):
     if id_tache == "spin.reopen_end":
         return {"end_turn": None, "quote": None}
     if id_tache == "spin.register":
-        # SB-35: an answered question is read in its answer (Other, quoting its first words), else nothing named
+        # SB-35 : une question qui a une réponse se lit dans sa réponse (Other, en citant ses premiers mots), sinon rien de nommé
         m = re.search(r"RÉPONSE DU PROSPECT À CETTE QUESTION :\n\[(\S+) [^\]]*\] \w+: (\S+(?: \S+){0,3})", consigne)
         if m:
             return {"asked_domain": "other", "basis": "answer", "quote": m.group(2), "reference_turn": m.group(1)}
@@ -84,8 +86,8 @@ def repli(id_tache, id_unite, consigne, no_passe):
 
 
 def executer_spin(ctx: ContexteAppel, reponses: dict):
-    """Gate answers may be given as a letter spec ("P", ("OUT", "agreement"), (letter, reason, overrides)) keyed by
-    solicitation id; they are converted with the unit text found by the inventory."""
+    """Les réponses des portes peuvent être données comme une lettre ("P", ("OUT", "agreement"), (lettre, raison,
+    surcharges)) par identifiant de sollicitation ; elles sont converties avec le texte de l'unité trouvé par l'inventaire."""
     textes = {u.sol.id: u.sol.texte for u in S.inventaire(ctx)}
     simule = {}
     for (tache, uid), a in reponses.items():
@@ -133,7 +135,7 @@ def A(type_, tour, citation, sid="Q1", **kw) -> Atome:
     return Atome(kw.pop("id", f"A{tour}{type_}{len(citation)}"), type_, Preuve(citation, tour, PROSPECT), sid, None, **kw)
 
 
-# =============================================================================================== 1. letters (§3)
+# =============================================================================================== 1. lettres (§3)
 class TestLettres:
     T = "How much is that costing you every month?"
 
@@ -143,13 +145,13 @@ class TestLettres:
     def test_le_premier_oui_gagne_dans_l_ordre_fixe(self):
         g = porte(self.T, "S")
         g["g4"].update(consequence=True, quote="costing you")
-        assert self.d(g).lettre == "S"                       # gate 2 before gate 4
+        assert self.d(g).lettre == "S"                       # porte 2 avant porte 4
 
-    def test_queue_de_validation_est_un_accord(self):              # hard rule, SEG-4
+    def test_queue_de_validation_est_un_accord(self):              # règle dure, SEG-4
         g = porte(self.T, "S")
         assert (self.d(g, validation_tail=True).lettre, self.d(g, validation_tail=True).raison) == ("OUT", "agreement")
 
-    def test_besoin_ferme(self):                        # hard rule: desired state inside the question
+    def test_besoin_ferme(self):                        # règle dure : état désiré dans la question
         g = porte(self.T, "N", g3={"content_supplied": True})
         d = self.d(g)
         assert (d.lettre, d.raison, "closed_need_payoff" in d.etiquettes) == ("OUT", "agreement", True)
@@ -202,7 +204,7 @@ class TestLettres:
         parties = S.decider_portes(g, {"validation_tail": True}, t)
         assert [p[1].lettre for p in parties] == ["S", "OUT"]
 
-    def test_la_lettre_ne_donne_jamais_de_points(self):              # X8: same atoms, different letters -> same score
+    def test_la_lettre_ne_donne_jamais_de_points(self):              # X8 : mêmes atomes, lettres différentes -> même note
         atomes = [A("IMPACT", "T2", "I can't pay my rent", domaine="money")]
         a, _ = S.noter_items(atomes, [])
         atomes[0].lettre = "S"
@@ -210,18 +212,18 @@ class TestLettres:
         assert [i.niveau for i in a] == [i.niveau for i in b]
 
 
-# =============================================================================================== 2. atoms (A3)
+# =============================================================================================== 2. atomes (A3)
 class TestAtomes:
     def d(self, **kw):
         base = atome(kw.pop("type", "IMPACT"), "T2", kw.pop("quote", "so I can't pay my rent"))
         base.update(kw)
         return S.decider_atome(base, apres_presentation=kw.pop("_after", False))
 
-    def test_sb10_impact_meme_domaine_est_douleur(self):           # pair 1c
+    def test_sb10_impact_meme_domaine_est_douleur(self):           # paire 1c
         assert self.d(domain="clients", problem_domain="clients").type == "PAIN"
-        assert self.d(domain="money", problem_domain="clients").type == "IMPACT"    # pair 1b
+        assert self.d(domain="money", problem_domain="clients").type == "IMPACT"    # paire 1b
 
-    def test_sb11_revenu_actuel_est_situation(self):          # pair 2a, B2 case 5
+    def test_sb11_revenu_actuel_est_situation(self):          # paire 2a, B2 cas 5
         r = self.d(quote="to be around 4,000", figure_kind="present", quantified=True, domain="money",
                    problem_domain="clients")
         assert (r.type, r.quantifie) == ("SITUATION", True)
@@ -231,15 +233,15 @@ class TestAtomes:
                    domain="money", problem_domain="self_belief")
         assert (r.type, r.quantifie) == ("IMPACT", True)
 
-    def test_sb12_desir_apres_presentation(self):                   # pair 5b
+    def test_sb12_desir_apres_presentation(self):                   # paire 5b
         base = atome("DESIRE", "T9", "I'd love to have that community")
         assert not S.decider_atome(base, apres_presentation=True).garder
         assert S.decider_atome(base, apres_presentation=False).garder
 
-    def test_sb14_suggere_et_approbation(self):                # pairs 4a / X3
+    def test_sb14_suggere_et_approbation(self):                # paires 4a / X3
         assert not self.d(prompted_by_sales=True).garder
         assert self.d(quote="Yes, exactly.").type is None
-        assert self.d(quote="Everything.").type is None        # SB-9 two-word minimum (B2 case 12)
+        assert self.d(quote="Everything.").type is None        # SB-9 deux mots au minimum (B2 cas 12)
 
     def test_sb23_discours_rapporte(self):
         assert self.d(reported_speech=True, owned=False).type is None
@@ -256,7 +258,7 @@ class TestAtomes:
                           problem_domain="self_belief").quantifie
 
 
-# =============================================================================================== 3. follow-up (SB-17, SB-19)
+# =============================================================================================== 3. approfondissement (SB-17, SB-19)
 class TestApprofondissement:
     def test_reprise_mots_contenu(self):
         assert S.approfondit("I don't have any clients at all", "And without clients, what happens?")
@@ -275,7 +277,7 @@ class TestApprofondissement:
         assert S.approfondit("my marketing is a mess", "What does that do?", preambule="So the marketing.")
 
 
-# =============================================================================================== 4. chains (SB-16..SB-20)
+# =============================================================================================== 4. chaînes (SB-16 à SB-20)
 def etape(sid, lettre, atomes=(), suit=True, raison=None, sans_reponse=False):
     return S.MaillonChaine(sid, lettre, raison, [A(t, f"T{sid}", q, sid, objet="clients") for t, q in atomes],
                        suit, sans_reponse)
@@ -307,7 +309,7 @@ class TestChaines:
         assert self.profond([self.P, self.I1, etape("x", "OUT", raison="agreement"), self.N]) == []
         assert self.profond([self.P, self.I1, etape("x", "OUT", raison="sales_list"), self.N]) == []
 
-    def test_unite_empilee_sans_reponse_transparente(self):           # SB-6 unit gets no answer
+    def test_unite_empilee_sans_reponse_transparente(self):           # SB-6 : l'unité n'a pas de réponse
         assert len(self.profond([self.P, etape("x", "OUT", raison="agreement", sans_reponse=True), self.I1, self.N])) == 1
 
     def test_s_sur_meme_objet_n_est_pas_un_lien_et_ne_rompt_pas(self):
@@ -318,7 +320,7 @@ class TestChaines:
         chaines = S.trouver_chaines([self.P, self.I1, etape("s", "S"), self.N], autre)
         assert not any(c.get("deep") for c in chaines) and chaines[0]["broken_at"] == "s:other_object"
 
-    def test_non_approfondi_rompt(self):                            # SB-17, B4 case 4
+    def test_non_approfondi_rompt(self):                            # SB-17, B4 cas 4
         assert self.profond([self.P, self.I1, etape("3", "I", [("IMPACT", "my wife is worried")], suit=False)]) == []
 
     def test_p_sans_douleur_n_ouvre_pas(self):
@@ -343,10 +345,10 @@ class TestItems:
                A("SITUATION", "T4", "15 hours a week", id="s2", quantifie=True)]
         des = [A("DESIRE", "T6", "I want 10K a month", id="d1", quantifie=True)]
         meta = {"s1": {"dimension": "revenue"}, "s2": {"dimension": "time"}, "d1": {"dimension": "revenue"}}
-        assert self.niveaux(sit + des, meta=meta)["D1"] == 1      # only the revenue figure is related
+        assert self.niveaux(sit + des, meta=meta)["D1"] == 1      # seul le chiffre de revenu est lié
         meta["s2"]["dimension"] = "revenue"
         assert self.niveaux(sit + des, meta=meta)["D1"] == 2
-        assert self.niveaux(sit)["D1"] == 2                        # no DESIRE: any quantified SITUATION
+        assert self.niveaux(sit)["D1"] == 2                        # sans DESIRE : toute SITUATION chiffrée
 
     def test_d1_sans_desir_situation_non_chiffree_ne_compte_pas(self):
         assert self.niveaux([A("SITUATION", "T2", "I work at a firm")])["D1"] == 0
@@ -355,7 +357,7 @@ class TestItems:
         p = A("PAIN", "T2", "I don't have clients", id="p1")
         assert self.niveaux([p])["D2"] == 1
         assert self.niveaux([p, A("BLOCKER", "T3", "I fear selling")])["D2"] == 2
-        assert self.niveaux([p, A("PAIN", "T2", "don't have clients")])["D2"] == 1      # overlapping quotes
+        assert self.niveaux([p, A("PAIN", "T2", "don't have clients")])["D2"] == 1      # citations qui se chevauchent
         cause = {"p1": {"cause": Preuve("because I never post anything", "T2", PROSPECT)}}
         assert self.niveaux([p], meta=cause)["D2"] == 2
 
@@ -365,7 +367,7 @@ class TestItems:
         c = A("IMPACT", "T4", "I am exhausted every day", domaine="family")
         assert self.niveaux([a])["D3"] == 1
         assert self.niveaux([a, b])["D3"] == 2
-        assert self.niveaux([b, c])["D3"] == 1                     # same domain, none quantified
+        assert self.niveaux([b, c])["D3"] == 1                     # même domaine, aucune chiffrée
 
     def test_d4(self):
         d = A("DESIRE", "T2", "I want 5K a month")
@@ -384,30 +386,30 @@ class TestItems:
         deux = {"deep": True, "opening": "Q9", "object": "fear", "evidence": ev}
         assert self.niveaux([], [un])["D5"] == 1
         assert self.niveaux([], [un, deux])["D5"] == 2
-        assert self.niveaux([], [un, dict(un, opening="Q5")])["D5"] == 1     # same object
+        assert self.niveaux([], [un, dict(un, opening="Q5")])["D5"] == 1     # même objet
 
     def test_plafond_deux_citations(self):
         a = A("IMPACT", "T2", "it cost me three years", domaine="time", quantifie=True)
         b = A("IMPACT", "T2", "it cost me three years", domaine="family")
-        assert self.niveaux([a, b])["D3"] == 1                     # one distinct quote only
+        assert self.niveaux([a, b])["D3"] == 1                     # une seule citation distincte
 
 
-# =============================================================================================== 6. spans, perimeter
+# =============================================================================================== 6. plages, périmètre
 def test_plages_reponse_relance_spontane_empile():
-    ctx = mk([("S", "Hi. What is going on? And how long has it been?"),        # T1 stacked
+    ctx = mk([("S", "Hi. What is going on? And how long has it been?"),        # T1 empilées
               ("P", "My clients left two years ago."),                          # T2
-              ("S", "Wow."),                                                    # T3 backchannel <= 5 words
-              ("P", "Yeah, it hurts."),                                         # T4 still the answer (SB-5)
-              ("S", "I really appreciate you sharing that with me, honestly."),  # T5 acknowledgement
-              ("P", "And my wife is worried too."),                             # T6 volunteered (SB-8)
-              ("S", "What else is going on?"),                                  # T7 next solicitation
+              ("S", "Wow."),                                                    # T3 relance orale de 5 mots ou moins
+              ("P", "Yeah, it hurts."),                                         # T4 encore la réponse (SB-5)
+              ("S", "I really appreciate you sharing that with me, honestly."),  # T5 acquiescement
+              ("P", "And my wife is worried too."),                             # T6 spontané (SB-8)
+              ("S", "What else is going on?"),                                  # T7 sollicitation suivante
               ("P", "Nothing else.")])
     unites = S.inventaire(ctx)
     for u in unites:
         u.fin_fenetre = None
     S.plages_reponse(ctx, unites, {u.tour.id for u in unites})
     q1, q2, q7 = unites
-    assert q1.sans_reponse and not q2.sans_reponse                                  # SB-6: last stacked one
+    assert q1.sans_reponse and not q2.sans_reponse                                  # SB-6 : la dernière des empilées
     assert q2.sol.tours_reponse == ["T002", "T004"] and q2.tours_spontanes == ["T006"]
 
 
@@ -415,7 +417,7 @@ def test_plages_reponse_exception_empilee():
     ctx = mk([("S", "How many clients do you have? And what is your dream?"), ("P", "Three clients, no more.")])
     unites = S.inventaire(ctx)
     S.plages_reponse(ctx, unites, {"T001"})
-    assert unites[0].sol.tours_reponse == ["T002"] and unites[1].sans_reponse          # SB-6 explicit answer
+    assert unites[0].sol.tours_reponse == ["T002"] and unites[1].sans_reponse          # SB-6 réponse explicite
 
 
 SYN = [("S", "Can you hear me okay?"), ("P", "Yes I can."),                                         # T1-2 social
@@ -426,9 +428,9 @@ SYN = [("S", "Can you hear me okay?"), ("P", "Yes I can."),                     
        ("P", "My wife is stressed and the kids feel it."),                                               # T7-8 I
        ("S", "How much do you make today?"), ("P", "About 3K a month right now."),                       # T9-10 S
        ("S", "Where do you want to be?"), ("P", "I want 10K a month, so I can be home for my kids."),    # T11-12 N
-       ("S", "Let me show you the program now. It has three pillars."), ("P", "Okay."),                 # T13 pitch
-       ("S", "How many hours a week could you put in?"), ("P", "Maybe 20 hours."),                      # T15 logistic
-       ("S", "Do you have savings you could use for this?"), ("P", "A little.")]                        # T17 financing
+       ("S", "Let me show you the program now. It has three pillars."), ("P", "Okay."),                 # T13 présentation
+       ("S", "How many hours a week could you put in?"), ("P", "Maybe 20 hours."),                      # T15 pratique
+       ("S", "Do you have savings you could use for this?"), ("P", "A little.")]                        # T17 financement
 
 
 def reponses_syn():
@@ -460,17 +462,17 @@ def test_execution_complete_appel_synthetique():
     assert (ctx.phases.debut_decouverte, ctx.phases.fin_decouverte) == ("T003", "T013")     # SB-1, SB-2
     assert res.statut == "scored"
     lv = {i.id: i.niveau for i in res.items}
-    # D1: one related quantified SITUATION -> 1; D2: one PAIN -> 1; D3: money (quantified) + family -> 2;
-    # D4: DESIRE + VALUE -> 2; D5: P -> I -> I on "clients", followed up -> 1 deep chain
+    # D1 : une SITUATION chiffrée liée -> 1 ; D2 : un PAIN -> 1 ; D3 : money (chiffré) + family -> 2 ;
+    # D4 : DESIRE + VALUE -> 2 ; D5 : P -> I -> I sur « clients », approfondis -> 1 chaîne profonde
     assert lv == {"D1": 1, "D2": 1, "D3": 2, "D4": 2, "D5": 1}
     assert res.note == round(100 * (15 * .5 + 20 * .5 + 30 + 20 + 15 * .5) / 100)
-    # shared state
+    # état partagé
     assert sol(ctx, "Q001.1").lettre is None and "pre_perimeter" in sol(ctx, "Q001.1").etiquettes
     assert sol(ctx, "Q005.1").lettre == "I" and sol(ctx, "Q005.1").tours_reponse == ["T006"]
     assert sol(ctx, "Q003.1").approfondi
     assert {a.type for a in ctx.atomes} == {"PAIN", "IMPACT", "SITUATION", "DESIRE", "VALUE"}
     assert all(a.lettre and a.id_sollicitation and a.preuve.role == PROSPECT for a in ctx.atomes)
-    # SB-25 financing and logistics after the end: never a reopening
+    # SB-25 financement et logistique après la fin : jamais une réouverture
     assert res.details["perimeter"]["reopenings"] == []
     assert not sol(ctx, "Q017.1").approfondi and "post_discovery" in sol(ctx, "Q017.1").etiquettes
     d = res.details["diagnostics"]
@@ -482,13 +484,13 @@ def test_execution_complete_appel_synthetique():
 def test_applicabilite_et_sante():
     ctx = mk(SYN[:8] + [("S", "Let me show you the program now."), ("P", "Okay.")], debut_presentation="T009")
     rep = {k: v for k, v in reponses_syn().items() if k[1].split(":")[1].split(">")[0] < "Q009"}
-    res, _ = executer_spin(ctx, rep)                                          # 3 coded solicitations < 5 (§5)
+    res, _ = executer_spin(ctx, rep)                                          # 3 sollicitations codées < 5 (§5)
     assert res.statut == "not_applicable" and res.items == [] and res.note is None
     assert res.raisons == ["fewer_than_5_coded_solicitations"]
     ctx = mk(SYN, debut_presentation="T013")
     rep = reponses_syn()
     rep[("spin.gates", "gates:Q009.1")] = porte("How much do you make today?", "P", g5={"sales_named": True})
-    res, _ = executer_spin(ctx, rep)                                          # 1 absent out of 5 coded = 20 % > 5 %
+    res, _ = executer_spin(ctx, rep)                                          # 1 absent sur 5 codées = 20 % > 5 %
     assert res.statut == "excluded" and res.raisons == ["health_absent_share"]
     res, _ = executer_spin(mk(SYN[:2], debut_presentation=None), {})
     assert res.statut == "not_applicable" and res.raisons == ["no_discovery"]
@@ -523,9 +525,10 @@ def test_sb21_plan_d_action_sans_etat_futur():
 
 
 def test_sb34_spin_s_arrete_a_la_presentation():
-    """SB-34 replaces SB-3 / SB-4: a diagnostic question inside the pitch is not read, not coded, has no register."""
+    """SB-34 remplace SB-3 / SB-4 : une question de diagnostic dans la présentation n'est ni lue, ni codée, et n'a pas de
+    registre."""
     lignes = SYN[:12] + [("S", "Let me show you the program now. It has three pillars."), ("P", "Okay."),   # T13
-                        ("S", "Is your eye ahead of your process?"), ("P", "Ahead."),                     # T15 check-in
+                        ("S", "Is your eye ahead of your process?"), ("P", "Ahead."),                     # T15 question de vérification
                         ("S", "The second pillar is the portfolio, it is a big part."), ("P", "Nice."),     # T17
                         ("S", "What part of a project scares you?"), ("P", "Quoting the client."),        # T19
                         ("S", "And what happens when you quote?"), ("P", "I undercharge every time."),    # T21
@@ -543,21 +546,21 @@ def test_sb34_spin_s_arrete_a_la_presentation():
         ligne_ = next(r for r in res.details["solicitations"] if r["id"] == sid)
         assert not ligne_["in_perimeter"] and ligne_["register"] is None
     demande = {u for t, u, _ in client.appels}
-    assert not {"gates:Q015.1", "gates:Q019.1", "gates:Q021.1", "reopen:Q015.1", "reopen:Q019.1"} & demande   # not even read
+    assert not {"gates:Q015.1", "gates:Q019.1", "gates:Q021.1", "reopen:Q015.1", "reopen:Q019.1"} & demande   # même pas lues
 
 
-# =============================================================================================== 7. Annex B, real transcripts
-reel = pytest.mark.skipif(not EXECUTIONS.exists(), reason="real transcripts not available")
+# =============================================================================================== 7. annexe B, vraies transcriptions
+reel = pytest.mark.skipif(not EXECUTIONS.exists(), reason="vraies transcriptions absentes")
 
 
 @reel
 def test_annexeB_appel001_besoin_ferme_empile_valeur_financement():
-    """B1 case 3, B2 cases 6 and 7, B3 case 4 (call 001)."""
+    """B1 cas 3, B2 cas 6 et 7, B3 cas 4 (appel 001)."""
     ctx = charger_reel("001", debut_presentation="T089", premier_prix="T113", fin_presentation="T113")
     g = {"gates:Q017.1": "P", "gates:Q029.1": "N", "gates:Q029.2": "N", "gates:Q033.1": "N", "gates:Q035.1": "S",
-         "gates:Q045.1": ("N", None, {"g3": {"content_supplied": True}}),       # 5K supplied by the sales
+         "gates:Q045.1": ("N", None, {"g3": {"content_supplied": True}}),       # 5K fourni par le commercial
          "gates:Q045.2": "N", "gates:Q047.1": "S", "gates:Q049.1": "S",
-         "gates:Q133.1": ("OUT", "solution_load")}                               # SB-25 financing after the price
+         "gates:Q133.1": ("OUT", "solution_load")}                               # SB-25 financement après le prix
     rep = {("spin.gates", k): v for k, v in g.items()}
     rep[("spin.atoms", "atoms:Q033.1")] = {"atoms": [atome("DESIRE", "T034", "I would say minimum $5,000",
                                                           quantified=True, value=5000, unit="usd",
@@ -575,21 +578,21 @@ def test_annexeB_appel001_besoin_ferme_empile_valeur_financement():
     assert (q1.lettre, q1.raison_hors) == ("OUT", "agreement") and "closed_need_payoff" in q1.etiquettes
     assert "unanswered" in q1.etiquettes and q2.lettre == "N" and q2.tours_reponse == ["T046"]       # SB-6
     valeurs = [a for a in ctx.atomes if a.type == "VALUE"]
-    assert len(valeurs) == 2 and {a.id_sollicitation for a in valeurs} == {"Q045.2"}           # B2 case 7
+    assert len(valeurs) == 2 and {a.id_sollicitation for a in valeurs} == {"Q045.2"}           # B2 cas 7
     desir = next(a for a in ctx.atomes if a.type == "DESIRE")
-    assert desir.quantifie and desir.valeur == 5000                                       # B2 case 6
-    assert niv(res, "D4") == 2 and niv(res, "D1") == 1         # one SITUATION shares the goal's dimension
+    assert desir.quantifie and desir.valeur == 5000                                       # B2 cas 6
+    assert niv(res, "D4") == 2 and niv(res, "D1") == 1         # une SITUATION partage la dimension de l'objectif
     q133 = sol(ctx, "Q133.1")
     ligne_ = next(r for r in res.details["solicitations"] if r["id"] == "Q133.1")
-    assert q133.lettre is None and "post_discovery" in q133.etiquettes and not ligne_["in_perimeter"]   # B3 case 4: not coded
-    assert ligne_["gate_letter"] is None                                     # SB-34: after the price, not even read
+    assert q133.lettre is None and "post_discovery" in q133.etiquettes and not ligne_["in_perimeter"]   # B3 cas 4 : non codée
+    assert ligne_["gate_letter"] is None                                     # SB-34 : après le prix, même pas lue
     assert res.details["perimeter"]["reopenings"] == []
     assert res.details["diagnostics"]["closed_need_payoff"] == 1
 
 
 @reel
 def test_annexeB_appel028_debut_situation_et_pas_de_chaine_profonde():
-    """B3 case 2, B1 case 1, B4 case 2 (call 028)."""
+    """B3 cas 2, B1 cas 1, B4 cas 2 (appel 028)."""
     ctx = charger_reel("028", debut_presentation="T103")
     g = {"gates:Q027.1": "P", "gates:Q029.1": "P", "gates:Q031.1": "P", "gates:Q037.1": "P", "gates:Q039.1": "S",
          "gates:Q041.1": "S", "gates:Q041.2": "S", "gates:Q043.1": ("OUT", "agreement"),
@@ -606,22 +609,22 @@ def test_annexeB_appel028_debut_situation_et_pas_de_chaine_profonde():
     rep[("spin.atoms", "atoms:Q051.1")] = {"atoms": [atome("IMPACT", "T052", "I have gone through periods of anxiety",
                                                           domain="health", problem_domain="other",
                                                           object="stressful work")]}
-    for c in ("Q039.1", "Q041.1", "Q041.2", "Q045.1"):            # even if every link said "same object"
+    for c in ("Q039.1", "Q041.1", "Q041.2", "Q045.1"):            # même si chaque lien disait « même objet »
         rep[("spin.link", f"link:Q037.1>{c}")] = {"same_object": True, "quote": " ".join(
             next(u.sol.texte for u in S.inventaire(ctx) if u.sol.id == c).split()[:2])}
     res, _ = executer_spin(ctx, rep)
-    assert ctx.phases.debut_decouverte == "T027"                                             # B3 case 2
-    assert sol(ctx, "Q039.1").lettre == "S"                                                 # B1 case 1
+    assert ctx.phases.debut_decouverte == "T027"                                             # B3 cas 2
+    assert sol(ctx, "Q039.1").lettre == "S"                                                 # B1 cas 1
     sit = next(a for a in ctx.atomes if a.preuve.tour == "T042")
     assert sit.type == "SITUATION" and sit.quantifie and sit.id_sollicitation == "Q041.2"
-    assert not any(c["deep"] for c in res.details["chains"])                                # B4 case 2
-    assert niv(res, "D5") == 0 and niv(res, "D3") == 1          # two health quotes = one domain
+    assert not any(c["deep"] for c in res.details["chains"])                                # B4 cas 2
+    assert niv(res, "D5") == 0 and niv(res, "D3") == 1          # deux citations santé = un seul domaine
     assert res.statut == "scored"
 
 
 @reel
 def test_annexeB_appel027_chaine_rompue_par_liste_du_commercial():
-    """B4 case 3 (call 027): P T056 -> I T058 (IMPACT time, last stacked unit) -> OUT sales_list T060 breaks."""
+    """B4 cas 3 (appel 027) : P T056 -> I T058 (IMPACT time, dernière unité empilée) -> OUT sales_list T060 rompt."""
     ctx = charger_reel("027", debut_presentation="T096")
     g = {"gates:Q016.1": "N", "gates:Q052.1": "P", "gates:Q054.1": "P", "gates:Q056.1": "P",
          "gates:Q058.1": ("OUT", "agreement"), "gates:Q058.3": "I", "gates:Q060.1": ("OUT", "sales_list"),
@@ -639,9 +642,9 @@ def test_annexeB_appel027_chaine_rompue_par_liste_du_commercial():
     assert sol(ctx, "Q058.3").tours_reponse == ["T059"] and "unanswered" in sol(ctx, "Q058.1").etiquettes   # SB-6
     chaine = next(c for c in res.details["chains"] if c["opening"] == "Q056.1")
     assert not chaine["deep"] and chaine["broken_at"] == "Q060.1:OUT_sales_list"
-    assert niv(res, "D3") == 1 and niv(res, "D5") == 0          # the IMPACT counts for D3, not for D5
-    assert sol(ctx, "Q062.1").lettre == "N"                    # SB-21: the answer states a future state
-    # counterfactual: an OUT `nothing` at T060 would not break the chain (SB-20)
+    assert niv(res, "D3") == 1 and niv(res, "D5") == 0          # l'IMPACT compte pour D3, pas pour D5
+    assert sol(ctx, "Q062.1").lettre == "N"                    # SB-21 : la réponse énonce un état futur
+    # contre-épreuve : un OUT `nothing` en T060 ne romprait pas la chaîne (SB-20)
     ctx2 = charger_reel("027", debut_presentation="T096")
     rep[("spin.gates", "gates:Q060.1")] = ("OUT", "nothing")
     res2, _ = executer_spin(ctx2, rep)
@@ -650,14 +653,15 @@ def test_annexeB_appel027_chaine_rompue_par_liste_du_commercial():
 
 @reel
 def test_annexeB_appel011_besoin_ferme_et_pas_de_spin_apres_presentation():
-    """B1 case 2; B1 case 6 and B3 case 3 superseded by SB-34 (no check-in, no reopening inside the pitch), call 011."""
+    """B1 cas 2 ; B1 cas 6 et B3 cas 3 remplacés par SB-34 (pas de question de vérification, pas de réouverture dans la
+    présentation), appel 011."""
     ctx = charger_reel("011", debut_presentation="T127", premier_prix="T201", fin_presentation="T201")
     g = {"gates:Q047.1": "S", "gates:Q049.1": ("N", None, {"g3": {"content_supplied": True}}),
          "gates:Q141.1": "S", "gates:Q163.2": "P", "gates:Q163.3": "P", "gates:Q173.1": "P", "gates:Q173.2": "P"}
     rep = {("spin.gates", k): v for k, v in g.items()}
     res, _ = executer_spin(ctx, rep)
     q49 = sol(ctx, "Q049.1")
-    assert (q49.lettre, q49.raison_hors) == ("OUT", "agreement") and "closed_need_payoff" in q49.etiquettes   # B1 case 2
+    assert (q49.lettre, q49.raison_hors) == ("OUT", "agreement") and "closed_need_payoff" in q49.etiquettes   # B1 cas 2
     assert res.details["perimeter"]["reopenings"] == []                                                # SB-34
     for sid in ("Q141.1", "Q163.2", "Q163.3", "Q173.1", "Q173.2", "Q177.1"):
         assert sol(ctx, sid).lettre is None and "post_discovery" in sol(ctx, sid).etiquettes
@@ -665,7 +669,7 @@ def test_annexeB_appel011_besoin_ferme_et_pas_de_spin_apres_presentation():
 
 @reel
 def test_annexeB_appel046_debut_social_et_reponse_d_un_mot():
-    """B3 case 1 and B2 case 12 (call 046)."""
+    """B3 cas 1 et B2 cas 12 (appel 046)."""
     ctx = charger_reel("046", debut_presentation="T200")
     g = {"gates:Q023.1": "N", "gates:Q023.2": "N",
          "gates:Q103.1": ("I", None, {"g4": {"problem_domain": "self_belief", "named_domain": "open"}}),
@@ -679,14 +683,14 @@ def test_annexeB_appel046_debut_social_et_reponse_d_un_mot():
         atome("IMPACT", "T106", "it just makes me really unhappy with myself that I haven't done it",
              domain="self_belief", problem_domain="other")]}
     res, _ = executer_spin(ctx, rep)
-    assert ctx.phases.debut_decouverte == "T023"                                         # B3 case 1 (T007 social)
-    assert sol(ctx, "Q103.1").tours_reponse == ["T104"]                                  # SB-7 does not extend
-    assert not [a for a in ctx.atomes if a.preuve.tour == "T104"]                       # below 2 words
+    assert ctx.phases.debut_decouverte == "T023"                                         # B3 cas 1 (T007 social)
+    assert sol(ctx, "Q103.1").tours_reponse == ["T104"]                                  # SB-7 n'étend pas
+    assert not [a for a in ctx.atomes if a.preuve.tour == "T104"]                       # moins de 2 mots
     imp = [a for a in ctx.atomes if a.type == "IMPACT"]
     assert {a.domaine for a in imp} == {"family", "self_belief"} and len(imp) == 2
 
 
-# =============================================================================================== 8. registers (SB-26..SB-33)
+# =============================================================================================== 8. registres (SB-26 à SB-33)
 def reg(domaine, base_="named", citation=None, ref=None, **kw) -> dict:
     d = {"asked_domain": domaine, "basis": base_, "quote": citation, "reference_turn": ref}
     d.update(kw)
@@ -731,19 +735,19 @@ class TestRegistres:
         v = lambda a: S._valider_registre(a, ctx, u)          # noqa: E731
         assert v(reg("money", citation="your money")) == []
         assert v(reg("money", citation="your wallet")) == ["bad_quote:named"]
-        assert v(reg("family", citation="your money")) == ["lexicon_conflict"]           # rule 3: one register in the words
+        assert v(reg("family", citation="your money")) == ["lexicon_conflict"]           # règle 3 : un seul registre dans les mots
         assert v(reg("clients", "reference", citation="I have no clients", ref="T004")) == []
         assert v(reg("clients", "reference", citation="I have no clients", ref="T010")) == ["bad_reference_turn"]
         assert v(reg("money", "none")) == ["none_basis_with_domain"]
         assert v(reg("none", "named", citation="your money")) == ["domain_without_basis"]
         assert v(reg("career", citation="your money")) == ["bad_domain"]
-        assert v(reg("other", "named", citation="your money")) == ["named_other"]                # SB-35: open question
+        assert v(reg("other", "named", citation="your money")) == ["named_other"]                # SB-35 : question ouverte
         assert v(reg("money", "answer", citation="I lost about 2K a month", ref="T006")) == ["no_answer"]
-        u.sol.tours_reponse = ["T006"]                                                       # now it has an answer
+        u.sol.tours_reponse = ["T006"]                                                       # maintenant elle a une réponse
         assert v(reg("money", "answer", citation="I lost about 2K a month", ref="T006")) == []
         assert v(reg("money", "answer", citation="I lost about 2K a month", ref="T004")) == ["bad_answer_turn"]
         assert v(reg("money", "answer", citation="I lost 5K", ref="T006")) != []
-        assert v(reg("other", "answer", citation="I can't pay my rent", ref="T006")) == []     # the answer may be Other
+        assert v(reg("other", "answer", citation="I can't pay my rent", ref="T006")) == []     # la réponse peut être Other
         assert v(reg("clients", "reference", citation="I have no clients", ref="T004")) == ["reference_with_answer"]
         assert v(reg("none", "none")) == ["none_with_answer"]
 
@@ -754,17 +758,17 @@ class TestRegistres:
         assert {k: lignes_[k]["register"] for k in ("Q003.1", "Q005.1", "Q007.1", "Q009.1", "Q011.1")} == {
             "Q003.1": "financial", "Q005.1": "financial", "Q007.1": "time_load", "Q009.1": "financial",
             "Q011.1": "identity_status"}
-        assert lignes_["Q001.1"]["register"] is None                          # before the perimeter
-        assert lignes_["Q015.1"]["register"] is None and lignes_["Q017.1"]["register"] is None   # SB-26: after the pitch
+        assert lignes_["Q001.1"]["register"] is None                          # avant le périmètre
+        assert lignes_["Q015.1"]["register"] is None and lignes_["Q017.1"]["register"] is None   # SB-26 : après la présentation
         assert not any(t == "spin.register" and u in ("register:Q015.1", "register:Q017.1") for t, u, _ in client.appels)
         resum = res.details["registers"]
         assert resum["counts"] == {"financial": 3, "time_load": 1, "identity_status": 1, "mental_emotional": 0, "other": 0}
         assert resum["agreement"] == 1.0 and "register_agreement_low" not in res.signaux
-        assert res.note is not None and res.version_regles == "SPIN-1.3"     # the register never changes the score
+        assert res.note is not None and res.version_regles == "SPIN-1.3"     # le registre ne change jamais la note
 
     def test_sb35_une_question_ouverte_prend_le_registre_de_sa_reponse(self):
-        """Romain 2026-10-29: "what made you book this call?" names no domain; the answer speaks of clients: Financial.
-        A reference although the question was answered is rejected (SB-32), replayed, then to_review."""
+        """Romain 2026-10-29 : « what made you book this call? » ne nomme aucun domaine ; la réponse parle de clients :
+        Financial. Une référence alors que la question a eu une réponse est rejetée (SB-32), redemandée, puis to_review."""
         res, _ = executer_spin(mk(SYN, debut_presentation="T013"), reponses_reg())
         ligne_ = next(r for r in res.details["solicitations"] if r["id"] == "Q003.1")
         assert (ligne_["register"], ligne_["register_basis"], ligne_["register_reference_turn"]) == ("financial", "answer", "T004")
@@ -823,11 +827,11 @@ class TestRegistres:
         res, client = executer_spin(mk(SYN, debut_presentation="T013"), a)
         ligne_ = next(r for r in res.details["solicitations"] if r["id"] == "Q005.1")
         assert ligne_["register"] is None and ligne_["register_status"] == "to_review"
-        assert sum(1 for t, u, _ in client.appels if u == "register:Q005.1") == 8      # (3 passes + arbiter) x (1 + replay)
+        assert sum(1 for t, u, _ in client.appels if u == "register:Q005.1") == 8      # (3 passes + arbitre) x (1 + nouvelle demande)
 
 
 def test_une_coupe_de_porte_mal_formee_est_une_mauvaise_coupe():
-    """A split / sub sent as an object instead of a list is rejected by the validator and never applied."""
+    """Un split / sub envoyé comme un objet au lieu d'une liste est rejeté par le validateur et jamais appliqué."""
     from lnp_analyse.competences.spin import _valider_obj_porte, decider_portes
     g = {"g1": {"reason": None}, "split": ["How long?", "And why?"], "sub": {"0": {}, "1": {}}}
     assert "bad_split" in _valider_obj_porte(g, "How long? And why?")
@@ -835,3 +839,114 @@ def test_une_coupe_de_porte_mal_formee_est_une_mauvaise_coupe():
              "anchor_words": [], "backchannel": False, "system": False}
     assert [t for t, _ in decider_portes(g, attrs, "How long? And why?")] == ["How long? And why?"]
 
+
+
+# =============================================================================================== 9. listes françaises et consignes
+@pytest.mark.parametrize("q,forme", [("Tu as combien d'élèves aujourd'hui ?", "interrogative"),
+                                     ("Dis-moi ce qui se passe.", "imperative"),
+                                     ("Raconte-moi une semaine type.", "imperative"),
+                                     ("Expliquez-moi comment vous trouvez vos élèves.", "imperative"),
+                                     ("Parle-moi de tes cours.", "imperative"),
+                                     ("Est-ce que tu as déjà essayé les plateformes", "interrogative_no_mark"),
+                                     ("Qu’est-ce qui te bloque", "interrogative_no_mark"),
+                                     ("Combien tu factures l'heure", "interrogative_no_mark"),
+                                     ("Avez-vous déjà des élèves", "interrogative_no_mark"),
+                                     ("C’est ce que tu veux.", None)])
+def test_formes_de_sollicitation_francaises(q, forme):
+    assert S.forme_question(q) == forme
+
+
+@pytest.mark.parametrize("q", ["Donc tu veux plus d'élèves, non ?", "Tu es prof de maths, c’est ça ?",
+                               "Tu veux en vivre, n'est-ce pas ?", "C'est le plus dur, hein ?",
+                               "Il faut trouver les familles, tu vois ?", "C'est logique, d'accord ?",
+                               "Ça vous parle ?", "Vous êtes d'accord, vous voyez ?", "Je me trompe ?"])
+def test_queues_de_validation_francaises(q):                                         # SEG-4
+    assert any(re.search(p, q.lower()) for p in S.QUEUES)
+
+
+def test_queue_seule_francaise_ferme_la_phrase_precedente():                          # SEG-4
+    for q in ("Non ?", "Hein ?", "C’est ça ?", "D'accord ?", "Tu vois ?", "Vous voyez ?", "N'est-ce pas ?", "Ça te parle ?"):
+        assert S.QUEUE_SEULE.match(q), q
+    assert not S.QUEUE_SEULE.match("Tu as combien d'élèves ?")
+    ctx = mk([("S", "Tu as trois élèves. Tu vois ?"), ("P", "Oui.")])
+    (u,) = S.inventaire(ctx)
+    assert u.sol.texte == "Tu as trois élèves, Tu vois ?" and u.attrs["validation_tail"]
+
+
+def test_relance_orale_francaise_et_couper_phrases():                                 # SEG-7
+    ctx = mk([("S", "Ah oui ? Tout à fait ? Et toi, tu donnes cours où ?"), ("P", "À Lyon.")])
+    unites = S.inventaire(ctx)
+    assert [u.attrs["backchannel"] for u in unites] == [True, True, False]
+    assert S.couper_phrases("Tu donnes des cours. Ça marche ? À quel prix ? Écoute.") == [
+        "Tu donnes des cours.", "Ça marche ?", "À quel prix ?", "Écoute."]
+
+
+def test_alternative_branche_ouverte_et_mots_de_l_offre_francais():
+    ctx = mk([("S", "Tu préfères le collège ou le lycée ? Tu veux en vivre ou pas ? Et pourquoi notre accompagnement ?"),
+              ("P", "Le lycée.")])
+    a, b, c = (u.attrs for u in S.inventaire(ctx))
+    assert a["alternative"] and not a["open_branch"]
+    assert b["open_branch"] and c["why"] and c["offer_mention"]
+    for t in ("il y a trois modules", "les séances de coaching", "le tarif", "un paiement en 3 fois"):
+        assert S.MOTS_OFFRE.search(t), t
+
+
+@pytest.mark.parametrize("q", ["Comment ça ?", "Dis-m'en plus.", "Et après ?", "C'est-à-dire ?", "Par exemple ?",
+                               "Beaucoup ?", "Qu'est-ce que tu veux dire ?", "Pourquoi ?"])
+def test_echo_francais(q):                                                             # SB-19
+    assert S.approfondit("Beaucoup.", q)
+
+
+def test_approfondissement_et_mots_vides_francais():                                   # SB-17
+    assert S.approfondit("Je n'ai presque plus d'élèves depuis septembre", "Et sans élèves, qu'est-ce qui se passe ?")
+    assert not S.approfondit("C'est vraiment quelque chose, enfin bref", "Qu'est-ce que tu voudrais aujourd'hui ?")
+    assert S.mots_contenu("C'est vraiment quelque chose, aujourd'hui") == set()
+
+
+@pytest.mark.parametrize("q,att", [
+    ("Avec des élèves qui vont et viennent comme ça, quel impact ça a sur tes revenus ?", {"financial"}),
+    ("Combien tu gagnes avec l'argent des cours ?", {"financial"}),
+    ("Ça t’a coûté 500 balles ?", {"financial"}),
+    ("Combien d'heures tu y passes par semaine ?", {"time_load"}),
+    ("Ça a un impact sur ta famille ?", {"time_load"}),
+    ("Où tu te vois dans cinq ans ?", {"identity_status"}),
+    ("Comment tu te sens par rapport à ça ?", {"mental_emotional"}),
+    ("Tu es épuisée en fin de semaine ?", {"mental_emotional", "time_load"}),
+    ("Qu'est-ce qui t'a donné envie de réserver cet appel ?", set())])
+def test_sb30_mots_du_domaine_francais(q, att):
+    assert S.registres_lexique(q) == att
+
+
+@pytest.mark.parametrize("q,att", [("deux ans", True), ("une dizaine d'élèves", True), ("un mois", True),
+                                   ("15 heures par semaine", True), ("2 000 euros par mois", True),
+                                   ("tous les mois", False), ("beaucoup de temps perdu", False),
+                                   ("un jour je voudrais vivre de mes cours", False), ("depuis toujours", False)])
+def test_sb24_chiffre_francais(q, att):
+    assert S.a_quantite(q) is att
+
+
+def test_lire_quantite_francaise():
+    assert S.lire_quantite("je gagne 2 000 euros par mois") == (2000.0, "euros")
+    assert S.lire_quantite("environ 1500 € par mois") == (1500.0, "€")
+    assert S.lire_quantite("j'ai 3 élèves") == (3.0, "élèves")
+    assert S.lire_quantite("about 3K a month") == (3000.0, "month")
+
+
+def test_les_consignes_sont_en_francais_et_gardent_leurs_schemas():
+    ctx = mk(SYN, debut_presentation="T013")
+    u = next(x for x in S.inventaire(ctx) if x.sol.id == "Q003.1")
+    c = S._construire_portes(ctx, u)
+    assert "SOLLICITATION : What made you book this call?" in c and "validation_tail=" in c
+    assert "Les citations sont des sous-chaînes exactes de SOLLICITATION." in c
+    dossier = Path(S.__file__).resolve().parent.parent / "consignes"
+    portes = (dossier / "spin_portes.md").read_text(encoding="utf-8")
+    assert "sous-chaîne exacte de SOLLICITATION" in portes
+    for nom in ("is_solicitation", "attribution_doubtful", "VALIDATION_REQUEST", "neutral_fact", "state_or_value",
+                "content_supplied", "objection_clarification", "`nothing`", "`offer_info`", "`solution_load`",
+                "`sales_list`", "`agreement`"):
+        assert nom in portes, nom
+    registre = (dossier / "spin_registre.md").read_text(encoding="utf-8")
+    assert "(pas de réponse)" in registre and "RÉPONSE DU PROSPECT À CETTE QUESTION" in registre
+    assert '{"asked_domain": "money", "basis": "named", "quote": "tes revenus", "reference_turn": null}' in registre
+    commun = (dossier / "systeme_commun.md").read_text(encoding="utf-8")
+    assert "SALES (le commercial)" in commun and '"uncovered"' in commun

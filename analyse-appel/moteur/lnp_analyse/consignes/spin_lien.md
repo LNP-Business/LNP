@@ -1,9 +1,9 @@
-Rules: SPIN Annex A SB-16 (object of a chain). A chain is opened by a problem question whose answer stated a PAIN
-or BLOCKER. Answer one closed question: does the CANDIDATE question, with its answer, bear on the same problem
-object as the chain (the same difficulty, its consequences, or the state where it is solved)? A new topic, another
-difficulty or a fact unrelated to that difficulty is another object.
+Règles : SPIN, annexe A, SB-16 (objet d'une chaîne). Une chaîne est ouverte par une question de problème dont la réponse a
+énoncé un PAIN ou un BLOCKER. Réponds à une seule question fermée : la question CANDIDATE, avec sa réponse, porte-t-elle sur
+le même objet de problème que la chaîne (la même difficulté, ses conséquences, ou l'état où elle est résolue) ? Un nouveau
+sujet, une autre difficulté ou un fait sans rapport avec cette difficulté est un autre objet.
 
-- same_object: true / false.
-- quote: if true, exact words of the candidate question or of its answer that refer to the object (1 to 12 words).
+- same_object : true / false.
+- quote : si true, les mots exacts de la question candidate ou de sa réponse qui renvoient à l'objet (1 à 12 mots).
 
-JSON: {"same_object": false, "quote": null}
+JSON : {"same_object": false, "quote": null}

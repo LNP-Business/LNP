@@ -1,7 +1,7 @@
-"""Model tasks and their execution: three independent passes, validation, replay, arbitration (Part C, C4).
+"""Tâches du modèle et leur exécution : trois passes indépendantes, validation, nouvelle demande, arbitrage (partie C, C4).
 
-A ModelTask is a closed question. It knows how to build its prompt for one unit, how to validate the
-answer (every quote checked by code), and which part of the answer must agree across passes.
+Une TacheModele est une question fermée. Elle sait construire sa consigne pour une unité, valider la réponse (chaque
+citation vérifiée par le code) et quelle partie de la réponse doit concorder d'une passe à l'autre.
 """
 from __future__ import annotations
 
@@ -24,12 +24,12 @@ def charger_consigne(nom_: str) -> str:
 
 @dataclass
 class TacheModele:
-    id: str                                   # e.g. "gap.restitution"
+    id: str                                   # par exemple "gap.restitution"
     palier: str                                 # fast / strong
-    regles: str                                # prompt file name in prompts/ (without .md)
-    construire: Callable[[ContexteAppel, Any], str]  # unit -> user prompt (transcript extract + question)
-    valider: Callable[[dict, ContexteAppel, Any], list[str]]   # -> list of error codes (empty = valid)
-    cle: Callable[[dict], Any]                # decision-relevant signature compared across passes
+    regles: str                                # nom du fichier de consigne dans consignes/ (sans .md)
+    construire: Callable[[ContexteAppel, Any], str]  # unité -> consigne de l'utilisateur (extrait de transcription + question)
+    valider: Callable[[dict, ContexteAppel, Any], list[str]]   # -> liste de codes d'erreur (vide = valable)
+    cle: Callable[[dict], Any]                # signature utile à la décision, comparée d'une passe à l'autre
     passes: int = 3
 
 
@@ -37,7 +37,7 @@ class TacheModele:
 class Resolu:
     reponse: Optional[dict]
     statut: str                               # verified / arbitrated / to_review
-    concordance: str                          # "3/3", "2/3", ...
+    concordance: str                          # "3/3", "2/3"…
     lectures_: list[dict] = field(default_factory=list)
     justification: Optional[str] = None
     libelle_cas: Optional[str] = None          # application_error / rule_ambiguity / uncovered_case
@@ -46,11 +46,11 @@ class Resolu:
 @dataclass
 class ConfigExecution:
     passes: int = 3
-    passe_unique_permise: bool = False         # C4 cost option, only once reproducibility >= 95 %
-    taux_echantillon: float = 0.10                 # share of units still run with 3 passes in single-pass mode
+    passe_unique_permise: bool = False         # option de coût de C4, seulement quand la reproductibilité atteint 95 %
+    taux_echantillon: float = 0.10                 # part des unités encore lues en 3 passes en mode passe unique
     version_regles: str = "1.0"
     graine: int = 0
-    passes_paralleles: bool = False             # run the passes of a unit at the same time (worker); no effect on decisions
+    passes_paralleles: bool = False             # lancer les passes d'une unité en même temps (exécutant) ; sans effet sur les décisions
 
 
 class Executeur:
@@ -66,13 +66,13 @@ class Executeur:
         systeme = self.systeme_commun + "\n\n" + charger_consigne(tache.regles)
         try:
             rep = self.client.demander(tache.id, id_unite, palier or tache.palier, systeme, consigne, no_passe)
-        except Exception as e:  # noqa: BLE001 - every failure is audited, never silent
+        except Exception as e:  # noqa: BLE001 - chaque échec est inscrit au journal d'audit, jamais passé sous silence
             ctx.audit.append({"task": tache.id, "unit": id_unite, "pass": no_passe, "error": repr(e)})
             return None, ["model_error"]
         errs = _verifier(tache, rep, ctx, id_unite)
-        if errs:  # C3 rule 7: replay once with the error message
-            reessayer = consigne + "\n\nYOUR PREVIOUS ANSWER WAS REJECTED BY THE CODE: " + ", ".join(errs) + \
-                "\nCopy every quote character for character from the cited turn, spoken by the expected role."
+        if errs:  # C3 règle 7 : redemander une fois avec le message d'erreur
+            reessayer = consigne + "\n\nTA RÉPONSE PRÉCÉDENTE A ÉTÉ REJETÉE PAR LE CODE : " + ", ".join(errs) + \
+                "\nRecopie chaque citation caractère pour caractère depuis le tour cité, prononcé par le rôle attendu."
             try:
                 rep = self.client.demander(tache.id, id_unite, palier or tache.palier, systeme, reessayer, no_passe)
                 errs = _verifier(tache, rep, ctx, id_unite)
@@ -89,7 +89,7 @@ class Executeur:
         if self.cfg.passe_unique_permise and self.alea.random() > self.cfg.taux_echantillon:
             n = 1
         lectures_, cles = [], []
-        if self.cfg.passes_paralleles and n > 1:  # the passes stay independent: none sees another's answer
+        if self.cfg.passes_paralleles and n > 1:  # les passes restent indépendantes : aucune ne voit la réponse d'une autre
             with ThreadPoolExecutor(max_workers=n) as reserve:
                 fait = list(reserve.map(lambda p: self._demander(ctx, tache, id_unite, consigne, p), range(1, n + 1)))
         else:
@@ -107,11 +107,12 @@ class Executeur:
         return self._arbitrer(ctx, tache, id_unite, unite, consigne, lectures_, conc)
 
     def _arbitrer(self, ctx, tache, id_unite, unite, consigne, lectures_, conc) -> Resolu:
-        consigne_arb = (consigne + "\n\nTHREE INDEPENDENT READINGS OF THIS UNIT (do not vote between them; "
-                      "walk the rules in their fixed order and decide):\n" +
+        consigne_arb = (consigne + "\n\nTROIS LECTURES INDÉPENDANTES DE CETTE UNITÉ (ne vote pas entre elles ; "
+                      "parcours les règles dans leur ordre fixe et décide) :\n" +
                       json.dumps([r["answer"] for r in lectures_], ensure_ascii=False, indent=1) +
-                      "\n\nAnswer with the same JSON schema, plus \"justification\" (one sentence) and "
-                      "\"case_label\" (application_error | rule_ambiguity | uncovered_case | undecidable).")
+                      "\n\nRéponds avec le même schéma JSON, plus \"justification\" (une phrase) et "
+                      "\"case_label\" (application_error | rule_ambiguity | uncovered_case | undecidable : erreur "
+                      "d'application, règle ambiguë, cas non couvert, impossible à trancher).")
         rep, errs = self._demander(ctx, tache, id_unite, consigne_arb, 0, palier="arbiter")
         if rep is None or rep.get("case_label") == "undecidable":
             return Resolu(None, "to_review", conc, lectures_)
@@ -119,27 +120,29 @@ class Executeur:
 
 
 def _verifier(tache: TacheModele, rep: Any, ctx: ContexteAppel, id_unite: str) -> list[str]:
-    """C3 rule 7: an answer of an unexpected shape (a list where an object is expected...) is an invalid answer, replayed
-    once then to_review for that unit only; it never crashes the competence (Sara Salem, 2026-10-28: KeyError(0))."""
+    """C3 règle 7 : une réponse d'une forme inattendue (une liste là où un objet est attendu…) est une réponse invalide,
+    redemandée une fois puis to_review pour cette unité seulement ; elle ne fait jamais planter la compétence
+    (Sara Salem, 2026-10-28 : KeyError(0))."""
     if rep is None:
         return ["empty"]
     if not isinstance(rep, dict):
         return ["not_an_object"]
     try:
         return tache.valider(rep, ctx, id_unite)
-    except Exception as e:  # noqa: BLE001 - a validator that cannot read the answer rejects it
+    except Exception as e:  # noqa: BLE001 - un validateur qui ne sait pas lire la réponse la rejette
         return [f"invalid_shape:{type(e).__name__}"]
 
 
 def _cle(tache: TacheModele, rep: dict) -> Optional[str]:
     try:
         return json.dumps(tache.cle(rep), sort_keys=True, default=str)
-    except Exception:  # noqa: BLE001 - an unreadable reading counts as no valid reading
+    except Exception:  # noqa: BLE001 - une lecture illisible compte comme aucune lecture valable
         return None
 
 
 def forcer_arbitrage(executeur: "Executeur", ctx: ContexteAppel, tache: TacheModele, id_unite: str, unite: Any,
                       resolu: "Resolu") -> "Resolu":
-    """Send a unit to the arbiter even when the passes agree (e.g. a P outside the nine categories, Pitch §2.1)."""
+    """Envoie une unité à l'arbitre même quand les passes concordent (par exemple un P hors des neuf catégories,
+    Présentation §2.1)."""
     consigne = tache.construire(ctx, unite)
     return executeur._arbitrer(ctx, tache, id_unite, unite, consigne, resolu.lectures_, resolu.concordance)

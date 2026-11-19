@@ -1,8 +1,8 @@
-"""Orchestrator: the fixed dependency order of the engine.
+"""Chef d'orchestre : l'ordre fixe des dépendances du moteur.
 
-foundation (S0, C1, S2) -> SPIN -> Gap -> Pitch -> Objections -> stored result.
-Each competence reads the frozen outputs of the previous stages from the CallContext and writes its
-CompetenceResult. No competence ever re-places a phase anchor of its own.
+socle (S0, C1, S2) -> SPIN -> Écart -> Présentation de l'offre -> Objections -> résultat enregistré.
+Chaque compétence lit dans le ContexteAppel les sorties figées des étapes précédentes et écrit son
+ResultatCompetence. Aucune compétence ne replace jamais elle-même un repère de phase.
 """
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ def analyser_appel(ctx: ContexteAppel, executeur: Executeur, competences: Option
             continue
         try:
             ctx.resultats[comp.nom_] = comp.executer(ctx, executeur)
-        except Exception as e:  # noqa: BLE001 - a crash in one competence never blocks the others
+        except Exception as e:  # noqa: BLE001 - une compétence qui plante ne bloque jamais les autres
             ctx.audit.append({"competence": comp.nom_, "error": repr(e)})
             ctx.resultats[comp.nom_] = ResultatCompetence(comp.nom_, comp.version_regles, statut="to_review",
                                                       raisons=["engine_error"])
@@ -46,7 +46,7 @@ def analyser_appel(ctx: ContexteAppel, executeur: Executeur, competences: Option
 
 
 def enregistrement_resultat(ctx: ContexteAppel) -> dict:
-    """What is stored per call (Part C, C8): results + phase map + audit of every pass."""
+    """Ce qui est enregistré pour chaque appel (partie C, C8) : résultats + carte des phases + audit de chaque passe."""
     return {"call_id": ctx.id_appel, "sales_id": ctx.id_commercial, "start_utc": ctx.debut_utc, "timezone": ctx.fuseau,
             "status": ctx.statut, "flags": ctx.signaux,
             "turns": [{"id": t.id, "ts": t.ts, "role": t.role, "speaker": t.locuteur, "text": t.texte,
@@ -63,11 +63,12 @@ def charger_appel(chemin: str, carte_locuteurs: dict[str, str], id_appel: str, i
                        reference_offre or {}, bibliotheque_cas or [])
 
 
-if __name__ == "__main__":  # minimal CLI
+if __name__ == "__main__":  # ligne de commande minimale
     import argparse
     from .noyau.client_modele import ClientAnthropic
     p = argparse.ArgumentParser()
-    p.add_argument("transcription"); p.add_argument("--config", required=True, help="JSON: speaker_map, call meta, tiers")
+    p.add_argument("transcription"); p.add_argument("--config", required=True,
+                                                 help="JSON : speaker_map, données de l'appel, tiers (paliers)")
     a = p.parse_args()
     cfg = json.load(open(a.config))
     ctx = charger_appel(a.transcription, cfg["speaker_map"], cfg["call_id"], cfg["sales_id"], cfg["start_utc"],
