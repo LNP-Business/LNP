@@ -137,7 +137,7 @@ def place_perimeter(ctx: CallContext, units: list[LUnit]) -> dict:
     logistic or framing: OUT `nothing`, offer questions, loads); the first pitch start or price ends it (SB-34)."""
     start = None
     for u in units:
-        if start is None and E.is_valid_start(u.decision):
+        if start is None and E.is_valid_start(u.decision, u.sol.text):
             start = u
         if start is not None:
             u.in_perimeter = True

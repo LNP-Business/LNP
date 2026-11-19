@@ -427,9 +427,32 @@ def discovery_end(ctx: CallContext) -> Optional[str]:
     return min(c, key=ctx.n) if c else None
 
 
-def is_valid_start(d: LetterDecision) -> bool:
+# SB-2 (code, LNP 2026-11-19): social, logistic and framing questions are never the perimeter start, whatever letter the
+# model gave them ("tu viens de quelle région ?" coded S opened the discovery of three calls of November 2026)
+SOCIAL_LOGISTIC = re.compile(
+    r"where are you (calling|joining) from|how('s| is| was) your (day|week|weekend)|how are you|can you (see|hear) me|"
+    r"d'où (tu |vous )?(m'appelles|m'appelez|appelles|appelez|viens|venez)|de quelle (région|ville|coin)|"
+    r"tu habites où|vous habitez où|il (ne )?fait (pas )?(trop )?(froid|chaud|beau)|la météo|"
+    r"^\W*(et )?(ça va|comment (tu vas|vous allez|ça va)|tu vas bien|vous allez bien)\b.{0,30}\?\s*$|"
+    r"(bonne|bon|passé une bonne|passé un bon) (journée|semaine|week-end|weekend)|"
+    r"tu m'entends|vous m'entendez|tu me vois|vous me voyez|ça (coupe|bug|capte)|"
+    r"on (peut )?se (tutoie|tutoyer|vouvoie|vouvoyer)|on se tutoie|"
+    r"\b(tu as|t'as|as-tu|as|vous avez|avez-vous) (pu )?(voir|vu|regardé|regarder|suivi|suivre|assisté)( à)? "
+    r"(le |la |au |à la )?(live|conférence|webinaire|vidéo|masterclass|replay)|"
+    r"(décale|décaler|reporter|reporte) (cet |l')?(appel|rendez-vous|rdv)|un autre créneau|"
+    r"combien de temps (tu as|vous avez|t'as) (devant (toi|vous)|pour (l'appel|cet appel))", re.I)
+
+
+def social_or_logistic(text: str) -> bool:
+    return bool(SOCIAL_LOGISTIC.search(norm(text or "")))
+
+
+def is_valid_start(d: LetterDecision, text: Optional[str] = None) -> bool:
     """SB-1 / SB-2: the start bears on the prospect's situation, goals or problems; social, logistic and framing
-    questions (gate 1 `nothing`), offer questions and loads are never the start."""
+    questions (gate 1 `nothing`), offer questions and loads are never the start. With the question's text, the code
+    also refuses a social or logistic question the model coded otherwise (SOCIAL_LOGISTIC)."""
+    if text is not None and social_or_logistic(text):
+        return False
     return d.letter in LETTERS or (d.letter == OUT and d.reason in ("agreement", "sales_list"))
 
 
@@ -933,7 +956,7 @@ def place_perimeter(ctx: CallContext, units: list[Unit], resolve: Callable[[Unit
             continue
         u.window_end = end
         resolve(u)
-        if start is None and u.decision and is_valid_start(u.decision):   # SB-1, SB-2
+        if start is None and u.decision and is_valid_start(u.decision, u.sol.text):   # SB-1, SB-2
             start = u
         if start is not None:
             u.in_perimeter = True

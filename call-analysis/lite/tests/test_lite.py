@@ -324,3 +324,37 @@ def test_the_code_narrows_a_key_expression_copied_as_a_whole_sentence():
                                  "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "suis dépendante"
     # (2026-11-19: the person shift is French too, so « je suis » is found in the sales' « es »: the longest shared run)
     assert shared_key_expression("je suis vraiment", "je suis vraiment", "tu es là") is None       # generic only: none
+
+
+# ---------------------------------------------------------------- 2026-11-19: phases and perimeter (audit of November 2026)
+def test_an_offer_description_far_from_the_next_question_is_the_pitch_start():
+    """PB-2 / PB-17: a mention only when the return to discovery comes within 2 sales turns (Maria's call: any later
+    question used to count, and her pitch was read at the price)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    t = next(x for x in a["lite.s0_phases"]["turns"] if x["turn"] == "T019")
+    t["next_discovery_question"] = {"turn": "T025", "quote": "Do you have any questions about how the weekly calls work?"}
+    rec, _ = run(a)
+    assert rec["phases"]["pitch_start"] == "T019"
+    assert rec["meta"]["steps"]["S0"]["reasons"].get("pitch:discovery_too_far") == 1
+
+
+def test_the_pitch_end_is_the_first_price_after_the_pitch_start():
+    """PB-4, recomputed after the code moves the price or the start (Antoine's pitch end was on no price nor request)."""
+    for answers in (sc.ANSWERS, None):
+        a = copy.deepcopy(sc.ANSWERS)
+        if answers is None:
+            t = next(x for x in a["lite.s0_phases"]["turns"] if x["turn"] == "T019")
+            t["followed_by_discovery"] = True
+            t["next_discovery_question"] = None
+        rec, _ = run(a)
+        assert rec["phases"]["pitch_end"] == rec["phases"]["first_price"] == "T027"
+
+
+def test_a_social_question_never_starts_the_discovery():
+    """SB-2 by the code: « can you hear me? » coded S by the model does not open the perimeter."""
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_discovery"]["questions"][0].update(letter="S", out_reason=None)
+    rec, _ = run(a)
+    assert rec["phases"]["discovery_start"] == "T003"
+    first = next(s for s in sols(rec) if s["turn"] == "T001")
+    assert not first["in_perimeter"] and "pre_perimeter" in first["tags"]
