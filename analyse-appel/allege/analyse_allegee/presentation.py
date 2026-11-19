@@ -1,10 +1,12 @@
-"""S3 → Pitch result (PITCH-2.0), computed by the reference engine's PitchCompetence on the lite answers.
+"""S3 → résultat de la présentation (PITCH-2.0), calculé par CompetencePresentation du moteur de référence sur les
+réponses du moteur allégé.
 
-The S3 step answers, in one call, the closed questions the engine asks one by one: the category of the validated P
-(PB-27), steps 1 to 4 (PB-28 to PB-31), the roadmap (PB-34), the claims (PB-35), the outcome promises (PB-36) and the
-adhesion passages (PB-14 to PB-16). The list answers are cut into the engine's chunks by turn. The compliance gate (pitch
-after the yes, PB-37; claims outside his gap or the offer; outcome promises), every step check and every level are the
-engine's code: the model never says whether the pitch came after the gap or is compliant.
+L'étape S3 répond, en un appel, aux questions fermées que le moteur pose une par une : la catégorie du P validé (PB-27),
+les étapes 1 à 4 (PB-28 à PB-31), la feuille de route (PB-34), les affirmations (PB-35), les promesses de résultat
+(PB-36) et les passages d'adhésion (PB-14 à PB-16). Les réponses en liste sont coupées selon les blocs de tours du
+moteur. La porte de conformité (présentation après le oui, PB-37 ; affirmations hors de son écart ou de l'offre ;
+promesses de résultat), chaque vérification d'étape et chaque niveau sont le code du moteur : le modèle ne dit jamais si
+la présentation est venue après l'écart ni si elle est conforme.
 """
 from __future__ import annotations
 
@@ -24,16 +26,16 @@ UNIQUE = {"pitch.step1": "step1", "pitch.step2": "step2", "pitch.step3": "step3"
 
 
 def texte_contexte(ctx: ContexteAppel) -> dict[str, str]:
-    """What the S3 prompt is told of the earlier stages (the Gap result) and of the references."""
+    """Ce que la consigne S3 reçoit des étapes précédentes (le résultat de l'écart) et des références."""
     g = P._ecart(ctx)
-    vider = lambda x: json.dumps(x, ensure_ascii=False) if x else "none"          # noqa: E731
+    vider = lambda x: json.dumps(x, ensure_ascii=False) if x else "aucun"          # noqa: E731
     vp = g.get("validated_P")
     ref = {k: v for k, v in (ctx.reference_offre or {}).items() if k != "mechanisms"}
-    refs = "\n".join(["OFFER REFERENCE: " + (json.dumps(ref, ensure_ascii=False) if ref else "missing"),
+    refs = "\n".join(["RÉFÉRENCE DE L'OFFRE : " + (json.dumps(ref, ensure_ascii=False) if ref else "absente"),
                       P._texte_reference_meca(ctx), P._texte_bibliotheque(ctx)])
     blocages = [{"quote": b.get("quote"), "turn": b.get("turn")} for b in g.get("roadmap_blockers") or []]
     return {"vp": vider({"quote": vp.get("quote"), "turn": vp.get("turn"), "key_expression": vp.get("key_expression")})
-            if vp else "none (no category to give)",
+            if vp else "aucun (pas de catégorie à donner)",
             "a": vider(g.get("selected_A")), "b": vider(g.get("selected_B")), "blockers": vider(blocages), "references": refs}
 
 
@@ -64,8 +66,8 @@ class ReponsesPresentation:
 
 
 def executer_presentation(ctx: ContexteAppel, s3: dict, rejets: Rejets) -> ResultatCompetence:
-    """S3 answered: the engine decides. Items listed outside every chunk of the pitch window (before the pitch start or
-    after the decision request) are dropped and counted."""
+    """S3 répondue : le moteur décide. Les items listés hors de tous les blocs de la fenêtre de la présentation (avant le
+    début de la présentation ou après la demande de décision) sont écartés et comptés."""
     comp = P.CompetencePresentation()
     fenetre = {t for a, b in P.blocs(ctx, comp.cfg["chunk_turns"]) for t in
               (x.id for x in ctx.tours[ctx.n(a): ctx.n(b) + 1])} if ctx.phases.debut_presentation else set()

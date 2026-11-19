@@ -1,17 +1,20 @@
-"""Competence 4 · Objection Removal (methodology OBJ v1.1, Annex A OB-1..OB-26).
+"""Compétence 4 · Traitement des objections (méthodologie OBJ v1.1, annexe A, OB-1 à OB-26).
 
-Golden rule: the model answers closed questions with exact quotes; the code bounds episodes, decides levels and scores.
+Règle d'or : le modèle répond à des questions fermées avec des citations exactes ; le code borne les épisodes, décide les
+niveaux et note.
 
-Pipeline of `ObjectionsCompetence.run`:
-  1. inventory, after the first price only (OB-27), (code, OB-1 markers, OB-12 speakers, OB-26 doubtful turns) + model nomination of unmarked passages;
-  2. per candidate: `obj.resistance` (exclusions OB-2, doubt subjects -> nature by the code with the OB-3 order,
-     OB-4 two natures, OB-24 denied nature, OB-25 external reason that also limits time, OB-26 label check);
-  3. OB-5 merge (code); episode bounding (code, OB-6..OB-9) with `obj.topic` where the code cannot decide OB-8 (b)
-     and for OB-22; latent by turn numbers (OB-10, OB-22); recurrence (OB-11);
-  4. per episode: `obj.acknowledge` (OB-13/OB-20), `obj.isolate` (OB-14/X6), `obj.explore` (OB-15/OB-20/X7),
-     `obj.gesture` (OB-16/OB-21), `obj.resolution` (OB-17/OB-23/X3) -> items H1..H5 (§5.1);
-  5. prevention `obj.prevention` on the turns before the first price (OB-18/OB-19) -> R1..R3 (§5.2);
-  6. applicability (§4), combination 70/30 (§5), diagnostics (§7), output contract (§9).
+Déroulé de `CompetenceObjections.executer` :
+  1. inventaire, après le premier prix seulement (OB-27) : par le code (marqueurs OB-1, interlocuteurs OB-12, tours douteux
+     OB-26), puis nomination par le modèle des passages sans marqueur ;
+  2. pour chaque candidat : `obj.resistance` (exclusions OB-2, sujets du doute -> nature décidée par le code dans l'ordre
+     OB-3, OB-4 deux natures, OB-24 nature niée, OB-25 raison externe qui limite aussi le temps, OB-26 contrôle de
+     l'étiquette) ;
+  3. fusion OB-5 (code) ; bornage des épisodes (code, OB-6 à OB-9) avec `obj.topic` là où le code ne peut pas trancher
+     OB-8 (b), et pour OB-22 ; latence d'après les numéros de tour (OB-10, OB-22) ; récurrence (OB-11) ;
+  4. pour chaque épisode : `obj.acknowledge` (OB-13/OB-20), `obj.isolate` (OB-14/X6), `obj.explore` (OB-15/OB-20/X7),
+     `obj.gesture` (OB-16/OB-21), `obj.resolution` (OB-17/OB-23/X3) -> items H1 à H5 (§5.1) ;
+  5. prévention `obj.prevention` sur les tours avant le premier prix (OB-18/OB-19) -> R1 à R3 (§5.2) ;
+  6. applicabilité (§4), combinaison 70/30 (§5), diagnostics (§7), contrat de sortie (§9).
 """
 from __future__ import annotations
 
@@ -24,21 +27,21 @@ from ..noyau.executeur import TacheModele, Executeur
 from ..noyau.notation import note_appel, item
 from ..noyau.texte import GENERIQUES, MOTS_VIDES, approbation_seule, jetons_propres, normaliser, normaliser_nombre, citation_ok, phrases
 
-# ----------------------------------------------------------------------------------------------- constants
-# Every value below is a methodology proposal "to validate" (§5, §10, OB-5, OB-10) and stays configurable.
-PART_TRAITEMENT, PART_PREVENTION = 0.70, 0.30                 # §5 call score split
+# ----------------------------------------------------------------------------------------------- constantes
+# Chaque valeur ci-dessous est une proposition de la méthodologie « à valider » (§5, §10, OB-5, OB-10) et reste réglable.
+PART_TRAITEMENT, PART_PREVENTION = 0.70, 0.30                 # §5 partage de la note de l'appel
 POIDS_H = {"H1": 25, "H2": 10, "H3": 20, "H4": 35, "H5": 10}  # §5.1
 POIDS_R = {"R1": 40, "R2": 40, "R3": 20}                     # §5.2
 POIDS_EPISODE = {"objection": 1.0, "anxiety_capability": 1.5, "anxiety_choice": 1.5, "inertia": 1.5}  # §5.1
-TOURS_MAX_LATENT = 2          # OB-10: topic change within 2 turns of the resistance
-MOTS_MIN_REACTION_LATENT = 6  # OB-10: a reaction of 6 words or more prevents latent
-MOTS_MAX_RELANCE_ORALE = 5      # OB-5: sales backchannel of 5 words or fewer
-# Engineering parameters (not business facts): context sizes fed to the model.
+TOURS_MAX_LATENT = 2          # OB-10 : changement de sujet à 2 tours ou moins de la résistance
+MOTS_MIN_REACTION_LATENT = 6  # OB-10 : une réaction de 6 mots ou plus empêche la latence
+MOTS_MAX_RELANCE_ORALE = 5      # OB-5 : relance orale du commercial de 5 mots ou moins
+# Paramètres techniques (pas des faits métier) : taille des extraits donnés au modèle.
 BLOC_NOMINATION = 60
 CONTEXTE_AVANT, CONTEXTE_APRES = 3, 3
 
 NATURES = ("objection", "anxiety_capability", "anxiety_choice", "inertia")
-# OB-3 boundary tests in their fixed order: test 1 objection, test 2 anxiety, test 3 inertia.
+# Tests de frontière OB-3 dans leur ordre fixe : test 1 objection, test 2 anxiété, test 3 inertie.
 SUJETS: dict[str, tuple[int, str, str]] = {
     "price": (1, "objection", "price"),
     "money_available": (1, "objection", "money_available"),
@@ -55,7 +58,8 @@ EXCLUSIONS = ("none", "information_request", "external_deadline", "circuit_fact"
 TYPES_REACTION = ("states_no_longer_holds", "reformulates_as_answered", "moves_forward_own_initiative",
                   "commits_to_proposal", "agreement_only", "repeats_or_reinforces", "other")
 
-# OB-1 marker lists (English calls). Markers only nominate candidates; the model decides (OB-3).
+# Listes de marqueurs OB-1. Les marqueurs ne font que proposer des candidats ; le modèle décide (OB-3).
+# Tournures anglaises (transcriptions de référence des tests), lues telles quelles, puis tournures françaises (appels LNP).
 MARQUEURS: dict[str, list[str]] = {
     "objection_price_money": [r"too expensive", r"(a lot|lots) of money", r"\bexpensive\b", r"can'?t afford",
                               r"don'?t have (the )?money", r"out of my budget", r"my credit", r"financing",
@@ -78,22 +82,95 @@ MARQUEURS: dict[str, list[str]] = {
                 r"think about it", r"sleep on it", r"sit on it", r"not right now", r"don'?t want to do it today",
                 r"can'?t make (a )?decisions?", r"fine as it is"],
 }
-_RE_MARQUEUR = [(k, re.compile(p, re.I)) for k, ps in MARQUEURS.items() for p in ps]
 
-# OB-13 lexical contradiction markers, checked by code on the first sentence of the first response.
-RE_CONTRADICTION = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree)",
+# Les tournures françaises s'écrivent avec leurs accents et l'apostrophe droite : `motif_fr` accepte aussi l'apostrophe
+# typographique (’) et les mots écrits sans accent, car le texte du tour est lu tel quel (sans `normaliser`).
+_ACCENTS = {"é": "[ée]", "è": "[èe]", "ê": "[êe]", "à": "[àa]", "â": "[âa]", "ç": "[çc]", "î": "[îi]", "ô": "[ôo]",
+            "û": "[ûu]", "ù": "[ùu]"}
+
+
+def motif_fr(motif: str) -> str:
+    motif = motif.replace("'", "['’]")
+    return re.sub("[éèêàâçîôûù]", lambda m: _ACCENTS[m.group()], motif)
+
+
+MARQUEURS_FR: dict[str, list[str]] = {
+    "objection_price_money": [r"\bchère?s?\b", r"\bcoûte (trop|cher|beaucoup|une fortune|un bras)",
+                              r"pas les moyens", r"\bmes moyens\b", r"\b(me|nous) (le |l')?permettre",
+                              r"pas (le |de |d'|du )?budget", r"hors (de )?(mon )?budget", r"\b(mon|notre) budget\b",
+                              r"\bl'argent\b", r"\bd'argent\b", r"\bles sous\b", r"\bfric\b", r"\bthunes?\b",
+                              r"\b(c'est|ça fait|ça reste|c'était|ça représente) (quand même |un peu |assez |vraiment "
+                              r"|trop |très |super |hyper )?beaucoup\b",
+                              r"\b(grosse|sacrée|belle|grande) somme\b", r"\bla somme\b", r"\b(le|ce) montant\b",
+                              r"\b(le|ce) prix\b", r"\b(le|ce) tarif\b", r"\b(mon|un) crédit\b", r"\bfinancement\b",
+                              r"\bfinancer\b"],
+    "objection_trust_relevance": [r"\b(si|que) (ça|ce|cela) (marche|fonctionne|va marcher|va fonctionner)",
+                                  r"\b(programmes?|formations?) comme (ça|celle-ci|celui-ci|le vôtre|la vôtre)",
+                                  r"\bcertifiée?\b", r"\bcertifiante?\b", r"\baccrédit", r"\bqualiopi\b",
+                                  r"\b(sais|connais) déjà", r"\bpas besoin\b", r"\bconfiance\b", r"\barnaque",
+                                  r"\bescroc", r"\bpipeau\b", r"\bbaratin",
+                                  r"\b(technique|discours|truc) (de vente|de vendeur|commercial)"],
+    "objection_time": [r"\bpas (assez |beaucoup |trop |vraiment |forcément |franchement )?(le |de |d')?temps\b",
+                       r"\bmanque (de |le )?temps\b", r"\bavec (mon|le|mes) (travail|boulot|taf|job|cours|élèves)\b",
+                       r"\bavec (les|mes) (enfants|gosses|petits)\b", r"\bdébordée?s?\b", r"\bsous l'eau\b",
+                       r"\bblindée?s?\b", r"\bbookée?s?\b", r"\bplanning (est )?(chargé|plein|blindé)",
+                       r"\brespire (pas|plus)\b", r"\b(pas|plus) une minute\b"],
+    "objection_co_decider": [r"\b(à|avec) (mon|ma) (mari|femme|conjointe?|compagnon|compagne|copine|copain|partenaire"
+                             r"|fiancée?|époux|épouse|moitié)\b",
+                             r"\ben (parler|parle|discuter|discute) (à|avec)\b", r"\bvoir avec\b",
+                             r"\bdemander (à|l'avis)", r"\bconsulter\b", r"\b(décid\w*|décisions?) (ensemble|à deux)\b"],
+    "anxiety_capability": [r"\bpeur\b", r"\bflipp(e|es|er|ée?)\b", r"\bangoiss", r"\bje crains\b", r"\bcraintes?\b",
+                           r"\bsi je (vais|peux|pourrai|pourrais|saurai|saurais|serai|serais) (y arriver|réussir|tenir"
+                           r"|le faire|capable|à la hauteur)",
+                           r"\bpas (sûre?|certaine?) (de pouvoir|d'y arriver|de réussir|d'être capable|de tenir)",
+                           r"\bpas (capable|à la hauteur|assez bonne?|assez forte?|faite? pour (ça|moi))",
+                           r"\babandonn", r"\blâcher\b", r"\blâche (toujours|tout le temps|vite)\b"],
+    "anxiety_choice": [r"\bet si (ça|ce|cela) (ne )?(marche|fonctionne) (pas|plus)\b", r"\b(fait|faite|faire) avoir\b",
+                       r"\béchaudée?\b", r"\b(faire|fais|fasse) (une |la |une grosse )?(erreur|bêtise)",
+                       r"\b(mauvais|bon) choix\b", r"\bme tromper\b", r"\bje me trompe\b",
+                       r"\bcomment (je |on )?(peux |peut )?(sais|saurai|savoir|être sûre?)",
+                       r"\bqu'est-ce qui (me |nous )?(garantit|prouve)",
+                       r"\bcomment (vous|tu) (pouvez|peux) (me )?(garantir|être sûre?)"],
+    "inertia": [r"\bpas le (bon )?moment\b", r"\bplus tard\b", r"\baprès les vacances\b", r"\baprès l'été\b",
+                r"\bà la rentrée\b", r"\bl'année prochaine\b", r"\b(bien|ça va) pour (l'instant|le moment)\b",
+                r"\b(bien|bon|ok|okay) comme (ça|je suis)\b", r"\bme va (bien )?comme (ça|cela)\b", r"\bréfléchi",
+                r"\by (penser|repenser)\b", r"la nuit porte conseil", r"\bdormir dessus\b",
+                r"\bpas (tout de suite|maintenant|pour l'instant|pour le moment|aujourd'hui)\b",
+                r"\b(peux|peut|arrive|sais) pas (me )?décider\b",
+                r"\b(décider|décision) (comme ça|tout de suite|maintenant|aujourd'hui|sur le coup)\b", r"\bon verra\b"],
+}
+_RE_MARQUEUR = [(k, re.compile(p, re.I)) for k, ps in MARQUEURS.items() for p in ps] + \
+               [(k, re.compile(motif_fr(p), re.I)) for k, ps in MARQUEURS_FR.items() for p in ps]
+
+# Marqueurs lexicaux de contradiction OB-13, vérifiés par le code sur la première phrase de la première réponse (texte passé
+# par `normaliser` : minuscules, apostrophe droite, accents gardés). Tournures anglaises, puis françaises.
+RE_CONTRADICTION = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree"
+                              r"|\bmais\b|\ben fait\b|\ben r[ée]alit[ée]\b|^\s*non\b(?!-)[,.!]?|\bnon,"
+                              r"|c'est pas vrai|ce n'est pas vrai|c'est faux|le (truc|probl[èe]me|souci),? c'est que"
+                              r"|je (ne )?suis pas d'accord|\bsauf que\b|\bpar contre\b|\bpourtant\b|\bau contraire\b)",
                               re.I)
 
+# Mots vides propres à ce module (en plus de `MOTS_VIDES` de noyau/texte.py) : anglais, puis français. Écrits comme les
+# donne `jetons_propres` (minuscules, apostrophe droite). Les mots qui sont aussi des mots pleins en anglais (« son »,
+# « car », « ton », « plus », « font ») n'y sont pas, pour ne rien changer à la lecture des appels en anglais.
 _MOTS_VIDES_LOCAUX = set("""i me my mine we us our it's that's there's what's let's i'm i've i'll i'd you're don't doesn't
 didn't can't won't isn't aren't wasn't gonna wanna yes yeah no not so because just um uh oh hmm mm mm-hmm okay ok
-cool sure right got get go going one also even still well say said see""".split())
+cool sure right got get go going one also even still well say said see""".split()) | set("""
+je j' moi mon ma mes tu toi te ta tes il elle ils elles lui leur leurs nous notre nos vous votre vos on ça ca cela ceci
+ce cet cette ces qui que quoi dont où ou le la les un une des du de et mais ni ne pas dans sur avec sans par pour chez
+entre vers au aux si parce puisque là ici y en peu
+est sont suis es êtes etes sommes ai as avons avez ont été ete être etre avoir était etait va vais vas allez aller
+faire fais fait dis dit dire vois voir vu
+c'est c'était c'etait n'est j'ai j'avais t'as t'es y'a qu'il qu'elle qu'on qu'est-ce est-ce
+oui ouais ouai non d'accord dac sûr sûre hein euh heu bah hum mmh voilà voila bon bien très tres aussi même meme encore juste
+vraiment enfin alors donc quand comme tout tous toute toutes rien""".split())
 
 
 # ----------------------------------------------------------------------------------------------- data
 @dataclass
 class Resistance:
-    debut: str                      # first turn (OB-6)
-    dernier: str                       # last turn of the resistance (OB-5 merge)
+    debut: str                      # premier tour (OB-6)
+    dernier: str                       # dernier tour de la résistance (fusion OB-5)
     role: str
     citation: str
     nature: str
@@ -102,7 +179,7 @@ class Resistance:
     statut: str = "verified"
 
     @property
-    def theme(self) -> tuple[str, str]:   # "same resistance" = same nature and theme (§2)
+    def theme(self) -> tuple[str, str]:   # « même résistance » = même nature et même thème (§2)
         return (self.nature, self.sous_type)
 
 
@@ -112,13 +189,13 @@ class Episode:
     res: Resistance
     reponse_com: list[str] = field(default_factory=list)
     reaction: list[str] = field(default_factory=list)
-    repetitions: list[str] = field(default_factory=list)     # same-theme passages inside the reaction (persisting)
+    repetitions: list[str] = field(default_factory=list)     # passages du même thème dans la réaction (persistante)
     changement_sujet: Optional[str] = None
-    tour_fin: Optional[str] = None                       # first turn not in the episode (None = end of call)
+    tour_fin: Optional[str] = None                       # premier tour hors de l'épisode (None = fin de l'appel)
     raison_fin: str = "end_of_call"                      # topic_change / new_resistance / end_of_call
     latent: bool = False
     regle_latente: Optional[str] = None
-    statut: str = "scored"                               # scored / to_review
+    statut: str = "scored"                               # scored (noté) / to_review (à revoir)
     faits: dict[str, Any] = field(default_factory=dict)
     recurrence_de: Optional[str] = None
     revient_plus_tard: bool = False
@@ -131,9 +208,9 @@ class Episode:
         return f"{self.res.debut}.{self.res.nature}"
 
 
-# ----------------------------------------------------------------------------------------------- helpers
+# ----------------------------------------------------------------------------------------------- outils
 def seq(ctx: ContexteAppel) -> list[Tour]:
-    """Turns used for bounding: attribution-doubtful turns are excluded (OB-12, OB-26, C1)."""
+    """Tours utilisés pour le bornage : les tours dont l'attribution est douteuse sont exclus (OB-12, OB-26, C1)."""
     return [t for t in ctx.tours if not t.attribution_douteuse]
 
 
@@ -150,8 +227,8 @@ def _sing(w: str) -> str:
 
 
 def mots_contenu(texte: str, retirer_generiques: bool = True) -> set[str]:
-    """Content words for OB-8 (a) (no function word, no generic word) and, with drop_generic=False, for the
-    'reuses a word of the resistance' test of OB-15 (any non-function word: 'a lot' reuses 'lot')."""
+    """Mots pleins pour OB-8 (a) (ni mot vide, ni mot générique) et, avec retirer_generiques=False, pour le test
+    « reprend un mot de la résistance » d'OB-15 (tout mot qui n'est pas un mot vide : « a lot » reprend « lot »)."""
     sortie = set()
     for w in jetons_propres(texte):
         w = w.strip("'-")
@@ -164,7 +241,7 @@ def mots_contenu(texte: str, retirer_generiques: bool = True) -> set[str]:
 
 
 def est_relance_orale(t: Tour) -> bool:
-    """OB-5: a sales backchannel of 5 words or fewer with no content word ("mm-hmm", "I hear you")."""
+    """OB-5 : une relance orale du commercial, de 5 mots ou moins, sans mot plein (« mm-hmm », « d'accord, je vois »)."""
     return len(t.texte.split()) <= MOTS_MAX_RELANCE_ORALE and (approbation_seule(t.texte) or not mots_contenu(t.texte))
 
 
@@ -190,7 +267,7 @@ def _pr(ctx: ContexteAppel, d: Optional[dict], role: Optional[str] = None) -> Op
 
 
 def _cote_prospect_ok(ctx: ContexteAppel, ev: Preuve, tours: Optional[list[str]] = None, **kw) -> Optional[str]:
-    """C3 checks for a prospect-side quote (PROSPECT or co-decider OTHER, OB-12)."""
+    """Contrôles C3 d'une citation côté prospect (PROSPECT, ou codécideur OTHER, OB-12)."""
     e = citation_ok(ctx, Preuve(ev.citation, ev.tour), **kw)
     if e:
         return e
@@ -210,32 +287,32 @@ def _commercial_ok(ctx: ContexteAppel, ev: Preuve, tours: Optional[list[str]] = 
     return None
 
 
-# ----------------------------------------------------------------------------------------------- OB-1 inventory
+# ----------------------------------------------------------------------------------------------- inventaire OB-1
 def touches_marqueurs(texte: str) -> list[str]:
     return sorted({k for k, rx in _RE_MARQUEUR if rx.search(texte)})
 
 
 def trouver_candidats(ctx: ContexteAppel) -> list[Tour]:
-    """OB-1: prospect / co-decider turns (OB-12) containing a marker. Doubtful turns excluded (OB-26)."""
+    """OB-1 : tours du prospect ou d'un codécideur (OB-12) qui contiennent un marqueur. Tours douteux exclus (OB-26)."""
     return [t for t in seq(ctx) if t.role in (PROSPECT, AUTRE) and touches_marqueurs(t.texte)]
 
 
 # ----------------------------------------------------------------------------------------------- OB-2..OB-4, OB-24, OB-25
 def nature_des_sujets(sujets: list[str]) -> Optional[tuple[str, str]]:
-    """OB-3: boundary tests in their fixed order; the first test that matches decides (case 5: 'scared ... because
-    of the money' is test 1, objection)."""
+    """OB-3 : tests de frontière dans leur ordre fixe ; le premier test qui correspond décide (cas 5 : « peur ... à cause
+    de l'argent » relève du test 1, objection)."""
     connu = [s for s in sujets if s in SUJETS]
     if not connu:
         return None
-    meilleur = min(connu, key=lambda s: SUJETS[s][0])     # min is stable: model order breaks ties inside a test
+    meilleur = min(connu, key=lambda s: SUJETS[s][0])     # min est stable : l'ordre du modèle départage dans un même test
     _, nature, sous_type = SUJETS[meilleur]
     return nature, sous_type
 
 
 def resistances_de_reponse(rep: dict, tour: Tour) -> tuple[list[Resistance], Optional[dict], list[str]]:
-    """Code decision on one `obj.resistance` answer. Returns (resistances, deadline fact, flags)."""
+    """Décision du code sur une réponse `obj.resistance`. Renvoie (résistances, fait d'échéance, signaux)."""
     signaux: list[str] = []
-    if rep.get("label_contradicted"):            # OB-26: excluded from episodes
+    if rep.get("label_contradicted"):            # OB-26 : exclu des épisodes
         return [], None, [f"attribution_doubtful:{tour.id}"]
     excl = rep.get("exclusion") or "none"
     echeance = None
@@ -248,15 +325,15 @@ def resistances_de_reponse(rep: dict, tour: Tour) -> tuple[list[Resistance], Opt
     vus = set()
     for d in rep.get("doubts", []):
         sujets = list(d.get("subjects") or [])
-        if excl == "external_deadline":                     # OB-2 / X2: no inertia; OB-25: only objection · time
+        if excl == "external_deadline":                     # OB-2 / X2 : pas d'inertie ; OB-25 : seulement objection · temps
             sujets = [s for s in sujets if s == "time"]
         nt = nature_des_sujets(sujets)
         if nt is None:
             continue
-        if nt[0] in nie:                                 # OB-24: the denied nature opens no episode
+        if nt[0] in nie:                                 # OB-24 : la nature niée n'ouvre pas d'épisode
             signaux.append(f"denied_nature:{tour.id}:{nt[0]}")
             continue
-        if nt[0] in vus:                                   # OB-4: at most one episode per nature
+        if nt[0] in vus:                                   # OB-4 : au plus un épisode par nature
             continue
         vus.add(nt[0])
         sortie.append(Resistance(tour.id, tour.id, tour.role, d.get("quote", ""), nt[0], nt[1], [tour.id]))
@@ -264,8 +341,8 @@ def resistances_de_reponse(rep: dict, tour: Tour) -> tuple[list[Resistance], Opt
 
 
 def fusionner_consecutifs(ctx: ContexteAppel, res: list[Resistance]) -> list[Resistance]:
-    """OB-5: consecutive prospect turns expressing the same resistance, separated only by sales backchannel of
-    5 words or fewer, form one resistance."""
+    """OB-5 : des tours consécutifs du prospect qui expriment la même résistance, séparés seulement par des relances orales
+    du commercial de 5 mots ou moins, forment une seule résistance."""
     pos = _pos(ctx)
     tours = seq(ctx)
     res = sorted(res, key=lambda r: (pos[r.debut], NATURES.index(r.nature)))
@@ -284,18 +361,19 @@ def fusionner_consecutifs(ctx: ContexteAppel, res: list[Resistance]) -> list[Res
 
 # ----------------------------------------------------------------------------------------------- OB-8, OB-10, OB-22
 def changement_sujet_condition_a(texte_tour: str, mots_ref: set[str]) -> bool:
-    """OB-8 (a), computed by code: the sales turn contains no content word of the resistance or of the response so
-    far ("Where do you want to go from here?" has none at all and passes (a); the model then reads (b)).
-    Sales backchannels ("Okay.", "Mm-hmm.") are filtered before (see `is_backchannel`): they introduce nothing."""
+    """OB-8 (a), calculé par le code : le tour du commercial ne contient aucun mot plein de la résistance ni de la réponse
+    jusque-là (« On fait quoi maintenant ? » n'en a aucun et passe (a) ; le modèle lit ensuite (b)).
+    Les relances orales du commercial (« D'accord. », « Mm-hmm. ») sont écartées avant (voir `est_relance_orale`) :
+    elles n'introduisent rien."""
     return not (mots_contenu(texte_tour) & mots_ref)
 
 
 def est_latent(ctx: ContexteAppel, ep: Episode) -> tuple[bool, Optional[str]]:
-    """OB-10 / OB-22 / §2, computed from turn numbers."""
+    """OB-10 / OB-22 / §2, calculé d'après les numéros de tour."""
     if ep.regle_latente == "OB-22":
         return True, "OB-22"
     if not ep.reaction:
-        return True, "no_reaction"                       # §2: no prospect reaction
+        return True, "no_reaction"                       # §2 : pas de réaction du prospect
     if ep.changement_sujet:
         pos = _pos(ctx)
         if pos[ep.changement_sujet] - pos[ep.res.dernier] <= TOURS_MAX_LATENT and \
@@ -306,10 +384,10 @@ def est_latent(ctx: ContexteAppel, ep: Episode) -> tuple[bool, Optional[str]]:
 
 # ----------------------------------------------------------------------------------------------- OB-11
 def lier_recurrences(ctx: ContexteAppel, episodes: list[Episode], precedent: Optional[list[dict]] = None) -> list[dict]:
-    """OB-11: a resistance of the same nature and theme after an earlier episode ended opens a new episode linked to
-    the first one of the chain; every earlier episode of the chain recurs later (H5 = 0, X4).
-    `previous`: episodes of the previous call of the same cycle ({"call_id","id","nature","subtype"}).
-    Returns the previous-call episodes that recur here (to be re-scored H5 = 0 on that call)."""
+    """OB-11 : une résistance de même nature et de même thème, après la fin d'un épisode antérieur, ouvre un nouvel épisode
+    rattaché au premier de la chaîne ; chaque épisode antérieur de la chaîne revient plus tard (H5 = 0, X4).
+    `precedent` : épisodes de l'appel précédent du même cycle ({"call_id","id","nature","subtype"}).
+    Renvoie les épisodes de l'appel précédent qui reviennent ici (à renoter H5 = 0 sur cet appel)."""
     pos = _pos(ctx)
     fin = lambda e: pos[e.tour_fin] if e.tour_fin else len(pos)
     eps = sorted([e for e in episodes if e.statut == "scored"], key=lambda e: pos[e.res.debut])
@@ -317,7 +395,7 @@ def lier_recurrences(ctx: ContexteAppel, episodes: list[Episode], precedent: Opt
     for i, e in enumerate(eps):
         plus_tot = [f for f in eps[:i] if f.res.theme == e.res.theme and fin(f) <= pos[e.res.debut]]
         if plus_tot:
-            e.recurrence_de = plus_tot[0].id          # linked to the first episode of the chain (case 26)
+            e.recurrence_de = plus_tot[0].id          # rattaché au premier épisode de la chaîne (cas 26)
             for f in plus_tot:
                 f.revient_plus_tard = True
             continue
@@ -329,9 +407,9 @@ def lier_recurrences(ctx: ContexteAppel, episodes: list[Episode], precedent: Opt
     return recurrent_prec
 
 
-# ----------------------------------------------------------------------------------------------- gestures (code)
+# ----------------------------------------------------------------------------------------------- gestes (code)
 def accueilli(premiere_phrase: str, rep: Optional[dict]) -> bool:
-    """OB-13 / OB-20 / X5, read on the first sentence of the first response turn."""
+    """OB-13 / OB-20 / X5, lus sur la première phrase du premier tour de réponse."""
     if RE_CONTRADICTION.search(normaliser(premiere_phrase)):
         return False
     a = rep or {}
@@ -346,7 +424,7 @@ def _citation_a(ctx: ContexteAppel, tour: str, citation: str) -> tuple[int, int]
 
 
 def isolement_valide(ctx: ContexteAppel, ep: Episode, iso: Optional[dict], reponse: Optional[Preuve]) -> bool:
-    """OB-14 / X6: in the episode's response, before the answer."""
+    """OB-14 / X6 : dans la réponse de l'épisode, avant la réponse sur le fond."""
     if not iso or not iso.get("isolate") or iso.get("turn") not in ep.reponse_com:
         return False
     if reponse is None:
@@ -363,27 +441,27 @@ def tour_reaction_suivant(ctx: ContexteAppel, apres: str) -> Optional[Tour]:
 
 
 def exploration(ctx: ContexteAppel, ep: Episode, att: Optional[dict], debuts_resistance: set[str]) -> tuple[bool, bool]:
-    """OB-15 / OB-20 / X7. Returns (explored, answered_with_content)."""
+    """OB-15 / OB-20 / X7. Renvoie (exploré, réponse avec du contenu)."""
     if not att or not att.get("explore") or att.get("turn") not in ep.reponse_com or not att.get("open_question"):
-        return False, False                                                   # X7: closed question
+        return False, False                                                   # X7 : question fermée
     reprise = bool(mots_contenu(att.get("quote", ""), retirer_generiques=False) &
                  mots_contenu(" ".join(ctx.tour(t).texte for t in ep.res.tours), retirer_generiques=False))
     elliptique_ok = bool(att.get("elliptical")) and att.get("turn") == (ep.reponse_com[0] if ep.reponse_com else None)
-    if not (reprise or elliptique_ok):                                          # OB-15 reuse test, OB-20 ellipsis
+    if not (reprise or elliptique_ok):                                          # test de reprise OB-15, ellipse OB-20
         return False, False
     suiv = tour_reaction_suivant(ctx, att["turn"])
-    if suiv is None or suiv.id in debuts_resistance or approbation_seule(suiv.texte):  # case 13: a new resistance is no answer
+    if suiv is None or suiv.id in debuts_resistance or approbation_seule(suiv.texte):  # cas 13 : une nouvelle résistance n'est pas une réponse
         return True, False
     contenu = bool(att.get("answered_with_content")) and att.get("answer_turn") == suiv.id
     return True, contenu
 
 
 def niveau_h1(nature: str, g: dict, etapes: dict) -> tuple[int, list[str]]:
-    """OB-16 / OB-21. `g` = gesture facts (code-validated), `steps` = {ack, isolate, explore} for objections.
-    Returns (level, tags)."""
+    """OB-16 / OB-21. `g` = faits du geste (validés par le code), `etapes` = {ack, isolate, explore} pour les objections.
+    Renvoie (niveau, étiquettes)."""
     etiquettes: list[str] = []
     if nature == "objection":
-        # Matching gesture: acknowledge, isolate, explore, then an answer tied to what the prospect said (OB-16).
+        # Geste adapté : accueillir, isoler, explorer, puis une réponse liée à ce que le prospect a dit (OB-16).
         if not (g.get("answer_given") and g.get("answer_tied_to_prospect")):
             return 0, etiquettes
         if etapes.get("ack") and etapes.get("isolate") and etapes.get("explore"):
@@ -396,7 +474,7 @@ def niveau_h1(nature: str, g: dict, etapes: dict) -> tuple[int, list[str]]:
     else:
         correspondance = bool(g.get("support_or_framework")) if nature == "anxiety_capability" \
             else bool(g.get("proof_reversibility_guarantee"))
-        faux = bool(g.get("offer_argument") or g.get("cost_of_inaction_question"))   # case 7b, case 18
+        faux = bool(g.get("offer_argument") or g.get("cost_of_inaction_question"))   # cas 7b, cas 18
     if correspondance and not faux:
         return 2, etiquettes
     if correspondance and faux:
@@ -411,7 +489,7 @@ def niveau_h1(nature: str, g: dict, etapes: dict) -> tuple[int, list[str]]:
 
 
 def niveau_h3(nature: str, isoler: bool, explore: bool, contenu: bool) -> int:
-    """§5.1 H3. For anxiety and inertia, explore only."""
+    """§5.1 H3. Pour l'anxiété et l'inertie, explorer seulement."""
     if nature == "objection":
         if isoler and explore and contenu:
             return 2
@@ -422,7 +500,7 @@ def niveau_h3(nature: str, isoler: bool, explore: bool, contenu: bool) -> int:
 
 
 def niveau_resolution(ctx: ContexteAppel, ep: Episode, r: Optional[dict]) -> tuple[str, Optional[Preuve], bool]:
-    """OB-17 / OB-23 / X3 / C3 rule 5. Returns (level, evidence, prompted)."""
+    """OB-17 / OB-23 / X3 / C3 règle 5. Renvoie (niveau, preuve, suggérée)."""
     if ep.latent:
         return "latent", None, False
     if not r:
@@ -432,14 +510,14 @@ def niveau_resolution(ctx: ContexteAppel, ep: Episode, r: Optional[dict]) -> tup
     pos = _pos(ctx)
     if genre == "repeats_or_reinforces":
         return "persisting", ev, False
-    if ev and any(pos[x] > pos[ev.tour] for x in ep.repetitions):          # repeated after the "resolution"
+    if ev and any(pos[x] > pos[ev.tour] for x in ep.repetitions):          # répétée après la « résolution »
         return "persisting", ev, False
     suggere = bool(r.get("content_first_stated_by_sales"))
     if genre == "commits_to_proposal":                                   # OB-23
         ok = bool(r.get("specific_element")) and ev is not None and not approbation_seule(ctx.tour(ev.tour).texte)
         return ("resolved" if ok else "acknowledged"), ev, False
     if genre in ("states_no_longer_holds", "reformulates_as_answered", "moves_forward_own_initiative"):
-        if suggere or ev is None or approbation_seule(ctx.tour(ev.tour).texte):   # X3, C3 rule 5
+        if suggere or ev is None or approbation_seule(ctx.tour(ev.tour).texte):   # X3, C3 règle 5
             return "acknowledged", ev, suggere
         return "resolved", ev, False
     return "acknowledged", ev, suggere                                  # agreement_only / other
@@ -449,14 +527,15 @@ NIVEAU_H4 = {"resolved": 2, "acknowledged": 1, "latent": 0, "persisting": 0}
 
 
 def items_episode(ctx: ContexteAppel, ep: Episode, f: dict) -> list[NoteItem]:
-    """§5.1 items from the code-decided facts of one episode."""
+    """Items du §5.1 à partir des faits d'un épisode décidés par le code."""
     rq = Preuve(ep.res.citation, ep.res.debut, ep.res.role)
     sortie = [
         item("H1", POIDS_H["H1"], f["h1"], [rq, f.get("gesture_ev")], ";".join(f.get("h1_tags", []))),
         item("H2", POIDS_H["H2"], 2 if f["ack"] else 0, [rq, f.get("ack_ev")]),
         item("H3", POIDS_H["H3"], f["h3"], [f.get("iso_ev"), f.get("exp_ev"), f.get("exp_answer_ev")]),
         item("H4", POIDS_H["H4"], NIVEAU_H4[f["reaction_level"]], [rq, f.get("reaction_ev")], f["reaction_level"]),
-        # H5 is an absence (no recurrence): no second quote can exist, the two-quote rule does not apply.
+        # H5 est une absence (pas de récurrence) : aucune seconde citation ne peut exister, la règle des deux citations
+        # ne s'applique pas.
         item("H5", POIDS_H["H5"], 0 if ep.revient_plus_tard else 2, [rq], "recurs later" if ep.revient_plus_tard else
              "provisional: current call only", deux_citations=False),
     ]
@@ -464,20 +543,20 @@ def items_episode(ctx: ContexteAppel, ep: Episode, f: dict) -> list[NoteItem]:
 
 
 def note_traitement(episodes: list[Episode]) -> Optional[int]:
-    """§5.1: mean of episode scores weighted by nature (anxiety and inertia 1.5, objection 1)."""
+    """§5.1 : moyenne des notes des épisodes pondérée par la nature (anxiété et inertie 1,5, objection 1)."""
     sc = [(POIDS_EPISODE[e.res.nature], e.note) for e in episodes if e.statut == "scored" and e.note is not None]
     if not sc:
         return None
     return round(sum(w * s for w, s in sc) / sum(w for w, _ in sc))
 
 
-# ----------------------------------------------------------------------------------------------- prevention (code)
+# ----------------------------------------------------------------------------------------------- prévention (code)
 FAITS_PROSPECT = ("decision_maker", "influencers", "budget", "deadline", "past_attempt")
 FAITS_COMMERCIAL = ("past_attempt_explored", "difference_stated")
 
 
 def fait_prevention_ok(ctx: ContexteAppel, nom_: str, d: Optional[dict], premier_prix: Optional[str]) -> tuple[bool, str]:
-    """OB-18 (before the first price), OB-19 / X8 (no sales supposition, no bare approval)."""
+    """OB-18 (avant le premier prix), OB-19 / X8 (pas de supposition du commercial, pas de simple approbation)."""
     if not d or not d.get("quote") or not d.get("turn"):
         return False, "absent"
     try:
@@ -497,7 +576,7 @@ def fait_prevention_ok(ctx: ContexteAppel, nom_: str, d: Optional[dict], premier
 
 
 def items_prevention(ctx: ContexteAppel, faits: dict, premier_prix: str) -> tuple[list[NoteItem], dict, list[str]]:
-    """§5.2 R1..R3 from the prevention facts. Returns (items, kept facts, flags)."""
+    """§5.2 R1 à R3 à partir des faits de prévention. Renvoie (items, faits gardés, signaux)."""
     garde, pourquoi = {}, {}
     for k in FAITS_PROSPECT + FAITS_COMMERCIAL:
         ok, raison = fait_prevention_ok(ctx, k, faits.get(k), premier_prix)
@@ -505,13 +584,13 @@ def items_prevention(ctx: ContexteAppel, faits: dict, premier_prix: str) -> tupl
         pourquoi[k] = raison
     ev = lambda k: _pr(ctx, garde.get(k))
     signaux = []
-    # R1 decision circuit
+    # R1 circuit de décision
     n1 = bool(garde["decision_maker"]) + bool(garde["influencers"])
     r1 = item("R1", POIDS_R["R1"], n1, [ev("decision_maker"), ev("influencers")])
-    # R2 budget and deadline (binding counts double in diagnostics only)
+    # R2 budget et échéance (une échéance contraignante compte double, dans les diagnostics seulement)
     n2 = bool(garde["budget"]) + bool(garde["deadline"])
     r2 = item("R2", POIDS_R["R2"], n2, [ev("budget"), ev("deadline")])
-    # R3 past attempt defused (sales gestures must follow the mention, before the price)
+    # R3 tentative passée désamorcée (les gestes du commercial doivent suivre la mention, avant le prix)
     pa = garde["past_attempt"]
     if not pa:
         r3 = item("R3", POIDS_R["R3"], 2, [], "not_triggered", deux_citations=False)
@@ -529,20 +608,20 @@ def items_prevention(ctx: ContexteAppel, faits: dict, premier_prix: str) -> tupl
     return [r1, r2, r3], garde, signaux
 
 
-# ----------------------------------------------------------------------------------------------- applicability (§4)
+# ----------------------------------------------------------------------------------------------- applicabilité (§4)
 def combiner(traitement: Optional[int], prevention: Optional[int]) -> Optional[int]:
-    """§5: 70 % handling + 30 % prevention when both apply, otherwise the one that applies."""
+    """§5 : 70 % traitement + 30 % prévention quand les deux s'appliquent, sinon celle qui s'applique."""
     if traitement is not None and prevention is not None:
         return round(PART_TRAITEMENT * traitement + PART_PREVENTION * prevention)
     return traitement if traitement is not None else prevention
 
 
 def applicabilite(n_episodes: int, prix_donne: bool) -> tuple[str, str]:
-    """§4 -> (handling status, prevention status)."""
+    """§4 -> (statut du traitement, statut de la prévention)."""
     return ("scored" if n_episodes else "not_applicable", "scored" if prix_donne else "not_applicable")
 
 
-# ----------------------------------------------------------------------------------------------- model tasks
+# ----------------------------------------------------------------------------------------------- tâches du modèle
 def _fenetre(ctx: ContexteAppel, debut: str, fin: Optional[str], avant: int = CONTEXTE_AVANT,
             apres: int = CONTEXTE_APRES) -> list[Tour]:
     s = seq(ctx)
@@ -555,12 +634,13 @@ def _fenetre(ctx: ContexteAppel, debut: str, fin: Optional[str], avant: int = CO
 def _note_prix(ctx: ContexteAppel, tid: str) -> str:
     fp = ctx.phases.premier_prix
     if not fp:
-        return "No price was given in this call."
-    return f"First price at {fp}: the target turn is {'BEFORE' if ctx.avant(tid, fp) else 'AFTER'} the first price."
+        return "Aucun prix n'a été donné dans cet appel."
+    return f"Premier prix en {fp} : le tour cible est {'AVANT' if ctx.avant(tid, fp) else 'APRÈS'} le premier prix."
 
 
 class _Taches:
-    """Builds the model tasks of one run. `validate` receives the unit id: units are kept in `self.units`."""
+    """Construit les tâches du modèle d'une analyse. `valider` reçoit l'identifiant de l'unité : les unités sont gardées
+    dans `self.unites`."""
 
     def __init__(self):
         self.unites: dict[str, Any] = {}
@@ -569,11 +649,11 @@ class _Taches:
         self.unites[uid] = unite
         return executeur.executer(ctx, tache, uid, unite)
 
-    # -- nominate (OB-1, model may nominate without a marker)
+    # -- nommer (OB-1, le modèle peut nommer sans marqueur)
     def nommer(self) -> TacheModele:
         def construire(ctx, u):
             bloc_, signale = u
-            return ("ALREADY FLAGGED: " + (", ".join(signale) or "none") + "\n\nEXTRACT\n" + ctx.afficher(bloc_))
+            return ("DÉJÀ SIGNALÉS : " + (", ".join(signale) or "aucun") + "\n\nEXTRAIT\n" + ctx.afficher(bloc_))
 
         def valider(a, ctx, uid):
             bloc_, _ = self.unites[uid]
@@ -591,7 +671,7 @@ class _Taches:
     # -- resistance (OB-2, OB-3, OB-4, OB-24, OB-25, OB-26)
     def resistance(self) -> TacheModele:
         def construire(ctx, t):
-            return (f"TARGET TURN: {t.id} ({t.role})\n{_note_prix(ctx, t.id)}\n\nCONTEXT\n" +
+            return (f"TOUR CIBLE : {t.id} ({t.role})\n{_note_prix(ctx, t.id)}\n\nCONTEXTE\n" +
                     ctx.afficher(_fenetre(ctx, t.id, t.id)))
 
         def valider(a, ctx, uid):
@@ -618,14 +698,14 @@ class _Taches:
                     bool(a.get("deadline")), bool(a.get("label_contradicted"))]
         return TacheModele("obj.resistance", "strong", "objections_resistance", construire, valider, cle)
 
-    # -- topic change (OB-8 b, OB-22)
+    # -- changement de sujet (OB-8 b, OB-22)
     def sujet(self) -> TacheModele:
         def construire(ctx, u):
             ep, t, premier = u
             repn = [ctx.tour(x) for x in ep.reponse_com]
-            return (f"RESISTANCE ({ep.res.nature} · {ep.res.sous_type}) [{ep.res.debut}]: \"{ep.res.citation}\"\n\n"
-                    "SALES RESPONSE SO FAR\n" + (ctx.afficher(repn) or "(none)") +
-                    f"\n\nTARGET TURN{' (FIRST RESPONSE)' if premier else ''}\n" + ctx.afficher([t]))
+            return (f"RÉSISTANCE ({ep.res.nature} · {ep.res.sous_type}) [{ep.res.debut}] : \"{ep.res.citation}\"\n\n"
+                    "RÉPONSE DU COMMERCIAL JUSQU'ICI\n" + (ctx.afficher(repn) or "(aucune)") +
+                    f"\n\nTOUR CIBLE{' (PREMIÈRE RÉPONSE)' if premier else ''}\n" + ctx.afficher([t]))
 
         def valider(a, ctx, uid):
             ep, t, premier = self.unites[uid]
@@ -636,7 +716,7 @@ class _Taches:
         return TacheModele("obj.topic", "fast", "objections_sujet", construire, valider,
                          cle=lambda a: [bool(a.get("new_subject")), bool(a.get("receive_and_leave"))])
 
-    # -- per-episode gesture tasks
+    # -- tâches des gestes, par épisode
     @staticmethod
     def _texte_episode(ctx: ContexteAppel, ep: Episode) -> str:
         fin = ep.changement_sujet or ep.tour_fin
@@ -644,17 +724,18 @@ class _Taches:
         repn, reac = set(ep.reponse_com), set(ep.reaction)
         lignes = []
         for t in tours:
-            etiquette = "RESPONSE" if t.id in repn else "REACTION" if t.id in reac else \
-                "RESISTANCE" if t.id in ep.res.tours else "TOPIC CHANGE" if t.id == ep.changement_sujet else "CONTEXT"
+            etiquette = "RÉPONSE" if t.id in repn else "RÉACTION" if t.id in reac else \
+                "RÉSISTANCE" if t.id in ep.res.tours else "CHANGEMENT DE SUJET" if t.id == ep.changement_sujet \
+                else "CONTEXTE"
             lignes.append(f"<{etiquette}> [{t.id} {t.ts}] {t.role}: {t.texte}")
-        return (f"RESISTANCE: nature {ep.res.nature}, theme {ep.res.sous_type}, turn {ep.res.debut}, "
-                f"quote \"{ep.res.citation}\"\n\nEPISODE\n" + "\n".join(lignes))
+        return (f"RÉSISTANCE : nature {ep.res.nature}, thème {ep.res.sous_type}, tour {ep.res.debut}, "
+                f"citation \"{ep.res.citation}\"\n\nÉPISODE\n" + "\n".join(lignes))
 
     def accueillir(self) -> TacheModele:
         def construire(ctx, ep):
             t = ctx.tour(ep.reponse_com[0])
             premier = (phrases(t.texte) or [t.texte])[0]
-            return (self._texte_episode(ctx, ep) + f"\n\nFIRST RESPONSE TURN: {t.id}\nFIRST SENTENCE: \"{premier}\"")
+            return (self._texte_episode(ctx, ep) + f"\n\nTOUR DE PREMIÈRE RÉPONSE : {t.id}\nPREMIÈRE PHRASE : \"{premier}\"")
 
         def valider(a, ctx, uid):
             ep = self.unites[uid]
@@ -677,7 +758,7 @@ class _Taches:
     def explorer(self) -> TacheModele:
         def construire(ctx, ep):
             suiv = [t for t in _fenetre(ctx, ep.res.debut, ep.changement_sujet or ep.tour_fin, 1, 2)]
-            return self._texte_episode(ctx, ep) + "\n\nTURNS INCLUDING THE NEXT PROSPECT TURN\n" + ctx.afficher(suiv)
+            return self._texte_episode(ctx, ep) + "\n\nTOURS, JUSQU'AU TOUR SUIVANT DU PROSPECT INCLUS\n" + ctx.afficher(suiv)
 
         def valider(a, ctx, uid):
             ep = self.unites[uid]
@@ -732,11 +813,11 @@ class _Taches:
                          cle=lambda a: [a.get("reaction_kind"), bool(a.get("specific_element")),
                                         bool(a.get("content_first_stated_by_sales"))])
 
-    # -- prevention (OB-18, OB-19)
+    # -- prévention (OB-18, OB-19)
     def prevention(self) -> TacheModele:
         def construire(ctx, fp):
             pre = seq(ctx)[:_pos(ctx)[fp]]
-            return f"FIRST PRICE AT {fp}. TURNS BEFORE THE FIRST PRICE\n" + ctx.afficher(pre)
+            return f"PREMIER PRIX EN {fp}. TOURS AVANT LE PREMIER PRIX\n" + ctx.afficher(pre)
 
         def valider(a, ctx, uid):
             errs = []
@@ -754,15 +835,15 @@ class _Taches:
                          [bool((a.get("deadline") or {}).get("binding"))])
 
 
-# ----------------------------------------------------------------------------------------------- competence
+# ----------------------------------------------------------------------------------------------- compétence
 class CompetenceObjections:
     nom_ = "OBJECTIONS"
     version_regles = "OBJ-1.1"
 
-    # ------------------------------------------------------------------ stage 1-2: resistances
+    # ------------------------------------------------------------------ étapes 1 et 2 : résistances
     def _resistances(self, ctx, executeur, T: _Taches, audit: dict) -> tuple[list[Resistance], list[dict], list[str]]:
         signaux: list[str] = []
-        # OB-27 (Romain 2026-11-03): an objection is only read after the first price; nothing before it is an objection
+        # OB-27 (Romain, 2026-11-03) : une objection ne se lit qu'après le premier prix ; rien avant n'est une objection
         pos = _pos(ctx)
         fp = ctx.phases.premier_prix
         apres_prix = (lambda t: fp is not None and pos[t.id] > pos[fp])
@@ -799,7 +880,7 @@ class CompetenceObjections:
                 echeances.append(dl)
         return fusionner_consecutifs(ctx, res), echeances, signaux
 
-    # ------------------------------------------------------------------ stage 3: bounding
+    # ------------------------------------------------------------------ étape 3 : bornage
     def _borner(self, ctx, executeur, T: _Taches, res: list[Resistance], audit: dict) -> list[Episode]:
         pos = _pos(ctx)
         s = seq(ctx)
@@ -808,7 +889,7 @@ class CompetenceObjections:
             par_debut.setdefault(r.debut, []).append(r)
         tache = T.sujet()
         eps: list[Episode] = []
-        absorbe: set[int] = set()                 # same-theme repetitions inside an open episode (persisting)
+        absorbe: set[int] = set()                 # répétitions du même thème dans un épisode ouvert (persistante)
         for r in sorted(res, key=lambda r: (pos[r.debut], NATURES.index(r.nature))):
             if id(r) in absorbe:
                 continue
@@ -821,7 +902,7 @@ class CompetenceObjections:
                     autres = [o for o in par_debut.get(t.id, []) if o is not r]
                     if autres:
                         meme = [o for o in autres if o.theme == r.theme]
-                        if meme and len(meme) == len(autres):               # same resistance again: persisting
+                        if meme and len(meme) == len(autres):               # la même résistance à nouveau : persistante
                             absorbe.update(id(o) for o in meme)
                             ep.repetitions.append(t.id)
                             if ep.reponse_com:
@@ -831,11 +912,11 @@ class CompetenceObjections:
                         ep.tour_fin, ep.raison_fin = t.id, "new_resistance"   # OB-9
                         break
                     if ep.reponse_com:
-                        ep.reaction.append(t.id)                            # OB-9 reaction
+                        ep.reaction.append(t.id)                            # OB-9 réaction
                     i += 1
                     continue
                 premier = not ep.reponse_com
-                if est_relance_orale(t):          # OB-5: a backchannel is not a response and introduces no subject
+                if est_relance_orale(t):          # OB-5 : une relance orale n'est pas une réponse et n'introduit aucun sujet
                     if not premier:
                         ep.reponse_com.append(t.id)
                     i += 1
@@ -853,7 +934,7 @@ class CompetenceObjections:
                         ep.changement_sujet, ep.tour_fin, ep.raison_fin = t.id, t.id, "topic_change"
                         ep.regle_latente = "OB-22"
                         break
-                    if cond_a and a.reponse.get("new_subject"):               # OB-8 (a) code + (b) model
+                    if cond_a and a.reponse.get("new_subject"):               # OB-8 (a) par le code + (b) par le modèle
                         ep.changement_sujet, ep.tour_fin, ep.raison_fin = t.id, t.id, "topic_change"
                         break
                 ep.reponse_com.append(t.id)                                    # OB-7
@@ -865,7 +946,7 @@ class CompetenceObjections:
             eps.append(ep)
         return eps
 
-    # ------------------------------------------------------------------ stage 4: gestures and items
+    # ------------------------------------------------------------------ étape 4 : gestes et items
     def _juger(self, ctx, executeur, T: _Taches, ep: Episode, debuts_res: set[str], audit: dict) -> None:
         f: dict[str, Any] = {"h1_tags": []}
         nature = ep.res.nature
@@ -878,7 +959,7 @@ class CompetenceObjections:
                 ep.etiquettes.append(f"to_review:{prefixe}")
             return r.reponse
 
-        if not ep.reponse_com:                      # no sales response at all: nothing received, nothing answered
+        if not ep.reponse_com:                      # aucune réponse du commercial : rien d'accueilli, rien de répondu
             f.update(ack=False, h1=0, h3=0, reaction_level="latent")
         else:
             premier = ctx.tour(ep.reponse_com[0])
@@ -923,7 +1004,7 @@ class CompetenceObjections:
         ep.faits = f
         ep.etiquettes += f.get("h1_tags", [])
 
-    # ------------------------------------------------------------------ run
+    # ------------------------------------------------------------------ exécution
     def executer(self, ctx: ContexteAppel, executeur: Executeur) -> ResultatCompetence:
         sortie = ResultatCompetence(self.nom_, self.version_regles)
         if not ctx.reference_offre:
@@ -933,7 +1014,7 @@ class CompetenceObjections:
         res, echeances, signaux = self._resistances(ctx, executeur, T, audit)
         sortie.signaux += signaux
         eps = self._borner(ctx, executeur, T, res, audit)
-        debuts_res = {e.res.debut for e in eps}      # starts of episodes (absorbed repetitions excluded)
+        debuts_res = {e.res.debut for e in eps}      # débuts des épisodes (répétitions absorbées exclues)
         for ep in eps:
             if ep.statut == "scored":
                 self._juger(ctx, executeur, T, ep, debuts_res, audit)
@@ -949,7 +1030,7 @@ class CompetenceObjections:
         if any(e.statut == "to_review" for e in eps):
             sortie.signaux.append("episodes_to_review")
 
-        # prevention
+        # prévention
         fp = ctx.phases.premier_prix
         statut_h, statut_p = applicabilite(len(eps), bool(fp))
         prevention, items_p, note_p = None, [], None
@@ -961,7 +1042,7 @@ class CompetenceObjections:
                 sortie.signaux.append("to_review:prevention")
             else:
                 faits = dict(r.reponse)
-                if not faits.get("deadline"):        # OB-2 / OB-25 deadlines found at detection feed prevention
+                if not faits.get("deadline"):        # OB-2 / OB-25 : les échéances trouvées au repérage nourrissent la prévention
                     dl = next((d for d in echeances if ctx.avant(d["turn"], fp)), None)
                     if dl:
                         faits["deadline"] = dl
@@ -970,7 +1051,7 @@ class CompetenceObjections:
                 note_p = note_appel(items_p)
 
         note_h = note_traitement(eps_notes) if statut_h == "scored" else None
-        # status (§4, C3 rule 7)
+        # statut (§4, C3 règle 7)
         candidats_indecis = any(f.startswith("to_review:res:") or f.startswith("to_review:nominate:")
                                    for f in sortie.signaux)
         if statut_h == "scored" and note_h is None:
@@ -987,9 +1068,10 @@ class CompetenceObjections:
             if statut_h == "not_applicable":
                 sortie.raisons.append("no_resistance: call score = prevention score")
         if eps_notes:
-            sortie.signaux.append("h5_provisional")       # §5.1: current call only until the next call is analysed
+            sortie.signaux.append("h5_provisional")       # §5.1 : appel en cours seulement, jusqu'à l'analyse de l'appel suivant
 
-        # call-level items: R1..R3 and, per H item, the weakest episode (stable ids for period item rates)
+        # items de l'appel : R1 à R3 et, pour chaque item H, l'épisode le plus faible (identifiants stables pour les taux
+        # par item sur une période)
         items_appel: list[NoteItem] = []
         for hid in POIDS_H:
             niveaux = [(e, next(i for i in e.items if i.id == hid)) for e in eps_notes]
@@ -1011,7 +1093,7 @@ class CompetenceObjections:
         sortie.verdict = None
         return sortie
 
-    # ------------------------------------------------------------------ output contract (§9)
+    # ------------------------------------------------------------------ contrat de sortie (§9)
     @staticmethod
     def _enr_episode(ctx: ContexteAppel, e: Episode) -> dict:
         f = e.faits
@@ -1083,5 +1165,5 @@ def diagnostics(ctx: ContexteAppel, eps: list[Episode], prevention: Optional[dic
         "resistances_after_price": round(sum(bool(fp and not ctx.avant(e.res.debut, fp)) for e in sc) / n, 3)
         if n else None,
         "recurrent_themes": themes,
-        "binding_deadline": bool(dl and dl.get("binding")),   # "binding counts double in diagnostics" (§5.2 R2)
+        "binding_deadline": bool(dl and dl.get("binding")),   # « une échéance contraignante compte double dans les diagnostics » (§5.2 R2)
     }

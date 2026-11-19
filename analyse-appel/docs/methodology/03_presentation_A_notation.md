@@ -1,221 +1,225 @@
-# Competence 3 · Pitch
-_Scoring methodology: how the system measures whether the sales pitched the one blocker the prospect validated, with its one mechanism, in four steps built from the prospect's own words, before the roadmap, the price and the decision_
+# Compétence 3 · Présentation de l'offre
+_Méthodologie de notation : comment le système mesure si le commercial a présenté l'offre sur le seul blocage que le prospect a validé, avec son seul mécanisme, en quatre étapes construites avec les mots du prospect, avant la feuille de route, le prix et la décision_
 
-**Version:** Version 2.0 · 25 October 2026  
-**Status:** Draft for validation by the methodology owner. Values marked "to validate" or "à confirmer" are proposals or missing facts.  
-**Scope:** Sales calls that contain a presentation of the offer. Sources: LNP pitch board "9 blocages, 9 mécanismes" (October 2026), Gap Formalisation methodology v1.3 (gap formula, verbatim rules), LNP verbatim reference v2 (tipping point), analysis of 85 real calls.  
-# 1. What this competence measures
+**Version :** version 2.0 · 25 octobre 2026  
+**Statut :** brouillon à valider par le responsable de la méthodologie. Les valeurs marquées « à valider » ou « à confirmer » sont des propositions ou des faits manquants.  
+**Périmètre :** appels de vente qui contiennent une présentation de l'offre. Sources : tableau de présentation LNP « 9 blocages, 9 mécanismes » (octobre 2026), méthodologie de formalisation de l'écart v1.3 (formule de l'écart, règles du mot pour mot), référence verbatim LNP v2 (point de bascule), analyse de 85 vrais appels.  
+# 1. Ce que mesure cette compétence
 
-**Definition.** The pitch is the part of the call where the sales presents the offer: from the first statement describing the offer (or the start of the screen share of the program) to the first price, or to the end of the presentation if no price is given.
+**Définition.** La présentation est la partie de l'appel où le commercial présente l'offre : de la première phrase qui décrit l'offre (ou du début du partage d'écran du programme) jusqu'au premier prix, ou jusqu'à la fin de la présentation si aucun prix n'est donné.
 
-**What the pitch is now.** The pitch treats **one blocker only**: the blocker P that the prospect validated in the gap. It answers it with **one mechanism only**: the mechanism of the offer that carries the name of that blocker. It is delivered as a **staircase of four steps, in this order**, each step starting from what the prospect said: (1) restate the blocker, (2) the mechanism, (3) the transformation A → B, (4) the proof. **Only after** the four steps come the roadmap (the prospect's other blockers), then the amount, then the decision. The board this replaces asked the sales to go through steps 1 and 2 three times; that is no longer done: the other blockers go into the roadmap.
+**Ce qu'est désormais la présentation.** La présentation traite **un seul blocage** : le blocage P que le prospect a validé dans l'écart. Elle y répond avec **un seul mécanisme** : le mécanisme de l'offre qui porte le nom de ce blocage. Elle se déroule comme un **escalier de quatre étapes, dans cet ordre**, chaque étape partant de ce que le prospect a dit : (1) reformuler le blocage, (2) le mécanisme, (3) la transformation A → B, (4) la preuve. **Seulement après** les quatre étapes viennent la feuille de route (les autres blocages du prospect), puis le montant, puis la décision. Le tableau que celui-ci remplace demandait au commercial de parcourir trois fois les étapes 1 et 2 ; ce n'est plus le cas : les autres blocages vont dans la feuille de route.
 
-**What success means, in one sentence.** The sales succeeded when, once the gap was validated, they restated the prospect's blocker in his exact words, gave the single mechanism of that blocker as a principle he can repeat and the phase of the offer that carries it, described his own transformation from A to B in his unit and his words, gave a real client case that started where he starts, then showed his roadmap before any price, and the prospect took the solution on board in words of his own.
+**Ce que veut dire réussir, en une phrase.** Le commercial a réussi quand, une fois l'écart validé, il a reformulé le blocage du prospect avec ses mots exacts, donné le seul mécanisme de ce blocage comme un principe que le prospect peut répéter et la phase de l'offre qui le porte, décrit sa propre transformation de A vers B dans son unité et avec ses mots, donné un vrai cas client parti de là où il part, puis montré sa feuille de route avant tout prix, et que le prospect s'est approprié la solution avec ses propres mots.
 
-**The test that decides everything.** **This pitch is only true for him.** Every step must contain something that only this prospect said (his blocker, his figures, his words, a case that started where he is). A step that could be said word for word to any other prospect is generic and cannot reach the top level.
+**Le test qui décide de tout.** **Cette présentation n'est vraie que pour lui.** Chaque étape doit contenir quelque chose que seul ce prospect a dit (son blocage, ses chiffres, ses mots, un cas parti de là où il est). Une étape qu'on pourrait dire mot pour mot à n'importe quel autre prospect est générique et ne peut pas atteindre le niveau le plus haut.
 
-**What is forbidden, even if it would help to sign (hard exclusions).**
-1. **Pitching before the yes.** Presenting the offer before the gap is validated. The Copilot blocks the pitch until the gap is validated.
-2. **Anything outside his gap or the offer.** A figure, a client case, a price or a guarantee that is neither in the prospect's gap (his quotes) nor in the offer reference (offer, case library).
-3. **Promising that the Academy does his work.** Saying that the Academy will run his business, find or sign his clients, or deliver his projects. The Academy brings the systems, the feedback and the coaching; he runs his business.
+**Ce qui est interdit, même si cela aidait à signer (exclusions strictes).**
+1. **Présenter avant le oui.** Présenter l'offre avant que l'écart soit validé. Le Copilote bloque la présentation tant que l'écart n'est pas validé.
+2. **Tout ce qui sort de son écart ou de l'offre.** Un chiffre, un cas client, un prix ou une garantie qui n'est ni dans l'écart du prospect (ses citations) ni dans la référence de l'offre (offre, bibliothèque de cas).
+3. **Promettre que l'Académie fait son travail.** Dire que l'Académie fera tourner son activité, trouvera ou signera ses clients, ou réalisera ses projets. L'Académie apporte les systèmes, les retours et l'accompagnement ; c'est lui qui fait tourner son activité.
 
-Any one of them makes the pitch **non-compliant**: Pitch score = 0 for the call, with the reason shown (§5.1).
+Une seule d'entre elles rend la présentation **non conforme** : note de présentation = 0 pour l'appel, avec la raison affichée (§ 5.1).
 
-**What is not measured.** Style, energy, slides. The pitch score measures whether the offer was connected to this prospect's validated blocker, in the prescribed order, and whether the prospect connected to it.
+**Ce qui n'est pas mesuré.** Le style, l'énergie, les diapositives. La note de présentation mesure si l'offre a été reliée au blocage validé de ce prospect, dans l'ordre prescrit, et si le prospect s'y est relié.
 
-# Part A · Definitions
-The rules that find each element in a raw transcript (units, start and end markers, segmentation, exclusions and minimal pairs) are in **Annex A · Bounding rules**. **Annex B** gives real annotated cases for calibration. A verdict that cannot be reached with these rules goes to the arbiter as an uncovered case.
+# Partie A · Définitions
+Les règles qui repèrent chaque élément dans une transcription brute (unités, marqueurs de début et de fin, découpage, exclusions et paires minimales) sont dans l'**annexe A · Règles de bornage**. L'**annexe B** donne de vrais cas annotés pour la calibration. Un verdict qui ne peut pas être atteint avec ces règles va à l'arbitre comme cas non couvert.
 
-# 2. Vocabulary
+# 2. Vocabulaire
 
-## 2.1 The offer: 9 blockers, 9 mechanisms
+## 2.1 L'offre : 9 blocages, 9 mécanismes
 
-Each mechanism answers one blocker and carries its name. The Copilot picks the mechanism that matches the prospect's P, from the sentence the prospect said.
+Chaque mécanisme répond à un blocage et porte son nom. Le Copilote choisit le mécanisme qui correspond au P du prospect, à partir de la phrase que le prospect a dite. Les noms des catégories restent écrits en anglais dans le code et dans l'enregistrement (valeurs fermées, entre parenthèses).
 
-| Blocker (= mechanism) | The prospect's sentence, typically |
+| Blocage (= mécanisme) | La phrase du prospect, typiquement |
 |---|---|
-| Skill | "can I actually do this?" |
-| Legitimacy | "who will hire me without experience?" |
-| Pricing | "I don't know what to charge" |
-| Acquisition | "I don't know where clients will come from" |
-| Selling | "I don't know how to turn a conversation into a client" |
-| Delivery | "I'm not sure I can run a client project end to end" |
-| Time | "I only have a few hours a week" |
-| Past failure | "I took a course and nothing happened" |
-| Financial risk | "what if it doesn't work?" |
+| Compétence (`Skill`) | « est-ce que je suis vraiment capable de le faire ? » |
+| Légitimité (`Legitimacy`) | « qui va me prendre sans expérience ? » |
+| Tarification (`Pricing`) | « je ne sais pas combien facturer » |
+| Acquisition (`Acquisition`) | « je ne sais pas d'où viendront les clients » |
+| Vente (`Selling`) | « je ne sais pas comment transformer une conversation en client » |
+| Réalisation (`Delivery`) | « je ne suis pas sûr de savoir mener un projet client de bout en bout » |
+| Temps (`Time`) | « je n'ai que quelques heures par semaine » |
+| Échec passé (`Past failure`) | « j'ai suivi une formation et il ne s'est rien passé » |
+| Risque financier (`Financial risk`) | « et si ça ne marche pas ? » |
 
-**Category of P.** The model classifies the validated P (the prospect's exact quote) into one of the nine categories, with the boundary tests of Annex A (PB-27). A P that fits none is `P_category_unknown`: it goes to the arbiter as `uncovered_case`, and the staircase is scored without step 2 (§5.3).
+**Catégorie de P.** Le modèle classe le P validé (la citation exacte du prospect) dans une des neuf catégories, avec les tests de frontière de l'annexe A (PB-27). Un P qui n'entre dans aucune est `P_category_unknown` : il va à l'arbitre comme `uncovered_case`, et l'escalier est noté sans l'étape 2 (§ 5.3).
 
-**Mechanism reference (à confirmer).** For each of the nine mechanisms, the offer reference must store: its name; its **principle**, one sentence the prospect can repeat; the **phase of the offer** that carries it; and its lexical cues. These texts are not written yet: they must be provided by the offer owner. Until they are, step 2 is checked on the category only and flagged `mechanism_reference_missing`.
+**Référence des mécanismes (à confirmer).** Pour chacun des neuf mécanismes, la référence de l'offre doit garder : son nom ; son **principe**, une phrase que le prospect peut répéter ; la **phase de l'offre** qui le porte ; et ses indices lexicaux. Ces textes ne sont pas encore écrits : ils doivent être fournis par le responsable de l'offre. En attendant, l'étape 2 n'est vérifiée que sur la catégorie et signalée `mechanism_reference_missing`.
 
-## 2.2 The staircase: four steps, in this order
+## 2.2 L'escalier : quatre étapes, dans cet ordre
 
-Each step starts from what the prospect said. Short sentences, natural when spoken: **one to three sentences per step**.
+Chaque étape part de ce que le prospect a dit. Phrases courtes, naturelles à l'oral : **une à trois phrases par étape**.
 
-| Step | Comes from | Opening line (indicative) | Done right | Failure that matters |
+| Étape | Vient de | Phrase d'ouverture (indicative) | Bien faite | L'échec qui compte |
 |---|---|---|---|---|
-| **1 · Restate the blocker** | P (gap) | "What's blocking you today is…" | His blocker, with **his exact words**. No translation, no summary | Saying it in the sales' vocabulary: he no longer recognises himself |
-| **2 · The mechanism** | P turned around | "What makes that give way is…" | **One** mechanism, the one of his blocker, said as a principle he can repeat in one sentence, then the phase of the offer that carries it. Example: Legitimacy | Adding a second mechanism, or reciting the content of the offer |
-| **3 · The transformation** | A → B (gap) | "You go from A to B." | In **his unit**: his euros, his hours, his clients. His deadline **only if he gave one**. Ends with a concrete image of his life once there, **in his words** | Speaking in the sales' unit, or inventing a date |
-| **4 · The proof** | A, his starting point | "Someone who started exactly where you are…" | A **real client case**, cited with the client's consent, whose starting point resembles his. Without a matching case, the Copilot leaves a slot to fill: it **never invents** | Bringing out the best case: he does not recognise himself in it |
+| **1 · Reformuler le blocage** | P (écart) | « Ce qui te bloque aujourd'hui, c'est… » | Son blocage, avec **ses mots exacts**. Pas de traduction, pas de résumé | Le dire avec le vocabulaire du commercial : il ne s'y reconnaît plus |
+| **2 · Le mécanisme** | P retourné | « Ce qui fait céder ça, c'est… » | **Un** mécanisme, celui de son blocage, dit comme un principe qu'il peut répéter en une phrase, puis la phase de l'offre qui le porte. Exemple : Légitimité | Ajouter un second mécanisme, ou réciter le contenu de l'offre |
+| **3 · La transformation** | A → B (écart) | « Tu passes de A à B. » | Dans **son unité** : ses euros, ses heures, ses clients. Son échéance **seulement s'il en a donné une**. Se termine par une image concrète de sa vie une fois arrivé, **avec ses mots** | Parler dans l'unité du commercial, ou inventer une date |
+| **4 · La preuve** | A, son point de départ | « Quelqu'un qui est parti exactement de là où tu es… » | Un **vrai cas client**, cité avec le consentement du client, dont le point de départ ressemble au sien. Sans cas qui corresponde, le Copilote laisse une case à remplir : il **n'invente jamais** | Sortir le meilleur cas : il ne s'y reconnaît pas |
 
-**And only after:** his roadmap, then the amount, then the decision. **Neither the pitch nor the roadmap page gives the price.**
+**Et seulement après :** sa feuille de route, puis le montant, puis la décision. **Ni la présentation ni la page de la feuille de route ne donnent le prix.**
 
-## 2.3 The roadmap: the client page
+## 2.3 La feuille de route : la page du client
 
-The pitch treats the blocker he validated. **His other blockers become the steps of his one-page roadmap**, shared on screen at the end of the call, then sent by private link. One step per blocker he named, in the order in which they must fall (order rule à confirmer; proposal: the order of the table of §2.1).
+La présentation traite le blocage qu'il a validé. **Ses autres blocages deviennent les étapes de sa feuille de route sur une page**, partagée à l'écran à la fin de l'appel, puis envoyée par lien privé. Une étape par blocage qu'il a nommé, dans l'ordre où ils doivent tomber (règle d'ordre à confirmer ; proposition : l'ordre du tableau du § 2.1).
 
-| Block | Content |
+| Bloc | Contenu |
 |---|---|
-| **Today** | His point A, quantified, with his sentence, and what the status quo costs him over one year |
-| **Step 1** | His blocker (verbatim) · 2 deliverables of the Academy · one proof · what it brings him, with the calculation · a first win within 30 days |
-| **Step 2** | Next blocker · same headings · the milestone rises |
-| **Step 3 (or 4)** | Last blocker · the last milestone equals his objective |
-| **His objective** | His point B · the gain per year and his other gains: time, confidence, credibility, security, freedom |
+| **Aujourd'hui** | Son point A, quantifié, avec sa phrase, et ce que le statu quo lui coûte sur un an |
+| **Étape 1** | Son blocage (mot pour mot) · 2 livrables de l'Académie · une preuve · ce que ça lui apporte, avec le calcul · une première victoire sous 30 jours |
+| **Étape 2** | Blocage suivant · mêmes rubriques · le palier monte |
+| **Étape 3 (ou 4)** | Dernier blocage · le dernier palier égale son objectif |
+| **Son objectif** | Son point B · le gain par an et ses autres gains : temps, confiance, crédibilité, sécurité, liberté |
 
-**Values.** The value of each step is computed with his figures (price per project, hours, inquiries and signing rate). A missing figure appears in small type as **"To ask"**: the sales asks him live.
+**Valeurs.** La valeur de chaque étape est calculée avec ses chiffres (prix par projet, heures, demandes et taux de signature). Un chiffre manquant apparaît en petits caractères sous la forme **« À demander »** : le commercial le lui demande en direct.
 
-**Checks before sharing the link.** The link can only be copied when every check is green:
-- capacity held at each milestone;
-- client flow explained;
-- objective respected (the last milestone equals B);
-- values that add up;
-- no price of the offer;
-- no link (meaning à confirmer);
-- 3 or 4 steps;
-- fits on one screen;
-- starting point chosen.
+**Contrôles avant de partager le lien.** Le lien ne peut être copié que lorsque chaque contrôle est vert :
+- capacité tenue à chaque palier ;
+- flux de clients expliqué ;
+- objectif respecté (le dernier palier égale B) ;
+- valeurs qui s'additionnent ;
+- aucun prix de l'offre ;
+- pas de lien (sens à confirmer) ;
+- 3 ou 4 étapes ;
+- tient sur un écran ;
+- point de départ choisi.
 
-The ◇ checks inform without blocking: a step without proof is counted in **Admin › Proof gaps**, to know which proof to collect first.
+Les contrôles ◇ informent sans bloquer : une étape sans preuve est comptée dans **Administration › Preuves manquantes**, pour savoir quelle preuve recueillir en premier.
 
-**Number of blockers.** A 3-step roadmap needs at least 3 blockers ticked in P or I answers; below that, the Copilot warns the sales before generating the page (Gap methodology, GB-32 and GB-33). Open point à confirmer: whether the blocker treated in the pitch also counts as a roadmap step (the board says "the others become the steps", while the page shows "Step 1 · his blocker").
+**Nombre de blocages.** Une feuille de route en 3 étapes demande au moins 3 blocages relevés dans les réponses P ou I ; en dessous, le Copilote prévient le commercial avant de produire la page (méthodologie de l'écart, GB-32 et GB-33). Point ouvert à confirmer : le blocage traité dans la présentation compte-t-il aussi comme étape de la feuille de route (le tableau dit « les autres deviennent les étapes », alors que la page montre « Étape 1 · son blocage »).
 
-## 2.4 Other terms
+## 2.4 Autres termes
 
-**Pitch boundaries.** Placed by the phase map (Part C, C2, stage S2):
-- **Pitch start:** the first sales turn that describes the offer (its content, format, duration, support, guarantee) or announces and starts a screen share of the program. A one-sentence answer to a direct question of the prospect about what the offer is is not a pitch start; it is logged as `offer_mention` (Annex A, PB-1, PB-2, PB-17).
-- **Pitch end:** the first price statement by the sales; otherwise the first decision request; otherwise the end of the call.
+**Limites de la présentation.** Placées par la carte des phases (Partie C, C2, étape S2) :
+- **Début de la présentation :** le premier tour du commercial qui décrit l'offre (son contenu, son format, sa durée, son accompagnement, sa garantie) ou qui annonce et lance un partage d'écran du programme. Une réponse d'une phrase à une question directe du prospect sur ce qu'est l'offre n'est pas un début de présentation ; elle est notée `offer_mention` (mention de l'offre) (annexe A, PB-1, PB-2, PB-17).
+- **Fin de la présentation :** le premier énoncé d'un prix par le commercial ; sinon la première demande de décision ; sinon la fin de l'appel.
 
-**Validated P.** The blocker restated in the restitution that passed the Gap absence gate. If that restitution restated several blockers, the validated P is the selected P of the Gap methodology (GB-30) among them.
+**P validé.** Le blocage reformulé dans la restitution qui a franchi la porte d'absence de l'écart. Si cette restitution a reformulé plusieurs blocages, le P validé est, parmi eux, le P choisi par la méthodologie de l'écart (GB-30).
 
-**Adhesion.** The moment the prospect moves from reserve to adherence, observed in his words: he takes the solution as his own, projects himself concretely into using it, or formulates a new link between the offer and his situation (Annex A, PB-14). A plain "okay", "sounds good", "that's great" is not adhesion.
+**Adhésion.** Le moment où le prospect passe de la réserve à l'adhésion, observé dans ses mots : il fait sienne la solution, se projette concrètement dans son utilisation, ou formule un nouveau lien entre l'offre et sa situation (annexe A, PB-14). Un simple « ok », « ça me va », « c'est super » n'est pas une adhésion.
 
-# Part B · Mechanism and scoring
+# Partie B · Mécanisme et notation
 
-# 3. What the system extracts
+# 3. Ce que le système extrait
 
-| Field | Closed question to the model | Evidence |
+| Champ | Question fermée posée au modèle | Preuve |
 |---|---|---|
-| `pitch_start`, `pitch_end`, `first_price`, `decision_request` | Phase anchors | Turn number and exact sales quote |
-| `validated_P` | Taken from the Gap result of the call (verdict, restitution, selected P) | Prospect quote, turn |
-| `P_category` | Which of the nine categories does the validated P belong to? (PB-27) | Category, prospect quote |
-| `steps` | For each of the four steps: which sales passage performs it? (PB-28 to PB-31) | Turn span, exact sales quote |
-| `mechanisms_stated` | Which mechanisms of the reference does the sales state as a principle or a phase in the pitch before the roadmap? (PB-29) | Mechanism name, exact sales quote |
-| `transformation` | Which A, B, unit, deadline and image of life does step 3 state, and from which prospect quotes? (PB-30) | Sales quote, prospect source quotes |
-| `proof_case` | Which client case is cited in step 4? Is it in the case library? (PB-31) | Sales quote, case id or `not_in_library` |
-| `roadmap` | Where does the sales present the roadmap, and which blockers are its steps? (PB-34) | Turn span, sales quotes, prospect source quotes |
-| `claims` | Which figures, client cases, prices and guarantees does the sales state in the pitch? (PB-35) | Sales quote |
-| `outcome_promises` | Does the sales say the Academy will run his business, find or sign his clients, or deliver his projects? (PB-36) | Sales quote |
-| `adhesion` | Which prospect passages show appropriation, concrete projection or a new link? For each, the sales gesture just before | Prospect quote, sales gesture quote |
+| `pitch_start`, `pitch_end`, `first_price`, `decision_request` | Ancres des phases | Numéro de tour et citation exacte du commercial |
+| `validated_P` | Pris dans le résultat de l'écart du même appel (verdict, restitution, P choisi) | Citation du prospect, tour |
+| `P_category` | À laquelle des neuf catégories appartient le P validé ? (PB-27) | Catégorie, citation du prospect |
+| `steps` | Pour chacune des quatre étapes : quel passage du commercial la réalise ? (PB-28 à PB-31) | Plage de tours, citation exacte du commercial |
+| `mechanisms_stated` | Quels mécanismes de la référence le commercial énonce-t-il comme principe ou comme phase dans la présentation, avant la feuille de route ? (PB-29) | Nom du mécanisme, citation exacte du commercial |
+| `transformation` | Quels A, B, unité, échéance et image de vie l'étape 3 énonce-t-elle, et à partir de quelles citations du prospect ? (PB-30) | Citation du commercial, citations sources du prospect |
+| `proof_case` | Quel cas client est cité à l'étape 4 ? Est-il dans la bibliothèque de cas ? (PB-31) | Citation du commercial, identifiant du cas ou `not_in_library` |
+| `roadmap` | Où le commercial présente-t-il la feuille de route, et quels blocages en sont les étapes ? (PB-34) | Plage de tours, citations du commercial, citations sources du prospect |
+| `claims` | Quels chiffres, cas clients, prix et garanties le commercial énonce-t-il dans la présentation ? (PB-35) | Citation du commercial |
+| `outcome_promises` | Le commercial dit-il que l'Académie fera tourner son activité, trouvera ou signera ses clients, ou réalisera ses projets ? (PB-36) | Citation du commercial |
+| `adhesion` | Quels passages du prospect montrent une appropriation, une projection concrète ou un nouveau lien ? Pour chacun, le geste du commercial juste avant | Citation du prospect, citation du geste du commercial |
 
-**Computed by code:**
-- `gap_verdict` and `validated_P`, from the Gap result of the same call;
-- the verbatim check of step 1 and step 3 (Gap Annex A, GB-22);
-- the order of the steps, of the roadmap, of the price and of the decision request, on turn numbers;
-- the number of sentences of each step;
-- the match between the mechanism stated and `P_category`;
-- the match of each claim against the prospect's gap quotes, the offer reference and the case library (PB-35);
-- the match between the proof case's starting point and the prospect's A (PB-31).
+Les noms des champs restent ceux de l'enregistrement (en anglais).
 
-# 4. Applicability
+**Calculé par le code :**
+- `gap_verdict` et `validated_P`, à partir du résultat de l'écart du même appel ;
+- la vérification mot pour mot de l'étape 1 et de l'étape 3 (annexe A de l'écart, GB-22) ;
+- l'ordre des étapes, de la feuille de route, du prix et de la demande de décision, sur les numéros de tour ;
+- le nombre de phrases de chaque étape ;
+- la correspondance entre le mécanisme énoncé et `P_category` ;
+- la correspondance de chaque affirmation avec les citations de l'écart du prospect, la référence de l'offre et la bibliothèque de cas (PB-35) ;
+- la correspondance entre le point de départ du cas de preuve et le A du prospect (PB-31).
 
-| Situation | Pitch status |
+# 4. Applicabilité
+
+| Situation | Statut de la présentation |
 |---|---|
-| A pitch start exists | `scored` |
-| Only an `offer_mention`, no pitch | `not_applicable` |
-| Second call where the pitch is resumed after a first call | `scored`; the gap must be re-validated in this call before the pitch resumes (Gap, GB-13) |
-| Offer reference or mechanism reference missing | `scored`, step 2 checked on the category only, flag `mechanism_reference_missing` |
-| Case library missing | `scored`, step 4 `not_applicable`, flag `case_library_missing` |
+| Un début de présentation existe | `scored` (notée) |
+| Seulement une `offer_mention`, pas de présentation | `not_applicable` (sans objet) |
+| Second appel où la présentation reprend après un premier appel | `scored` ; l'écart doit être validé à nouveau dans cet appel avant que la présentation reprenne (écart, GB-13) |
+| Référence de l'offre ou référence des mécanismes manquante | `scored`, étape 2 vérifiée sur la catégorie seulement, signal `mechanism_reference_missing` |
+| Bibliothèque de cas manquante | `scored`, étape 4 `not_applicable`, signal `case_library_missing` |
 
-# 5. The Pitch score
+# 5. La note de présentation
 
-### 5.1 Step 1: the compliance gate
+### 5.1 Étape 1 : la porte de conformité
 
-The code checks, in this order:
-1. **Pitch after the yes.** The Gap verdict of the call is "present" and the validation turn comes before the pitch start. Otherwise: reason `pitch_before_gap`.
-2. **Nothing outside his gap or the offer.** No claim (figure, client case, price, guarantee) that is neither in the prospect's gap quotes nor in the offer reference or the case library (PB-35). Otherwise: reason `out_of_gap_claim`.
-3. **No promise that the Academy does his work.** No outcome promise (PB-36). Otherwise: reason `outcome_promise`.
+Le code vérifie, dans cet ordre :
+1. **Présentation après le oui.** Le verdict de l'écart de l'appel est « présent » et le tour de validation vient avant le début de la présentation. Sinon : raison `pitch_before_gap`.
+2. **Rien en dehors de son écart ou de l'offre.** Aucune affirmation (chiffre, cas client, prix, garantie) qui ne soit ni dans les citations de l'écart du prospect, ni dans la référence de l'offre ou la bibliothèque de cas (PB-35). Sinon : raison `out_of_gap_claim`.
+3. **Aucune promesse que l'Académie fait son travail.** Aucune promesse de résultat (PB-36). Sinon : raison `outcome_promise`.
 
-If any check fails: **verdict "non-compliant", Pitch score = 0**, with every failed reason stored and the first one displayed. The items below are still computed and shown as diagnostics, never as a score. (Severity to validate: the alternative is a cap at 40 instead of 0.)
+Si un contrôle échoue : **verdict « non conforme », note de présentation = 0**, avec chaque raison d'échec gardée et la première affichée. Les items ci-dessous sont quand même calculés et montrés comme diagnostics, jamais comme une note. (Sévérité à valider : l'autre possibilité est un plafond à 40 au lieu de 0.)
 
-### 5.2 Step 2: the score of a compliant pitch
+### 5.2 Étape 2 : la note d'une présentation conforme
 
-Seven items, each scored 0, 1 or 2. **Call score = Σ (weight × level / 2)**, rounded, on 100.
+Sept items, chacun noté 0, 1 ou 2. **Note de l'appel = Σ (poids × niveau / 2)**, arrondie, sur 100.
 
-| Item | Weight | Level 0 | Level 1 | Level 2 |
+| Item | Poids | Niveau 0 | Niveau 1 | Niveau 2 |
 |---|---|---|---|---|
-| K1 Step 1 · Blocker restated | 15 | No restatement of the validated P in the pitch, or a paraphrase only (no key expression, Gap GB-22) | The validated P restated verbatim, but together with other blockers, or another blocker restated in its place | The validated P alone, restated verbatim |
-| K2 Step 2 · The mechanism | 20 | No mechanism stated; or the mechanism of another category; or two mechanisms or more | The mechanism of P's category, alone, but without the principle in one sentence or without the phase of the offer, or followed by a recitation of the offer content | The mechanism of P's category, alone, as a principle in one sentence, then the phase of the offer that carries it |
-| K3 Step 3 · The transformation | 15 | No A → B; or A and B in a unit that is not the prospect's; or a deadline the prospect never gave | A → B in the prospect's unit with his figures, no invented date, but no image of his life once there, or an image not in his words | A → B in his unit with his figures, his deadline only if he gave one, ending with a concrete image of his life in his words (key expression, Gap GB-22) |
-| K4 Step 4 · The proof | 15 | No client case | A real case from the library, whose starting point does not match his A (the best case) | A real case from the library, with consent, whose starting point matches his A (PB-31) |
-| K5 Order and brevity | 10 | Fewer than three of the four steps | The steps present but not in the order 1 → 2 → 3 → 4, or a step longer than three sentences | All four steps, in order, each one to three sentences |
-| K6 Then: roadmap, amount, decision | 15 | No roadmap presented, or the price given before the roadmap | Roadmap presented after step 4 and before the price, but its steps are not his named blockers, or the decision request comes before the price | Roadmap after step 4, its steps are his other blockers in his words, then the amount, then the decision |
-| K7 Adhesion | 10 | No adhesion | One adhesion passage | Two or more adhesion passages, or one with a concrete projection (a date, a number, a named first action) |
+| K1 Étape 1 · Blocage reformulé | 15 | Aucune reformulation du P validé dans la présentation, ou seulement une paraphrase (pas d'expression clé, écart GB-22) | Le P validé reformulé mot pour mot, mais avec d'autres blocages, ou un autre blocage reformulé à sa place | Le P validé seul, reformulé mot pour mot |
+| K2 Étape 2 · Le mécanisme | 20 | Aucun mécanisme énoncé ; ou le mécanisme d'une autre catégorie ; ou deux mécanismes ou plus | Le mécanisme de la catégorie de P, seul, mais sans le principe en une phrase ou sans la phase de l'offre, ou suivi d'une récitation du contenu de l'offre | Le mécanisme de la catégorie de P, seul, comme un principe en une phrase, puis la phase de l'offre qui le porte |
+| K3 Étape 3 · La transformation | 15 | Pas de A → B ; ou A et B dans une unité qui n'est pas celle du prospect ; ou une échéance que le prospect n'a jamais donnée | A → B dans l'unité du prospect avec ses chiffres, sans date inventée, mais sans image de sa vie une fois arrivé, ou avec une image qui n'est pas dans ses mots | A → B dans son unité avec ses chiffres, son échéance seulement s'il en a donné une, se terminant par une image concrète de sa vie avec ses mots (expression clé, écart GB-22) |
+| K4 Étape 4 · La preuve | 15 | Aucun cas client | Un vrai cas de la bibliothèque, dont le point de départ ne correspond pas à son A (le meilleur cas) | Un vrai cas de la bibliothèque, avec consentement, dont le point de départ correspond à son A (PB-31) |
+| K5 Ordre et brièveté | 10 | Moins de trois des quatre étapes | Les étapes présentes mais pas dans l'ordre 1 → 2 → 3 → 4, ou une étape de plus de trois phrases | Les quatre étapes, dans l'ordre, chacune d'une à trois phrases |
+| K6 Puis : feuille de route, montant, décision | 15 | Aucune feuille de route présentée, ou le prix donné avant la feuille de route | Feuille de route présentée après l'étape 4 et avant le prix, mais ses étapes ne sont pas les blocages qu'il a nommés, ou la demande de décision vient avant le prix | Feuille de route après l'étape 4, ses étapes sont ses autres blocages avec ses mots, puis le montant, puis la décision |
+| K7 Adhésion | 10 | Aucune adhésion | Un passage d'adhésion | Deux passages d'adhésion ou plus, ou un seul avec une projection concrète (une date, un nombre, une première action nommée) |
 
-**The test "only true for him".** K1 to K4 reach level 2 only if the step contains at least one element that only this prospect said: his key expression (K1), his figures and his words (K3), a case matched on his A (K4); K2 reaches level 2 only if it follows a K1 that does. A step that would be identical with any other prospect is capped at level 1 (`generic_step`).
+**Le test « vrai seulement pour lui ».** K1 à K4 n'atteignent le niveau 2 que si l'étape contient au moins un élément que seul ce prospect a dit : son expression clé (K1), ses chiffres et ses mots (K3), un cas qui correspond à son A (K4) ; K2 n'atteint le niveau 2 que s'il suit un K1 qui l'atteint. Une étape qui serait identique avec n'importe quel autre prospect est plafonnée au niveau 1 (`generic_step`).
 
-**Step 4 without a matching case.** If the case library holds no case whose starting point matches his A, step 4 is `not_applicable` for K4 (the sales must not invent one; the Copilot leaves a slot to fill) and the call is counted in **Proof gaps**. K4's weight is then spread proportionally over the other items.
+**Étape 4 sans cas qui corresponde.** Si la bibliothèque de cas ne contient aucun cas dont le point de départ correspond à son A, l'étape 4 est `not_applicable` pour K4 (le commercial ne doit pas en inventer un ; le Copilote laisse une case à remplir) et l'appel est compté dans **Preuves manquantes**. Le poids de K4 est alors réparti au prorata sur les autres items.
 
-**P outside the nine categories.** If `P_category_unknown`, K2 is `not_applicable` and its weight is spread proportionally over the other items; the case is reported to the methodology owner.
+**P hors des neuf catégories.** Si `P_category_unknown`, K2 est `not_applicable` et son poids est réparti au prorata sur les autres items ; le cas est signalé au responsable de la méthodologie.
 
-**Why these weights.** The mechanism (20) is what makes the blocker give way. The blocker, the transformation, the proof and the sequence roadmap → amount → decision (15 each) carry the rest of the board. Order and adhesion (10 each) check delivery and the prospect's reaction. Proposals, to validate.
+**Pourquoi ces poids.** Le mécanisme (20) est ce qui fait céder le blocage. Le blocage, la transformation, la preuve et la suite feuille de route → montant → décision (15 chacun) portent le reste du tableau. L'ordre et l'adhésion (10 chacun) vérifient la façon de dérouler et la réaction du prospect. Propositions, à valider.
 
-# 6. How the system knows the sales succeeded
+# 6. Comment le système sait que le commercial a réussi
 
-1. **He pitched after the yes.** The Gap verdict and the validation turn come from the Gap result; the pitch start is placed after it on turn numbers. Otherwise the pitch is non-compliant.
-2. **One blocker, his words.** Step 1 contains the prospect's key expression for the validated P, checked by code in both texts; another blocker in its place, or several, cannot reach the top level.
-3. **One mechanism, the right one.** The mechanism stated is matched against the category of the validated P; a second mechanism or a recitation of the offer is detected and stated with its quote.
-4. **His transformation, his proof.** A, B and the image come from the prospect's quotes; the unit and the deadline are compared with his; the case is looked up in the library and its starting point compared with his A.
-5. **The order.** Steps 1 to 4, roadmap, price, decision: all placed on turn numbers and compared by code.
-6. **Nothing invented, nothing promised.** Every figure, case, price and guarantee is matched against his gap and the offer; every outcome promise is caught with its quote.
-7. **The prospect projects.** Adhesion is read in his words, with a quote; agreement alone never counts.
-8. **It is reproducible.** Three concordant passes or an arbitrated decision for every step, claim and adhesion passage (Part C, C4).
+1. **Il a présenté après le oui.** Le verdict de l'écart et le tour de validation viennent du résultat de l'écart ; le début de la présentation est placé après, sur les numéros de tour. Sinon la présentation n'est pas conforme.
+2. **Un blocage, ses mots.** L'étape 1 contient l'expression clé du prospect pour le P validé, vérifiée par le code dans les deux textes ; un autre blocage à sa place, ou plusieurs, ne peut pas atteindre le niveau le plus haut.
+3. **Un mécanisme, le bon.** Le mécanisme énoncé est comparé à la catégorie du P validé ; un second mécanisme ou une récitation de l'offre est détecté et indiqué avec sa citation.
+4. **Sa transformation, sa preuve.** A, B et l'image viennent des citations du prospect ; l'unité et l'échéance sont comparées aux siennes ; le cas est cherché dans la bibliothèque et son point de départ comparé à son A.
+5. **L'ordre.** Étapes 1 à 4, feuille de route, prix, décision : tout est placé sur les numéros de tour et comparé par le code.
+6. **Rien d'inventé, rien de promis.** Chaque chiffre, cas, prix et garantie est comparé à son écart et à l'offre ; chaque promesse de résultat est relevée avec sa citation.
+7. **Le prospect se projette.** L'adhésion se lit dans ses mots, avec une citation ; un simple accord ne compte jamais.
+8. **C'est reproductible.** Trois lectures concordantes ou une décision arbitrée pour chaque étape, chaque affirmation et chaque passage d'adhésion (Partie C, C4).
 
-# 7. Coaching diagnostics (displayed, never scored)
+# 7. Diagnostics d'accompagnement (affichés, jamais notés)
 
-| Diagnostic | Computation |
+| Diagnostic | Calcul |
 |---|---|
-| Non-compliance reasons | Distribution of `pitch_before_gap`, `out_of_gap_claim`, `outcome_promise` over the period |
-| Category of P | Distribution of the validated P over the nine blockers; share of `P_category_unknown` |
-| Mechanism errors | Share of pitches with a second mechanism, the wrong mechanism, or a recitation of the offer |
-| Step failures | Per step, the most frequent failure (paraphrase, other unit, invented date, best case) |
-| Proof gaps | Calls where no matching case existed, by category of P and by starting point: which proof to collect first |
-| Roadmap | Number of roadmap steps; share of roadmaps shared before the price; "To ask" figures left open |
-| Talk share during the pitch | Share of words spoken by the sales between pitch start and pitch end; above 85 % flagged "monologue" (threshold to validate) |
-| Gesture before adhesion | The sales gestures that most often precede adhesion across calls |
-| Check-ins | Sales solicitations in the pitch that ask how a component applies to him, and whether he answered with content (Annex A, PB-11 to PB-13) |
-| Former coverage (version 1) | Blockers and criteria of the prospect answered by a component in the pitch (links, Annex A PB-8 to PB-10), shown for comparison during the transition |
+| Raisons de non-conformité | Répartition de `pitch_before_gap`, `out_of_gap_claim`, `outcome_promise` sur la période |
+| Catégorie de P | Répartition du P validé sur les neuf blocages ; part de `P_category_unknown` |
+| Erreurs de mécanisme | Part des présentations avec un second mécanisme, le mauvais mécanisme ou une récitation de l'offre |
+| Échecs par étape | Pour chaque étape, l'échec le plus fréquent (paraphrase, autre unité, date inventée, meilleur cas) |
+| Preuves manquantes | Appels pour lesquels aucun cas correspondant n'existait, par catégorie de P et par point de départ : quelle preuve recueillir en premier |
+| Feuille de route | Nombre d'étapes de la feuille de route ; part des feuilles de route partagées avant le prix ; chiffres « À demander » restés ouverts |
+| Part de parole pendant la présentation | Part des mots dits par le commercial entre le début et la fin de la présentation ; au-dessus de 85 %, signalé « monologue » (seuil à valider) |
+| Geste avant l'adhésion | Les gestes du commercial qui précèdent le plus souvent l'adhésion, sur l'ensemble des appels |
+| Points de contrôle | Sollicitations du commercial dans la présentation qui demandent comment une composante s'applique à lui, et s'il a répondu avec du contenu (annexe A, PB-11 à PB-13) |
+| Ancienne couverture (version 1) | Blocages et critères du prospect auxquels une composante répond dans la présentation (liens, annexe A PB-8 à PB-10), montrés pour comparaison pendant la transition |
 
-**Reference observed on Valentino (85 calls with a pitch, version 1 indicators, before this board existed):** pitch started after a restitution of at least two components in 76 % of calls; an adhesion passage observed after the pitch start in 59 %. None of the version 2 items (single blocker, single mechanism, staircase, matched proof, roadmap before price) has been measured yet: they are the first figures to establish once calls are made with the new board.
+**Référence observée sur Valentino (85 appels avec une présentation, indicateurs de la version 1, avant l'existence de ce tableau) :** présentation commencée après une restitution d'au moins deux composantes dans 76 % des appels ; un passage d'adhésion observé après le début de la présentation dans 59 %. Aucun des items de la version 2 (blocage unique, mécanisme unique, escalier, preuve correspondante, feuille de route avant le prix) n'a encore été mesuré : ce sont les premiers chiffres à établir une fois les appels faits avec le nouveau tableau.
 
-# 8. Worked examples
-Illustrative cases, adapted and shortened. In production, every piece of evidence is an exact quote checked against the transcript.
+# 8. Exemples commentés
+Cas d'illustration, adaptés et raccourcis. En production, chaque preuve est une citation exacte vérifiée dans la transcription.
 
-| Case | Verdict |
+| Cas | Verdict |
 |---|---|
-| Validated P: "I don't know what to charge." Sales: "What's blocking you today is you don't know what to charge." | K1 = 2 (verbatim) |
-| Same P. Sales: "What's blocking you today is your pricing strategy." | K1 = 0: paraphrase in the sales' vocabulary |
-| P category Pricing. Sales states the Pricing principle in one sentence, then "that's the second phase of the Academy". | K2 = 2 |
-| Same, then: "And on top of that, the Acquisition system will bring you leads…" | K2 = 0: a second mechanism |
-| Prospect: A "about 2K a month", B "10K a month", no deadline, "be home when my kids get back from school". Sales: "You go from about 2K a month to 10K a month, and you're home when your kids get back from school." | K3 = 2 |
-| Same, Sales: "You go to six figures by next summer." | K3 = 0: other unit, invented date |
-| Prospect starts from zero clients with a full-time job. Sales cites the library case of a student who started with zero clients and a full-time job. | K4 = 2 |
-| Sales cites the student who reached 30K a month, who started as an established architect. | K4 = 1: best case, starting point does not match |
-| Sales: "We'll find the clients for you." | Non-compliant, `outcome_promise`: score 0 |
-| Sales: "Our students make 15K a month on average." The figure is not in the offer reference. | Non-compliant, `out_of_gap_claim`: score 0 |
-| Price "$5,800" given right after step 3, roadmap never shown | K6 = 0 |
+| P validé : « Je ne sais pas combien facturer. » Commercial : « Ce qui te bloque aujourd'hui, c'est que tu ne sais pas combien facturer. » | K1 = 2 (mot pour mot) |
+| Même P. Commercial : « Ce qui te bloque aujourd'hui, c'est ta stratégie tarifaire. » | K1 = 0 : paraphrase avec le vocabulaire du commercial |
+| Catégorie de P Tarification. Le commercial énonce le principe de la Tarification en une phrase, puis « c'est la deuxième phase de l'Académie ». | K2 = 2 |
+| Même chose, puis : « Et en plus, le système d'Acquisition va t'amener des contacts… » | K2 = 0 : un second mécanisme |
+| Prospect : A « à peu près 2 000 par mois », B « 10 000 par mois », pas d'échéance, « être à la maison quand mes enfants rentrent de l'école ». Commercial : « Tu passes d'à peu près 2 000 par mois à 10 000 par mois, et tu es à la maison quand tes enfants rentrent de l'école. » | K3 = 2 |
+| Même chose, commercial : « Tu passes à six chiffres d'ici l'été prochain. » | K3 = 0 : autre unité, date inventée |
+| Le prospect part de zéro client avec un emploi à temps plein. Le commercial cite le cas de la bibliothèque d'un élève parti de zéro client avec un emploi à temps plein. | K4 = 2 |
+| Le commercial cite l'élève arrivé à 30 000 par mois, qui avait commencé comme professionnel déjà installé. | K4 = 1 : meilleur cas, le point de départ ne correspond pas |
+| Commercial : « On va te trouver les clients. » | Non conforme, `outcome_promise` : note 0 |
+| Commercial : « Nos élèves gagnent en moyenne 15 000 par mois. » Le chiffre n'est pas dans la référence de l'offre. | Non conforme, `out_of_gap_claim` : note 0 |
+| Prix « 5 800 € » donné juste après l'étape 3, feuille de route jamais montrée | K6 = 0 |
 
-# 9. Output contract
+# 9. Contrat de sortie
+
+Les clés et les valeurs fermées restent en anglais (format enregistré, voir `docs/CONTRAT_DE_SORTIE.md`).
 
 ```
 {
@@ -240,12 +244,12 @@ Illustrative cases, adapted and shortened. In production, every piece of evidenc
 }
 ```
 
-# 10. Decisions to validate
+# 10. Décisions à valider
 
-- The compliance gate: score 0 for `pitch_before_gap`, `out_of_gap_claim` and `outcome_promise` (alternative: cap at 40).
-- The seven items and their weights (15 / 20 / 15 / 15 / 10 / 15 / 10).
-- **À confirmer by the offer owner:** for each of the nine mechanisms, its principle in one sentence, the phase of the offer that carries it, and its lexical cues.
-- **À confirmer:** the case library (cases, client consent, starting point of each case) and the matching rule of PB-31 (same dimension as A, starting value within a factor to define).
-- **À confirmer:** the order in which the roadmap blockers must fall; whether the blocker treated in the pitch is also a roadmap step; the meaning of the check "no link".
-- The limit of one to three sentences per step (sentence split by code; tolerance to validate).
-- What to do with real blockers outside the nine categories (fear, overthinking, lack of money; see Annex B, B5).
+- La porte de conformité : note 0 pour `pitch_before_gap`, `out_of_gap_claim` et `outcome_promise` (autre possibilité : plafond à 40).
+- Les sept items et leurs poids (15 / 20 / 15 / 15 / 10 / 15 / 10).
+- **À confirmer par le responsable de l'offre :** pour chacun des neuf mécanismes, son principe en une phrase, la phase de l'offre qui le porte et ses indices lexicaux.
+- **À confirmer :** la bibliothèque de cas (cas, consentement du client, point de départ de chaque cas) et la règle de correspondance de PB-31 (même dimension que A, valeur de départ à un facteur près, facteur à définir).
+- **À confirmer :** l'ordre dans lequel les blocages de la feuille de route doivent tomber ; le blocage traité dans la présentation est-il aussi une étape de la feuille de route ; le sens du contrôle « pas de lien ».
+- La limite d'une à trois phrases par étape (découpage en phrases par le code ; tolérance à valider).
+- Que faire des vrais blocages hors des neuf catégories (peur, trop réfléchir, manque d'argent ; voir annexe B, B5).

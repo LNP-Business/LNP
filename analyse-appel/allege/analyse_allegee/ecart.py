@@ -1,10 +1,12 @@
-"""S2 → Gap result (GAP-1.3), computed by the reference engine's GapCompetence on the lite answers.
+"""S2 → résultat de l'écart (GAP-1.3), calculé par CompetenceEcart du moteur de référence sur les réponses du moteur
+allégé.
 
-The engine's closed questions are answered from the S2 step (passages, clauses, validations, deadlines) and from the S1
-facts (stopping questions, kinds of figures): gap.restitution (the clauses of the passage whose sales turns are in the
-candidate span), gap.validation (the validation the model read on that same prospect turn), gap.a_current (X13: the
-figure kind of the atom), gap.stopping (GB-30), gap.horizon (GB-29). Everything else, the verbatim rule GB-22 first, is
-the engine's code. The passages the model found and the code inventory missed are added as candidates (signal S5_lite).
+Les questions fermées du moteur reçoivent leur réponse de l'étape S2 (passages, propositions, validations, échéances) et
+des faits de S1 (questions sur ce qui arrête le prospect, nature des chiffres) : gap.restitution (les propositions du
+passage dont les tours du commercial sont dans la plage candidate), gap.validation (la validation que le modèle a lue sur
+ce même tour du prospect), gap.a_current (X13 : la nature du chiffre de l'atome), gap.stopping (GB-30), gap.horizon
+(GB-29). Tout le reste, à commencer par la règle du mot pour mot GB-22, est le code du moteur. Les passages que le modèle
+a trouvés et que l'inventaire du code a manqués sont ajoutés comme candidats (signal S5_lite).
 """
 from __future__ import annotations
 
@@ -23,7 +25,7 @@ ETAPE = "S2"
 def texte_enonces(ctx: ContexteAppel, limite: int = 160) -> str:
     st = G.enonces_depuis_atomes(ctx, G.fin_fenetre(ctx))
     lignes = [f"- {comp} [{s.tour}] \"{s.citation}\"" for comp in G.COMPOSANTES for s in st[comp]]
-    return "\n".join(lignes[:limite]) or "(none)"
+    return "\n".join(lignes[:limite]) or "(aucun)"
 
 
 def _passages(ctx: ContexteAppel, s2: dict, rejets: Rejets) -> list[dict]:
@@ -54,11 +56,11 @@ def _passages(ctx: ContexteAppel, s2: dict, rejets: Rejets) -> list[dict]:
 
 
 def expression_cle_partagee(expression_cle: str, texte_source: str, citation_commercial: str) -> Optional[str]:
-    """GB-22 checked by the code on the model's key expression: when the whole expression is not in the sales words (the
-    model copied the prospect's whole sentence, "quelques 10% de ce qui coûte" for "10% de ce que coûte"), the longest
-    run of its words that is in the source and in the sales clause (with GB-22's transformations) and is not generic
-    (GB-22 d) is taken instead. Only words of the model's expression are tried, so it still carries the component (c).
-    Romain 2026-11-03 (Anastasia's call)."""
+    """GB-22 vérifiée par le code sur l'expression clé du modèle : quand l'expression entière n'est pas dans les mots du
+    commercial (le modèle a copié toute la phrase du prospect, « quelques 10% de ce qui coûte » pour « 10% de ce que
+    coûte »), on prend à sa place la plus longue suite de ses mots qui est dans la source et dans la proposition du
+    commercial (avec les transformations de GB-22) et qui n'est pas générique (GB-22 d). Seuls les mots de l'expression du
+    modèle sont essayés, donc elle porte toujours la composante (c). Romain 2026-11-03 (l'appel d'Anastasia)."""
     ke = (expression_cle or "").split()
     if not ke or not texte_source or expression_cle_ok(expression_cle, texte_source, citation_commercial)[0]:
         return None
@@ -71,7 +73,8 @@ def expression_cle_partagee(expression_cle: str, texte_source: str, citation_com
 
 
 def _proposition(c: dict, ctx: Optional[ContexteAppel] = None, rejets: Optional[Rejets] = None) -> dict:
-    """The lite clause fields → the engine's gap.restitution clause (about_prospect, declarative default to true)."""
+    """Les champs de la proposition du moteur allégé → la proposition gap.restitution du moteur (about_prospect et
+    declarative valent true par défaut)."""
     ke = c.get("key_expression")
     if ctx is not None and ke and c.get("source_turn"):
         try:
@@ -136,7 +139,7 @@ class ReponsesEcart:
             p = self._passage(r.plage)
             v = (p or {}).get("validation")
             if not isinstance(v, dict) or not v.get("outcome"):
-                return None                                   # no reading of that turn: to_review (C3 rule 7)
+                return None                                   # pas de lecture de ce tour : to_review (C3, règle 7)
             return {k: v.get(k) for k in ("outcome", "agreement_quote", "content_quote", "content_is_repetition",
                                           "corrected_components", "correction_quote", "emotional_reaction",
                                           "disagreement", "answers_other_question", "addressed_co_decider")

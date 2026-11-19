@@ -1,7 +1,9 @@
-"""A fictional sales call (no real person, no real data) and the answers a model could give to the five lite steps.
+"""Un appel de vente fictif (aucune vraie personne, aucune vraie donnée) et les réponses qu'un modèle pourrait donner aux
+cinq étapes du moteur allégé. L'appel est en anglais : les tests s'appuient sur ses mots exacts.
 
-The recorded answers also carry the mistakes the code must catch: an invented quote, a quote given to the wrong
-speaker, a question after the pitch start, objections raised before the pitch and before the first price (OB-27), the same objection listed twice.
+Les réponses enregistrées portent aussi les erreurs que le code doit attraper : une citation inventée, une citation
+attribuée au mauvais locuteur, une question après le début de la présentation, des objections levées avant la
+présentation et avant le premier prix (OB-27), la même objection listée deux fois.
 """
 from lnp_analyse.noyau.fondation import lire_transcription
 from lnp_analyse.noyau.modeles import ContexteAppel
@@ -75,7 +77,7 @@ S0 = {"turns": [
      "amount": 5800, "lnp_offer_price": True,
      "offer_explained": {"turn": "T019", "quote": "The program is a six-month mentorship with weekly calls"}},
     {"turn": "T039", "quote": "Are you ready to get started today?", "decision_request": True},
-    {"turn": "T020", "quote": "Okay, I can see it", "offer_description": True},            # a prospect turn: dropped
+    {"turn": "T020", "quote": "Okay, I can see it", "offer_description": True},            # un tour du prospect : écarté
 ]}
 
 S1 = {"questions": [
@@ -87,7 +89,7 @@ S1 = {"questions": [
      "atoms": [{"type": "SITUATION", "turn": "T004", "quote": "I only make about 1,500 a month from it",
                 "quantified": True, "value": 1500, "unit": "month", "figure_kind": "present", "dimension": "revenue",
                 "object": "design income"},
-               {"type": "SITUATION", "turn": "T004", "quote": "I make about 20,000 a month from it",   # invented
+               {"type": "SITUATION", "turn": "T004", "quote": "I make about 20,000 a month from it",   # inventé
                 "quantified": True, "value": 20000, "unit": "month"}]},
     {"turn": "T005", "quote": "How many clients do you have right now?", "letter": "S", "object": "finding clients",
      "register_domain": "clients", "register_basis": "named", "register_quote": "How many clients",
@@ -99,7 +101,7 @@ S1 = {"questions": [
      "register_quote": "getting more clients",
      "atoms": [{"type": "BLOCKER", "turn": "T008", "quote": "I don't know where clients will come from",
                 "object": "finding clients"},
-               {"type": "PAIN", "turn": "T007", "quote": "What's been stopping you from getting more clients?",  # sales
+               {"type": "PAIN", "turn": "T007", "quote": "What's been stopping you from getting more clients?",  # tour du commercial
                 "object": "finding clients"}]},
     {"turn": "T009", "quote": "what does that do to you outside of work?", "letter": "I", "object": "finding clients",
      "register_domain": "self_belief", "register_basis": "answer", "register_turn": "T010",
@@ -123,9 +125,9 @@ S1 = {"questions": [
      "register_quote": "home when my kids get back from school",
      "atoms": [{"type": "VALUE", "turn": "T016", "quote": "So I can be home when my kids get back from school",
                 "object": "design income"}]},
-    {"turn": "T014", "quote": "I want to make 6,000 a month", "letter": "N"},                 # a prospect turn: dropped
+    {"turn": "T014", "quote": "I want to make 6,000 a month", "letter": "N"},                 # un tour du prospect : écarté
     {"turn": "T025", "quote": "Do you have any questions about how the weekly calls work?", "letter": "OUT",
-     "out_reason": "offer_info"},                                                             # after the pitch: dropped
+     "out_reason": "offer_info"},                                                             # après le début de la présentation : écartée
 ]}
 
 S2 = {"passages": [{
@@ -167,7 +169,7 @@ S3 = {
     "step4": {"cases": []},
     "roadmap": {"roadmap": None, "steps": []},
     "claims": [{"kind": "price", "quote": "The investment is 5,800, or six payments of 1,050", "turn": "T027"},
-               {"kind": "figure", "quote": "Our students make 20K a month", "turn": "T027"}],        # invented
+               {"kind": "figure", "quote": "Our students make 20K a month", "turn": "T027"}],        # inventé
     "promises": [],
     "adhesion": [{"quote": "So I would have a system to find clients every week", "turn": "T024",
                   "kind": "appropriation", "gesture": {"quote": "You go from 1,500 a month to 6,000 a month",
@@ -175,7 +177,7 @@ S3 = {
 }
 
 S4 = {"objections": [
-    {"subjects": ["self_capability"], "quotes": [{"turn": "T010", "quote": "It makes me feel like a fraud"}]},  # before pitch
+    {"subjects": ["self_capability"], "quotes": [{"turn": "T010", "quote": "It makes me feel like a fraud"}]},  # avant la présentation
     {"subjects": ["price"], "quotes": [{"turn": "T028", "quote": "That's a lot of money for me right now"}],
      "topic_change": {"turn": "T035", "quote": "do you need to talk to anyone before deciding?"},
      "acknowledge": {"turn": "T029", "quote": "I hear you.", "receiving_marker": True},
@@ -195,9 +197,9 @@ S4 = {"objections": [
                  "answered_with_content": True, "answer_turn": "T038", "answer_quote": "He would want to know it pays for itself"},
      "gesture": {"answer_given": False},
      "reaction": {"reaction_kind": "agreement_only", "turn": "T038", "quote": "He would want to know it pays for itself"}},
-    {"subjects": ["price"], "quotes": [{"turn": "T038", "quote": "the money is still a lot"}]},  # the same objection again
-    {"subjects": ["price"], "quotes": [{"turn": "T037", "quote": "Totally fair"}]},              # a sales turn: dropped
-    {"subjects": ["offer_trust"], "quotes": [{"turn": "T024", "quote": "So I would have a system"}]},  # pitch, before price
+    {"subjects": ["price"], "quotes": [{"turn": "T038", "quote": "the money is still a lot"}]},  # la même objection, de nouveau
+    {"subjects": ["price"], "quotes": [{"turn": "T037", "quote": "Totally fair"}]},              # un tour du commercial : écarté
+    {"subjects": ["offer_trust"], "quotes": [{"turn": "T024", "quote": "So I would have a system"}]},  # pendant la présentation, avant le prix
 ], "prevention": {"influencers": {"turn": "T036", "quote": "we decide together"}}}
 
 REPONSES = {"lite.s0_phases": S0, "lite.s1_discovery": S1, "lite.s2_gap": S2, "lite.s3_pitch": S3,

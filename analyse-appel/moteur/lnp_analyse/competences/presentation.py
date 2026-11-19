@@ -735,7 +735,8 @@ _COMPLIMENT = re.compile(r"^((that|it|this) )?((all )?(sounds?|looks?|is|seems?)
 # droites, accents gardés) : chaque mot accentué est aussi écrit sans accent.
 _CA = r"(ça|ca|cela)"
 _COMPLIMENT_FR = re.compile(
-    r"^((ah|oh|ah oui|oh oui|oh là là|oh la la|ouah|ouais|oui|bon|ben|eh bien|bah)[\s.,!]+)?"
+    r"^((ah|oh|ah oui|oh oui|oh là là|oh la la|ouah|ouais|oui|bon|ben|eh bien|bah|franchement|honnêtement|"
+    r"honnetement)[\s.,!]+)?"
     r"((tout )?" + _CA + r" (a|à|m'a) l'air |(tout )?" + _CA + r" (me )?(semble|paraît|parait) |"
     r"c'est |c'était |c'etait |" + _CA + r" c'est |" + _CA + r" fait )?"
     r"((vraiment|trop|super|très|tres|hyper|franchement|carrément|carrement|grave|plutôt|plutot|assez) )?"

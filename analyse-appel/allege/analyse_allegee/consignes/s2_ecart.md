@@ -8,7 +8,7 @@ veut aller). Une conséquence que le prospect vit à cause du problème (dépend
 avec les enfants, des économies qui fondent, se sentir exploité) est un COST, pas un PROBLEM ; le PROBLEM est ce qui
 l'empêche d'atteindre l'objectif.
 
-Liste chaque passage du commercial (SALES), depuis le début de la découverte jusqu'à {limite}, qui restitue ce que le
+Liste chaque passage du commercial (SALES), depuis le début de la découverte jusqu'{limite}, qui restitue ce que le
 prospect a dit : une ouverture (« si je résume », « si j'ai bien compris », « donc, ce que j'entends, c'est que »,
 « je te refais un petit résumé » ; en anglais "so from what I'm hearing", "let me play that back"), un long passage de
 propositions en « tu… » qui portent les mots du prospect, ou un passage qui se termine par une demande de le valider

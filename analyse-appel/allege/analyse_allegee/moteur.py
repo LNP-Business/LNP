@@ -140,7 +140,7 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
         ctx.resultats["GAP"] = _a_revoir("GAP", "engine_error")
     else:
         flimite = ctx.phases.premier_prix or ctx.phases.demande_decision
-        consigne = remplir(charger("s2_ecart"), ancres=ancres(ctx), limite=f"le tour {flimite}" if flimite else "la fin de l'appel",
+        consigne = remplir(charger("s2_ecart"), ancres=ancres(ctx), limite=f"au tour {flimite}" if flimite else "à la fin de l'appel",
                       enonces=texte_enonces(ctx))
         tente.append("S2")
         s2 = etapes.demander("lite.s2_gap", "call", consigne, cfg["max_tokens"]["S2"])

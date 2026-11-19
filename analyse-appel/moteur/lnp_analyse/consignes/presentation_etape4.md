@@ -1,10 +1,12 @@
-Rules: Pitch annex PB-31 (step 4 of the staircase, the proof, version PITCH-2.0).
-Step 4 = a passage that tells the story of a named or described client who used the offer.
-List every such client case told in the pitch. For each: its span (exact SALES quotes), the exact quote that
-describes the case, and "library_id": the id of the case of the CASE LIBRARY below that it is (by name, or by its
-figures and starting point), or "not_in_library" if it matches none. Never guess an id: when unsure, "not_in_library".
-"profile_match": true only if the case's starting profile label in the library is also the prospect's starting point,
-with "prospect_evidence": the exact PROSPECT quote, before the pitch, that shows it; else false and null.
-JSON: {"cases": [{"step": {"start_turn": "...", "start_quote": "...", "end_turn": "...", "end_quote": "..."},
+Règles : annexe de la présentation de l'offre PB-31 (étape 4 de l'escalier, la preuve, version PITCH-2.0).
+Étape 4 = un passage qui raconte l'histoire d'un client, nommé ou décrit, qui est passé par l'offre.
+Liste chaque cas client de ce type raconté pendant la présentation. Pour chacun : sa plage (citations exactes du
+commercial, tours SALES ; SALES est le commercial), la citation exacte qui décrit le cas, et "library_id" : l'identifiant
+du cas de la BIBLIOTHÈQUE DE CAS ci-dessous auquel il correspond (par son nom, ou par ses chiffres et son point de départ),
+ou "not_in_library" s'il ne correspond à aucun. Ne devine jamais un identifiant : en cas de doute, "not_in_library".
+"profile_match" : true seulement si le libellé du profil de départ du cas dans la bibliothèque est aussi le point de
+départ du prospect, avec "prospect_evidence" : la citation exacte du PROSPECT, avant la présentation, qui le montre ;
+sinon false et null.
+JSON : {"cases": [{"step": {"start_turn": "...", "start_quote": "...", "end_turn": "...", "end_quote": "..."},
                   "quote": "...", "turn": "T192", "library_id": "case-07|not_in_library",
                   "profile_match": false, "prospect_evidence": null}]}

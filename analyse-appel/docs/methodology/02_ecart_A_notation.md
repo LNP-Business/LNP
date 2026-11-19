@@ -1,169 +1,171 @@
-# Competence 2 · Gap Formalisation
-_Scoring methodology: how the system measures whether the sales turned the discovery into a gap stated by the prospect, restated by the sales and validated by the prospect before the pitch_
+# Compétence 2 · Formalisation de l'écart
+_Méthodologie de notation : comment le système mesure si le commercial a transformé la découverte en un écart dit par le prospect, restitué par le commercial et validé par le prospect avant la présentation de l'offre_
 
-**Version:** Version 1.3 · 25 October 2026  
-**Status:** Draft for validation by the methodology owner. Values marked "to validate" are proposals.  
-**Scope:** Sales calls with a discovery phase. Sources: LNP verbatim reference v2 (current state, desired state, decision), LNP SPIN bounding reference v1.0 (restitution), analysis of 85 real calls.  
-# 1. What this competence measures
+**Version :** version 1.3 · 25 octobre 2026  
+**Statut :** brouillon à faire valider par le responsable de la méthodologie. Les valeurs marquées « à valider » sont des propositions.  
+**Périmètre :** appels de vente avec une phase de découverte. Sources : référence des verbatims LNP v2 (état actuel, état désiré, décision), référence de bornage SPIN LNP v1.0 (restitution), analyse de 85 vrais appels.  
+# 1. Ce que mesure cette compétence
 
-**Definition.** The gap is the distance between where the prospect is today (point A) and where they want to be (point B), the problem that keeps them from closing that distance on their own, and what that problem costs them. Formalising the gap means making it explicit and agreed **before** the offer is presented: the sales restates it in the prospect's words and the prospect validates it.
+**Définition.** L'écart est la distance entre là où le prospect en est aujourd'hui (point A) et là où il veut être (point B), le problème qui l'empêche de franchir cette distance seul, et ce que ce problème lui coûte. Formaliser l'écart, c'est le rendre explicite et partagé **avant** que l'offre soit présentée : le commercial le restitue avec les mots du prospect et le prospect le valide.
 
-**What success means, in one sentence.** The sales succeeded when, before the first pitch and the first price, they restated the prospect's problem and the cost of that problem in the prospect's own words, and the prospect validated that restitution; the gap is all the stronger when points A and B are quantified in the same unit and the prospect adds something of their own when validating.
+**Ce que veut dire réussir, en une phrase.** Le commercial a réussi quand, avant la première présentation de l'offre et le premier prix, il a restitué le problème du prospect et le coût de ce problème avec les propres mots du prospect, et que le prospect a validé cette restitution ; l'écart est d'autant plus fort que les points A et B sont chiffrés dans la même unité et que le prospect ajoute quelque chose de lui en validant.
 
-**The absence rule (hard exclusion).** **If, before the first pitch, there was no restitution of the prospect's problem and of the cost of that problem, validated by the prospect, the gap is considered absent.** The call then scores 0 on this competence, whatever was collected during discovery. Collecting the elements is discovery; formalising them is the gap. Without a validated restitution, the pitch has no agreed problem and no agreed cost to answer, and the price is compared with nothing.
+**La règle d'absence (exclusion stricte).** **Si, avant la première présentation de l'offre, il n'y a pas eu de restitution du problème du prospect et du coût de ce problème, validée par le prospect, l'écart est considéré comme absent.** L'appel reçoit alors 0 sur cette compétence, quoi qu'on ait recueilli pendant la découverte. Recueillir les éléments, c'est la découverte ; les formaliser, c'est l'écart. Sans restitution validée, la présentation de l'offre n'a ni problème partagé ni coût partagé auquel répondre, et le prix n'est comparé à rien.
 
-**The verbatim principle (governs every rule of this competence).** The gap belongs to the prospect, so it is built only from the prospect's exact words:
-1. **Every component is a prospect quote.** PROBLEM, COST, A and B exist only as exact quotes of prospect turns, checked character for character against the transcript (Part C, C3). Nothing the sales said first, computed or suggested is ever a component, even if the prospect approved it.
-2. **The restitution gives back the prospect's words.** A restated component counts only if the sales clause contains the prospect's **key expression** for that component, copied exactly (Annex A, GB-3 and GB-22). A paraphrase, a synonym, a summary in the sales' own words or a change of word form ("stressed" restated as "stress") does not count, however faithful it is.
-3. **Figures are the prospect's figures.** A number counts only if the prospect said it; a rounded, converted or computed number is the sales' number.
-4. **The validation is read in the prospect's words.** Its outcome is proved by an exact prospect quote; "with content" means content in the prospect's own words, quoted.
+**Le principe du mot pour mot (gouverne chaque règle de cette compétence).** L'écart appartient au prospect : il n'est construit qu'avec les mots exacts du prospect.
+1. **Chaque composant est une citation du prospect.** PROBLEM, COST, A et B n'existent que comme citations exactes de tours du prospect, vérifiées caractère pour caractère sur la transcription (partie C, C3). Rien de ce que le commercial a dit en premier, calculé ou suggéré n'est jamais un composant, même si le prospect l'a approuvé.
+2. **La restitution rend au prospect ses mots.** Un composant restitué ne compte que si la proposition du commercial contient l'**expression clé** du prospect pour ce composant, copiée à l'identique (annexe A, GB-3 et GB-22). Une paraphrase, un synonyme, un résumé avec les mots du commercial ou un changement de forme du mot (« stressé » restitué en « stress ») ne compte pas, aussi fidèle soit-il.
+3. **Les chiffres sont ceux du prospect.** Un nombre ne compte que si le prospect l'a dit ; un nombre arrondi, converti ou calculé est le nombre du commercial.
+4. **La validation se lit dans les mots du prospect.** Son issue est prouvée par une citation exacte du prospect ; « avec contenu » veut dire un contenu dans les propres mots du prospect, cité.
 
-# Part A · Definitions
-The rules that find each element in a raw transcript (units, start and end markers, segmentation, exclusions and minimal pairs) are in **Annex A · Bounding rules**. **Annex B** gives real annotated cases for calibration. A verdict that cannot be reached with these rules goes to the arbiter as an uncovered case.
+# Partie A · Définitions
+Les règles qui trouvent chaque élément dans une transcription brute (unités, marqueurs de début et de fin, segmentation, exclusions et paires minimales) sont dans l'**annexe A · Règles de bornage**. L'**annexe B** donne de vrais cas annotés pour la calibration. Un verdict qu'on ne peut pas atteindre avec ces règles va à l'arbitre comme cas non couvert.
 
-# 2. The four components
+# 2. Les quatre composants
 
-| Component | Definition | Mandatory for the gap to exist? | Comes from (verbatim reference v2) |
+| Composant | Définition | Obligatoire pour que l'écart existe ? | Vient de (référence des verbatims v2) |
 |---|---|---|---|
-| PROBLEM (P) | What is not working and keeps the prospect from reaching B: a lack, a blocker, a fear, a past failure, a constraint. **One single blocker** is restated (§2.1) | **Yes** | Answers to **P** solicitations (SPIN); CURRENT_STATE (pain), BLOCKER atoms, anxiety, past attempt |
-| COST | What the problem costs the prospect, or what staying in the current situation costs: money, time, clients, family, health, self-belief, lost opportunity | **Yes** | CURRENT_STATE with consequence or figure, IMPACT atoms, cost of inaction |
-| A · Current state | Where the prospect is today: **the figure he wants to move**, not the biggest figure of the call | No (scored) | Answers to **S** and **I** solicitations (SPIN); CURRENT_STATE, SITUATION atoms |
-| B · Desired state | Where the prospect wants to go: his target, **in the same unit as A**, with his deadline if he gave one | No (scored) | Answers to **N** solicitations (SPIN); DESIRED_STATE, DESIRE atoms |
+| PROBLEM (P) | Ce qui ne marche pas et empêche le prospect d'atteindre B : un manque, un blocage, une peur, un échec passé, une contrainte. **Un seul blocage** est restitué (§2.1) | **Oui** | Réponses aux sollicitations **P** (SPIN) ; CURRENT_STATE (douleur), atomes BLOCKER, anxiété, tentative passée |
+| COST | Ce que le problème coûte au prospect, ou ce que lui coûte de rester dans la situation actuelle : argent, temps, clients, famille, santé, confiance en soi, occasion perdue | **Oui** | CURRENT_STATE avec une conséquence ou un chiffre, atomes IMPACT, coût de l'inaction |
+| A · État actuel | Là où le prospect en est aujourd'hui : **le chiffre qu'il veut faire bouger**, pas le plus gros chiffre de l'appel | Non (noté) | Réponses aux sollicitations **S** et **I** (SPIN) ; CURRENT_STATE, atomes SITUATION |
+| B · État désiré | Là où le prospect veut aller : son objectif, **dans la même unité que A**, avec son échéance s'il en a donné une | Non (noté) | Réponses aux sollicitations **N** (SPIN) ; DESIRED_STATE, atomes DESIRE |
 
-**Unit.** The dimension in which A and B are expressed: monthly revenue, number of clients, hours per week, status, date. Two statements share a unit when the code can compute a difference between them.
+**Unité.** La dimension dans laquelle A et B sont exprimés : chiffre d'affaires mensuel, nombre de clients, heures par semaine, statut, date. Deux affirmations ont la même unité quand le code peut calculer une différence entre elles.
 
-**Quantified.** A statement is quantified when it attaches a number, an amount, a duration, a frequency or a date to the component.
+**Chiffré.** Une affirmation est chiffrée quand elle attache au composant un nombre, un montant, une durée, une fréquence ou une date.
 
-**Horizon.** A date or duration attached to B. A **binding** deadline (external, verifiable: "my contract ends in March") is distinguished from a **wished** delay ("I'd like to start soon").
+**Horizon.** Une date ou une durée attachée à B. On distingue une échéance **contraignante** (extérieure, vérifiable : « mon contrat se termine en mars ») d'un délai **souhaité** (« j'aimerais commencer bientôt »).
 
-**Restitution, validation, valid gap.** The exact rules that identify a restitution, its components and its validation in a transcript are in Annex A (Bounding rules). In short:
-- a **restitution** is a sales passage that restates at least two components, each containing the prospect's exact key expression for that component;
-- a **validation** is the prospect's response to that restitution: confirmed with content, confirmed, corrected, rejected or none;
-- a **valid gap** is a restitution that contains PROBLEM and COST, is placed before the first pitch and the first price, and is confirmed by the prospect (with or without content, or corrected then confirmed).
+**Restitution, validation, écart valable.** Les règles exactes qui repèrent une restitution, ses composants et sa validation dans une transcription sont dans l'annexe A (Règles de bornage). En bref :
+- une **restitution** est un passage du commercial qui restitue au moins deux composants, chacun contenant l'expression clé exacte du prospect pour ce composant ;
+- une **validation** est la réponse du prospect à cette restitution : confirmée avec contenu, confirmée, corrigée, rejetée ou aucune ;
+- un **écart valable** est une restitution qui contient PROBLEM et COST, placée avant la première présentation de l'offre et le premier prix, et confirmée par le prospect (avec ou sans contenu, ou corrigée puis confirmée).
 
 
-## 2.1 The gap formula: which A, which B, which P
+## 2.1 La formule de l'écart : quel A, quel B, quel P
 
-The restitution of the gap follows one sentence, filled with the prospect's own words:
+La restitution de l'écart suit une phrase, remplie avec les propres mots du prospect :
 
-> **"You're at [A] · you want to get to [B] · and what's holding you back today is [P]."** (French version used in coaching: « Tu es à [A] · tu veux atteindre [B] · et ce qui te bloque aujourd'hui, c'est [P]. »)
+> **« Tu es à [A] · tu veux atteindre [B] · et ce qui te bloque aujourd'hui, c'est [P]. »** (version anglaise : « You're at [A] · you want to get to [B] · and what's holding you back today is [P]. »)
 
-The cost of P is added to this sentence, in the prospect's words: it remains mandatory for the gap to exist (absence rule).
+Le coût de P s'ajoute à cette phrase, avec les mots du prospect : il reste obligatoire pour que l'écart existe (règle d'absence).
 
-| Slot | What it is | Where it comes from | Selection rule (Annex A) |
+| Case | Ce que c'est | D'où ça vient | Règle de sélection (annexe A) |
 |---|---|---|---|
-| **A** · Where he is | The figure he wants to move, not the biggest figure of the call | Prospect answers to **S** and **I** solicitations | The current value on the dimension that B targets (GB-28) |
-| **B** · Where he wants to go | His target, in the same unit as A; his deadline if he gave one | Prospect answers to **N** solicitations | The target expressed in A's unit (GB-29) |
-| **P** · What blocks him | **One single blocker** | Prospect answers to **P** solicitations | The blocker he named when asked what stops him; otherwise the one he comes back to most (GB-30) |
+| **A** · Là où il en est | Le chiffre qu'il veut faire bouger, pas le plus gros chiffre de l'appel | Réponses du prospect aux sollicitations **S** et **I** | La valeur actuelle sur la dimension que vise B (GB-28) |
+| **B** · Là où il veut aller | Son objectif, dans la même unité que A ; son échéance s'il en a donné une | Réponses du prospect aux sollicitations **N** | L'objectif exprimé dans l'unité de A (GB-29) |
+| **P** · Ce qui le bloque | **Un seul blocage** | Réponses du prospect aux sollicitations **P** | Le blocage qu'il a nommé quand on lui a demandé ce qui l'arrête ; sinon celui auquel il revient le plus (GB-30) |
 
-**The other blockers are not lost.** Every other blocker the prospect stated in answer to a P or I solicitation becomes a step of his roadmap, presented in the pitch. A roadmap of 3 steps needs at least 3 distinct blockers ticked from P or I answers; below that, **the Copilot warns the sales before generating the roadmap page** (GB-33). The roadmap count is a diagnostic: it never changes the Gap score.
+**Les autres blocages ne sont pas perdus.** Chaque autre blocage que le prospect a dit en réponse à une sollicitation P ou I devient une étape de sa feuille de route, présentée dans la présentation de l'offre. Une feuille de route de 3 étapes demande au moins 3 blocages distincts relevés dans des réponses P ou I ; en dessous, **le Copilot avertit le commercial avant de générer la page de la feuille de route** (GB-33). Le compte de la feuille de route est un diagnostic : il ne change jamais la note de l'écart.
 
-**What the system selects, what the sales must say.** The code selects A, B and P from the prospect's quotes with the rules of Annex A (GB-28 to GB-30), before reading the restitution. It then checks whether the restitution restates **these** A, B and P, verbatim (GB-22), with one single blocker (GB-31). A restitution that restates another figure, another unit or several blockers can still pass the absence gate if it contains a verbatim PROBLEM and COST, but it cannot reach level 2 on G5.
+**Ce que le système sélectionne, ce que le commercial doit dire.** Le code sélectionne A, B et P dans les citations du prospect avec les règles de l'annexe A (GB-28 à GB-30), avant de lire la restitution. Il vérifie ensuite si la restitution reprend **ces** A, B et P, mot pour mot (GB-22), avec un seul blocage (GB-31). Une restitution qui reprend un autre chiffre, une autre unité ou plusieurs blocages peut quand même passer la porte d'absence si elle contient un PROBLEM et un COST mot pour mot, mais elle ne peut pas atteindre le niveau 2 en G5.
 
-# Part B · Mechanism and scoring
+# Partie B · Mécanisme et notation
 
-# 3. What the system extracts
+Les rôles des tours de parole s'écrivent comme dans la transcription : `SALES` (le commercial), `PROSPECT` (le prospect), `OTHER` (une autre personne).
 
-**From the prospect (discovery perimeter and any reopening):**
+# 3. Ce que le système extrait
 
-| Field | Closed question to the model | Evidence |
+**Chez le prospect (périmètre de la découverte et toute réouverture) :**
+
+| Champ | Question fermée posée au modèle | Preuve |
 |---|---|---|
-| `A_statements` | Which prospect passages describe the current state on a dimension related to the goal? | Exact prospect quote, turn, unit, value if quantified |
-| `B_statements` | Which prospect passages describe a desired state or a necessary means? Exclude interest expressed after the first pitch | Exact quote, unit, value, horizon, binding or wished |
-| `problem_statements` | Which prospect passages name what is not working or what prevents them from reaching B? | Exact quote; type: skill, time, money, fear, past failure, external constraint |
-| `cost_statements` | Which prospect passages state what the problem costs them, or what staying as they are costs? | Exact quote, domain, quantified yes/no |
-| `prompted_by_sales` | For each passage: was the content stated by the sales first and only approved? | yes / no |
+| `A_statements` | Quels passages du prospect décrivent l'état actuel sur une dimension liée à l'objectif ? | Citation exacte du prospect, tour, unité, valeur si chiffrée |
+| `B_statements` | Quels passages du prospect décrivent un état désiré ou un moyen nécessaire ? Exclure l'intérêt exprimé après la première présentation de l'offre | Citation exacte, unité, valeur, horizon, contraignant ou souhaité |
+| `problem_statements` | Quels passages du prospect nomment ce qui ne marche pas ou ce qui l'empêche d'atteindre B ? | Citation exacte ; type : compétence, temps, argent, peur, échec passé, contrainte extérieure |
+| `cost_statements` | Quels passages du prospect disent ce que le problème lui coûte, ou ce que lui coûte de rester comme il est ? | Citation exacte, domaine, chiffré oui / non |
+| `prompted_by_sales` | Pour chaque passage : le contenu a-t-il été énoncé d'abord par le commercial et seulement approuvé ? | oui / non |
 
-**From the sales and the prospect's response (Annex A):**
+**Chez le commercial et dans la réponse du prospect (annexe A) :**
 
-| Field | Closed question to the model | Evidence |
+| Champ | Question fermée posée au modèle | Preuve |
 |---|---|---|
-| `restitutions` | Which sales passages are restitutions (rules GB-1 to GB-7)? | Turn span, exact sales quote |
-| `components` | For each restitution: which components does it restate, which earlier prospect statement does each come from, and which exact prospect words does it reuse? | Exact sales quote per component; id and exact quote of the source prospect statement; the key expression (GB-22), copied from the source |
-| `validation` | What is the prospect's response (rules GB-8 to GB-10)? | Outcome, exact prospect quote |
+| `restitutions` | Quels passages du commercial sont des restitutions (règles GB-1 à GB-7) ? | Plage de tours, citation exacte du commercial |
+| `components` | Pour chaque restitution : quels composants restitue-t-elle, de quelle affirmation antérieure du prospect vient chacun, et quels mots exacts du prospect reprend-il ? | Citation exacte du commercial par composant ; identifiant et citation exacte de l'affirmation source du prospect ; l'expression clé (GB-22), copiée depuis la source |
+| `validation` | Quelle est la réponse du prospect (règles GB-8 à GB-10) ? | Issue, citation exacte du prospect |
 
-**Selected by code (gap formula, §2.1):** `selected_A` (GB-28), `selected_B` (GB-29), `selected_P` (GB-30) and `roadmap_blockers`, the distinct blockers stated in P or I answers (GB-32). The SPIN letter of each solicitation comes from the SPIN bounding reference; the object label of each blocker comes from the SPIN annex (SB-16).
+**Sélectionné par le code (formule de l'écart, §2.1) :** `selected_A` (GB-28), `selected_B` (GB-29), `selected_P` (GB-30) et `roadmap_blockers`, les blocages distincts dits dans des réponses P ou I (GB-32). La lettre SPIN de chaque sollicitation vient de la référence de bornage SPIN ; l'étiquette d'objet de chaque blocage vient de l'annexe SPIN (SB-16).
 
-**Computed by code:** the phase of each restitution (before or after the first pitch and the first price); the verbatim check of each key expression (exact substring of the prospect source and of the sales clause, with only the transformations allowed by GB-22); `same_unit` and `gap_value` (B − A); the valid-gap verdict; the discarding of prompted passages, approval-only turns and current income presented as a cost.
+**Calculé par le code :** la phase de chaque restitution (avant ou après la première présentation de l'offre et le premier prix) ; le contrôle mot pour mot de chaque expression clé (sous-chaîne exacte de la source du prospect et de la proposition du commercial, avec seulement les transformations permises par GB-22) ; `same_unit` et `gap_value` (B − A) ; le verdict d'écart valable ; l'écartement des passages soufflés, des tours de simple approbation et du revenu actuel présenté comme un coût.
 
-# 4. Applicability
+# 4. Applicabilité
 
-| Situation | Gap status |
+| Situation | Statut de l'écart |
 |---|---|
-| Discovery perimeter exists, a pitch or a price follows in the call | `scored` (the absence rule applies) |
-| Discovery perimeter exists, the call ends before any pitch or price (presentation moved to a second call) | `scored` on the restitutions of the call; the absence rule applies at the end of the call |
-| Follow-up call where the pitch resumes after a first call of the same cycle | `scored`: a valid gap must be restated and re-validated in this call before the pitch resumes; statements of the first call can be the sources of the components |
-| No discovery and no restitution, no pitch | `not_applicable` |
-| Diarization suspect | `excluded` |
+| Le périmètre de la découverte existe, une présentation de l'offre ou un prix suit dans l'appel | `scored` (la règle d'absence s'applique) |
+| Le périmètre de la découverte existe, l'appel se termine avant toute présentation de l'offre ou tout prix (présentation reportée à un deuxième appel) | `scored` sur les restitutions de l'appel ; la règle d'absence s'applique à la fin de l'appel |
+| Appel de relance où la présentation de l'offre reprend après un premier appel du même cycle | `scored` : un écart valable doit être restitué et validé à nouveau dans cet appel avant que la présentation reprenne ; les affirmations du premier appel peuvent servir de sources aux composants |
+| Ni découverte ni restitution, pas de présentation de l'offre | `not_applicable` |
+| Attribution des locuteurs suspecte | `excluded` |
 
-# 5. The Gap score
+# 5. La note de l'écart
 
-### 5.1 Step 1: the absence gate
+### 5.1 Étape 1 : la porte d'absence
 
-The code checks, in this order:
-1. At least one restitution exists before the first pitch and before the first price.
-2. Among them, at least one restates PROBLEM and COST **in one go** (both in the same restitution, Annex A GB-34), each **verbatim**: the sales clause contains the prospect's exact key expression for that component (Annex A, GB-3 and GB-22). A paraphrased component does not count.
-3. That restitution is followed by a validation outcome `confirmed_with_content`, `confirmed`, or `corrected` followed by a restated and confirmed version.
+Le code vérifie, dans cet ordre :
+1. Il existe au moins une restitution avant la première présentation de l'offre et avant le premier prix.
+2. Parmi elles, au moins une restitue PROBLEM et COST **d'un seul tenant** (les deux dans la même restitution, annexe A GB-34), chacun **mot pour mot** : la proposition du commercial contient l'expression clé exacte du prospect pour ce composant (annexe A, GB-3 et GB-22). Un composant paraphrasé ne compte pas.
+3. Cette restitution est suivie d'une issue de validation `confirmed_with_content`, `confirmed`, ou `corrected` suivie d'une version restituée à nouveau et confirmée.
 
-If any check fails: **verdict "Gap absent", call score = 0**, label shown on the call card with the reason (`no_restitution`, `restitution_after_pitch`, `problem_missing`, `cost_missing`, `not_validated`). The items below are still computed and shown as diagnostics ("elements collected but not formalised"), never as a score.
+Si un contrôle échoue : **verdict « Écart absent », note de l'appel = 0**, mention affichée sur la carte de l'appel avec la raison (`no_restitution`, `restitution_after_pitch`, `problem_missing`, `cost_missing`, `not_validated`). Les items ci-dessous sont quand même calculés et affichés comme diagnostics (« éléments recueillis mais pas formalisés »), jamais comme une note.
 
-### 5.2 Step 2: the score of a present gap
+### 5.2 Étape 2 : la note d'un écart présent
 
-When the gate passes, six items scored 0, 1 or 2. **Call score = Σ (weight × level / 2)**, rounded, on 100.
+Quand la porte est passée, six items notés 0, 1 ou 2. **Note de l'appel = Σ (poids × niveau / 2)**, arrondie, sur 100.
 
-| Item | Weight | Level 0 | Level 1 | Level 2 |
+| Item | Poids | Niveau 0 | Niveau 1 | Niveau 2 |
 |---|---|---|---|---|
-| G1 Point A | 10 | No A statement by the prospect in S or I answers | A stated, not quantified | A quantified by the prospect, on the dimension that B targets (GB-28) |
-| G2 Point B | 10 | No B statement by the prospect in N answers | B stated, not quantified | B quantified by the prospect in A's unit, with a horizon |
-| G3 Measurable gap | 10 | No quantified A and B in the same unit | (no level 1) | Quantified A and B share a unit; `gap_value` computable |
-| G4 Cost of the problem | 20 | Cost restated, but the prospect's own cost statement is not quantified and stays generic ("it's hard") | Cost stated by the prospect in a concrete domain, not quantified | Cost quantified by the prospect (money, hours, months lost) |
-| G5 Restitution quality | 25 | (cannot happen once the gate passes) | PROBLEM and COST restated verbatim, but the formula is incomplete: A or B missing, not verbatim or not the selected ones; several blockers restated as what holds him back; or a blocker other than the selected P | The formula is complete: selected A, selected B and the single selected P, plus the COST, all verbatim (GB-31), with at least one key expression of 3 words or more or a prospect figure |
-| G6 Validation | 25 | (cannot happen once the gate passes) | Confirmed (plain agreement), or corrected then confirmed | Confirmed with content of the prospect's own |
+| G1 Point A | 10 | Aucune affirmation A du prospect dans les réponses S ou I | A dit, non chiffré | A chiffré par le prospect, sur la dimension que vise B (GB-28) |
+| G2 Point B | 10 | Aucune affirmation B du prospect dans les réponses N | B dit, non chiffré | B chiffré par le prospect dans l'unité de A, avec un horizon |
+| G3 Écart mesurable | 10 | Pas de A et B chiffrés dans la même unité | (pas de niveau 1) | A et B chiffrés ont la même unité ; `gap_value` calculable |
+| G4 Coût du problème | 20 | Coût restitué, mais l'affirmation de coût du prospect lui-même n'est pas chiffrée et reste générale (« c'est dur ») | Coût dit par le prospect dans un domaine concret, non chiffré | Coût chiffré par le prospect (argent, heures, mois perdus) |
+| G5 Qualité de la restitution | 25 | (impossible une fois la porte passée) | PROBLEM et COST restitués mot pour mot, mais la formule est incomplète : A ou B manque, n'est pas mot pour mot ou n'est pas celui sélectionné ; plusieurs blocages restitués comme ce qui le bloque ; ou un blocage autre que le P sélectionné | La formule est complète : A sélectionné, B sélectionné et l'unique P sélectionné, plus le COST, tous mot pour mot (GB-31), avec au moins une expression clé de 3 mots ou plus ou un chiffre du prospect |
+| G6 Validation | 25 | (impossible une fois la porte passée) | Confirmée (simple accord), ou corrigée puis confirmée | Confirmée avec un contenu venant du prospect |
 
-A gap that passes the gate therefore scores at least 25 (G5 = 1, G6 = 1).
+Un écart qui passe la porte reçoit donc au moins 25 (G5 = 1, G6 = 1).
 
-**Two-quote rule.** G4 at level 2 needs the prospect's quantified cost quote; G5 at level 2 needs, for each of the four components, the sales quote and the prospect source quote containing the same key expression; G6 at level 2 needs the prospect quote showing the added content.
+**Règle des deux citations.** G4 au niveau 2 demande la citation du coût chiffré par le prospect ; G5 au niveau 2 demande, pour chacun des quatre composants, la citation du commercial et la citation source du prospect qui contiennent la même expression clé ; G6 au niveau 2 demande la citation du prospect qui montre le contenu ajouté.
 
-**Why these weights.** The restitution and its validation (50) are what makes the gap exist and be shared. The cost (20) is what will be weighed against the price. A, B and their common unit (30) make the gap measurable. Proposals, to validate.
+**Pourquoi ces poids.** La restitution et sa validation (50) sont ce qui fait exister l'écart et le rend partagé. Le coût (20) est ce qui sera mis en balance avec le prix. A, B et leur unité commune (30) rendent l'écart mesurable. Propositions, à valider.
 
-# 6. How the system knows the sales succeeded
+# 6. Comment le système sait que le commercial a réussi
 
-1. **The gap was said back to the prospect before the offer.** A restitution is identified by the bounding rules of Annex A, and its position before the first pitch and price is checked on turn numbers.
-2. **It contains the problem and its cost, in the prospect's words.** Each restated component must contain the prospect's exact key expression, found by code in an earlier prospect turn and in the sales clause. A paraphrase does not count; a cost introduced for the first time by the sales does not count.
-3. **The prospect validated it.** The validation is read on the prospect's response to that restitution, not to another question; a correction must be taken into account and re-validated.
-4. **Otherwise the gap is absent.** The gate is binary and computed by code; a call cannot earn gap points from elements that were collected but never formalised.
-5. **Three readings agree.** Restitution spans, components and validation come from three concordant passes or an arbitrated decision (Part C, C4).
+1. **L'écart a été redit au prospect avant l'offre.** Une restitution est repérée par les règles de bornage de l'annexe A, et sa place avant la première présentation de l'offre et le premier prix est vérifiée sur les numéros de tour.
+2. **Elle contient le problème et son coût, avec les mots du prospect.** Chaque composant restitué doit contenir l'expression clé exacte du prospect, trouvée par le code dans un tour antérieur du prospect et dans la proposition du commercial. Une paraphrase ne compte pas ; un coût introduit pour la première fois par le commercial ne compte pas.
+3. **Le prospect l'a validée.** La validation se lit dans la réponse du prospect à cette restitution, pas à une autre question ; une correction doit être prise en compte et validée à nouveau.
+4. **Sinon, l'écart est absent.** La porte est binaire et calculée par le code ; un appel ne peut pas gagner de points d'écart avec des éléments recueillis mais jamais formalisés.
+5. **Trois lectures concordent.** Les plages de restitution, les composants et la validation viennent de trois passes concordantes ou d'une décision arbitrée (partie C, C4).
 
-# 7. Coaching diagnostics (displayed, never scored)
+# 7. Diagnostics d'accompagnement (affichés, jamais notés)
 
-| Diagnostic | Computation |
+| Diagnostic | Calcul |
 |---|---|
-| Absence reasons | Distribution of `no_restitution`, `restitution_after_pitch`, `problem_missing`, `cost_missing`, `not_validated` over the period |
-| Collected but not formalised | For absent gaps: which components the prospect had stated (so the sales had the material) |
-| Gap value | `gap_value` per call, with its unit |
-| Binding vs wished horizon | Share of calls where B has a binding deadline |
-| Restitution timing | Minutes between the last discovery question and the restitution; minutes between validation and first pitch |
-| Corrections | Restitutions corrected by the prospect, and whether the sales restated after the correction |
-| Formula conformity | Share of restitutions that state the selected A, B and single P; most frequent deviation (`A_not_selected`, `unit_mismatch`, `several_blockers`, `P_not_selected`) |
-| Roadmap material | Number of distinct blockers ticked in P or I answers per call; share of calls with fewer than 3 (`roadmap_insufficient_blockers`, the Copilot warning) |
+| Raisons d'absence | Répartition de `no_restitution`, `restitution_after_pitch`, `problem_missing`, `cost_missing`, `not_validated` sur la période |
+| Recueilli mais pas formalisé | Pour les écarts absents : quels composants le prospect avait dits (le commercial avait donc la matière) |
+| Valeur de l'écart | `gap_value` par appel, avec son unité |
+| Horizon contraignant ou souhaité | Part des appels où B a une échéance contraignante |
+| Moment de la restitution | Minutes entre la dernière question de découverte et la restitution ; minutes entre la validation et la première présentation de l'offre |
+| Corrections | Restitutions corrigées par le prospect, et si le commercial a restitué à nouveau après la correction |
+| Conformité à la formule | Part des restitutions qui disent le A, le B et l'unique P sélectionnés ; écart le plus fréquent (`A_not_selected`, `unit_mismatch`, `several_blockers`, `P_not_selected`) |
+| Matière de la feuille de route | Nombre de blocages distincts relevés dans des réponses P ou I par appel ; part des appels qui en ont moins de 3 (`roadmap_insufficient_blockers`, l'avertissement du Copilot) |
 
-**Reference observed on Valentino (85 calls, June to October 2026, indirect indicators measured before this version):** point A quantified by the prospect in 93 % of calls with discovery, point B in 89 %, a restitution of at least two components before the pitch in 84 %. The presence of the cost in the restitution and the prospect's validation were not measured; the share of gaps that pass the absence gate is therefore unknown and is the first figure to establish.
+**Référence observée sur Valentino (85 appels, de juin à octobre 2026, indicateurs indirects mesurés avant cette version) :** point A chiffré par le prospect dans 93 % des appels avec découverte, point B dans 89 %, une restitution d'au moins deux composants avant la présentation de l'offre dans 84 %. La présence du coût dans la restitution et la validation par le prospect n'ont pas été mesurées ; la part des écarts qui passent la porte d'absence est donc inconnue et c'est le premier chiffre à établir.
 
-# 8. Worked examples
-Illustrative cases, adapted and shortened from real calls. In production, every piece of evidence is an exact quote checked against the transcript.
+# 8. Exemples commentés
+Cas d'illustration, adaptés et raccourcis à partir de vrais appels. En production, chaque preuve est une citation exacte vérifiée sur la transcription.
 
-| Case | Verdict |
+| Cas | Verdict |
 |---|---|
-| Restitution before the pitch: "So you've been doing this for free for three years, it's costing you about 2K a month you could be earning, and you want it to replace your 4K salary. Did I get that right?" Prospect: "Yes, and honestly my husband doesn't believe in it either." | Gate passed (problem, cost, validation). G4 = 2; G5 = 2 only if each component reuses the prospect's exact words (the prospect had said "about 2K a month", "three years", "for free", "replace my salary"); G6 = 2 |
-| Restitution: "So you want to go full time and what's stopping you is confidence." Prospect: "Exactly." No cost restated | Gap absent, reason `cost_missing` |
-| Prospect said "I've lost two years doing nothing" during discovery, but the sales goes straight from discovery to "Let me share my screen" | Gap absent, reason `no_restitution` (diagnostic: problem and cost had been collected) |
-| Complete restitution given after the program screen share | Gap absent, reason `restitution_after_pitch` |
-| Restitution with problem and cost, then in the same turn: "…and how many hours a week could you put in?" Prospect: "Probably 10." | Gap absent, reason `not_validated` (the answer responds to the last question, not to the restitution) |
-| Prospect corrects: "It's not 4K, more like 3K." Sales restates with 3K, prospect: "Exactly." | Gate passed on the second restitution, G6 = 1 |
-| Prospect said "I'm very stressed, I basically don't have any motivation". Restitution: "…and it's been weighing on you, you're running on empty." Prospect: "Yeah." | COST paraphrased (no key expression of the prospect): not a component. If no other cost is restated verbatim, gap absent, reason `cost_missing` |
-| Restitution introduces a cost the prospect never said ("and I imagine that's costing you sleep"), prospect: "Yeah." | Cost not traced to the prospect: if it is the only cost, gap absent, reason `cost_missing` |
+| Restitution avant la présentation de l'offre : « Donc ça fait trois ans que tu fais ça gratuitement, ça te coûte à peu près 2 000 € par mois que tu pourrais gagner, et tu veux que ça remplace ton salaire de 4 000 €. C'est bien ça ? » Prospect : « Oui, et franchement mon mari n'y croit pas non plus. » | Porte passée (problème, coût, validation). G4 = 2 ; G5 = 2 seulement si chaque composant reprend les mots exacts du prospect (le prospect avait dit « à peu près 2 000 € par mois », « trois ans », « gratuitement », « remplacer mon salaire ») ; G6 = 2 |
+| Restitution : « Donc tu veux t'y mettre à plein temps et ce qui t'arrête, c'est la confiance. » Prospect : « Exactement. » Aucun coût restitué | Écart absent, raison `cost_missing` |
+| Le prospect a dit « j'ai perdu deux ans à ne rien faire » pendant la découverte, mais le commercial passe directement de la découverte à « Je partage mon écran » | Écart absent, raison `no_restitution` (diagnostic : le problème et le coût avaient été recueillis) |
+| Restitution complète donnée après le partage d'écran du programme | Écart absent, raison `restitution_after_pitch` |
+| Restitution avec problème et coût, puis dans le même tour : « …et tu pourrais y mettre combien d'heures par semaine ? » Prospect : « Sûrement 10. » | Écart absent, raison `not_validated` (la réponse répond à la dernière question, pas à la restitution) |
+| Le prospect corrige : « C'est pas 4 000, plutôt 3 000. » Le commercial restitue avec 3 000, prospect : « Exactement. » | Porte passée sur la deuxième restitution, G6 = 1 |
+| Le prospect a dit « je suis très stressée, j'ai quasiment plus aucune motivation ». Restitution : « …et ça te pèse, tu es à bout. » Prospect : « Ouais. » | COST paraphrasé (aucune expression clé du prospect) : pas un composant. Si aucun autre coût n'est restitué mot pour mot, écart absent, raison `cost_missing` |
+| La restitution introduit un coût que le prospect n'a jamais dit (« et j'imagine que ça te fait perdre le sommeil »), prospect : « Ouais. » | Coût sans source chez le prospect : si c'est le seul coût, écart absent, raison `cost_missing` |
 
-# 9. Output contract
+# 9. Contrat de sortie
 
 ```
 {
@@ -192,15 +194,15 @@ Illustrative cases, adapted and shortened from real calls. In production, every 
 }
 ```
 
-# 10. Decisions to validate
+# 10. Décisions à valider
 
-- The absence rule as written: problem **and** cost, restated **and** validated, **before** the first pitch and price. Open point: should a restitution placed between the first pitch and the first price (the sales starts presenting, then steps back to restate the gap) pass the gate? Current proposal: no.
-- The verbatim threshold of GB-22: one exact head word is enough for the gate; G5 level 2 requires at least one key expression of 3 words or more or a prospect figure. Alternative to test on the gold set: 3 consecutive words required for every component (stricter; on the calibration set it would turn several gaps judged present into absent).
-- The allowed transformations of GB-22 (person shift, singular / plural, number normalisation) and nothing else.
-- The gap formula (§2.1): A only from S and I answers, B only from N answers, P only from P answers. Open point: a desired state stated outside an N answer is currently recorded but not used as B.
-- The tie-break of GB-30 when two blockers are mentioned equally often (current proposal: the one named first in answer to the stopping question, then the most recent).
-- The roadmap count of GB-32: whether the selected P counts as one of the 3 blockers (current proposal: yes, every distinct blocker ticked in P or I answers counts) — à confirmer.
-- The six items and their weights (10 / 10 / 10 / 20 / 25 / 25).
-- Whether B without a horizon can reach level 2 (current proposal: no).
-- The rule for follow-up calls (re-validation required in the call where the pitch resumes).
+- La règle d'absence telle qu'elle est écrite : problème **et** coût, restitués **et** validés, **avant** la première présentation de l'offre et le premier prix. Point ouvert : une restitution placée entre la première présentation de l'offre et le premier prix (le commercial commence à présenter, puis revient en arrière pour restituer l'écart) doit-elle passer la porte ? Proposition actuelle : non.
+- Le seuil du mot pour mot de GB-22 : un seul mot principal exact suffit pour la porte ; le niveau 2 de G5 demande au moins une expression clé de 3 mots ou plus ou un chiffre du prospect. Variante à tester sur l'ensemble de référence : 3 mots consécutifs exigés pour chaque composant (plus strict ; sur l'ensemble de calibration, plusieurs écarts jugés présents deviendraient absents).
+- Les transformations permises de GB-22 (changement de personne, singulier / pluriel, normalisation des nombres) et rien d'autre.
+- La formule de l'écart (§2.1) : A seulement dans les réponses S et I, B seulement dans les réponses N, P seulement dans les réponses P. Point ouvert : un état désiré dit en dehors d'une réponse N est aujourd'hui enregistré mais pas utilisé comme B.
+- Le départage de GB-30 quand deux blocages sont cités aussi souvent l'un que l'autre (proposition actuelle : celui nommé en premier en réponse à la question sur ce qui l'arrête, puis le plus récent).
+- Le compte de la feuille de route de GB-32 : si le P sélectionné compte comme l'un des 3 blocages (proposition actuelle : oui, chaque blocage distinct relevé dans des réponses P ou I compte) — à confirmer.
+- Les six items et leurs poids (10 / 10 / 10 / 20 / 25 / 25).
+- Si un B sans horizon peut atteindre le niveau 2 (proposition actuelle : non).
+- La règle des appels de relance (nouvelle validation exigée dans l'appel où la présentation de l'offre reprend).
 ---

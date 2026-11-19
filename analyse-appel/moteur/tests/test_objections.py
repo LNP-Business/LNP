@@ -1,8 +1,9 @@
-"""Tests of the Objection Removal module (OBJ-1.1).
+"""Tests du module de traitement des objections (OBJ-1.1).
 
-Part 1: Annex A minimal pairs and added rules as pure decision tests (no model).
-Part 2: bounding on synthetic calls with mock answers (OB-10 minimal pair 8a/8b, OB-22, OB-11).
-Part 3: Annex B cases on the real transcripts with mock model answers.
+Partie 1 : paires minimales de l'annexe A et règles ajoutées, en tests de décision purs (sans modèle) ; listes de mots
+françaises (marqueurs, contradictions, mots vides).
+Partie 2 : bornage sur des appels synthétiques avec des réponses simulées (paire minimale OB-10 8a/8b, OB-22, OB-11).
+Partie 3 : cas de l'annexe B sur les vraies transcriptions avec des réponses simulées du modèle.
 """
 from __future__ import annotations
 import os
@@ -21,7 +22,7 @@ from lnp_analyse.competences.objections import CompetenceObjections
 EXECUTIONS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 
 
-# ----------------------------------------------------------------------------------------------- helpers
+# ----------------------------------------------------------------------------------------------- outils
 def synth(lignes: list[tuple[str, str]], **phases) -> ContexteAppel:
     tours = [Tour(f"T{i:03d}", i, f"00:{i:02d}", r, r, txt) for i, (r, txt) in enumerate(lignes, 1)]
     ctx = ContexteAppel("synthetic", "s1", "2026-10-01T10:00:00Z", "UTC", tours, reference_offre={"price": 5800})
@@ -43,7 +44,7 @@ def charger(n: str, **phases) -> ContexteAppel:
 
 
 def defauts(ctx: ContexteAppel):
-    """Fallback answers: 'nothing found' for every unit not mocked explicitly (quotes built from the prompt)."""
+    """Réponses de repli : « rien trouvé » pour chaque unité non simulée explicitement (citations tirées de la consigne)."""
     def fb(id_tache, id_unite, consigne, no_passe):
         if id_tache == "obj.nominate":
             return {"nominations": []}
@@ -54,7 +55,7 @@ def defauts(ctx: ContexteAppel):
             t = ctx.tour(id_unite.split(":")[-1])
             return {"new_subject": True, "receive_and_leave": False, "quote": " ".join(t.texte.split()[:3])}
         if id_tache == "obj.acknowledge":
-            m = re.search(r'FIRST SENTENCE: "(.*)"\s*$', consigne, re.S)
+            m = re.search(r'PREMIÈRE PHRASE : "(.*)"\s*$', consigne, re.S)
             return {"receiving_marker": False, "neutral_reformulation": False, "elliptical_open_question": False,
                     "contradiction": False, "quote": " ".join(m.group(1).split()[:10])}
         if id_tache == "obj.isolate":
@@ -66,7 +67,7 @@ def defauts(ctx: ContexteAppel):
                                        "proof_reversibility_guarantee", "cost_of_inaction_question",
                                        "cost_stated_by_prospect", "mindset_reframe", "offer_argument")}
         if id_tache == "obj.resolution":
-            m = re.search(r"<REACTION> \[(T\w+) [^\]]*\] \w+: (.*)", consigne)
+            m = re.search(r"<RÉACTION> \[(T\w+) [^\]]*\] \w+: (.*)", consigne)
             return {"reaction_kind": "agreement_only", "turn": m.group(1),
                     "quote": " ".join(m.group(2).split()[:3]), "specific_element": False,
                     "content_first_stated_by_sales": False}
@@ -95,14 +96,14 @@ def niv(ep, iid):
     return next(i["level"] for i in ep["items"] if i["id"] == iid)
 
 
-# =============================================================================================== Part 1
-# Annex A6 minimal pairs (pure decisions)
+# =============================================================================================== Partie 1
+# Paires minimales de l'annexe A6 (décisions pures)
 def test_paire1_demande_info_contre_reserve():
     t = Tour("T010", 10, "01:00", "P", PROSPECT, "How long is it? Because honestly I don't have much time.")
-    assert O.touches_marqueurs("How long is the program?") == []                     # 1a: no candidate
-    assert "objection_time" in O.touches_marqueurs(t.texte)                          # 1b: nominated
+    assert O.touches_marqueurs("How long is the program?") == []                     # 1a : pas de candidat
+    assert "objection_time" in O.touches_marqueurs(t.texte)                          # 1b : nommé
     r, _, _ = O.resistances_de_reponse(doute(None, exclusion="information_request"), t)
-    assert r == []                                                             # 1a: OB-2
+    assert r == []                                                             # 1a : OB-2
     r, _, _ = O.resistances_de_reponse(doute("I don't have much time", "time"), t)
     assert [(x.nature, x.sous_type) for x in r] == [("objection", "time")]       # 1b
 
@@ -114,7 +115,7 @@ def test_paire2_doute_offre_contre_doute_de_soi():
 
 
 def test_ob3_ordre_ressource_d_abord():
-    # Annex B case 5: "I'm scared of doing this step because of the money" -> test 1 comes first
+    # Annexe B, cas 5 : « I'm scared of doing this step because of the money » -> le test 1 passe en premier
     assert O.nature_des_sujets(["self_capability", "money_available"]) == ("objection", "money_available")
     assert O.nature_des_sujets(["postponement", "own_decision"]) == ("anxiety_choice", "choice")
 
@@ -149,7 +150,7 @@ def test_paire5_accueillir():
     assert not O.accueilli("But think about what it's costing you not to do it.",
                               {"receiving_marker": True})                                       # 5b, X5
     assert not O.accueilli("No, we've only got 100 students and we don't beg our clients to leave reviews.",
-                              {"receiving_marker": False})                                      # case 22
+                              {"receiving_marker": False})                                      # cas 22
     assert O.accueilli("Compared to what?", {"elliptical_open_question": True})              # OB-20
 
 
@@ -175,7 +176,7 @@ def test_paire5a_isolement_avant_reponse_et_x6():
     rep = Preuve("We can split it in instalments of 900 a month", "T004", COMMERCIAL)
     assert O.isolement_valide(ctx, ep, iso, rep)
     tardif = {"isolate": True, "turn": "T006", "quote": "So the payment plan works for you"}
-    assert not O.isolement_valide(ctx, ep, tardif, rep)                                   # X6: after the answer
+    assert not O.isolement_valide(ctx, ep, tardif, rep)                                   # X6 : après la réponse
 
 
 def test_paire6_resolution_mots_propres_contre_suggeree():
@@ -187,7 +188,7 @@ def test_paire6_resolution_mots_propres_contre_suggeree():
          "content_first_stated_by_sales": True}
     assert O.niveau_resolution(ctx, ep, b)[0] == "acknowledged"                         # 6b, X3
     c = dict(b, content_first_stated_by_sales=False)
-    assert O.niveau_resolution(ctx, ep, c)[0] == "acknowledged"                         # C3 rule 5: approval only
+    assert O.niveau_resolution(ctx, ep, c)[0] == "acknowledged"                         # C3 règle 5 : simple approbation
     d = {"reaction_kind": "repeats_or_reinforces", "turn": "T005", "quote": "900 a month"}
     assert O.niveau_resolution(ctx, ep, d)[0] == "persisting"
 
@@ -206,10 +207,10 @@ def test_paire7_geste_adapte_a_l_anxiete():
     lv, etiquettes = O.niveau_h1("anxiety_capability", {"offer_argument": True}, {})
     assert lv == 0 and "mismatch" in etiquettes                                              # 7b
     lv, etiquettes = O.niveau_h1("anxiety_capability", {"support_or_framework": True, "offer_argument": True}, {})
-    assert lv == 1 and "partial_wrong_kind" in etiquettes                                    # OB-16 partial
+    assert lv == 1 and "partial_wrong_kind" in etiquettes                                    # OB-16 partiel
     lv, etiquettes = O.niveau_h1("anxiety_capability", {"mindset_reframe": True}, {})
     assert lv == 1 and "mindset_reframe" in etiquettes                                       # OB-21
-    assert O.niveau_h1("anxiety_choice", {"cost_of_inaction_question": True}, {})[0] == 0   # case 18
+    assert O.niveau_h1("anxiety_choice", {"cost_of_inaction_question": True}, {})[0] == 0   # cas 18
     assert O.niveau_h1("anxiety_choice", {"proof_reversibility_guarantee": True}, {})[0] == 2
     assert O.niveau_h1("inertia", {"cost_of_inaction_question": True, "cost_stated_by_prospect": True}, {})[0] == 2
     assert O.niveau_h1("inertia", {"cost_of_inaction_question": True}, {})[0] == 0
@@ -221,7 +222,7 @@ def test_geste_objection_et_h3():
     assert O.niveau_h1("objection", g, {"ack": True, "isolate": False, "explore": True})[0] == 1
     assert O.niveau_h1("objection", {"answer_given": True}, {"ack": True, "isolate": True, "explore": True})[0] == 0
     assert O.niveau_h3("objection", True, True, True) == 2
-    assert O.niveau_h3("objection", False, True, False) == 1                            # case 15
+    assert O.niveau_h3("objection", False, True, False) == 1                            # cas 15
     assert O.niveau_h3("objection", False, False, False) == 0
     assert O.niveau_h3("inertia", False, True, True) == 2 and O.niveau_h3("inertia", True, False, False) == 0
 
@@ -236,14 +237,14 @@ def test_explorer_reprise_x7_et_ob20():
     ep = O.Episode("E1", r, reponse_com=["T002", "T004"], reaction=["T003", "T005"])
     ellipse_tardive = {"explore": True, "turn": "T004", "quote": "Compared to what?", "open_question": True,
                      "elliptical": True, "answered_with_content": True, "answer_turn": "T005"}
-    assert O.exploration(ctx, ep, ellipse_tardive, {"T001"}) == (False, False)           # X7: no reuse, not right after
+    assert O.exploration(ctx, ep, ellipse_tardive, {"T001"}) == (False, False)           # X7 : pas de reprise, pas juste après
     reprise = dict(ellipse_tardive, quote="It's a lot. Compared to what?", elliptical=False)
-    assert O.exploration(ctx, ep, reprise, {"T001"}) == (True, True)                      # OB-15 reuse ("lot")
+    assert O.exploration(ctx, ep, reprise, {"T001"}) == (True, True)                      # OB-15 reprise (« lot »)
     premier = {"explore": True, "turn": "T002", "quote": "Compared to what, though?", "open_question": True,
              "elliptical": True, "answered_with_content": False, "answer_turn": "T003"}
-    assert O.exploration(ctx, ep, premier, {"T001"}) == (True, False)                     # OB-20, approval-only answer
-    assert O.exploration(ctx, ep, dict(reprise, open_question=False), {"T001"}) == (False, False)   # X7 closed
-    assert O.exploration(ctx, ep, reprise, {"T001", "T005"}) == (True, False)             # case 13: new resistance
+    assert O.exploration(ctx, ep, premier, {"T001"}) == (True, False)                     # OB-20, réponse de simple approbation
+    assert O.exploration(ctx, ep, dict(reprise, open_question=False), {"T001"}) == (False, False)   # X7 fermée
+    assert O.exploration(ctx, ep, reprise, {"T001", "T005"}) == (True, False)             # cas 13 : nouvelle résistance
 
 
 def test_ob24_anxiete_niee():
@@ -283,8 +284,8 @@ def test_ob8_condition_a():
     ref = O.mots_contenu("It's just such a significant investment")
     assert not O.changement_sujet_condition_a("So about that investment, here is how it pays back.", ref)
     assert O.changement_sujet_condition_a("Let's share my screen and look at the workbook.", ref)
-    assert O.changement_sujet_condition_a("Where do you want to go from here?", ref)      # (a) holds, model reads (b)
-    assert O.est_relance_orale(Tour("T9", 9, "", "S", COMMERCIAL, "Okay."))                     # never asked, never a change
+    assert O.changement_sujet_condition_a("Where do you want to go from here?", ref)      # (a) tient, le modèle lit (b)
+    assert O.est_relance_orale(Tour("T9", 9, "", "S", COMMERCIAL, "Okay."))                     # jamais demandé, jamais un changement
 
 
 def test_prevention_ob18_ob19_x8():
@@ -326,17 +327,81 @@ def test_applicabilite_et_combinaison():
     assert O.combiner(50, 100) == 65 and O.combiner(None, 80) == 80 and O.combiner(40, None) == 40
     e1 = O.Episode("E1", O.Resistance("T1", "T1", PROSPECT, "", "objection", "price"), note=100)
     e2 = O.Episode("E2", O.Resistance("T2", "T2", PROSPECT, "", "inertia", "timing"), note=0)
-    assert O.note_traitement([e1, e2]) == 40                       # 1 x 100 + 1.5 x 0 over 2.5
+    assert O.note_traitement([e1, e2]) == 40                       # 1 x 100 + 1,5 x 0 sur 2,5
 
 
-# =============================================================================================== Part 2
+# Listes de mots françaises (appels LNP)
+@pytest.mark.parametrize("phrase, marqueur", [
+    ("C'est cher.", "objection_price_money"),
+    ("Franchement, c'est trop cher pour moi.", "objection_price_money"),
+    ("J'ai pas le budget en ce moment.", "objection_price_money"),
+    ("Je n’ai pas les moyens.", "objection_price_money"),                    # apostrophe typographique
+    ("Ça fait quand même beaucoup.", "objection_price_money"),
+    ("C'est une grosse somme.", "objection_price_money"),
+    ("Je sais pas si ça marche vraiment.", "objection_trust_relevance"),
+    ("Je connais déjà tout ça, j'ai pas besoin.", "objection_trust_relevance"),
+    ("Je ne sais pas si je peux vous faire confiance.", "objection_trust_relevance"),
+    ("J'ai pas le temps.", "objection_time"),
+    ("Je n'ai pas assez de temps avec mes cours.", "objection_time"),
+    ("Je suis débordée avec les enfants.", "objection_time"),
+    ("Faut que j'en parle à mon mari.", "objection_co_decider"),
+    ("Il faut que j'en parle a ma femme d'abord.", "objection_co_decider"),   # sans accent
+    ("On décide à deux, avec mon conjoint.", "objection_co_decider"),
+    ("Je sais pas si je vais y arriver.", "anxiety_capability"),
+    ("J'ai peur d'abandonner encore.", "anxiety_capability"),
+    ("Je suis pas sûre d'être capable de tenir.", "anxiety_capability"),
+    ("Et si ça marche pas pour moi ?", "anxiety_choice"),
+    ("Je me suis déjà fait avoir une fois.", "anxiety_choice"),
+    ("Comment je peux être sûr que c'est le bon choix ?", "anxiety_choice"),
+    ("Je vais réfléchir.", "inertia"),
+    ("Je vais reflechir.", "inertia"),                                       # sans accent
+    ("Plus tard, peut-être.", "inertia"),
+    ("Après les vacances, on verra.", "inertia"),
+    ("C'est pas le bon moment.", "inertia"),
+    ("Pour l'instant, je suis bien comme ça.", "inertia"),
+])
+def test_marqueurs_francais(phrase, marqueur):
+    assert marqueur in O.touches_marqueurs(phrase)
+
+
+@pytest.mark.parametrize("phrase", [
+    "Ça dure combien de temps ?",                    # demande d'information sans réserve (OB-2)
+    "Je suis professeure de maths depuis dix ans.",
+    "Oui, ça me plaît vraiment.",
+])
+def test_marqueurs_francais_sans_resistance(phrase):
+    assert O.touches_marqueurs(phrase) == []
+
+
+def test_contradiction_francaise_ob13():
+    for phrase in ["Mais pensez à ce que ça vous coûte de ne rien faire.", "Non, on a déjà 100 élèves.",
+                   "En fait, ça se rembourse vite.", "Le truc, c'est que vous perdez du temps.",
+                   "Sauf que là, vous restez au même point.", "Par contre, il faut voir le prix autrement.",
+                   "C’est pas vrai, nos élèves réussissent.", "Je ne suis pas d'accord."]:
+        assert not O.accueilli(phrase, {"receiving_marker": True}), phrase
+    for phrase in ["Je comprends.", "Je t'entends.", "C'est normal.", "Non-stop, je comprends."]:
+        assert O.accueilli(phrase, {"receiving_marker": True}), phrase
+    assert O.accueilli("Par rapport à quoi ?", {"elliptical_open_question": True})
+
+
+def test_mots_vides_francais_ob5_ob8():
+    assert O.mots_contenu("Ouais, c'est vraiment pas le moment pour moi.") == {"moment"}
+    for relance in ["D'accord, je vois.", "Ouais, ouais.", "Mm-hmm, d'accord.", "Voilà, voilà.", "Oui, oui, je vois."]:
+        assert O.est_relance_orale(Tour("T9", 9, "", "S", COMMERCIAL, relance)), relance
+    assert not O.est_relance_orale(Tour("T9", 9, "", "S", COMMERCIAL, "Je vous envoie le lien."))
+    ref = O.mots_contenu("C'est vraiment une grosse somme pour moi.")
+    assert not O.changement_sujet_condition_a("Alors, cette somme, on peut l'étaler sur dix mois.", ref)
+    assert O.changement_sujet_condition_a("On regarde le programme ensemble ?", ref)
+
+
+# =============================================================================================== Partie 2
 def test_paire8a_latente_et_8b_non_latente():
     lignes = [(COMMERCIAL, "So tell me about your goals."),                                      # T001
              (PROSPECT, "Maybe later, it's not the right time for me."),                    # T002
              (COMMERCIAL, "Let's move on to the curriculum and the modules."),                   # T003
              (PROSPECT, "Okay."),                                                           # T004
              (COMMERCIAL, "Module one covers design fundamentals and color theory.")]            # T005
-    ctx = synth(lignes, premier_prix="T001")                 # OB-27: resistances are read after the first price
+    ctx = synth(lignes, premier_prix="T001")                 # OB-27 : les résistances se lisent après le premier prix
     rep = {("obj.resistance", "res:T002"): doute("it's not the right time for me", "postponement"),
            ("obj.topic", "topic:T002.inertia:T003"): {"new_subject": True, "receive_and_leave": False,
                                                        "quote": "Let's move on to the curriculum"}}
@@ -385,7 +450,7 @@ def test_paire8a_latente_et_8b_non_latente():
 
 
 def test_recurrence_dans_l_appel_ob11():
-    lignes = [(COMMERCIAL, "The investment is 5,800."),                         # T001, OB-27: the first price
+    lignes = [(COMMERCIAL, "The investment is 5,800."),                         # T001, OB-27 : le premier prix
              (PROSPECT, "It's too expensive for me."),                    # T002
              (COMMERCIAL, "I understand. Compared to what?"),                   # T003
              (PROSPECT, "Compared to a normal course online."),            # T004
@@ -442,8 +507,8 @@ def test_candidat_a_revoir_bloque_non_applicable():
 
 def test_ob27_rien_avant_le_premier_prix_n_est_une_objection():
     lignes = [(COMMERCIAL, "So what holds you back today?"),                    # T001
-             (PROSPECT, "Honestly I'm scared it's too expensive."),       # T002, before the price: never read
-             (COMMERCIAL, "The investment is 5,800."),                         # T003, first price
+             (PROSPECT, "Honestly I'm scared it's too expensive."),       # T002, avant le prix : jamais lu
+             (COMMERCIAL, "The investment is 5,800."),                         # T003, premier prix
              (PROSPECT, "It's too expensive for me."),                    # T004
              (COMMERCIAL, "Let's book the next step.")]                        # T005
     ctx = synth(lignes, premier_prix="T003")
@@ -451,17 +516,17 @@ def test_ob27_rien_avant_le_premier_prix_n_est_une_objection():
            ("obj.resistance", "res:T004"): doute("too expensive for me", "price")}
     res, client = executer(ctx, rep)
     assert [e["resistance"]["turn"] for e in res.details["episodes"]] == ["T004"]
-    assert not any(c[1] == "res:T002" for c in client.appels)                  # not even asked
-    ctx = synth(lignes)                                                         # no price: no episode at all
+    assert not any(c[1] == "res:T002" for c in client.appels)                  # même pas demandé
+    ctx = synth(lignes)                                                         # pas de prix : aucun épisode
     res, _ = executer(ctx, rep)
     assert res.details["episodes"] == [] and res.statut == "not_applicable"
 
 
-# =============================================================================================== Part 3
-# Annex B cases on real transcripts.
+# =============================================================================================== Partie 3
+# Cas de l'annexe B sur les vraies transcriptions.
 def test_annexeB_cas22_cas27_appel005():
-    """Case 22: objection · trust, H2 0 (first word 'No'), acknowledged (H4 1).
-    Case 27: T053-T054 supposition does not count; T074 gives decision maker and influencer, R1 2."""
+    """Cas 22 : objection · confiance, H2 0 (premier mot « No »), prise en compte (H4 1).
+    Cas 27 : la supposition T053-T054 ne compte pas ; T074 donne le décideur et l'influenceur, R1 2."""
     ctx = charger("005", premier_prix="T165")
     rep = {
         ("obj.resistance", "res:T242"): doute("that don't make me like trust like 100%", "offer_trust"),
@@ -492,7 +557,7 @@ def test_annexeB_cas22_cas27_appel005():
     assert {i["id"]: i["level"] for i in res.details["prevention"]["items"]}["R1"] == 2
     assert res.statut == "scored" and res.details["prevention_status"] == "scored"
 
-    # Case 27, first half: the T054 approval of a sales supposition does not establish the decision maker.
+    # Cas 27, première moitié : l'approbation en T054 d'une supposition du commercial n'établit pas le décideur.
     rep[("obj.prevention", "prevention:pre_price")] = dict(
         rep[("obj.prevention", "prevention:pre_price")], decision_maker={"turn": "T054", "quote": "Yes."},
         influencers=None)
@@ -502,10 +567,11 @@ def test_annexeB_cas22_cas27_appel005():
 
 
 def test_annexeB_cas25_appel044_recevoir_et_partir_latent():
-    """Case 25: 'It's just such a significant investment' (no listed marker: nominated by the model),
-    T052 receives it and changes topic in the same turn -> latent (OB-10, OB-22), H4 0.
-    OB-27 (2026-11-03): this case needs call 044's first price (a turn before T051) set below, and the nomination key
-    of the chunk that starts right after it; to fill in when the corpus is available (docs/OPEN_DECISIONS.md)."""
+    """Cas 25 : « It's just such a significant investment » (aucun marqueur de la liste : nommé par le modèle),
+    T052 l'accueille et change de sujet dans le même tour -> latente (OB-10, OB-22), H4 0.
+    OB-27 (2026-11-03) : ce cas demande le premier prix de l'appel 044 (un tour avant T051), à poser ci-dessous, et la clé
+    de nomination du bloc qui commence juste après ; à compléter quand le corpus sera disponible
+    (docs/DECISIONS_OUVERTES.md)."""
     ctx = charger("044")
     rep = {
         ("obj.nominate", "nominate:T001"): {"nominations": [
@@ -528,9 +594,9 @@ def test_annexeB_cas25_appel044_recevoir_et_partir_latent():
 
 
 def test_annexeB_cas4_cas26_appel038_anxiete_niee_et_recurrence():
-    """Case 4: T212 is objection · price only (anxiety denied, OB-24).
-    Case 26: T338 is a recurrence of T212 (recurrence_of = the T212 episode, H5 = 0 on the earlier one);
-    T340 is a new resistance, not a reaction (OB-9)."""
+    """Cas 4 : T212 n'est qu'une objection · prix (anxiété niée, OB-24).
+    Cas 26 : T338 est une récurrence de T212 (recurrence_of = l'épisode de T212, H5 = 0 sur le premier) ;
+    T340 est une nouvelle résistance, pas une réaction (OB-9)."""
     ctx = charger("038", premier_prix="T197")
     rep = {
         ("obj.resistance", "res:T212"): {
@@ -558,9 +624,9 @@ def test_annexeB_cas4_cas26_appel038_anxiete_niee_et_recurrence():
 
 
 def test_annexeB_cas24_appel050_persistante():
-    """Case 24: 'that's a lot' -> 'Compared to?' -> 'that is a lot, to be honest': persisting, H4 0.
-    The repetition at T221 is the same resistance inside the episode (no new episode). 'Compared to?' right after
-    the resistance counts as exploration under OB-20 (v1.1); the strict X7 reading of the case predates OB-20."""
+    """Cas 24 : « that's a lot » -> « Compared to? » -> « that is a lot, to be honest » : persistante, H4 0.
+    La répétition en T221 est la même résistance, dans l'épisode (pas de nouvel épisode). « Compared to? » juste après
+    la résistance compte comme exploration selon OB-20 (v1.1) ; la lecture stricte X7 du cas est antérieure à OB-20."""
     ctx = charger("050", premier_prix="T216")
     rep = {
         ("obj.resistance", "res:T219"): doute("That's, that's a lot.", "price"),

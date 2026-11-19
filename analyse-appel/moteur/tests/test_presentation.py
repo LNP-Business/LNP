@@ -1,9 +1,12 @@
-"""Tests of the Pitch competence (PITCH-2.0).
+"""Tests de la compétence présentation de l'offre (PITCH-2.0).
 
-Part 1: minimal pairs 8a..13b of annex A7 as pure decision tests (no model).
-Part 2: other pure decisions (gate, claims lookup, K5, K6, K7, N/A spread).
-Part 3: real transcripts (Annex B5 P categories, a pitch_before_gap case, a full run) with mock model answers.
-Business values in fixtures (offer price, case library entries) are test fixtures, not reference data.
+Partie 1 : paires minimales 8a..13b de l'annexe A7, en tests de décision pure (sans modèle).
+Partie 2 : autres décisions pures (porte, recherche des affirmations, K5, K6, K7, répartition des items sans objet).
+Partie 3 : vraies transcriptions (catégories de P de l'annexe B5, un cas pitch_before_gap, une exécution complète) avec
+des réponses simulées du modèle.
+Partie 4 : listes de mots françaises (unités, compliments) et morceaux de consigne écrits dans le code.
+Les valeurs métier des jeux d'essai (prix de l'offre, entrées de la bibliothèque de cas) sont des données de test, pas
+des données de référence.
 """
 from __future__ import annotations
 import os
@@ -23,7 +26,7 @@ from lnp_analyse.noyau.executeur import Executeur
 EXECUTIONS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).parent / "fixtures" / "transcripts")))
 
 
-# ------------------------------------------------------------------------------------------- helpers
+# ------------------------------------------------------------------------------------------- fonctions utiles
 def fab_ctx(lignes, **kw) -> ContexteAppel:
     tours = [Tour(f"T{i:03d}", i, f"00:{i:02d}", role, role, texte) for i, (role, texte) in enumerate(lignes, 1)]
     return ContexteAppel("c", "s", "2026-10-01T10:00:00Z", "UTC", tours, **kw)
@@ -57,12 +60,12 @@ def plage(tour, citation_debut, citation_fin=None, tour_fin=None):
 
 CFG = dict(P.CONFIG_DEFAUT)
 
-# ============================================================================ Part 1: minimal pairs (annex A7)
+# ============================================================================ Partie 1 : paires minimales (annexe A7)
 P_CLIENTS = "I don't know where clients will come from."
 
 
 def ctx_8():
-    return fab_ctx([(PROSPECT, P_CLIENTS),                                         # T001 validated P
+    return fab_ctx([(PROSPECT, P_CLIENTS),                                         # T001 P validé
                    (COMMERCIAL, "Exactly, so let me show you."),                         # T002
                    (COMMERCIAL, "What's blocking you today is you don't know where clients will come from."),  # T003
                    (COMMERCIAL, "So your lead generation is the issue.")])               # T004
@@ -160,7 +163,7 @@ def test_10a_meme_unite():
           "deadline": None, "deadline_source": None, "image": None}
     lv, _, info = P.decider_k3(ctx, GAP10, s3)
     assert info["same_unit"] and info["his_figures"] and lv == 1 and info["failure"] == "no_image"
-    # §8 worked example: with the image in his words -> 2
+    # §8 exemple détaillé : avec l'image dans ses mots -> 2
     s3.update(image={"quote": "you're home when your kids get back from school", "turn": "T003"},
               image_key_expression="home when my kids get back from school",
               image_source={"quote": "be home when my kids get back from school", "turn": "T002"})
@@ -222,8 +225,8 @@ def test_k4_meilleur_cas_et_ecart_de_preuve():
     ctx = ctx_11()
     meilleur = {"cases": [{"step": plage("T004", "One of our students"), "turn": "T004", "library_id": "case-arch",
                        "quote": "One of our students reached 30K a month", "profile_match": False}]}
-    assert P.decider_k4(ctx, GAP11, meilleur, CFG)[0] == 1                                    # §8: best case
-    # A in per month, factor configured, no library case within the factor -> K4 not applicable, proof gap
+    assert P.decider_k4(ctx, GAP11, meilleur, CFG)[0] == 1                                    # §8 : meilleur cas
+    # A par mois, facteur configuré, aucun cas de la bibliothèque à ce facteur près -> K4 sans objet, preuve manquante
     ecartA = {"selected_A": {"value": 500, "unit": "per month"}}
     lv, _, info = P.decider_k4(ctx, ecartA, {"cases": []}, dict(CFG, case_match_factor=2))
     assert lv is None and info["proof_gap"]
@@ -236,10 +239,10 @@ def test_12a_12b_promesse_de_resultat():
                   (COMMERCIAL, "We'll find the clients, you just do the design.")])
     ctx.phases.debut_presentation = "T002"
     ecart = poser_ecart(ctx, validation_turn="T001")
-    assert P.porte(ctx, ecart, [], [], None)[0] == []                                      # 12a: allowed
+    assert P.porte(ctx, ecart, [], [], None)[0] == []                                      # 12a : permis
     pr = [{"quote": "We'll find the clients", "turn": "T003", "action": "find_clients"}]
     assert P.porte(ctx, ecart, [], pr, None)[0] == ["outcome_promise"]                     # 12b
-    # the validator rejects anything outside the closed list of PB-36 actions
+    # la validation rejette toute action hors de la liste fermée de PB-36
     assert "bad_action" in P._valider_promesses({"promises": [{"quote": "We give you the system", "turn": "T002",
                                                                 "action": "provide_system"}]}, ctx, "promises:T002-T003")
 
@@ -259,7 +262,7 @@ def test_13b_presentation_avant_ecart():
     assert P.presentation_avant_ecart(ctx, {"verdict": "absent", "validation_turn": None}, "T152") is True
 
 
-# ============================================================================ Part 2: other decisions
+# ============================================================================ Partie 2 : autres décisions
 def test_recherche_affirmations():
     ctx = fab_ctx([(PROSPECT, "I charge about 1,000 per project."), (COMMERCIAL, "s")],
                  reference_offre={"price": 5800, "payment_options": ["6 x 1,097"], "guarantees": ["first client"]})
@@ -283,16 +286,16 @@ def test_k5_ordre_et_brievete():
     inverse = {**pos, 2: (3, 1)}
     assert P.decider_k5(ctx, inverse, {1: 1, 2: 1, 3: 1, 4: 1}, set(), ev, CFG)[2]["failure"] == "order"
     assert P.decider_k5(ctx, {1: (0, 0), 2: (1, 0)}, {1: 1, 2: 1}, set(), ev, CFG)[0] == 0
-    # step 4 not applicable (proof gap): the three other steps are enough for level 2
+    # étape 4 sans objet (preuve manquante) : les trois autres étapes suffisent pour le niveau 2
     assert P.decider_k5(ctx, {1: (0, 0), 2: (1, 0), 3: (2, 0)}, {1: 1, 2: 1, 3: 1}, {4}, ev, CFG)[0] == 2
 
 
 def test_k6_feuille_route_avant_prix():
-    ctx = fab_ctx([(PROSPECT, "I never know what to charge."),                    # T001 blocker
-                  (COMMERCIAL, "Story of a client."),                                   # T002 step 4
+    ctx = fab_ctx([(PROSPECT, "I never know what to charge."),                    # T001 blocage
+                  (COMMERCIAL, "Story of a client."),                                   # T002 étape 4
                   (COMMERCIAL, "Your roadmap: step one for you is you never know what to charge."),   # T003
-                  (COMMERCIAL, "The investment is 5,800."),                             # T004 price
-                  (COMMERCIAL, "Are you ready to get started?")])                       # T005 decision
+                  (COMMERCIAL, "The investment is 5,800."),                             # T004 prix
+                  (COMMERCIAL, "Are you ready to get started?")])                       # T005 décision
     ctx.phases.premier_prix, ctx.phases.demande_decision = "T004", "T005"
     ctx.phases.preuve["first_price"] = Preuve("The investment is 5,800", "T004", COMMERCIAL)
     ecart = {"roadmap_blockers": [{"object": "pricing", "quote": "I never know what to charge", "turn": "T001"}]}
@@ -301,7 +304,7 @@ def test_k6_feuille_route_avant_prix():
                      "key_expression": "never know what to charge",
                      "source": {"quote": "I never know what to charge", "turn": "T001"}}]}
     assert P.decider_k6(ctx, ecart, rm, (1, 0))[0] == 2
-    ctx.phases.premier_prix = "T002"                                              # §8: price before the roadmap
+    ctx.phases.premier_prix = "T002"                                              # §8 : prix avant la feuille de route
     assert P.decider_k6(ctx, ecart, rm, (1, 0))[0] == 0
     ctx.phases.premier_prix = "T004"
     assert P.decider_k6(ctx, ecart, None, (1, 0))[0] == 0
@@ -315,9 +318,9 @@ def test_k7_regles_adhesion():
             "kind": "projection", "concrete": True, "gesture": {"quote": "What date exactly?", "turn": "T001"}}
     reporter = dict(proj, postpone=True)
     garder, res = P.passages_adhesion(ctx, [approbation, proj])
-    assert len(garder) == 1 and P.decider_k7(garder)[0] == 2                         # B4 #23: projection -> 2
+    assert len(garder) == 1 and P.decider_k7(garder)[0] == 2                         # B4 #23 : projection -> 2
     garder, res = P.passages_adhesion(ctx, [reporter])
-    assert garder == [] and len(res) == 1                                         # PB-24: reserve
+    assert garder == [] and len(res) == 1                                         # PB-24 : réserve
     assert P.decider_k7([])[0] == 0
 
 
@@ -331,7 +334,7 @@ def test_non_conforme_note_zero_et_non_applicable():
     assert r.details["roadmap_span"] is None and "raw_score" in r.details
 
 
-# ============================================================================ Part 3: real transcripts
+# ============================================================================ Partie 3 : vraies transcriptions
 DEFAUTS = {"pitch.step1": {"step": None, "other_blockers": []},
             "pitch.step2": {"step": None, "mechanisms_stated": [], "recitation": None},
             "pitch.step3": {"step": None, "A": None, "B": None, "deadline": None, "deadline_source": None,
@@ -359,7 +362,7 @@ def test_b5_categorie_de_p_sur_transcriptions_reelles(executer, tour, citation, 
     rep = {"category": attendu_, "quote": citation, "turn": tour, "uncovered": None}
     r = Executeur(simule({("pitch.p_category", f"pcat:{tour}"): rep})).executer(ctx, P.CATEGORIE, f"pcat:{tour}", vp)
     assert r.statut == "verified" and r.reponse["category"] == attendu_
-    # a quote that is not in the validated P turn is rejected by the code (C3), and the unit goes to review
+    # une citation qui n'est pas dans le tour du P validé est rejetée par le code (C3), et l'unité passe à revoir
     mauvais = dict(rep, quote="I am not great at marketing", turn=tour)
     if attendu_ in P.NEUF:
         r2 = Executeur(simule({("pitch.p_category", f"pcat:{tour}"): mauvais})).executer(ctx, P.CATEGORIE, f"pcat:{tour}", vp)
@@ -367,7 +370,7 @@ def test_b5_categorie_de_p_sur_transcriptions_reelles(executer, tour, citation, 
 
 
 def test_reel_091_presentation_avant_ecart():
-    """Call 091: no restitution validated before the screen share at T123 (B1 #2): non-compliant, score 0."""
+    """Appel 091 : aucune restitution validée avant le partage d'écran en T123 (B1 #2) : non conforme, note 0."""
     ctx = charger_reel("091")
     ctx.phases.debut_presentation = "T123"
     poser_ecart(ctx, verdict="absent")
@@ -378,7 +381,7 @@ def test_reel_091_presentation_avant_ecart():
 
 
 def test_reel_001_execution_complete():
-    """Call 001: P = T028 (Acquisition), restitution validated at T082, screen share T085, price T113."""
+    """Appel 001 : P = T028 (Acquisition), restitution validée en T082, partage d'écran en T085, prix en T113."""
     ctx = charger_reel("001", reference_offre={"price": 5800})
     ph = ctx.phases
     ph.debut_presentation, ph.premier_prix, ph.fin_presentation = "T085", "T113", "T113"
@@ -401,16 +404,16 @@ def test_reel_001_execution_complete():
     assert res.statut == "scored" and res.verdict == "compliant"
     assert res.details["validated_P"]["category"] == "Acquisition"
     items = {i.id: i for i in res.items}
-    assert items["K1"].niveau == 0 and "paraphrase" in items["K1"].remarque            # paraphrase of "getting the clients"
-    assert items["K4"].niveau is None                                               # case library missing
+    assert items["K1"].niveau == 0 and "paraphrase" in items["K1"].remarque            # paraphrase de « getting the clients »
+    assert items["K4"].niveau is None                                               # bibliothèque de cas absente
     assert {"mechanism_reference_missing", "case_library_missing"} <= set(res.signaux)
     assert res.details["claims"][0]["source"] == "offer_reference"
-    assert res.note == 0 and res.details["roadmap_span"] is None                  # no v2 staircase in old calls
+    assert res.note == 0 and res.details["roadmap_span"] is None                  # pas d'escalier v2 dans les anciens appels
     assert res.details["diagnostics"]["talk_share"] > 0.5
 
 
 def test_reel_087_categorie_inconnue_repartit_k2():
-    """Call 087: P = T240 "overthinking" -> P_category_unknown; K2 not applicable, case reported."""
+    """Appel 087 : P = T240 « overthinking » -> P_category_unknown ; K2 sans objet, cas signalé."""
     ctx = charger_reel("087", bibliotheque_cas=LIB)
     ctx.phases.debut_presentation = "T273"
     vp = {"quote": "I don't want to do the overthinking and stuff anymore.", "turn": "T240",
@@ -425,24 +428,24 @@ def test_reel_087_categorie_inconnue_repartit_k2():
 
 
 def test_escalier_complet_synthetique_decider():
-    """A compliant v2 pitch: 4 steps in order, roadmap, price, decision, adhesion -> high score."""
+    """Une présentation v2 conforme : 4 étapes dans l'ordre, feuille de route, prix, décision, adhésion -> note haute."""
     lignes = [
         (PROSPECT, "I'm at about 2K a month right now."),                                            # T001 A
         (PROSPECT, "I'd love 10K a month and to be home when my kids get back from school."),         # T002 B (N)
         (PROSPECT, "I don't know what to charge."),                                                  # T003 P
-        (PROSPECT, "And I never know where clients will come from."),                                 # T004 blocker 2
+        (PROSPECT, "And I never know where clients will come from."),                                 # T004 blocage 2
         (COMMERCIAL, "So you're at 2K, you want 10K, and you don't know what to charge. Right?"),          # T005 restitution
         (PROSPECT, "Exactly."),                                                                      # T006 validation
-        (COMMERCIAL, "Let me show you the program."),                                                     # T007 pitch start
-        (COMMERCIAL, "What's blocking you today is you don't know what to charge."),                      # T008 step 1
-        (COMMERCIAL, "What makes that give way is pricing from the value of the room. That's the second phase of the Academy."),  # T009 step 2
+        (COMMERCIAL, "Let me show you the program."),                                                     # T007 début de la présentation
+        (COMMERCIAL, "What's blocking you today is you don't know what to charge."),                      # T008 étape 1
+        (COMMERCIAL, "What makes that give way is pricing from the value of the room. That's the second phase of the Academy."),  # T009 étape 2
         (COMMERCIAL, "You go from 2K a month to 10K a month, and you're home when your kids get back from school."),  # T010
-        (COMMERCIAL, "Someone who started exactly where you are, at 2K a month."),                       # T011 step 4
-        (PROSPECT, "So I'd have someone checking my prices on every project, that's what I need."),  # T012 adhesion
-        (COMMERCIAL, "Your roadmap: step one for you is you never know where clients will come from."),  # T013 roadmap
-        (PROSPECT, "If I start in November I could have my first paid project by March."),           # T014 adhesion
-        (COMMERCIAL, "The investment is 5,800."),                                                         # T015 price
-        (COMMERCIAL, "Are you ready to get started?"),                                                    # T016 decision
+        (COMMERCIAL, "Someone who started exactly where you are, at 2K a month."),                       # T011 étape 4
+        (PROSPECT, "So I'd have someone checking my prices on every project, that's what I need."),  # T012 adhésion
+        (COMMERCIAL, "Your roadmap: step one for you is you never know where clients will come from."),  # T013 feuille de route
+        (PROSPECT, "If I start in November I could have my first paid project by March."),           # T014 adhésion
+        (COMMERCIAL, "The investment is 5,800."),                                                         # T015 prix
+        (COMMERCIAL, "Are you ready to get started?"),                                                    # T016 décision
     ]
     bib = [{"id": "c2k", "name": "Student C", "consent": True, "start": {"value": 2000, "unit": "per month"},
             "figures": [2000, 9000]}]
@@ -497,9 +500,99 @@ def test_escalier_complet_synthetique_decider():
     assert r.verdict == "compliant", r.raisons
     assert lv == {"K1": 2, "K2": 2, "K3": 2, "K4": 2, "K5": 2, "K6": 2, "K7": 2}, [(i.id, i.niveau, i.remarque) for i in r.items]
     assert r.note == 100 and r.details["roadmap_span"] == ["T013", "T013"] and r.details["order_ok"]
-    # same pitch with an invented student average -> gate fails, score 0, items kept as diagnostics
+    # même présentation avec une moyenne d'élèves inventée -> la porte échoue, note 0, items gardés en diagnostic
     reponses["claims"].append({"kind": "figure", "quote": "Our students make 15K a month on average", "turn": "T011"})
     ctx.tours[10].texte += " Our students make 15K a month on average."
     r2 = decider(ctx, reponses, {"case_match_factor": 1.5})
     assert r2.verdict == "non_compliant" and r2.note == 0 and r2.raisons == ["out_of_gap_claim"]
     assert r2.details["raw_score"] == 100
+
+
+# ============================================================================ Partie 4 : listes françaises et consignes
+@pytest.mark.parametrize("a,b", [
+    ("par mois", "per month"),
+    ("€ par mois", "a month"),
+    ("euros par mois", "monthly"),
+    ("tous les mois", "par mois"),
+    ("mensuels", "par mois"),
+    ("par an", "per year"),
+    ("€/an", "par année"),
+    ("annuel", "yearly"),
+    ("heures par semaine", "hours per week"),
+    ("de l'heure", "per hour"),
+    ("€/h", "à l'heure"),
+    ("par jour", "daily"),
+    ("élèves par mois", "eleves par mois"),
+    ("clients par mois", "clientes par mois"),
+    ("projets", "projects"),
+    ("de chiffre d'affaires par mois", "per month"),
+])
+def test_unites_francaises_ramenees_a_la_meme_unite(a, b):
+    assert P.normaliser_unite(a) == P.normaliser_unite(b)
+
+
+def test_unites_francaises_restent_distinctes():
+    assert P.normaliser_unite("par mois") != P.normaliser_unite("par an")
+    assert P.normaliser_unite("élèves par mois") != P.normaliser_unite("par mois")
+    assert P.normaliser_unite("heures par semaine") != P.normaliser_unite("heures par mois")
+    # l'article anglais « an » reste ignoré : « an hour » = « per hour »
+    assert P.normaliser_unite("an hour") == P.normaliser_unite("per hour") == P.normaliser_unite("par heure")
+
+
+@pytest.mark.parametrize("texte", [
+    "C'est génial !", "c'est genial", "Ça a l'air super.", "ça a l’air vraiment intéressant", "Trop bien !",
+    "C'est top.", "Super, génial !", "Waouh.", "J'adore.", "j’adore ça", "Ah oui, c'est vraiment top !",
+    "Ça me plaît beaucoup.", "ça me parle", "C'est très intéressant.", "Ok super.", "Franchement c'est incroyable",
+    "Ça donne envie !", "J'aime bien ça.",
+])
+def test_compliments_francais_ne_sont_pas_une_adhesion(texte):
+    assert P.approbation_simple(texte)
+
+
+@pytest.mark.parametrize("texte", [
+    "Donc j'aurais quelqu'un qui relit mes cours chaque semaine.",
+    "Si je commence maintenant, je pourrais avoir mes cinq premiers élèves avant mars.",
+    "C'est exactement ce qui m'a manqué avec la dernière formation.",
+    "Ça me parle, je pourrais lancer mes cours de maths en septembre.",
+    "C'est génial, du coup je pourrais arrêter le collège en juin.",
+])
+def test_adhesions_francaises_ne_sont_pas_des_compliments(texte):
+    assert not P.approbation_simple(texte)
+
+
+def test_passages_adhesion_ecarte_un_compliment_francais():
+    ctx = fab_ctx([(COMMERCIAL, "Tu te vois où en mars ?"), (PROSPECT, "Ça a l'air génial !"),
+                  (PROSPECT, "Si je commence en novembre, j'aurai mes cinq premiers élèves en mars.")])
+    compliment = {"quote": "Ça a l'air génial !", "turn": "T002", "kind": "appropriation"}
+    proj = {"quote": "Si je commence en novembre, j'aurai mes cinq premiers élèves en mars", "turn": "T003",
+            "kind": "projection", "concrete": True}
+    garder, _ = P.passages_adhesion(ctx, [compliment, proj])
+    assert [p["turn"] for p in garder] == ["T003"]
+
+
+def test_morceaux_de_consigne_en_francais():
+    ctx = fab_ctx([(PROSPECT, "Je ne sais pas combien faire payer mes cours."),
+                  (COMMERCIAL, "Je te montre le programme."), (COMMERCIAL, "Ce qui te bloque, c'est le prix.")])
+    ctx.phases.debut_presentation = "T002"
+    vp = {"quote": "Je ne sais pas combien faire payer mes cours.", "turn": "T001", "key_expression": None}
+    poser_ecart(ctx, validation_turn="T001", validated_P=vp)
+    cat = P._construire_cat(ctx, vp)
+    assert cat.startswith("P VALIDÉ (tiré du résultat de l'écart) : tour T001") and "\nCONTEXTE\n" in cat
+    e1 = P._construire_etape1(ctx, None)
+    assert "DÉBUT DE LA PRÉSENTATION : T002." in e1 and "\nEXTRAIT DE LA PRÉSENTATION\n" in e1
+    e2 = P._construire_etape2(ctx, "Pricing")
+    assert "CATÉGORIE DU P VALIDÉ : Pricing" in e2 and "RÉFÉRENCE DES MÉCANISMES : absente" in e2
+    assert "A RETENU (écart) : " in P._construire_etape3(ctx, None)
+    assert "BIBLIOTHÈQUE DE CAS : absente." in P._construire_etape4(ctx, None)
+    rm = P._construire_fenetre_feuille_route(ctx, None)
+    assert rm.startswith("SES BLOCAGES (roadmap_blockers de l'écart) : ") and "EXTRAIT (du début" in rm
+    blocs = P.blocs(ctx, 40)
+    aff = P.AFFIRMATIONS.construire(ctx, blocs[0])
+    assert aff.startswith("RÉFÉRENCE DE L'OFFRE : absente") and "\n\nEXTRAIT\n" in aff
+    assert P.PROMESSES.construire(ctx, blocs[0]).startswith("Trouve les promesses de résultat.")
+    assert P.ADHESION.construire(ctx, blocs[0]).startswith("Trouve les passages d'adhésion.")
+    # les schémas JSON des consignes restent en anglais (réponses lues par le code et gardées dans l'audit)
+    dossier = Path(P.__file__).resolve().parent.parent / "consignes"
+    promesses = (dossier / "presentation_promesses.md").read_text(encoding="utf-8")
+    assert '"action": "run_business|find_clients|sign_clients|deliver_projects"' in promesses
+    assert "closer" not in promesses.lower() and "closing" not in promesses.lower()

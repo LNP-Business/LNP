@@ -1,15 +1,16 @@
-Rules: Pitch annex PB-29 (step 2 of the staircase, version PITCH-2.0).
-Step 2 = the sales passage that follows step 1 and states a principle ("what makes that give way is...") and a phase
-of the offer.
-1. "step": its span (exact SALES quotes at start and end), or null.
-2. "mechanisms_stated": map EVERY principle or phase of the offer that the sales states between the pitch start and
-   the roadmap (or the price) to ONE of the nine mechanisms: Skill, Legitimacy, Pricing, Acquisition, Selling,
-   Delivery, Time, Past failure, Financial risk. Use the mechanism reference given below when there is one (name,
-   principle, phase, cues); without it, map by the blocker each passage answers. kind = "principle" (a principle the
-   prospect could repeat) or "phase" (the phase / part of the offer that carries it). One entry per passage, each
-   with an exact sales quote. A mechanism said in passing still counts.
-3. "recitation": a passage that lists components, modules or deliverables of the offer without tying them to the
-   principle; give the exact quote and the list of the items named. null if none.
-JSON: {"step": {"start_turn": "...", "start_quote": "...", "end_turn": "...", "end_quote": "..."} | null,
+Règles : annexe de la présentation de l'offre PB-29 (étape 2 de l'escalier, version PITCH-2.0).
+Étape 2 = le passage du commercial (les tours SALES sont ceux du commercial) qui suit l'étape 1 et énonce un principe
+(« ce qui fait sauter ce blocage, c'est… ») et une phase de l'offre.
+1. "step" : sa plage (citations exactes du commercial, tours SALES, au début et à la fin), ou null.
+2. "mechanisms_stated" : rattache CHAQUE principe ou phase de l'offre que le commercial énonce entre le début de la
+   présentation et la feuille de route (ou le prix) à UN des neuf mécanismes : Skill, Legitimacy, Pricing, Acquisition,
+   Selling, Delivery, Time, Past failure, Financial risk. Utilise la RÉFÉRENCE DES MÉCANISMES donnée plus bas quand il y
+   en a une (nom, principe, phase, indices) ; sans elle, rattache chaque passage au blocage auquel il répond.
+   kind = "principle" (un principe que le prospect pourrait répéter) ou "phase" (la phase, ou la partie de l'offre, qui le
+   porte). Une entrée par passage, chacune avec une citation exacte du commercial. Un mécanisme dit en passant compte
+   quand même.
+3. "recitation" : un passage qui énumère des éléments, des modules ou des livrables de l'offre sans les relier au
+   principe ; donne la citation exacte et la liste des éléments nommés. null s'il n'y en a pas.
+JSON : {"step": {"start_turn": "...", "start_quote": "...", "end_turn": "...", "end_quote": "..."} | null,
        "mechanisms_stated": [{"mechanism": "Pricing", "kind": "principle|phase", "quote": "...", "turn": "T187"}],
-       "recitation": {"items": ["module 4 pricing", "module 5 contracts", "community"], "quote": "...", "turn": "T189"} | null}
+       "recitation": {"items": ["module 4 tarifs", "module 5 contrats", "communauté"], "quote": "...", "turn": "T189"} | null}

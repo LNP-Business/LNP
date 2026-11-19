@@ -1,23 +1,24 @@
-"""Competence 1 · SPIN discovery (methodology SPIN v1.3, Annex A SB-1..SB-35, Part C engine).
+"""Compétence 1 · découverte SPIN (méthodologie SPIN v1.3, annexe A SB-1 à SB-35, partie C du moteur).
 
-Two layers that are never mixed (spin.md §1):
-- letter layer: each sales solicitation gets S / P / I / N / OUT from five ordered gates. Diagnostics only:
-  **the letter never produces points** (guard of the LNP SPIN reference, Annex A X8);
-- effect layer: atoms stated by the prospect in the answers (SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE).
-  The score (items D1..D5) is computed from atoms and chains only.
+Deux couches qui ne se mélangent jamais (spin.md §1) :
+- couche des lettres : chaque sollicitation du commercial reçoit S / P / I / N / OUT par cinq portes ordonnées.
+  Diagnostic seulement : **la lettre ne rapporte jamais de points** (garde-fou du référentiel SPIN de LNP, annexe A X8) ;
+- couche des effets : les atomes énoncés par le prospect dans ses réponses (SITUATION, PAIN, BLOCKER, IMPACT,
+  DESIRE, VALUE). La note (items D1 à D5) se calcule à partir des atomes et des chaînes seulement.
 
-Pipeline of this module (Part C, C2):
-  S1 inventory (code)            inventory()             SEG-1..SEG-8, port of the SPIN reference segment.py
-  S3 gates (model)               GATES task              five gates OUT/S/N/I/P, routing, with exact quotes
-  S5 letter decision (code)      decide_letter()         port of decide() (decide_all.py), first "yes" wins
-  perimeter (code)               place_perimeter()       SB-1, SB-2, SB-25, SB-34: SPIN stops at the pitch (SB-3 / SB-4 off)
-  answer spans (code)            answer_spans()          SB-5..SB-8
-  atoms (model, then code)       ATOMS task + decide_atom()   SB-9..SB-15, SB-22..SB-24
-  follow-up (code)               follows_up()            SB-17, SB-19
-  chains (model link + code)     LINK task + find_chains()    SB-16, SB-18, SB-20
-  items (code)                   score_items()           §6 D1..D5, two-quote rule (C3 rule 4)
-  diagnostics (code)             diagnostics()           §8, displayed, never scored
-  registers (model, then code)   REGISTER task + decide_register()   SB-26..SB-33, displayed, never scored
+Déroulé de ce module (partie C, C2) :
+  S1 inventaire (code)                inventaire()                 SEG-1 à SEG-8, portage de segment.py du référentiel SPIN
+  S3 portes (modèle)                  tâche des portes             cinq portes OUT/S/N/I/P, aiguillage, avec citations exactes
+  S5 décision de la lettre (code)     decider_lettre()             portage de decide() (decide_all.py), le premier « oui » l'emporte
+  périmètre (code)                    placer_perimetre()           SB-1, SB-2, SB-25, SB-34 : SPIN s'arrête à la présentation
+                                                                   (SB-3 / SB-4 éteintes)
+  plages de réponse (code)            plages_reponse()             SB-5 à SB-8
+  atomes (modèle, puis code)          tâche des atomes + decider_atome()    SB-9 à SB-15, SB-22 à SB-24
+  approfondissement (code)            approfondit()                SB-17, SB-19
+  chaînes (lien du modèle + code)     tâche du lien + trouver_chaines()     SB-16, SB-18, SB-20
+  items (code)                        noter_items()                §6 D1 à D5, règle des deux citations (C3, règle 4)
+  diagnostics (code)                  diagnostics()                §8, affichés, jamais notés
+  registres (modèle, puis code)       tâche du registre + decider_registre()   SB-26 à SB-33, affichés, jamais notés
 """
 from __future__ import annotations
 
@@ -32,32 +33,32 @@ from ..noyau.executeur import TacheModele, Executeur
 from ..noyau.notation import note_appel, item
 from ..noyau.texte import approbation_seule, normaliser, normaliser_nombre, citation_ok
 
-# =============================================================================================== constants
-# Every value below that the methodology marks "to validate" stays a configurable constant.
-POIDS = {"D1": 15, "D2": 20, "D3": 30, "D4": 20, "D5": 15}     # §6, weights to validate (§11)
-MIN_CODEES = 5                     # §5: minimum coded solicitations for `scored` (to validate, §11)
-PART_MAX_ABSENTS = 0.05           # §5 health: > 5 % OUT `absent` -> excluded (C7 health threshold)
-COMPTER_SPONTANES = True          # §11 proposal: volunteered atoms count for D1..D4 (never for D5, SB-8)
-MOTS_MAX_RELANCE_ORALE = 5         # SB-5: sales backchannel of 5 words or fewer does not end an answer span
+# =============================================================================================== constantes
+# Chaque valeur ci-dessous que la méthodologie marque « à valider » reste une constante de configuration.
+POIDS = {"D1": 15, "D2": 20, "D3": 30, "D4": 20, "D5": 15}     # §6, poids à valider (§11)
+MIN_CODEES = 5                     # §5 : nombre minimal de sollicitations codées pour `scored` (à valider, §11)
+PART_MAX_ABSENTS = 0.05           # §5 santé : plus de 5 % de OUT `absent` -> exclu (seuil de santé de C7)
+COMPTER_SPONTANES = True          # proposition du §11 : les atomes spontanés comptent pour D1 à D4 (jamais pour D5, SB-8)
+MOTS_MAX_RELANCE_ORALE = 5         # SB-5 : une relance orale du commercial de 5 mots ou moins ne clôt pas une plage de réponse
 MOTS_REPONSE_COURTE = 6            # SB-7
-MIN_MOTS_CONTENU = 4              # SB-17: content words of 4 letters or more
-MIN_DIAGNOSTICS_POINT_PRESENTATION = 2 # SB-4: a reopening inside the pitch needs >= 2 diagnostic questions
-TOURS_FENETRE_REOUVERTURE = 24          # context given to the model to place a reopening end (SB-3)
-REOUVERTURES = False                # SB-34 (Romain 2026-10-27): SPIN stops at the pitch; the SB-3 / SB-4 reopenings are off
-CIBLES_DIAG = {"p_followed_by_i": 0.50, "prompted_share": 0.15, "closed_need_payoff": 0}   # §8, to validate
+MIN_MOTS_CONTENU = 4              # SB-17 : mots de contenu de 4 lettres ou plus
+MIN_DIAGNOSTICS_POINT_PRESENTATION = 2 # SB-4 : une réouverture dans la présentation demande au moins 2 questions de diagnostic
+TOURS_FENETRE_REOUVERTURE = 24          # contexte donné au modèle pour placer la fin d'une réouverture (SB-3)
+REOUVERTURES = False                # SB-34 (Romain 2026-10-27) : SPIN s'arrête à la présentation ; les réouvertures SB-3 / SB-4 sont éteintes
+CIBLES_DIAG = {"p_followed_by_i": 0.50, "prompted_share": 0.15, "closed_need_payoff": 0}   # §8, à valider
 BUDGET_APPEL = {"S": ("ceiling", 2), "P": ("ceiling", 2), "I": ("floor", 3), "N": ("floor", 3)}  # §8
 
 LETTRES = ("S", "P", "I", "N")
 OUT = "OUT"
-# OUT reasons in priority order (§3). `absent` = no gate said yes (system defect, never against the sales).
+# Raisons de OUT par ordre de priorité (§3). `absent` = aucune porte n'a dit oui (défaut du système, jamais contre le commercial).
 PRIORITE_HORS = ["nothing", "offer_info", "solution_load", "sales_list", "agreement"]
-AIGUILLAGE = ("VALIDATION_REQUEST", "DECISION_REQUEST")       # gate 0
+AIGUILLAGE = ("VALIDATION_REQUEST", "DECISION_REQUEST")       # porte 0
 TYPES_ATOMES = ("SITUATION", "PAIN", "BLOCKER", "IMPACT", "DESIRE", "VALUE")
 DOMAINES = ("money", "time", "clients", "family", "health", "self_belief", "future", "other")   # §2, §4
-DIMENSIONS = ("revenue", "clients", "time", "career_status", "other")    # §6 "related to the goal"
+DIMENSIONS = ("revenue", "clients", "time", "career_status", "other")    # §6 « lié à l'objectif »
 ATOMES_ATTENDUS = {"S": {"SITUATION"}, "P": {"PAIN", "BLOCKER"}, "I": {"IMPACT"}, "N": {"DESIRE", "VALUE"}}
 
-# Registers (SB-26..SB-33, Romain 2026-10-27): the code maps the domain a question asks about to one register.
+# Registres (SB-26 à SB-33, Romain 2026-10-27) : le code ramène le domaine sur lequel porte une question à un registre.
 REGISTRES = ("financial", "time_load", "identity_status", "mental_emotional", "other")
 LIBELLES_REGISTRE = {"financial": "Financial", "time_load": "Time & load", "identity_status": "Identity & status",
                    "mental_emotional": "Mental & emotional", "other": "Other"}
@@ -65,10 +66,11 @@ REGISTRE_DU_DOMAINE = {"money": "financial", "clients": "financial", "time": "ti
                       "future": "identity_status", "self_belief": "mental_emotional", "health": "mental_emotional",
                       "other": "other", "none": "other"}
 BASES_REGISTRE = ("named", "answer", "reference", "none")   # SB-28 / SB-35 / SB-29 / SB-31
-TOURS_REPONSE_REGISTRE = 3          # SB-35: an open question is read in (at most) the first three turns of its answer
-TOURS_REFERENCE_REGISTRE = 2       # SB-29: a reference is read in the last two prospect turns before the question
-ACCORD_MIN_REGISTRE = 0.92      # SB-33: per-call share of registers decided 3/3 (Romain's 92 % target)
-# SB-30 domain words, the code's cross-check of a "named" answer (SB-32 rule 3); matched on word starts
+TOURS_REPONSE_REGISTRE = 3          # SB-35 : une question ouverte se lit dans (au plus) les trois premiers tours de sa réponse
+TOURS_REFERENCE_REGISTRE = 2       # SB-29 : une référence se lit dans les deux derniers tours du prospect avant la question
+ACCORD_MIN_REGISTRE = 0.92      # SB-33 : part, par appel, des registres décidés à 3/3 (objectif de 92 % fixé par Romain)
+# Mots des domaines de SB-30, contre-vérification par le code d'une réponse « named » (SB-32, règle 3) ; cherchés en début de
+# mot, sur le texte replié (minuscules, sans accents : _replier). Mots anglais (transcriptions des tests), puis français.
 LEXIQUE_REGISTRE = {
     "financial": ("money", "income", "revenue", "earn", "salary", "cash", "price", "afford", "debt", "bills", "rent",
                   "financ", "profit", "dollar", "paid", "paying", "client", "customer", "project", "leads", "booking",

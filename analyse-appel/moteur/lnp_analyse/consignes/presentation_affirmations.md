@@ -1,14 +1,16 @@
-Rules: Pitch annex PB-35 (claims, version PITCH-2.0).
-A claim is a figure, a client case, a price or a guarantee stated by the SALES in the extract below.
-List EVERY claim, each with its exact sales quote. Do not decide whether it is allowed: the code looks each one up in
-the prospect's quotes, the offer reference and the case library.
-- kind "figure": any number about results, income, students, the market, durations, prices per project...
-- kind "case": a named or described client / student story. "library_id": the id from the CASE LIBRARY below, or
-  "not_in_library".
-- kind "price": an amount for the offer (full price, instalment, deposit, discount, range).
-- kind "guarantee": a guarantee or refund promise. "guarantee_ref": the name of the matching guarantee of the OFFER
-  REFERENCE below, or null.
-- "calculation": true only if the sales presents the figure as a calculation on other figures ("at 1,000 per project
-  and 3 projects a month...").
-JSON: {"claims": [{"kind": "figure|case|price|guarantee", "quote": "...", "turn": "T201", "library_id": null,
+Règles : annexe de la présentation de l'offre PB-35 (affirmations, version PITCH-2.0).
+Une affirmation est un chiffre, un cas client, un prix ou une garantie donné par le commercial (tours SALES) dans
+l'extrait ci-dessous.
+Liste CHAQUE affirmation, chacune avec sa citation exacte du commercial. Ne décide pas si elle est permise : le code
+cherche chacune dans les citations du prospect, la référence de l'offre et la bibliothèque de cas.
+- kind "figure" : tout nombre sur des résultats, des revenus, des élèves, le marché, des durées, des prix par projet ou
+  par cours…
+- kind "case" : l'histoire d'un client ou d'un élève, nommé ou décrit. "library_id" : l'identifiant tiré de la
+  BIBLIOTHÈQUE DE CAS ci-dessous, ou "not_in_library".
+- kind "price" : un montant pour l'offre (prix complet, échéance, acompte, remise, fourchette).
+- kind "guarantee" : une garantie ou une promesse de remboursement. "guarantee_ref" : le nom de la garantie
+  correspondante dans la RÉFÉRENCE DE L'OFFRE ci-dessous, ou null.
+- "calculation" : true seulement si le commercial présente le chiffre comme un calcul sur d'autres chiffres (« à 30 € de
+  l'heure et 20 heures par semaine… »).
+JSON : {"claims": [{"kind": "figure|case|price|guarantee", "quote": "...", "turn": "T201", "library_id": null,
                    "guarantee_ref": null, "calculation": false}]}

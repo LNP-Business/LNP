@@ -1,15 +1,19 @@
-"""S4 → Objections result (OBJ-1.1, lite reading): unique objections raised after the first price, A · I · E · M.
+"""S4 → résultat des objections (OBJ-1.1, lecture allégée) : les objections levées après le premier prix, chacune une
+seule fois, A · I · E · M.
 
-Romain (2026-11-03): only the resistances raised after the first price count (OB-27; before: after the pitch start), and each objection appears once, with all
-its quotes. The code:
-- checks every quote (a PROSPECT or co-decider turn, exact passage, after the first price) and drops the others;
-- derives the nature from the subjects of the doubt with the boundary tests of OB-3 (`nature_of_subjects`, OB-24);
-- merges objections of the same nature and theme, or that share a quote, into one (with all their quotes);
-- bounds one episode per objection: response = sales turns from the first passage to the topic change (the model's,
-  checked: a SALES turn before the next objection), reaction = prospect turns after the first response; a quote of
-  the same objection inside the reaction is a repetition (persisting), one after the episode is a recurrence (H5 = 0);
-- judges A · I · E · M, resolution, latency and prevention with the reference engine's functions (acknowledged,
-  isolation_valid, exploration, h1_level, h3_level, resolution_level, is_latent, episode_items, prevention_items).
+Romain (2026-11-03) : seules comptent les résistances levées après le premier prix (OB-27 ; avant : après le début de la
+présentation), et chaque objection apparaît une fois, avec toutes ses citations. Le code :
+- vérifie chaque citation (un tour PROSPECT ou d'un co-décideur, extrait exact, après le premier prix) et écarte les
+  autres ;
+- déduit la nature des sujets du doute avec les tests de frontière d'OB-3 (`nature_des_sujets`, OB-24) ;
+- réunit en une seule les objections de même nature et de même thème, ou qui partagent une citation (avec toutes leurs
+  citations) ;
+- borne un épisode par objection : réponse = les tours du commercial depuis le premier passage jusqu'au changement de
+  sujet (celui du modèle, vérifié : un tour SALES avant l'objection suivante), réaction = les tours du prospect après
+  la première réponse ; une citation de la même objection dans la réaction est une répétition (elle persiste), une
+  citation après l'épisode est une récurrence (H5 = 0) ;
+- juge A · I · E · M, la résolution, la latence et la prévention avec les fonctions du moteur de référence (accueilli,
+  isolement_valide, exploration, niveau_h1, niveau_h3, niveau_resolution, est_latent, items_episode, items_prevention).
 """
 from __future__ import annotations
 
@@ -37,7 +41,7 @@ def _citations_valides(ctx: ContexteAppel, o: dict, rejets: Rejets) -> list[dict
             rejets.ajouter(ETAPE, f"quote:{e}", q)
             continue
         if not fp or ctx.n(q["turn"]) <= ctx.n(fp):
-            rejets.ajouter(ETAPE, "quote:before_price", q)            # OB-27, Romain 2026-11-03: after the first price only
+            rejets.ajouter(ETAPE, "quote:before_price", q)            # OB-27, Romain 2026-11-03 : après le premier prix seulement
             continue
         sortie.append({"turn": q["turn"], "quote": q["quote"]})
     return sorted(sortie, key=lambda q: (ctx.n(q["turn"]), normaliser(ctx.tour(q["turn"]).texte).find(normaliser(q["quote"]))))
@@ -66,14 +70,14 @@ def objections_uniques(ctx: ContexteAppel, s4: dict, rejets: Rejets) -> list[dic
             continue
         nie = {O.SUJETS[s][1] for s in o.get("denied_subjects") or [] if s in O.SUJETS}
         sujets = [s for s in o.get("subjects") or [] if s in O.SUJETS and O.SUJETS[s][1] not in nie]
-        nt = O.nature_des_sujets(sujets)                            # OB-3 boundary tests, OB-24
+        nt = O.nature_des_sujets(sujets)                            # tests de frontière d'OB-3, OB-24
         if nt is None:
             rejets.ajouter(ETAPE, "objection:no_nature")
             continue
         items.append({"nature": nt[0], "subtype": nt[1], "quotes": citations, "raw": o, "merged": 1})
     items.sort(key=lambda m: ctx.n(m["quotes"][0]["turn"]))
     fusionne: list[dict] = []
-    for it in items:                                                   # one objection, all its quotes (code)
+    for it in items:                                                   # une objection, toutes ses citations (code)
         cib = next((m for m in fusionne if (m["nature"], m["subtype"]) == (it["nature"], it["subtype"])
                     or _chevauche(m["quotes"], it["quotes"])), None)
         if cib is None:
@@ -98,7 +102,7 @@ def borne(ctx: ContexteAppel, m: dict, k: int, debut_suivant: Optional[str], rej
     premier = m["quotes"][0]
     t0 = ctx.tour(premier["turn"])
     res = O.Resistance(t0.id, t0.id, t0.role, premier["quote"], m["nature"], m["subtype"], [t0.id])
-    for q in m["quotes"][1:]:                                          # OB-5: same resistance over several turns
+    for q in m["quotes"][1:]:                                          # OB-5 : la même résistance sur plusieurs tours
         entre = seq[pos[res.dernier] + 1: pos[q["turn"]]]
         if q["turn"] != res.dernier and all(t.role == COMMERCIAL and O.est_relance_orale(t) for t in entre):
             res.dernier = q["turn"]
@@ -115,7 +119,7 @@ def borne(ctx: ContexteAppel, m: dict, k: int, debut_suivant: Optional[str], rej
             rejets.ajouter(ETAPE, "topic_change:rejected", tc)
     fin = tour_cs or debut_suivant
     reponse_com = [t for t in _premier_commercial(ctx, res.dernier, fin)]
-    while reponse_com and O.est_relance_orale(reponse_com[0]):                  # a backchannel is not the first response
+    while reponse_com and O.est_relance_orale(reponse_com[0]):                  # une relance orale n'est pas la première réponse
         reponse_com.pop(0)
     if brut.get("receive_and_leave") and reponse_com:                      # OB-22
         ep.reponse_com = [reponse_com[0].id]
@@ -129,9 +133,9 @@ def borne(ctx: ContexteAppel, m: dict, k: int, debut_suivant: Optional[str], rej
         hi = pos[ep.tour_fin] if ep.tour_fin else len(seq)
         ep.reaction = [t.id for t in seq[pos[ep.reponse_com[0]] + 1: hi] if t.role != COMMERCIAL]
     plus_tard = [q["turn"] for q in m["quotes"] if q["turn"] not in res.tours]
-    ep.repetitions = [t for t in plus_tard if t in ep.reaction]                 # inside the episode: persisting
+    ep.repetitions = [t for t in plus_tard if t in ep.reaction]                 # dans l'épisode : elle persiste
     hi = pos[ep.tour_fin] if ep.tour_fin else len(seq)
-    if any(pos[t] >= hi for t in plus_tard):                               # after the episode: a recurrence (OB-11, X4)
+    if any(pos[t] >= hi for t in plus_tard):                               # après l'épisode : une récurrence (OB-11, X4)
         ep.revient_plus_tard = True
         ep.etiquettes.append("recurs_later")
     ep.latent, regle = O.est_latent(ctx, ep)
@@ -154,8 +158,9 @@ def _verifie(T: O._Taches, tache, rep: Optional[dict], uid: str, ctx: ContexteAp
 
 
 def juger(ctx: ContexteAppel, ep: O.Episode, brut: dict, debuts_res: set[str], rejets: Rejets) -> None:
-    """The engine's _judge, on the S4 readings (each checked by the engine task's validator). A gesture whose quote
-    fails the check is not proved: it counts as not done (and is counted in the drops)."""
+    """Le `_juger` du moteur (`CompetenceObjections._juger`), sur les lectures de S4 (chacune vérifiée par le
+    validateur de la tâche du moteur). Un geste dont la citation échoue à la vérification n'est pas prouvé : il compte
+    comme non fait (et il est compté dans les rejets)."""
     T = O._Taches()
     uid = ep.cle
     T.unites[uid] = ep
@@ -269,7 +274,7 @@ def executer_objections(ctx: ContexteAppel, s4: dict, rejets: Rejets) -> Resulta
     enregistrements = []
     for e, m in zip(eps, objs):
         enr = O.CompetenceObjections._enr_episode(ctx, e)
-        enr["quotes"] = m["quotes"]                      # every passage of this one objection (Romain 2026-11-03)
+        enr["quotes"] = m["quotes"]                      # chaque passage de cette objection (Romain 2026-11-03)
         enr["merged_items"] = m["merged"]
         enregistrements.append(enr)
     sortie.details = {
