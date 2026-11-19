@@ -90,8 +90,9 @@ Ne jamais écrire « closer » (ni « closing ») : toujours « commercial » / 
 | queued / running / failed | en file / en cours / échec |
 | evidence / quote | preuve / citation |
 
-Les consignes envoyées au modèle (`analyse-appel/moteur/lnp_analyse/consignes/*.md`) restent en anglais : les traduire changerait
-l'analyse. Seul ce que la personne lit est en français.
+L'analyse d'appel est écrite et codée en français (Romain, 2026-11-19) : code, commentaires, documentation, tests et consignes
+envoyées au modèle (`analyse-appel/moteur/lnp_analyse/consignes/*.md`). Le format de l'analyse enregistrée garde ses clés et ses
+codes anglais (`analyse-appel/CLAUDE.md`) ; l'écran les traduit à l'affichage.
 
 ## Formats
 

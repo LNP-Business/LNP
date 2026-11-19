@@ -1,4 +1,5 @@
-"""Worker: model gateway client, claim → context → call record, and the loop (no network, no real transcript)."""
+"""Exécutant : client de la passerelle du modèle, prise → contexte → enregistrement de l'appel, et la boucle (sans réseau,
+sans vraie transcription)."""
 import io
 import json
 import urllib.error
@@ -14,7 +15,7 @@ PALIERS = {"fast": "claude-haiku-5-5", "strong": "claude-sonnet-5-5", "arbiter":
 
 
 def transcription_synthetique() -> str:
-    """A fictional call (no real prospect): enough words on both sides to pass the diarization gate."""
+    """Un appel fictif (aucun vrai prospect) : assez de mots des deux côtés pour passer la porte de diarisation."""
     lignes = []
     for i in range(40):
         m, s = divmod(i * 20, 60)
@@ -43,7 +44,7 @@ class FausseReponse(io.BytesIO):
 
 
 def ouverture_depuis(reponses):
-    """answers: list of (status, body); 200 bodies are returned, others raised as HTTPError."""
+    """reponses : liste de (statut, corps) ; les corps 200 sont renvoyés, les autres levés en HTTPError."""
     vus = []
 
     def op(dem, timeout=None):
@@ -61,12 +62,12 @@ def test_la_passerelle_envoie_le_modele_du_palier_et_compte_la_conso():
     assert g.demander("spin.gates", "sol:T001", "strong", "RULES", "UNIT", 1) == {"found": False}
     assert vus[0]["model"] == "claude-sonnet-5-5" and "temperature" not in vus[0] and vus[0]["system"] == "RULES"
     assert g.conso["strong"] == {"calls": 1, "input_tokens": 100, "output_tokens": 5, "cache_read_input_tokens": 80, "cache_creation_input_tokens": 0}
-    assert vus[0]["effort"] == "low" and vus[0]["cache_prompt"] is True, "a pass: low effort, question cached"
+    assert vus[0]["effort"] == "low" and vus[0]["cache_prompt"] is True, "une passe : effort low, question mise en cache"
 
 
 def test_la_passerelle_effort_none_coupe_la_reflexion_sauf_la_fondation():
-    # LNP (2026-11-03, under 10 cents a call): effort "none" on every question, the register included; the foundation keeps
-    # its default
+    # LNP (2026-11-03, moins de 10 cents par appel) : effort "none" sur toutes les questions, registre compris ; la fondation
+    # garde son réglage par défaut
     op, vus = ouverture_depuis([(200, {"text": "{}"})] * 3)
     g = ClientPasserelle("https://x/f", "k", PALIERS, ouverture=op, dormir=lambda s: None, effort="none", passes=1)
     g.demander("spin.gates", "sol:T001", "fast", "s", "p", 1)
@@ -130,7 +131,7 @@ def test_le_travail_donne_un_enregistrement_complet_et_les_passes_paralleles_ne_
     assert all(r["rules_version"] for r in enr_par["results"].values())
     depouiller = lambda r: {k: {kk: vv for kk, vv in v.items()} for k, v in r["results"].items()}
     assert depouiller(enr_par) == depouiller(enr_seq)
-    json.dumps(enr_par, default=str)                     # what crm_ca_store receives
+    json.dumps(enr_par, default=str)                     # ce que reçoit crm_ca_store
     assert "status=ok" in resume(enr_par) and "Alex" not in resume(enr_par)
 
 
@@ -164,7 +165,7 @@ def test_la_boucle_stocke_ou_echoue(monkeypatch):
     monkeypatch.setattr(loop, "ClientPasserelle", FauxClient)
     monkeypatch.setattr("sys.argv", ["run.py"])
     assert loop.principal() == 0
-    assert appels == ["crm_ca_claim", "crm_qualif_context", "crm_ca_store", "crm_ca_claim"]  # an R1: qualified too (046)
+    assert appels == ["crm_ca_claim", "crm_qualif_context", "crm_ca_store", "crm_ca_claim"]  # un R1 : qualifié aussi (046)
     appels.clear()
 
     def boum(*a, **k):

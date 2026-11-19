@@ -1,12 +1,14 @@
-"""Model client of the engine (core/llm.py ModelClient) going through the Edge Function callqa-llm.
+"""Client du modèle pour le moteur (ClientModele de noyau/client_modele.py) qui passe par la fonction Edge callqa-llm.
 
-The worker never holds the model key: the gateway does (Supabase function secret ANTHROPIC_API_KEY). Model ids per tier
-come from crm_ca_config (never from code). Token usage is added up per tier for the job row.
+L'exécutant ne détient jamais la clé du modèle : la passerelle la détient (secret des fonctions Supabase ANTHROPIC_API_KEY).
+Les identifiants de modèle par palier viennent de crm_ca_config (jamais du code). Les jetons consommés sont additionnés par
+palier pour la ligne du travail.
 
-Cost (docs/ARCHITECTURE.md §7, Romain 2026-10-28): the model answers one closed JSON question, so its thinking runs at
-effort "low" (an `effort` key in the claim's config would override it); the question of a pass (pass_no >= 1) is marked for caching, since the
-same prompt is asked three times (passes 2 and 3 read it from the cache, see prefetch.fetch). The answers are the same
-kind of answer: quotes are still checked by code, three passes and the arbiter still decide.
+Coût (docs/ARCHITECTURE.md §7, Romain 2026-10-28) : le modèle répond à une question fermée en JSON, donc sa réflexion tourne
+en effort « low » (une clé `effort` dans la config de la prise la remplacerait) ; la question d'une passe (no_passe >= 1) est
+marquée pour le cache, puisque la même consigne est posée trois fois (les passes 2 et 3 la lisent dans le cache, voir
+anticipation.ClientAnticipe.recuperer). Les réponses restent du même genre : les citations sont toujours vérifiées par le
+code, les trois passes et l'arbitre décident toujours.
 """
 from __future__ import annotations
 
@@ -20,10 +22,11 @@ from typing import Any
 from lnp_analyse.noyau.client_modele import lire_json
 
 
-# tasks asked at another effort than the job's (docs/ARCHITECTURE.md §7). "default" = the model's own default (no effort
-# sent). The foundation decides whether the call can be analysed at all (attribution, phases): at effort low, Amber
-# Peterson's call was excluded as diarization_suspect on one run and analysed on another (2026-10-28), so it keeps the
-# default; it is a cheap fast-tier step. The register of a SPIN question (SB-33) is asked at medium.
+# tâches posées à un autre effort que celui du travail (docs/ARCHITECTURE.md §7). "default" = le réglage par défaut du
+# modèle (aucun effort envoyé). La fondation décide si l'appel peut être analysé (attribution, phases) : en effort low,
+# un même appel réel a été exclu comme diarization_suspect sur une exécution et analysé sur une autre (2026-10-28),
+# donc elle garde le réglage par défaut ; c'est une étape peu coûteuse du palier rapide. Le registre d'une question SPIN
+# (SB-33) est demandé en effort medium.
 EFFORT_TACHE = {"foundation.attribution": "default", "foundation.phases": "default", "spin.register": "medium"}
 
 
@@ -38,7 +41,7 @@ class ClientPasserelle:
                  delai: float = 180, dormir=time.sleep, ouverture=None, effort: str = "low", passes: int = 3):
         manquant = [t for t in ("fast", "strong", "arbiter") if not paliers.get(t)]
         if manquant:
-            raise ErreurPasserelle("model id missing for tier " + ", ".join(manquant) + " (crm_ca_config)", final=True)
+            raise ErreurPasserelle("identifiant de modèle manquant pour le palier " + ", ".join(manquant) + " (crm_ca_config)", final=True)
         self.url, self.cle, self.paliers, self.effort, self.passes = url, cle, paliers, effort, int(passes or 3)
         self.max_tokens, self.essais, self.delai, self.dormir = max_tokens, essais, delai, dormir
         self.ouverture = ouverture or urllib.request.urlopen
@@ -54,11 +57,12 @@ class ClientPasserelle:
                 u[k] += int(conso.get(k) or 0)
 
     def demander(self, id_tache: str, id_unite: str, palier: str, systeme: str, consigne: str, no_passe: int) -> dict[str, Any]:
-        # effort "none" (LNP, 2026-11-03): no thinking on any question, except the foundation, which keeps its default
+        # effort "none" (LNP, 2026-11-03) : aucune réflexion sur aucune question, sauf la fondation, qui garde son réglage par défaut
         effort = EFFORT_TACHE.get(id_tache, self.effort)
         if self.effort == "none" and not id_tache.startswith("foundation."):
             effort = "none"
-        # a question is cached only when another pass will ask it again (one pass: writing the cache costs more than it saves)
+        # une question n'est mise en cache que si une autre passe la reposera (une seule passe : écrire le cache coûte plus qu'il
+        # ne fait gagner)
         corps = {"model": self.paliers[palier], "system": systeme, "prompt": consigne,
                 "max_tokens": self.max_tokens, "effort": effort,
                 "cache_prompt": int(no_passe) >= 1 and self.passes > 1}
@@ -66,8 +70,9 @@ class ClientPasserelle:
 
     def completer(self, id_tache: str, id_unite: str, palier: str, systeme: str, prefixe: str, consigne: str,
                  max_tokens: int = 16000, effort: str = "low") -> dict[str, Any]:
-        """One step of the lite engine (call-analysis/lite): the transcript goes in `prefix`, cached by the gateway and
-        read back by the next steps; the step prompt is not cached. Returns {text, stop_reason} (the step parses it)."""
+        """Une étape du moteur allégé (analyse-appel/allege) : la transcription va dans `prefix`, mise en cache par la passerelle
+        et relue par les étapes suivantes ; la consigne de l'étape n'est pas mise en cache. Renvoie {text, stop_reason}
+        (l'étape le lit elle-même)."""
         sortie = self._poster(palier, {"model": self.paliers[palier], "system": systeme, "prefix": prefixe, "prompt": consigne,
                                 "max_tokens": int(max_tokens), "effort": effort, "cache_prompt": False})
         return {"text": sortie.get("text") or "", "stop_reason": sortie.get("stop_reason")}
@@ -89,8 +94,9 @@ class ClientPasserelle:
                 except Exception:  # noqa: BLE001
                     j = {}
                 dernier = f"HTTP {e.code} {j.get('error', '')}".strip()
-                # wrong key, no model key in Supabase, or the provider refused the request itself (the gateway says retry
-                # false: a bad model id or parameter): the same request fails every time, so the whole job stops
+                # mauvaise clé, pas de clé du modèle dans Supabase, ou le fournisseur a refusé la demande elle-même (la passerelle
+                # répond retry false : mauvais identifiant de modèle ou mauvais paramètre) : la même demande échoue à chaque
+                # fois, donc tout le travail s'arrête
                 if e.code in (401, 409) or (e.code == 502 and j.get("retry") is False):
                     raise ErreurPasserelle(dernier, final=True) from None
                 if e.code not in (429, 503, 504, 500, 502):
@@ -98,4 +104,4 @@ class ClientPasserelle:
             except (urllib.error.URLError, TimeoutError) as e:
                 dernier = str(e)
             self.dormir(min(2 ** (i + 1), 30))
-        raise ErreurPasserelle("model gateway unavailable: " + dernier)
+        raise ErreurPasserelle("passerelle du modèle indisponible : " + dernier)

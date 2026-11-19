@@ -1,5 +1,5 @@
-"""An R1 analysis also qualifies the lead (callqa_worker/qualif.py, 046): the same turns as the analysis, two readings, the
-four-gate rule; an R2 is not qualified; a failure never stops the analysis."""
+"""L'analyse d'un R1 qualifie aussi le lead (executant_analyse/qualif.py, 046) : les mêmes tours que l'analyse, deux
+lectures, la règle des portes ; un R2 n'est pas qualifié ; un échec n'arrête jamais l'analyse."""
 import json
 import sys
 from pathlib import Path
@@ -35,9 +35,9 @@ def test_un_r1_est_qualifie_depuis_les_tours_de_l_analyse():
     c, client, db = prise(), Bouchon(json.dumps(FAITS)), DB()
     q = qualif.qualifier_(c, client, db)
     assert q["status"] and q["prompt_version"].startswith("lnp-sql-v2.2") and q["rules_version"] == "qualification_lnp-v2.2"
-    assert [x["tier"] for x in client.appels] == ["fast", "strong"], "two readings"
+    assert [x["tier"] for x in client.appels] == ["fast", "strong"], "deux lectures"
     prefixe = client.appels[0]["prefix"]
-    assert "SALES:" in prefixe and "PROSPECT:" in prefixe, "the analysis' speakers"
+    assert "SALES:" in prefixe and "PROSPECT:" in prefixe, "les locuteurs de l'analyse"
     assert db.appels[0] == ("crm_qualif_context", {"p_call": "c1"})
     assert q["usage"]["fast"]["input"] == 200
     qualif.stocker(db, c, "j1", q)
@@ -53,8 +53,8 @@ def test_un_r2_n_est_pas_qualifie():
 def test_un_echec_n_arrete_jamais_l_analyse():
     class Casse(Bouchon):
         def completer(self, *a, **k):
-            raise RuntimeError("gateway down")
+            raise RuntimeError("passerelle en panne")
     q = qualif.qualifier_(prise(), Casse(""), DB())
     assert q["error"].startswith("RuntimeError")
     db = DB(); qualif.stocker(db, prise(), "j1", q)
-    assert db.appels == [], "an error is not stored"
+    assert db.appels == [], "une erreur n'est pas enregistrée"

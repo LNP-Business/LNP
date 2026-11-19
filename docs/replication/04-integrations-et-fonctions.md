@@ -2,7 +2,7 @@
 
 Ce chapitre décrit tout ce qui tourne côté serveur en dehors de la page et de l'édition web : les huit fonctions Edge de
 `supabase/functions/`, leurs modules partagés (`supabase/functions/_shared/`), les tâches planifiées qui les appellent, la
-configuration à faire chez chaque service externe, puis la chaîne d'analyse d'appel (worker Python, moteur
+configuration à faire chez chaque service externe, puis la chaîne d'analyse d'appel (exécutant Python, moteur
 `lnp_analyse`, passerelle `callqa-llm`, workflow GitHub Actions). Chaque fait vient du code ; le fichier est cité.
 Quand `docs/crm/` dit autre chose que le code, c'est le code qui fait foi (voir §13).
 
@@ -35,7 +35,7 @@ GitHub Actions :07 ──► analyse-appel/executant/executer.py ──► crm_c
 | `process-inbox` | Transforme les lignes brutes en faits du CRM | pg_cron chaque minute (`crm-process-inbox`) | Aucune (ne prend aucune entrée) |
 | `crm-import` | Imports (Close, iClosed, Fathom), rapports, sondes | pg_cron minute 23 (`crm-fathom-hourly`) et appels manuels | Aucune ; noms dans un rapport seulement avec `x-lnp-token` = `CRM_REPORT_TOKEN` |
 | `sla-tick` | Alertes SLA du cycle de vente vers Slack | pg_cron toutes les 5 min (`crm-sla-tick`) | Aucune (ne prend aucune entrée) |
-| `callqa-llm` | Passerelle de modèle du worker d'analyse | Appels du worker (GitHub Actions) | Bearer = clé service role (`SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY`) |
+| `callqa-llm` | Passerelle de modèle de l'exécutant d'analyse | Appels de l'exécutant (GitHub Actions) | Bearer = clé service role (`SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY`) |
 
 Les points d'entrée sont minimes : `supabase/functions/<nom>/index.ts` importe un module de `_shared/` et appelle
 `Deno.serve(...)`. Toute la logique est dans `_shared/`, ce qui permet de la tester sans réseau (`supabase/tests/`).
@@ -564,7 +564,7 @@ renseigner `link` avec l'adresse de l'application suivie de `/#crm`.
 
 ## 8. `callqa-llm` (passerelle de modèle)
 
-`_shared/callqa_llm.ts › handleLlm`, appelée seulement par le worker d'analyse (qui ne détient aucune clé de modèle).
+`_shared/callqa_llm.ts › handleLlm`, appelée seulement par l'exécutant d'analyse (qui ne détient aucune clé de modèle).
 
 | Point | Règle |
 |---|---|
@@ -587,7 +587,10 @@ Rien n'est journalisé : ni consigne, ni transcription.
 
 Le moteur a ses propres règles : `analyse-appel/CLAUDE.md` est à lire avant toute modification. Règle qui prime sur tout :
 **le modèle extrait et cite, le code décide et note**. Les consignes envoyées au modèle
-(`analyse-appel/moteur/lnp_analyse/consignes/*.md`) restent en anglais.
+(`analyse-appel/moteur/lnp_analyse/consignes/*.md`, `analyse-appel/allege/analyse_allegee/consignes/*.md`,
+`analyse-appel/qualification/consignes/extraction.md`) sont en français depuis le 2026-11-19 (Romain : « tout ce qui touche à
+l'analyse d'appel doit être écrit et codé en français ») ; leurs schémas JSON, les valeurs fermées et le format de l'analyse
+enregistrée restent en anglais (l'écran, la base et le connecteur les lisent).
 
 ### 9.1 Données (`web/supabase/020_crm_call_analysis.sql`, 025, 034)
 
@@ -607,7 +610,7 @@ Le moteur a ses propres règles : `analyse-appel/CLAUDE.md` est à lire avant to
 - Mise en file : automatique depuis Fathom (§5.3), ou depuis l'écran (`crm_ca_add_transcript`, `crm_ca_retry` : administrateurs
   et propriétaire du cycle).
 
-### 9.2 Fonctions du worker (service role)
+### 9.2 Fonctions de l'exécutant (service role)
 
 | Fonction | Effet |
 |---|---|
@@ -615,51 +618,57 @@ Le moteur a ses propres règles : `analyse-appel/CLAUDE.md` est à lire avant to
 | `crm_ca_store(p_job, p_record, p_usage, p_engine)` | Job `running` obligatoire ; écrit enregistrement, tours, résultats et audit en une transaction ; job `done` ; événement `analysis_ready` (`source_id = analysis:<job>`, scores par compétence) |
 | `crm_ca_fail(p_job, p_error, p_final)` | Si non final et `attempts < 3` : de nouveau `queued` dans 10 min ; sinon `failed` |
 
-### 9.3 Le worker (`analyse-appel/executant/`)
+### 9.3 L'exécutant (`analyse-appel/executant/`)
 
-Python, bibliothèque standard seulement. `run.py [--once] [--budget-min 300]` :
+Python, bibliothèque standard seulement. `executer.py [--once] [--budget-min 300]` :
 
 1. Lit `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` ; si l'une manque, ne fait rien.
 2. Boucle tant que le budget n'est pas épuisé : `crm_ca_claim({"p_worker": "gha:<hôte>"})` ; plus de job → fin.
-3. `GatewayClient(<SUPABASE_URL>/functions/v1/callqa-llm, clé, config.tiers, effort = CALLQA_EFFORT ou config.effort ou "low")`.
-4. `run_job(claim, client, rounds=True, workers=24, budget_s=90*60)` puis `crm_ca_store` avec
-   `usage = {tiers, seconds, effort}` et `VERSION_MOTEUR = "lnp_callqa-1.0"` (valeur enregistrée, inchangée).
-5. Échecs : `ModelErrors` (plus de la moitié des questions du modèle en erreur : l'enregistrement serait vide) et `TooLong`
-   (budget de 90 min dépassé) → `crm_ca_fail(..., p_final = true)` ; `GatewayError` → final selon l'erreur ; toute autre
+3. `ClientPasserelle(<SUPABASE_URL>/functions/v1/callqa-llm, clé, config.tiers, effort = CALLQA_EFFORT ou config.effort ou "none",
+   passes = config.passes ou 3)`.
+4. `executer_travail(prise, client, tours_lot=True, executants=24, budget_s=90 * 60)` (`crm_ca_config.engine = 'lite'` : moteur
+   allégé `analyse-appel/allege/analyse_allegee` à la place), puis, pour un R1, la qualification du prospect
+   (`executant_analyse/qualif.py`, `qualifier_` ; un échec n'arrête jamais l'analyse), puis `crm_ca_store` avec
+   `usage = {tiers, seconds, effort, engine}` et `p_engine = version_moteur(prise)` : `VERSION_MOTEUR = "lnp_callqa-1.0"` ou
+   `VERSION_ALLEGEE` (valeurs enregistrées, inchangées).
+5. Échecs : `ErreursModele` (plus de la moitié des questions du modèle en erreur : l'enregistrement serait vide) et `TropLong`
+   (budget de 90 min dépassé) → `crm_ca_fail(..., p_final = true)` ; `ErreurPasserelle` → final selon l'erreur ; toute autre
    exception → non final. Les journaux ne contiennent que des identifiants, statuts, scores et comptes de jetons.
 
 Modules :
 
 - `executant_analyse/supabase.py` : `POST /rest/v1/rpc/<nom>` avec la clé service role ; 4 tentatives sur erreur 5xx ou réseau
   (attente 2, 4, 8 s) ; une erreur 4xx est levée aussitôt.
-- `executant_analyse/gateway.py` : client de modèle du moteur. Un niveau sans modèle (`fast`, `strong`, `arbiter`) → erreur
-  finale. Corps `{model, system, prompt, max_tokens: 4000, effort, cache_prompt: pass_no >= 1}`. Effort par tâche
-  (`TASK_EFFORT`) : `foundation.attribution` et `foundation.phases` = `default`, `spin.register` = `medium`, les autres =
-  effort du job. 5 tentatives, délai 180 s, attente `min(2^(i+1), 30)` s ; `401`, `409` ou `502` avec `retry: false` →
-  erreur finale ; `429`, `500`, `502`, `503`, `504` et erreurs réseau → nouvel essai. Cumule `calls`, `input_tokens`,
+- `executant_analyse/passerelle.py` : client de modèle du moteur (`ClientPasserelle`). Un niveau sans modèle (`fast`, `strong`,
+  `arbiter`) → erreur finale. Corps `{model, system, prompt, max_tokens: 4000, effort, cache_prompt: no_passe >= 1 et passes > 1}`.
+  Effort par tâche (`EFFORT_TACHE`) : `foundation.attribution` et `foundation.phases` = `default`, `spin.register` = `medium`, les
+  autres = effort du job ; avec l'effort `none`, aucune réflexion du modèle, sauf pour la fondation. 5 tentatives, délai
+  180 s, attente `min(2^(i+1), 30)` s ; `401`, `409` ou `502` avec `retry: false` → erreur finale ; `429`, `500`, `502`, `503`, `504` et erreurs réseau → nouvel essai. Cumule `calls`, `input_tokens`,
   `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens` par niveau.
-- `executant_analyse/prefetch.py` : le moteur pose ses questions une par une (environ 2 000 pour un appel d'une heure). Le worker
-  rejoue tout le pipeline (code pur) par **tours** : les réponses déjà reçues viennent d'un cache (clé = tâche, unité, passe,
-  niveau, SHA-256 de `system + prompt`) ; une question sans réponse lève `Pending`, que le moteur traite comme une erreur
-  pour ce tour ; le worker envoie en parallèle les questions de la première tâche en attente (passe 1 et arbitrages dont les
+- `executant_analyse/anticipation.py` (`ClientAnticipe`, `analyser_par_tours`) : le moteur pose ses questions une par une
+  (environ 2 000 pour un appel d'une heure). L'exécutant rejoue toute la chaîne d'analyse (code pur) par **tours** : les
+  réponses déjà reçues viennent d'un cache (clé = tâche, unité, passe, niveau, SHA-256 de `system + prompt`) ; une question sans réponse lève `EnAttente`, que le moteur traite comme une erreur
+  pour ce tour ; l'exécutant envoie en parallèle les questions de la première tâche en attente (passe 1 et arbitrages dont les
   trois passes sont connues d'abord, puis passes 2 et 3, qui lisent la consigne en cache), puis recommence. Quand un tour ne
   manque de rien, le résultat est celui d'une exécution séquentielle. 400 tours au plus.
-- `executant_analyse/job.py` : `build_context` (transcription analysée par `parse_transcript` avec la carte des intervenants,
-  bibliothèque de cas, épisodes d'objection des appels précédents) et `result_record`.
+- `executant_analyse/travail.py` : `construire_contexte` (transcription lue par `lire_transcription` avec la carte des
+  intervenants, bibliothèque de cas, épisodes d'objection des appels précédents dans `entrees_anterieures`), `executer_travail`
+  et `chaine_analyse.enregistrement_resultat`.
 
 ### 9.4 Le moteur (`analyse-appel/moteur/lnp_analyse`, résumé de `analyse-appel/docs/ARCHITECTURE.md`)
 
-Un **pipeline fixe** à trois couches : une fondation commune calculée une fois, de nombreuses petites tâches du modèle (une
+Une **chaîne fixe** à trois couches : une fondation commune calculée une fois, de nombreuses petites tâches du modèle (une
 question fermée sur une unité, avec citations exactes), du code déterministe qui vérifie chaque citation et prend chaque
 décision et chaque note.
 
 Ordre des étapes : F0 analyse de la transcription (tours `T001…`, rôles) → F1 contrôle de diarisation (statuts
 `no_transcript`, `no_diarization`, `diarization_suspect`) → F2 contrôle d'attribution (modèle `fast`, blocs de 60 tours,
-tours scindés `T050b`) → F3 carte des phases (début du pitch, premier prix, demande de décision…) → C1 SPIN → C2 Gap →
-C3 Pitch → C4 Objections. Une compétence ne replace jamais un repère d'une étape précédente ; un plantage dans une compétence
+tours scindés `T050b`) → F3 carte des phases (début de la présentation de l'offre, premier prix, demande de décision…) →
+C1 SPIN → C2 écart (`GAP`) → C3 présentation de l'offre (`PITCH`) → C4 objections (`OBJECTIONS`). Une compétence ne replace jamais un repère d'une étape précédente ; un plantage dans une compétence
 la met `to_review` sans arrêter les autres.
 
-Exécution d'une tâche (30 tâches, une consigne par tâche dans `prompts/`) :
+Exécution d'une tâche (`noyau/executeur.py` ; 30 tâches, une consigne par tâche dans `consignes/`, précédée de
+`systeme_commun.md`) :
 
 1. trois passes indépendantes, même consigne ;
 2. chaque passe est validée par le code : la citation doit être une sous-chaîne exacte du tour cité, dite par le bon rôle,
@@ -669,10 +678,11 @@ Exécution d'une tâche (30 tâches, une consigne par tâche dans `prompts/`) :
    `application_error`, `rule_ambiguity` ou `uncovered_case` → `arbitrated` ;
 5. indécidable → `to_review`, l'unité est exclue des notes.
 
-Le code décide seul : vérifications de citations, ordres, lettre SPIN, sélections A / B / P du Gap, règle du mot pour mot
+Le code décide seul : vérifications de citations, ordres, lettre SPIN, sélections A / B / P de l'écart, règle du mot pour mot
 (GB-22), portes et exclusions, niveaux d'item, notes d'appel et de période.
 
-**Contrat de sortie** (`analyse-appel/docs/OUTPUT_CONTRACT.md`, `pipeline.result_record(ctx)`) :
+**Contrat de sortie** (`analyse-appel/docs/CONTRAT_DE_SORTIE.md`, `chaine_analyse.enregistrement_resultat(ctx)` ; les objets du
+moteur ont des champs français, `vers_dict` de `noyau/modeles.py` les écrit sous les clés enregistrées ci-dessous) :
 
 ```
 { call_id, sales_id, start_utc, timezone,
@@ -696,15 +706,17 @@ passer deux appels de 7,10 à 3,65 USD et de 10,15 à 4,40 USD.
 
 Commandes du moteur (`analyse-appel/CLAUDE.md`) : `cd analyse-appel/moteur && python3 -m pytest -q tests` ;
 `CALLQA_CORPUS=<dossier> python3 -m pytest -q tests` (cas de l'annexe B sur un autre corpus) ;
-`python3 -m lnp_analyse.pipeline transcript.txt --config call.json` (un appel, modèle réel).
+`python3 -m lnp_analyse.chaine_analyse transcription.txt --config appel.json` (un appel, modèle réel) ; moteur allégé
+`cd analyse-appel/allege && python3 -m pytest -q tests`, exécutant `cd analyse-appel/executant && python3 -m pytest -q tests`,
+qualification `cd analyse-appel/qualification && python3 -m pytest -q tests`.
 
 ### 9.5 Le workflow `.github/workflows/analyse-appel.yml`
 
 - `push` sur `main` et `pull_request` (chemins `analyse-appel/**` et le workflow) → job `test` : Python 3.11, `pytest` ; si le
   secret `SUPABASE_SERVICE_ROLE_KEY` existe, télécharge `callqa-fixtures/transcripts.tar.gz` (bucket Storage privé) dans
-  `analyse-appel/moteur/tests/fixtures/transcripts`, sinon pose `CALLQA_SKIP_MISSING_CORPUS=1` (tests de l'annexe B sautés) ;
-  puis tests du moteur et du worker.
-- `schedule: "7 * * * *"` et `workflow_dispatch` (entrée `effort` : `low` ou `default`) → job `worker` : délai 150 min,
+  `analyse-appel/moteur/tests/fixtures/transcripts` ; sans le secret ou sans le fichier, pose `CALLQA_SKIP_MISSING_CORPUS=1`
+  (tests de l'annexe B sautés) ; puis tests du moteur (`moteur/`), de l'exécutant (`executant/`) et du moteur allégé (`allege/`).
+- `schedule: "7 * * * *"` et `workflow_dispatch` (entrée `effort` : `none` par défaut, `low` ou `default`) → job `worker` : délai 150 min,
   `concurrency: analyse-appel-executant` sans annulation, ignoré sans le secret ; `python3 analyse-appel/executant/executer.py
   --budget-min 120` avec `SUPABASE_SERVICE_ROLE_KEY` et `CALLQA_EFFORT`.
 - `SUPABASE_URL` vient de la **variable** de dépôt `vars.SUPABASE_URL` (`https://<ref>.supabase.co`).
@@ -747,7 +759,7 @@ Commande : `deno test --allow-env --allow-read supabase/tests` (sans réseau ni 
 | `callqa_llm.test.ts` | Refus sans clé de service ; transmission d'une question avec cache des règles ; cache de la question et contrôle de l'effort ; mauvais modèle, clé absente, erreurs du fournisseur |
 
 Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`, `no_show_rule_test.sql`,
-`fathom_closest_test.sql`) ; moteur et worker `cd analyse-appel/moteur && python3 -m pytest -q tests`,
+`fathom_closest_test.sql`) ; moteur et exécutant `cd analyse-appel/moteur && python3 -m pytest -q tests`,
 `cd analyse-appel/executant && python3 -m pytest -q tests`.
 
 ## 12. Ordre de mise en place dans un nouveau projet
@@ -769,7 +781,7 @@ Autres tests liés : SQL `web/supabase/tests/run.sh` (dont `sla_alerts_test.sql`
 | Projection | `_shared/projector.ts` (04 §3) | En SQL : `crm_recompute_cycle` |
 | Fathom | Webhook + rapprochement nocturne (06 §2, §7) | Pas de webhook ; import horaire par l'API (minute 23), règles FL-1 à FL-6 |
 | Whop | Mapper `mappers/whop.ts`, `whop-checkout` (08) | Réception seulement, aucun mapper |
-| Fonctions prévues | `whop-checkout`, `claude-analyze`, `rules-tick`, `nurture-tick`, `reconcile`, `retention` | N'existent pas ; l'analyse d'appel passe par le worker GitHub et `callqa-llm` |
+| Fonctions prévues | `whop-checkout`, `claude-analyze`, `rules-tick`, `nurture-tick`, `reconcile`, `retention` | N'existent pas ; l'analyse d'appel passe par l'exécutant GitHub et `callqa-llm` |
 | Analyse d'appel | `crm_call_analyses`, schéma v0 (09) | Tables `crm_ca_*` (020), moteur `lnp_analyse` |
 | Worker d'analyse | Toutes les 10 minutes (`analyse-appel/PLAN.md` §2) | Chaque heure à la minute 7 |
 | Nombre de tests du moteur | 209 (`analyse-appel/CLAUDE.md`) | Libellé d'étape « Engine (184 tests) » dans le workflow (simple libellé) |

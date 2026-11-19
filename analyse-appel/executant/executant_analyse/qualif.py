@@ -1,14 +1,14 @@
-"""The lead qualification of an R1, as part of its call analysis (Romain, 2026-11-05: « chaque appel R1 doit aboutir à définir
+"""La qualification du lead d'un R1, dans son analyse d'appel (Romain, 2026-11-05 : « chaque appel R1 doit aboutir à définir
 l'état de la qualification ; cela fait partie de l'analyse d'appel »).
 
-call-analysis/qualification: the model extracts the facts of the call in two readings (prompts/extraction.md), the code
-checks every quote against the transcript and qualification_lnp.py (rules version 2.1) decides: SQL GAGNÉ, SQL OUVERT,
-SQL PERDU, NON SQL, MQL EN ATTENTE or À REVOIR. The transcript is the one the analysis reads (the same turns, the same
-speakers: SALES / PROSPECT), so the analysis and the qualification never read two different calls.
+analyse-appel/qualification : le modèle extrait les faits de l'appel en deux lectures (consignes/extraction.md), le code
+vérifie chaque citation dans la transcription et qualification_lnp.py (règles version 2.2) décide : SQL GAGNÉ, SQL OUVERT,
+SQL PERDU, NON SQL, MQL EN ATTENTE ou À REVOIR. La transcription est celle que lit l'analyse (les mêmes tours, les mêmes
+locuteurs : SALES, le commercial, et PROSPECT), donc l'analyse et la qualification ne lisent jamais deux appels différents.
 
-qualify(claim, client, db) runs only for an R1 (sales_round 1); it returns the qualification to keep with the analysis job
-(crm_qualif_store, 046) or None. A failure never stops the analysis: it is returned as {"error": ...} and logged without
-any quote.
+qualifier_(prise, client, db) ne tourne que pour un R1 (sales_round 1) ; elle renvoie la qualification à garder avec le
+travail d'analyse (crm_qualif_store, 046), ou None. Un échec n'arrête jamais l'analyse : il est renvoyé sous la forme
+{"error": ...} et écrit dans le journal sans aucune citation.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ DOSSIER_QUAL = Path(__file__).resolve().parents[2] / "qualification"
 def _agent():
     if str(DOSSIER_QUAL) not in sys.path:
         sys.path.insert(0, str(DOSSIER_QUAL))
-    import agent  # call-analysis/qualification/agent.py
+    import agent  # analyse-appel/qualification/agent.py
     return agent
 
 
@@ -34,7 +34,8 @@ def est_r1(prise: dict) -> bool:
 
 
 def texte_transcription(prise: dict) -> str:
-    """The analysis' turns, one line each: "[mm:ss] SALES: text" / "[mm:ss] PROSPECT: text" (other speakers left out)."""
+    """Les tours de l'analyse, un par ligne : "[mm:ss] SALES: texte" / "[mm:ss] PROSPECT: texte" (les autres locuteurs sont
+    laissés de côté)."""
     from lnp_analyse.noyau.fondation import lire_transcription
     tours = lire_transcription(prise.get("transcript") or "", prise.get("speaker_map") or {})
     return "\n".join(f"[{t.ts}] {t.role}: {t.texte}" for t in tours if t.role in ("SALES", "PROSPECT") and t.texte)
@@ -46,8 +47,8 @@ def _conso_depuis(client: Any, avant: dict) -> dict:
 
 
 def qualifier_(prise: dict, client: Any, db: Any = None, journal: Optional[Callable[[str], None]] = None) -> Optional[dict]:
-    """None for a call that is not an R1; else {status, result, verification, readings, prompt_version, rules_version,
-    usage} or {error, ...}."""
+    """None pour un appel qui n'est pas un R1 ; sinon {status, result, verification, readings, prompt_version, rules_version,
+    usage} ou {error, ...}."""
     if not est_r1(prise):
         return None
     dire = journal or (lambda m: None)
@@ -62,15 +63,15 @@ def qualifier_(prise: dict, client: Any, db: Any = None, journal: Optional[Calla
                                   "transcript": texte or None, "recorded_by": ctx.get("recorded_by"),
                                   "saisie": ctx.get("saisie") or {}}, client)
         sortie["usage"] = _conso_depuis(client, avant)
-        dire(f"qualification {sortie['status']} ({len(sortie.get('readings') or [])} reading(s), {len(sortie.get('verification') or [])} note(s))")
+        dire(f"qualification {sortie['status']} ({len(sortie.get('readings') or [])} lecture(s), {len(sortie.get('verification') or [])} remarque(s))")
         return sortie
-    except Exception as e:  # noqa: BLE001 - the type and message only, never a quote
-        dire(f"qualification failed ({type(e).__name__}: {str(e)[:200]})")
+    except Exception as e:  # noqa: BLE001 - le type et le message seulement, jamais une citation
+        dire(f"qualification en échec ({type(e).__name__}: {str(e)[:200]})")
         return {"error": f"{type(e).__name__}: {str(e)[:300]}"}
 
 
 def stocker(db: Any, prise: dict, travail: Any, q: Optional[dict]) -> None:
-    """Keeps a qualification with its analysis job (crm_qualif_store, 046); an error is not stored."""
+    """Garde une qualification avec son travail d'analyse (crm_qualif_store, 046) ; une erreur n'est pas enregistrée."""
     if not q or q.get("error") or not q.get("status"):
         return
     db.rpc("crm_qualif_store", {"p_call": (prise.get("call") or {}).get("call_id"), "p_status": q["status"],

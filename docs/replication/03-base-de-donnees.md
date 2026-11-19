@@ -245,8 +245,8 @@ erreur `42501` « Action non autorisée pour le rôle … ». Un `viewer` n'écr
 - 003 : pour chaque table `crm_%` existante, `revoke all from anon, authenticated`, puis `grant select to authenticated` sauf
   `crm_webhook_log` (rôle de service seulement). Les tables ajoutées ensuite règlent leurs droits elles-mêmes (tableau §6.5).
 - Fonctions : chaque fichier fait `revoke execute … from public, anon` puis `grant execute … to authenticated` (RPC du
-  navigateur), ou `revoke … from public, anon, authenticated` puis `grant … to service_role` (fonctions des Edge Functions et du
-  worker). Les aides internes (`crm_require`, `crm_audit`) sont retirées à `authenticated` (004).
+  navigateur), ou `revoke … from public, anon, authenticated` puis `grant … to service_role` (fonctions des Edge Functions et de
+  l'exécutant d'analyse). Les aides internes (`crm_require`, `crm_audit`) sont retirées à `authenticated` (004).
 - Le rôle de service contourne la RLS (`bypassrls`).
 
 ### 6.5 Politiques RLS par table
@@ -1073,7 +1073,7 @@ un déclencheur ou pg_cron). « Appelants » vient d'une recherche dans le code 
 
 Le navigateur appelle les RPC par `app/crm/data.js` (`call(nom, arguments)`, client Supabase de `web/public/lnp-web.js`) ; le
 connecteur Claude par `web/api/_crm.js`, `_write.js`, `mcp.js` avec le jeton de la personne ; les Edge Functions par REST avec la
-clé du rôle de service (`supabase/functions/_shared/worker.ts`, `import_run.ts`, `sla-tick/index.ts`) ; le worker d'analyse d'appel
+clé du rôle de service (`supabase/functions/_shared/worker.ts`, `import_run.ts`, `sla-tick/index.ts`) ; l'exécutant d'analyse d'appel
 par `analyse-appel/executant/executer.py`.
 
 ### 9.1 Application et sécurité
@@ -1179,14 +1179,14 @@ par `analyse-appel/executant/executer.py`.
 | `crm_ca_add_transcript(p_call uuid, p_raw text, p_speaker_map jsonb, p_source text default 'upload') → jsonb` | auth | Administrateur ou propriétaire du cycle ; appel éligible ; transcription ≥ 200 caractères ; carte avec au moins un `SALES` et un `PROSPECT`, valeurs dans `SALES`/`PROSPECT`/`OTHER`. Écrit les colonnes de transcription, passe les travaux en file à `failed` (« remplacée par une nouvelle transcription »), crée un travail, événement `transcript_added`. Renvoie `{job, status: 'queued'}`. | `app/crm/call_analysis.js` (`caAddTranscript`). | 020 (copie 034) |
 | `crm_ca_retry(p_call uuid) → jsonb` | auth | Mêmes droits ; exige une transcription ; ne crée rien si un travail est déjà `queued`/`running` (`{status: 'already queued'}`). | `call_analysis.js` (`caRetry`). | 020 (copie 034) |
 | `crm_ca_claim(p_worker text) → jsonb` | interne* | Prend le plus ancien travail `queued` (avec `not_before` passé) ou `running` depuis plus de 2 h (`for update skip locked`), le passe `running`, +1 tentative, renvoie `{job, attempt, call (crm_ca_call_info), transcript, speaker_map, config {tiers, passes}, offer_reference, case_library, prior}` (`prior` = résultats des appels de vente analysés plus tôt dans le cycle). `null` s'il n'y a rien. | `analyse-appel/executant/executer.py`. | 020 |
-| `crm_ca_store(p_job uuid, p_record jsonb, p_usage jsonb, p_engine text) → jsonb` | interne* | Travail `running` obligatoire ; écrit `crm_ca_records` (meta = infos de l'appel + `engine`, `rules`, `duration` = horodatage du dernier tour), `crm_ca_turns`, `crm_ca_results`, `crm_ca_audit` ; travail `done` ; événement `analysis_ready` (`data.scores`). Une note enregistrée n'est jamais modifiée : une nouvelle analyse fait une nouvelle fiche. | `run.py`. | 020 |
-| `crm_ca_fail(p_job uuid, p_error text, p_final boolean default false) → jsonb` | interne* | Retente (statut `queued`, `not_before` + 10 min) tant que la tentative < 3 et que l'erreur n'est pas finale ; sinon `failed`. | `run.py`. | 020 |
+| `crm_ca_store(p_job uuid, p_record jsonb, p_usage jsonb, p_engine text) → jsonb` | interne* | Travail `running` obligatoire ; écrit `crm_ca_records` (meta = infos de l'appel + `engine`, `rules`, `duration` = horodatage du dernier tour), `crm_ca_turns`, `crm_ca_results`, `crm_ca_audit` ; travail `done` ; événement `analysis_ready` (`data.scores`). Une note enregistrée n'est jamais modifiée : une nouvelle analyse fait une nouvelle fiche. | `analyse-appel/executant/executer.py`. | 020 |
+| `crm_ca_fail(p_job uuid, p_error text, p_final boolean default false) → jsonb` | interne* | Retente (statut `queued`, `not_before` + 10 min) tant que la tentative < 3 et que l'erreur n'est pas finale ; sinon `failed`. | `analyse-appel/executant/executer.py`. | 020 |
 | `crm_ca_latest(p_calls uuid[]) → jsonb` | auth | Dernier travail de chaque appel lisible, avec notes de la dernière fiche et `provisional`. | Aucun dans le code. | 020 |
 | `crm_ca_record(p_job uuid) → jsonb` | auth | Une fiche complète (tours, résultats) si lisible. | `call_analysis.js` / `call_analysis_view.js` (`caRecord`) ; connecteur `web/api/_crm.js`. | 020 |
 | `crm_ca_board() → jsonb` | auth | Un élément par appel R1/R2 passé et analysable des cycles visibles (administrateur : tous ; sinon ses cycles) : `{call_id, cycle_id, round, start, transcript, job, status, error, queued_at, started_at, done_job, scores}`. | `data.js` `caBoard` (Pipeline, Prospects, Cycle de vente via `gen_crm.py` ; `call_analysis.js`). | 021 |
 
 \* `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail` sont retirées à `public`, `anon` et `authenticated` **sans** `grant` explicite au
-rôle de service : le worker, qui appelle avec la clé du rôle de service, compte sur les privilèges par défaut de Supabase
+rôle de service : l'exécutant d'analyse, qui appelle avec la clé du rôle de service, compte sur les privilèges par défaut de Supabase
 (voir §16).
 
 ### 9.8 SLA et connecteur Claude
@@ -1708,7 +1708,7 @@ Déroulé :
 | `mcp_test.sql` | Ligne d'audit par appel d'outil (`mcp:whoami/3/42`), 61e appel refusé, compte sans rôle refusé, tables OAuth fermées à `authenticated` et `anon`. |
 | `owners_test.sql` | Sans membre, rien n'est attribué ; le commercial invité possède le cycle et héberge l'appel ; un propriétaire posé est gardé. |
 | `cockpit_test.sql` | Structure (`periods.7.now`), rendez-vous compté, relance sous 24 h comptée, 8 points hebdomadaires, alertes et pipeline, fenêtre fermée au navigateur, `crm_mark_won_calls_held` (appel honoré, cycle toujours gagné). |
-| `call_analysis_test.sql` | Fuseau du propriétaire, R3 et appel futur exclus ; un autre commercial ne peut pas ajouter de transcription ; carte sans prospect refusée ; travail en file et événement ; prise, échec et seconde tentative, stockage (résultats, durée, versions de règles, `analysis_ready`) ; lecture : un autre commercial ne voit rien (y compris au tableau), l'administrateur et le propriétaire voient ; relance ; audit et config réservés aux administrateurs ; fonctions du worker fermées. |
+| `call_analysis_test.sql` | Fuseau du propriétaire, R3 et appel futur exclus ; un autre commercial ne peut pas ajouter de transcription ; carte sans prospect refusée ; travail en file et événement ; prise, échec et seconde tentative, stockage (résultats, durée, versions de règles, `analysis_ready`) ; lecture : un autre commercial ne voit rien (y compris au tableau), l'administrateur et le propriétaire voient ; relance ; audit et config réservés aux administrateurs ; fonctions de l'exécutant fermées. |
 | `manual_cash_test.sql` | Montant signé, paiement manuel (zéro, futur, moyen inconnu refusés ; un autre commercial refusé), événement, le premier paiement gagne, audit, un paiement Whop ne se supprime pas, suppression → retour en cours, un administrateur peut saisir. |
 | `contact_update_test.sql` | Nom et e-mail repris, téléphone non listé gardé, ancien et nouvel e-mail retrouvent la personne, aucun événement, conflit → non rattaché, contact inconnu → non rattaché. |
 | `payment_plan_test.sql` | Droits, montant / devise / libellé « 2 échéances », échéances triées, « Payé en une fois » garde la devise, somme, date, au moins une échéance, pas de montant négatif, audit. |

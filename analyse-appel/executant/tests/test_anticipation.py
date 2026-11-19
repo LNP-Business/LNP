@@ -1,4 +1,4 @@
-"""Parallel rounds (prefetch.py) give exactly the sequential result, with no extra model question."""
+"""Les tours parallèles (anticipation.py) donnent exactement le résultat séquentiel, sans question de plus au modèle."""
 import json
 import os
 import re
@@ -15,7 +15,7 @@ from tests.test_executant import prise
 from executant_analyse.travail import executer_travail
 
 EXECUTIONS = Path(os.environ.get("CALLQA_CORPUS", str(Path(__file__).resolve().parents[2] / "moteur" / "tests" / "fixtures" / "transcripts")))
-reel = pytest.mark.skipif(not (EXECUTIONS / "001").exists(), reason="real transcripts not available")
+reel = pytest.mark.skipif(not (EXECUTIONS / "001").exists(), reason="transcriptions réelles absentes")
 
 
 class Comptage(ClientSimule):
@@ -58,14 +58,15 @@ def test_appel_reel_meme_enregistrement_sans_question_de_plus():
     journal = []
     ctx2 = analyser_par_tours(lambda: charger("001"), lambda c, cl: analyser_appel(c, Executeur(cl)), ClientAnticipe(b), 8, journal=journal.append)
     assert depouiller(seq) == depouiller(enregistrement_resultat(ctx2))
-    assert b.cles == a.cles, "the rounds ask exactly the questions of the sequential run"
-    assert len(journal) < len(a.cles) / 3, "questions go in batches"
+    assert b.cles == a.cles, "les tours posent exactement les questions de l'exécution séquentielle"
+    assert len(journal) < len(a.cles) / 3, "les questions partent par lots"
     assert [e for e in ctx2.audit if "EnAttente" in str(e.get("error", ""))] == []
 
 
 @reel
 def test_presentation_reelle_meme_resultat_par_tours():
-    """Same scenario as the engine's test_real_001_full_run (answers that pass the quote checks)."""
+    """Même scénario que le test de présentation de l'appel réel 001 du moteur (des réponses qui passent les contrôles de
+    citation)."""
     from lnp_analyse.competences import presentation as P
     from aides_tests_moteur import presentation_001_preparation
     ctx0, reponses = presentation_001_preparation(charger)
@@ -95,13 +96,13 @@ def test_une_demande_refusee_arrete_le_travail_sans_enregistrement_vide():
         executer_travail(prise(), ClientSimule(repli=refuse), tours_lot=True, executants=2)
 
     def instable(*a):
-        raise ErreurPasserelle("model gateway unavailable: HTTP 503")
+        raise ErreurPasserelle("passerelle du modèle indisponible : HTTP 503")
     with pytest.raises(ErreursModele):
         executer_travail(prise(), ClientSimule(repli=instable), tours_lot=True, executants=2)
 
 
 def test_la_passe_1_part_avant_les_passes_2_et_3():
-    """The provider caches pass 1's prompt; passes 2 and 3 go after it so they read it from the cache."""
+    """Le fournisseur met en cache la consigne de la passe 1 ; les passes 2 et 3 partent après elle pour la lire dans le cache."""
     import threading
     ordre, verrou = [], threading.Lock()
 
@@ -115,7 +116,7 @@ def test_la_passe_1_part_avant_les_passes_2_et_3():
         for p in (3, 2, 1):
             try:
                 c.demander("spin.gates", u, "strong", "S", "P" + u, p)
-            except Exception:  # noqa: BLE001 - Pending
+            except Exception:  # noqa: BLE001 - EnAttente
                 pass
     c.recuperer(c.lot_suivant(), 8)
     assert sorted(ordre[:2]) == [1, 1] and sorted(ordre[2:]) == [2, 2, 3, 3]

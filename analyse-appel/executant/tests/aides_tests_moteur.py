@@ -1,4 +1,5 @@
-"""The call 001 pitch scenario of the engine's test_pitch.test_real_001_full_run, rebuilt for the worker tests."""
+"""Le scénario de présentation de l'offre de l'appel 001 (test de présentation de l'appel réel 001 du moteur, exécution
+complète), refait pour les tests de l'exécutant."""
 from lnp_analyse.noyau.modeles import Preuve, COMMERCIAL, ResultatCompetence
 
 

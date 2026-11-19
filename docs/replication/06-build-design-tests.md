@@ -84,7 +84,9 @@ quel) et à la page de connexion OAuth (`web/api/oauth.js`).
 - Dates et nombres : `fr-FR` (« 3 nov. », « 1 050 € », « 73 % », « 7 j », « 8 sem. »).
 - Seuls les textes lus par une personne sont traduits ; les valeurs stockées et comparées restent en anglais (`won`, `held`…), les
   libellés en base sont traduits (`web/supabase/034_lnp_fr_labels.sql`), les codes du moteur d'analyse sont traduits à l'affichage.
-- Les consignes envoyées au modèle d'analyse restent en anglais.
+- Les consignes envoyées au modèle d'analyse sont en français depuis le 2026-11-19 (Romain : « tout ce qui touche à l'analyse
+  d'appel doit être écrit et codé en français ») ; leurs schémas JSON, les valeurs fermées et le format de l'analyse enregistrée
+  restent en anglais.
 
 ## Tests
 
@@ -106,10 +108,10 @@ quel) et à la page de connexion OAuth (`web/api/oauth.js`).
 | Workflow | Déclencheurs | Tâches |
 |---|---|---|
 | `crm-functions.yml` | push sur `main` ou `crm-*`, PR touchant `supabase/`, `web/supabase/`, `app/crm/`, `web/api/`, `web/tests/`, `web/package*.json` ; manuel | `test` (Deno), `sql` (Postgres 16 + `data.test.js`), `connector` (`npm test`), `deploy` (depuis `main`, si `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF` existent : `supabase functions deploy <f> --remote=… --no-verify-jwt --yes`) |
-| `analyse-appel.yml` | push et PR touchant `analyse-appel/` ; toutes les heures (`7 * * * *`) ; manuel (effort `low` ou `default`) | `test` (moteur et worker ; télécharge les transcriptions de test depuis le stockage `callqa-fixtures` si la clé existe), `worker` (analyse les appels en file, budget 120 min) |
+| `analyse-appel.yml` | push et PR touchant `analyse-appel/` ; toutes les heures (`7 * * * *`) ; manuel (effort `none` par défaut, `low` ou `default`) | `test` (moteur, exécutant et moteur allégé ; télécharge les transcriptions de test depuis le stockage `callqa-fixtures` si la clé et le fichier existent), `worker` (l'exécutant `analyse-appel/executant/executer.py` analyse les appels en file, budget 120 min) |
 
-Point connu : le bucket `callqa-fixtures` n'existe pas dans le projet LNP, donc la tâche `test` de `analyse-appel.yml` échoue au
-téléchargement quand la clé est définie. Il faut soit créer ce bucket avec un corpus de transcriptions autorisé, soit faire sauter
-le téléchargement quand le fichier est absent.
+Point connu : le bucket `callqa-fixtures` n'existe pas dans le projet LNP ; la tâche `test` de `analyse-appel.yml` le signale
+(« not found in Storage ») et compte alors comme ignorés les tests de l'annexe B (`CALLQA_SKIP_MISSING_CORPUS=1`). Pour les faire
+tourner, créer ce bucket avec un corpus de transcriptions autorisé.
 
 Vercel déploie la page à chaque push sur `main` (projet relié au dépôt, dossier racine `web/`).

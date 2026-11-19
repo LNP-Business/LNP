@@ -1,4 +1,5 @@
-"""Worker: crm_ca_config.engine = 'lite' (035) runs call-analysis/lite; anything else runs the reference engine."""
+"""Exécutant : crm_ca_config.engine = 'lite' (035) lance le moteur allégé (analyse-appel/allege) ; toute autre valeur lance le
+moteur de référence."""
 import sys
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from executant_analyse.travail import ErreursModele, moteur_de, version_moteur, 
 from test_executant import PALIERS, prise, ouverture_depuis
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "allege" / "tests"))
-import appel_synthetique as sc  # noqa: E402  (fictional call of the lite tests)
+import appel_synthetique as sc  # noqa: E402  (appel fictif des tests du moteur allégé)
 
 
 def affirmation_allegee():
@@ -83,7 +84,7 @@ def test_la_boucle_stocke_un_enregistrement_allege_avec_sa_version(monkeypatch):
     monkeypatch.setattr(loop, "ClientPasserelle", FauxClient)
     monkeypatch.setattr("sys.argv", ["run.py"])
     assert loop.principal() == 0
-    nom_, args = [x for x in stocke if x[0] == "crm_ca_store"][0]   # an R1: crm_qualif_context comes first (046)
+    nom_, args = [x for x in stocke if x[0] == "crm_ca_store"][0]   # un R1 : crm_qualif_context passe d'abord (046)
     assert nom_ == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.0"
     assert args["p_record"]["meta"]["engine"] == "lite"
     assert args["p_usage"]["engine"] == "lite" and args["p_usage"]["effort"] == "low"

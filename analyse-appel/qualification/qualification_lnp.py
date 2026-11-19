@@ -5,11 +5,11 @@ Qualification SQL des appels LNP — version 2.2 (5 novembre 2026).
 V2.2 (Romain, 5 novembre 2026) : la porte « Douleur et projet » est supprimée. Trois portes : Métier, Financement,
 Décision et timing (le document « Questions de qualification du lead » ne la pose plus).
 
-Étape 2 du pipeline : applique la règle des portes (proposition du
-27 octobre 2026, trois portes depuis la V2.2) aux faits extraits par le modèle (étape 1, prompt d'extraction).
+Étape 2 de la chaîne : applique la règle des portes (proposition du
+27 octobre 2026, trois portes depuis la V2.2) aux faits extraits par le modèle (étape 1, consigne d'extraction).
 Le modèle ne décide rien : il extrait. Ce script décide, toujours de la même façon.
 
-Usage :
+Utilisation :
     python qualification_lnp.py lecture_1.json [lecture_2.json]
         [--date-appel 2026-11-04] [--fathom oui|non]
         [--saisie-issue "Pas pitché"] [--saisie-outcome "Pas qualifié"]
@@ -26,7 +26,7 @@ import sys
 from datetime import date, timedelta
 
 # ---------------------------------------------------------------------------
-# PARAMÈTRES — à valider par le Head of Sales et Samy (voir document V2, §6)
+# PARAMÈTRES — à valider par le responsable commercial et Samy (voir document V2, §6)
 # ---------------------------------------------------------------------------
 PARAMS = {
     # Porte 3 : délai maximum de démarrage, en jours après l'appel (≈ 3 mois)
@@ -158,7 +158,7 @@ def porte_financement(f):
         bib = {"rsa": "au RSA", "aucun_revenu": "aucun revenu", "dettes_bloquantes": "dettes qui bloquent tout"}
         return FERMEE, p, [f"Aucune ressource : {bib.get(bloquante, bloquante)}"]
     if v(fi, "objection_fonds") == "oui":
-        return NV, p, ["« Pas les fonds » sans ressource citée : le sales n'a pas renvoyé la personne à ses ressources"]
+        return NV, p, ["« Pas les fonds » sans ressource citée : le commercial n'a pas renvoyé la personne à ses ressources"]
     return NV, p, ["Financement non abordé"]
 
 
@@ -315,7 +315,7 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         base["outcome"] = "Pas qualifié"
         base["motif"] = " | ".join(f"{LIBELLES[k]} : " + "; ".join(portes[k][2]) for k in fermees)
         if offre == "oui":
-            alertes.append("Pitch hors règle : offre présentée alors qu'une porte était fermée")
+            alertes.append("Présentation hors règle : offre présentée alors qu'une porte était fermée")
         sortie["confiance"] = "haute" if not nv else "moyenne"
         return _finir(sortie, saisie_issue, saisie_issue_)
 
@@ -326,7 +326,7 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         sortie["confiance"] = "basse"
         return _finir(sortie, saisie_issue, saisie_issue_)
 
-    # 5. Toutes les portes ouvertes, pas de pitch
+    # 5. Toutes les portes ouvertes, offre non présentée
     if offre != "oui":
         sortie["statut"] = "À REVOIR"
         alertes.append("SQL manqué : toutes les portes ouvertes sans présentation de l'offre")
@@ -368,9 +368,9 @@ def _finir(sortie, saisie_issue, saisie_issue_):
     b = sortie["base"]
     ecarts = []
     if saisie_issue and b["issue_r1"] and saisie_issue.strip().lower() != b["issue_r1"].lower():
-        ecarts.append(f"issue R1 saisie « {saisie_issue} » vs agent « {b['issue_r1']} »")
+        ecarts.append(f"issue R1 saisie « {saisie_issue} » contre « {b['issue_r1']} » pour l'agent")
     if saisie_issue_ and b["outcome"] and saisie_issue_.strip().lower() != b["outcome"].lower():
-        ecarts.append(f"outcome saisi « {saisie_issue_} » vs agent « {b['outcome']} »")
+        ecarts.append(f"outcome saisi « {saisie_issue_} » contre « {b['outcome']} » pour l'agent")
     if ecarts:
         sortie["alertes"].append("Écart avec la saisie : " + "; ".join(ecarts))
     return sortie
@@ -379,11 +379,11 @@ def _finir(sortie, saisie_issue, saisie_issue_):
 # ---------------------------------------------------------------------------
 def principal():
     ap = argparse.ArgumentParser(description="Qualification SQL LNP — règle des portes (V2.2 : trois portes)")
-    ap.add_argument("lectures", nargs="+", help="1 ou 2 fichiers JSON produits par le prompt d'extraction")
-    ap.add_argument("--date-appel")
-    ap.add_argument("--fathom", choices=["oui", "non"])
-    ap.add_argument("--saisie-issue")
-    ap.add_argument("--saisie-outcome", dest="saisie_issue_")
+    ap.add_argument("lectures", nargs="+", help="1 ou 2 fichiers JSON produits par la consigne d'extraction")
+    ap.add_argument("--date-appel", help="date de l'appel, AAAA-MM-JJ")
+    ap.add_argument("--fathom", choices=["oui", "non"], help="appel enregistré par Fathom")
+    ap.add_argument("--saisie-issue", help="issue du R1 saisie dans iClosed (ex. « Pas pitché »)")
+    ap.add_argument("--saisie-outcome", dest="saisie_issue_", help="outcome saisi dans iClosed (ex. « Pas qualifié »)")
     a = ap.parse_args()
     lectures = []
     for chemin in a.lectures[:2]:

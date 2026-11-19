@@ -1,4 +1,4 @@
-"""Supabase REST calls with the service role key (rpc only)."""
+"""Appels à l'API REST de Supabase avec la clé du rôle de service (rpc seulement)."""
 from __future__ import annotations
 
 import json

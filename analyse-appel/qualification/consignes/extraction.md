@@ -10,9 +10,10 @@ ENREGISTREMENT_FATHOM : {{oui_ou_non}}
 TRANSCRIPTION : {{transcription}}
 ANALYSE (facultatif) : {{analyse}}
 Si l'analyse et la transcription se contredisent, la transcription fait foi.
+Dans la transcription, SALES est le commercial de LNP et PROSPECT le prospect.
  
 # RÈGLES D'EXTRACTION
-1. N'extrais que ce que le prospect dit ou confirme. Ce que le sales suppose ou suggère n'est pas un fait, sauf si le prospect le confirme explicitement (« oui, c'est ça »).
+1. N'extrais que ce que le prospect dit ou confirme. Ce que le commercial suppose ou suggère n'est pas un fait, sauf si le prospect le confirme explicitement (« oui, c'est ça »).
 2. Chaque fait porte une preuve : un verbatim court du prospect (25 mots maximum) et son minutage. Sans preuve, la valeur est « inconnu » ou null.
 3. Lis tout l'appel avant de remplir. Une information peut arriver tard : une ressource citée après l'objection sur le prix, un conjoint mentionné au moment de payer.
 4. Si le prospect se contredit, retiens sa dernière position et décris la contradiction dans "contradictions".
@@ -22,7 +23,7 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
 # DÉFINITIONS
  
 ## appel
-- appel_tenu : "non" si l'appel n'a pas eu lieu, s'il est trop court pour couvrir la découverte, ou s'il faut le recaler (replay de la conférence non vu, mauvais moment). Sinon "oui".
+- appel_tenu : "non" si l'appel n'a pas eu lieu, s'il est trop court pour couvrir la découverte, ou s'il faut le recaler (rediffusion de la conférence non vue, mauvais moment). Sinon "oui".
 - motif_non_tenu : trop_court | replay_non_vu | a_recaler | null.
  
 ## metier
@@ -41,7 +42,7 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
   autre = tout le reste (décris-le dans valeur)
  
 ## financement
-- ressources_citees : liste des ressources que le prospect dit pouvoir mobiliser. type = salaire | epargne | pret | proche | autre. Une ressource au conditionnel compte (« je pourrais demander à ma sœur »). Une ressource suggérée par le sales et rejetée par le prospect ne compte pas.
+- ressources_citees : liste des ressources que le prospect dit pouvoir mobiliser. type = salaire | epargne | pret | proche | autre. Une ressource au conditionnel compte (« je pourrais demander à ma sœur »). Une ressource suggérée par le commercial et rejetée par le prospect ne compte pas.
 - objection_fonds : "oui" si le prospect dit ne pas avoir les fonds ou les moyens, à n'importe quel moment.
 - situation_bloquante : rsa | aucun_revenu | dettes_bloquantes | aucune | inconnu. "dettes_bloquantes" seulement si le prospect dit lui-même que ses dettes l'empêchent de dépenser quoi que ce soit.
  
@@ -65,11 +66,11 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
 - offres_citees : les noms des autres offres cités par le prospect, tels qu'il les dit (liste vide sinon).
 
 ## vente
-- offre_presentee : "oui" si le sales a présenté l'offre ou le prix.
+- offre_presentee : "oui" si le commercial a présenté l'offre ou le prix.
 - issue : paiement_complet | paiement_fractionne | acompte | aucun (paiement effectué pendant l'appel).
 - refus_explicite : "oui" si la personne refuse clairement l'offre.
 - relance.date : date de rappel fixée pendant l'appel, sinon null.
-- synthese_sales_presente : "oui" si le sales a reformulé métier, financement, décision et démarrage, et que le prospect a confirmé.
+- synthese_sales_presente : "oui" si le commercial a reformulé métier, financement, décision et démarrage, et que le prospect a confirmé.
  
 # FORMAT DE SORTIE
 Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"valeur": ..., "preuve": "...", "minutage": "mm:ss"}.
@@ -108,7 +109,7 @@ Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"val
   "contradictions": []
 }
  
-# EXEMPLES (illustratifs : à remplacer par des appels réels codés par le Head of Sales et Samy)
+# EXEMPLES (illustratifs : à remplacer par des appels réels codés par le responsable commercial et Samy)
  
 Exemple 1 — « Pas les fonds », puis une ressource plus tard
 À 18:40 : « Honnêtement je n'ai pas les fonds là. » À 26:10 : « Après, j'ai un livret A que je garde au cas où. »
@@ -116,7 +117,7 @@ Exemple 1 — « Pas les fonds », puis une ressource plus tard
 → "ressources_citees": [{"type": "epargne", "preuve": "j'ai un livret A que je garde au cas où", "minutage": "26:10"}]
  
 Exemple 2 — Conjoint absent, rendez-vous à deux posé
-À 31:05 : « Il faut que j'en parle à mon mari. » Le sales : « On se cale jeudi 18 h avec lui ? » Le prospect : « Oui, jeudi c'est bien. »
+À 31:05 : « Il faut que j'en parle à mon mari. » Le commercial : « On se cale jeudi 18 h avec lui ? » Le prospect : « Oui, jeudi c'est bien. »
 → "decideur": {"valeur": "decideur_absent", ...}
 → "second_rdv": {"propose": "oui", "date": "<jeudi qui suit DATE_APPEL>", "accepte": "oui", ...}
  

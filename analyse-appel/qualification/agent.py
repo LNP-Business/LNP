@@ -1,14 +1,15 @@
-"""LNP lead qualification agent (« Qualification SQL des appels LNP » version 2, 4 November 2026; rules version 2.1 of
-5 November 2026: any Éducation nationale teacher, a student who already sells lessons, « solution aware » leads; rules
-2.2, same day: the « Douleur et projet » gate is removed, three gates).
+"""Agent de qualification des leads LNP (« Qualification SQL des appels LNP » version 2, 4 novembre 2026 ; règles version 2.1
+du 5 novembre 2026 : tout enseignant de l'Éducation nationale, un étudiant qui vend déjà des cours, les leads « solution
+aware » ; règles 2.2, le même jour : la porte « Douleur et projet » est supprimée, trois portes).
 
-Step 1: the model reads the Fathom transcript of an R1 and extracts facts (prompts/extraction.md, kept as written in the
-document), twice (double reading). Step 2: qualification_lnp.py applies the four-gate rule to those facts and decides.
+Étape 1 : le modèle lit la transcription Fathom d'un R1 et en extrait des faits (consignes/extraction.md, gardée telle
+qu'écrite dans le document), deux fois (double lecture). Étape 2 : qualification_lnp.py applique la règle des portes à ces
+faits et décide.
 
-The model extracts, the code decides. On top of the document, the code checks every piece of evidence: a fact whose
-« preuve » is not a passage of the transcript (after spaces, case and punctuation are normalised) is set back to
-« inconnu » (a resource without evidence is dropped), so a gate never opens on an invented quote. Each such case is
-listed in `verification`.
+Le modèle extrait, le code décide. En plus du document, le code vérifie chaque preuve : un fait dont la « preuve » n'est pas
+un passage de la transcription (une fois les espaces, la casse et la ponctuation normalisées) repasse à « inconnu » (une
+ressource sans preuve est retirée), donc une porte ne s'ouvre jamais sur une citation inventée. Chacun de ces cas est listé
+dans `verification`.
 """
 from __future__ import annotations
 
@@ -32,9 +33,9 @@ def charger_consigne() -> str:
     return (ICI / "consignes" / "extraction.md").read_text(encoding="utf-8")
 
 
-# ------------------------------------------------------------------------------------------------ transcript
+# ------------------------------------------------------------------------------------------------ transcription
 def _minutage(ts: str) -> str:
-    """Fathom "HH:MM:SS" → "mm:ss" (minutes past 59 are kept: "01:02:10" → "62:10")."""
+    """Fathom "HH:MM:SS" → "mm:ss" (les minutes au-delà de 59 sont gardées : "01:02:10" → "62:10")."""
     m = re.match(r"^(\d+):(\d{2}):(\d{2})", str(ts or ""))
     if not m:
         m2 = re.match(r"^(\d+):(\d{2})$", str(ts or ""))
@@ -43,7 +44,7 @@ def _minutage(ts: str) -> str:
 
 
 def afficher_transcription(paroles: Any, enregistre_par: Optional[str] = None) -> str:
-    """One line per speaker turn: "[mm:ss] SALES (name): text" or "[mm:ss] PROSPECT (name): text"."""
+    """Une ligne par tour de parole : "[mm:ss] SALES (nom): texte" (SALES : le commercial) ou "[mm:ss] PROSPECT (nom): texte"."""
     if isinstance(paroles, str):
         try:
             paroles = json.loads(paroles)
@@ -71,26 +72,27 @@ def afficher_transcription(paroles: Any, enregistre_par: Optional[str] = None) -
 
 
 def remplir_consigne(gabarit: str, date_appel: str, fathom: str, analyse: str = "") -> str:
-    """The transcript itself goes in the cached prefix (same for both readings); the prompt points to it."""
+    """La transcription elle-même va dans le préfixe mis en cache (le même pour les deux lectures) ; la consigne y renvoie."""
     return (gabarit.replace("{{date_appel}}", date_appel).replace("{{oui_ou_non}}", fathom)
             .replace("{{transcription}}", "(la transcription est donnée plus haut, entre <transcription> et </transcription>)")
             .replace("{{analyse}}", analyse or "aucune"))
 
 
-# ------------------------------------------------------------------------------------------------ evidence check
+# ------------------------------------------------------------------------------------------------ contrôle des preuves
 def _norm(s: str) -> str:
     s = unicodedata.normalize("NFKC", str(s or "")).lower().replace("’", "'")
     s = re.sub(r"[^\w']+", " ", s)
     return re.sub(r"\s+", " ", s).strip()
 
 
-PART_MIN_CITATION = 0.8      # share of the quote's words found in order at one place of the transcript (engineering value)
+PART_MIN_CITATION = 0.8      # part des mots de la citation retrouvés dans l'ordre à un endroit de la transcription (valeur
+                             # technique)
 
 
 def _partie_trouvee(partie: str, transcription_norm: str) -> bool:
-    """A passage of the transcript, word for word, or with small corrections: the model writes « il y a » where Fathom
-    transcribed « il y », drops an « en fait »... At least QUOTE_MIN_SHARE of its words, in order, in one window of the
-    transcript of about its length. A quote that is not there at all never passes."""
+    """Un passage de la transcription, mot pour mot, ou avec de petites corrections : le modèle écrit « il y a » là où Fathom
+    a transcrit « il y », laisse tomber un « en fait »... Au moins PART_MIN_CITATION de ses mots, dans l'ordre, dans une
+    fenêtre de la transcription d'à peu près sa longueur. Une citation absente de la transcription ne passe jamais."""
     p = _norm(partie)
     if not p:
         return True
@@ -115,15 +117,16 @@ def _partie_trouvee(partie: str, transcription_norm: str) -> bool:
 
 
 def citation_trouvee(citation: str, transcription_norm: str) -> bool:
-    """Every part of the quote (parts cut on "...", "…" or " / ") is a passage of the transcript."""
+    """Chaque partie de la citation (parties coupées sur "...", "…", " / " ou les crochets) est un passage de la
+    transcription."""
     parties = [p for p in re.split(r"\.\.\.|…|\s/\s|\[|\]", str(citation or "")) if _norm(p)]
     return bool(parties) and all(_partie_trouvee(p, transcription_norm) for p in parties)
 
 
 def verifier(faits: dict, transcription: str) -> tuple[dict, list[str]]:
-    """Facts whose evidence is not in the transcript go back to « inconnu » (resources are dropped)."""
+    """Les faits dont la preuve n'est pas dans la transcription repassent à « inconnu » (les ressources sont retirées)."""
     tn, remarques = _norm(transcription), []
-    f = json.loads(json.dumps(faits))                      # a copy
+    f = json.loads(json.dumps(faits))                      # une copie
 
     def parcourir(noeud: Any, chemin: str) -> None:
         if isinstance(noeud, dict):
@@ -150,14 +153,14 @@ def verifier(faits: dict, transcription: str) -> tuple[dict, list[str]]:
     garde = []
     for r in res:
         if isinstance(r, dict) and r.get("type") and r.get("preuve") and r.get("preuve_non_trouvee"):
-            continue                                       # a resource without a real quote does not count
+            continue                                       # une ressource sans vraie citation ne compte pas
         garde.append(r)
     if isinstance(f.get("financement"), dict):
         f["financement"]["ressources_citees"] = garde
     return f, remarques
 
 
-# ------------------------------------------------------------------------------------------------ model
+# ------------------------------------------------------------------------------------------------ modèle
 def lire_json(texte: str) -> Optional[dict]:
     t = (texte or "").strip()
     t = re.sub(r"^```(?:json)?\s*|\s*```$", "", t)
@@ -172,7 +175,7 @@ def lire_json(texte: str) -> Optional[dict]:
 
 
 def lire_une_fois(client: Any, palier: str, transcription: str, consigne: str, unite: str, max_tokens: int = 8000) -> Optional[dict]:
-    """One extraction; an answer that is not JSON is asked once more."""
+    """Une extraction ; une réponse qui n'est pas du JSON est redemandée une fois."""
     prefixe = f"<transcription>\n{transcription}\n</transcription>"
     systeme = "Tu extrais des faits d'une transcription d'appel et tu réponds uniquement par du JSON valide."
     for essai in (1, 2):
@@ -184,9 +187,9 @@ def lire_une_fois(client: Any, palier: str, transcription: str, consigne: str, u
     return None
 
 
-# ------------------------------------------------------------------------------------------------ one call
+# ------------------------------------------------------------------------------------------------ un appel
 def saisie_depuis_iclosed(issue: Optional[str], raison: Optional[str]) -> tuple[Optional[str], Optional[str]]:
-    """What the sales entered in iClosed, in the words of the BASE (for the « Écart avec la saisie » alert)."""
+    """Ce que le commercial a saisi dans iClosed, dans les mots de la BASE (pour l'alerte « Écart avec la saisie »)."""
     o, r = (issue or "").upper(), (raison or "").upper()
     if o == "WON":
         return "Closé", None
@@ -200,8 +203,8 @@ def saisie_depuis_iclosed(issue: Optional[str], raison: Optional[str]) -> tuple[
 
 
 def qualifier_appel(appel_: dict, client: Any, paliers: tuple[str, str] = ("fast", "strong")) -> dict:
-    """call: {call_id, date_appel (YYYY-MM-DD), transcript (Fathom utterances or None), recorded_by, saisie: {outcome,
-    no_sale_reason}}. Returns {status, result, readings, verification, prompt_version, rules_version}."""
+    """appel_ : {call_id, date_appel (AAAA-MM-JJ), transcript (répliques Fathom ou None), recorded_by, saisie : {outcome,
+    no_sale_reason}}. Renvoie {status, result, readings, verification, prompt_version, rules_version}."""
     d = date.fromisoformat(str(appel_.get("date_appel"))[:10]) if appel_.get("date_appel") else date.today()
     probleme, issue = saisie_depuis_iclosed((appel_.get("saisie") or {}).get("outcome"),
                                          (appel_.get("saisie") or {}).get("no_sale_reason"))

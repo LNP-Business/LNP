@@ -1,7 +1,9 @@
-"""One job: the claim returned by crm_ca_claim → CallContext → engine pipeline → call record (OUTPUT_CONTRACT.md).
+"""Un travail : la prise renvoyée par crm_ca_claim → ContexteAppel → chaîne d'analyse du moteur → enregistrement de l'appel
+(docs/CONTRAT_DE_SORTIE.md).
 
-crm_ca_config.engine (035, 2026-11-03) picks the engine per job: 'full' (lnp_callqa, unchanged) or 'lite'
-(call-analysis/lite: five whole-transcript steps on the fast tier, the code still decides).
+crm_ca_config.engine (035, 2026-11-03) choisit le moteur de chaque travail : 'full' (le moteur de référence lnp_analyse,
+inchangé) ou 'lite' (le moteur allégé, analyse-appel/allege : cinq étapes sur la transcription entière au palier rapide, le
+code décide toujours).
 """
 from __future__ import annotations
 
@@ -39,8 +41,8 @@ def _allege():
 
 
 def executer_allege(prise: dict, client: Any, effort: Optional[str] = None) -> dict:
-    """The lite engine: one model call per step through client.complete (GatewayClient), tier fast, effort low unless
-    CALLQA_LITE_EFFORT says otherwise. A failure of the model steps raises ModelErrors (never retried as is)."""
+    """Le moteur allégé : un appel au modèle par étape par client.completer (ClientPasserelle), palier fast, effort low sauf si
+    CALLQA_LITE_EFFORT dit autre chose. Un échec des étapes du modèle lève ErreursModele (jamais relancé tel quel)."""
     _allege()
     from analyse_allegee.moteur import ErreurModeleAllege, analyse
     try:
@@ -51,14 +53,15 @@ def executer_allege(prise: dict, client: Any, effort: Optional[str] = None) -> d
 
 
 def bibliotheque_cas(lignes_: list[dict]) -> list[dict]:
-    """crm_ca_cases rows → the engine's case format (Pitch: id, consent, start {value, unit, profile}, figures)."""
+    """Lignes de crm_ca_cases → format des cas du moteur (présentation de l'offre : id, consent, start {value, unit, profile},
+    figures)."""
     return [{"id": str(c.get("id")), "title": c.get("title"), "consent": bool(c.get("consent")),
              "start": {"value": c.get("start_value"), "unit": c.get("start_unit"), "profile": c.get("start_profile")},
              "figures": c.get("figures") or {}} for c in lignes_ or []]
 
 
 def entrees_anterieures(anterieur: list[dict]) -> list[dict]:
-    """Earlier analysed calls of the cycle → Objections H5 (episodes of earlier calls)."""
+    """Appels déjà analysés du cycle → Objections H5 (épisodes des appels précédents)."""
     sortie = []
     for p in anterieur or []:
         eps = ((p.get("results") or {}).get("OBJECTIONS") or {}).get("episodes") or []
@@ -77,13 +80,15 @@ def construire_contexte(prise: dict) -> ContexteAppel:
 
 def executer_travail(prise: dict, client: Any, config: Optional[ConfigExecution] = None, tours_lot: bool = False, executants: int = 16,
             journal=None, budget_s: Optional[float] = None) -> dict:
-    """rounds=True: the questions go to the model in parallel batches (prefetch.py), same result as a sequential run.
-    config.engine = 'lite': the lite engine instead (the other arguments do not apply)."""
+    """tours_lot=True : les questions partent au modèle par lots parallèles (anticipation.py), même résultat qu'une exécution
+    séquentielle. engine = 'lite' dans la config de la prise : le moteur allégé à la place (les autres arguments ne
+    s'appliquent pas)."""
     if moteur_de(prise) == "lite":
         return executer_allege(prise, client)
     passes = int((prise.get("config") or {}).get("passes") or 3)
-    # crm_ca_config.passes = 1 turns on the cost option of Part C, C4 (one pass, 10 % of the units still run with three):
-    # allowed only once the C7 protocol shows at least 95 % item-level concordance on the current rules version
+    # crm_ca_config.passes = 1 active l'option de coût de la partie C, C4 (une passe, 10 % des unités tournent encore avec
+    # trois) : permise seulement quand le protocole C7 montre au moins 95 % de concordance par item sur la version des règles
+    # en cours
     unique = passes == 1
     if not tours_lot:
         cfg = config or ConfigExecution(passes=passes, passe_unique_permise=unique, passes_paralleles=True)
@@ -98,7 +103,8 @@ def executer_travail(prise: dict, client: Any, config: Optional[ConfigExecution]
 
 
 class ErreursModele(RuntimeError):
-    """Most model questions failed: the record would only say "not applicable" everywhere, so it is not stored."""
+    """La plupart des questions au modèle ont échoué : l'enregistrement ne dirait que « sans objet » partout, il n'est donc
+    pas stocké."""
     final = True
 
 
@@ -107,11 +113,11 @@ def verifier_erreurs_modele(audit: list, part_max: float = 0.5) -> None:
     erreurs = [e for e in passes if "error" in e]
     if passes and len(erreurs) / len(passes) > part_max:
         genres = sorted({str(e["error"])[:160] for e in erreurs})[:3]
-        raise ErreursModele(f"{len(erreurs)} of {len(passes)} model questions failed: " + " | ".join(genres))
+        raise ErreursModele(f"{len(erreurs)} questions au modèle sur {len(passes)} ont échoué : " + " | ".join(genres))
 
 
 def resume(enregistrement: dict) -> str:
-    """One log line: status and scores only (never a quote)."""
+    """Une ligne du journal : statut et notes seulement (jamais une citation)."""
     res = enregistrement.get("results") or {}
     parties = [f"{k}={v.get('score') if v.get('score') is not None else v.get('status')}" for k, v in res.items()]
     allege = "engine=lite " if (enregistrement.get("meta") or {}).get("engine") == "lite" else ""

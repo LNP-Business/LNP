@@ -48,7 +48,7 @@ def mk(**changements):
 def executer(nom_, lectures, attendu, alerte=None, **kw):
     r = qualifier(lectures, D, **kw)
     ok = r["statut"] == attendu and (alerte is None or any(alerte in a for a in r["alertes"]))
-    print(("OK  " if ok else "FAIL"), nom_, "→", r["statut"], r["base"], r["alertes"] if not ok or alerte else "")
+    print(("OK    " if ok else "ÉCHEC "), nom_, "→", r["statut"], r["base"], r["alertes"] if not ok or alerte else "")
     return ok
 
 res = [
@@ -56,17 +56,17 @@ res = [
     executer("B. 'pas les fonds' + épargne citée, relance J+10",
         [mk(financement__objection_fonds={"valeur": "oui"},
             vente__issue={"valeur": "aucun"}, vente__relance={"date": "2026-11-14"})], "SQL OUVERT"),
-    executer("C. Conjoint absent, 2e RDV non proposé, pitché",
+    executer("C. Conjoint absent, 2e RDV non proposé, offre présentée",
         [mk(decision__decideur={"valeur": "decideur_absent"},
             decision__second_rdv={"propose": "non", "date": None}, vente__issue={"valeur": "aucun"})],
-        "NON SQL", "Pitch hors règle"),
+        "NON SQL", "Présentation hors règle"),
     executer("C bis. Conjoint absent, 2e RDV posé",
         [mk(decision__decideur={"valeur": "decideur_absent"},
             decision__second_rdv={"propose": "oui", "date": "2026-11-10", "accepte": "oui"})], "SQL GAGNÉ"),
     # V2.2 : la porte « Douleur et projet » est supprimée ; le projet ne ferme plus et ne laisse plus rien à vérifier
     executer("D. Veut changer de métier (V2.2 : ne ferme plus de porte)",
         [mk(projet__intention={"valeur": "changer_de_metier"})], "SQL GAGNÉ"),
-    executer("E. Quatre portes ouvertes, pas de pitch",
+    executer("E. Quatre portes ouvertes, offre non présentée",
         [mk(vente__offre_presentee={"valeur": "non"}, vente__issue={"valeur": "aucun"})], "À REVOIR", "SQL manqué"),
     executer("F. Pas de revenu visé chiffré ni d'échéance (V2.2 : plus vérifiés)",
         [mk(projet__revenu_vise_mensuel={"valeur": None}, projet__echeance={"type": "absente"})], "SQL GAGNÉ"),
@@ -129,5 +129,5 @@ res = [
         "À REVOIR", "renvoyé la personne"),
     executer("R. Refus explicite", [mk(vente__issue={"valeur": "aucun"}, vente__refus_explicite={"valeur": "oui"})], "SQL PERDU"),
 ]
-print(f"\n{sum(res)}/{len(res)} tests OK")
+print(f"\n{sum(res)}/{len(res)} cas réussis")
 sys.exit(0 if all(res) else 1)
