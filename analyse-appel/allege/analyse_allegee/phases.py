@@ -1,18 +1,19 @@
-"""S0 → phase map. The model lists the sales turns with an offer, an amount or a decision cue (the closed answers of the
-engine's `foundation.phases` task, for every turn at once); the engine's `decide_phases` places the anchors (PB-1,
-PB-2/PB-17, PB-3/PB-18, PB-19, PB-4) and `spin.discovery_end` the end of the discovery (SB-1).
+"""S0 → carte des phases. Le modèle liste les tours du commercial avec une offre, un montant ou un signe de décision (les
+réponses fermées de la tâche `foundation.phases` du moteur, pour tous les tours à la fois) ; `decider_phases` du moteur
+place les repères (PB-1, PB-2/PB-17, PB-3/PB-18, PB-19, PB-4) et `spin.fin_decouverte` la fin de la découverte (SB-1).
 
-Romain, 2026-11-03, two rules checked by the code before the anchors are placed:
-- the first price is said by the sales FOR THE LNP OFFER and goes with its explanation: a price_for_offer turn counts only
-  if the model says it is the price of the LNP offer (`lnp_offer_price`) and quotes the SALES turn, at or before it, that
-  explains that offer (`offer_explained`, an exact passage); a price the prospect could charge her own students, a market
-  price or an ad budget is dropped (`price:not_lnp_offer`, `price:no_offer_explained`);
-- an introduction is not the pitch start: an offer mention after which the sales goes back to discovery questions is a
-  mention (PB-2), and the code takes it as such when the model quotes that discovery question (`next_discovery_question`,
-  an exact passage of a later SALES turn);
-- a valid LNP price said before the pitch start found that way belongs to the explanation of the offer: the pitch starts
-  at the turn that explains it (or at the price turn).
-The end of the discovery is then moved to the gap's validation when a gap is made (engine.py, after S2)."""
+Romain, 2026-11-03, trois règles vérifiées par le code avant que les repères soient placés :
+- le premier prix est dit par le commercial POUR L'OFFRE LNP et va avec son explication : un tour price_for_offer ne
+  compte que si le modèle dit que c'est le prix de l'offre LNP (`lnp_offer_price`) et cite le tour SALES, à ce tour ou
+  avant, qui explique cette offre (`offer_explained`, un extrait exact) ; un prix que la prospecte pourrait demander à ses
+  propres élèves, un prix du marché ou un budget de publicité est écarté (`price:not_lnp_offer`,
+  `price:no_offer_explained`) ;
+- une introduction n'est pas le début de la présentation : une mention de l'offre après laquelle le commercial revient à
+  des questions de découverte est une mention (PB-2), et le code la prend comme telle quand le modèle cite cette question
+  de découverte (`next_discovery_question`, un extrait exact d'un tour SALES suivant) ;
+- un prix LNP valide dit avant le début de la présentation trouvé ainsi appartient à l'explication de l'offre : la
+  présentation commence au tour qui l'explique (ou au tour du prix).
+La fin de la découverte est ensuite déplacée à la validation de l'écart quand un écart est fait (moteur.py, après S2)."""
 from __future__ import annotations
 
 from typing import Optional
@@ -48,7 +49,7 @@ def appliquer_phases(ctx: ContexteAppel, reponse: dict, rejets: Rejets) -> None:
             rejets.ajouter(ETAPE, errs[0] or "bad_quote", c)
             continue
         prec = reponses.get(t.id)
-        if prec:                                  # the same turn listed twice: the closed answers are merged
+        if prec:                                  # le même tour listé deux fois : les réponses fermées sont réunies
             for k in SIGNAUX:
                 prec[k] = bool(prec.get(k) or c.get(k))
             prec["amount"] = prec.get("amount") or c.get("amount")
@@ -60,18 +61,18 @@ def appliquer_phases(ctx: ContexteAppel, reponse: dict, rejets: Rejets) -> None:
     decider_phases(ctx, reponses)
     ph = ctx.phases
     if ph.prix_precoce and (not ph.premier_prix or ctx.n(ph.prix_precoce) < ctx.n(ph.premier_prix)):
-        debut = explique.get(ph.prix_precoce) or ph.prix_precoce           # the price goes with the offer's explanation
+        debut = explique.get(ph.prix_precoce) or ph.prix_precoce           # le prix va avec l'explication de l'offre
         ph.debut_presentation = min(debut, ph.prix_precoce, key=ctx.n)
         ph.premier_prix, ph.prix_precoce = ph.prix_precoce, None
         ph.signaux.append("pitch_start_from_price")
-    elif ph.premier_prix and not ph.debut_presentation:                           # a price with no pitch start: its explanation
+    elif ph.premier_prix and not ph.debut_presentation:                           # un prix sans début de présentation : son explication
         ph.debut_presentation = min(explique.get(ph.premier_prix) or ph.premier_prix, ph.premier_prix, key=ctx.n)
         ph.signaux.append("pitch_start_from_price")
     ph.fin_decouverte = fin_decouverte(ctx)
 
 
 def _citation_commercial(ctx: ContexteAppel, d: object) -> Optional[str]:
-    """The turn of an exact passage of a SALES turn ({turn, quote}), else None."""
+    """Le tour d'un extrait exact d'un tour SALES ({turn, quote}), sinon None."""
     if not isinstance(d, dict) or not d.get("turn") or not d.get("quote"):
         return None
     try:
@@ -89,7 +90,7 @@ def _appliquer_regles(ctx: ContexteAppel, reponses: dict[str, dict], rejets: Rej
         if a.get("offer_description") or a.get("screen_share"):
             nq = _citation_commercial(ctx, a.get("next_discovery_question"))
             if nq and ctx.n(nq) > ctx.n(tid):
-                a["followed_by_discovery"] = True                          # PB-2: a mention, not the pitch start
+                a["followed_by_discovery"] = True                          # PB-2 : une mention, pas le début de la présentation
             elif a.get("next_discovery_question"):
                 rejets.ajouter(ETAPE, "pitch:bad_discovery_quote", a.get("next_discovery_question"))
         if a.get("price_for_offer"):

@@ -1,74 +1,75 @@
-# Call analysis screen · specification
+# Écran d'analyse d'appel · spécification
 
-Reference mockup: `docs/screen/call_analysis_mockup.dc.html` (built on real call 001, Jennifer S., with
-illustrative scores). It is a design reference, not production code: rebuild it with the app's own components.
+Maquette de référence : `docs/screen/call_analysis_mockup.dc.html` (construite sur le vrai appel 001, Jennifer S., avec des
+notes d'illustration). C'est une référence de dessin, pas du code de production : la refaire avec les composants de
+l'application.
 
-**Scope.** One screen = the analysis of ONE call. It is not a CRM view: no sales cycle, no payment status, no next
-action, no sales note, no "Next call" tab. It lives in the lead record of the existing app and reuses its visual
-language (see Design tokens).
+**Périmètre.** Un écran = l'analyse d'UN appel. Ce n'est pas une vue du CRM : pas de cycle de vente, pas de statut de
+paiement, pas de prochaine action, pas de note du commercial, pas d'onglet « Prochain appel ». L'écran vit dans la fiche du
+prospect de l'application et reprend son langage visuel (voir Jetons de design).
 
-## 1. Layout, top to bottom
+## 1. Disposition, de haut en bas
 
-| Block | Content | Data source (call record, see OUTPUT_CONTRACT.md) |
+| Bloc | Contenu | Source des données (enregistrement de l'appel, voir CONTRAT_DE_SORTIE.md) |
 |---|---|---|
-| Lead header | Avatar initial, prospect name, status chip ("Call held"), client name, sales name, round chip (R1, R2…) , Status menu, close button | App's lead record (existing) |
-| Call line | Phone icon · chip `R1 · 18/06/2026 15:00 · 62 min · past` · `1 call` | Call metadata: round, start time in the sales' time zone, duration = last turn timestamp |
-| Title row | "Call analysis" + button "Add transcript" | — |
-| Analysis header card | Title `Call analysis — <prospect>` · button "Transcript" (toggles the transcript drawer) · four score tiles (1 Discovery, 2 Gap, 3 Pitch, 4 Objections): score /100 + level chip (Mastered ≥ 85, Developing 60–84, Needs work < 60, or Non-compliant / Gap absent / Not applicable / Excluded) · the lowest tile is marked "bottleneck" · line "provisional" while the reliability thresholds are not met | `results.<COMP>.score`, `.status`, `.verdict` |
-| Call map | Horizontal timeline, one marker per anchor, left to right, each with timestamp, label and turn id: Discovery starts · Gap restatement (start → end, duration) · Validation · Pitch starts · First price · Objection (one per episode) · Decision. Scrolls horizontally on small screens | `phases.*`, `results.GAP.details` (restitution span, validation turn), `results.OBJECTIONS.details.episodes[].start`, decision request |
-| Transcript drawer | Opens under the header card: the turns around the selected evidence, highlighted | `turns[]` |
-| 1 · The discovery | See §2.1 | `results.SPIN` |
-| 2 · The gap played back | See §2.2 | `results.GAP` |
-| 3 · The pitch | See §2.3 | `results.PITCH` |
-| 4 · Objections | See §2.4 | `results.OBJECTIONS` |
+| En-tête du prospect | Initiale dans l'avatar, nom du prospect, puce de statut (« Appel honoré »), nom du client, nom du commercial, puce du tour (R1, R2…), menu Statut, bouton de fermeture | Fiche du prospect de l'application (existante) |
+| Ligne de l'appel | Icône de téléphone · puce `R1 · 18/06/2026 15:00 · 62 min · passé` · `1 appel` | Métadonnées de l'appel : tour, heure de début dans le fuseau horaire du commercial, durée = horodatage du dernier tour |
+| Ligne de titre | « Analyse d'appel » + bouton « Ajouter la transcription » | — |
+| Carte d'en-tête de l'analyse | Titre `Analyse d'appel — <prospect>` · bouton « Transcription » (ouvre et ferme le tiroir de la transcription) · quatre tuiles de note (1 Découverte, 2 Écart, 3 Présentation, 4 Objections) : note /100 + puce de niveau (Maîtrisé ≥ 85, En progrès 60 à 84, À travailler < 60, ou Non conforme / Écart absent / Sans objet / Exclu) · la tuile la plus basse est marquée « goulot » · mention « provisoire » tant que les seuils de fiabilité ne sont pas atteints | `results.<COMP>.score`, `.status`, `.verdict` |
+| Carte de l'appel | Chronologie horizontale, un repère par ancre, de gauche à droite, chacun avec son horodatage, son libellé et son numéro de tour : Début de la découverte · Restitution de l'écart (début → fin, durée) · Validation · Début de la présentation · Premier prix · Objection (une par épisode) · Décision. Défile horizontalement sur les petits écrans | `phases.*`, `results.GAP.details` (plage de la restitution, tour de validation), `results.OBJECTIONS.details.episodes[].start`, demande de décision |
+| Tiroir de la transcription | S'ouvre sous la carte d'en-tête : les tours autour de la preuve choisie, surlignés | `turns[]` |
+| 1 · La découverte | Voir § 2.1 | `results.SPIN` |
+| 2 · L'écart restitué | Voir § 2.2 | `results.GAP` |
+| 3 · La présentation | Voir § 2.3 | `results.PITCH` |
+| 4 · Objections | Voir § 2.4 | `results.OBJECTIONS` |
 
 ## 2. Sections
 
-### 2.1 The discovery (SPIN)
-- Subtitle: perimeter start → end (timestamps), number of coded questions, "read from what the prospect said, never from the letter".
-- Table, one row per **domain** of the prospect's atoms (money, time, clients, family, health, self-belief, future; plus a last row "Out of SPIN"):
-  - Domain name, colour square, the prospect's key quotes for that domain;
-  - **Questions asked, in order**: one chip per solicitation (S green, P orange, I red, N black). Solid chip = the question produced an atom; dashed chip = no effect; hatched chip = OUT. Under the chips: count, chains;
-  - **Pain · Desire** bar: number of PAIN/BLOCKER/IMPACT atoms (left, red) vs DESIRE/VALUE atoms (right, gold);
-  - **State** chip: Absent, Touched, Quantified, Deep (a deep chain on this domain), Value stated, Out of SPIN ("no points").
-- Legend line. Item levels D1–D5 can be shown on hover or in a details toggle.
+### 2.1 La découverte (SPIN)
+- Sous-titre : début → fin du périmètre (horodatages), nombre de questions codées, « lu dans ce que le prospect a dit, jamais dans la lettre ».
+- Tableau, une ligne par **domaine** des atomes du prospect (argent, temps, clients, famille, santé, confiance en soi, avenir ; plus une dernière ligne « Hors SPIN ») :
+  - nom du domaine, carré de couleur, citations clés du prospect pour ce domaine ;
+  - **Questions posées, dans l'ordre** : une puce par sollicitation (S vert, P orange, I rouge, N noir). Puce pleine = la question a produit un atome ; puce en pointillés = sans effet ; puce hachurée = OUT (hors SPIN). Sous les puces : le décompte, les chaînes ;
+  - barre **Douleur · Désir** : nombre d'atomes PAIN/BLOCKER/IMPACT (douleur, blocage, impact ; à gauche, rouge) face aux atomes DESIRE/VALUE (désir, valeur ; à droite, or) ;
+  - puce **État** : Absent, Effleuré, Quantifié, Profond (une chaîne profonde sur ce domaine), Valeur exprimée, Hors SPIN (« aucun point »).
+- Ligne de légende. Les niveaux des items D1 à D5 peuvent s'afficher au survol ou dans un détail dépliable.
 
-### 2.2 The gap played back
-- Status chip: `Gap present` (green) or `Gap absent · <main reason>` (red).
-- Subtitle: "Problem and cost restated in one go, in the prospect's exact words, validated by the prospect, before the pitch and the price."
-- **Timing of the gap**: a proportional bar over the call (0 → end) showing discovery, the restatement span (start → end, duration, number of sales turns), the validation tick, the pitch start, the first price; legend with timestamps.
-- **What the sales said · exact verbatim**: the full text of the restitution turn(s), unedited, with every evaluated passage highlighted and labelled: her exact words (green), paraphrase (red, does not count), sales' own framing (orange, does not count), not her figure (grey), validation request (blue). Under it, the prospect's validation turn, with its outcome chip (confirmed / confirmed with content / corrected / rejected / none).
-- **Four validity checks**, each ✓ or ✗ with a one-line justification: In one go (GB-34) · Before pitch & price · Problem + cost verbatim (GB-22) · Validated (GB-8..GB-10).
-- **Component table**: Component · Prospect said (quote + timestamp) · Sales played back (quote) · Verbatim (yes / no · reason).
-- Roadmap material line: number of other blockers ticked in P or I answers; Copilot warning when fewer than the roadmap steps.
+### 2.2 L'écart restitué
+- Puce de statut : `Écart présent` (vert) ou `Écart absent · <raison principale>` (rouge).
+- Sous-titre : « Problème et coût restitués d'un seul tenant, avec les mots exacts du prospect, validés par le prospect, avant la présentation et le prix. »
+- **Chronologie de l'écart** : une barre proportionnelle sur l'appel (0 → fin) qui montre la découverte, la plage de la restitution (début → fin, durée, nombre de tours du commercial), la marque de la validation, le début de la présentation, le premier prix ; légende avec les horodatages.
+- **Ce que le commercial a dit · verbatim exact** : le texte complet du ou des tours de restitution, sans retouche, avec chaque passage évalué surligné et étiqueté : ses mots exacts (vert), paraphrase (rouge, ne compte pas), cadrage propre au commercial (orange, ne compte pas), pas son chiffre (gris), demande de validation (bleu). En dessous, le tour de validation du prospect, avec la puce de son issue (confirmé / confirmé avec contenu / corrigé / rejeté / aucune).
+- **Quatre contrôles de validité**, chacun ✓ ou ✗ avec une justification d'une ligne : D'un seul tenant (GB-34) · Avant la présentation et le prix · Problème + coût mot pour mot (GB-22) · Validé (GB-8 à GB-10).
+- **Tableau des composantes** : Composante · Ce que le prospect a dit (citation + horodatage) · Ce que le commercial a restitué (citation) · Mot pour mot (oui / non · raison).
+- Ligne de la matière pour la feuille de route : nombre d'autres blocages relevés dans les réponses P ou I ; avertissement du Copilote quand il y en a moins que d'étapes de la feuille de route.
 
-### 2.3 The pitch
-- Status chip: `Compliant` or `Non-compliant · <reason>` (pitch before the yes / outside her gap or the offer / outcome promise).
-- Subtitle: validated blocker (quote) → category → expected mechanism.
-- Compliance chips: ✓/✗ per forbidden thing, with the offending quote and turn; `?` chips for claims that could not be checked (offer reference missing).
-- **Staircase**: five boxes — Step 1 Blocker, Step 2 Mechanism, Step 3 A → B, Step 4 Proof, Then roadmap — each with its state (done / paraphrased / recitation / partial / missing / not applicable / price first) and a short reason.
-- **Full pitch verbatim**: every turn from the pitch start to the first price (sales and prospect, prospect turns on a grey background), in a scrollable box (max ~620 px), each turn with timestamp, turn id and speaker, evaluated passages highlighted and labelled (steps, recitation, outcome promise, claims to check, check-ins, adhesion, price).
+### 2.3 La présentation
+- Puce de statut : `Conforme` ou `Non conforme · <raison>` (présentation avant le oui / hors de son écart ou de l'offre / promesse de résultat).
+- Sous-titre : blocage validé (citation) → catégorie → mécanisme attendu.
+- Puces de conformité : ✓/✗ pour chaque chose interdite, avec la citation et le tour en cause ; puces `?` pour les affirmations qui n'ont pas pu être vérifiées (référence de l'offre manquante).
+- **Escalier** : cinq cases — Étape 1 Blocage, Étape 2 Mécanisme, Étape 3 A → B, Étape 4 Preuve, Puis feuille de route — chacune avec son état (fait / paraphrasé / récitation / partiel / manquant / sans objet / prix d'abord) et une courte raison.
+- **Verbatim complet de la présentation** : chaque tour depuis le début de la présentation jusqu'au premier prix (commercial et prospect, les tours du prospect sur fond gris), dans une boîte qui défile (au plus ~620 px), chaque tour avec son horodatage, son numéro de tour et son locuteur, les passages évalués surlignés et étiquetés (étapes, récitation, promesse de résultat, affirmations à vérifier, points de contrôle, adhésion, prix).
 
 ### 2.4 Objections
-- Table, one row per episode: Resistance (theme + resolution chip: resolved / acknowledged / persisting / latent) · Prospect's words · Nature (objection / anxiety · capability / anxiety · choice / inertia) · When in the call (position on a 0 → end bar with timestamp) · **A · I · E · M** chips.
-- **A · I · E · M chips are buttons.** A = acknowledged, I = isolated, E = explored, M = matching gesture. Green = done, red dashed = not done, gold = partial. Clicking a letter opens, under the table, a panel with: the gesture name, its verdict chip, a one-line justification citing the rule (OB-13, OB-14, OB-15/OB-20, OB-16/OB-21), and the exact turns that prove it (timestamp, turn id, speaker, key passage highlighted). Clicking the same letter again closes the panel; the selected letter has a ring.
-- Prevention tiles: Decision circuit · Budget & deadline · Past attempt, each with its state and quote (before the first price).
+- Tableau, une ligne par épisode : Résistance (thème + puce de résolution : résolue / accueillie / persistante / latente) · Mots du prospect · Nature (objection / anxiété · capacité / anxiété · choix / inertie) · Moment de l'appel (position sur une barre 0 → fin avec l'horodatage) · puces **A · I · E · M**.
+- **Les puces A · I · E · M sont des boutons.** A = accueillie, I = isolée, E = explorée, M = geste de réponse adapté. Vert = fait, rouge en pointillés = pas fait, or = partiel. Un clic sur une lettre ouvre, sous le tableau, un panneau avec : le nom du geste, la puce de son verdict, une justification d'une ligne qui cite la règle (OB-13, OB-14, OB-15/OB-20, OB-16/OB-21), et les tours exacts qui le prouvent (horodatage, numéro de tour, locuteur, passage clé surligné). Un nouveau clic sur la même lettre referme le panneau ; la lettre choisie est entourée d'un anneau.
+- Tuiles de la prévention : Circuit de décision · Budget et échéance · Tentative passée, chacune avec son état et sa citation (avant le premier prix).
 
-## 3. States
+## 3. États
 
-| State | Display |
+| État | Affichage |
 |---|---|
-| Competence `not_applicable` | Tile shows "Not applicable" and the reason (no pitch, no resistance); section collapsed with the reason |
-| Competence `excluded` | Tile "Excluded · diarization suspect"; sections hidden; banner explaining why |
-| Competence `to_review` | Tile "To review"; section shows what is pending |
-| Gap absent | Score 0, red chip with the main reason; the restitution panel still shows any candidate and why it failed (diagnostics) |
-| Pitch non-compliant | Score 0, red chip; items still shown as diagnostics ("raw score" on hover) |
-| Provisional | Small red "provisional" label in the header card until the thresholds of Part C (C7) are met |
+| Compétence `not_applicable` | La tuile affiche « Sans objet » et la raison (pas de présentation, pas de résistance) ; section repliée avec la raison |
+| Compétence `excluded` | Tuile « Exclu · diarisation douteuse » ; sections masquées ; bandeau qui explique pourquoi |
+| Compétence `to_review` | Tuile « À revoir » ; la section montre ce qui est en attente |
+| Écart absent | Note 0, puce rouge avec la raison principale ; le panneau de restitution montre quand même chaque candidate et pourquoi elle a échoué (diagnostics) |
+| Présentation non conforme | Note 0, puce rouge ; les items restent affichés comme diagnostics (« note brute » au survol) |
+| Provisoire | Petite mention rouge « provisoire » dans la carte d'en-tête tant que les seuils de la Partie C (C7) ne sont pas atteints |
 
-## 4. Design tokens (from the app's lead record)
+## 4. Jetons de design (d'après la fiche du prospect de l'application)
 
-- Ground `#F6F4EE`, cards `#FFFFFF` with border `#E7E2D6`, radius 12 px; ink `#1E1C17`; muted `#6B675C`.
-- Gold `#D9A93F` (accent, chips `#FBF1DA` / text `#8A6417`); red `#B42318`; green `#2E7D4F`; blue `#2F5DA8`; orange `#C2571A`.
-- Headings: Source Serif 4 (600–700). Body: IBM Plex Sans. Timestamps and ids: IBM Plex Mono.
-- Section numbers in small gold squares; uppercase letter-spaced captions for table heads.
-- Prefer the app's existing components and tokens over these values where they differ.
+- Fond `#F6F4EE`, cartes `#FFFFFF` avec bordure `#E7E2D6`, rayon 12 px ; encre `#1E1C17` ; atténué `#6B675C`.
+- Or `#D9A93F` (accent, puces `#FBF1DA` / texte `#8A6417`) ; rouge `#B42318` ; vert `#2E7D4F` ; bleu `#2F5DA8` ; orange `#C2571A`.
+- Titres : Source Serif 4 (600 à 700). Texte courant : IBM Plex Sans. Horodatages et identifiants : IBM Plex Mono.
+- Numéros de section dans de petits carrés dorés ; légendes en capitales espacées pour les en-têtes de tableau.
+- Préférer les composants et les jetons existants de l'application à ces valeurs quand ils diffèrent.

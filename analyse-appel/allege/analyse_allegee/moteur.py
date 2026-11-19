@@ -1,10 +1,12 @@
-"""The lite pipeline: foundation (code) → S0 phases → S1 discovery → S2 gap → S3 pitch → S4 objections → call record.
+"""La chaîne allégée : fondation (code) → S0 phases → S1 découverte → S2 écart → S3 présentation → S4 objections →
+analyse enregistrée de l'appel.
 
-`analyse(ctx, client, config)` returns the same record as lnp_callqa.pipeline.result_record (OUTPUT_CONTRACT.md),
-plus `meta` ({"engine": "lite", "version", "steps": what the code dropped per step}). The model is asked one question per
-step about the whole call (S1 in chunks of turns on long discoveries), always with the transcript as the same cached
-prefix; the code checks every quote and decides every level, verdict and score. A crash in one competence makes it
-`to_review` (reason engine_error) without stopping the others, as in the reference pipeline.
+`analyse(ctx, client, config)` rend la même analyse enregistrée que lnp_analyse.chaine_analyse.enregistrement_resultat
+(docs/CONTRAT_DE_SORTIE.md), plus `meta` ({"engine": "lite", "version", "steps" : ce que le code a écarté à chaque
+étape}). Le modèle reçoit une question par étape sur l'appel entier (S1 par blocs de tours quand la découverte est
+longue), toujours avec la transcription comme même préfixe en cache ; le code vérifie chaque citation et décide de chaque
+niveau, verdict et note. Un plantage dans une compétence la met `to_review` (raison engine_error) sans arrêter les
+autres, comme dans la chaîne de référence.
 """
 from __future__ import annotations
 
@@ -27,8 +29,8 @@ from .etapes import Etapes, remplir, charger
 
 DEFAUTS: dict[str, Any] = {
     "tier": "fast",                 # crm_ca_config.tiers.fast (claude-haiku-5-5)
-    "effort": "low",                # thinking on, kept short
-    "s1_chunk_turns": 160,          # turns of discovery per S1 call (a split happens anyway if an answer is cut)
+    "effort": "low",                # réflexion activée, gardée courte
+    "s1_chunk_turns": 160,          # tours de découverte par appel S1 (on coupe de toute façon si une réponse est tronquée)
     "s1_min_chunk_turns": 30,
     "max_tokens": {"S0": 6000, "S1": 16000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
@@ -36,19 +38,20 @@ REGLES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTION
 
 
 class ErreurModeleAllege(RuntimeError):
-    """The model steps failed (no valid JSON after a replay) on the phase map or on most steps: nothing is stored."""
+    """Les étapes du modèle ont échoué (aucun JSON valide après une nouvelle demande) sur la carte des phases ou sur la
+    plupart des étapes : rien n'est enregistré."""
     final = True
 
 
 def _ancre(ctx: ContexteAppel, tid: Optional[str]) -> str:
-    return f"{tid} ({ctx.tour(tid).ts})" if tid else "none"
+    return f"{tid} ({ctx.tour(tid).ts})" if tid else "aucun"
 
 
 def ancres(ctx: ContexteAppel) -> str:
     ph = ctx.phases
-    return (f"PHASE MAP (decided by the code): discovery start {_ancre(ctx, ph.debut_decouverte)}; pitch start "
-            f"{_ancre(ctx, ph.debut_presentation)}; first price {_ancre(ctx, ph.premier_prix)}; decision request "
-            f"{_ancre(ctx, ph.demande_decision)}.")
+    return (f"CARTE DES PHASES (décidée par le code) : début de la découverte {_ancre(ctx, ph.debut_decouverte)} ; "
+            f"début de la présentation {_ancre(ctx, ph.debut_presentation)} ; premier prix {_ancre(ctx, ph.premier_prix)} ; "
+            f"demande de décision {_ancre(ctx, ph.demande_decision)}.")
 
 
 def _fenetres(ctx: ContexteAppel, taille: int) -> list[tuple[int, int]]:
@@ -57,18 +60,21 @@ def _fenetres(ctx: ContexteAppel, taille: int) -> list[tuple[int, int]]:
 
 
 def executer_s1(ctx: ContexteAppel, etapes: Etapes, cfg: dict, rejets: Rejets) -> Optional[list]:
-    """S1 over the turns before the first pitch start or price, in chunks; an answer cut by max_tokens is asked again
-    as two halves. Returns the questions, or None if every chunk failed."""
+    """S1 sur les tours avant le premier début de présentation ou le premier prix, par blocs ; une réponse coupée par
+    max_tokens est redemandée en deux moitiés. Rend les questions, ou None si tous les blocs ont échoué."""
     file, sortie, echoue, fait = _fenetres(ctx, cfg["s1_chunk_turns"]), [], 0, 0
     fin = ctx.phases.fin_decouverte
-    if not file:                                   # the pitch starts at the first turn: no discovery (SPIN §5)
+    if not file:                                   # la présentation commence au premier tour : pas de découverte (SPIN §5)
         return []
     while file:
         a, b = file.pop(0)
         ta, tb = ctx.tours[a].id, ctx.tours[b].id
-        fenetre = (f"Read the questions asked in turns {ta} to {tb} only (their answers may continue after {tb}). "
-                  + (f"The first pitch start or price is at {fin}: nothing from {fin} on is discovery (SB-34)."
-                     if fin else "No pitch start or price was found: the whole call can be discovery."))
+        fenetre = (f"Lis seulement les questions posées dans les tours {ta} à {tb} (leurs réponses peuvent continuer "
+                   f"après {tb}). "
+                  + (f"Le premier début de présentation ou le premier prix est au tour {fin} : rien à partir de {fin} "
+                     f"n'est de la découverte (SB-34)."
+                     if fin else "Aucun début de présentation ni aucun prix n'a été trouvé : tout l'appel peut être "
+                                 "de la découverte."))
         rep = etapes.demander("lite.s1_discovery", f"{ta}-{tb}", remplir(charger("s1_decouverte"), fenetre=fenetre),
                         cfg["max_tokens"]["S1"], rejouer_tronque=False)
         if rep.reponse is None and rep.raison_arret == "max_tokens" and b - a + 1 > cfg["s1_min_chunk_turns"]:
@@ -91,7 +97,7 @@ def _a_revoir(nom_: str, raison: str = "engine_error") -> ResultatCompetence:
 def _sur(ctx: ContexteAppel, nom_: str, fn) -> ResultatCompetence:
     try:
         return fn()
-    except Exception as e:  # noqa: BLE001 - a crash in one competence never blocks the others
+    except Exception as e:  # noqa: BLE001 - un plantage dans une compétence ne bloque jamais les autres
         ctx.audit.append({"competence": nom_, "error": repr(e)[:500]})
         return _a_revoir(nom_)
 
@@ -101,7 +107,7 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
     cfg["max_tokens"] = {**DEFAUTS["max_tokens"], **((config or {}).get("max_tokens") or {})}
     rejets = Rejets()
     meta = {"engine": "lite", "version": VERSION_ALLEGEE, "tier": cfg["tier"], "effort": cfg["effort"]}
-    porte_diarisation(ctx)                                    # C1 (code); no model attribution check in lite
+    porte_diarisation(ctx)                                    # C1 (code) ; pas de vérification d'attribution par le modèle en allégé
     if ctx.statut != "ok":
         for nom_, rv in REGLES.items():
             ctx.resultats[nom_] = ResultatCompetence(nom_, rv, statut="excluded", raisons=[ctx.statut])
@@ -110,13 +116,13 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
     echoue: list[str] = []
     tente = ["S0", "S1"]
 
-    # S0 · phase map
+    # S0 · carte des phases
     s0 = etapes.demander("lite.s0_phases", "call", charger("s0_phases"), cfg["max_tokens"]["S0"])
     if s0.reponse is None:
-        raise ErreurModeleAllege(f"phase map (S0): {s0.erreur}")
+        raise ErreurModeleAllege(f"carte des phases (S0) : {s0.erreur}")
     appliquer_phases(ctx, s0.reponse, rejets)
 
-    # S1 · discovery → SPIN and the shared fact base
+    # S1 · découverte → SPIN et la base de faits commune
     questions = executer_s1(ctx, etapes, cfg, rejets)
     faits = FaitsSpin()
     if questions is None:
@@ -129,12 +135,12 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
             return res
         ctx.resultats["SPIN"] = _sur(ctx, "SPIN", spin)
 
-    # S2 · gap (needs the discovery facts)
+    # S2 · écart (a besoin des faits de la découverte)
     if "engine_error" in ctx.resultats["SPIN"].raisons:
         ctx.resultats["GAP"] = _a_revoir("GAP", "engine_error")
     else:
         flimite = ctx.phases.premier_prix or ctx.phases.demande_decision
-        consigne = remplir(charger("s2_ecart"), ancres=ancres(ctx), limite=f"turn {flimite}" if flimite else "the end of the call",
+        consigne = remplir(charger("s2_ecart"), ancres=ancres(ctx), limite=f"le tour {flimite}" if flimite else "la fin de l'appel",
                       enonces=texte_enonces(ctx))
         tente.append("S2")
         s2 = etapes.demander("lite.s2_gap", "call", consigne, cfg["max_tokens"]["S2"])
@@ -145,9 +151,9 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
             ctx.resultats["GAP"] = _sur(ctx, "GAP", lambda: executer_ecart(ctx, s2.reponse, faits, rejets))
     _regles_ecart(ctx, questions, rejets, meta)
 
-    # S3 · pitch (needs the Gap result: validated P, selected A and B, roadmap blockers)
+    # S3 · présentation (a besoin du résultat de l'écart : P validé, A et B retenus, blocages de la feuille de route)
     if not ctx.phases.debut_presentation:
-        ctx.resultats["PITCH"] = _sur(ctx, "PITCH", lambda: P.decider(ctx, {}))          # not applicable (§4)
+        ctx.resultats["PITCH"] = _sur(ctx, "PITCH", lambda: P.decider(ctx, {}))          # non applicable (§4)
     else:
         c = texte_contexte(ctx)
         consigne = remplir(charger("s3_presentation"), ancres=ancres(ctx), vp=c["vp"], a=c["a"], b=c["b"], blocages=c["blockers"],
@@ -160,7 +166,7 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
         else:
             ctx.resultats["PITCH"] = _sur(ctx, "PITCH", lambda: executer_presentation(ctx, s3.reponse, rejets))
 
-    # S4 · objections after the first price (OB-27), prevention before it; no price = nothing to read
+    # S4 · objections après le premier prix (OB-27), prévention avant lui ; pas de prix = rien à lire
     if not ctx.phases.premier_prix:
         ctx.resultats["OBJECTIONS"] = ResultatCompetence("OBJECTIONS", REGLES["OBJECTIONS"], statut="not_applicable",
                                                      raisons=["no_resistance_no_price"], concordance="single_reading")
@@ -175,17 +181,18 @@ def analyse(ctx: ContexteAppel, client: Any, config: Optional[dict] = None) -> d
             ctx.resultats["OBJECTIONS"] = _sur(ctx, "OBJECTIONS", lambda: executer_objections(ctx, s4.reponse, rejets))
 
     if len(echoue) * 2 > len(tente):
-        raise ErreurModeleAllege(f"{len(echoue)} of {len(tente)} model steps gave no valid JSON: " + ", ".join(echoue))
+        raise ErreurModeleAllege(f"{len(echoue)} étapes du modèle sur {len(tente)} sans JSON valide : " + ", ".join(echoue))
     meta["failed_steps"] = echoue
     return _enregistrement(ctx, meta, rejets)
 
 
 def _regles_ecart(ctx: ContexteAppel, questions: Optional[list], rejets: Rejets, meta: dict) -> None:
     """Romain, 2026-11-03.
-    - The discovery ends when the gap is made: with a gap present, the end of the discovery is its validation turn, and
-      SPIN is scored again on the questions asked up to it (a question after the validated gap is not discovery).
-      With no gap, the discovery ends before the pitch (SB-1, unchanged).
-    - A call with no discovery question, no pitch and no price has no gap to make: not applicable (§4), not absent."""
+    - La découverte finit quand l'écart est fait : avec un écart présent, la fin de la découverte est son tour de
+      validation, et SPIN est noté de nouveau sur les questions posées jusqu'à lui (une question après l'écart validé
+      n'est pas de la découverte). Sans écart, la découverte finit avant la présentation (SB-1, inchangé).
+    - Un appel sans question de découverte, sans présentation et sans prix n'a pas d'écart à faire : non applicable (§4),
+      pas absent."""
     g, sp, ph = ctx.resultats.get("GAP"), ctx.resultats.get("SPIN"), ctx.phases
     meta["discovery_end_rule"] = "pitch"
     if g and g.verdict == "present":
@@ -209,12 +216,12 @@ def _enregistrement(ctx: ContexteAppel, meta: dict, rejets: Rejets) -> dict:
     meta["steps"] = {k: {"dropped": sum(v.values()), "reasons": v} for k, v in rejets.comptes.items()}
     enr["meta"] = meta
     enr["audit"].append({"lite_drops": rejets.exemples})
-    json.dumps(enr, default=str)                            # what crm_ca_store receives
+    json.dumps(enr, default=str)                            # ce que reçoit crm_ca_store
     return enr
 
 
 def resume(enregistrement: dict) -> str:
-    """One log line: status and scores only (never a quote)."""
+    """Une ligne de journal : statut et notes seulement (jamais une citation)."""
     res = enregistrement.get("results") or {}
     parties = [f"{k}={v.get('score') if v.get('score') is not None else v.get('status')}" for k, v in res.items()]
     return f"engine=lite status={enregistrement.get('status')} turns={len(enregistrement.get('turns') or [])} " + " ".join(parties)

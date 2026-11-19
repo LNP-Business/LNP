@@ -1,106 +1,108 @@
-# Part C · The evaluation engine (common to the four competences)
+# Partie C · Le moteur d'évaluation (commun aux quatre compétences)
 
-This part is identical in the four methodology documents (SPIN, Gap, Pitch, Objections). It defines how the system reads a call, how it proves what it claims, and how individual call scores become a score for a period. A competence-specific rule always takes precedence over this part when the two differ; such differences are stated explicitly in Parts A and B.
+Cette partie est identique dans les quatre documents de méthodologie (SPIN, Écart, Présentation de l'offre, Objections). Elle définit comment le système lit un appel, comment il prouve ce qu'il affirme et comment les notes de chaque appel deviennent une note sur une période. Une règle propre à une compétence l'emporte toujours sur cette partie quand les deux diffèrent ; ces différences sont dites explicitement dans les parties A et B.
 
-## C1. Inputs and preconditions
+Dans tout le document, les rôles des tours de parole s'écrivent comme dans la transcription : `SALES` (le commercial), `PROSPECT` (le prospect) et `OTHER` (une autre personne).
 
-| Input | Requirement | If missing |
+## C1. Entrées et conditions préalables
+
+| Entrée | Exigence | Si elle manque |
 |---|---|---|
-| Transcript | Full call transcript, one entry per speaker turn, with timestamp (mm:ss or h:mm:ss) and speaker label | Call is not evaluated (status `no_transcript`) |
-| Speaker mapping | Each label mapped to `SALES`, `PROSPECT` or `OTHER` (co-decider, assistant) | Call is not evaluated (status `no_diarization`) |
-| Call metadata | `call_id`, `sales_id`, call start time in UTC, sales time zone, call type (first call, follow-up) | Call is excluded from time-window aggregation |
-| Offer reference | Current offer: name, components, price and payment options, guarantee | Pitch and Objections run with reduced checks and are flagged `offer_reference_missing` |
-| Rules version | The version of this document applied (for example `SPIN-1.0`) | Not allowed: every result must carry a version |
+| Transcription | Transcription complète de l'appel, une entrée par tour de parole, avec l'horodatage (mm:ss ou h:mm:ss) et l'étiquette du locuteur | L'appel n'est pas évalué (statut `no_transcript`) |
+| Attribution des locuteurs | Chaque étiquette rattachée à `SALES`, `PROSPECT` ou `OTHER` (codécideur, assistant) | L'appel n'est pas évalué (statut `no_diarization`) |
+| Métadonnées de l'appel | `call_id`, `sales_id`, heure de début de l'appel en UTC, fuseau horaire du commercial, type d'appel (premier appel, relance) | L'appel est exclu des calculs par période |
+| Référence de l'offre | Offre en cours : nom, composants, prix et modalités de paiement, garantie | Présentation de l'offre et Objections tournent avec des contrôles réduits et reçoivent le signal `offer_reference_missing` |
+| Version des règles | La version de ce document appliquée (par exemple `SPIN-1.0`) | Interdit : chaque résultat doit porter une version |
 
-**Diarization quality gate.** Before any analysis, the code computes the share of words attributed to each role. A call where one role holds more than 92 % of the words, or where the prospect holds fewer than 150 words, is flagged `diarization_suspect` and excluded from scoring (it remains visible in the call list). **Attribution check.** Before bounding, the model reads each turn against its label and flags three cases, each with a quote: (1) **merged turn**: a turn that contains the other role's speech (for example a sales question or a "right?" tail at the start or end of a prospect turn); (2) **swapped turn**: content that can only belong to the other role (the sales' own name, the offer described in the first person, the prospect's personal facts stated as "I" under a SALES label); (3) **echo**: the same sentence repeated under both labels within 3 turns. The code then splits a merged turn at the quoted boundary and relabels the part, relabels a swapped turn, and drops the echoed copy. A turn that cannot be repaired this way is marked `attribution_doubtful` and is excluded from every computation in which the speaker matters. A call where more than 10 % of turns are repaired or doubtful is flagged `diarization_suspect` (threshold to validate).
+**Porte de qualité de l'attribution des locuteurs.** Avant toute analyse, le code calcule la part des mots attribués à chaque rôle. Un appel où un rôle a plus de 92 % des mots, ou où le prospect a moins de 150 mots, reçoit le signal `diarization_suspect` et est exclu de la notation (il reste visible dans la liste des appels). **Contrôle de l'attribution.** Avant le bornage, le modèle lit chaque tour en regard de son étiquette et signale trois cas, chacun avec une citation : (1) **tour fusionné** : un tour qui contient la parole de l'autre rôle (par exemple une question du commercial ou une queue « ..., non ? » au début ou à la fin d'un tour du prospect) ; (2) **tour inversé** : un contenu qui ne peut appartenir qu'à l'autre rôle (le nom du commercial lui-même, l'offre décrite à la première personne, les faits personnels du prospect dits à la première personne sous une étiquette `SALES`) ; (3) **écho** : la même phrase répétée sous les deux étiquettes à moins de 3 tours d'écart. Le code coupe alors un tour fusionné à la limite citée et réétiquette la partie concernée, réétiquette un tour inversé et supprime la copie en écho. Un tour qui ne peut pas être réparé ainsi est marqué `attribution_doubtful` et est exclu de tout calcul où le locuteur compte. Un appel où plus de 10 % des tours sont réparés ou douteux reçoit le signal `diarization_suspect` (seuil à valider).
 
-## C2. Processing pipeline
+## C2. Chaîne de traitement
 
-The engine follows one rule: **the model extracts and quotes, the code decides and scores.** No language model ever outputs a score, a level or a final verdict. It only answers closed questions (yes / no / a value from a closed list) and supports each positive answer with an exact quote.
+Le moteur suit une règle : **le modèle extrait et cite, le code décide et note.** Aucun modèle de langage ne produit jamais une note, un niveau ou un verdict final. Il répond seulement à des questions fermées (oui / non / une valeur d'une liste fermée) et appuie chaque réponse positive sur une citation exacte.
 
-| Stage | Who | What it does | Output |
+| Étape | Qui | Ce qu'elle fait | Résultat |
 |---|---|---|---|
-| S0 Normalisation | Code | Joins wrapped lines, normalises whitespace and quotation marks, numbers turns `T001…`, keeps timestamps | Normalised turn list |
-| S1 Inventory | Code | Detects the units of analysis of the competence (questions, restitutions, pitch segments, objection episodes) using written segmentation rules. Nothing is deleted: doubtful units are kept with attributes | Unit list |
-| S2 Boundaries | Model, checked by code | Places phase anchors (start of discovery, first restitution, first pitch, first price, close) with turn number and exact quote | Phase map |
-| S3 Gates | Model | Answers the closed questions of the competence for each unit, with an exact quote for each positive answer | Gate answers |
-| S4 Anchoring check | Code | Verifies that every quote is an exact substring of the cited turn, spoken by the expected role | Valid or invalid answers |
-| S5 Decision | Code | Applies the decision rules of Part B in their fixed order; first matching rule wins | Item verdicts |
-| S6 Reproducibility | Code | Compares three independent passes of S3; disagreements go to arbitration | Concordance status |
-| S7 Scoring | Code | Computes item levels, the call score and its evidence list | Call result |
-| S8 Aggregation | Code | Computes period scores, volumes, confidence intervals and deltas | Period result |
+| S0 Normalisation | Code | Recolle les lignes coupées, normalise les espaces et les guillemets, numérote les tours `T001…`, garde les horodatages | Liste normalisée des tours |
+| S1 Inventaire | Code | Repère les unités d'analyse de la compétence (questions, restitutions, segments de la présentation de l'offre, épisodes d'objection) selon des règles de segmentation écrites. Rien n'est supprimé : les unités douteuses sont gardées avec des attributs | Liste des unités |
+| S2 Bornes | Modèle, contrôlé par le code | Place les ancres de phase (début de la découverte, première restitution, première présentation de l'offre, premier prix, conclusion) avec le numéro du tour et une citation exacte | Carte des phases |
+| S3 Portes | Modèle | Répond aux questions fermées de la compétence pour chaque unité, avec une citation exacte pour chaque réponse positive | Réponses aux portes |
+| S4 Contrôle d'ancrage | Code | Vérifie que chaque citation est une sous-chaîne exacte du tour cité, dite par le rôle attendu | Réponses valides ou invalides |
+| S5 Décision | Code | Applique les règles de décision de la partie B dans leur ordre fixe ; la première règle qui s'applique l'emporte | Verdicts par item |
+| S6 Reproductibilité | Code | Compare trois passes indépendantes de S3 ; les désaccords partent en arbitrage | Statut de concordance |
+| S7 Notation | Code | Calcule les niveaux des items, la note de l'appel et sa liste de preuves | Résultat de l'appel |
+| S8 Agrégation | Code | Calcule les notes par période, les volumes, les intervalles de confiance et les écarts entre périodes | Résultat de la période |
 
-## C3. Evidence rules
+## C3. Règles de preuve
 
-1. **Exact quote.** Every positive gate answer carries a quote of 2 to 40 words copied character for character from one turn. Normalised comparison: case-insensitive, whitespace collapsed, straight and curly quotes treated as equal. Transcription errors are kept as they are; they are never corrected.
-2. **Right speaker.** A quote that proves something the prospect said must come from a `PROSPECT` turn. A quote that proves a sales action must come from a `SALES` turn. A quote from the wrong role invalidates the answer.
-3. **Right place.** A quote must sit in the turn the model cites, and inside the phase the rule requires (for example "before the first pitch"). The code checks the turn number against the phase map.
-4. **Two quotes for top level.** Any item scored at level 2 must be supported by two distinct quotes (two different turns, or two non-overlapping passages). One quote caps the item at level 1.
-5. **Approval is not evidence.** A prospect turn whose only content is agreement ("yes", "exactly", "right", "that's true", "for sure", "mm-hmm", "100 %") never proves anything except an agreement, and only where a rule explicitly asks for an agreement.
-6. **Sales words are not prospect words.** Content that the sales stated and the prospect only approved is tagged `prompted_by_sales` and never counts as something the prospect said. The only exception is **anchoring**: when the sales reuses a word the prospect had already said, that word still belongs to the prospect.
-7. **Invalid answer handling.** An answer whose quote fails S4 is replayed once with the error message. If it fails again, the unit is marked `to_review` and is excluded from every score until a human or the arbiter resolves it.
+1. **Citation exacte.** Chaque réponse positive à une porte porte une citation de 2 à 40 mots copiée caractère pour caractère depuis un tour. Comparaison normalisée : sans tenir compte des majuscules, espaces regroupés, guillemets et apostrophes droits et typographiques considérés comme égaux. Les erreurs de transcription sont gardées telles quelles ; elles ne sont jamais corrigées.
+2. **Le bon locuteur.** Une citation qui prouve ce que le prospect a dit doit venir d'un tour `PROSPECT`. Une citation qui prouve une action du commercial doit venir d'un tour `SALES`. Une citation venant du mauvais rôle invalide la réponse.
+3. **Le bon endroit.** Une citation doit se trouver dans le tour que le modèle cite, et à l'intérieur de la phase que la règle exige (par exemple « avant la première présentation de l'offre »). Le code vérifie le numéro du tour sur la carte des phases.
+4. **Deux citations pour le niveau le plus haut.** Tout item noté au niveau 2 doit être appuyé par deux citations distinctes (deux tours différents, ou deux passages qui ne se chevauchent pas). Une seule citation plafonne l'item au niveau 1.
+5. **Une approbation n'est pas une preuve.** Un tour du prospect dont le seul contenu est un accord (« oui », « exactement », « c'est vrai », « c'est sûr », « mm-hmm », « à 100 % » ; en anglais « yes », « exactly », « right », « that's true », « for sure », « mm-hmm », « 100 % ») ne prouve jamais rien d'autre qu'un accord, et seulement là où une règle demande explicitement un accord.
+6. **Les mots du commercial ne sont pas les mots du prospect.** Un contenu que le commercial a énoncé et que le prospect a seulement approuvé reçoit l'étiquette `prompted_by_sales` et ne compte jamais comme une chose dite par le prospect. La seule exception est l'**ancrage** : quand le commercial reprend un mot que le prospect avait déjà dit, ce mot appartient toujours au prospect.
+7. **Traitement d'une réponse invalide.** Une réponse dont la citation échoue en S4 est rejouée une fois avec le message d'erreur. Si elle échoue encore, l'unité est marquée `to_review` (à revoir) et est exclue de toute note jusqu'à ce qu'une personne ou l'arbitre tranche.
 
-## C4. Reproducibility and arbitration
+## C4. Reproductibilité et arbitrage
 
-- **Three independent passes.** Stage S3 runs three times on every unit, with the same prompt and parameters, without any pass seeing the others. The code compares the resulting item verdicts.
-- **Concordant (3/3).** The verdict is final, status `verified`.
-- **Divergent (2/3 or less), or an invalid quote.** The unit goes to an **arbiter**: a separate model call that did not take part in the three passes, receives the full rulebook (this document), the unit, its context and the three readings, and decides by walking the decision rules in order. It never votes between the readings. Status `arbitrated`, with a one-sentence justification and a case label: `application_error` (a reading did not follow a clear rule), `rule_ambiguity` (two readings are defensible with the text) or `uncovered_case` (no rule decides). The last two are reported to the methodology owner and feed the next rules version.
-- **Unresolved.** A unit the arbiter cannot decide stays `to_review` and is excluded from scores.
-- **Cost option.** When volume makes three passes too expensive, one pass is allowed in production **only** if the reproducibility protocol (C7) has shown at least 95 % item-level concordance on the current rules version, and three passes continue to run on a random 10 % sample of calls every week. Any week where that sample falls below 95 % restores three passes on every call.
+- **Trois passes indépendantes.** L'étape S3 tourne trois fois sur chaque unité, avec la même consigne et les mêmes paramètres, sans qu'aucune passe ne voie les autres. Le code compare les verdicts par item qui en résultent.
+- **Concordantes (3/3).** Le verdict est définitif, statut `verified`.
+- **Divergentes (2/3 ou moins), ou citation invalide.** L'unité va à un **arbitre** : un appel distinct au modèle, qui n'a pas pris part aux trois passes, reçoit le règlement complet (ce document), l'unité, son contexte et les trois lectures, et tranche en parcourant les règles de décision dans l'ordre. Il ne vote jamais entre les lectures. Statut `arbitrated`, avec une justification d'une phrase et une étiquette de cas : `application_error` (une lecture n'a pas suivi une règle claire), `rule_ambiguity` (deux lectures se défendent avec le texte) ou `uncovered_case` (aucune règle ne tranche). Les deux dernières sont signalées au responsable de la méthodologie et alimentent la version suivante des règles.
+- **Non tranchée.** Une unité que l'arbitre ne peut pas trancher reste `to_review` et est exclue des notes.
+- **Option de coût.** Quand le volume rend trois passes trop chères, une seule passe est permise en production **seulement** si le protocole de reproductibilité (C7) a montré au moins 95 % de concordance par item sur la version des règles en cours, et trois passes continuent de tourner chaque semaine sur un échantillon aléatoire de 10 % des appels. Toute semaine où cet échantillon tombe sous 95 % rétablit trois passes sur chaque appel.
 
-## C5. Time windows and aggregation
+## C5. Périodes et agrégation
 
-**Windows.** The screen offers three windows. All are computed in the sales' time zone, on the call start time.
+**Périodes.** L'écran propose trois périodes. Toutes sont calculées dans le fuseau horaire du commercial, sur l'heure de début de l'appel.
 
-| Window | Definition | Comparison window for the delta |
+| Période | Définition | Période de comparaison pour l'écart |
 |---|---|---|
-| Last 7 days | From 00:00 six days before today to now (today included, 7 calendar days) | The 7 calendar days immediately before |
-| This month | From the 1st of the current calendar month at 00:00 to now | The previous calendar month, from its 1st to the same day number (or its last day if shorter) |
-| All | Every evaluated call of the sales, all time | No delta |
+| 7 derniers jours | De 00:00 six jours avant aujourd'hui jusqu'à maintenant (aujourd'hui compris, 7 jours calendaires) | Les 7 jours calendaires qui précèdent immédiatement |
+| Ce mois-ci | Du 1er du mois calendaire en cours à 00:00 jusqu'à maintenant | Le mois calendaire précédent, de son 1er jusqu'au même numéro de jour (ou à son dernier jour s'il est plus court) |
+| Tout | Tous les appels évalués du commercial, depuis le début | Pas d'écart |
 
-**Evaluable calls.** A call enters the window score of a competence only if its competence status is `scored`. Calls with status `not_applicable` (for example no objection was raised), `excluded` or `to_review` are counted and shown, never averaged.
+**Appels évaluables.** Un appel entre dans la note de période d'une compétence seulement si son statut pour cette compétence est `scored`. Les appels de statut `not_applicable` (par exemple aucune objection n'a été soulevée), `excluded` ou `to_review` sont comptés et affichés, jamais moyennés.
 
-**Period score.** The period score is the arithmetic mean of the call scores of the evaluable calls in the window. Each call weighs the same, whatever its length.
+**Note de la période.** La note de la période est la moyenne arithmétique des notes des appels évaluables de la période. Chaque appel pèse autant, quelle que soit sa durée.
 
-**Item rates.** Each item is also shown as a rate for the period: the share of evaluable calls where the item reached level 2, and the share where it reached at least level 1.
+**Taux par item.** Chaque item est aussi affiché comme un taux sur la période : la part des appels évaluables où l'item a atteint le niveau 2, et la part où il a atteint au moins le niveau 1.
 
-**Minimum volume.** With fewer than 5 evaluable calls the period score is displayed in grey with the label "insufficient volume (n calls)" and no level is assigned. With 5 to 19 calls the score is displayed with its 95 % confidence interval. From 20 calls the interval is still computed but only shown on hover.
+**Volume minimal.** Avec moins de 5 appels évaluables, la note de la période s'affiche en gris avec la mention « volume insuffisant (n appels) » et aucun niveau n'est attribué. De 5 à 19 appels, la note s'affiche avec son intervalle de confiance à 95 %. À partir de 20 appels, l'intervalle est toujours calculé mais n'apparaît qu'au survol.
 
-**Confidence interval.** 95 % interval of the mean using the Student t distribution: mean ± t(0.975, n−1) × standard deviation / √n, bounded to [0, 100]. For item rates, the Wilson interval is used.
+**Intervalle de confiance.** Intervalle à 95 % de la moyenne avec la loi de Student : moyenne ± t(0,975, n−1) × écart-type / √n, borné à [0, 100]. Pour les taux par item, on utilise l'intervalle de Wilson.
 
-**Delta.** Delta = period score − comparison period score, in points, shown only if both periods have at least 5 evaluable calls. A delta whose absolute value is smaller than half the width of the current confidence interval is displayed as "stable".
+**Écart entre périodes.** Écart = note de la période − note de la période de comparaison, en points, affiché seulement si les deux périodes ont au moins 5 appels évaluables. Un écart dont la valeur absolue est inférieure à la moitié de la largeur de l'intervalle de confiance en cours s'affiche « stable ».
 
-## C6. Levels and display
+## C6. Niveaux et affichage
 
-| Score | Level | Meaning |
+| Note | Niveau | Sens |
 |---|---|---|
-| 85 to 100 | Mastered | Executed correctly on almost every call |
-| 60 to 84 | Developing | Executed, with recurrent gaps |
-| 0 to 59 | Needs work | Not executed reliably |
+| 85 à 100 | Maîtrisé | Exécuté correctement sur presque chaque appel |
+| 60 à 84 | En progrès | Exécuté, avec des manques récurrents |
+| 0 à 59 | À travailler | Pas exécuté de façon fiable |
 
-**Floor rule.** If any item of the competence has a level-2 rate below 25 % over the window, the competence level cannot be above "Developing", whatever the score. This prevents an average from hiding a gesture that is almost never performed.
+**Règle du plancher.** Si un item de la compétence a un taux de niveau 2 inférieur à 25 % sur la période, le niveau de la compétence ne peut pas dépasser « En progrès », quelle que soit la note. Cela empêche une moyenne de cacher un geste presque jamais fait.
 
-**Bottleneck.** On the screen, the competence with the lowest period score (among those with at least 5 evaluable calls) is labelled "Bottleneck #1". Ties are broken by the lowest level-2 rate on any single item.
+**Point de blocage.** À l'écran, la compétence qui a la note de période la plus basse (parmi celles qui ont au moins 5 appels évaluables) porte la mention « Point de blocage n° 1 ». Les égalités sont départagées par le taux de niveau 2 le plus bas sur un seul item.
 
-**Every number is clickable.** Each item level of each call opens its evidence: the quotes, their turns and timestamps, and the transcript extract around them (± 3 minutes).
+**Chaque nombre est cliquable.** Chaque niveau d'item de chaque appel ouvre ses preuves : les citations, leurs tours et horodatages, et l'extrait de la transcription autour (± 3 minutes).
 
-## C7. Reliability protocol
+## C7. Protocole de fiabilité
 
-No accuracy figure is published before it has been measured.
+Aucun chiffre de précision n'est publié avant d'avoir été mesuré.
 
-| What is measured | Method | Threshold |
+| Ce qui est mesuré | Méthode | Seuil |
 |---|---|---|
-| Human agreement on units | Two certified annotators segment the same 3 calls independently | ≥ 95 % identical units |
-| Human agreement on items | Two annotators score the same calls, blind to each other | Raw agreement ≥ 85 % and Cohen's κ ≥ 0.80 per item |
-| Machine vs gold standard | 30 real calls with known outcome, 20 for calibration, 10 for test, split frozen before annotation | Item agreement ≥ human agreement − 5 points |
-| Reproducibility | Same verdict on 3 independent passes | ≥ 95 % per item |
-| Anchoring | Quotes found verbatim in the transcript | 100 % (anything else is a defect) |
-| Health | Units where no rule could decide | ≤ 5 % per call; above that the call is not displayed to the sales |
+| Accord humain sur les unités | Deux annotateurs certifiés segmentent les 3 mêmes appels séparément | ≥ 95 % d'unités identiques |
+| Accord humain sur les items | Deux annotateurs notent les mêmes appels sans voir le travail de l'autre | Accord brut ≥ 85 % et κ de Cohen ≥ 0,80 par item |
+| Machine contre référence | 30 vrais appels dont l'issue est connue, 20 pour la calibration, 10 pour le test, répartition figée avant l'annotation | Accord par item ≥ accord humain − 5 points |
+| Reproductibilité | Même verdict sur 3 passes indépendantes | ≥ 95 % par item |
+| Ancrage | Citations retrouvées mot pour mot dans la transcription | 100 % (tout le reste est un défaut) |
+| Santé | Unités qu'aucune règle n'a pu trancher | ≤ 5 % par appel ; au-delà, l'appel n'est pas montré au commercial |
 
-Until every threshold is met on the current rules version, every score carries the label **"provisional"** on the screen. The test set is never used to adjust a rule, a prompt or a threshold. Below a threshold, the rule is rewritten; the threshold never is.
+Tant que chaque seuil n'est pas atteint sur la version des règles en cours, chaque note porte la mention **« provisoire »** à l'écran. L'ensemble de test ne sert jamais à ajuster une règle, une consigne ou un seuil. Sous un seuil, on réécrit la règle ; jamais le seuil.
 
-## C8. Versioning and audit
+## C8. Versions et audit
 
-- Every call result stores the rules version, the model identifier, the prompt hash, the three raw passes, the arbiter decision if any, and the timestamp of computation.
-- A score computed under one rules version is never compared with a score computed under another. When a version changes, the historical calls of the window are re-scored before any delta is shown.
-- Every arbitration and every human correction is logged with: unit id, readings, decision, case label, author, date. A human may correct a verdict; nobody may edit a stored score by hand.
+- Chaque résultat d'appel garde la version des règles, l'identifiant du modèle, l'empreinte de la consigne, les trois passes brutes, la décision de l'arbitre s'il y en a une, et l'heure du calcul.
+- Une note calculée avec une version des règles n'est jamais comparée à une note calculée avec une autre. Quand une version change, les appels passés de la période sont notés à nouveau avant qu'un écart ne s'affiche.
+- Chaque arbitrage et chaque correction humaine est consigné avec : identifiant de l'unité, lectures, décision, étiquette de cas, auteur, date. Une personne peut corriger un verdict ; personne ne peut modifier à la main une note enregistrée.

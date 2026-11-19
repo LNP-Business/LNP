@@ -1,193 +1,195 @@
-# Competence 1 · SPIN Discovery
-_Scoring methodology: how the system measures whether the sales ran a discovery that made the prospect state their problem, its consequences and the value of solving it_
+# Compétence 1 · Découverte SPIN
+_Méthodologie de notation : comment le système mesure si le commercial a mené une découverte qui a fait dire au prospect son problème, ses conséquences et la valeur de sa résolution_
 
-**Version:** Version 1.1 · 25 October 2026  
-**Status:** Draft for validation by the methodology owner. Values marked "to validate" are proposals.  
-**Scope:** Sales calls (first call and any call that reopens discovery). Sources: LNP SPIN bounding reference v1.0, LNP verbatim reference v2, analysis of 85 real calls.  
-# 1. What this competence measures
+**Version :** version 1.1 · 25 octobre 2026  
+**Statut :** brouillon à faire valider par le responsable de la méthodologie. Les valeurs marquées « à valider » sont des propositions.  
+**Périmètre :** appels de vente (premier appel et tout appel qui rouvre la découverte). Sources : référence de bornage SPIN LNP v1.0, référence des verbatims LNP v2, analyse de 85 vrais appels.  
+# 1. Ce que mesure cette compétence
 
-**Definition.** SPIN Discovery is the sales' ability to lead the prospect, through questions, to say in their own words: their current situation, what is not working, what it costs them outside the problem itself, and what solving it would be worth to them.
+**Définition.** La découverte SPIN est la capacité du commercial à amener le prospect, par des questions, à dire avec ses propres mots : sa situation actuelle, ce qui ne marche pas, ce que cela lui coûte en dehors du problème lui-même, et ce que sa résolution vaudrait pour lui.
 
-**What success means, in one sentence.** The sales succeeded when the prospect, not the sales, has verbalised a measurable starting point, at least one problem, at least two consequences of that problem in other areas of life (one of them quantified), and a desired state with the value they attach to it, and when these came out of chains of questions that dug into the same problem.
+**Ce que veut dire réussir, en une phrase.** Le commercial a réussi quand le prospect, et non le commercial, a verbalisé un point de départ mesurable, au moins un problème, au moins deux conséquences de ce problème dans d'autres domaines de sa vie (dont une chiffrée), et un état désiré avec la valeur qu'il y attache, et quand tout cela est sorti de suites de questions qui ont creusé le même problème.
 
-**The governing principle.** The system measures the **effect** of the questions on the prospect, never the number of questions. A question earns nothing by itself; only what the prospect says in response does. This follows the SPIN research (Rackham, Huthwaite: in complex sales, implication and need-payoff questions predict progress because they make the buyer state the problem's consequences and the value of solving it) and the LNP guard: **the letter of a question never produces points.** If question counts entered the score, sales would fire questions to fill the counter.
+**Le principe directeur.** Le système mesure l'**effet** des questions sur le prospect, jamais le nombre de questions. Une question ne rapporte rien par elle-même ; seul ce que le prospect dit en réponse compte. Cela suit la recherche SPIN (Rackham, Huthwaite : dans les ventes complexes, les questions d'implication et de bénéfice attendu prédisent l'avancée parce qu'elles font dire à l'acheteur les conséquences du problème et la valeur de sa résolution) et le garde-fou de LNP : **la lettre d'une question ne produit jamais de points.** Si le nombre de questions entrait dans la note, les commerciaux enchaîneraient les questions pour remplir le compteur.
 
-The analysis therefore has two layers that are never mixed:
+L'analyse a donc deux couches qui ne se mélangent jamais :
 
-| Layer | What it reads | What it produces | Scored? |
+| Couche | Ce qu'elle lit | Ce qu'elle produit | Notée ? |
 |---|---|---|---|
-| Letter layer | The sales' question | S, P, I, N or OUT, with the gate and the evidence | No. Coaching diagnostics only (Part B §8) |
-| Effect layer | The prospect's answer | Atoms: SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE | Yes. The SPIN score (Part B §6) |
+| Couche des lettres | La question du commercial | S, P, I, N ou OUT, avec la porte et la preuve | Non. Diagnostics d'accompagnement seulement (partie B §8) |
+| Couche de l'effet | La réponse du prospect | Atomes : SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE | Oui. La note SPIN (partie B §6) |
 
-# Part A · Definitions
-The rules that find each element in a raw transcript (units, start and end markers, segmentation, exclusions and minimal pairs) are in **Annex A · Bounding rules**. **Annex B** gives real annotated cases for calibration. A verdict that cannot be reached with these rules goes to the arbiter as an uncovered case.
+# Partie A · Définitions
+Les règles qui trouvent chaque élément dans une transcription brute (unités, marqueurs de début et de fin, segmentation, exclusions et paires minimales) sont dans l'**annexe A · Règles de bornage**. L'**annexe B** donne de vrais cas annotés pour la calibration. Un verdict qu'on ne peut pas atteindre avec ces règles va à l'arbitre comme cas non couvert.
 
-# 2. Units and vocabulary
+# 2. Unités et vocabulaire
 
-**Solicitation.** Any proposition of the sales that requests an answer from the prospect. It is recognised by any one of three signals: a final question mark; an interrogative form without a question mark (inversion, interrogative word at the head of the clause); an imperative of request ("tell me", "walk me through", "help me understand", "describe"). An elliptical form ("And the revenue?") is a solicitation.
+Dans tout le document, les rôles des tours de parole s'écrivent comme dans la transcription : `SALES` (le commercial), `PROSPECT` (le prospect) et `OTHER` (une autre personne).
 
-**Segmentation rules.**
-- **SEG-1.** One interrogative clause, one solicitation. Three questions in one turn are three units, numbered `Q007.1`, `Q007.2`, `Q007.3`.
-- **SEG-2.** Two coordinated interrogatives are two units if the prospect can answer one without the other ("How much is it stuck at, and since when?"). Complements attached to one question do not split it ("what does it cost you, on your month, on your family?").
-- **SEG-3.** An alternative ("is it the price or the timing?") is one unit.
-- **SEG-4.** A validation tail ("…, right?", "…, no?", "…, is that it?", "does that make sense?") belongs to the clause it closes and is never counted separately.
-- **SEG-5.** A declarative preamble in the same turn is not a solicitation, but its words count for anchoring.
-- **SEG-6.** An interrupted question counts if it is intelligible and the prospect answers it; otherwise it is kept with the attribute `debris` and excluded.
-- **SEG-7.** Backchannel ("hmm?", "oh yeah?", "really?") spoken over the prospect is never a solicitation.
-- **SEG-8.** Only the sales produces solicitations. A question of the prospect is never coded.
+**Sollicitation.** Toute proposition du commercial qui demande une réponse au prospect. On la reconnaît à l'un de trois signaux : un point d'interrogation final ; une forme interrogative sans point d'interrogation (inversion, mot interrogatif en tête de proposition) ; un impératif de demande (« dis-moi », « racontez-moi », « explique-moi », « aidez-moi à comprendre », « décris » ; en anglais « tell me », « walk me through », « help me understand », « describe »). Une forme elliptique (« Et le chiffre d'affaires ? ») est une sollicitation.
 
-**Discovery perimeter.** Only solicitations inside the perimeter are coded:
-- **Start:** the first solicitation about the prospect's situation, goals or problems that is neither social (where are you calling from, family small talk), nor logistic, nor framing ("here is how the call will go").
-- **End:** the first pitch start or the first price, whichever comes first (Pitch methodology, Annex A, PB-1 and PB-3). A restitution of the gap does **not** end the perimeter: questions asked after a restitution and before the pitch are still discovery (see Annex A, SB-1, and the decision in §11).
-- **No reopening (v1.2, SB-34):** the discovery ends at the first pitch start or price and never reopens; nothing said after it is SPIN.
+**Règles de segmentation.**
+- **SEG-1.** Une proposition interrogative, une sollicitation. Trois questions dans un même tour font trois unités, numérotées `Q007.1`, `Q007.2`, `Q007.3`.
+- **SEG-2.** Deux interrogatives coordonnées font deux unités si le prospect peut répondre à l'une sans l'autre (« Tu bloques à combien, et depuis quand ? »). Les compléments rattachés à une question ne la coupent pas (« qu'est-ce que ça te coûte, sur ton mois, sur ta famille ? »).
+- **SEG-3.** Une alternative (« c'est plutôt le prix ou le moment ? ») est une seule unité.
+- **SEG-4.** Une queue de validation (« ..., non ? », « ..., c'est ça ? », « ..., hein ? », « ça te parle ? » ; en anglais « …, right? », « …, no? », « …, is that it? », « does that make sense? ») appartient à la proposition qu'elle termine et n'est jamais comptée à part.
+- **SEG-5.** Un préambule déclaratif dans le même tour n'est pas une sollicitation, mais ses mots comptent pour l'ancrage.
+- **SEG-6.** Une question interrompue compte si elle est intelligible et que le prospect y répond ; sinon elle est gardée avec l'attribut `debris` et exclue.
+- **SEG-7.** Une relance d'écoute (« hmm ? », « ah ouais ? », « c'est vrai ? ») dite par-dessus le prospect n'est jamais une sollicitation.
+- **SEG-8.** Seul le commercial produit des sollicitations. Une question du prospect n'est jamais codée.
 
-**Letters.**
+**Périmètre de la découverte.** Seules les sollicitations situées dans le périmètre sont codées :
+- **Début :** la première sollicitation sur la situation, les objectifs ou les problèmes du prospect qui n'est ni sociale (d'où tu appelles, papotage sur la famille), ni logistique, ni de cadrage (« voilà comment va se passer l'appel »).
+- **Fin :** le premier début de la présentation de l'offre ou le premier prix, selon ce qui vient en premier (méthodologie de la présentation de l'offre, annexe A, PB-1 et PB-3). Une restitution de l'écart ne termine **pas** le périmètre : les questions posées après une restitution et avant la présentation de l'offre sont encore de la découverte (voir annexe A, SB-1, et la décision du §11).
+- **Pas de réouverture (v1.2, SB-34) :** la découverte se termine au premier début de la présentation de l'offre ou au premier prix et ne se rouvre jamais ; rien de ce qui est dit après n'est du SPIN.
 
-| Letter | The question requests… |
+**Lettres.**
+
+| Lettre | La question demande… |
 |---|---|
-| S · Situation | a neutral fact that can be verified today: a number, a duration, a name, a status, a description of what is done today |
-| P · Problem | the difficulty itself, formulated by the prospect: a lack, a blocker, a loss, a dissatisfaction, a failed attempt |
-| I · Implication | what the problem does: a consequence outside the problem's own domain (money, time, clients, family, health, self-belief, future) |
-| N · Need-payoff | a desired state that does not exist yet, or the value the prospect attaches to solving the problem, said by the prospect |
-| OUT | an agreement, a choice in the sales' list, information about the offer, the load of a solution, or nothing of substance |
+| S · Situation | un fait neutre vérifiable aujourd'hui : un nombre, une durée, un nom, un statut, une description de ce qui se fait aujourd'hui |
+| P · Problème | la difficulté elle-même, formulée par le prospect : un manque, un blocage, une perte, une insatisfaction, une tentative ratée |
+| I · Implication | ce que fait le problème : une conséquence en dehors du domaine propre du problème (argent, temps, clients, famille, santé, confiance en soi, avenir) |
+| N · Bénéfice attendu (need-payoff) | un état désiré qui n'existe pas encore, ou la valeur que le prospect attache à la résolution du problème, dite par le prospect |
+| OUT | un accord, un choix dans la liste du commercial, une information sur l'offre, la charge d'une solution, ou rien de substantiel |
 
-**Domain.** A unit of loss: money, hours, clients, staff, sleep, health, reputation, family, self-belief. A time or place perimeter ("the rest of the week", "at home in the evening") is not a domain.
+**Domaine.** Une unité de perte : argent, heures, clients, personnel, sommeil, santé, réputation, famille, confiance en soi. Un périmètre de temps ou de lieu (« le reste de la semaine », « à la maison le soir ») n'est pas un domaine.
 
-**Atoms (effect layer).** What the prospect produced in an answer.
+**Atomes (couche de l'effet).** Ce que le prospect a produit dans une réponse.
 
-| Atom | The prospect states… | Typically produced by |
+| Atome | Le prospect dit… | Produit en général par |
 |---|---|---|
-| SITUATION | a neutral fact about today | S |
-| PAIN | something that is not working, in their words | P |
-| BLOCKER | what prevents them from reaching their goal | P |
-| IMPACT | a consequence of the problem in another domain | I |
-| DESIRE | a desired future state | N |
-| VALUE | why solving it matters, what it would change, what they would do with it | N |
+| SITUATION | un fait neutre sur aujourd'hui | S |
+| PAIN | quelque chose qui ne marche pas, avec ses mots | P |
+| BLOCKER | ce qui l'empêche d'atteindre son objectif | P |
+| IMPACT | une conséquence du problème dans un autre domaine | I |
+| DESIRE | un état futur désiré | N |
+| VALUE | pourquoi la résolution compte, ce qu'elle changerait, ce qu'il en ferait | N |
 
-An atom is attached to the question that produced it, but **never changes the letter of that question**. A situation question that receives a quantified pain stays an S; an implication question answered "I don't know" stays an I.
+Un atome est rattaché à la question qui l'a produit, mais **ne change jamais la lettre de cette question**. Une question de situation qui reçoit une douleur chiffrée reste un S ; une question d'implication à laquelle le prospect répond « je ne sais pas » reste un I.
 
-# 3. How a question gets its letter
+# 3. Comment une question reçoit sa lettre
 
-The model does not choose a letter. It answers five gates in a fixed order, each with an exact quote. The code applies the order: **the first "yes" wins.** At each gate, the exclusion is evaluated before the positive test.
+Le modèle ne choisit pas une lettre. Il répond à cinq portes dans un ordre fixe, chacune avec une citation exacte. Le code applique l'ordre : **le premier « oui » l'emporte.** À chaque porte, l'exclusion est évaluée avant le test positif.
 
-| Gate | Closed question asked to the model | If yes |
+| Porte | Question fermée posée au modèle | Si oui |
 |---|---|---|
-| 0 Routing | Does it ask to confirm a complete restitution of the gap, or ask for a purchase decision? | `VALIDATION_REQUEST` or `DECISION_REQUEST`, not coded |
-| 1 OUT | Is the expected answer only an agreement with what the sales just asserted, a choice among options listed by the sales, information or an opinion about the sales' offer, the estimated load of a solution, or nothing of substance? | OUT, with its reason |
-| 2 S | Is the expected answer a neutral fact the prospect could verify today? (No if it asks them to name a difficulty, a consequence or a state that does not exist yet) | S |
-| 3 N | Is the expected answer a desired state that does not exist yet, or the value of the resolution? (No if the question already contains that state or value, names a load, or bears on the offer; no if the antecedent is the problem continuing) | N |
-| 4 I | Is the expected answer a consequence of the problem, in a domain other than the problem's own? | I |
-| 5 P | Is the expected answer the difficulty itself, formulated by the prospect? (No if the sales already named it in their own words) | P |
-| none | No gate answered yes | OUT, reason `absent` (a system defect, never counted against the sales) |
+| 0 Aiguillage | Demande-t-elle de confirmer une restitution complète de l'écart, ou demande-t-elle une décision d'achat ? | `VALIDATION_REQUEST` ou `DECISION_REQUEST`, non codée |
+| 1 OUT | La réponse attendue est-elle seulement un accord avec ce que le commercial vient d'affirmer, un choix parmi des options listées par le commercial, une information ou un avis sur l'offre du commercial, la charge estimée d'une solution, ou rien de substantiel ? | OUT, avec sa raison |
+| 2 S | La réponse attendue est-elle un fait neutre que le prospect pourrait vérifier aujourd'hui ? (Non si elle lui demande de nommer une difficulté, une conséquence ou un état qui n'existe pas encore) | S |
+| 3 N | La réponse attendue est-elle un état désiré qui n'existe pas encore, ou la valeur de la résolution ? (Non si la question contient déjà cet état ou cette valeur, nomme une charge ou porte sur l'offre ; non si l'antécédent est la poursuite du problème) | N |
+| 4 I | La réponse attendue est-elle une conséquence du problème, dans un domaine autre que le domaine propre du problème ? | I |
+| 5 P | La réponse attendue est-elle la difficulté elle-même, formulée par le prospect ? (Non si le commercial l'a déjà nommée avec ses propres mots) | P |
+| aucune | Aucune porte n'a répondu oui | OUT, raison `absent` (un défaut du système, jamais compté contre le commercial) |
 
-**OUT reasons, in priority order:** `nothing` (social, logistic, framing, rhetorical, "does that make sense?"), `offer_info`, `solution_load`, `sales_list`, `agreement`, `absent`. A need-payoff whose content is supplied by the sales ("so your goal is probably about $10,000, right?") is OUT `agreement` with the tag `closed_need_payoff`.
+**Raisons de OUT, par ordre de priorité :** `nothing` (social, logistique, cadrage, rhétorique, « ça te parle ? »), `offer_info`, `solution_load`, `sales_list`, `agreement`, `absent`. Un bénéfice attendu dont le contenu est fourni par le commercial (« donc ton objectif, c'est à peu près 10 000 €, c'est ça ? ») est OUT `agreement` avec l'étiquette `closed_need_payoff`.
 
-**Hard rules enforced by code, overriding the model:** a final validation tail always gives OUT `agreement`; a desired state contained in the question always gives OUT `agreement` + `closed_need_payoff`; a load of a solution always gives OUT `solution_load`; a value requested about the offer always gives OUT `offer_info`.
+**Règles strictes appliquées par le code, qui l'emportent sur le modèle :** une queue de validation finale donne toujours OUT `agreement` ; un état désiré contenu dans la question donne toujours OUT `agreement` + `closed_need_payoff` ; la charge d'une solution donne toujours OUT `solution_load` ; une valeur demandée sur l'offre donne toujours OUT `offer_info`.
 
-# Part B · Mechanism and scoring
+# Partie B · Mécanisme et notation
 
-# 4. What the system extracts from each answer
+# 4. Ce que le système extrait de chaque réponse
 
-For each coded solicitation, the model receives the question, the prospect's next turn (and the following prospect turn if the first is shorter than 6 words and the sales did not speak in between), and answers these closed questions, each positive answer with an exact quote **from the prospect turn**:
+Pour chaque sollicitation codée, le modèle reçoit la question, le tour suivant du prospect (et le tour du prospect d'après si le premier fait moins de 6 mots et que le commercial n'a pas parlé entre les deux), et répond à ces questions fermées, chaque réponse positive avec une citation exacte **tirée du tour du prospect** :
 
-| Field | Closed question | Allowed values |
+| Champ | Question fermée | Valeurs permises |
 |---|---|---|
-| `atoms` | Which atoms does the answer contain? | List of SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE, or empty |
-| `atom.quote` | Exact passage stating the atom | 2 to 40 words, prospect turn |
-| `atom.quantified` | Does the passage attach a number, amount, duration or frequency to it? | yes / no |
-| `atom.domain` | For IMPACT: which domain? | money, time, clients, family, health, self_belief, future, other |
-| `atom.problem_domain` | For IMPACT: domain of the problem it comes from | same list |
-| `atom.prompted_by_sales` | Was the content stated by the sales first and only approved? | yes / no |
-| `atom.object` | Short label of the problem it relates to (3 to 6 words) | free text, used to build chains |
-| `followed_up` | Does the next sales solicitation reuse a word or number from this answer? | computed by code (lexical overlap of content words of 4+ letters, excluding a stop list) |
+| `atoms` | Quels atomes la réponse contient-elle ? | Liste parmi SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE, ou vide |
+| `atom.quote` | Passage exact qui énonce l'atome | 2 à 40 mots, tour du prospect |
+| `atom.quantified` | Le passage y attache-t-il un nombre, un montant, une durée ou une fréquence ? | oui / non |
+| `atom.domain` | Pour IMPACT : quel domaine ? | money, time, clients, family, health, self_belief, future, other |
+| `atom.problem_domain` | Pour IMPACT : domaine du problème dont il vient | même liste |
+| `atom.prompted_by_sales` | Le contenu a-t-il été énoncé d'abord par le commercial et seulement approuvé ? | oui / non |
+| `atom.object` | Courte étiquette du problème auquel il se rapporte (3 à 6 mots) | texte libre, sert à construire les suites |
+| `followed_up` | La sollicitation suivante du commercial reprend-elle un mot ou un nombre de cette réponse ? | calculé par le code (recouvrement lexical des mots pleins de 4 lettres ou plus, hors une liste de mots vides) |
 
-**Decision rules on atoms (code):**
-- An atom with `prompted_by_sales = yes` is discarded.
-- An IMPACT whose domain equals the problem's domain is reclassified PAIN (it re-describes the problem).
-- A revenue figure is a SITUATION, never an IMPACT: a current income is not a cost of the problem. Only what the problem makes the prospect lose counts as IMPACT.
-- An answer that only contains agreement produces no atom.
-- Two atoms are **distinct** if their quotes do not overlap and, for IMPACT, their domains differ.
+**Règles de décision sur les atomes (code) :**
+- Un atome avec `prompted_by_sales = yes` est écarté.
+- Un IMPACT dont le domaine est le même que celui du problème est reclassé PAIN (il redécrit le problème).
+- Un chiffre de revenu est une SITUATION, jamais un IMPACT : un revenu actuel n'est pas un coût du problème. Seul ce que le problème fait perdre au prospect compte comme IMPACT.
+- Une réponse qui ne contient qu'un accord ne produit aucun atome.
+- Deux atomes sont **distincts** si leurs citations ne se chevauchent pas et, pour IMPACT, si leurs domaines diffèrent.
 
-**Chains.** A chain is a run of consecutive coded solicitations on the same `atom.object`, opened by a P (or an N on the desire side) whose answer produced a PAIN or BLOCKER. A chain is **deep** when it contains at least one I whose answer produced an IMPACT, followed by at least one more I or N on the same object whose answer produced an IMPACT, DESIRE or VALUE, and the sales' solicitations in the chain are `followed_up` on the previous answer.
+**Suites.** Une suite est une série de sollicitations codées consécutives sur le même `atom.object`, ouverte par un P (ou un N du côté du désir) dont la réponse a produit un PAIN ou un BLOCKER. Une suite est **profonde** quand elle contient au moins un I dont la réponse a produit un IMPACT, suivi d'au moins un autre I ou N sur le même objet dont la réponse a produit un IMPACT, un DESIRE ou une VALUE, et que les sollicitations du commercial dans la suite sont `followed_up` sur la réponse précédente.
 
-# 5. Applicability
+# 5. Applicabilité
 
-| Situation | SPIN status |
+| Situation | Statut SPIN |
 |---|---|
-| Discovery perimeter exists with at least 5 coded solicitations | `scored` |
-| Follow-up call that only reopens discovery with fewer than 5 coded solicitations | `not_applicable` |
-| No discovery (technical call, reschedule, pure follow-up) | `not_applicable` |
-| More than 5 % of perimeter solicitations with OUT `absent` | `excluded` (health) |
+| Le périmètre de la découverte existe, avec au moins 5 sollicitations codées | `scored` |
+| Appel de relance qui ne fait que rouvrir la découverte, avec moins de 5 sollicitations codées | `not_applicable` |
+| Pas de découverte (appel technique, replanification, simple relance) | `not_applicable` |
+| Plus de 5 % des sollicitations du périmètre en OUT `absent` | `excluded` (santé) |
 
-# 6. The SPIN score
+# 6. La note SPIN
 
-Five items, each scored 0, 1 or 2 from the atoms of the call. **Call score = Σ (weight × level / 2)**, rounded to the nearest integer, on 100.
+Cinq items, chacun noté 0, 1 ou 2 à partir des atomes de l'appel. **Note de l'appel = Σ (poids × niveau / 2)**, arrondie à l'entier le plus proche, sur 100.
 
-| Item | Weight | Level 0 | Level 1 | Level 2 |
+| Item | Poids | Niveau 0 | Niveau 1 | Niveau 2 |
 |---|---|---|---|---|
-| D1 Baseline | 15 | No SITUATION atom related to the goal | At least one SITUATION atom related to the goal, not quantified | At least two quantified SITUATION atoms related to the goal (for example current revenue and hours per week) |
-| D2 Problem | 20 | No PAIN or BLOCKER atom | One distinct PAIN or BLOCKER | Two or more distinct PAIN/BLOCKER atoms, or one with its cause stated by the prospect |
-| D3 Implication | 30 | No IMPACT atom | One IMPACT atom | Two or more IMPACT atoms in distinct domains, at least one quantified |
-| D4 Need-payoff | 20 | No DESIRE or VALUE atom | A DESIRE atom (desired state) | A DESIRE atom and a VALUE atom (why it matters, what it would change) |
-| D5 Depth | 15 | No deep chain | One deep chain | Two or more deep chains on different objects |
+| D1 Point de départ | 15 | Aucun atome SITUATION lié à l'objectif | Au moins un atome SITUATION lié à l'objectif, non chiffré | Au moins deux atomes SITUATION chiffrés liés à l'objectif (par exemple le chiffre d'affaires actuel et les heures par semaine) |
+| D2 Problème | 20 | Aucun atome PAIN ni BLOCKER | Un PAIN ou un BLOCKER distinct | Deux atomes PAIN/BLOCKER distincts ou plus, ou un seul avec sa cause dite par le prospect |
+| D3 Implication | 30 | Aucun atome IMPACT | Un atome IMPACT | Deux atomes IMPACT ou plus dans des domaines distincts, dont au moins un chiffré |
+| D4 Bénéfice attendu | 20 | Aucun atome DESIRE ni VALUE | Un atome DESIRE (état désiré) | Un atome DESIRE et un atome VALUE (pourquoi cela compte, ce que cela changerait) |
+| D5 Profondeur | 15 | Aucune suite profonde | Une suite profonde | Deux suites profondes ou plus sur des objets différents |
 
-"Related to the goal": the SITUATION atom bears on the same dimension as a DESIRE stated in the call (revenue, clients, time, career status). If no DESIRE exists, any quantified SITUATION atom counts.
+« Lié à l'objectif » : l'atome SITUATION porte sur la même dimension qu'un DESIRE dit dans l'appel (chiffre d'affaires, clients, temps, statut professionnel). S'il n'existe aucun DESIRE, tout atome SITUATION chiffré compte.
 
-**Two-quote rule.** Level 2 always needs at least two distinct supporting quotes. D5 level 2 needs the quotes of both chains.
+**Règle des deux citations.** Le niveau 2 demande toujours au moins deux citations distinctes à l'appui. Le niveau 2 de D5 demande les citations des deux suites.
 
-**Why these weights.** Implication carries the most weight (30) because it is the step that turns a stated problem into a felt cost; it is also the step most often missing. Baseline and depth (15 each) are enablers. The weights are proposals, to validate.
+**Pourquoi ces poids.** L'implication pèse le plus (30) parce que c'est l'étape qui transforme un problème énoncé en un coût ressenti ; c'est aussi l'étape qui manque le plus souvent. Le point de départ et la profondeur (15 chacun) sont des appuis. Les poids sont des propositions, à valider.
 
-**Item rates on the screen.** For each item: share of scored calls at level 2, share at level ≥ 1.
+**Taux par item à l'écran.** Pour chaque item : part des appels notés au niveau 2, part au niveau ≥ 1.
 
-# 7. How the system knows the sales succeeded
+# 7. Comment le système sait que le commercial a réussi
 
-The system never decides "the discovery was good" from the sales' intent or the number of questions. It concludes success only from facts it can quote:
+Le système ne décide jamais que « la découverte était bonne » à partir de l'intention du commercial ou du nombre de questions. Il ne conclut à la réussite qu'à partir de faits qu'il peut citer :
 
-1. **The prospect said it.** Each item is supported by a prospect quote, verified verbatim in the transcript (Part C, C3).
-2. **The sales caused it.** The atom is attached to a sales solicitation that preceded it in the perimeter; an atom volunteered by the prospect outside any discovery question still counts for D1 to D4 (the prospect said it), but never for D5.
-3. **It was not put in the prospect's mouth.** Prompted content is discarded; agreement alone produces nothing.
-4. **It went deep, not wide.** D5 requires chains where each question reuses the prospect's previous answer and moves from problem to consequence to value on the same object.
-5. **Three readings agree.** Every atom and every letter comes from three concordant passes or an arbitrated decision (C4).
+1. **Le prospect l'a dit.** Chaque item est appuyé par une citation du prospect, vérifiée mot pour mot dans la transcription (partie C, C3).
+2. **Le commercial l'a provoqué.** L'atome est rattaché à une sollicitation du commercial qui l'a précédé dans le périmètre ; un atome donné spontanément par le prospect en dehors de toute question de découverte compte quand même pour D1 à D4 (le prospect l'a dit), mais jamais pour D5.
+3. **On ne l'a pas mis dans la bouche du prospect.** Le contenu soufflé est écarté ; un accord seul ne produit rien.
+4. **C'est allé en profondeur, pas en largeur.** D5 exige des suites où chaque question reprend la réponse précédente du prospect et va du problème à la conséquence puis à la valeur sur le même objet.
+5. **Trois lectures concordent.** Chaque atome et chaque lettre vient de trois passes concordantes ou d'une décision arbitrée (C4).
 
-# 8. Coaching diagnostics (displayed, never scored)
+# 8. Diagnostics d'accompagnement (affichés, jamais notés)
 
-These indicators explain the score; they never enter it.
+Ces indicateurs expliquent la note ; ils n'y entrent jamais.
 
-| Diagnostic | Computation | Reference |
+| Diagnostic | Calcul | Référence |
 |---|---|---|
-| Letter distribution | Share of S, P, I, N among coded S/P/I/N solicitations | — |
-| Call budget | S and P: ceiling of 2 per call. I and N: floor of 3 per call | LNP SPIN reference |
-| Problem followed by implication | Share of P solicitations whose next coded S/P/I/N solicitation is an I | Target 50 % (to validate) |
-| Prompted answers | Share of perimeter solicitations with OUT `agreement` | Target ≤ 15 % (to validate) |
-| Closed need-payoff | Count of `closed_need_payoff` tags | Target 0 |
-| Yield per letter | Share of solicitations of a letter that produced at least one atom of the expected kind | — |
-| Follow-up rate | Share of solicitations followed by a `followed_up` sales solicitation | — |
+| Répartition des lettres | Part de S, P, I, N parmi les sollicitations codées S/P/I/N | — |
+| Budget de l'appel | S et P : plafond de 2 par appel. I et N : plancher de 3 par appel | Référence SPIN LNP |
+| Problème suivi d'une implication | Part des sollicitations P dont la sollicitation codée S/P/I/N suivante est un I | Cible 50 % (à valider) |
+| Réponses soufflées | Part des sollicitations du périmètre en OUT `agreement` | Cible ≤ 15 % (à valider) |
+| Bénéfice attendu fermé | Nombre d'étiquettes `closed_need_payoff` | Cible 0 |
+| Rendement par lettre | Part des sollicitations d'une lettre qui ont produit au moins un atome du type attendu | — |
+| Taux de reprise | Part des sollicitations suivies d'une sollicitation du commercial `followed_up` | — |
 
-**Baseline observed on Valentino (85 calls, June to October 2026):** S 28 %, P 24 %, I 12 %, N 36 % of 2,033 coded questions; 2.8 implications per call; 23 calls without any implication question; a P followed by an I in 10 % of cases; 590 prompted questions (16 % of all bounded questions). These figures come from the letter layer and serve as a starting reference for coaching, not as a score.
+**Référence observée sur Valentino (85 appels, de juin à octobre 2026) :** S 28 %, P 24 %, I 12 %, N 36 % de 2 033 questions codées ; 2,8 implications par appel ; 23 appels sans aucune question d'implication ; un P suivi d'un I dans 10 % des cas ; 590 questions soufflées (16 % de toutes les questions bornées). Ces chiffres viennent de la couche des lettres et servent de référence de départ pour l'accompagnement, pas de note.
 
-# 8b. Registers of the questions (displayed, never scored)
+# 8b. Registres des questions (affichés, jamais notés)
 
-Since v1.2 every coded question of the discovery, before the first pitch start or price, is placed in one register:
-**Financial** (money, clients), **Time & load** (time, family), **Identity & status** (future), **Mental & emotional**
-(self-belief, health) or **Other**. The model names the domain the question asks about, with an exact quote; the code
-maps it to the register (Annex A, SB-26 to SB-33). Since v1.3 an open question, one that names none of the seven
-domains, takes the register of the prospect's answer to it, the effect it produced (SB-35, Romain 2026-10-29). Questions after the pitch (not SPIN at all, SB-34), OUT
-solicitations and questions outside the perimeter have no register. The register tells the sales which ground the discovery covered; it never produces
-points. Target reliability: ≥ 92 % of questions in the right register (SB-33).
+Depuis la v1.2, chaque question codée de la découverte, avant le premier début de la présentation de l'offre ou le premier prix, est placée dans un registre :
+**Financier** (argent, clients), **Temps et charge** (temps, famille), **Identité et statut** (avenir), **Mental et émotionnel**
+(confiance en soi, santé) ou **Autre**. Le modèle nomme le domaine sur lequel porte la question, avec une citation exacte ; le code
+le rattache au registre (annexe A, SB-26 à SB-33). Depuis la v1.3, une question ouverte, qui ne nomme aucun des sept
+domaines, prend le registre de la réponse que le prospect lui a faite, l'effet qu'elle a produit (SB-35, Romain 2026-10-29). Les questions posées après la présentation de l'offre (qui ne sont pas du SPIN du tout, SB-34), les sollicitations
+OUT et les questions hors du périmètre n'ont pas de registre. Le registre dit au commercial quel terrain la découverte a couvert ; il ne produit jamais
+de points. Fiabilité visée : ≥ 92 % des questions dans le bon registre (SB-33).
 
-# 9. Worked examples
-Illustrative cases, adapted and shortened from real calls. In production, every piece of evidence is an exact quote checked against the transcript.
+# 9. Exemples commentés
+Cas d'illustration, adaptés et raccourcis à partir de vrais appels. En production, chaque preuve est une citation exacte vérifiée sur la transcription.
 
-| Prospect context | Sales question | Letter | Prospect answer | Atoms | Item effect |
+| Contexte du prospect | Question du commercial | Lettre | Réponse du prospect | Atomes | Effet sur les items |
 |---|---|---|---|---|---|
-| "I only put in about 15 hours a week" | "How has that impacted you on a personal level?" | I (open domain) | "It's depressing. My motivation is gone." | IMPACT (domain: self_belief) | D3 +1 atom |
-| "I lost my job two years ago" | "What has that cost you since, in money?" | I | "Probably 40K, we're in debt now." | IMPACT (money, quantified) | D3 quantified |
-| Talking about her goal | "So your goal is probably about $10,000 then, right?" | OUT agreement, `closed_need_payoff` | "Yes." | none | nothing; diagnostic counter +1 |
-| Goal stated: 5K a month | "And at 5K a month, what does your life look like?" | N | "I can stop the admin job and be home for the kids." | DESIRE, VALUE | D4 level 2 |
-| Hours per week stated | "How many hours a week do you work on it?" | S | "About 15." | SITUATION (quantified) | D1 |
-| Problem: no clients | "Is it more the marketing or the pricing?" | OUT sales_list | "The marketing." | none (the content came from the sales' list) | nothing |
+| « J'y mets à peine 15 heures par semaine » | « Et ça, ça t'a touché comment, sur le plan personnel ? » | I (domaine ouvert) | « C'est déprimant. J'ai plus aucune motivation. » | IMPACT (domaine : self_belief) | D3 +1 atome |
+| « J'ai perdu mon travail il y a deux ans » | « Ça t'a coûté combien depuis, en argent ? » | I | « Sûrement 40 000, on est endettés maintenant. » | IMPACT (money, chiffré) | D3 chiffré |
+| Elle parle de son objectif | « Donc ton objectif, c'est à peu près 10 000 €, c'est ça ? » | OUT agreement, `closed_need_payoff` | « Oui. » | aucun | rien ; compteur du diagnostic +1 |
+| Objectif dit : 5 000 € par mois | « Et à 5 000 € par mois, ta vie ressemble à quoi ? » | N | « Je peux arrêter mon boulot administratif et être à la maison pour les enfants. » | DESIRE, VALUE | D4 niveau 2 |
+| Heures par semaine dites | « Tu y travailles combien d'heures par semaine ? » | S | « À peu près 15. » | SITUATION (chiffrée) | D1 |
+| Problème : pas d'élèves | « C'est plutôt la communication ou les tarifs ? » | OUT sales_list | « La communication. » | aucun (le contenu venait de la liste du commercial) | rien |
 
-# 10. Output contract
+# 10. Contrat de sortie
 
 ```
 {
@@ -210,14 +212,14 @@ Illustrative cases, adapted and shortened from real calls. In production, every 
 }
 ```
 
-# 11. Decisions to validate
+# 11. Décisions à valider
 
-- Registers (v1.2): the word lists of SB-30. Decided 2026-10-27 (Romain): OUT solicitations get no register; SPIN stops
-  at the pitch (SB-34); no human-labelled verification set for now.
+- Registres (v1.2) : les listes de mots de SB-30. Décidé le 2026-10-27 (Romain) : les sollicitations OUT n'ont pas de registre ; le SPIN s'arrête
+  à la présentation de l'offre (SB-34) ; pas d'ensemble de vérification étiqueté à la main pour l'instant.
 
-- The five items and their weights (15 / 20 / 30 / 20 / 15).
-- The thresholds of the diagnostics (P followed by I ≥ 50 %, prompted ≤ 15 %).
-- Whether an atom volunteered without a question should count for D1 to D4 (current proposal: yes) or only atoms produced by a question.
-- The minimum of 5 coded solicitations for a call to be scored.
-- The end of the perimeter at the first pitch or price, instead of the first restitution (change from the SPIN bounding reference v1.0, §6). Reason: on the 85 calls analysed, annotators disagreed on whether a two-component restitution closes discovery, which moved the border without changing the questions asked.
+- Les cinq items et leurs poids (15 / 20 / 30 / 20 / 15).
+- Les seuils des diagnostics (P suivi d'un I ≥ 50 %, soufflées ≤ 15 %).
+- Si un atome donné sans question doit compter pour D1 à D4 (proposition actuelle : oui) ou seulement les atomes produits par une question.
+- Le minimum de 5 sollicitations codées pour qu'un appel soit noté.
+- La fin du périmètre au premier début de la présentation de l'offre ou au premier prix, au lieu de la première restitution (changement par rapport à la référence de bornage SPIN v1.0, §6). Raison : sur les 85 appels analysés, les annotateurs n'étaient pas d'accord sur le fait qu'une restitution à deux composants clôt la découverte, ce qui déplaçait la frontière sans changer les questions posées.
 ---

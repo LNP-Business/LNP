@@ -1,13 +1,15 @@
-"""S1 → SPIN result (SPIN-1.3) and the shared fact base (solicitations, atoms) read by the Gap.
+"""S1 → résultat SPIN (SPIN-1.3) et la base de faits commune (sollicitations, atomes) lue par l'écart.
 
-The model lists the discovery questions with their letter, register and the atoms of the answers. The code:
-- checks every quote (C3): a question is an exact passage of a SALES turn before the first pitch start or price (SB-1,
-  SB-34), an atom an exact passage of a PROSPECT turn of that question's answer, a register quote where SB-32 wants it;
-  anything else is dropped and counted;
-- applies the hard rules of §3 (a final validation tail, a closed need-payoff: OUT agreement);
-- places the perimeter (SB-1, SB-2), computes the answer spans (SB-5 to SB-8), the follow-ups (SB-17, SB-19), the
-  chains (SB-16 to SB-20), the atom decisions (SB-9 to SB-24) and the items D1 to D5, with the reference engine's
-  functions (lnp_callqa.competences.spin).
+Le modèle liste les questions de découverte avec leur lettre, leur registre et les atomes des réponses. Le code :
+- vérifie chaque citation (C3) : une question est un extrait exact d'un tour SALES avant le premier début de
+  présentation ou le premier prix (SB-1, SB-34), un atome un extrait exact d'un tour PROSPECT de la réponse à cette
+  question, une citation de registre là où SB-32 la veut ; tout le reste est écarté et compté ;
+- applique les règles dures du §3 (une queue de validation finale, une question de valeur fermée : OUT agreement) ;
+- place le périmètre (SB-1, SB-2), calcule les plages de réponse (SB-5 à SB-8), les approfondissements (SB-17, SB-19),
+  les chaînes (SB-16 à SB-20), les décisions sur les atomes (SB-9 à SB-24) et les items D1 à D5, avec les fonctions du
+  moteur de référence (lnp_analyse.competences.spin).
+Les tournures reconnues par ces règles dures (queues de validation `QUEUES`, `QUEUE_SEULE`) sont celles du moteur de
+référence : ce fichier n'a pas de liste de mots à lui.
 """
 from __future__ import annotations
 
@@ -24,14 +26,14 @@ from lnp_analyse.noyau.texte import normaliser, citation_ok
 from .adaptateur import Rejets
 
 ETAPE = "S1"
-UNIQUE = "single_reading"       # one model reading (lite): never "verified" 3/3
+UNIQUE = "single_reading"       # une seule lecture du modèle (allégé) : jamais "verified" 3/3
 PORTE_DE = {"S": 2, "N": 3, "I": 4, "P": 5}
 
 
 @dataclass
 class UniteAllegee:
-    """What the engine's SPIN helpers read of a unit (answer_spans, build_atoms, lexical_link, _validate_register,
-    diagnostics, applicability)."""
+    """Ce que les fonctions SPIN du moteur lisent d'une unité (plages_reponse, construire_atomes, lien_lexical,
+    _valider_registre, diagnostics, applicabilite)."""
     sol: Sollicitation
     tour: Tour
     rang: int
@@ -52,8 +54,8 @@ class UniteAllegee:
 
 
 def phrase_de(texte: str, citation: str) -> tuple[str, str]:
-    """The sentence of the sales turn that holds the quoted question (SEG-1, an isolated tail merged, SEG-4) and the
-    preamble before it in the same turn (SEG-5)."""
+    """La phrase du tour du commercial qui contient la question citée (SEG-1, une queue isolée rattachée, SEG-4) et le
+    préambule qui la précède dans le même tour (SEG-5)."""
     fusionne: list[str] = []
     for s in E.couper_phrases(texte):
         if E.QUEUE_SEULE.match(s) and fusionne:
@@ -74,14 +76,14 @@ def phrase_de(texte: str, citation: str) -> tuple[str, str]:
 
 
 def decider_lettre(q: dict, phrase: str) -> E.DecisionLettre:
-    """The model's letter, then the hard rules of §3 that the code enforces over it."""
+    """La lettre du modèle, puis les règles dures du §3 que le code impose par-dessus."""
     lettre, etiquettes = q["letter"], []
     raison = (q.get("out_reason") if q.get("out_reason") in E.PRIORITE_HORS else "absent") if lettre == E.OUT else None
     force = []
     if q.get("closed_need_payoff"):
-        force.append("agreement")                                   # content supplied by the sales
+        force.append("agreement")                                   # contenu fourni par le commercial
         etiquettes.append("closed_need_payoff")
-    if any(re.search(p, phrase.strip().lower()) for p in E.QUEUES):  # SEG-4 validation tail -> OUT agreement
+    if any(re.search(p, phrase.strip().lower()) for p in E.QUEUES):  # SEG-4 queue de validation -> OUT agreement
         force.append("agreement")
         etiquettes.append("validation_tail")
     if force:
@@ -102,14 +104,14 @@ def construire_unites(ctx: ContexteAppel, questions: list, rejets: Rejets) -> li
         if e:
             rejets.ajouter(ETAPE, f"question:{e}", q)
             continue
-        if fin and ctx.n(tid) >= ctx.n(fin):                    # SB-34: nothing after the pitch start or price
+        if fin and ctx.n(tid) >= ctx.n(fin):                    # SB-34 : rien après le début de la présentation ou le prix
             rejets.ajouter(ETAPE, "question:after_pitch", q)
             continue
         if q.get("letter") not in E.LETTRES + (E.OUT,):
             rejets.ajouter(ETAPE, "question:bad_letter", q)
             continue
         cle = (tid, normaliser(citation).strip(' .,?!"'))
-        if cle in vus:                                          # listed twice (overlapping chunks)
+        if cle in vus:                                          # listée deux fois (blocs qui se chevauchent)
             continue
         vus.add(cle)
         garde.append(q)
@@ -133,8 +135,9 @@ def construire_unites(ctx: ContexteAppel, questions: list, rejets: Rejets) -> li
 
 
 def placer_perimetre(ctx: ContexteAppel, unites: list[UniteAllegee]) -> dict:
-    """SB-1, SB-2: the first solicitation on the prospect's situation, goals or problems starts it (not social,
-    logistic or framing: OUT `nothing`, offer questions, loads); the first pitch start or price ends it (SB-34)."""
+    """SB-1, SB-2 : la première sollicitation sur la situation, les objectifs ou les problèmes du prospect l'ouvre (pas
+    un échange social, de logistique ou de cadrage : OUT `nothing`, questions sur l'offre, charges) ; le premier début
+    de présentation ou le premier prix le ferme (SB-34)."""
     debut = None
     for u in unites:
         if debut is None and E.est_debut_valide(u.decision):
@@ -150,7 +153,7 @@ def placer_perimetre(ctx: ContexteAppel, unites: list[UniteAllegee]) -> dict:
 
 
 def _rattacher_atomes(ctx: ContexteAppel, codees: list[UniteAllegee], rejets: Rejets) -> dict[str, list[dict]]:
-    """Each atom goes to the question whose answer span (SB-5 to SB-8, code) holds its turn."""
+    """Chaque atome va à la question dont la plage de réponse (SB-5 à SB-8, code) contient son tour."""
     proprietaire: dict[str, UniteAllegee] = {}
     for u in codees:
         for t in list(u.sol.tours_reponse) + list(u.tours_spontanes):
@@ -186,7 +189,7 @@ def _registre(ctx: ContexteAppel, u: UniteAllegee, rejets: Rejets) -> dict:
         rejets.ajouter(ETAPE, "register:missing", q)
         errs = ["missing"]
     else:
-        errs = E._valider_registre(a, ctx, u)                   # SB-32 rules 1 to 3
+        errs = E._valider_registre(a, ctx, u)                   # SB-32 règles 1 à 3
         if errs:
             rejets.ajouter(ETAPE, "register:" + errs[0].split(":")[0], q)
     ok = not errs
@@ -197,7 +200,7 @@ def _registre(ctx: ContexteAppel, u: UniteAllegee, rejets: Rejets) -> dict:
 
 
 def resume_registres(decide: dict[str, dict]) -> dict:
-    """SB-33 counts. One reading: the 3/3 agreement of the engine is not measured (agreement null, no flag)."""
+    """Comptes SB-33. Une seule lecture : l'accord 3/3 du moteur n'est pas mesuré (agreement null, pas de signal)."""
     n = len(decide)
     return {"counts": {r: sum(1 for d in decide.values() if d["register"] == r) for r in E.REGISTRES},
             "questions": n, "verified": None, "to_review": sum(1 for d in decide.values() if d["status"] == "to_review"),
@@ -207,9 +210,10 @@ def resume_registres(decide: dict[str, dict]) -> dict:
 
 @dataclass
 class FaitsSpin:
-    """Read by the Gap step: the stopping questions (GB-30) and the kind of each figure (GB-28, X13)."""
-    blocage: dict[str, str] = field(default_factory=dict)       # solicitation id -> exact question quote
-    type_chiffre: dict[str, Optional[str]] = field(default_factory=dict)   # atom id -> present / loss / past / other
+    """Lu par l'étape de l'écart : les questions sur ce qui arrête le prospect (GB-30) et la nature de chaque chiffre
+    (GB-28, X13)."""
+    blocage: dict[str, str] = field(default_factory=dict)       # id de la sollicitation -> citation exacte de la question
+    type_chiffre: dict[str, Optional[str]] = field(default_factory=dict)   # id de l'atome -> present / loss / past / other
 
 
 def executer_spin(ctx: ContexteAppel, questions: list, rejets: Rejets) -> tuple[ResultatCompetence, FaitsSpin]:
@@ -220,7 +224,7 @@ def executer_spin(ctx: ContexteAppel, questions: list, rejets: Rejets) -> tuple[
     codees = [u for u in unites if u.dans_perimetre and E.est_lettre_codee(u.decision.lettre)]
     E.plages_reponse(ctx, codees, {u.tour.id for u in unites})
 
-    # the prospect's answer as quoted by the model: kept only inside the code's answer span
+    # la réponse du prospect telle que le modèle la cite : gardée seulement dans la plage de réponse du code
     reponse_q: dict[str, dict] = {}
     for u in codees:
         a = u.brut.get("answer")
@@ -232,7 +236,7 @@ def executer_spin(ctx: ContexteAppel, questions: list, rejets: Rejets) -> tuple[
             else:
                 rejets.ajouter(ETAPE, "answer:outside_span_or_bad_quote", a)
 
-    # atoms (code decision rules on the model's atoms, SB-9..SB-15, SB-22..SB-24)
+    # atomes (règles de décision du code sur les atomes du modèle, SB-9..SB-15, SB-22..SB-24)
     brut_par_sol = _rattacher_atomes(ctx, codees, rejets)
     atomes: list[Atome] = []
     meta: dict[str, dict] = {}
@@ -249,13 +253,13 @@ def executer_spin(ctx: ContexteAppel, questions: list, rejets: Rejets) -> tuple[
         journal_atomes += journal
     ctx.atomes = atomes
 
-    # follow-ups (SB-17, SB-19) between consecutive answered coded solicitations
+    # approfondissements (SB-17, SB-19) entre sollicitations codées, répondues et consécutives
     repondu = [u for u in codees if not u.sans_reponse]
     for prec, suiv in zip(repondu, repondu[1:]):
         suiv.suit_prec = E.approfondit(prec.texte_reponse, suiv.sol.texte, suiv.preambule)
         prec.sol.approfondi = suiv.suit_prec
 
-    # chains (SB-16 to SB-20): same object = the model's object labels agree, and the code's lexical check
+    # chaînes (SB-16 à SB-20) : même objet = les objets donnés par le modèle concordent, et la vérification lexicale du code
     par_id = {u.sol.id: u for u in codees}
     etapes = [E.MaillonChaine(u.sol.id, u.decision.lettre, u.decision.raison,
                          [a for a in atomes if a.id_sollicitation == u.sol.id and not a.suggere_par_commercial
@@ -270,7 +274,7 @@ def executer_spin(ctx: ContexteAppel, questions: list, rejets: Rejets) -> tuple[
 
     chaines = E.trouver_chaines(etapes, meme_objet)
 
-    # registers (SB-26 to SB-35): coded S, P, I, N questions of the discovery
+    # registres (SB-26 à SB-35) : les questions S, P, I, N codées de la découverte
     decide = {u.sol.id: _registre(ctx, u, rejets) for u in codees if u.decision.lettre in E.LETTRES}
     for u in codees:
         if u.brut.get("stopping_question") and u.decision.lettre == "P":

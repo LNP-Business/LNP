@@ -1,10 +1,12 @@
-"""The reference engine's competences (Gap, Pitch) run unchanged on the lite answers.
+"""Les compétences du moteur de référence (écart, présentation) tournent sans changement sur les réponses du moteur
+allégé.
 
-`StepRunner` has the `Runner.run(ctx, task, unit_id, unit)` interface of lnp_callqa.core.runner: instead of asking
-the model three times, it takes the answer to the engine's closed question from the whole-call step already answered
-(`answer_fn`), then checks it with the engine task's own validator (every quote, speaker and phase, C3). Invalid items
-of a list are dropped one by one and counted; an invalid sub-object is set to null and counted; an answer that is still
-invalid after that leaves the unit `to_review`, as in the engine. There is one reading, so nothing is arbitrated.
+`ExecuteurEtape` a l'interface `Executeur.executer(ctx, tache, id_unite, unite)` de lnp_analyse.noyau.executeur : au
+lieu de poser trois fois la question au modèle, il prend la réponse à la question fermée du moteur dans l'étape sur
+l'appel entier déjà répondue (`fn_reponse`), puis la vérifie avec le propre validateur de la tâche du moteur (chaque
+citation, locuteur et phase, C3). Les items invalides d'une liste sont écartés un par un et comptés ; un sous-objet
+invalide est mis à null et compté ; une réponse encore invalide après cela laisse l'unité `to_review`, comme dans le
+moteur. Il n'y a qu'une lecture, donc rien n'est arbitré.
 """
 from __future__ import annotations
 
@@ -15,7 +17,7 @@ from lnp_analyse.noyau.executeur import TacheModele, Resolu
 
 
 class Rejets:
-    """What the code rejected, per step: {step: {reason: count}} and a short list of examples for the audit."""
+    """Ce que le code a rejeté, par étape : {étape: {raison: nombre}} et une courte liste d'exemples pour l'audit."""
 
     def __init__(self):
         self.comptes: dict[str, dict[str, int]] = {}
@@ -37,12 +39,13 @@ def _erreurs(tache: TacheModele, rep: Any, ctx: ContexteAppel, uid: str) -> list
         return ["not_an_object"]
     try:
         return list(tache.valider(rep, ctx, uid))
-    except Exception as e:  # noqa: BLE001 - a validator that cannot read the answer rejects it
+    except Exception as e:  # noqa: BLE001 - un validateur qui ne peut pas lire la réponse la rejette
         return [f"invalid_shape:{type(e).__name__}"]
 
 
 def assainir(tache: TacheModele, rep: Any, ctx: ContexteAppel, uid: str, rejets: Rejets, etape: str) -> Optional[dict]:
-    """Keep what the engine validator accepts: drop invalid list items, null invalid sub-objects."""
+    """Garde ce que le validateur du moteur accepte : écarte les items invalides des listes, met à null les sous-objets
+    invalides."""
     if not _erreurs(tache, rep, ctx, uid):
         return rep
     if not isinstance(rep, dict):
@@ -72,7 +75,8 @@ def assainir(tache: TacheModele, rep: Any, ctx: ContexteAppel, uid: str, rejets:
 
 
 class ExecuteurEtape:
-    """Runner for the engine competences, answering each closed question from a step answer."""
+    """Exécuteur pour les compétences du moteur, qui répond à chaque question fermée à partir de la réponse d'une
+    étape."""
 
     def __init__(self, fn_reponse: Callable[[str, str, Any], Optional[dict]], rejets: Rejets, etape: str):
         self.fn_reponse, self.rejets, self.etape = fn_reponse, rejets, etape
@@ -88,6 +92,6 @@ class ExecuteurEtape:
         return Resolu(rep, "verified", "1/1", [{"pass": 1, "answer": rep, "errors": []}])
 
     def _arbitrer(self, ctx, tache, id_unite, unite, consigne, lectures_, conc) -> Resolu:
-        """force_arbitration (a P outside the nine categories, Pitch §2.1): one reading, no arbiter here; the engine
-        keeps the reading and its uncovered_case flag."""
+        """force_arbitration (un P hors des neuf catégories, Présentation §2.1) : une seule lecture, pas d'arbitre ici ;
+        le moteur garde la lecture et son signal uncovered_case."""
         return Resolu(None, "to_review", conc, lectures_)

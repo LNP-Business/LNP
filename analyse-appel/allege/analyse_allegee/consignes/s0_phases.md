@@ -1,27 +1,30 @@
-STEP S0 · PHASE MAP (Pitch annex PB-1 to PB-4, PB-17 to PB-19)
-List every SALES turn of the whole call that does at least one of these:
-- "offer_description": describes the offer: its content (modules, pillars, steps), format (mentorship, coaching,
-  community, calls), duration, support, guarantee or outcome promise;
-- "screen_share": announces or starts a screen share of the program;
-- "price_for_offer": states an amount FOR THE OFFER (full price, instalment, deposit, discount, or a range for the
-  offer). Never a price: a student's income, a price per project the prospect could charge, an ad budget, a software
-  cost, an amount said by the prospect;
-- "decision_request": asks the prospect to decide ("are you ready to get started?", "what would you like to do?").
-For each such turn also give:
-- "followed_by_discovery": within the next 2 sales turns the sales goes back to discovery questions about the
-  prospect (the turn is then only a mention of the offer, PB-2, PB-17);
-- "next_discovery_question" (offer_description or screen_share turns): {"turn", "quote"}, the exact words of the first
-  later SALES question about the prospect's situation, goals, problems or blockers asked before the sales goes on
-  presenting the offer; null if the sales goes on presenting. An introduction of the call ("if we work together it
-  will be over four months", "first I'll ask you some questions") is always followed by discovery questions;
-- "lnp_offer_price" (price_for_offer turns): true only if the amount is what THIS prospect would pay the sales'
-  company for the offer the sales is presenting. False for an example of what the prospect could charge her own
-  students ("a 10-week programme at 500 euros"), a market price, an ad budget, an income;
-- "offer_explained" (price_for_offer turns): {"turn", "quote"}, the exact words of the SALES turn (this one or an
-  earlier one) that explains the offer this amount is the price of;
-- "hypothetical": the amount is explicitly hypothetical or disowned ("let's say it was 10K, this is not the price");
-- "amount" (a number, 5800 for "5,800") and "range" ([min, max]) when an amount is stated;
-- "quote": the exact words of that turn that show it.
+ÉTAPE S0 · CARTE DES PHASES (annexe Présentation PB-1 à PB-4, PB-17 à PB-19)
+Liste chaque tour SALES (le commercial) de tout l'appel qui fait au moins une de ces choses :
+- "offer_description" : décrit l'offre : son contenu (modules, piliers, étapes), sa forme (accompagnement, coaching,
+  communauté, appels), sa durée, le suivi, une garantie ou une promesse de résultat ;
+- "screen_share" : annonce ou commence un partage d'écran du programme ;
+- "price_for_offer" : donne un montant POUR L'OFFRE (prix total, mensualité, acompte, remise, ou une fourchette pour
+  l'offre). Jamais un prix : le revenu d'un élève, un prix par projet que le prospect pourrait demander, un budget de
+  publicité, le coût d'un logiciel, un montant dit par le prospect ;
+- "decision_request" : demande au prospect de décider (« est-ce que tu es prêt à te lancer ? », « qu'est-ce que tu veux
+  faire ? »).
+Pour chacun de ces tours, donne aussi :
+- "followed_by_discovery" : dans les 2 tours suivants du commercial, le commercial revient à des questions de découverte
+  sur le prospect (le tour n'est alors qu'une mention de l'offre, PB-2, PB-17) ;
+- "next_discovery_question" (tours offer_description ou screen_share) : {"turn", "quote"}, les mots exacts de la
+  première question SALES posée plus tard sur la situation, les objectifs, les problèmes ou les blocages du prospect,
+  avant que le commercial ne continue à présenter l'offre ; null si le commercial continue à présenter. Une introduction
+  de l'appel (« si on travaille ensemble, ce sera sur quatre mois », « d'abord, je vais te poser quelques questions »)
+  est toujours suivie de questions de découverte ;
+- "lnp_offer_price" (tours price_for_offer) : true seulement si le montant est ce que CE prospect paierait à l'entreprise
+  du commercial pour l'offre que le commercial présente. False pour un exemple de ce que le prospect pourrait demander à
+  ses propres élèves (« un programme de 10 semaines à 500 euros »), un prix du marché, un budget de publicité, un revenu ;
+- "offer_explained" (tours price_for_offer) : {"turn", "quote"}, les mots exacts du tour SALES (celui-ci ou un tour
+  précédent) qui explique l'offre dont ce montant est le prix ;
+- "hypothetical" : le montant est explicitement hypothétique ou désavoué (« mettons que ce soit 10 000, ce n'est pas le
+  prix ») ;
+- "amount" (un nombre : 5800 pour « 5 800 ») et "range" ([min, max]) quand un montant est donné ;
+- "quote" : les mots exacts de ce tour qui le montrent.
 JSON: {"turns": [{"turn": "T085", "quote": "...", "offer_description": true, "screen_share": true,
                   "followed_by_discovery": false, "next_discovery_question": null, "price_for_offer": false,
                   "lnp_offer_price": null, "offer_explained": null, "amount": null, "range": null,

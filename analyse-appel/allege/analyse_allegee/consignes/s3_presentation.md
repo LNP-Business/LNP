@@ -1,52 +1,58 @@
-STEP S3 · THE PITCH (Pitch 2.0, annex PB-14 to PB-16, PB-23, PB-24, PB-27 to PB-36)
+ÉTAPE S3 · LA PRÉSENTATION DE L'OFFRE (Présentation 2.0, annexe PB-14 à PB-16, PB-23, PB-24, PB-27 à PB-36)
 {ancres}
-VALIDATED P (the blocker of the gap the prospect validated): {vp}
-SELECTED A: {a}
-SELECTED B: {b}
-HIS OTHER BLOCKERS (roadmap material): {blocages}
+P VALIDÉ (le blocage de l'écart que le prospect a validé) : {vp}
+A RETENU : {a}
+B RETENU : {b}
+SES AUTRES BLOCAGES (matière de la feuille de route) : {blocages}
 {references}
-A span is {"start_turn", "start_quote", "end_turn", "end_quote"} with exact SALES words. Read from the pitch start to
-the end of the call. Give:
-1 "category" (only when a validated P is given, PB-27): what does the prospect doubt? Tests in order: his ability to do
-  the work -> Skill; being chosen without experience or credentials -> Legitimacy; what to charge -> Pricing; where
-  clients come from -> Acquisition; turning a conversation into a client -> Selling; running a project end to end ->
-  Delivery; hours available -> Time; an earlier course or attempt that produced nothing -> Past failure; the risk that
-  the investment does not pay off -> Financial risk. A lack of money to pay for the program: not_a_pitch_blocker. None
-  of the nine (a fear, overthinking, "change is scary"): P_category_unknown, with "uncovered" (one sentence). When two
-  fit, the category of the prospect's own words wins. {"category", "quote" (the deciding prospect words, from the turn
-  of the validated P), "turn"}.
-2 "step1" (PB-28): {"step": the first sales passage after the pitch start that states what blocks the prospect; it
-  ends at the first sentence that states a principle, a component or a phase; null if none,
-  "other_blockers": [{"quote", "turn"}] other blockers restated inside step 1 as what blocks him}.
-3 "step2" (PB-29): {"step": the passage after step 1 that states a principle ("what makes that give way is...") and a
-  phase of the offer, or null; "mechanisms_stated": EVERY principle or phase stated between the pitch start and the
-  roadmap (or the price), each mapped to one of Skill, Legitimacy, Pricing, Acquisition, Selling, Delivery, Time,
-  Past failure, Financial risk: [{"mechanism", "kind": "principle" or "phase", "quote", "turn"}]; "recitation":
-  {"items": [...], "quote", "turn"} for a passage that lists components, modules or deliverables without tying them to
-  the principle, else null}.
-4 "step3" (PB-30): what the SALES says about where the prospect goes from and to: {"step": span or null, "A": {"value"
-  (a number), "unit", "quote", "turn"}, "B": {...}, "deadline": {"quote", "turn"} (a date or duration the sales
-  attaches to B), "deadline_source": {"quote", "turn"} (the PROSPECT words, before the pitch, where he gave it),
-  "image": {"quote", "turn"} (a concrete scene of his life once at B), "image_key_expression" (the prospect's words
-  reused in the image), "image_source": {"quote", "turn"} (the PROSPECT quote that contains them)}.
-5 "step4" (PB-31): {"cases": every client case told: [{"step": span, "quote", "turn", "library_id" (the id in the
-  case library, else "not_in_library"; never guess), "profile_match", "prospect_evidence": {"quote", "turn"}}]}.
-6 "roadmap" (PB-34): {"roadmap": span of the steps or milestones of THE PROSPECT'S path ("your roadmap", "step one
-  for you is"), not the program's modules, or null; "steps": [{"quote", "turn", "key_expression", "source": {"quote",
-  "turn"} (where he named that blocker, before the pitch) or null}]}.
-7 "claims" (PB-35): EVERY figure, client case, price or guarantee the SALES states from the pitch start to the decision
-  request: [{"kind": "figure" | "case" | "price" | "guarantee", "quote", "turn", "library_id", "guarantee_ref",
-  "calculation" (presented as a calculation on other figures)}].
-8 "promises" (PB-36): sales sentences whose subject is the Academy, the team or "we" and whose action is running his
-  business, finding or bringing him clients, signing his clients or delivering his projects: [{"quote", "turn",
-  "action": "run_business" | "find_clients" | "sign_clients" | "deliver_projects"}]. Providing systems, feedback,
-  coaching, templates or reviews is not a promise.
-9 "adhesion" (PB-14 to PB-16, PB-23, PB-24): PROSPECT passages showing "appropriation" (he restates a component as
-  applied to himself), "projection" (first person, future or conditional, with a date, a number, a first action, a
-  named client or project) or "new_link" (he connects a component to his situation on his own). Not: approvals,
-  compliments, price or logistics questions, content first stated by the sales. [{"quote", "turn", "kind", "concrete",
-  "comprehension_echo" (only echoes the sales' words in answer to a comprehension question), "postpone" (a projection
-  used to justify a delay), "gesture": {"quote", "turn"} (the sales words just before)}].
+Une plage est {"start_turn", "start_quote", "end_turn", "end_quote"} avec des mots exacts du commercial (SALES). Lis
+depuis le début de la présentation jusqu'à la fin de l'appel. Donne :
+1 "category" (seulement quand un P validé est donné, PB-27) : de quoi le prospect doute-t-il ? Tests dans l'ordre : de
+  sa capacité à faire le travail -> Skill ; d'être choisi sans expérience ni diplôme -> Legitimacy ; de ce qu'il faut
+  faire payer -> Pricing ; d'où viennent les clients -> Acquisition ; de transformer une conversation en client ->
+  Selling ; de mener un projet de bout en bout -> Delivery ; des heures disponibles -> Time ; d'une formation ou d'une
+  tentative précédente qui n'a rien donné -> Past failure ; du risque que l'investissement ne soit pas rentable ->
+  Financial risk. Un manque d'argent pour payer le programme : not_a_pitch_blocker. Aucune des neuf (une peur, le fait
+  de trop réfléchir, « le changement, ça fait peur ») : P_category_unknown, avec "uncovered" (une phrase). Quand deux
+  conviennent, la catégorie des propres mots du prospect l'emporte. {"category", "quote" (les mots du prospect qui
+  décident, pris dans le tour du P validé), "turn"}.
+2 "step1" (PB-28) : {"step" : le premier passage du commercial après le début de la présentation qui dit ce qui bloque
+  le prospect ; il se termine à la première phrase qui énonce un principe, une composante ou une phase ; null s'il n'y
+  en a pas, "other_blockers" : [{"quote", "turn"}] les autres blocages restitués dans l'étape 1 comme ce qui le
+  bloque}.
+3 "step2" (PB-29) : {"step" : le passage après l'étape 1 qui énonce un principe (« ce qui fait sauter ce blocage,
+  c'est... ») et une phase de l'offre, ou null ; "mechanisms_stated" : CHAQUE principe ou phase énoncé entre le début de
+  la présentation et la feuille de route (ou le prix), chacun rattaché à l'un de Skill, Legitimacy, Pricing,
+  Acquisition, Selling, Delivery, Time, Past failure, Financial risk : [{"mechanism", "kind": "principle" ou "phase",
+  "quote", "turn"}] ; "recitation" : {"items": [...], "quote", "turn"} pour un passage qui énumère des composantes, des
+  modules ou des livrables sans les relier au principe, sinon null}.
+4 "step3" (PB-30) : ce que le commercial (SALES) dit du point de départ et du point d'arrivée du prospect : {"step" :
+  une plage ou null, "A" : {"value" (un nombre), "unit", "quote", "turn"}, "B" : {...}, "deadline" : {"quote", "turn"}
+  (une date ou une durée que le commercial attache à B), "deadline_source" : {"quote", "turn"} (les mots du PROSPECT,
+  avant la présentation, où il l'a donnée), "image" : {"quote", "turn"} (une scène concrète de sa vie une fois en B),
+  "image_key_expression" (les mots du prospect repris dans l'image), "image_source" : {"quote", "turn"} (la citation du
+  PROSPECT qui les contient)}.
+5 "step4" (PB-31) : {"cases" : chaque cas client raconté : [{"step" : une plage, "quote", "turn", "library_id"
+  (l'identifiant dans la bibliothèque de cas, sinon "not_in_library" ; ne jamais deviner), "profile_match",
+  "prospect_evidence" : {"quote", "turn"}}]}.
+6 "roadmap" (PB-34) : {"roadmap" : la plage des étapes ou des jalons du parcours DU PROSPECT (« ta feuille de route »,
+  « pour toi, la première étape, c'est »), pas les modules du programme, ou null ; "steps" : [{"quote", "turn",
+  "key_expression", "source" : {"quote", "turn"} (là où il a nommé ce blocage, avant la présentation) ou null}]}.
+7 "claims" (PB-35) : CHAQUE chiffre, cas client, prix ou garantie que le commercial (SALES) énonce depuis le début de la
+  présentation jusqu'à la demande de décision : [{"kind": "figure" | "case" | "price" | "guarantee", "quote", "turn",
+  "library_id", "guarantee_ref", "calculation" (présenté comme un calcul à partir d'autres chiffres)}].
+8 "promises" (PB-36) : les phrases du commercial dont le sujet est l'Académie, l'équipe ou « on » / « nous » et dont
+  l'action est de faire tourner son activité, de lui trouver ou de lui apporter des clients, de signer ses clients ou de
+  réaliser ses projets : [{"quote", "turn", "action": "run_business" | "find_clients" | "sign_clients" |
+  "deliver_projects"}]. Fournir des systèmes, des retours, du coaching, des modèles ou des relectures n'est pas une
+  promesse.
+9 "adhesion" (PB-14 à PB-16, PB-23, PB-24) : les passages du PROSPECT qui montrent une "appropriation" (il restitue une
+  composante appliquée à lui-même), une "projection" (première personne, futur ou conditionnel, avec une date, un
+  nombre, une première action, un client ou un projet nommé) ou un "new_link" (il relie de lui-même une composante à sa
+  situation). Ne comptent pas : les approbations, les compliments, les questions de prix ou de logistique, un contenu
+  énoncé d'abord par le commercial. [{"quote", "turn", "kind", "concrete", "comprehension_echo" (ne fait que reprendre
+  les mots du commercial en réponse à une question de compréhension), "postpone" (une projection qui sert à justifier
+  un report), "gesture" : {"quote", "turn"} (les mots du commercial juste avant)}].
 JSON: {"category": {"category": "Acquisition", "quote": "...", "turn": "T028"}, "step1": {"step": null,
   "other_blockers": []}, "step2": {"step": null, "mechanisms_stated": [], "recitation": null}, "step3": {"step": null},
   "step4": {"cases": []}, "roadmap": {"roadmap": null, "steps": []}, "claims": [], "promises": [], "adhesion": []}

@@ -1,9 +1,10 @@
-"""LNP call analysis, lite engine (2026-11-03): five whole-transcript model steps, the code decides.
+"""Analyse d'appel LNP, moteur allégé (2026-11-03) : cinq étapes du modèle sur la transcription entière, le code décide.
 
-S0 phase map, S1 discovery questions (SPIN letter, register, atoms of the answers), S2 gap played back, S3 pitch,
-S4 objections after the pitch (unique, with A · I · E · M) and prevention. Every quote is checked by code, every item
-level, verdict and score is computed by the reference engine's decision functions (call-analysis/engine). See README.md.
-Stdlib only; the reference engine is imported from ../engine.
+S0 carte des phases, S1 questions de découverte (lettre SPIN, registre, atomes des réponses), S2 écart restitué,
+S3 présentation de l'offre, S4 objections après le premier prix (chacune une seule fois, avec A · I · E · M) et prévention.
+Chaque citation est vérifiée par le code ; chaque niveau d'item, chaque verdict et chaque note sont calculés par les
+fonctions de décision du moteur de référence (analyse-appel/moteur). Voir README.md.
+Bibliothèque standard seulement ; le moteur de référence est importé depuis ../moteur.
 """
 from __future__ import annotations
 

@@ -1,8 +1,13 @@
-# Output contract · the call record
+# Contrat de sortie · l'enregistrement d'un appel
 
-One call record is produced per analysed call by `lnp_callqa.pipeline.result_record(ctx)`. It is what is stored
-and what the screen reads. The per-competence output contracts are defined in each `0N_<x>_A_scoring.md`
-(section "Output contract"); this file gives the envelope and what the screen needs.
+> **Les clés JSON restent en anglais.** Ce document décrit le format enregistré de l'analyse : c'est ce que l'écran, la base
+> et le connecteur lisent. Romain a choisi de garder ce format tel quel : toutes les clés (`call_id`, `results`, `verdict`,
+> `items`…) et toutes les valeurs fermées (`"scored"`, `"to_review"`, `"present"`, `"compliant"`…) restent en anglais. Seules
+> les explications de ce document sont en français.
+
+Un enregistrement est produit pour chaque appel analysé par `lnp_analyse.chaine_analyse.enregistrement_resultat(ctx)`. C'est
+ce qui est stocké et ce que l'écran lit. Les contrats de sortie de chaque compétence sont définis dans chaque
+`0N_<x>_A_notation.md` (section « Contrat de sortie ») ; ce fichier donne l'enveloppe et ce dont l'écran a besoin.
 
 ```
 {
@@ -10,66 +15,77 @@ and what the screen reads. The per-competence output contracts are defined in ea
   "status": "ok" | "no_transcript" | "no_diarization" | "diarization_suspect",
   "flags": [...],
   "turns": [{"id": "T081", "ts": "28:07", "role": "SALES", "speaker": "...", "text": "...",
-             "repaired": false, "attribution_doubtful": false}, ...],      // repaired turns; ids like T050b after a split
+             "repaired": false, "attribution_doubtful": false}, ...],      // tours réparés ; identifiants comme T050b après une coupure
   "phases": {"discovery_start": "T028", "discovery_end": "T085", "pitch_start": "T085", "first_price": "T113",
              "decision_request": "T113", "pitch_end": "T113", "offer_mentions": [], "early_price": null, "flags": []},
   "results": {
-    "SPIN":       CompetenceResult,
-    "GAP":        CompetenceResult,
-    "PITCH":      CompetenceResult,
-    "OBJECTIONS": CompetenceResult
+    "SPIN":       ResultatCompetence,
+    "GAP":        ResultatCompetence,
+    "PITCH":      ResultatCompetence,
+    "OBJECTIONS": ResultatCompetence
   },
-  "audit": [ {task, unit, pass, tier, prompt_hash, answer, errors}, ... ]   // every model pass, arbitration, error
+  "audit": [ {task, unit, pass, tier, prompt_hash, answer, errors}, ... ]   // chaque passe du modèle, chaque arbitrage, chaque erreur
 }
 ```
 
-`CompetenceResult`:
+`status` : `"ok"`, `"no_transcript"` (pas de transcription), `"no_diarization"` (locuteurs non séparés),
+`"diarization_suspect"` (séparation des locuteurs douteuse). `role` vaut `SALES` (le commercial), `PROSPECT` ou `OTHER`.
+
+`ResultatCompetence` (classe `ResultatCompetence` de `noyau/modeles.py`) :
 
 ```
 {
   "competence": "GAP", "rules_version": "GAP-1.3",
   "status": "scored" | "not_applicable" | "excluded" | "to_review",
   "verdict": "present" | "absent" | "compliant" | "non_compliant" | null,
-  "reasons": [...],                 // absence / non-compliance / not-applicable reasons, main reason first
+  "reasons": [...],                 // raisons d'absence / de non-conformité / de non-applicabilité, la raison principale en premier
   "score": 0..100 | null,
   "items": [{"id": "G5", "weight": 25, "level": 0|1|2|null,
              "evidence": [{"quote": "...", "turn": "T081", "role": "SALES"}], "note": "..."}],
   "flags": [...],
-  "details": { ... competence specific, see below ... },
+  "details": { ... propre à chaque compétence, voir plus bas ... },
   "concordance": "3/3" | null
 }
 ```
 
-## Details read by the screen
+Valeurs : `status` `"scored"` (noté), `"not_applicable"` (sans objet), `"excluded"` (exclu), `"to_review"` (à revoir) ;
+`verdict` `"present"` / `"absent"` (écart présent ou absent), `"compliant"` / `"non_compliant"` (présentation conforme ou non
+conforme) ; `concordance` : accord des trois passes.
 
-| Competence | Keys | Used for |
+## Détails lus par l'écran
+
+| Compétence | Clés | Servent à |
 |---|---|---|
-| SPIN | `perimeter`, `solicitations[]` (id, turn, ts, letter, gate_letter, out_reason, tags, in_perimeter, status, answer_turns, followed_up, register, register_status, register_basis, register_domain, register_quote, register_reference_turn: the turn of the answer for basis `answer` (SB-35, v1.3), else of the reference), `registers` (counts per register, questions, verified, to_review, agreement, threshold, flags; v1.2), `items_evidence` (per item: level, evidence rows with turn, ts, quote, atom, domain, question id and letter), `chains`, `diagnostics` (letter distribution — never scored), `health`, `unit_status` | Discovery table: rows by register (Financial, Time & load, Identity & status, Mental & emotional, Other, then Out of SPIN), chips per solicitation, pain/desire counts, states |
-| GAP | `verdict`, `validation_turn`, restitutions (span, turns, signals, components with source turn, key expression and match `verbatim`/`paraphrased`/`untraced`, `explicit_quote`, clauses, validation outcome, conformity), `selected_A`, `selected_B`, `selected_P`, `validated_P` (quote, turn, key expression), `cost`, `roadmap_blockers`, formula, diagnostics | Timing bar (span → timestamps from `turns`), annotated verbatim, four checks, component table, roadmap line. Read by PITCH. |
-| PITCH | `verdict`, `non_compliance`, `phases` (pitch_start, roadmap, first_price, decision_request, early_price), `validated_P` (+ category), `steps` {1..4}, `order_ok`, `roadmap`, `roadmap_span`, `claims` (each with lookup result), `outcome_promises`, `adhesion`, `raw_score`, `diagnostics` | Compliance chips, staircase, annotated pitch verbatim (window pitch_start → first_price from `turns`). `roadmap_span` read by OBJECTIONS. |
-| OBJECTIONS | `handling_status`, `prevention_status`, `handling_score`, `prevention_score`, `episodes[]` (start, nature, theme, gestures acknowledge/isolate/explore/match with quotes and turns, reaction, resolution, latent, recurrence, topic change), `prevention` (R1–R3 with quotes), `deadlines_detected`, `diagnostics` | Episode table, clickable A·I·E·M panels (each gesture's turns), prevention tiles |
+| SPIN | `perimeter`, `solicitations[]` (id, turn, ts, letter, gate_letter, out_reason, tags, in_perimeter, status, answer_turns, followed_up, register, register_status, register_basis, register_domain, register_quote, register_reference_turn : le tour de la réponse pour la base `answer` (SB-35, v1.3), sinon celui de la référence), `registers` (décomptes par registre, questions, verified, to_review, agreement, threshold, flags ; v1.2), `items_evidence` (par item : niveau, lignes de preuve avec tour, horodatage, citation, atome, domaine, identifiant et lettre de la question), `chains`, `diagnostics` (répartition des lettres, jamais notée), `health`, `unit_status` | Tableau de la découverte : lignes par registre (Financier, Temps et charge, Identité et statut, Mental et émotionnel, Autre, puis Hors SPIN), une puce par sollicitation, décomptes des douleurs et des désirs, états |
+| GAP | `verdict`, `validation_turn`, restitutions (plage, tours, signaux, composantes avec tour source, expression clé et correspondance `verbatim`/`paraphrased`/`untraced`, `explicit_quote`, propositions, issue de la validation, conformité), `selected_A`, `selected_B`, `selected_P`, `validated_P` (citation, tour, expression clé), `cost`, `roadmap_blockers`, formule, diagnostics | Barre de chronologie (plage → horodatages tirés de `turns`), verbatim annoté, quatre contrôles, tableau des composantes, ligne de la feuille de route. Lu par PITCH. |
+| PITCH | `verdict`, `non_compliance`, `phases` (pitch_start, roadmap, first_price, decision_request, early_price), `validated_P` (+ catégorie), `steps` {1..4}, `order_ok`, `roadmap`, `roadmap_span`, `claims` (chacune avec le résultat de sa recherche), `outcome_promises`, `adhesion`, `raw_score`, `diagnostics` | Puces de conformité, escalier, verbatim annoté de la présentation (fenêtre pitch_start → first_price tirée de `turns`). `roadmap_span` est lu par OBJECTIONS. |
+| OBJECTIONS | `handling_status`, `prevention_status`, `handling_score`, `prevention_score`, `episodes[]` (début, nature, thème, gestes acknowledge/isolate/explore/match (accueillir, isoler, explorer, répondre) avec citations et tours, réaction, résolution, latente, récurrence, changement de sujet), `prevention` (R1 à R3 avec citations), `deadlines_detected`, `diagnostics` | Tableau des épisodes, panneaux A · I · E · M cliquables (les tours de chaque geste), tuiles de la prévention |
 
-## Period results (performance screen)
+Correspondances : `verbatim` (mot pour mot), `paraphrased` (reformulé), `untraced` (introuvable chez le prospect).
 
-`lnp_callqa.core.aggregate.period(results, competence, window, today, tz)` returns, per sales and competence:
-score, 95 % interval (Student), item level-2 rates with Wilson intervals, level with the floor rule, delta vs the
-comparison window ("stable" when within half the interval), status counts; `bottleneck(periods)` names the weakest
-competence. Windows: `7d`, `month`, `all`, in the sales' time zone (Part C, C5–C6).
+## Résultats par période (écran de performance)
 
-## Lead qualification of an R1 (046, 2026-11-05)
+`lnp_analyse.noyau.agregation.periode(resultats, competence, genre, aujourdhui, tz)` rend, par commercial et par compétence :
+la note, l'intervalle à 95 % (Student), les taux de niveau 2 par item avec leurs intervalles de Wilson, le niveau avec la règle
+du plancher, l'écart avec la fenêtre de comparaison (« stable » quand il reste dans la moitié de l'intervalle), les décomptes
+par statut ; `goulot(periodes)` nomme la compétence la plus faible. Fenêtres : `7d`, `month`, `all`, dans le fuseau horaire du
+commercial (Partie C, C5 et C6).
 
-An analysed R1 also carries the qualification of its lead (call-analysis/qualification, rules « Qualification SQL des appels
-LNP » 2.2, three gates): the worker runs it after the engine (`callqa_worker/qualif.py`, on the same turns), stores it in
-`crm_lead_qualifications` with the job (`crm_qualif_store(…, p_job)`), and `crm_ca_record(job)` returns it as
-`qualification`:
+## Qualification du prospect d'un R1 (046, 2026-11-05)
+
+Un R1 analysé porte aussi la qualification de son prospect (`analyse-appel/qualification`, règles « Qualification SQL des
+appels LNP » 2.2, trois portes) : l'exécutant la lance après le moteur (`executant/executant_analyse/qualif.py`, sur les mêmes
+tours), la stocke dans `crm_lead_qualifications` avec le travail (`crm_qualif_store(…, p_job)`), et `crm_ca_record(job)` la
+rend sous la clé `qualification` :
 
 ```
 {"status": "SQL GAGNÉ | SQL OUVERT | SQL PERDU | NON SQL | MQL EN ATTENTE | À REVOIR",
  "result": {"statut", "portes": {"metier" | "financement" | "decision_timing": {"statut": "OUVERTE | FERMÉE | NON VÉRIFIÉE", "preuve", "raisons"}},
             "offre_presentee", "base": {"issue_r1", "outcome", "motif", "date_relance"}, "solution_aware", "alertes", "confiance"},
- "verification": ["quotes set aside: not found in the transcript"], "prompt_version", "rules_version", "created_at"}
+ "verification": ["lecture 1 : …: preuve introuvable dans la transcription"], "prompt_version", "rules_version", "created_at"}
 ```
 
-The extracted facts (two readings) stay in the table, never on the screen. `crm_ca_board()` adds `qualification:
-{status, solution_aware}` to each R1 row. A qualification that fails never stops the analysis (no row, the worker logs it).
-
+`verification` liste les remarques des deux lectures (citations écartées parce qu'introuvables dans la transcription, réponse
+illisible). Les faits extraits (deux lectures) restent dans la table, jamais à l'écran. `crm_ca_board()` ajoute
+`qualification: {status, solution_aware}` à chaque ligne de R1. Une qualification qui échoue n'arrête jamais l'analyse (pas de
+ligne, l'exécutant l'écrit dans son journal).

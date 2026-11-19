@@ -1,7 +1,7 @@
-"""Cost of a job from the token usage per tier the worker stores (crm_ca_jobs.usage.tiers).
+"""Coût d'une analyse à partir des jetons consommés par palier, que l'exécutant enregistre (crm_ca_jobs.usage.tiers).
 
-PRICES are the USD prices per million tokens given for claude-haiku-5-5 on 2026-11-03 (task of the lite engine);
-they are configuration, to check against the provider's price list before relying on the figure.
+PRIX donne les prix en USD par million de jetons indiqués pour claude-haiku-5-5 le 2026-11-03 (tâche du moteur allégé) ;
+c'est de la configuration, à vérifier sur la grille de prix du fournisseur avant de se fier au chiffre.
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ PRIX = {"input_tokens": 0.10, "output_tokens": 0.50, "cache_read_input_tokens": 
 
 
 def estimer(conso_paliers: dict, prix_: dict = PRIX) -> float:
-    """USD for all tiers (the lite engine only uses the fast tier)."""
+    """USD pour tous les paliers (le moteur allégé n'utilise que le palier rapide)."""
     total = 0.0
     for u in (conso_paliers or {}).values():
         for k, p in prix_.items():
