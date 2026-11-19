@@ -13,7 +13,8 @@ entreprises.
   projet, ni dans ce qu'on lit, ni dans le code (identifiants, chemins, commentaires), ni dans la documentation.
 - Heure de référence : **Europe/Paris** (fenêtres des alertes, `crm_settings.sla_alerts.window_tz`, migration 051).
 - Seul ce que la personne lit est traduit : identifiants, clés, valeurs comparées dans le code (`'won'`, `"held"`…), types
-  d'événements et noms de champs restent en anglais.
+  d'événements et noms de champs restent en anglais. Exception : l'analyse d'appel (`analyse-appel/`) est écrite et codée en
+  français (Romain, 2026-11-19), sauf le format de l'analyse enregistrée (section « Analyse d'appel »).
 - Toute suppression demande confirmation dans une fenêtre (`S.confirm` / `window.lnpConfirm` dans la page, `lnpAsk` dans le CRM).
 - Ne jamais mettre de clé dans le dépôt. Les secrets du CRM sont des secrets des fonctions Supabase (`docs/crm/setup.md`) ;
   ne jamais les demander dans une conversation.
@@ -195,8 +196,13 @@ Spécification : `docs/crm/` (commencer par `docs/crm/README.md`). Les données 
 ## Analyse d'appel
 
 Le moteur (`analyse-appel/`) a ses propres règles : lire `analyse-appel/CLAUDE.md` avant d'y toucher. Le modèle extrait et cite,
-le code décide et note. Les consignes envoyées au modèle (`analyse-appel/moteur/lnp_analyse/consignes/*.md`) restent en anglais :
-les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/analyse-appel.yml`.
+le code décide et note. **Tout ce qui touche à l'analyse d'appel est écrit et codé en français** (Romain, 2026-11-19) : noms du
+code (modules `moteur/lnp_analyse`, `allege/analyse_allegee`, `executant/executant_analyse`), commentaires, documentation, tests
+et consignes envoyées au modèle (`consignes/*.md`) ; les listes de mots du code reconnaissent les tournures françaises. Le format
+de l'analyse enregistrée ne change pas (choix de Romain, 2026-11-19) : l'écran, la fiche, le connecteur et les fonctions SQL lisent
+ses clés anglaises (`vers_dict`, `CHAMPS_ENREGISTRES` dans `noyau/modeles.py`), comme les codes, statuts, identifiants de tâche,
+versions et schémas JSON des réponses du modèle. L'exécutant (`executant/executer.py`) tourne dans
+`.github/workflows/analyse-appel.yml`.
 La fiche d'un lead (ligne « Appels », `crm_ca_board`) liste et numérote les appels exactement comme l'analyse
 (`crm_ca_call_info`) : dans un cycle enregistré par Fathom, un appel de vente est un appel enregistré et son numéro est son rang
 (migration 062 : les absences ne décalent plus le R1 ; test `web/supabase/tests/ca_board_rounds_test.sql`).
@@ -206,7 +212,8 @@ Moteur allégé (`analyse-appel/allege`, objectif ≤ 0,10 USD par appel) : cinq
 (phases, questions de découverte, écart, présentation de l'offre, objections après la présentation), le code vérifie
 chaque citation et calcule les notes avec les fonctions du moteur de référence. Choix par analyse :
 `update crm_ca_config set engine = 'lite';` (retour : `engine = 'full'`, valeur par défaut ; migration 035). Tests :
-`cd analyse-appel/allege && python3 -m pytest -q tests` ; écarts avec la méthodologie : `analyse-appel/allege/README.md`.
+`cd analyse-appel/moteur && python3 -m pytest -q tests`, de même dans `allege`, `executant` et `qualification` ; écarts avec la
+méthodologie : `analyse-appel/allege/README.md`.
 
 ## Vérifier après un changement
 

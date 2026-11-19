@@ -1,14 +1,15 @@
-# LNP lead qualification agent (analyse-appel/qualification): run by hand on the most recent leads, results stored in
-# crm_lead_qualifications (042). The repository is public: the log shows call ids, statuses and token counts only.
+# Agent de qualification des leads LNP (analyse-appel/qualification) : lancé à la main sur les leads les plus récents, résultats
+# enregistrés dans crm_lead_qualifications (042). Le dépôt est public : le journal ne montre que des numéros d'appel, des statuts
+# et des nombres de jetons.
 name: lead-qualification
 on:
   workflow_dispatch:
     inputs:
       limit:
-        description: "Number of leads (latest R1 of each, most recent first)"
+        description: "Nombre de leads (le dernier R1 de chacun, les plus récents d'abord)"
         default: "30"
       again:
-        description: "Also the leads already qualified with this prompt version"
+        description: "Aussi les leads déjà qualifiés avec cette version de la consigne"
         type: boolean
         default: false
   push:
@@ -39,7 +40,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Qualify the leads
+      - name: Qualifier les leads
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python3 analyse-appel/qualification/executer.py --limit "${{ inputs.limit }}" ${{ inputs.again && '--again' || '' }}

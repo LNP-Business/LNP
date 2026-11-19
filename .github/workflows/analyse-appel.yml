@@ -1,8 +1,8 @@
-# LNP call analysis (analyse-appel/PLAN.md): engine and worker tests on every change; the worker runs every hour and on demand.
-# GitHub secret needed: SUPABASE_SERVICE_ROLE_KEY (Supabase › Project settings › API keys). Without it the tests run without
-# the real transcripts (25 Annex B tests skipped) and the worker does nothing. The model key stays in Supabase
-# (function secret ANTHROPIC_API_KEY, read by the Edge Function callqa-llm).
-name: Call analysis
+# Analyse d'appel LNP (analyse-appel/PLAN.md) : tests du moteur et de l'exécutant à chaque changement ; l'exécutant tourne
+# chaque heure et à la demande. Secret GitHub nécessaire : SUPABASE_SERVICE_ROLE_KEY (Supabase › Project settings › API keys).
+# Sans lui, les tests tournent sans les vraies transcriptions (25 tests de l'annexe B ignorés) et l'exécutant ne fait rien.
+# La clé du modèle reste dans Supabase (secret de fonction ANTHROPIC_API_KEY, lu par la fonction Edge callqa-llm).
+name: Analyse d'appel
 on:
   push:
     branches: [main]
@@ -14,12 +14,12 @@ on:
   workflow_dispatch:
     inputs:
       effort:
-        description: "Model effort of this run: none (no thinking, LNP default), low, or default (each model's own default), to compare them"
+        description: "Effort du modèle pour cette exécution : none (sans réflexion, défaut LNP), low, ou default (le défaut de chaque modèle), pour les comparer"
         type: choice
         options: [none, low, default]
         default: none
 env:
-  SUPABASE_URL: ${{ vars.SUPABASE_URL }}  # LNP: repository variable, https://<ref>.supabase.co
+  SUPABASE_URL: ${{ vars.SUPABASE_URL }}  # LNP : variable du dépôt, https://<ref>.supabase.co
 jobs:
   test:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -30,27 +30,27 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install pytest
-      - name: Real transcripts of the Annex B tests (private Storage bucket, never in git)
+      - name: Vraies transcriptions des tests de l'annexe B (stockage privé, jamais dans git)
         env:
           KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           if [ -z "$KEY" ]; then
-            echo "::notice::SUPABASE_SERVICE_ROLE_KEY not set: Annex B tests on real transcripts are skipped."
+            echo "::notice::SUPABASE_SERVICE_ROLE_KEY absent : les tests de l'annexe B sur les vraies transcriptions sont ignorés."
             echo "CALLQA_SKIP_MISSING_CORPUS=1" >> "$GITHUB_ENV"; exit 0
           fi
           if ! curl -fsS -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
             "$SUPABASE_URL/storage/v1/object/callqa-fixtures/transcripts.tar.gz" -o /tmp/t.tgz; then
-            echo "::notice::callqa-fixtures/transcripts.tar.gz not found in Storage: Annex B tests on real transcripts are skipped."
+            echo "::notice::callqa-fixtures/transcripts.tar.gz introuvable dans le stockage : les tests de l'annexe B sur les vraies transcriptions sont ignorés."
             echo "CALLQA_SKIP_MISSING_CORPUS=1" >> "$GITHUB_ENV"; exit 0
           fi
           mkdir -p analyse-appel/moteur/tests/fixtures/transcripts
           tar xzf /tmp/t.tgz -C analyse-appel/moteur/tests/fixtures/transcripts
           rm /tmp/t.tgz
-      - name: Engine (184 tests)
+      - name: Moteur complet
         run: cd analyse-appel/moteur && python3 -m pytest -q tests
-      - name: Worker
+      - name: Exécutant
         run: cd analyse-appel/executant && python3 -m pytest -q tests
-      - name: Lite engine
+      - name: Moteur allégé
         run: cd analyse-appel/allege && python3 -m pytest -q tests
 
   worker:
@@ -61,12 +61,12 @@ jobs:
       group: analyse-appel-executant
       cancel-in-progress: false
     steps:
-      - name: Skip when the secret is not set yet
+      - name: Rien à faire tant que le secret n'est pas défini
         id: ready
         env:
           KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$KEY" ]; then echo "::notice::SUPABASE_SERVICE_ROLE_KEY not set: no call analysed."; echo "go=false" >> "$GITHUB_OUTPUT";
+          if [ -z "$KEY" ]; then echo "::notice::SUPABASE_SERVICE_ROLE_KEY absent : aucun appel analysé."; echo "go=false" >> "$GITHUB_OUTPUT";
           else echo "go=true" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/checkout@v4
         if: steps.ready.outputs.go == 'true'
@@ -74,7 +74,7 @@ jobs:
         if: steps.ready.outputs.go == 'true'
         with:
           python-version: "3.11"
-      - name: Analyse the queued calls
+      - name: Analyser les appels en attente
         if: steps.ready.outputs.go == 'true'
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
