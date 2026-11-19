@@ -54,6 +54,21 @@ def test_french_question_forms_and_tails():
     assert S.TAIL_ONLY.match("Non ?")
 
 
+def test_dating_words_and_tics():
+    """SB-30: « ça fait combien de temps » only dates the question; « tu vois ? » inside a question is a tic, not a tail."""
+    assert S.lexicon_registers("ça fait combien de temps que tu donnes des cours ?") == set()        # not Time & load
+    assert S.lexicon_registers("combien de temps tu passes avec tes enfants ?") == {"time_load"}
+    assert not any(re.search(p, "qu'est-ce qui te manque pour que ça marche, tu vois ?") for p in S.TAILS)
+    assert S.TAIL_ONLY.match("Tu vois ?")
+
+
+def test_the_register_named_by_the_asked_part():
+    """SB-27 / SB-28: the asked sentence and its last clause name the register, not the preamble."""
+    assert S.lexicon_register_named("Et pourquoi vous voulez reprendre une activité à temps plein ?")[0] == "time_load"
+    assert S.lexicon_register_named("Pour une professeure avec une carrière, c'est clair. toi, tu te sens comment ?") is None
+    assert S.lexicon_register_named("Avec 2 000 euros, qu'est-ce que ça change pour toi ?") is None
+
+
 def test_french_register_words():
     assert S.lexicon_registers("Et pourquoi vous voulez reprendre une activité à temps plein ?") == {"time_load"}
     assert S.lexicon_registers("des bons revenus, c'est nécessaire") == {"financial"}     # not « rêve »

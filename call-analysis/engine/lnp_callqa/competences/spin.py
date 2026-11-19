@@ -132,12 +132,14 @@ TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"
          r"\byou know\?$", r"\bok\?$", r"\bokay\?$",
          # French (LNP, 2026-11-19), with the space a French transcript puts before "?"
          r"\bnon\s*\?$", r"\bhein\s*\?$", r"\bc'est ça\s*\?$", r"\bc'est bien ça\s*\?$", r"\bd'accord\s*\?$",
-         r"\bok\s*\?$", r"\bt'es d'accord\s*\?$", r"\btu vois\s*\?$", r"\bvous voyez\s*\?$", r"\bça te parle\s*\?$",
+         r"\bok\s*\?$", r"\bt'es d'accord\s*\?$", r"\bça te parle\s*\?$",
          r"\bça vous parle\s*\?$", r"\bn'est-ce pas\s*\?$", r"\bc'est clair\s*\?$", r"\bc'est bon\s*\?$",
          r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$"]
 TAIL_ONLY = re.compile(r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
-                       r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|tu vois|vous voyez|n'est-ce pas|ça te parle|"
-                       r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va)\s*\?$", re.I)
+                       r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|n'est-ce pas|ça te parle|"
+                       r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va|"
+                       # a French tic alone ("Tu vois ?"): never a question of its own (inside a sentence it is not a tail)
+                       r"(et |mais |donc )?(tu vois|vous voyez|tu sais|vous savez|tu comprends|tu me suis))\s*\?$", re.I)
 STOP = set(_fold("""the a an and or but so to of in on at for with that this it its is are was were be been i you he
 she we they me my your our their them there here what how when where why who which do does did have has had not no
 yes just like really very about from as if then than also can could would will should get got go going know think
@@ -441,6 +443,56 @@ SOCIAL_LOGISTIC = re.compile(
     r"(le |la |au |à la )?(live|conférence|webinaire|vidéo|masterclass|replay)|"
     r"(décale|décaler|reporter|reporte) (cet |l')?(appel|rendez-vous|rdv)|un autre créneau|"
     r"combien de temps (tu as|vous avez|t'as) (devant (toi|vous)|pour (l'appel|cet appel))", re.I)
+
+
+# §3 hard rules the code can read in the text (LNP, 2026-11-19; the lite engine left them to the model, README
+# approximation 4): the load of a solution (the time or the money the prospect would put into it, SB-25 financing) is
+# OUT `solution_load`; a question about the offer is OUT `offer_info`
+SOLUTION_LOAD = re.compile(
+    r"how much time (can|could|would) you (dedicate|commit|put in|set aside|carve out|give)|"
+    r"how many hours (a |per )?(week |day )?(can|could|would) you (dedicate|commit|put in|set aside|give)|"
+    r"what('s| is) your budget|how much (can|could|would) you (invest|put in|spend)|"
+    r"(combien de temps|combien d'heures|disponibilité|disponible|heures par semaine|temps par semaine)"
+    r"[^?]{0,60}\b(allouer|consacrer|dégager|décaler|libérer|mettre|accorder|investir|te former|vous former|"
+    r"te faire accompagner|vous faire accompagner|y passer|y mettre|pour avancer)\b|"
+    r"\b(allouer|consacrer|dégager|libérer|accorder)\b[^?]{0,40}(combien|temps|heures)|"
+    r"(c'est quoi|quel est|quel serait) (ton |votre |le )?budget|\bton budget\b|\bvotre budget\b|"
+    r"combien (tu peux|vous pouvez|tu pourrais|vous pourriez|tu es prête? à|vous êtes prête? à|tu serais prête? à)"
+    r" (investir|mettre|payer|dépenser)", re.I)
+OFFER_QUESTION = re.compile(
+    r"about (the|our) (program|programme|mentorship|academy|offer|course|coaching)|"
+    r"\bnotre (accompagnement|programme|offre|méthode|formation|coaching)\b|\bl'offre\b|"
+    r"\b(sur|dans|de|pour) l'accompagnement\b|te lancer dans un accompagnement|vous lancer dans un accompagnement",
+    re.I)
+
+
+def solution_load_question(text: str) -> bool:
+    return bool(SOLUTION_LOAD.search(norm(text or "")))
+
+
+def offer_question(text: str) -> bool:
+    return bool(OFFER_QUESTION.search(norm(text or "")))
+
+
+def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
+    """SB-27 by the code: when the words of what the question asks name exactly one register (SB-30), its register and
+    the word that names it (an exact passage of the question); None otherwise. SB-28 (asked over premise): only the last
+    clause, after the last comma, is read ("not knowing where clients come from, what does that do to you?" asks
+    nothing about clients)."""
+    text = asked_part(text).rsplit(",", 1)[-1]
+    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
+    hits = {}
+    for reg, words in REGISTER_LEXICON.items():
+        for w in words:
+            m = re.search(r"[ $]" + re.escape(w), t)
+            if m:
+                hits.setdefault(reg, w.strip())
+    if len(hits) != 1:
+        return None
+    reg, w = next(iter(hits.items()))
+    folded = _fold(text)
+    i = folded.find(w)
+    return (reg, text[i:i + len(w)]) if i >= 0 and len(folded) == len(text) else (reg, w)
 
 
 def social_or_logistic(text: str) -> bool:
@@ -1038,9 +1090,25 @@ def expand_splits(units: list[Unit]) -> list[Unit]:
 
 
 # =============================================================================================== registers
+# SB-30: words that only date the question are not the time domain ("ça fait combien de temps que…", "depuis quand")
+DATING = re.compile(r"(ca fait|depuis|il y a|pendant) combien de temps|depuis quand|combien d'annees|"
+                    r"how long (have|has|did|ago)|for how long")
+
+
+def asked_part(text: str, quote: Optional[str] = None) -> str:
+    """SB-28: the part of a solicitation that asks; the sentence holding the quote (or the last sentence), whatever the
+    case after the period (a transcript does not always capitalise)."""
+    parts = [p for p in re.split(r"(?<=[.!?])\s+", text or "") if p.strip()] or [text or ""]
+    if quote:
+        for p in parts:
+            if norm(quote) in norm(p):
+                return p
+    return parts[-1]
+
+
 def lexicon_registers(text: str) -> set[str]:
     """SB-30: the registers whose domain words appear in a text (word starts, case-insensitive)."""
-    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", _fold(text)) + " "
+    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = set()
     for reg, words in REGISTER_LEXICON.items():
         if any(re.search(r"[ $]" + re.escape(w), t) for w in words):
@@ -1097,7 +1165,7 @@ def _validate_register(a: dict, ctx: CallContext, u: Unit) -> list[str]:
         where = (u.preamble + " " + u.sol.text) if u.preamble else u.sol.text
         if not _proof_ok(q, where):
             return ["bad_quote:named"]
-        lex = lexicon_registers(u.sol.text)
+        lex = lexicon_registers(asked_part(u.sol.text, q))         # the asked sentence, not the preamble (SB-28)
         if len(lex) == 1 and REGISTER_OF_DOMAIN[dom] not in lex:
             return ["lexicon_conflict"]
         return []
@@ -1109,7 +1177,11 @@ def _validate_register(a: dict, ctx: CallContext, u: Unit) -> list[str]:
         if rt not in {t.id for t in _answer_turns(ctx, u)}:
             return ["bad_answer_turn"]
         e = quote_ok(ctx, Evidence(q or "", rt, PROSPECT), min_words=1, max_words=40)
-        return [f"bad_quote:{e}"] if e else []
+        if e:
+            return [f"bad_quote:{e}"]
+        # SB-27 (code, LNP 2026-11-19): a question whose asked clause names one domain is read in the question, never
+        # in its answer
+        return ["named_in_question"] if lexicon_register_named(u.sol.text) else []
     # reference: only for an open question with no answer; the words it points to, in the last prospect turns (SB-29)
     if answered:
         return ["reference_with_answer"]

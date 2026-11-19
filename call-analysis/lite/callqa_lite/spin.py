@@ -81,9 +81,18 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if q.get("closed_need_payoff"):
         forced.append("agreement")                                   # content supplied by the sales
         tags.append("closed_need_payoff")
+    if E.TAIL_ONLY.match(sentence.strip()):                           # SEG-4 / SEG-7: a tail alone ("Tu vois ?")
+        forced.append("agreement")
+        tags.append("tail_only")
     if any(re.search(p, sentence.strip().lower()) for p in E.TAILS):  # SEG-4 validation tail -> OUT agreement
         forced.append("agreement")
         tags.append("validation_tail")
+    if E.solution_load_question(sentence):                            # §3: the load of a solution (time, budget)
+        forced.append("solution_load")
+        tags.append("solution_load_by_code")
+    if E.offer_question(sentence):                                    # §3: a question about the offer
+        forced.append("offer_info")
+        tags.append("offer_info_by_code")
     if forced:
         cands = forced + ([reason] if letter == E.OUT and reason in E.OUT_PRIORITY else [])
         return E.LetterDecision(E.OUT, 1, min(cands, key=E.OUT_PRIORITY.index), sorted(set(tags)))
@@ -149,15 +158,20 @@ def place_perimeter(ctx: CallContext, units: list[LUnit]) -> dict:
     return {"start": ctx.phases.discovery_start, "end": ctx.phases.discovery_end, "reopenings": []}
 
 
-def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops) -> dict[str, list[dict]]:
-    """Each atom goes to the question whose answer span (SB-5 to SB-8, code) holds its turn."""
+def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops,
+                  listed: Optional[list[LUnit]] = None) -> dict[str, list[dict]]:
+    """Each atom goes to the question whose answer span (SB-5 to SB-8, code) holds its turn.
+
+    The atoms are read from every listed question (listed), not only the coded ones: an atom the model put under an OUT
+    question ("Ça te va ?") goes to the coded question whose answer holds its turn, or is counted as dropped; it used to
+    disappear without a trace (LNP, 2026-11-19)."""
     owner: dict[str, LUnit] = {}
     for u in coded:
         for t in list(u.sol.answer_turns) + list(u.volunteered_turns):
             owner[t] = u
     out: dict[str, list[dict]] = {}
     seen = set()
-    for u0 in coded:
+    for u0 in (listed or coded):
         for x in u0.raw.get("atoms") or []:
             if not isinstance(x, dict):
                 drops.add(STEP, "atom:not_an_object")
@@ -178,10 +192,21 @@ def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops) -> dict[st
     return out
 
 
+# the domain the code gives a register it read in the question's words (one per register, SB-26)
+REGISTER_DOMAIN = {"financial": "money", "time_load": "time", "identity_status": "future",
+                   "mental_emotional": "self_belief", "other": "other"}
+
+
 def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
     q = u.raw
     a = {"asked_domain": q.get("register_domain"), "basis": q.get("register_basis"),
          "quote": q.get("register_quote"), "reference_turn": q.get("register_turn")}
+    named = E.lexicon_register_named(u.sol.text)
+    if a["basis"] in ("answer", "reference", "none") and named:
+        # SB-27 by the code (LNP, 2026-11-19): the question names one domain, so the register is read in the question,
+        # not in its answer (« pourquoi reprendre une activité à temps plein ? » was given Financial from the answer)
+        drops.add(STEP, "register:named_in_question", q)
+        a = {"asked_domain": REGISTER_DOMAIN[named[0]], "basis": "named", "quote": named[1], "reference_turn": None}
     if a["asked_domain"] is None and a["basis"] is None:
         drops.add(STEP, "register:missing", q)
         errs = ["missing"]
@@ -233,7 +258,7 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
                 drops.add(STEP, "answer:outside_span_or_bad_quote", a)
 
     # atoms (code decision rules on the model's atoms, SB-9..SB-15, SB-22..SB-24)
-    raw_by_sol = _attach_atoms(ctx, coded, drops)
+    raw_by_sol = _attach_atoms(ctx, coded, drops, units)
     atoms: list[Atom] = []
     meta: dict[str, dict] = {}
     atom_log: list[dict] = []

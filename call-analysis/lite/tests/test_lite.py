@@ -123,7 +123,9 @@ def test_each_question_has_its_letter_register_and_the_prospect_answer():
     assert by["T005"]["answer_turns"] == ["T006"]                                 # SB-5, computed by code
     assert by["T003"]["answer"] == {"turn": "T004", "quote": "I only make about 1,500 a month from it"}
     reg = rec["results"]["SPIN"]["details"]["registers"]
-    assert reg["counts"] == {"financial": 4, "time_load": 2, "identity_status": 0, "mental_emotional": 1, "other": 0}
+    # SB-27 (2026-11-19): « Where do you want to be in twelve months? » names Identity & status (SB-30), read in the question
+    assert by["T013"]["register"] == "identity_status" and by["T013"]["register_basis"] == "named"
+    assert reg["counts"] == {"financial": 3, "time_load": 2, "identity_status": 1, "mental_emotional": 1, "other": 0}
     assert reg["flags"] == [] and reg["agreement"] is None and reg["single_reading"]
 
 
@@ -358,3 +360,43 @@ def test_a_social_question_never_starts_the_discovery():
     assert rec["phases"]["discovery_start"] == "T003"
     first = next(s for s in sols(rec) if s["turn"] == "T001")
     assert not first["in_perimeter"] and "pre_perimeter" in first["tags"]
+
+
+# ---------------------------------------------------------------- 2026-11-19: SPIN rules the code now enforces
+def test_the_load_of_a_solution_and_an_offer_question_are_out_by_code():
+    """§3 hard rules read by the code (README approximation 4): time or budget the prospect would put into it, a question
+    about the offer. The letters of the audit of November 2026 (rewritten)."""
+    from callqa_lite.spin import decide_letter
+    for q in ("combien d'heures par semaine tu peux allouer ?", "tu as combien de temps à consacrer pour te former ?",
+              "c'est quoi le budget, du coup ?", "How many hours a week can you dedicate to it?"):
+        d = decide_letter({"letter": "S"}, q)
+        assert (d.letter, d.reason) == ("OUT", "solution_load"), q
+    for q in ("Qu'est-ce que tu as besoin de savoir sur notre accompagnement ?", "What do you want to know about the program?"):
+        d = decide_letter({"letter": "N"}, q)
+        assert (d.letter, d.reason) == ("OUT", "offer_info"), q
+    for q in ("ça fait combien de temps que tu donnes des cours ?", "tu as déjà suivi un accompagnement avant ?"):
+        assert decide_letter({"letter": "S"}, q).letter == "S", q
+
+
+def test_a_register_named_by_the_question_is_not_read_in_the_answer():
+    """SB-27 / SB-28 by the code: the asked clause names one domain (Ouala's Q032.1, rewritten in English here)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T011")
+    q.update(register_domain="money", register_basis="answer", register_turn="T012",
+             register_quote="I miss dinner three nights a week")                  # « your family » is asked: Time & load
+    rec, _ = run(a)
+    by = {x["turn"]: x for x in sols(rec)}
+    assert by["T011"]["register"] == "time_load" and by["T011"]["register_basis"] == "named"
+    assert rec["meta"]["steps"]["S1"]["reasons"].get("register:named_in_question", 0) >= 1
+
+
+def test_an_atom_under_an_out_question_goes_to_the_question_of_its_answer():
+    """An atom the model listed under an OUT question is not lost: it goes to the coded question whose answer holds its
+    turn (it used to disappear without being counted)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    t3 = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")
+    moved = t3["atoms"].pop(0)                                                    # the 1,500 a month SITUATION
+    a["lite.s1_discovery"]["questions"][0]["atoms"] = [moved]                     # put under « can you hear me okay? »
+    rec, _ = run(a)
+    kept = [x for x in rec["results"]["SPIN"]["details"]["atom_decisions"] if x["decision"] == "kept"]
+    assert any(x["quote"] == moved["quote"] and x["solicitation"] == "Q003.1" for x in kept)

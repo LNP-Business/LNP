@@ -740,10 +740,11 @@ class TestRegisters:
         assert v(reg("other", "named", quote="your money")) == ["named_other"]                # SB-35: open question
         assert v(reg("money", "answer", quote="I lost about 2K a month", ref="T006")) == ["no_answer"]
         u.sol.answer_turns = ["T006"]                                                       # now it has an answer
-        assert v(reg("money", "answer", quote="I lost about 2K a month", ref="T006")) == []
+        # SB-27 (2026-11-19): "what does that do to your money?" names its domain, so it is read in the question
+        assert v(reg("money", "answer", quote="I lost about 2K a month", ref="T006")) == ["named_in_question"]
         assert v(reg("money", "answer", quote="I lost about 2K a month", ref="T004")) == ["bad_answer_turn"]
         assert v(reg("money", "answer", quote="I lost 5K", ref="T006")) != []
-        assert v(reg("other", "answer", quote="I can't pay my rent", ref="T006")) == []     # the answer may be Other
+        assert v(reg("other", "answer", quote="I can't pay my rent", ref="T006")) == ["named_in_question"]
         assert v(reg("clients", "reference", quote="I have no clients", ref="T004")) == ["reference_with_answer"]
         assert v(reg("none", "none")) == ["none_with_answer"]
 
