@@ -2,8 +2,6 @@
 
 Ce jeu contient 30 vrais cas tirés des appels de vente de Valentino (juin à octobre 2026), pris dans 23 appels différents. Chaque extrait est une citation exacte de la transcription de l'appel, avec son locuteur et son tour ; l'étiquette de la première colonne donne le tour où le cas commence. Les citations restent mot pour mot dans leur langue d'origine (l'anglais), avec parfois une traduction entre parenthèses ; SALES est le commercial. Les verdicts attendus sont des propositions obtenues en appliquant l'annexe A. Deux annotateurs certifiés doivent les confirmer, chacun à l'aveugle, avant que le jeu serve de référence. Les cas marqués **Limite** sont sur une frontière entre deux règles (21 sur 30). Le jeu ne sert jamais d'exemples dans une consigne. Il sert à former les annotateurs et à vérifier qu'une nouvelle version des règles ne régresse pas.
 
-Depuis OB-27 (Romain, 2026-11-03 : seulement après le premier prix), les cas dont la résistance vient avant le premier prix de l'appel n'ouvrent plus d'épisode et doivent être relus (voir `docs/DECISIONS_OUVERTES.md`, section C).
-
 ## B1. Détection et nature
 
 | # | Appel · tour | Extrait | Verdict attendu | Règle |

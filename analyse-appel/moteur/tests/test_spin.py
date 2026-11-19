@@ -60,7 +60,7 @@ def atome(type_, tour, citation, **kw) -> dict:
 
 
 def _consigne_sollicitation(consigne: str) -> str:
-    m = re.search(r"^SOLICITATION: (.*)$", consigne, re.M)
+    m = re.search(r"^SOLLICITATION : (.*)$", consigne, re.M)
     return m.group(1) if m else "x"
 
 
@@ -76,7 +76,7 @@ def repli(id_tache, id_unite, consigne, no_passe):
         return {"end_turn": None, "quote": None}
     if id_tache == "spin.register":
         # SB-35: an answered question is read in its answer (Other, quoting its first words), else nothing named
-        m = re.search(r"PROSPECT'S ANSWER TO IT:\n\[(\S+) [^\]]*\] \w+: (\S+(?: \S+){0,3})", consigne)
+        m = re.search(r"RÉPONSE DU PROSPECT À CETTE QUESTION :\n\[(\S+) [^\]]*\] \w+: (\S+(?: \S+){0,3})", consigne)
         if m:
             return {"asked_domain": "other", "basis": "answer", "quote": m.group(2), "reference_turn": m.group(1)}
         return {"asked_domain": "none", "basis": "none", "quote": None, "reference_turn": None}
@@ -778,9 +778,9 @@ class TestRegistres:
         ctx = mk(SYN, debut_presentation="T013")
         u = next(x for x in S.inventaire(ctx) if x.sol.id == "Q003.1")
         u.sol.tours_reponse = ["T004"]
-        assert "PROSPECT'S ANSWER TO IT:" in S._construire_registre(ctx, u) and "I have no clients" in S._construire_registre(ctx, u)
+        assert "RÉPONSE DU PROSPECT À CETTE QUESTION :" in S._construire_registre(ctx, u) and "I have no clients" in S._construire_registre(ctx, u)
         u.sol.tours_reponse = []
-        assert "(no answer)" in S._construire_registre(ctx, u)
+        assert "(pas de réponse)" in S._construire_registre(ctx, u)
 
     def test_le_registre_ne_change_jamais_la_note(self):
         a = reponses_reg()

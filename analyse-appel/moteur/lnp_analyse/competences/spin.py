@@ -262,12 +262,12 @@ def inventaire(ctx: ContexteAppel) -> list[Unite]:
     return unites
 
 
-# =============================================================================================== S5 letter decision
+# =============================================================================================== S5 décision de la lettre
 @dataclass
 class DecisionLettre:
-    lettre: str                 # S / P / I / N / OUT, or NOT_SOLICITATION / ATTRIBUTION_DOUBTFUL / routing value
-    porte: int                   # 0 routing, 1 OUT, 2 S, 3 N, 4 I, 5 P
-    raison: Optional[str]       # OUT reason
+    lettre: str                 # S / P / I / N / OUT, ou NOT_SOLICITATION / ATTRIBUTION_DOUBTFUL / valeur d'aiguillage
+    porte: int                   # 0 aiguillage, 1 OUT, 2 S, 3 N, 4 I, 5 P
+    raison: Optional[str]       # raison du OUT
     etiquettes: list[str]
     preuve_invalide: bool = False
 
@@ -277,32 +277,33 @@ def _preuve_ok(citation: Optional[str], texte: str) -> bool:
 
 
 def decider_lettre(g: dict, attrs: dict, texte: str) -> DecisionLettre:
-    """Port of decide() (decide_all.py, SPIN reference P5-P7) with English field names.
+    """Portage de decide() (decide_all.py, référentiel SPIN P5 à P7), avec les noms de champs anglais du JSON.
 
-    Order: SEG filters, gate 0 (routing), gate 1 OUT with the §3 hard rules evaluated before any positive test,
-    then S (gate 2), N (gate 3), I (gate 4), P (gate 5); the first "yes" wins; none -> OUT `absent`.
-    A positive gate whose quote is not in the solicitation fails (C3 rule 1) and marks the decision invalid.
+    Ordre : filtres SEG, porte 0 (aiguillage), porte 1 OUT avec les règles dures du §3 évaluées avant tout test positif,
+    puis S (porte 2), N (porte 3), I (porte 4), P (porte 5) ; le premier « oui » l'emporte ; aucun -> OUT `absent`.
+    Une porte positive dont la citation n'est pas dans la sollicitation échoue (C3, règle 1) et marque la décision
+    comme invalide.
     """
     etiquettes = list(g.get("tags") or [])
     if attrs.get("system") or g.get("is_solicitation") is False:
         return DecisionLettre("NOT_SOLICITATION", 0, None, etiquettes)
     if g.get("attribution_doubtful"):
         return DecisionLettre("ATTRIBUTION_DOUBTFUL", 0, None, etiquettes)
-    if g.get("routing") in AIGUILLAGE:                                             # gate 0
+    if g.get("routing") in AIGUILLAGE:                                             # porte 0
         return DecisionLettre(g["routing"], 0, None, etiquettes)
     g1, g2, g3, g4, g5 = (g.get(k) or {} for k in ("g1", "g2", "g3", "g4", "g5"))
     raisons: list[str] = []
-    if g1.get("reason") in PRIORITE_HORS:                                        # gate 1 (model)
+    if g1.get("reason") in PRIORITE_HORS:                                        # porte 1 (modèle)
         raisons.append(g1["reason"])
-    if attrs.get("validation_tail"):                                           # hard rule: tail -> agreement
+    if attrs.get("validation_tail"):                                           # règle dure : queue -> agreement
         raisons.append("agreement")
     if g3.get("state_or_value"):
-        if g3.get("about_offer"):                                              # hard rule: value about the offer
+        if g3.get("about_offer"):                                              # règle dure : valeur portant sur l'offre
             raisons.append("offer_info")
-        if g3.get("load_named") and g3.get("antecedent") == "solution":         # hard rule: load of a solution
+        if g3.get("load_named") and g3.get("antecedent") == "solution":         # règle dure : charge d'une solution
             raisons.append("solution_load")
         if g3.get("content_supplied") and not g3.get("load_named") and not g3.get("about_offer"):
-            raisons.append("agreement")                                        # hard rule: closed need-payoff
+            raisons.append("agreement")                                        # règle dure : besoin fermé (closed need-payoff)
             etiquettes.append("closed_need_payoff")
     if g4.get("consequence") and g4.get("antecedent_solution") and g3.get("load_named"):
         raisons.append("solution_load")
@@ -331,10 +332,10 @@ def decider_lettre(g: dict, attrs: dict, texte: str) -> DecisionLettre:
 
 
 def decider_portes(g: dict, attrs: dict, texte: str) -> list[tuple[str, DecisionLettre]]:
-    """Applies the model's SEG-2 split if any: returns [(text, decision)] for one or several units."""
+    """Applique la coupe SEG-2 du modèle s'il y en a une : rend [(texte, décision)] pour une ou plusieurs unités."""
     coupe, sous = g.get("split"), g.get("sub")
     if isinstance(coupe, list) and isinstance(sous, list) and len(coupe) >= 2 and len(sous) == len(coupe):
-        # the validation tail belongs to the clause it closes (SEG-4): only the last part keeps it
+        # la queue de validation appartient à la proposition qu'elle ferme (SEG-4) : seule la dernière partie la garde
         sortie = []
         for j, (txt, sg) in enumerate(zip(coupe, sous)):
             a = dict(attrs, validation_tail=attrs.get("validation_tail") and j == len(coupe) - 1)
@@ -347,22 +348,23 @@ def est_lettre_codee(lettre: Optional[str]) -> bool:
     return lettre in LETTRES or lettre == OUT
 
 
-# =============================================================================================== S3 gate task
+# =============================================================================================== S3 tâche des portes
 def _ctx_lines(tours: list[Tour], limite: int = 600) -> str:
     return "\n".join(f"[{t.id} {t.ts}] {t.role}: {t.texte[-limite:]}" for t in tours)
 
 
 def _construire_portes(ctx: ContexteAppel, u: Unite) -> str:
-    pos = "after the end of the discovery (offer / pitch / close phase)" if u.attrs.get("post_end") else \
-        "before the first pitch or price"
-    return (f"UNIT: {u.sol.id}  (turn {u.tour.id}, solicitation {u.rang} of {u.total_dans_tour} in the turn; {pos})\n"
-            f"PREVIOUS PROSPECT TURNS:\n{_ctx_lines(u.prospect_prec) or '(none)'}\n"
-            f"SALES PREAMBLE IN THE SAME TURN: {u.preambule or '(none)'}\n"
-            f"SOLICITATION: {u.sol.texte}\n"
-            f"CODE ATTRIBUTES: validation_tail={u.attrs['validation_tail']} alternative={u.attrs['alternative']} "
+    pos = "après la fin de la découverte (phase de l'offre, de la présentation ou de la conclusion)" \
+        if u.attrs.get("post_end") else "avant la première présentation de l'offre ou le premier prix"
+    return (f"UNITÉ : {u.sol.id}  (tour {u.tour.id}, sollicitation {u.rang} sur {u.total_dans_tour} dans le tour ; {pos})\n"
+            f"TOURS PRÉCÉDENTS DU PROSPECT :\n{_ctx_lines(u.prospect_prec) or '(aucun)'}\n"
+            f"PRÉAMBULE DU COMMERCIAL DANS LE MÊME TOUR : {u.preambule or '(aucun)'}\n"
+            f"SOLLICITATION : {u.sol.texte}\n"
+            f"ATTRIBUTS CALCULÉS PAR LE CODE : validation_tail={u.attrs['validation_tail']} alternative={u.attrs['alternative']} "
             f"open_branch={u.attrs['open_branch']} offer_mention={u.attrs['offer_mention']} "
             f"anchor_words={u.attrs['anchor_words']}\n"
-            "Answer every gate (even after an earlier yes). Quotes are exact substrings of SOLICITATION.")
+            "Réponds à chaque porte (même après un « oui » plus tôt). Les citations sont des sous-chaînes exactes de "
+            "SOLLICITATION.")
 
 
 RAISONS_PORTE = set(PRIORITE_HORS) | {None}
@@ -405,7 +407,7 @@ def _valider_obj_porte(g: dict, texte: str, profondeur: int = 0) -> list[str]:
 
 
 def tache_porte(u: Unite) -> TacheModele:
-    """One closed task per solicitation. The key compared across passes is the code decision itself."""
+    """Une tâche fermée par sollicitation. La clé comparée d'une passe à l'autre est la décision du code elle-même."""
     def cle(a: dict) -> Any:
         return [(d.lettre, d.raison, "closed_need_payoff" in d.etiquettes) for _, d in decider_portes(a, u.attrs, u.sol.texte)] \
             + [bool(a.get("objection_clarification"))]
@@ -413,14 +415,14 @@ def tache_porte(u: Unite) -> TacheModele:
                      lambda a, c, uid: _valider_obj_porte(a, u.sol.texte), cle)
 
 
-# =============================================================================================== perimeter
+# =============================================================================================== périmètre
 def _construire_reouverture(ctx: ContexteAppel, u: Unite) -> str:
     i = ctx.n(u.tour.id)
     fenetre = ctx.tours[i: i + TOURS_FENETRE_REOUVERTURE]
-    return (f"REOPENING START: {u.sol.id} (turn {u.tour.id}): {u.sol.texte}\n"
-            "Give the first SALES turn after the start where the sales returns to the offer (next offer segment), "
-            "states a price, asks for a decision or changes topic. JSON: {\"end_turn\": \"T177\"|null, "
-            "\"quote\": \"exact words of that turn\"}\n\nTRANSCRIPT\n" + ctx.afficher(fenetre))
+    return (f"DÉBUT DE LA RÉOUVERTURE : {u.sol.id} (tour {u.tour.id}) : {u.sol.texte}\n"
+            "Donne le premier tour SALES après le début où le commercial revient à l'offre (partie suivante de l'offre), "
+            "annonce un prix, demande une décision ou change de sujet. JSON : {\"end_turn\": \"T177\"|null, "
+            "\"quote\": \"mots exacts de ce tour\"}\n\nTRANSCRIPTION\n" + ctx.afficher(fenetre))
 
 
 def tache_reouverture(u: Unite) -> TacheModele:
@@ -440,26 +442,27 @@ def tache_reouverture(u: Unite) -> TacheModele:
 
 
 def fin_decouverte(ctx: ContexteAppel) -> Optional[str]:
-    """SB-1: first pitch start or first price, whichever comes first (Pitch annex PB-1, PB-3)."""
+    """SB-1 : premier début de présentation de l'offre ou premier prix, le premier des deux (annexe Présentation PB-1, PB-3)."""
     c = [x for x in (ctx.phases.debut_presentation, ctx.phases.premier_prix) if x]
     return min(c, key=ctx.n) if c else None
 
 
 def est_debut_valide(d: DecisionLettre) -> bool:
-    """SB-1 / SB-2: the start bears on the prospect's situation, goals or problems; social, logistic and framing
-    questions (gate 1 `nothing`), offer questions and loads are never the start."""
+    """SB-1 / SB-2 : le début porte sur la situation, les objectifs ou les problèmes du prospect ; les questions sociales,
+    pratiques et de cadrage (porte 1 `nothing`), les questions sur l'offre et les charges ne sont jamais le début."""
     return d.lettre in LETTRES or (d.lettre == OUT and d.raison in ("agreement", "sales_list"))
 
 
 def est_diagnostic(u: Unite) -> bool:
-    """SB-3: a new diagnostic question on situation / problems / goals. Not: offer, logistics (gate 1 `nothing`),
-    financing (SB-25 -> OUT solution_load), resistance clarification (Objections competence)."""
+    """SB-3 : une nouvelle question de diagnostic sur la situation, les problèmes ou les objectifs. Pas : l'offre, la
+    logistique (porte 1 `nothing`), le financement (SB-25 -> OUT solution_load), la clarification d'une résistance
+    (compétence Objections)."""
     return bool(u.decision and u.decision.lettre in LETTRES and not (u.portes_ or {}).get("objection_clarification"))
 
 
 def fin_de_reouverture(u: Unite) -> bool:
-    """SB-3 code-side ends of a reopening: decision request, validation request, offer info, load of a solution,
-    resistance clarification."""
+    """SB-3, fins d'une réouverture vues par le code : demande de décision, demande de validation, information sur l'offre,
+    charge d'une solution, clarification d'une résistance."""
     d = u.decision
     if d is None:
         return False
@@ -467,19 +470,19 @@ def fin_de_reouverture(u: Unite) -> bool:
         bool((u.portes_ or {}).get("objection_clarification"))
 
 
-# =============================================================================================== answer spans
+# =============================================================================================== plages de réponse
 def plages_reponse(ctx: ContexteAppel, unites: list[Unite], tours_sollicitation: set[str]) -> None:
-    """SB-5..SB-8. `units` are the coded units in transcript order (each with `window_end`).
+    """SB-5 à SB-8. `unites` sont les unités codées dans l'ordre de la transcription (chacune avec `fin_fenetre`).
 
-    SB-5: the answer is the prospect speech after the solicitation up to the next sales solicitation; a sales
-          backchannel of <= 5 words does not end it.
-    SB-6: stacked solicitations: the answer goes to the last one, unless the prospect reuses a key word of an
-          earlier one and none of the last; the others are `unanswered`.
-    SB-7: subsumed: consecutive prospect turns with no sales speech in between are all in the span.
-    SB-8: prospect speech after a longer sales acknowledgement and before the next solicitation is attached to the
-          last solicitation with the flag `volunteered`.
+    SB-5 : la réponse est la parole du prospect après la sollicitation jusqu'à la sollicitation suivante du commercial ;
+           une relance orale du commercial de 5 mots ou moins ne la clôt pas.
+    SB-6 : sollicitations empilées : la réponse va à la dernière, sauf si le prospect reprend un mot clé d'une
+           précédente et aucun de la dernière ; les autres sont `unanswered`.
+    SB-7 : englobés : les tours consécutifs du prospect sans parole du commercial entre eux sont tous dans la plage.
+    SB-8 : la parole du prospect après un acquiescement plus long du commercial et avant la sollicitation suivante est
+           rattachée à la dernière sollicitation avec le signal `volunteered` (spontané).
     """
-    tours_sol = {u.tour.id for u in unites} | tours_sollicitation     # any sales turn carrying a solicitation
+    tours_sol = {u.tour.id for u in unites} | tours_sollicitation     # tout tour du commercial qui porte une sollicitation
     par_tour: dict[str, list[Unite]] = {}
     for u in unites:
         par_tour.setdefault(u.tour.id, []).append(u)
@@ -516,16 +519,17 @@ def plages_reponse(ctx: ContexteAppel, unites: list[Unite], tours_sollicitation:
         cible.texte_reponse = " ".join(ctx.tour(x).texte for x in reponse + spontane)
 
 
-# =============================================================================================== atoms
+# =============================================================================================== atomes
 def _construire_atomes(ctx: ContexteAppel, u: Unite) -> str:
     rep = [ctx.tour(x) for x in u.sol.tours_reponse]
     spont = [ctx.tour(x) for x in u.tours_spontanes]
-    return (f"UNIT: {u.sol.id} (letter of the question: {u.sol.lettre}; the letter never changes with the answer)\n"
-            f"PREVIOUS PROSPECT TURNS (context only, never quoted):\n{_ctx_lines(u.prospect_prec)}\n"
-            f"SALES TURN {u.tour.id}: {u.tour.texte}\nQUESTION: {u.sol.texte}\n"
-            f"ANSWER TURNS:\n{_ctx_lines(rep, 4000) or '(none)'}\n"
-            f"VOLUNTEERED TURNS (after a sales acknowledgement):\n{_ctx_lines(spont, 4000) or '(none)'}\n"
-            "List the atoms of the answer and volunteered turns. Quotes from those PROSPECT turns only.")
+    return (f"UNITÉ : {u.sol.id} (lettre de la question : {u.sol.lettre} ; la lettre ne change jamais avec la réponse)\n"
+            f"TOURS PRÉCÉDENTS DU PROSPECT (contexte seulement, jamais cités) :\n{_ctx_lines(u.prospect_prec)}\n"
+            f"TOUR DU COMMERCIAL {u.tour.id} : {u.tour.texte}\nQUESTION : {u.sol.texte}\n"
+            f"TOURS DE RÉPONSE :\n{_ctx_lines(rep, 4000) or '(aucun)'}\n"
+            f"TOURS SPONTANÉS (après un acquiescement du commercial) :\n{_ctx_lines(spont, 4000) or '(aucun)'}\n"
+            "Liste les atomes des tours de réponse et des tours spontanés. Citations tirées de ces tours PROSPECT "
+            "seulement.")
 
 
 def _valider_atomes(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
@@ -559,22 +563,28 @@ def tache_atomes(u: Unite) -> TacheModele:
 
 
 MOTS_NOMBRES = r"(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|" \
-            r"sixty|hundred|thousand|million|dozen)"
+            r"sixty|hundred|thousand|million|dozen|" \
+            r"deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze|quinze|vingt|trente|quarante|cinquante|soixante|" \
+            r"cent|cents|mille|millions?|douzaines?|dizaines?|quinzaines?|vingtaines?|centaines?)"
 
 
 def a_quantite(citation: str) -> bool:
-    """SB-24 (replaces SB-15): an amount, a count or a duration. A frequency alone ("every month") or a vague
-    quantity ("a lot", "forever", X6) is not enough."""
+    """SB-24 (remplace SB-15) : un montant, un compte ou une durée. Une fréquence seule (« every month », « tous les
+    mois ») ou une quantité vague (« a lot », « beaucoup », « forever », « depuis toujours », X6) ne suffit pas.
+    « un jour » (« un jour, je voudrais… ») n'est pas une durée."""
     q = (citation or "").lower()
     return bool(re.search(r"\d", q) or re.search(rf"\b{MOTS_NOMBRES}\b", q) or
-                re.search(r"\b(a|one) (year|month|week|day|hour|client|half)s?\b", q))
+                re.search(r"\b(a|one) (year|month|week|day|hour|client|half)s?\b", q) or
+                re.search(r"\b(un|une) (an|ann[ée]e|mois|semaine|journ[ée]e|heure|client|cliente|[ée]l[èe]ve|demi)s?\b", q))
 
 
 def lire_quantite(citation: str) -> tuple[Optional[float], Optional[str]]:
-    m = re.search(r"(\$?\d[\d,.]*\s?(k|grand)?)\s*(a |per |an )?([a-z]+)?", (citation or "").lower())
+    # « 2 000 euros par mois » : espace des milliers à la française, unité accentuée ou « € »
+    m = re.search(r"(\$?\d(?:[\d,.]|\s(?=\d{3}(?!\d)))*\s?(k|grand)?)\s*(a |per |an |par )?([a-zà-öø-ÿœ€]+)?",
+                  (citation or "").lower())
     if not m:
         return None, None
-    n = normaliser_nombre(m.group(1).replace(" ", ""))
+    n = normaliser_nombre(re.sub(r"\s", "", m.group(1)))
     try:
         return (float(n) if n is not None else None), m.group(4)
     except ValueError:
@@ -585,27 +595,27 @@ def lire_quantite(citation: str) -> tuple[Optional[float], Optional[str]]:
 class DecisionAtome:
     garder: bool
     type: Optional[str]
-    raison: str            # kept / prompted / approval_only / reported_speech / desire_after_pitch / ...
+    raison: str            # kept / prompted / approval_only / reported_speech / desire_after_pitch / ... (codes enregistrés)
     quantifie: bool = False
 
 
 def decider_atome(brut: dict, *, apres_presentation: bool) -> DecisionAtome:
-    """Code decision rules on one model atom (§4 and Annex A3, in this order)."""
+    """Règles de décision du code sur un atome du modèle (§4 et annexe A3, dans cet ordre)."""
     t = brut.get("type")
     citation = brut.get("quote", "")
-    if len(normaliser(citation).strip(' .,?!"').split()) < 2:                           # SB-9: 2 to 40 words (B2 case 12)
+    if len(normaliser(citation).strip(' .,?!"').split()) < 2:                           # SB-9 : 2 à 40 mots (B2, cas 12)
         return DecisionAtome(False, None, "below_two_words")
-    if approbation_seule(citation):                                                    # C3 rule 5, X3
+    if approbation_seule(citation):                                                    # C3, règle 5, X3
         return DecisionAtome(False, None, "approval_only")
-    if brut.get("prompted_by_sales"):                                            # SB-14, X3 (kept, flagged)
+    if brut.get("prompted_by_sales"):                                            # SB-14, X3 (gardé, signalé)
         return DecisionAtome(False, t, "prompted")
     if brut.get("reported_speech") and not brut.get("owned"):                     # SB-23
         return DecisionAtome(False, None, "reported_speech")
     if t == "IMPACT":
         if brut.get("figure_kind") == "present" and not brut.get("income_drop_attributed"):
-            t = "SITUATION"                                                     # SB-11: current figure, X4
+            t = "SITUATION"                                                     # SB-11 : chiffre actuel, X4
         elif brut.get("domain") and brut.get("domain") == brut.get("problem_domain") and brut.get("domain") != "other":
-            t = "PAIN"                                                          # SB-10: same domain, X4
+            t = "PAIN"                                                          # SB-10 : même domaine, X4
     if t == "DESIRE" and apres_presentation:                                           # SB-12, X5
         return DecisionAtome(False, None, "desire_after_pitch")
     quantifie = bool(brut.get("quantified")) and a_quantite(citation)            # SB-24, X6
@@ -624,7 +634,7 @@ def _chevauche(a: Preuve, b: Preuve) -> bool:
 
 def construire_atomes(ctx: ContexteAppel, u: Unite, atomes_bruts: list[dict], indice_debut: int,
                 meta: dict[str, dict]) -> tuple[list[Atome], list[dict]]:
-    """Turns validated model atoms of one answer into `Atom`s (code decision), SB-9 de-duplication."""
+    """Change les atomes validés du modèle pour une réponse en `Atome` (décision du code), dédoublonnage SB-9."""
     apres_presentation = bool(ctx.phases.debut_presentation and ctx.n(u.tour.id) >= ctx.n(ctx.phases.debut_presentation))
     garde: list[Atome] = []
     journal: list[dict] = []
@@ -635,7 +645,7 @@ def construire_atomes(ctx: ContexteAppel, u: Unite, atomes_bruts: list[dict], in
         if d.type is None:
             continue
         ev = Preuve(brut["quote"], brut["turn"], PROSPECT)
-        if d.garder and any(_chevauche(ev, k.preuve) and k.type == d.type for k in garde):   # SB-9 one passage
+        if d.garder and any(_chevauche(ev, k.preuve) and k.type == d.type for k in garde):   # SB-9 un seul passage
             continue
         val, unite = (None, None)
         if d.quantifie:
@@ -648,7 +658,7 @@ def construire_atomes(ctx: ContexteAppel, u: Unite, atomes_bruts: list[dict], in
         a = Atome(f"A{indice_debut + len(garde) + 1:03d}", d.type, ev, u.sol.id, u.sol.lettre, brut.get("object"),
                  brut.get("domain"), d.quantifie, val, unite,
                  spontane=brut["turn"] in u.tours_spontanes, suggere_par_commercial=not d.garder)
-        # side data not carried by core Atom: goal dimension (§6 D1) and the cause stated by the prospect (§6 D2)
+        # données annexes que l'Atome ne porte pas : dimension de l'objectif (§6 D1) et cause énoncée par le prospect (§6 D2)
         meta[a.id] = {"dimension": brut.get("dimension"),
                       "cause": Preuve(brut["cause_quote"], brut.get("cause_turn") or brut["turn"], PROSPECT)
                       if brut.get("cause_quote") else None}
@@ -656,41 +666,48 @@ def construire_atomes(ctx: ContexteAppel, u: Unite, atomes_bruts: list[dict], in
     return garde, journal
 
 
-# =============================================================================================== follow-up
-ECHO = re.compile(r"^(and )?(tell me more|how so|what else|meaning|what do you mean|in what way|what way|like what|"
-                  r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$")
+# =============================================================================================== approfondissement
+# relance en écho (SB-19), sur la question normalisée (minuscules, apostrophe droite, accents gardés)
+ECHO = re.compile(r"^(and |et )?(tell me more|how so|what else|meaning|what do you mean|in what way|what way|like what|"
+                  r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more|"
+                  r"dis[- ]m'en plus|dites[- ]m'en plus|raconte[- ]moi|racontez[- ]moi|c'est[- ][àa][- ]dire|comment [çc]a|"
+                  r"quoi d'autre|qu'est[- ]ce que (tu veux|vous voulez) dire|de quelle (fa[çc]on|mani[èe]re)|"
+                  r"dans quel sens|comme quoi|par exemple|genre|beaucoup|pourquoi|comment [çc]a se fait|et apr[èe]s|"
+                  r"et ensuite|vraiment|ah bon|continue|continuez|vas[- ]y|allez[- ]y|d[ée]veloppe|d[ée]veloppez)\b.{0,25}\?*$")
 
 
 def approfondit(reponse_prec: str, question: str, preambule: str = "") -> bool:
-    """SB-17: the question (with its same-turn preamble, SEG-5) reuses a content word of 4+ letters or a number of
-    the previous answer. SB-19: an echo / anaphoric solicitation directly after the answer counts as followed up."""
+    """SB-17 : la question (avec son préambule dans le même tour, SEG-5) reprend un mot de contenu de 4 lettres ou plus
+    ou un nombre de la réponse précédente. SB-19 : une sollicitation en écho ou anaphorique juste après la réponse compte
+    comme un approfondissement."""
     if not reponse_prec:
         return False
     q = normaliser(question).strip()
     if ECHO.match(q):
         return True
     qw = [w for w in _replier(question).split() if w]
-    if 0 < len(qw) <= 4 and all(w in _replier(reponse_prec).split() for w in qw):   # SB-19 echo of the answer's words
+    if 0 < len(qw) <= 4 and all(w in _replier(reponse_prec).split() for w in qw):   # SB-19 écho des mots de la réponse
         return True
     return bool(mots_contenu(question + " " + preambule) & mots_contenu(reponse_prec))
 
 
-# =============================================================================================== chains
+# =============================================================================================== chaînes
 @dataclass
 class MaillonChaine:
     id_sol: str
     lettre: str
     raison: Optional[str]
-    atomes: list[Atome]            # non-volunteered, scoring atoms of its answer
+    atomes: list[Atome]            # atomes non spontanés et notés de sa réponse
     suit_prec: bool
     sans_reponse: bool = False
 
 
 def _construire_lien(ctx: ContexteAppel, unite: tuple) -> str:
     ouvrante, citations_chaine, cand, reponse_cand = unite
-    return (f"CHAIN OPENED BY {ouvrante.sol.id}: {ouvrante.sol.texte}\nPROBLEM QUOTES OF THE CHAIN: {citations_chaine}\n"
-            f"CANDIDATE QUESTION {cand.sol.id} ({cand.tour.id}): {cand.sol.texte}\nCANDIDATE ANSWER: {reponse_cand}\n"
-            "Does the candidate question and its answer bear on the same problem object as the chain?")
+    return (f"CHAÎNE OUVERTE PAR {ouvrante.sol.id} : {ouvrante.sol.texte}\nCITATIONS DU PROBLÈME DANS LA CHAÎNE : "
+            f"{citations_chaine}\n"
+            f"QUESTION CANDIDATE {cand.sol.id} ({cand.tour.id}) : {cand.sol.texte}\nRÉPONSE CANDIDATE : {reponse_cand}\n"
+            "La question candidate et sa réponse portent-elles sur le même objet de problème que la chaîne ?")
 
 
 def tache_lien(cand: Unite, ctx: ContexteAppel) -> TacheModele:
@@ -707,17 +724,17 @@ def tache_lien(cand: Unite, ctx: ContexteAppel) -> TacheModele:
 
 def trouver_chaines(etapes: list[MaillonChaine], meme_objet: Callable[[MaillonChaine, list[MaillonChaine], MaillonChaine], bool]
                 ) -> list[dict]:
-    """SB-18 / SB-20 deep chains. `steps` are the coded solicitations in order; `same_object(opening, chain,
-    candidate)` applies SB-16 (model link + code lexical check).
+    """Chaînes profondes de SB-18 / SB-20. `etapes` sont les sollicitations codées dans l'ordre ; `meme_objet(ouverture,
+    chaine, candidate)` applique SB-16 (lien du modèle + vérification lexicale du code).
 
-    Opening: a P whose (non-volunteered) answer has PAIN or BLOCKER. Then, among the following steps:
-    - OUT `nothing` (and the other OUT reasons, SB-20) and `unanswered` stacked units are transparent;
-    - OUT `sales_list` or `agreement` breaks the chain (SB-20);
-    - a coded S/P/I/N on another object breaks it (SB-20);
-    - an S on the same object does not break and is not a link (SB-20); a P on the same object neither;
-    - an I or N that is not followed up on the previous answer breaks it (SB-17, SB-18 "each followed up");
-    - first link: I with an IMPACT; deep when a later I or N on the object gives IMPACT, DESIRE or VALUE.
-    Returns every deep chain found, one per object (a later P on the same object as a found chain is skipped).
+    Ouverture : un P dont la réponse (non spontanée) a un PAIN ou un BLOCKER. Puis, parmi les étapes suivantes :
+    - OUT `nothing` (et les autres raisons de OUT, SB-20) et les unités empilées `unanswered` sont transparents ;
+    - OUT `sales_list` ou `agreement` rompt la chaîne (SB-20) ;
+    - un S/P/I/N codé sur un autre objet la rompt (SB-20) ;
+    - un S sur le même objet ne rompt pas et n'est pas un maillon (SB-20) ; un P sur le même objet non plus ;
+    - un I ou un N qui n'approfondit pas la réponse précédente la rompt (SB-17, SB-18 « chacun approfondi ») ;
+    - premier maillon : un I avec un IMPACT ; profonde quand un I ou un N plus loin sur l'objet donne IMPACT, DESIRE ou VALUE.
+    Rend chaque chaîne trouvée, une par objet (un P plus loin sur le même objet qu'une chaîne trouvée est sauté).
     """
     chaines: list[dict] = []
     utilise: set[str] = set()
@@ -773,8 +790,8 @@ def trouver_chaines(etapes: list[MaillonChaine], meme_objet: Callable[[MaillonCh
 
 
 def lien_lexical(unites_chaine: list[Unite], chaine: list[MaillonChaine], unite_cand: Unite, cand: MaillonChaine) -> bool:
-    """SB-16 code side: at least one shared content word between the quotes (atoms or questions) of the chain and
-    those of the candidate. A followed-up echo question (SB-19) carries its object by anaphora."""
+    """SB-16 côté code : au moins un mot de contenu commun entre les citations (atomes ou questions) de la chaîne et celles
+    de la candidate. Une question en écho qui approfondit (SB-19) porte son objet par anaphore."""
     texte_chaine = " ".join([u.sol.texte + " " + u.preambule for u in unites_chaine] +
                           [a.preuve.citation for s in chaine for a in s.atomes])
     texte_cand = " ".join([unite_cand.sol.texte, unite_cand.preambule] + [a.preuve.citation for a in cand.atomes])
@@ -782,7 +799,7 @@ def lien_lexical(unites_chaine: list[Unite], chaine: list[MaillonChaine], unite_
 
 
 def objets_distincts(chaines: list[dict]) -> list[dict]:
-    """D5 level 2: deep chains on different objects (object labels compared after normalisation)."""
+    """D5 niveau 2 : chaînes profondes sur des objets différents (libellés d'objet comparés après normalisation)."""
     sortie, vus = [], set()
     for c in chaines:
         if not c.get("deep"):
@@ -806,8 +823,9 @@ def _distincts(evs: list[Atome]) -> list[Atome]:
 
 def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[str, dict]] = None
                 ) -> tuple[list[NoteItem], dict[str, list[Atome]]]:
-    """§6. Prompted atoms never count. Volunteered atoms count for D1..D4 if COUNT_VOLUNTEERED (§11).
-    `meta[atom.id]` may carry "dimension" (D1 goal relation) and "cause" (D2 cause Evidence)."""
+    """§6. Les atomes suggérés par le commercial ne comptent jamais. Les atomes spontanés comptent pour D1 à D4 si
+    COMPTER_SPONTANES (§11). `meta[atome.id]` peut porter "dimension" (lien à l'objectif, D1) et "cause" (Preuve de la
+    cause, D2)."""
     meta = meta or {}
     dim = lambda a: (meta.get(a.id) or {}).get("dimension")          # noqa: E731
     cause = lambda a: (meta.get(a.id) or {}).get("cause")            # noqa: E731
@@ -816,7 +834,7 @@ def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[st
     utilise: dict[str, list[Atome]] = {}
     items: list[NoteItem] = []
 
-    # D1 Baseline: SITUATION related to the goal (same dimension as a DESIRE); no DESIRE -> any quantified one
+    # D1 Point de départ : SITUATION liée à l'objectif (même dimension qu'un DESIRE) ; sans DESIRE -> toute SITUATION chiffrée
     dims_desir = {dim(a) for a in by["DESIRE"]} - {None, "other"}
     if by["DESIRE"]:
         lie = [a for a in by["SITUATION"] if dim(a) in dims_desir]
@@ -828,7 +846,7 @@ def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[st
     items.append(item("D1", POIDS["D1"], lv, [a.preuve for a in ev],
                       "related to the goal by dimension" if by["DESIRE"] else "no DESIRE: quantified SITUATION"))
 
-    # D2 Problem: distinct PAIN / BLOCKER; level 2 = two distinct, or one with its cause stated by the prospect
+    # D2 Problème : PAIN / BLOCKER distincts ; niveau 2 = deux distincts, ou un avec sa cause énoncée par le prospect
     pb = _distincts(by["PAIN"] + by["BLOCKER"])
     cause_par = [a for a in pb if cause(a) and not _chevauche(cause(a), a.preuve)]
     if len(pb) >= 2:
@@ -842,7 +860,7 @@ def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[st
     utilise["D2"] = ev
     items.append(item("D2", POIDS["D2"], lv, evd, remarque))
 
-    # D3 Implication: IMPACT; level 2 = two in distinct domains, at least one quantified
+    # D3 Implication : IMPACT ; niveau 2 = deux dans des domaines distincts, au moins un chiffré
     imp = by["IMPACT"]
     lv, ev = (0, [])
     if imp:
@@ -857,7 +875,7 @@ def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[st
     utilise["D3"] = ev
     items.append(item("D3", POIDS["D3"], lv, [a.preuve for a in ev]))
 
-    # D4 Need-payoff: DESIRE -> 1; DESIRE and VALUE -> 2
+    # D4 Bénéfice attendu : DESIRE -> 1 ; DESIRE et VALUE -> 2
     if by["DESIRE"] and by["VALUE"]:
         lv, ev = 2, [by["DESIRE"][0], by["VALUE"][0]]
     elif by["DESIRE"]:
@@ -868,7 +886,7 @@ def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[st
     utilise["D4"] = ev
     items.append(item("D4", POIDS["D4"], lv, [a.preuve for a in ev], remarque))
 
-    # D5 Depth: deep chains (never volunteered atoms, SB-8, X7); level 2 needs the quotes of both chains
+    # D5 Profondeur : chaînes profondes (jamais d'atomes spontanés, SB-8, X7) ; le niveau 2 demande les citations des deux chaînes
     profond = objets_distincts(chaines)
     lv = 2 if len(profond) >= 2 else 1 if profond else 0
     evd = [e for c in profond[:2] for e in c["evidence"]]
@@ -880,7 +898,7 @@ def noter_items(atomes: list[Atome], chaines: list[dict], meta: Optional[dict[st
 
 # =============================================================================================== diagnostics
 def diagnostics(unites: list[Unite], atomes: list[Atome]) -> dict:
-    """§8 coaching diagnostics. Displayed, never scored: the letter never produces points."""
+    """§8 diagnostics pour l'accompagnement du commercial. Affichés, jamais notés : la lettre ne rapporte jamais de points."""
     codees = [u for u in unites if u.dans_perimetre and u.decision and est_lettre_codee(u.decision.lettre)
              and u.sol.statut != "to_review"]
     spin = [u for u in codees if u.decision.lettre in LETTRES]
@@ -918,7 +936,7 @@ def diagnostics(unites: list[Unite], atomes: list[Atome]) -> dict:
 
 
 def applicabilite(unites: list[Unite], debut_decouverte: Optional[str]) -> tuple[str, list[str], dict]:
-    """§5. Returns (status, reasons, health)."""
+    """§5. Rend (statut, raisons, santé)."""
     perim = [u for u in unites if u.dans_perimetre and u.decision]
     codees = [u for u in perim if est_lettre_codee(u.decision.lettre) and u.sol.statut != "to_review"]
     absent = sum(u.decision.lettre == OUT and u.decision.raison == "absent" for u in codees)
@@ -936,14 +954,15 @@ def applicabilite(unites: list[Unite], debut_decouverte: Optional[str]) -> tuple
 # =============================================================================================== orchestration
 def placer_perimetre(ctx: ContexteAppel, unites: list[Unite], resoudre: Callable[[Unite], None],
                     fin_reouverture: Callable[[Unite], Optional[str]]) -> dict:
-    """SB-1, SB-2, SB-25, SB-34 (SB-3 / SB-4 off). `resolve(u)` runs the gates of a unit (sets u.gates / u.decision / status)."""
+    """SB-1, SB-2, SB-25, SB-34 (SB-3 / SB-4 éteintes). `resoudre(u)` fait passer les portes à une unité (remplit
+    u.portes_ / u.decision / le statut)."""
     fin = fin_decouverte(ctx)
     ctx.phases.fin_decouverte = fin
     pre = [u for u in unites if fin is None or ctx.n(u.tour.id) < ctx.n(fin)]
     poster = [u for u in unites if u not in pre]
     debut: Optional[Unite] = None
     for u in pre:
-        if u.attrs["backchannel"] or u.attrs["system"]:           # SEG-7: never a solicitation (code)
+        if u.attrs["backchannel"] or u.attrs["system"]:           # SEG-7 : jamais une sollicitation (code)
             u.sol.etiquettes.append("not_coded")
             continue
         u.fin_fenetre = fin
@@ -955,14 +974,14 @@ def placer_perimetre(ctx: ContexteAppel, unites: list[Unite], resoudre: Callable
         else:
             u.sol.etiquettes.append("pre_perimeter")
     ctx.phases.debut_decouverte = debut.tour.id if debut else None
-    # SB-34: after the first pitch start or price nothing is SPIN: not read, not coded, no register
+    # SB-34 : après le premier début de présentation ou le premier prix, plus rien n'est SPIN : ni lu, ni codé, sans registre
     reouvertures: list[dict] = []
     if not REOUVERTURES:
         for u in poster:
             u.attrs["post_end"] = True
             u.sol.etiquettes.append("post_discovery")
         return {"start": ctx.phases.debut_decouverte, "end": fin, "reopenings": reouvertures}
-    # SB-3 reopenings after the end (superseded by SB-34, kept off)
+    # SB-3 réouvertures après la fin (remplacées par SB-34, gardées éteintes)
     if fin is not None and debut is not None:
         for u in poster:
             u.attrs["post_end"] = True
@@ -1013,8 +1032,8 @@ def appliquer_decision(u: Unite, d: DecisionLettre) -> None:
 
 
 def deplier_coupes(unites: list[Unite]) -> list[Unite]:
-    """SEG-2: a solicitation the model split into coordinated interrogatives becomes several units
-    (ids Q007.1a, Q007.1b ...), each with its own letter; they are stacked units for SB-6."""
+    """SEG-2 : une sollicitation que le modèle a coupée en interrogatives coordonnées devient plusieurs unités
+    (identifiants Q007.1a, Q007.1b…), chacune avec sa lettre ; ce sont des unités empilées pour SB-6."""
     sortie: list[Unite] = []
     for u in unites:
         if len(u.parties) < 2:
@@ -1029,45 +1048,46 @@ def deplier_coupes(unites: list[Unite]) -> list[Unite]:
     return sortie
 
 
-# =============================================================================================== registers
+# =============================================================================================== registres
 def registres_lexique(texte: str) -> set[str]:
-    """SB-30: the registers whose domain words appear in a text (word starts, case-insensitive)."""
+    """SB-30 : les registres dont des mots du domaine paraissent dans un texte (en début de mot, sans tenir compte de la
+    casse ni des accents ; un début de mot peut suivre une élision : « l'argent », « d'heures »)."""
     t = " " + re.sub(r"[^a-z0-9$' -]+", " ", _replier(texte)) + " "
     touches = set()
     for reg, mots in LEXIQUE_REGISTRE.items():
-        if any(re.search(r"[ $]" + re.escape(w), t) for w in mots):
+        if any(re.search(r"[ $']" + re.escape(w), t) for w in mots):
             touches.add(reg)
-    if re.search(r"\$ ?\d|\d+ ?k\b", t):
+    if re.search(r"\$ ?\d|\d+ ?(k|balles)\b", t):
         touches.add("financial")
     return touches
 
 
 def decider_registre(a: Optional[dict]) -> Optional[str]:
-    """SB-26: the code maps the model's asked domain to its register (other / none -> Other)."""
+    """SB-26 : le code ramène le domaine demandé donné par le modèle à son registre (other / none -> Other)."""
     if not a:
         return None
     return REGISTRE_DU_DOMAINE.get(a.get("asked_domain"))
 
 
 def _tours_reponse(ctx: ContexteAppel, u: Unite) -> list:
-    """SB-35: the prospect's answer to the question (SB-6 answer span), its first turns."""
+    """SB-35 : la réponse du prospect à la question (plage de réponse de SB-6), ses premiers tours."""
     return [t for t in (ctx.tour(i) for i in (u.sol.tours_reponse or [])[:TOURS_REPONSE_REGISTRE]) if t is not None]
 
 
 def _construire_registre(ctx: ContexteAppel, u: Unite) -> str:
     prec = u.prospect_prec[-TOURS_REFERENCE_REGISTRE:]
     rep = _tours_reponse(ctx, u)
-    return (f"UNIT: {u.sol.id}  (turn {u.tour.id}, a {u.decision.lettre if u.decision else '?'} question of the discovery)\n"
-            f"LAST PROSPECT TURNS BEFORE IT:\n{_ctx_lines(prec) or '(none)'}\n"
-            f"SALES PREAMBLE IN THE SAME TURN: {u.preambule or '(none)'}\n"
-            f"SOLICITATION: {u.sol.texte}\n"
-            f"PROSPECT'S ANSWER TO IT:\n{chr(10).join(f'[{t.id} {t.ts}] {t.role}: {t.texte[:800]}' for t in rep) or '(no answer)'}\n"
-            "Which domain does this question make the prospect talk about? Quotes are exact substrings.")
+    return (f"UNITÉ : {u.sol.id}  (tour {u.tour.id}, une question {u.decision.lettre if u.decision else '?'} de la découverte)\n"
+            f"DERNIERS TOURS DU PROSPECT AVANT ELLE :\n{_ctx_lines(prec) or '(aucun)'}\n"
+            f"PRÉAMBULE DU COMMERCIAL DANS LE MÊME TOUR : {u.preambule or '(aucun)'}\n"
+            f"SOLLICITATION : {u.sol.texte}\n"
+            f"RÉPONSE DU PROSPECT À CETTE QUESTION :\n{chr(10).join(f'[{t.id} {t.ts}] {t.role}: {t.texte[:800]}' for t in rep) or '(pas de réponse)'}\n"
+            "De quel domaine cette question fait-elle parler le prospect ? Les citations sont des sous-chaînes exactes.")
 
 
 def _valider_registre(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
-    """SB-32 rules 1-3: closed values, an exact quote in the right place, the rule order of SB-35, no conflict with the
-    domain words."""
+    """SB-32, règles 1 à 3 : valeurs fermées, une citation exacte au bon endroit, l'ordre des règles de SB-35, pas de
+    conflit avec les mots du domaine."""
     if not isinstance(a, dict):
         return ["not_an_object"]
     dom, base_ = a.get("asked_domain"), a.get("basis")
@@ -1078,14 +1098,14 @@ def _valider_registre(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
     repondu = bool(_tours_reponse(ctx, u))
     if base_ == "none":
         if repondu:
-            return ["none_with_answer"]                       # SB-35: an open question with an answer is read in it
+            return ["none_with_answer"]                       # SB-35 : une question ouverte qui a une réponse se lit dans sa réponse
         return [] if dom in ("none", "other") else ["none_basis_with_domain"]
     if dom == "none":
         return ["domain_without_basis"]
     q = a.get("quote")
     if base_ == "named":
         if dom == "other":
-            return ["named_other"]                            # SB-35: a subject outside the seven domains is an open question
+            return ["named_other"]                            # SB-35 : un sujet hors des sept domaines est une question ouverte
         ou = (u.preambule + " " + u.sol.texte) if u.preambule else u.sol.texte
         if not _preuve_ok(q, ou):
             return ["bad_quote:named"]
@@ -1095,14 +1115,14 @@ def _valider_registre(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
         return []
     rt = a.get("reference_turn")
     if base_ == "answer":
-        # SB-35: the effect of the question, in the prospect's own words in its answer
+        # SB-35 : l'effet de la question, dans les mots du prospect dans sa réponse
         if not repondu:
             return ["no_answer"]
         if rt not in {t.id for t in _tours_reponse(ctx, u)}:
             return ["bad_answer_turn"]
         e = citation_ok(ctx, Preuve(q or "", rt, PROSPECT), mots_min=1, mots_max=40)
         return [f"bad_quote:{e}"] if e else []
-    # reference: only for an open question with no answer; the words it points to, in the last prospect turns (SB-29)
+    # référence : seulement pour une question ouverte sans réponse ; les mots qu'elle désigne, dans les derniers tours du prospect (SB-29)
     if repondu:
         return ["reference_with_answer"]
     if rt not in {t.id for t in u.prospect_prec[-TOURS_REFERENCE_REGISTRE:]}:
@@ -1112,13 +1132,13 @@ def _valider_registre(a: dict, ctx: ContexteAppel, u: Unite) -> list[str]:
 
 
 def tache_registre(u: Unite) -> TacheModele:
-    """One closed task per coded question of the discovery; the key compared across passes is the register."""
+    """Une tâche fermée par question codée de la découverte ; la clé comparée d'une passe à l'autre est le registre."""
     return TacheModele("spin.register", "fast", "spin_registre", _construire_registre,
                      lambda a, c, uid: _valider_registre(a, c, u), cle=lambda a: decider_registre(a))
 
 
 def resume_registres(unites: list["Unite"], decide: dict[str, dict]) -> dict:
-    """SB-33: counts per register, and the per-call agreement gate (share of registers decided 3/3)."""
+    """SB-33 : comptes par registre, et seuil d'accord par appel (part des registres décidés à 3/3)."""
     n = len(decide)
     verifie_ = sum(1 for d in decide.values() if d["status"] == "verified")
     revue = sum(1 for d in decide.values() if d["status"] == "to_review")
@@ -1141,19 +1161,19 @@ class CompetenceSpin:
         concord: list[str] = []
 
         def resoudre(u: Unite) -> None:
-            """S3 + S4 + S5 for one unit: three passes, validation, arbitration, then the code letter."""
+            """S3 + S4 + S5 pour une unité : trois passes, validation, arbitrage, puis la lettre décidée par le code."""
             if u.portes_ is not None or u.sol.statut in ("to_review", "verified", "arbitrated"):
                 return
             r = executeur.executer(ctx, tache_porte(u), f"gates:{u.sol.id}", u)
             u.sol.statut = r.statut
             statuts_.append(r.statut)
             concord.append(r.concordance)
-            if r.reponse is None:                                    # C3 rule 7 / C4: excluded from scores
+            if r.reponse is None:                                    # C3 règle 7 / C4 : écartée des notes
                 u.sol.etiquettes.append("to_review")
                 return
             u.portes_ = r.reponse
             u.parties = decider_portes(r.reponse, u.attrs, u.sol.texte)
-            # for the perimeter, a split unit is represented by its first S/P/I/N part (else its first part)
+            # pour le périmètre, une unité coupée est représentée par sa première partie S/P/I/N (sinon sa première partie)
             appliquer_decision(u, next((d for _, d in u.parties if d.lettre in LETTRES), u.parties[0][1]))
 
         def fin_reouverture(u: Unite) -> Optional[str]:
@@ -1163,16 +1183,16 @@ class CompetenceSpin:
         perimetre = placer_perimetre(ctx, unites, resoudre, fin_reouverture)
         unites = deplier_coupes(unites)
         for v in unites:
-            if not v.dans_perimetre:          # inventoried, not coded: the letter is only written inside the perimeter
+            if not v.dans_perimetre:          # inventoriée, non codée : la lettre ne s'écrit que dans le périmètre
                 v.sol.lettre = v.sol.raison_hors = None
                 if "not_coded" not in v.sol.etiquettes:
                     v.sol.etiquettes.append("not_coded")
         for k, v in enumerate(unites):
-            v.rang = k                                              # transcript order, used by SB-6
+            v.rang = k                                              # ordre de la transcription, utilisé par SB-6
         codees = [u for u in unites if u.dans_perimetre and u.decision and est_lettre_codee(u.decision.lettre)]
         plages_reponse(ctx, codees, {u.tour.id for u in unites if not u.attrs["backchannel"]})
 
-        # atoms: model extraction, then code decisions (SB-9..SB-15, SB-22..SB-24)
+        # atomes : extraction par le modèle, puis décisions du code (SB-9 à SB-15, SB-22 à SB-24)
         atomes: list[Atome] = []
         meta: dict[str, dict] = {}
         journal_atomes: list[dict] = []
@@ -1188,7 +1208,7 @@ class CompetenceSpin:
             nouveau, journal = construire_atomes(ctx, u, r.reponse.get("atoms") or [], len(atomes), meta)
             atomes += nouveau
             journal_atomes += journal
-        # SB-21: an action-plan question is N only if its answer states a future state or its value
+        # SB-21 : une question de plan d'action n'est N que si sa réponse énonce un état futur ou sa valeur
         for u in codees:
             if u.decision.lettre == "N" and ((u.portes_ or {}).get("g3") or {}).get("action_plan"):
                 genres = {a.type for a in atomes if a.id_sollicitation == u.sol.id and not a.suggere_par_commercial}
@@ -1199,13 +1219,13 @@ class CompetenceSpin:
                             a.lettre = OUT
         ctx.atomes = atomes
 
-        # follow-up (SB-17 / SB-19) between consecutive answered coded solicitations
+        # approfondissement (SB-17 / SB-19) entre sollicitations codées consécutives qui ont une réponse
         repondu = [u for u in codees if not u.sans_reponse]
         for prec, suiv in zip(repondu, repondu[1:]):
             suiv.suit_prec = approfondit(prec.texte_reponse, suiv.sol.texte, suiv.preambule)
             prec.sol.approfondi = suiv.suit_prec
 
-        # chains: model link + code lexical check (SB-16), then SB-18 / SB-20 in code
+        # chaînes : lien du modèle + vérification lexicale du code (SB-16), puis SB-18 / SB-20 par le code
         par_id = {u.sol.id: u for u in codees}
         etapes = [MaillonChaine(u.sol.id, u.decision.lettre, u.decision.raison,
                            [a for a in atomes if a.id_sollicitation == u.sol.id and not a.suggere_par_commercial
@@ -1223,7 +1243,7 @@ class CompetenceSpin:
 
         chaines = trouver_chaines(etapes, meme_objet)
 
-        # registers (SB-26..SB-33): coded questions before the pitch only (not reopenings, not OUT, not post-pitch)
+        # registres (SB-26 à SB-33) : questions codées avant la présentation seulement (ni réouvertures, ni OUT, ni après la présentation)
         reg_decides: dict[str, dict] = {}
         for u in codees:
             if u.reouverture is not None or u.sol.statut == "to_review" or not u.decision or u.decision.lettre not in LETTRES:
@@ -1235,7 +1255,7 @@ class CompetenceSpin:
                                      "domain": (r.reponse or {}).get("asked_domain"), "basis": (r.reponse or {}).get("basis"),
                                      "quote": (r.reponse or {}).get("quote"), "reference_turn": (r.reponse or {}).get("reference_turn")}
 
-        # shared state (CONTRACT) and result
+        # état partagé (CONTRAT) et résultat
         ctx.sollicitations = [u.sol for u in unites]
         statut, raisons, sante = applicabilite(unites, ctx.phases.debut_decouverte)
         res.statut, res.raisons = statut, raisons
@@ -1277,7 +1297,8 @@ class CompetenceSpin:
 
     @staticmethod
     def _details_preuves(ctx: ContexteAppel, items: list[NoteItem], atomes: list[Atome]) -> dict:
-        """§10 output contract: each evidence with turn, ts, speaker, quote, atom, domain, question id and letter."""
+        """§10 contrat de sortie : chaque preuve avec tour, minutage, locuteur, citation, atome, domaine, identifiant et lettre
+        de la question."""
         sortie = {}
         for it in items:
             lignes_ = []
