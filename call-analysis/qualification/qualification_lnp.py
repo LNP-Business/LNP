@@ -60,32 +60,32 @@ LIBELLES = {
 # ---------------------------------------------------------------------------
 # Outils
 # ---------------------------------------------------------------------------
-def v(obj, *path, default=None):
+def v(obj, *chemin, defaut=None):
     """Lit une valeur imbriquée ; renvoie 'valeur' si le nœud est un fait {valeur, preuve}."""
-    cur = obj
-    for p in path:
-        if not isinstance(cur, dict) or p not in cur:
-            return default
-        cur = cur[p]
-    if isinstance(cur, dict) and "valeur" in cur:
-        cur = cur["valeur"]
-    return default if cur in (None, "", "inconnu") else cur
+    cour = obj
+    for p in chemin:
+        if not isinstance(cour, dict) or p not in cour:
+            return defaut
+        cour = cour[p]
+    if isinstance(cour, dict) and "valeur" in cour:
+        cour = cour["valeur"]
+    return defaut if cour in (None, "", "inconnu") else cour
 
 
-def preuve(obj, *path):
-    cur = obj
-    for p in path:
-        if not isinstance(cur, dict) or p not in cur:
+def preuve(obj, *chemin):
+    cour = obj
+    for p in chemin:
+        if not isinstance(cour, dict) or p not in cour:
             return ""
-        cur = cur[p]
-    if isinstance(cur, dict):
-        txt = cur.get("preuve") or ""
-        mn = cur.get("minutage") or ""
+        cour = cour[p]
+    if isinstance(cour, dict):
+        txt = cour.get("preuve") or ""
+        mn = cour.get("minutage") or ""
         return f"{txt} [{mn}]" if txt and mn else txt
     return ""
 
 
-def parse_date(s):
+def lire_date(s):
     try:
         return date.fromisoformat(str(s)[:10])
     except (TypeError, ValueError):
@@ -98,7 +98,7 @@ def jours_depuis(appel, bloc):
         return None
     t = bloc.get("type")
     if t == "date":
-        d = parse_date(bloc.get("date"))
+        d = lire_date(bloc.get("date"))
         return (d - appel).days if d else None
     if t == "delai" and bloc.get("delai_mois") is not None:
         try:
@@ -148,32 +148,32 @@ def porte_financement(f):
     fi = f.get("financement", {})
     ressources = [r for r in (fi.get("ressources_citees") or []) if isinstance(r, dict) and r.get("type")]
     bloquante = v(fi, "situation_bloquante")
-    p_res = " / ".join(f"{r['type']} : {r.get('preuve', '')}".strip(" :") for r in ressources)
-    p = " / ".join(x for x in (p_res, preuve(fi, "situation_bloquante")) if x)
+    res_p = " / ".join(f"{r['type']} : {r.get('preuve', '')}".strip(" :") for r in ressources)
+    p = " / ".join(x for x in (res_p, preuve(fi, "situation_bloquante")) if x)
     if ressources and bloquante in PARAMS["situations_bloquantes"]:
         return NV, p, [f"Ressource citée malgré une situation bloquante ({bloquante}) : à arbitrer"]
     if ressources:
         return OUVERTE, p, []
     if bloquante in PARAMS["situations_bloquantes"]:
-        lib = {"rsa": "au RSA", "aucun_revenu": "aucun revenu", "dettes_bloquantes": "dettes qui bloquent tout"}
-        return FERMEE, p, [f"Aucune ressource : {lib.get(bloquante, bloquante)}"]
+        bib = {"rsa": "au RSA", "aucun_revenu": "aucun revenu", "dettes_bloquantes": "dettes qui bloquent tout"}
+        return FERMEE, p, [f"Aucune ressource : {bib.get(bloquante, bloquante)}"]
     if v(fi, "objection_fonds") == "oui":
         return NV, p, ["« Pas les fonds » sans ressource citée : le sales n'a pas renvoyé la personne à ses ressources"]
     return NV, p, ["Financement non abordé"]
 
 
-def porte_decision_timing(f, date_appel, alertes):
+def porte_decision_delai(f, date_appel, alertes):
     d = f.get("decision", {})
     decideur = v(d, "decideur")
     rdv = d.get("second_rdv") or {}
-    rdv_date = parse_date(rdv.get("date"))
+    date_rdv = lire_date(rdv.get("date"))
     p = " / ".join(x for x in (preuve(d, "decideur"), preuve(d, "second_rdv"), preuve(d, "demarrage")) if x)
 
     # Décision
     if decideur in ("seul", "decideur_present"):
         dec = OUVERTE
     elif decideur == "decideur_absent":
-        if rdv_date:
+        if date_rdv:
             dec = OUVERTE
         else:
             dec = FERMEE
@@ -205,13 +205,13 @@ def porte_decision_timing(f, date_appel, alertes):
     return (OUVERTE, p, []) if not raisons else (NV, p, raisons)
 
 
-def solution_aware(f):
+def conscient_solution(f):
     """Renvoie (True/False, preuve). Compare d'autres offres d'accompagnement ET a pris ou prévoit
     un rendez-vous avec une autre offre (mode strict), ou l'un des deux (mode large)."""
     c = f.get("concurrence", {})
-    compare = v(c, "compare_autres_offres") == "oui"
+    comparer = v(c, "compare_autres_offres") == "oui"
     rdv = v(c, "rdv_autres_offres") in ("deja_pris", "prevu")
-    ok = (compare and rdv) if PARAMS["solution_aware_mode"] == "strict" else (compare or rdv)
+    ok = (comparer and rdv) if PARAMS["solution_aware_mode"] == "strict" else (comparer or rdv)
     p = " / ".join(x for x in (preuve(c, "compare_autres_offres"), preuve(c, "rdv_autres_offres")) if x)
     offres = c.get("offres_citees") or []
     if offres:
@@ -224,7 +224,7 @@ def evaluer_portes(f, date_appel):
     res = {
         "metier": porte_metier(f),
         "financement": porte_financement(f),
-        "decision_timing": porte_decision_timing(f, date_appel, alertes),
+        "decision_timing": porte_decision_delai(f, date_appel, alertes),
     }
     return res, alertes
 
@@ -232,10 +232,10 @@ def evaluer_portes(f, date_appel):
 # ---------------------------------------------------------------------------
 # Décision
 # ---------------------------------------------------------------------------
-def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_outcome=None):
+def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_issue_=None):
     f = lectures[0]
     meta = f.get("meta", {})
-    date_appel = date_appel or parse_date(meta.get("date_appel")) or date.today()
+    date_appel = date_appel or lire_date(meta.get("date_appel")) or date.today()
     if fathom is None:
         fathom = meta.get("enregistrement_fathom", "oui")
 
@@ -252,9 +252,9 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
             alertes.append("Désaccord entre lectures sur la présentation de l'offre")
 
     # Solution aware (V2.1) : qualifié d'office sur toutes les portes
-    sa, sa_preuve = solution_aware(f)
+    sa, sa_preuve = conscient_solution(f)
     if len(lectures) > 1:
-        sa2, _ = solution_aware(lectures[1])
+        sa2, _ = conscient_solution(lectures[1])
         if sa != sa2:
             alertes.append("Désaccord entre lectures sur « solution aware » : règle non appliquée, portes évaluées normalement")
             sa = False
@@ -269,8 +269,8 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
     statuts = {k: portes[k][0] for k in PORTES}
     vente = f.get("vente", {})
     offre = v(vente, "offre_presentee")
-    issue = v(vente, "issue")
-    out = {
+    probleme = v(vente, "issue")
+    sortie = {
         "statut": None,
         "portes": {k: {"statut": portes[k][0], "preuve": portes[k][1], "raisons": portes[k][2]} for k in PORTES},
         "offre_presentee": {"oui": True, "non": False}.get(offre),
@@ -279,23 +279,23 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
         "alertes": alertes,
         "confiance": None,
     }
-    base = out["base"]
+    base = sortie["base"]
 
     # 1. Fathom
     if str(fathom).lower() in ("non", "false", "0", "no"):
-        out["statut"] = "NON SQL"
+        sortie["statut"] = "NON SQL"
         base["motif"] = "Pas d'enregistrement Fathom"
-        out["confiance"] = "haute"
-        return _finir(out, saisie_issue, saisie_outcome)
+        sortie["confiance"] = "haute"
+        return _finir(sortie, saisie_issue, saisie_issue_)
 
     # 2. Appel non tenu
     appel = f.get("appel", {})
     if v(appel, "appel_tenu") == "non":
-        out["statut"] = "MQL EN ATTENTE"
+        sortie["statut"] = "MQL EN ATTENTE"
         base["issue_r1"] = "Rescheduled"
         base["motif"] = v(appel, "motif_non_tenu") or "Appel non tenu"
-        out["confiance"] = "haute"
-        return _finir(out, saisie_issue, saisie_outcome)
+        sortie["confiance"] = "haute"
+        return _finir(sortie, saisie_issue, saisie_issue_)
 
     fermees = [k for k in PORTES if statuts[k] == FERMEE]
     nv = [k for k in PORTES if statuts[k] == NV]
@@ -310,49 +310,49 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
 
     # 3. Une porte fermée
     if fermees:
-        out["statut"] = "NON SQL"
+        sortie["statut"] = "NON SQL"
         base["issue_r1"] = "Pas pitché"
         base["outcome"] = "Pas qualifié"
         base["motif"] = " | ".join(f"{LIBELLES[k]} : " + "; ".join(portes[k][2]) for k in fermees)
         if offre == "oui":
             alertes.append("Pitch hors règle : offre présentée alors qu'une porte était fermée")
-        out["confiance"] = "haute" if not nv else "moyenne"
-        return _finir(out, saisie_issue, saisie_outcome)
+        sortie["confiance"] = "haute" if not nv else "moyenne"
+        return _finir(sortie, saisie_issue, saisie_issue_)
 
     # 6. Portes non vérifiées
     if nv:
-        out["statut"] = "À REVOIR"
+        sortie["statut"] = "À REVOIR"
         base["motif"] = "Portes à vérifier : " + ", ".join(LIBELLES[k] for k in nv)
-        out["confiance"] = "basse"
-        return _finir(out, saisie_issue, saisie_outcome)
+        sortie["confiance"] = "basse"
+        return _finir(sortie, saisie_issue, saisie_issue_)
 
     # 5. Toutes les portes ouvertes, pas de pitch
     if offre != "oui":
-        out["statut"] = "À REVOIR"
+        sortie["statut"] = "À REVOIR"
         alertes.append("SQL manqué : toutes les portes ouvertes sans présentation de l'offre")
         base["motif"] = "Toutes les portes ouvertes, offre non présentée"
-        out["confiance"] = "moyenne"
-        return _finir(out, saisie_issue, saisie_outcome)
+        sortie["confiance"] = "moyenne"
+        return _finir(sortie, saisie_issue, saisie_issue_)
 
     # 4. SQL
     paiement = {"paiement_complet": "Full-Pay", "paiement_fractionne": "Split-Pay", "acompte": "Deposit"}
-    if issue in paiement:
-        out["statut"] = "SQL GAGNÉ"
+    if probleme in paiement:
+        sortie["statut"] = "SQL GAGNÉ"
         base["issue_r1"] = "Closé"
-        base["outcome"] = paiement[issue]
+        base["outcome"] = paiement[probleme]
     else:
         base["issue_r1"] = "Non closé"
         relance = vente.get("relance") or {}
-        d_rel = parse_date(relance.get("date"))
+        d_rel = lire_date(relance.get("date"))
         if v(vente, "refus_explicite") == "oui":
-            out["statut"] = "SQL PERDU"
+            sortie["statut"] = "SQL PERDU"
             base["outcome"] = "Perdu"
         elif d_rel and (d_rel - date_appel).days <= PARAMS["relance_max_jours"]:
-            out["statut"] = "SQL OUVERT"
+            sortie["statut"] = "SQL OUVERT"
             base["outcome"] = "FUP court"
             base["date_relance"] = d_rel.isoformat()
         else:
-            out["statut"] = "SQL OUVERT"
+            sortie["statut"] = "SQL OUVERT"
             base["outcome"] = None
             if d_rel:
                 base["date_relance"] = d_rel.isoformat()
@@ -360,39 +360,39 @@ def qualifier(lectures, date_appel=None, fathom=None, saisie_issue=None, saisie_
                                f"(max {PARAMS['relance_max_jours']}) — passe en Perdu si aucun rendez-vous")
             else:
                 alertes.append("Relance non conforme : aucune date de relance posée")
-    out["confiance"] = "haute" if v(f, "vente", "synthese_sales_presente") == "oui" else "moyenne"
-    return _finir(out, saisie_issue, saisie_outcome)
+    sortie["confiance"] = "haute" if v(f, "vente", "synthese_sales_presente") == "oui" else "moyenne"
+    return _finir(sortie, saisie_issue, saisie_issue_)
 
 
-def _finir(out, saisie_issue, saisie_outcome):
-    b = out["base"]
+def _finir(sortie, saisie_issue, saisie_issue_):
+    b = sortie["base"]
     ecarts = []
     if saisie_issue and b["issue_r1"] and saisie_issue.strip().lower() != b["issue_r1"].lower():
         ecarts.append(f"issue R1 saisie « {saisie_issue} » vs agent « {b['issue_r1']} »")
-    if saisie_outcome and b["outcome"] and saisie_outcome.strip().lower() != b["outcome"].lower():
-        ecarts.append(f"outcome saisi « {saisie_outcome} » vs agent « {b['outcome']} »")
+    if saisie_issue_ and b["outcome"] and saisie_issue_.strip().lower() != b["outcome"].lower():
+        ecarts.append(f"outcome saisi « {saisie_issue_} » vs agent « {b['outcome']} »")
     if ecarts:
-        out["alertes"].append("Écart avec la saisie : " + "; ".join(ecarts))
-    return out
+        sortie["alertes"].append("Écart avec la saisie : " + "; ".join(ecarts))
+    return sortie
 
 
 # ---------------------------------------------------------------------------
-def main():
+def principal():
     ap = argparse.ArgumentParser(description="Qualification SQL LNP — règle des portes (V2.2 : trois portes)")
     ap.add_argument("lectures", nargs="+", help="1 ou 2 fichiers JSON produits par le prompt d'extraction")
     ap.add_argument("--date-appel")
     ap.add_argument("--fathom", choices=["oui", "non"])
     ap.add_argument("--saisie-issue")
-    ap.add_argument("--saisie-outcome")
+    ap.add_argument("--saisie-outcome", dest="saisie_issue_")
     a = ap.parse_args()
     lectures = []
-    for path in a.lectures[:2]:
-        with open(path, encoding="utf-8") as fh:
+    for chemin in a.lectures[:2]:
+        with open(chemin, encoding="utf-8") as fh:
             lectures.append(json.load(fh))
-    res = qualifier(lectures, parse_date(a.date_appel), a.fathom, a.saisie_issue, a.saisie_outcome)
+    res = qualifier(lectures, lire_date(a.date_appel), a.fathom, a.saisie_issue, a.saisie_issue_)
     json.dump(res, sys.stdout, ensure_ascii=False, indent=2)
     print()
 
 
 if __name__ == "__main__":
-    main()
+    principal()

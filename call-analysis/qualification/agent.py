@@ -22,14 +22,14 @@ from typing import Any, Optional
 
 from qualification_lnp import PARAMS, qualifier
 
-HERE = Path(__file__).resolve().parent
-PROMPT_VERSION = "lnp-sql-v2.2-2026-11-05"
-RULES_VERSION = "qualification_lnp-v2.2"
-SALES_DOMAIN = "@lesnouveauxprofs.fr"
+ICI = Path(__file__).resolve().parent
+VERSION_CONSIGNES = "lnp-sql-v2.2-2026-11-05"
+VERSION_REGLES = "qualification_lnp-v2.2"
+DOMAINE_COMMERCIAL = "@lesnouveauxprofs.fr"
 
 
-def load_prompt() -> str:
-    return (HERE / "prompts" / "extraction.md").read_text(encoding="utf-8")
+def charger_consigne() -> str:
+    return (ICI / "consignes" / "extraction.md").read_text(encoding="utf-8")
 
 
 # ------------------------------------------------------------------------------------------------ transcript
@@ -42,37 +42,37 @@ def _minutage(ts: str) -> str:
     return f"{int(m.group(1)) * 60 + int(m.group(2)):02d}:{m.group(3)}"
 
 
-def render_transcript(utterances: Any, recorded_by: Optional[str] = None) -> str:
+def afficher_transcription(paroles: Any, enregistre_par: Optional[str] = None) -> str:
     """One line per speaker turn: "[mm:ss] SALES (name): text" or "[mm:ss] PROSPECT (name): text"."""
-    if isinstance(utterances, str):
+    if isinstance(paroles, str):
         try:
-            utterances = json.loads(utterances)
+            paroles = json.loads(paroles)
         except ValueError:
-            return utterances
-    lines: list[list[str]] = []
-    rec = (recorded_by or "").lower()
-    for u in utterances or []:
+            return paroles
+    lignes: list[list[str]] = []
+    enr = (enregistre_par or "").lower()
+    for u in paroles or []:
         if not isinstance(u, dict):
             continue
-        text = str(u.get("text") or "").strip()
-        if not text:
+        texte = str(u.get("text") or "").strip()
+        if not texte:
             continue
         sp = u.get("speaker") or {}
         email = str(sp.get("matched_calendar_invitee_email") or "").lower()
-        name = str(sp.get("display_name") or "").strip()
-        role = "SALES" if (email.endswith(SALES_DOMAIN) or (rec and email == rec) or "nouveaux profs" in name.lower()) \
+        nom_ = str(sp.get("display_name") or "").strip()
+        role = "SALES" if (email.endswith(DOMAINE_COMMERCIAL) or (enr and email == enr) or "nouveaux profs" in nom_.lower()) \
             else "PROSPECT"
-        head = f"{role} ({name})" if name else role
-        if lines and lines[-1][1] == head:
-            lines[-1][2] += " " + text
+        tete = f"{role} ({nom_})" if nom_ else role
+        if lignes and lignes[-1][1] == tete:
+            lignes[-1][2] += " " + texte
         else:
-            lines.append([_minutage(u.get("timestamp")), head, text])
-    return "\n".join(f"[{m}] {h}: {t}" for m, h, t in lines)
+            lignes.append([_minutage(u.get("timestamp")), tete, texte])
+    return "\n".join(f"[{m}] {h}: {t}" for m, h, t in lignes)
 
 
-def fill_prompt(template: str, date_appel: str, fathom: str, analyse: str = "") -> str:
+def remplir_consigne(gabarit: str, date_appel: str, fathom: str, analyse: str = "") -> str:
     """The transcript itself goes in the cached prefix (same for both readings); the prompt points to it."""
-    return (template.replace("{{date_appel}}", date_appel).replace("{{oui_ou_non}}", fathom)
+    return (gabarit.replace("{{date_appel}}", date_appel).replace("{{oui_ou_non}}", fathom)
             .replace("{{transcription}}", "(la transcription est donnée plus haut, entre <transcription> et </transcription>)")
             .replace("{{analyse}}", analyse or "aucune"))
 
@@ -84,110 +84,110 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
-QUOTE_MIN_SHARE = 0.8      # share of the quote's words found in order at one place of the transcript (engineering value)
+PART_MIN_CITATION = 0.8      # share of the quote's words found in order at one place of the transcript (engineering value)
 
 
-def _part_found(part: str, transcript_norm: str) -> bool:
+def _partie_trouvee(partie: str, transcription_norm: str) -> bool:
     """A passage of the transcript, word for word, or with small corrections: the model writes « il y a » where Fathom
     transcribed « il y », drops an « en fait »... At least QUOTE_MIN_SHARE of its words, in order, in one window of the
     transcript of about its length. A quote that is not there at all never passes."""
-    p = _norm(part)
+    p = _norm(partie)
     if not p:
         return True
-    if p in transcript_norm:
+    if p in transcription_norm:
         return True
     q = p.split()
     if len(q) < 3:
         return False
-    t = transcript_norm.split()
-    anchors = sorted(set(q), key=lambda w: (-len(w), w))[:3]
+    t = transcription_norm.split()
+    ancres = sorted(set(q), key=lambda w: (-len(w), w))[:3]
     n = len(q)
-    for w in anchors:
+    for w in ancres:
         o = q.index(w)
         for i, x in enumerate(t):
             if x != w:
                 continue
-            win = t[max(0, i - o - 4): i - o + n + 4]
-            m = sum(b.size for b in difflib.SequenceMatcher(None, q, win, autojunk=False).get_matching_blocks())
-            if m >= QUOTE_MIN_SHARE * n:
+            fen = t[max(0, i - o - 4): i - o + n + 4]
+            m = sum(b.size for b in difflib.SequenceMatcher(None, q, fen, autojunk=False).get_matching_blocks())
+            if m >= PART_MIN_CITATION * n:
                 return True
     return False
 
 
-def quote_found(quote: str, transcript_norm: str) -> bool:
+def citation_trouvee(citation: str, transcription_norm: str) -> bool:
     """Every part of the quote (parts cut on "...", "…" or " / ") is a passage of the transcript."""
-    parts = [p for p in re.split(r"\.\.\.|…|\s/\s|\[|\]", str(quote or "")) if _norm(p)]
-    return bool(parts) and all(_part_found(p, transcript_norm) for p in parts)
+    parties = [p for p in re.split(r"\.\.\.|…|\s/\s|\[|\]", str(citation or "")) if _norm(p)]
+    return bool(parties) and all(_partie_trouvee(p, transcription_norm) for p in parties)
 
 
-def verify(facts: dict, transcript: str) -> tuple[dict, list[str]]:
+def verifier(faits: dict, transcription: str) -> tuple[dict, list[str]]:
     """Facts whose evidence is not in the transcript go back to « inconnu » (resources are dropped)."""
-    tn, notes = _norm(transcript), []
-    f = json.loads(json.dumps(facts))                      # a copy
+    tn, remarques = _norm(transcription), []
+    f = json.loads(json.dumps(faits))                      # a copy
 
-    def walk(node: Any, path: str) -> None:
-        if isinstance(node, dict):
-            if "preuve" in node and node.get("preuve") and not quote_found(node["preuve"], tn):
-                notes.append(f"{path}: preuve introuvable dans la transcription")
-                if "valeur" in node:
-                    node["valeur"] = "inconnu" if not isinstance(node.get("valeur"), (int, float)) else None
+    def parcourir(noeud: Any, chemin: str) -> None:
+        if isinstance(noeud, dict):
+            if "preuve" in noeud and noeud.get("preuve") and not citation_trouvee(noeud["preuve"], tn):
+                remarques.append(f"{chemin}: preuve introuvable dans la transcription")
+                if "valeur" in noeud:
+                    noeud["valeur"] = "inconnu" if not isinstance(noeud.get("valeur"), (int, float)) else None
                 for k in ("type",):
-                    if k in node and path.split(".")[-1] in ("echeance", "demarrage"):
-                        node[k] = "absente" if path.endswith("echeance") else "absent"
-                if path.endswith("second_rdv"):
-                    node["date"] = None
-                if path.endswith("relance"):
-                    node["date"] = None
-                node["preuve_non_trouvee"] = True
-            for k, x in list(node.items()):
-                walk(x, f"{path}.{k}" if path else k)
-        elif isinstance(node, list):
-            for i, x in enumerate(node):
-                walk(x, f"{path}[{i}]")
+                    if k in noeud and chemin.split(".")[-1] in ("echeance", "demarrage"):
+                        noeud[k] = "absente" if chemin.endswith("echeance") else "absent"
+                if chemin.endswith("second_rdv"):
+                    noeud["date"] = None
+                if chemin.endswith("relance"):
+                    noeud["date"] = None
+                noeud["preuve_non_trouvee"] = True
+            for k, x in list(noeud.items()):
+                parcourir(x, f"{chemin}.{k}" if chemin else k)
+        elif isinstance(noeud, list):
+            for i, x in enumerate(noeud):
+                parcourir(x, f"{chemin}[{i}]")
 
-    walk(f, "")
+    parcourir(f, "")
     res = (f.get("financement") or {}).get("ressources_citees") or []
-    kept = []
+    garde = []
     for r in res:
         if isinstance(r, dict) and r.get("type") and r.get("preuve") and r.get("preuve_non_trouvee"):
             continue                                       # a resource without a real quote does not count
-        kept.append(r)
+        garde.append(r)
     if isinstance(f.get("financement"), dict):
-        f["financement"]["ressources_citees"] = kept
-    return f, notes
+        f["financement"]["ressources_citees"] = garde
+    return f, remarques
 
 
 # ------------------------------------------------------------------------------------------------ model
-def parse_json(text: str) -> Optional[dict]:
-    t = (text or "").strip()
+def lire_json(texte: str) -> Optional[dict]:
+    t = (texte or "").strip()
     t = re.sub(r"^```(?:json)?\s*|\s*```$", "", t)
     a, b = t.find("{"), t.rfind("}")
     if a < 0 or b <= a:
         return None
     try:
-        out = json.loads(t[a:b + 1])
+        sortie = json.loads(t[a:b + 1])
     except ValueError:
         return None
-    return out if isinstance(out, dict) else None
+    return sortie if isinstance(sortie, dict) else None
 
 
-def read_once(client: Any, tier: str, transcript: str, prompt: str, unit: str, max_tokens: int = 8000) -> Optional[dict]:
+def lire_une_fois(client: Any, palier: str, transcription: str, consigne: str, unite: str, max_tokens: int = 8000) -> Optional[dict]:
     """One extraction; an answer that is not JSON is asked once more."""
-    prefix = f"<transcription>\n{transcript}\n</transcription>"
-    system = "Tu extrais des faits d'une transcription d'appel et tu réponds uniquement par du JSON valide."
-    for attempt in (1, 2):
-        out = client.complete("qualif.extraction", f"{unit}:{attempt}", tier, system, prefix, prompt,
+    prefixe = f"<transcription>\n{transcription}\n</transcription>"
+    systeme = "Tu extrais des faits d'une transcription d'appel et tu réponds uniquement par du JSON valide."
+    for essai in (1, 2):
+        sortie = client.completer("qualif.extraction", f"{unite}:{essai}", palier, systeme, prefixe, consigne,
                               max_tokens=max_tokens, effort="low")
-        facts = parse_json(out.get("text") or "")
-        if facts is not None:
-            return facts
+        faits = lire_json(sortie.get("text") or "")
+        if faits is not None:
+            return faits
     return None
 
 
 # ------------------------------------------------------------------------------------------------ one call
-def saisie_from_iclosed(outcome: Optional[str], reason: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+def saisie_depuis_iclosed(issue: Optional[str], raison: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     """What the sales entered in iClosed, in the words of the BASE (for the « Écart avec la saisie » alert)."""
-    o, r = (outcome or "").upper(), (reason or "").upper()
+    o, r = (issue or "").upper(), (raison or "").upper()
     if o == "WON":
         return "Closé", None
     if r in ("UNQUALIFIED", "BAD_FIT"):
@@ -199,34 +199,34 @@ def saisie_from_iclosed(outcome: Optional[str], reason: Optional[str]) -> tuple[
     return None, None
 
 
-def qualify_call(call: dict, client: Any, tiers: tuple[str, str] = ("fast", "strong")) -> dict:
+def qualifier_appel(appel_: dict, client: Any, paliers: tuple[str, str] = ("fast", "strong")) -> dict:
     """call: {call_id, date_appel (YYYY-MM-DD), transcript (Fathom utterances or None), recorded_by, saisie: {outcome,
     no_sale_reason}}. Returns {status, result, readings, verification, prompt_version, rules_version}."""
-    d = date.fromisoformat(str(call.get("date_appel"))[:10]) if call.get("date_appel") else date.today()
-    issue, outcome = saisie_from_iclosed((call.get("saisie") or {}).get("outcome"),
-                                         (call.get("saisie") or {}).get("no_sale_reason"))
-    base = {"prompt_version": PROMPT_VERSION, "rules_version": RULES_VERSION, "params": PARAMS}
-    text = render_transcript(call.get("transcript"), call.get("recorded_by")) if call.get("transcript") else ""
-    if not text:
-        stub = {"meta": {"date_appel": d.isoformat(), "enregistrement_fathom": "non"}}
-        res = qualifier([stub], d, "non", issue, outcome)
+    d = date.fromisoformat(str(appel_.get("date_appel"))[:10]) if appel_.get("date_appel") else date.today()
+    probleme, issue = saisie_depuis_iclosed((appel_.get("saisie") or {}).get("outcome"),
+                                         (appel_.get("saisie") or {}).get("no_sale_reason"))
+    base = {"prompt_version": VERSION_CONSIGNES, "rules_version": VERSION_REGLES, "params": PARAMS}
+    texte = afficher_transcription(appel_.get("transcript"), appel_.get("recorded_by")) if appel_.get("transcript") else ""
+    if not texte:
+        bouchon = {"meta": {"date_appel": d.isoformat(), "enregistrement_fathom": "non"}}
+        res = qualifier([bouchon], d, "non", probleme, issue)
         return dict(base, status=res["statut"], result=res, readings=[], verification=[])
-    prompt = fill_prompt(load_prompt(), d.isoformat(), "oui")
-    readings, notes = [], []
-    for i, tier in enumerate(tiers, 1):
-        facts = read_once(client, tier, text, prompt, f"{call.get('call_id')}:{i}")
-        if facts is None:
-            notes.append(f"lecture {i} : réponse illisible")
+    consigne = remplir_consigne(charger_consigne(), d.isoformat(), "oui")
+    lectures_, remarques = [], []
+    for i, palier in enumerate(paliers, 1):
+        faits = lire_une_fois(client, palier, texte, consigne, f"{appel_.get('call_id')}:{i}")
+        if faits is None:
+            remarques.append(f"lecture {i} : réponse illisible")
             continue
-        facts.setdefault("meta", {})
-        facts["meta"].update({"date_appel": d.isoformat(), "enregistrement_fathom": "oui"})
-        checked, n = verify(facts, text)
-        readings.append(checked)
-        notes += [f"lecture {i} : {x}" for x in n]
-    if not readings:
-        return dict(base, status="À REVOIR", result={"statut": "À REVOIR", "alertes": notes, "portes": {}, "base": {}},
-                    readings=[], verification=notes)
-    res = qualifier(readings, d, "oui", issue, outcome)
-    if len(readings) < 2:
+        faits.setdefault("meta", {})
+        faits["meta"].update({"date_appel": d.isoformat(), "enregistrement_fathom": "oui"})
+        verifie, n = verifier(faits, texte)
+        lectures_.append(verifie)
+        remarques += [f"lecture {i} : {x}" for x in n]
+    if not lectures_:
+        return dict(base, status="À REVOIR", result={"statut": "À REVOIR", "alertes": remarques, "portes": {}, "base": {}},
+                    readings=[], verification=remarques)
+    res = qualifier(lectures_, d, "oui", probleme, issue)
+    if len(lectures_) < 2:
         res["alertes"].append("Une seule lecture valide : pas de double lecture")
-    return dict(base, status=res["statut"], result=res, readings=readings, verification=notes)
+    return dict(base, status=res["statut"], result=res, readings=lectures_, verification=remarques)
