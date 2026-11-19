@@ -43,6 +43,13 @@ const { chromium } = require('playwright');
         phases: { discovery_start: 'T010', discovery_end: 'T041', pitch_start: 'T050', first_price: 'T060' },
         qualification: { status: 'À REVOIR', rules_version: 'qualification_lnp-v2.2', result: { statut: 'À REVOIR', confiance: 'basse', solution_aware: false, base: { motif: 'Portes à vérifier : Porte 3 — Décision et timing' }, portes: { metier: { statut: 'OUVERTE', raisons: [], preuve: 'je suis professeur de maths au lycée [00:15] / je donne aussi des cours le soir [02:10]' }, financement: { statut: 'FERMÉE', raisons: ['Aucune ressource : au RSA'], preuve: 'Je suis au RSA en ce moment [31:02]' }, decision_timing: { statut: 'NON VÉRIFIÉE', raisons: ['Date ou délai de démarrage non établi'], preuve: 'Je vais réfléchir [44:30]' } }, alertes: ['Synthèse des portes absente en fin de découverte', 'Contradiction du prospect : dit ne rien avoir puis cite une épargne'] } },
         results: { SPIN: { competence: 'SPIN', status: 'scored', score: 64, items: [], details: {} },
+          OBJECTIONS: { competence: 'OBJECTIONS', status: 'scored', score: 62, reasons: [], details: { prevention: {}, episodes: [
+            { nature: 'objection', subtype: 'price', resistance: { turn: 'T061', quote: 'C’est quand même cher pour moi' }, reaction: { turn: 'T063', quote: 'D’accord, ça me paraît plus clair', level: 'resolved' },
+              acknowledge: { done: true }, isolate: { done: false }, explore: { asked: true, answered_with_content: true }, gesture_match: { level: 2 },
+              items: [{ id: 'H2', evidence: [{ turn: 'T062', role: 'SALES', quote: 'Je comprends tout à fait' }] }], response_turns: ['T062'] },
+            { nature: 'objection', subtype: 'co_decider', resistance: { turn: 'T064', quote: 'Je dois en parler à ma femme' }, reaction: { turn: 'T066', quote: 'Oui, on peut se rappeler jeudi', level: 'persisting' },
+              acknowledge: { done: true }, isolate: { done: true }, explore: { asked: false }, gesture_match: { level: 0 },
+              items: [{ id: 'H2', evidence: [{ turn: 'T065', role: 'SALES', quote: 'C’est normal d’en parler à deux' }] }], response_turns: ['T065'] }] } },
           GAP: { competence: 'GAP', status: 'scored', verdict: 'present', score: 55, reasons: [],
             items: [{ id: 'G1', weight: 10, level: 2 }, { id: 'G2', weight: 10, level: 2 }, { id: 'G3', weight: 10, level: 2 }, { id: 'G4', weight: 20, level: 0 }, { id: 'G5', weight: 25, level: 1 }, { id: 'G6', weight: 25, level: 1 }],
             details: { verdict: 'present', gap: { gap_value: 1200 },
@@ -69,6 +76,12 @@ const { chromium } = require('playwright');
           { id: 'T041', role: 'PROSPECT', speaker: 'Paul', ts: '00:20:40', text: 'Oui, c’est exactement ça.' },
           { id: 'T050', role: 'SALES', speaker: 'Romain', ts: '00:25:00', text: 'Je vous présente l’accompagnement.' },
           { id: 'T060', role: 'SALES', speaker: 'Romain', ts: '00:35:00', text: 'L’investissement est de 3 000 euros.' },
+          { id: 'T061', role: 'PROSPECT', speaker: 'Paul', ts: '00:36:00', text: 'C’est quand même cher pour moi.' },
+          { id: 'T062', role: 'SALES', speaker: 'Romain', ts: '00:36:20', text: 'Je comprends tout à fait. Qu’est-ce qui vous fait dire que c’est cher ?' },
+          { id: 'T063', role: 'PROSPECT', speaker: 'Paul', ts: '00:37:30', text: 'D’accord, ça me paraît plus clair.' },
+          { id: 'T064', role: 'PROSPECT', speaker: 'Paul', ts: '00:40:00', text: 'Je dois en parler à ma femme.' },
+          { id: 'T065', role: 'SALES', speaker: 'Romain', ts: '00:40:15', text: 'C’est normal d’en parler à deux. À part ça, tout vous convient ?' },
+          { id: 'T066', role: 'PROSPECT', speaker: 'Paul', ts: '00:41:00', text: 'Oui, on peut se rappeler jeudi.' },
           { id: 'T070', role: 'PROSPECT', speaker: 'Paul', ts: '00:45:00', text: 'Merci, je vous redis.' }] })
     };
     // the analysis window reads the CRM of the page (window.parent.LNP_CRM): the same simulated analysis
@@ -100,6 +113,17 @@ const { chromium } = require('playwright');
   check('écart : ce qui manque pour un écart parfait, avec les points à gagner', gx && gx.todo.some(t => /chiffrer ce coût/.test(t) && /\+20/.test(t)) && gx.todo.some(t => /Reprendre ce coût avec ses mots/.test(t)) && gx.todo.some(t => /validation dans ses mots/.test(t) && /\+13/.test(t)), gx && gx.todo);
   check('écart : la reformulation parfaite remplie avec ses mots', gx && /300 euros par mois/.test(gx.formula) && /1 500 euros par mois/.test(gx.formula) && /me vendre/.test(gx.formula), gx && gx.formula);
   if (OUT) { await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); c.scrollIntoView(); document.querySelector('.ca-scrim').scrollTop -= 110; }); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart.png', fullPage: false }); await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop += 560); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart-manque.png' }); }
+  // objections : la lettre ouvre sa citation sous l'objection qui la porte, un second clic la referme
+  const obRows = () => cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /Objections/.test((x.querySelector('.serif') || {}).textContent || '') || /^\s*4\s*Objections/.test(x.textContent)); const t = c && c.querySelector('table'); return t ? [...t.querySelectorAll('tbody > tr')].map(r => ({ name: r.querySelector('b').textContent, pan: !!r.querySelector('.ob-pan'), txt: (r.querySelector('.ob-pan') || {}).innerText || '' })) : null; });
+  let ob = await obRows();
+  check('objections : deux objections, aucun détail ouvert au départ', ob && ob.length === 2 && !ob.some(r => r.pan), ob);
+  await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
+  ob = await obRows();
+  check('objections : la lettre A de la 2e objection ouvre sa citation sous cette objection', ob && !ob[0].pan && ob[1].pan && /Accueillie/.test(ob[1].txt) && /parler à deux/.test(ob[1].txt) && !(await cf.$('.ca-scrim table + .ob-pan')), ob);
+  if (OUT) { await cf.evaluate(() => document.querySelector('.ca-scrim .ob-pan').scrollIntoView({ block: 'center' })); await p.waitForTimeout(150); await p.screenshot({ path: OUT + '/objection-lettre.png' }); }
+  await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
+  ob = await obRows();
+  check('objections : un second clic sur la lettre la referme', ob && !ob.some(r => r.pan), ob);
   const pw = await cf.$('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'); if (!pw) { console.log(bad.join('\n')); console.log((await win()).txt.slice(0, 1500)); process.exit(1); }
   await pw.scrollIntoViewIfNeeded(); await pw.hover(); await p.waitForTimeout(250);
   const pop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-pop'); return e && getComputedStyle(e).display !== 'none' ? e.innerText : null; });
