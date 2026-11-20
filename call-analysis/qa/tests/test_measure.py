@@ -142,3 +142,9 @@ def test_the_screen_corrections_become_reference_answers(tmp_path):
     (tmp_path / "c.json").write_text(json.dumps(rows))
     assert ctr.main(["--corrections", str(tmp_path / "c.json"), "--refs", str(tmp_path / "refs")]) == 0
     assert json.loads((tmp_path / "refs" / "fiction.json").read_text())["questions"][-1]["letter"] == "OUT"
+
+
+def test_an_excluded_call_prints_no_share_instead_of_failing():
+    from qa_run import repro_line
+    out = repro_line("cut", {"runs": 5, "same_letter_share": None, "same_register_share": None})
+    assert "same letter -" in out and "same register -" in out and "5 runs" in out

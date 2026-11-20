@@ -83,6 +83,14 @@ def line(m: dict) -> str:
             f"errors {m['n_errors']}")
 
 
+def repro_line(slug: str, r: dict) -> str:
+    """A call with nothing to compare (excluded, e.g. a cut recording) has no share: printed as "-"."""
+    def pct(v):
+        return "-" if v is None else f"{v:.0%}"
+    return (f"{slug:<12} same letter {pct(r.get('same_letter_share'))}, same register "
+            f"{pct(r.get('same_register_share'))} over {r.get('runs')} runs (C4 target 95 %)")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cases", required=True)
@@ -122,9 +130,7 @@ def main(argv=None) -> int:
         measures += ms
         if len(recs) > 1:
             repro[ref.get("slug")] = reproducibility(ref, recs)
-            r = repro[ref.get("slug")]
-            print(f"{ref.get('slug'):<12} same letter {r['same_letter_share']:.0%}, same register "
-                  f"{r['same_register_share']:.0%} over {r['runs']} runs (C4 target 95 %)", flush=True)
+            print(repro_line(ref.get("slug"), repro[ref.get("slug")]), flush=True)
     tot = total(measures)
     print("TOTAL " + " · ".join(f"{k} {v['share']:.0%} ({v['right']}/{v['out_of']})" for k, v in tot.items()
                                 if isinstance(v, dict) and v["out_of"]) + f" · errors {tot['errors']}", flush=True)
