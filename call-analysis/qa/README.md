@@ -90,8 +90,8 @@ count each):
 |---|---|---|
 | Point A | 3 / 15 | 15 / 15 |
 | Point B | 7 / 15 | 14 / 15 (the last one: a pitch start read too early, the target is outside the window) |
-| Problem | 10 / 15 | 11 / 15 |
-| Cost | 6 / 12 | 7 / 12 |
+| Problem | 11 / 15 | 13 / 15 |
+| Cost | 5 / 12 | 5 / 12 (the model lists no cost atom in these calls; the code lists no cost) |
 | All elements | 46 % (26/57) | 82 % (47/57) |
 
 What changed: the code lists the prospect's figures (`engine/lnp_callqa/core/figures.py`, GB-28b) and the formula
