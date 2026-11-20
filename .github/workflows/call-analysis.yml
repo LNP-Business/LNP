@@ -118,7 +118,7 @@ jobs:
             tar xzf /tmp/qa/$f.tgz -C /tmp/qa/$f
           done
           python3 call-analysis/qa/qa_run.py --cases /tmp/qa/cases --refs /tmp/qa/reference --mode live \
-            --repeat "${REPEAT:-1}" --effort "$EFFORT" --out /tmp/qa/report.json || true
+            --repeat "${REPEAT:-1}" --workers 5 --effort "$EFFORT" --out /tmp/qa/report.json || true
           curl -fsS -X POST -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "content-type: application/json" \
             --data-binary @/tmp/qa/report.json \
             "$SUPABASE_URL/storage/v1/object/callqa-fixtures/qa/reports/${{ github.run_id }}.json"
