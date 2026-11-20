@@ -12,7 +12,8 @@ repaired or the parsing changes, the words do not. `validate()` checks the file 
   "questions": [{"quote": "…", "letter": "S|P|I|N|OUT", "register": "financial|time_load|identity_status|
                  mental_emotional|other", "atoms": [{"type": "SITUATION|PAIN|BLOCKER|IMPACT|DESIRE|VALUE", "quote": "…"}], "note": "…"}],
   "gap": {"verdict": "present|absent", "absence_reason": "…", "components": {"PROBLEM": "quote"|null, "COST": …,
-          "A": …, "B": …}},
+          "A": …, "B": …}},                   # a component may list several accepted quotes, null among them
+                                              # ("said here or there, or rightly not selected")
   "pitch": {"verdict": "compliant|non_compliant"},
   "objections": [{"quote": "…", "nature": "…", "acknowledge": bool, "isolate": bool, "explore": bool,
                   "gesture_match": bool}]
@@ -75,8 +76,9 @@ def _quotes(ref: dict) -> Iterable[tuple[str, str]]:
         for j, a in enumerate(q.get("atoms") or []):
             yield f"questions[{i}].atoms[{j}]", a.get("quote", "")
     for k, q in ((ref.get("gap") or {}).get("components") or {}).items():
-        if q:
-            yield f"gap.components.{k}", q
+        for i, x in enumerate(q if isinstance(q, list) else [q]):
+            if x:
+                yield f"gap.components.{k}[{i}]", x
     for i, o in enumerate(ref.get("objections") or []):
         yield f"objections[{i}]", o.get("quote", "")
 

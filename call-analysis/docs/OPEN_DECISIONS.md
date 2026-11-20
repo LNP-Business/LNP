@@ -131,3 +131,12 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   or not validated); the pitch evaluated once, in the first call where it happens; objections from the start of a call
   once the price was given earlier; an unknown earlier call → read as a first call; a bad gap not followed up before the
   pitch → flag `gap_not_remedied`, no weight of its own. Memos to update: SPIN, Gap, Pitch, Objections (one paragraph each).
+- GB-28 / GB-29 (GAP-1.4, 2026-11-20, audit of the gap verbatims on the six calls: A right in 0 of 6, B in 3 of 6): the
+  code lists the prospect's figures and targets (`core/figures.py`, GB-28b); A is selected on B's dimension and is never
+  an unrelated fact (no unquantified fallback); B is the most recent target in figures, N answers first, else the most
+  recent target wherever it was said. Replay on the 16 stored analyses: gap elements right 46 % → 82 %. Scores G1 to G3
+  move with the rules version (C8): the stored analyses are to be re-run. Gap memo to update (§2.1 and Annex A).
+- GB-7b (GAP-1.4, 2026-11-20): the code lists the prospect's cost statements with a lexicon per cost domain
+  (`core/costs.py`), next to the model's IMPACT atoms; what the prospect said is listed over the whole window. Replay:
+  costs right 5 → 11 of 12 on the six calls (tuning set: control calls still to be read, C7). The lexicon is a
+  configuration to grow from the calls people check; a cost the lexicon misses is still the model's to list.

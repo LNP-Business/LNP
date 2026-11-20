@@ -120,7 +120,9 @@ def gap(ref: dict, rec: dict) -> dict:
         right = 0
         for k, q in comps.items():
             got = component_quotes(det, k)
-            ok = (not got) if q is None else any(same_words(q, x, 0.5) for x in got)
+            # several accepted answers: the words were said in more than one place, or null (rightly not selected)
+            ok = any((not got) if x is None else any(same_words(x, y, 0.5) for y in got)
+                     for x in (q if isinstance(q, list) else [q]))
             right += ok
             if not ok:
                 out["errors"].append({"kind": f"gap_component:{k}", "expected": q, "found": got[:3] or None})

@@ -1,4 +1,5 @@
-"""Competence 2 · Gap formalisation (methodology v1.3, rules version GAP-1.3).
+"""Competence 2 · Gap formalisation (methodology v1.3, rules version GAP-1.4: A and B selected on the figures the
+code lists, GB-28 and GB-29 of 2026-11-20).
 
 The model extracts and quotes; the code decides and scores (Part C, C2).
 
@@ -28,11 +29,13 @@ from ..core.models import (CallContext, CompetenceResult, Evidence, ItemScore, O
                            Solicitation, Turn)
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core.costs import prospect_costs
+from ..core.figures import dimension as unit_dim, prospect_figures, units_match
 from ..core.text import (GENERIC, STOP, _contains, approval_only, canon, clean_tokens, key_expression_ok, norm,
                          norm_number, quote_ok, sentences)
 
 NAME = "GAP"
-RULES_VERSION = "GAP-1.3"
+RULES_VERSION = "GAP-1.4"
 
 # ------------------------------------------------------------------------------------------- constants
 WEIGHTS = {"G1": 10, "G2": 10, "G3": 10, "G4": 20, "G5": 25, "G6": 25}   # §5.2, proposals "to validate"
@@ -163,10 +166,6 @@ def short_approval(text: str) -> bool:
     return not toks or approval_only(text) or all(t in BACKCHANNEL for t in toks)
 
 
-def _unit(u: Optional[str]) -> Optional[str]:
-    return re.sub(r"\s+", "", norm(u)) if u else None
-
-
 def _has_figure(tokens: list[str]) -> bool:
     return any(re.search(r"\d", t) and norm_number(t) is not None for t in tokens)
 
@@ -207,11 +206,13 @@ class Statement:
     value: Optional[float]
     unit: Optional[str]
     atom_type: str
+    origin: str = "atom"                   # atom (the model's) / figure (code, GB-28b) / target (code, GB-29b)
+    kind: Optional[str] = None             # a code figure: present / target
 
     def to_dict(self) -> dict:
         return {"quote": self.quote, "turn": self.turn, "value": self.value, "unit": self.unit,
                 "solicitation": self.letter, "solicitation_id": self.solicitation, "object": self.object,
-                "domain": self.domain, "quantified": self.quantified, "atom": self.atom_id}
+                "domain": self.domain, "quantified": self.quantified, "atom": self.atom_id, "origin": self.origin}
 
 
 @dataclass
@@ -300,57 +301,146 @@ def statements_from_atoms(ctx: CallContext, end: Optional[str] = None) -> dict[s
     return out
 
 
+def _letter_of(ctx: CallContext, tid: str) -> tuple[Optional[str], Optional[str]]:
+    """The solicitation whose answer holds the turn, and its letter (None when the turn answers no coded question)."""
+    for q in ctx.solicitations:
+        if tid in (q.answer_turns or []):
+            return q.letter, q.id
+    return None, None
+
+
+def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict[str, list[Statement]]:
+    """§3 statements (the model's atoms) merged with the figures (GB-28b) and the costs (GB-7b) the code lists (2026-11-20):
+    a `present` figure is an A statement, a `target` figure or a target clause is a B statement. A figure the model
+    already holds (same turn, same value) is not added, but gives its unit to the model's atom when it has none.
+    Prompted figures (X12), past figures, expenses and the offer's prices are listed in `_figures` only."""
+    st = statements_from_atoms(ctx, end)
+    figs = prospect_figures(ctx, ctx.phases.discovery_start, end)
+    n = 0
+    for f in figs:
+        n += 1
+        if f.prompted or f.kind not in ("present", "target"):
+            continue
+        comp = "A" if f.kind == "present" else "B"
+        twin = next((s for s in st[comp] if s.turn == f.turn and s.quantified and s.value == f.value), None)
+        if twin is not None:
+            if f.unit and not twin.unit:
+                twin.unit = f.unit
+            continue
+        if f.value is None and any(s.turn == f.turn and (norm(s.quote) in norm(f.quote) or norm(f.quote) in norm(s.quote))
+                                   for s in st[comp]):
+            continue
+        letter, sol = _letter_of(ctx, f.turn)
+        st[comp].append(Statement(comp, f"F{n:03d}", f.quote, f.turn, letter, sol, None, f.dimension,
+                                  f.value is not None, f.value, f.unit, "SITUATION" if comp == "A" else "DESIRE",
+                                  "figure" if f.value is not None else "target", f.kind))
+    # the costs the code lists (GB-7b): a clause stating a consequence in a cost domain, the model's atoms first
+    costs = prospect_costs(ctx, ctx.phases.discovery_start, end)
+    for k, c in enumerate(costs, 1):
+        if c.prompted or any(x.turn == c.turn and (norm(x.quote) in norm(c.quote) or norm(c.quote) in norm(x.quote))
+                             for x in st["COST"]):
+            continue
+        letter, sol = _letter_of(ctx, c.turn)
+        st["COST"].append(Statement("COST", f"C{k:03d}", c.quote, c.turn, letter, sol, None, c.domain, False, None,
+                                    None, "IMPACT", "cost"))
+    for comp in st:
+        st[comp].sort(key=lambda s: _pos(ctx, s.turn, s.quote))
+    st["_figures"] = figs                                                 # type: ignore[assignment]
+    st["_costs"] = costs                                                  # type: ignore[assignment]
+    return st
+
+
 # ------------------------------------------------------------------------------------------- 2. gap formula
 def a_candidates(ctx: CallContext, st: dict[str, list[Statement]], cutoff: Optional[str],
                  not_present: set[str] = frozenset()) -> list[Statement]:
-    """GB-28 candidates: current-state quotes in S or I answers (SITUATION, or quantified IMPACT stating where he
-    is now), before the cutoff. `not_present` = atom ids the model said do not describe the present (X13)."""
+    """GB-28 candidates, before the cutoff: the model's current-state quotes in S or I answers (SITUATION, or quantified
+    IMPACT stating where he is now), and every `present` figure the code lists, whatever the question it answers
+    (« là je suis à 2000 » said in an N answer is still where he is). `not_present` = atom ids the model said do not
+    describe the present (X13)."""
     out = []
     for s in st["A"]:
-        if s.letter not in ("S", "I") or not ctx.before(s.turn, cutoff):
+        if not ctx.before(s.turn, cutoff) or s.atom_id in not_present:
             continue
-        if s.atom_type == "IMPACT" and not s.quantified:
-            continue
-        if s.atom_id in not_present:
-            continue
+        if s.origin == "atom":
+            if s.letter not in ("S", "I"):
+                continue
+            if s.atom_type == "IMPACT" and not s.quantified:
+                continue
         out.append(s)
     return out
 
 
 def b_candidates(ctx: CallContext, st: dict[str, list[Statement]], cutoff: Optional[str]) -> tuple[list, list]:
-    """GB-29 candidates (N answers) and the targets stated outside N answers (`B_outside_N`, recorded only)."""
-    inside = [s for s in st["B"] if s.letter == "N" and ctx.before(s.turn, cutoff)]
-    outside = [s for s in st["B"] if s.letter != "N" and ctx.before(s.turn, cutoff)]
+    """GB-29 candidates before the cutoff: the targets stated in N answers (`inside`) and the targets stated elsewhere
+    in the discovery (`outside`, `B_outside_N`), both selectable, N answers first (2026-11-20)."""
+    key = lambda s: _pos(ctx, s.turn, s.quote)                                   # noqa: E731
+    inside = sorted((s for s in st["B"] if s.letter == "N" and ctx.before(s.turn, cutoff)), key=key)
+    outside = sorted((s for s in st["B"] if s.letter != "N" and ctx.before(s.turn, cutoff)), key=key)
     return inside, outside
 
 
-def select_a_b(ctx: CallContext, A: list[Statement], B: list[Statement]) -> tuple[Optional[Statement],
-                                                                                    Optional[Statement], str]:
-    """GB-28 / GB-29. Returns (selected_A, selected_B, rule). Lists are in transcript order."""
+DIM_RANK = {"money": 0, "clients": 1, "time": 2}
+
+
+def _figure_first(A: list[Statement]) -> Optional[Statement]:
+    """The current-state figure a restitution needs when B names no unit: money before clients before time, the most
+    recent of each (GB-28, 2026-11-20). Never an unquantified fact."""
+    q = [a for a in A if a.quantified and a.unit]
+    if not q:
+        return None
+    best = min(DIM_RANK.get(unit_dim(a.unit), 9) for a in q)
+    return [a for a in q if DIM_RANK.get(unit_dim(a.unit), 9) == best][-1]
+
+
+def select_b(inside: list[Statement], outside: list[Statement],
+             ordered: Optional[list[Statement]] = None) -> tuple[Optional[Statement], str]:
+    """GB-29 (2026-11-20): the most recent target in figures, in an N answer first (`quantified_N`), else anywhere in
+    the discovery (`quantified_outside_N`); without a figure, the most recent target wherever it was said (`N` or
+    `outside_N`), the model's atoms and the code's clauses alike."""
     def last(xs):
         return xs[-1] if xs else None
+    for xs, rule in (([b for b in inside if b.quantified and b.unit], "quantified_N"),
+                     ([b for b in outside if b.quantified and b.unit], "quantified_outside_N")):
+        if xs:
+            return last(xs), rule
+    b = last(ordered if ordered is not None else inside + outside)        # `ordered`: both lists in transcript order
+    if b is None:
+        return None, "no_B"
+    return b, ("N" if b in inside else "outside_N") + ("" if b.origin == "atom" else "_clause")
+
+
+def select_a_b(ctx: CallContext, A: list[Statement], B: list[Statement],
+               B_out: Optional[list[Statement]] = None) -> tuple[Optional[Statement], Optional[Statement], str]:
+    """GB-28 / GB-29 (2026-11-20). Returns (selected_A, selected_B, rule). Lists are in transcript order; B holds
+    the N-answer targets, B_out the targets stated elsewhere. A is never a fact unrelated to B: with B in figures, A
+    is the current figure in B's unit, else on B's dimension, else none; with B without a figure, A is the
+    current-state quote on B's object (or in B's unit when B names a status), else the current figure (money first),
+    else none; without B, A is the current figure (money first) or none."""
+    def last(xs):
+        return xs[-1] if xs else None
+    sel_b, b_rule = select_b(B, B_out or [], sorted(B + (B_out or []), key=lambda b: _pos(ctx, b.turn, b.quote)))
     Aq = [a for a in A if a.quantified and a.unit]
-    Bq = [b for b in B if b.quantified and b.unit]
-    shared = [b for b in Bq if any(_unit(a.unit) == _unit(b.unit) for a in Aq)]
-    if shared:
-        b = last(shared)
-        a = last([x for x in Aq if _unit(x.unit) == _unit(b.unit)])
-        return a, b, "same_unit"
-    # B in A's unit when the unit is not a figure (status, career, date...): the pair restated by the formula
-    shared_u = [b for b in B if b.unit and any(a.unit and _unit(a.unit) == _unit(b.unit) for a in A)]
-    if shared_u:
-        b = last(shared_u)
-        return last([x for x in A if x.unit and _unit(x.unit) == _unit(b.unit)]), b, "same_unit_unquantified"
-    if B:
-        b = last(Bq) or last(B)
-        same_obj = [x for x in A if b.object and x.object and norm(x.object) == norm(b.object)]
-        if same_obj:
-            return last(same_obj), b, "same_object"
-        same_u = [x for x in A if b.unit and _unit(x.unit) == _unit(b.unit)]
-        if same_u:
-            return last(same_u), b, "same_unit_unquantified"
-        return last(A), b, "no_A_on_B_dimension" if A else "no_A"
-    return (last(Aq) or last(A)), None, "no_B"
+    if sel_b is None:
+        return _figure_first(A), None, "no_B"
+    if sel_b.quantified and sel_b.unit:
+        same = [a for a in Aq if units_match(a.unit, sel_b.unit)]
+        if same:
+            return last(same), sel_b, "same_unit" + ("" if b_rule == "quantified_N" else ":" + b_rule)
+        dim = [a for a in Aq if unit_dim(a.unit) and unit_dim(a.unit) == unit_dim(sel_b.unit)]
+        if dim:
+            return last(dim), sel_b, "same_dimension:" + b_rule
+        return None, sel_b, "no_A_on_B_dimension:" + b_rule
+    # B without a figure: the pair restated by the formula (a status, a career...), else B's object, else the figure
+    same_u = [a for a in A if sel_b.unit and a.unit and units_match(a.unit, sel_b.unit)]
+    if same_u:
+        return last(same_u), sel_b, "same_unit_unquantified:" + b_rule
+    same_obj = [a for a in A if sel_b.object and a.object and norm(a.object) == norm(sel_b.object)]
+    if same_obj:
+        return last(same_obj), sel_b, "same_object:" + b_rule
+    fig = _figure_first(A)
+    if fig is not None:
+        return fig, sel_b, "figure:" + b_rule
+    return None, sel_b, "no_A:" + b_rule
 
 
 def select_p(ctx: CallContext, P: list[Statement], stopping: list[Solicitation],
@@ -895,8 +985,8 @@ def formula_conformity(ctx: CallContext, r: Restitution, sel_a: Optional[Stateme
         for c in cls:
             at = next((x for x in ctx.atoms if x.id == c.source_atom), None)
             if at is not None and at.quantified and at.unit:
-                units[comp] = _unit(at.unit)
-    if len(units) == 2 and units["A"] != units["B"]:
+                units[comp] = at.unit
+    if len(units) == 2 and not units_match(units["A"], units["B"]):
         dev.append("unit_mismatch")
     single = len(objs) == 1
     if len(objs) >= 2:
@@ -921,14 +1011,15 @@ def score_items(ctx: CallContext, r: Optional[Restitution], sel_a: Optional[Stat
         q = sol_by_id.get(s.solicitation) if s and s.solicitation else None
         return Evidence(q.text, q.turn, SALES) if q else None
 
-    same_unit = bool(sel_a and sel_b and sel_a.quantified and sel_b.quantified and sel_a.unit and
-                     _unit(sel_a.unit) == _unit(sel_b.unit))
+    same_unit = bool(sel_a and sel_b and sel_a.quantified and sel_b.quantified and
+                     units_match(sel_a.unit, sel_b.unit))
     items = []
     # G1 point A
     if sel_a is None:
         g1, ev1 = 0, []
     else:
-        on_dim = sel_b is None or not sel_b.quantified or same_unit
+        on_dim = sel_b is None or not sel_b.quantified or same_unit or (
+            unit_dim(sel_a.unit) is not None and unit_dim(sel_a.unit) == unit_dim(sel_b.unit))
         g1 = 2 if (sel_a.quantified and on_dim) else 1
         ev1 = [Evidence(sel_a.quote, sel_a.turn, PROSPECT), sol_ev(sel_a)]
     items.append(item("G1", WEIGHTS["G1"], g1, ev1, "selected A (GB-28)"))
@@ -1188,7 +1279,7 @@ class GapCompetence:
         to_review: list[str] = []
 
         # ---- restitution inventory (code) and model clauses
-        st_all = statements_from_atoms(ctx, wend)
+        st_all = statements_with_figures(ctx, wend)
         spans = self.candidate_spans(ctx)
         rs: list[Restitution] = []
         for sp in spans:
@@ -1217,11 +1308,11 @@ class GapCompetence:
         # ---- gap formula (GB-28..GB-33), cutoff = first restitution (or window end)
         first = next((r.span.start for r in rs if r.is_restitution and r.before_pitch), None)
         cutoff = first or wend
-        st = statements_from_atoms(ctx, cutoff)
+        st = statements_with_figures(ctx, cutoff)
         not_present = self._a_present_check(ctx, runner, st, cutoff, concs)
         A = a_candidates(ctx, st, cutoff, not_present)
         B, B_out = b_candidates(ctx, st, cutoff)
-        sel_a, sel_b, ab_rule = select_a_b(ctx, A, B)
+        sel_a, sel_b, ab_rule = select_a_b(ctx, A, B, B_out)
         P = [s for s in st["PROBLEM"] if s.letter == "P"]
         stopping = self._stopping_questions(ctx, runner, P, concs)
         before_atoms = [a for a in ctx.atoms if a.evidence and ctx.before(a.evidence.turn, cutoff)
@@ -1256,8 +1347,9 @@ class GapCompetence:
         elif to_review:
             res.flags.append("units_to_review:" + ",".join(to_review))
         res.concordance = min(concs, key=lambda c: _conc_rank(c)) if concs else None
+        # what the prospect said (problems, costs, figures): the whole window, not only before the first restitution
         res.details = self._details(ctx, rs, verdict, reasons, scored, diag_r, items, sel_a, sel_b, sel_p, ab_rule,
-                                    p_rule, horizon, blockers, warn, st, B_out)
+                                    p_rule, horizon, blockers, warn, st_all, B_out)
         return res
 
     def candidate_spans(self, ctx: CallContext) -> list[Span]:
@@ -1298,7 +1390,7 @@ class GapCompetence:
         """X13: a quantified A candidate must describe the present (not a past income, savings, a budget)."""
         out = set()
         for s in a_candidates(ctx, st, cutoff):
-            if not s.quantified:
+            if not s.quantified or s.origin != "atom":                     # a code figure carries its own kind
                 continue
             rr = runner.run(ctx, A_CURRENT, f"acur:{s.atom_id}:{s.turn}", s)
             concs.append(rr.concordance)
@@ -1354,7 +1446,7 @@ class GapCompetence:
     def _details(self, ctx, rs, verdict, reasons, scored, diag_r, items, sel_a, sel_b, sel_p, ab_rule, p_rule,
                  horizon, blockers, warn, st, B_out) -> dict:
         same_unit = bool(sel_a and sel_b and sel_a.quantified and sel_b.quantified and
-                         _unit(sel_a.unit) == _unit(sel_b.unit))
+                         units_match(sel_a.unit, sel_b.unit))
         gap_value = (sel_b.value - sel_a.value) if same_unit and sel_a.value is not None and \
             sel_b.value is not None else None
         sa = sel_a.to_dict() if sel_a else None
@@ -1408,7 +1500,9 @@ class GapCompetence:
             "restitution": next((x for x, r in zip(rest_out, rs) if r is main), None),
             "formula": {"selected_A": sa, "selected_B": sb, "selected_P": sp, "rule_AB": ab_rule,
                         "conformity": main.conformity if main else None,
-                        "B_outside_N": [s.to_dict() for s in B_out]},
+                        "B_outside_N": [s.to_dict() for s in B_out],
+                        "figures": [f.to_dict() for f in st.get("_figures", [])],
+                        "costs": [c.to_dict() for c in st.get("_costs", [])]},
             "roadmap": {"blockers": blockers, "count": len(blockers), "warning": warn,
                         "steps": ROADMAP_STEPS},
             "diagnostic_items": [{"id": x.id, "level": x.level, "note": x.note} for x in items],

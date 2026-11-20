@@ -21,7 +21,7 @@ STEP = "S2"
 
 
 def statements_text(ctx: CallContext, limit: int = 160) -> str:
-    st = G.statements_from_atoms(ctx, G.window_end(ctx))
+    st = G.statements_with_figures(ctx, G.window_end(ctx))           # the model's atoms and the code's figures
     lines = [f"- {comp} [{s.turn}] \"{s.quote}\"" for comp in G.COMPONENTS for s in st[comp]]
     return "\n".join(lines[:limit]) or "(none)"
 
