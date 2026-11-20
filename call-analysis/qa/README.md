@@ -78,3 +78,28 @@ the code of 2026-11-20, step 1 French checks and recurrences as new episodes; th
 
 230 errors in all: 104 effects missed, 53 questions missed, 21 wrong letters, 12 objections missed, 9 gap elements, 8
 registers. The reproducibility (C4) needs live runs (`--mode live --repeat 5`).
+
+## First live measure (2026-11-20, run 44754260316)
+
+Lite engine of 2026-11-20 (voice check, SEG-1, gates read twice, Sonnet arbiter, C9), 6 calls × 5 analyses
+(`--repeat 5 --workers 5`, effort low); Ahmad is excluded (recording under 20 minutes), as expected.
+
+| Measure | Right |
+|---|---|
+| Status | 87 % (100/115) |
+| Phases | 77 % (81/105) |
+| Questions found | 57 % (313/545) |
+| Letters | 80 % (236/295) |
+| Registers | 71 % (59/83) |
+| Effects found | 30 % (186/630) |
+| Gap verdict · elements | 88 % (22/25) · 45 % (29/65) |
+| Pitch verdict | 84 % (21/25) |
+| Objections found · nature · gestures | 46 % (55/120) · 90 % (47/52) · 57 % (47/83) |
+| Scores inside the expected range | 55 % (44/80) |
+| Same letter from one analysis to the next (C4) | 37 to 67 % per call, target 95 % |
+
+Of the missed questions, 85 % were on the code's list (SEG-1) and lost afterwards by one model reading (left unread or
+read as gate 0); 185 of the 444 missed effects belonged to a missed question. Since then (C4, "no silent loss") a
+listed question goes to the two readings of the gates whatever S1 said; a question no reading decides is counted in
+`questions_to_review` and left out of the letters. The report keeps each analysis's drop counters (`drops`, numbers
+only) and the failed analyses (`failed`, kind of error only).

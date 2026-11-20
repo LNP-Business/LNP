@@ -160,8 +160,12 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (`closed_restatement`) and a choice among the sales' options (`CHOICE_LIST`), §3. Segmentation (SEG-1, Romain 2026-11-20):
    the code lists the solicitations, one per sales turn read on its priority question (`spin.group_turn`,
    `engine.inventory`); the model reads every listed item by its id (a forgotten one is asked again once, then counted
-   `question:not_read`; a gap validation request is answered `routing` and set aside) and may add a request without a
-   question mark on a turn the code did not list. SB-21 (action-plan N without a future state) is left to the model's OUT
+   `question:not_read`; a gap validation request is answered `routing`) and may add a request without a
+   question mark on a turn the code did not list. C4 (2026-11-20): one reading never removes a listed question: an
+   unread one and one S1 sends to gate 0 (`question:routing_s1`) go to the gates all the same, and the two readings of
+   the gates (the arbiter on a disagreement) decide; with no valid gate answer, S1's gate 0 stands (`question:routing`)
+   and a question nobody read stays listed `to_review` (tag `unread`, left out of the scores). The code's own
+   priority question is not held to the 40-word limit of a quoted question. SB-21 (action-plan N without a future state) is left to the model's OUT
    `solution_load`. The perimeter never starts on a social, logistic or framing question, whatever its letter
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,

@@ -118,3 +118,38 @@ def test_one_valid_reading_out_of_two_is_disputed_too():
     rec, client = run2([gate("Q005", **S5)], [gate("Q005", g2={"neutral_fact": True, "quote": "never said"})],
                        arbiter=[gate("Q005", **S5)])
     assert sol(rec, "T005")["status"] == "arbitrated"
+
+
+def without_s1(qid):
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_discovery"] = {"questions": [q for q in a["lite.s1_discovery"]["questions"]
+                                            if q.get("id") != qid and q.get("turn") != "T" + qid[1:]]}
+    return a
+
+
+def test_c4_a_question_s1_did_not_read_is_decided_by_the_gates():
+    a = without_s1("Q011")
+    a["lite.s1_gates"] = {"units": [gate("Q011", g4={"consequence": True, "quote": "affect your family"})]}
+    rec = analyse(sc.context(), MockLiteClient(a), None)
+    s = sol(rec, "T011")
+    assert s["letter"] == "I" and s["status"] == "agreed" and "gates_by_code" in s["tags"]
+    assert rec["meta"]["steps"]["S1"]["reasons"]["question:not_read"] == 1
+
+
+def test_c4_a_question_nobody_read_stays_listed_to_review_and_out_of_the_scores():
+    a = without_s1("Q011")
+    a["lite.s1_gates"] = {"units": []}
+    rec = analyse(sc.context(), MockLiteClient(a), None)
+    s = sol(rec, "T011")
+    assert s["status"] == "to_review" and "unread" in s["tags"]
+    assert rec["results"]["SPIN"]["details"]["unit_status"]["to_review"] == 1
+    assert rec["meta"]["steps"]["S1"]["reasons"]["question:unread_to_review"] == 1
+
+
+def test_c4_a_question_s1_routes_comes_back_when_both_gate_readings_see_a_question():
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_gates"] = {"units": [gate("Q017", g2={"neutral_fact": True, "quote": "Did I get that right"})]}
+    rec = analyse(sc.context(), MockLiteClient(a), None)
+    reasons = rec["meta"]["steps"]["S1"]["reasons"]
+    assert reasons["question:routing_s1"] == 1 and "question:routing" not in reasons
+    assert any(x["turn"] == "T017" for x in rec["results"]["SPIN"]["details"]["solicitations"])

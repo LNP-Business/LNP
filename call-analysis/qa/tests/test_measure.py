@@ -144,3 +144,15 @@ def test_a_failed_analysis_is_counted_and_the_measure_goes_on(monkeypatch):
         raise RuntimeError("phase map (S0): truncated answer (max_tokens) « a quote »")
     monkeypatch.setattr(qa_run, "analyse", boom)
     assert qa_run.safe_analyse({}, "live", "low") == {"qa_failed": "RuntimeError"}
+
+
+def test_a_question_to_review_is_found_but_left_out_of_the_letters():
+    from callqa_qa.score import spin as spin_measure
+    ref = {"questions": [{"quote": "Combien d'élèves as-tu aujourd'hui ?", "letter": "S"},
+                         {"quote": "Et qu'est-ce que ça te fait ?", "letter": "I"}]}
+    rec = {"results": {"SPIN": {"details": {"solicitations": [
+        {"id": "Q1", "quote": "Combien d'élèves as-tu aujourd'hui ?", "letter": "S", "status": "agreed"},
+        {"id": "Q2", "quote": "Et qu'est-ce que ça te fait ?", "letter": "OUT", "status": "to_review"}]}}}}
+    m = spin_measure(ref, rec)
+    assert m["questions_found"] == [2, 2] and m["questions_to_review"] == [1, 2] and m["letters"] == [1, 1]
+    assert m["errors"] == []

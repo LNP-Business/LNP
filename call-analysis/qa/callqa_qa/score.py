@@ -51,13 +51,14 @@ def spin(ref: dict, rec: dict) -> dict:
     det = ((rec.get("results") or {}).get("SPIN") or {}).get("details") or {}
     kept = [a for a in det.get("atom_decisions") or [] if a.get("decision") == "kept"]
     found = sum(1 for _, s in pairs if s)
-    letters = [(q, s) for q, s in pairs if s and "letter" in q]
-    regs = [(q, s) for q, s in pairs if s and "register" in q and _letter(s) != "OUT"]
+    letters = [(q, s) for q, s in pairs if s and "letter" in q and s.get("status") != "to_review"]   # C4: undecided
+    regs = [(q, s) for q, s in pairs if s and "register" in q and _letter(s) != "OUT" and s.get("status") != "to_review"]
     atoms = [a for q, _ in pairs for a in q.get("atoms") or []]
     atom_hits = [(a, next((k for k in kept if same_words(a["quote"], k.get("quote") or "", 0.5)), None)) for a in atoms]
     typed = [(a, k) for a, k in atom_hits if k and "type" in a]
     out = {
         "questions_found": _pair(found, len(pairs)),
+        "questions_to_review": _pair(sum(1 for _, s in pairs if s and s.get("status") == "to_review"), found),
         "letters": _pair(sum(_letter(s) in accepted(q["letter"]) for q, s in letters), len(letters)),
         "registers": _pair(sum((s.get("register") or "") in accepted(q["register"]) for q, s in regs), len(regs)),
         "atoms_found": _pair(sum(1 for _, k in atom_hits if k), len(atom_hits)),
@@ -67,6 +68,8 @@ def spin(ref: dict, rec: dict) -> dict:
     for q, s in pairs:
         if not s:
             out["errors"].append({"kind": "question_missed", "quote": q["quote"]})
+        elif s.get("status") == "to_review":
+            continue
         elif "letter" in q and _letter(s) not in accepted(q["letter"]):
             out["errors"].append({"kind": "letter", "quote": q["quote"], "expected": q["letter"], "found": _letter(s)})
         elif q in [x for x, _ in regs] and (s.get("register") or "") not in accepted(q["register"]):
@@ -233,6 +236,7 @@ def measure(ref: dict, rec: dict) -> dict:
     return {"call_id": ref.get("call_id"), "slug": ref.get("slug"), "split": ref.get("split"),
             "record_status": rec.get("status"), "voices": {k: voices.get(k) for k in
                                                            ("share_corrected", "share_residual", "status")},
+            "drops": {k: (v or {}).get("reasons") for k, v in ((rec.get("meta") or {}).get("steps") or {}).items()},
             **parts, "errors": errors, "n_errors": len(errors)}
 
 
@@ -243,7 +247,7 @@ def share(p: Pair) -> Optional[float]:
 def total(measures: list[dict]) -> dict:
     """The measures of several calls added up, as shares."""
     keys = [("status", "status"), ("status", "score"), ("phases", "anchors"), ("spin", "questions_found"),
-            ("spin", "letters"), ("spin", "registers"), ("spin", "atoms_found"), ("spin", "atom_types"),
+            ("spin", "questions_to_review"), ("spin", "letters"), ("spin", "registers"), ("spin", "atoms_found"), ("spin", "atom_types"),
             ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("pitch", "verdict"),
             ("objections", "found"), ("objections", "nature"), ("objections", "gestures")]
     out = {}

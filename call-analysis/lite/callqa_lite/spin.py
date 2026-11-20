@@ -151,7 +151,8 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
             drops.add(STEP, "question:not_an_object")
             continue
         tid, quote = q.get("turn") or "", q.get("quote") or ""
-        e = quote_ok(ctx, Evidence(quote, tid, SALES), min_words=1, max_words=40)
+        listed = bool(q.get("grouped"))                          # the code's own priority question (SEG-1)
+        e = quote_ok(ctx, Evidence(quote, tid, SALES), min_words=1, max_words=400 if listed else 40)
         if e:
             drops.add(STEP, f"question:{e}", q)
             continue
@@ -161,6 +162,12 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         fg = letter_from_gates(q, quote)
         if q.get("gates") is not None and fg is None:
             drops.add(STEP, "gates:bad_quote", q)                        # the gates' quotes failed: S1's letter stays
+        if fg is None and q.get("s1_routing"):                           # no valid gates: S1's gate 0 stands
+            drops.add(STEP, "question:routing", q)
+            continue
+        if fg is None and q.get("s1_unread"):                            # read by nobody: kept, undecided (C4)
+            drops.add(STEP, "question:unread_to_review", q)
+            q = dict(q, letter=E.OUT, out_reason="absent", gates_status="to_review", unread=True)
         if fg and fg["letter"] in E.ROUTING:                             # gate 0: not a discovery solicitation
             drops.add(STEP, "question:routing", q)
             continue
@@ -190,6 +197,8 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         u = LUnit(sol, t, rank[t.id], q["quote"], q, preamble=preamble, prev_prospect=prev, decision=d,
                   window_end=end)
         sol.letter, sol.out_reason, sol.status = d.letter, d.reason, q.get("gates_status") or SINGLE
+        if q.get("unread"):
+            sol.tags.append("unread")
         units.append(u)
     return units
 
