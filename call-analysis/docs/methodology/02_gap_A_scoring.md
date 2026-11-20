@@ -52,8 +52,8 @@ The cost of P is added to this sentence, in the prospect's words: it remains man
 
 | Slot | What it is | Where it comes from | Selection rule (Annex A) |
 |---|---|---|---|
-| **A** · Where he is | The figure he wants to move, not the biggest figure of the call | Prospect answers to **S** and **I** solicitations | The current value on the dimension that B targets (GB-28) |
-| **B** · Where he wants to go | His target, in the same unit as A; his deadline if he gave one | Prospect answers to **N** solicitations | The target expressed in A's unit (GB-29) |
+| **A** · Where he is | The figure he wants to move, not the biggest figure of the call | Prospect answers to **S** and **I** solicitations, and every current figure he states in the discovery (listed by the code, GB-28b) | The current value on the dimension that B targets, never a fact unrelated to B (GB-28, v1.4) |
+| **B** · Where he wants to go | His target, in the same unit as A; his deadline if he gave one | Prospect answers to **N** solicitations first; a target in figures stated elsewhere in the discovery is taken too, flagged | The most recent target in figures, else the most recent target (GB-29, v1.4) |
 | **P** · What blocks him | **One single blocker** | Prospect answers to **P** solicitations | The blocker he named when asked what stops him; otherwise the one he comes back to most (GB-30) |
 
 **The other blockers are not lost.** Every other blocker the prospect stated in answer to a P or I solicitation becomes a step of his roadmap, presented in the pitch. A roadmap of 3 steps needs at least 3 distinct blockers ticked from P or I answers; below that, **the Copilot warns the sales before generating the roadmap page** (GB-33). The roadmap count is a diagnostic: it never changes the Gap score.
@@ -113,7 +113,7 @@ When the gate passes, six items scored 0, 1 or 2. **Call score = Σ (weight × l
 
 | Item | Weight | Level 0 | Level 1 | Level 2 |
 |---|---|---|---|---|
-| G1 Point A | 10 | No A statement by the prospect in S or I answers | A stated, not quantified | A quantified by the prospect, on the dimension that B targets (GB-28) |
+| G1 Point A | 10 | No A statement by the prospect on B's dimension (GB-28) | A stated, not quantified | A quantified by the prospect, in B's unit or on B's dimension (GB-28) |
 | G2 Point B | 10 | No B statement by the prospect in N answers | B stated, not quantified | B quantified by the prospect in A's unit, with a horizon |
 | G3 Measurable gap | 10 | No quantified A and B in the same unit | (no level 1) | Quantified A and B share a unit; `gap_value` computable |
 | G4 Cost of the problem | 20 | Cost restated, but the prospect's own cost statement is not quantified and stays generic ("it's hard") | Cost stated by the prospect in a concrete domain, not quantified | Cost quantified by the prospect (money, hours, months lost) |
@@ -167,7 +167,7 @@ Illustrative cases, adapted and shortened from real calls. In production, every 
 
 ```
 {
-  "call_id": "…", "competence": "GAP", "rules_version": "GAP-1.3",
+  "call_id": "…", "competence": "GAP", "rules_version": "GAP-1.4",
   "status": "scored", "verdict": "present", "absence_reason": null, "score": 80,
   "gap": {"A": {"value": 2500, "unit": "USD/month", "quote": "…", "turn": "T088"},
           "B": {"value": 10000, "unit": "USD/month", "horizon": "12 months", "binding": false,

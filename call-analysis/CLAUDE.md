@@ -53,6 +53,12 @@ objections after the pitch;
 the code checks every quote and reuses the engine's decision code (Gap and Pitch competences unchanged, through
 `shim.StepRunner`). Selected per job by `crm_ca_config.engine = 'lite'`. Read `lite/README.md` (approximations) first.
 
+## The prospect's figures (GAP-1.4, 2026-11-20)
+The gap formula (A, B) is selected on the model's atoms **and** on the figures the code lists in the prospect's turns
+(`engine/lnp_callqa/core/figures.py`, GB-28b): value, unit, kind (present, target, past, expense, offer). A is never
+a fact unrelated to B; B is the most recent target in figures, N answers first. Measured by replay on the reference set
+(`qa/README.md`): gap elements right 46 % → 82 %. Tests: `engine/tests/test_figures.py`.
+
 ## Calls of one cycle (2026-11-20)
 R1, R2, R3 of one sales cycle are not read the same way: Part C, C9, `engine/lnp_callqa/core/rounds.py` (discovery and
 gap again only after a bad gap, the pitch once, objections from the start once the price was given, a bad gap followed

@@ -255,6 +255,12 @@ d'objection. Le code applique aussi au moteur allégé les règles dures de la d
 le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une mention de l'offre (PB-2) et le registre lu dans la question
 quand elle nomme un domaine (SB-27), et depuis le 2026-11-20 la vérification de suivi (« ça fait sens ? »), la
 reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+Écart, points A et B (Romain, 2026-11-20, règles GAP-1.4, `call-analysis/engine/lnp_callqa/core/figures.py`) : le code liste les
+chiffres du prospect (valeur, unité, nature : présent, cible, passé, dépense, offre) et ses cibles sans chiffre ; A est choisi
+sur la dimension de B, jamais un fait sans rapport (« la conférence m'a convaincu ») : sans chiffre sur la dimension de B, A est
+« non dit » ; B est la cible chiffrée la plus récente, réponses N d'abord, sinon la cible la plus récente. Mesure par rejeu sur les
+6 appels (`call-analysis/qa/README.md`) : éléments de l'écart justes 46 % → 82 % (A 15/15, B 14/15). Les notes G1 à G3 changent avec
+la version des règles : les analyses stockées sont à relancer (C8).
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et

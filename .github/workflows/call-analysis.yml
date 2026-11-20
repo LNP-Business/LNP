@@ -26,6 +26,11 @@ on:
       repeat:
         description: "measure: analyses per call (5 to measure the reproducibility, C4)"
         default: "1"
+      mode:
+        description: "measure: live (the model, through callqa-llm) or replay (the stored model answers: measures a code change, no cost)"
+        type: choice
+        options: [live, replay]
+        default: live
 env:
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}  # LNP: repository variable, https://<ref>.supabase.co
 jobs:
@@ -109,6 +114,7 @@ jobs:
           KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           EFFORT: ${{ inputs.effort == 'none' && 'low' || inputs.effort }}
           REPEAT: ${{ inputs.repeat }}
+          MODE: ${{ inputs.mode || 'live' }}
         run: |
           set -e
           mkdir -p /tmp/qa/reference /tmp/qa/cases
@@ -117,7 +123,7 @@ jobs:
               "$SUPABASE_URL/storage/v1/object/callqa-fixtures/qa/$f.tar.gz" -o /tmp/qa/$f.tgz
             tar xzf /tmp/qa/$f.tgz -C /tmp/qa/$f
           done
-          python3 call-analysis/qa/qa_run.py --cases /tmp/qa/cases --refs /tmp/qa/reference --mode live \
+          python3 call-analysis/qa/qa_run.py --cases /tmp/qa/cases --refs /tmp/qa/reference --mode "$MODE" \
             --repeat "${REPEAT:-1}" --effort "$EFFORT" --out /tmp/qa/report.json || true
           curl -fsS -X POST -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "content-type: application/json" \
             --data-binary @/tmp/qa/report.json \

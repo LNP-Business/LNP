@@ -100,8 +100,9 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | GB-25 | Correction | `methodology/02_gap_B_bounding_rules.md` |
 | GB-26 | Validation in the prospect's words | `methodology/02_gap_B_bounding_rules.md` |
 | GB-27 | Several possible sources | `methodology/02_gap_B_bounding_rules.md` |
-| GB-28 | Selecting A | `methodology/02_gap_B_bounding_rules.md` |
-| GB-29 | Selecting B | `methodology/02_gap_B_bounding_rules.md` |
+| GB-28 | Selecting A (v1.4: on B's dimension, never an unrelated fact) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-28b | The figures listed by the code (present, target, past, expense, offer) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-29 | Selecting B (v1.4: in figures first, N answers first, else the most recent target) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-30 | Selecting P (one single blocker) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-31 | Formula conformity of a restitution | `methodology/02_gap_B_bounding_rules.md` |
 | GB-32 | Roadmap blockers | `methodology/02_gap_B_bounding_rules.md` |

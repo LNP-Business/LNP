@@ -77,6 +77,19 @@ def test_each_measure_counts_what_the_reference_states():
     assert m["n_errors"] == 5
 
 
+def test_a_gap_element_may_list_several_accepted_answers_or_null():
+    ref = copy.deepcopy(REF)
+    ref["gap"]["components"] = {"A": ["about 1,500 a month", "I only make about 1,500 a month"],   # said here or there
+                                "B": [None, "I want to make 6,000 a month"],              # or rightly not selected
+                                "COST": None}                                             # must not be found
+    m = measure(ref, record())
+    assert m["gap"]["components"] == [2, 3]
+    assert [e["kind"] for e in m["errors"] if e["kind"].startswith("gap")] == ["gap_component:COST"]
+    assert validate(ref, sc.transcript()) == []
+    ref["gap"]["components"]["A"].append("words nobody said")
+    assert any("gap.components.A[2]" in e for e in validate(ref, sc.transcript()))
+
+
 def test_totals_add_the_calls_up():
     m = measure(REF, record())
     t = total([m, m])

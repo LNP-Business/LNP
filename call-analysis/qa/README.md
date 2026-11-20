@@ -25,7 +25,8 @@ correct, with the quotes) are listed per call in the report.
 ## The reference set
 
 One JSON file per call, keyed by the **words of the transcript**, never by turn ids (they change when the voices are
-repaired): format in `callqa_qa/reference.py`. Calls are `tuning` (used to find and fix errors) or `control` (never
+repaired): format in `callqa_qa/reference.py`. A gap element (A, B, problem, cost) may list several accepted quotes
+(the prospect said it in two places) and `null` among them (rightly not selected: no current figure on B's dimension). Calls are `tuning` (used to find and fix errors) or `control` (never
 looked at while tuning: they tell whether a fix generalises, C7).
 
 The reference files and the case files (transcript, speaker map, the stored model answers) hold **personal data**: they
@@ -78,3 +79,21 @@ the code of 2026-11-20, step 1 French checks and recurrences as new episodes; th
 
 230 errors in all: 104 effects missed, 53 questions missed, 21 wrong letters, 12 objections missed, 9 gap elements, 8
 registers. The reproducibility (C4) needs live runs (`--mode live --repeat 5`).
+
+## The gap elements (2026-11-20, GAP-1.4)
+
+Reference read again for the gap elements of the 6 calls (A, B, problem, cost by the prospect's words; the files are in
+the private bucket with the others). Replay of the 16 stored lite analyses of these calls (several analyses of one call
+count each):
+
+| Gap element | Before (GAP-1.3) | After (GAP-1.4) |
+|---|---|---|
+| Point A | 3 / 15 | 15 / 15 |
+| Point B | 7 / 15 | 14 / 15 (the last one: a pitch start read too early, the target is outside the window) |
+| Problem | 10 / 15 | 11 / 15 |
+| Cost | 6 / 12 | 7 / 12 |
+| All elements | 46 % (26/57) | 82 % (47/57) |
+
+What changed: the code lists the prospect's figures (`engine/lnp_callqa/core/figures.py`, GB-28b) and the formula
+selects A on B's dimension, never an unrelated fact (GB-28, GB-29 v1.4). What is left: the problems and costs the model
+does not list as atoms (a change of the S1 prompt, to measure in `live` mode), and the phases.
