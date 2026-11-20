@@ -122,6 +122,7 @@ class CallContext:
     atoms: list[Atom] = field(default_factory=list)
     results: dict[str, CompetenceResult] = field(default_factory=dict)
     audit: list[dict[str, Any]] = field(default_factory=list)          # every model pass, arbitration, error
+    lines: list[Turn] = field(default_factory=list)   # the recorder's lines, one per sentence (lite voice check)
 
     # ---- helpers -------------------------------------------------------------
     def turn(self, tid: str) -> Turn:

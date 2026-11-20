@@ -43,6 +43,29 @@ def parse_transcript(raw: str, speaker_map: dict[str, str]) -> list[Turn]:
     return turns
 
 
+def parse_lines(raw: str, speaker_map: dict[str, str]) -> list[Turn]:
+    """The transcript as the recorder wrote it, one item per line ("L001"), before same-speaker lines are joined into
+    turns: the speaker label of a line is the unit the lite voice check (lite/callqa_lite/voices.py) corrects.
+    A line without a timestamp continues the line before it, as in parse_transcript."""
+    lines: list[Turn] = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = LINE.match(line)
+        if not m:
+            if lines:
+                lines[-1].text = (lines[-1].text + " " + re.sub(r"\s+", " ", line)).strip()
+            continue
+        ts, spk, text = m.groups()
+        role = speaker_map.get(spk.strip(), OTHER)
+        if role not in (SALES, PROSPECT, OTHER):
+            role = {"sales": SALES, "prospect": PROSPECT}.get(role.lower(), OTHER)
+        n = len(lines) + 1
+        lines.append(Turn(f"L{n:03d}", n, ts, spk.strip(), role, re.sub(r"\s+", " ", text).strip()))
+    return lines
+
+
 def diarization_gate(ctx: CallContext, max_share: float = 0.92, min_prospect_words: int = 150) -> None:
     if not ctx.turns:
         ctx.status = "no_transcript"
@@ -89,13 +112,11 @@ def repair_attribution(ctx: CallContext, cases: list[dict]) -> None:
     the foreign part of a merged turn becomes a sub-turn "T050b" inserted right after (ids stay sortable)."""
     by_id = {t.id: t for t in ctx.turns}
     new_turns: list[Turn] = []
-    touched = set()
     for t in ctx.turns:
         cs = [c for c in cases if c.get("turn") == t.id]
         if not cs:
             new_turns.append(t)
             continue
-        touched.add(t.id)
         c = cs[0]
         other = SALES if t.role == PROSPECT else PROSPECT
         if c["type"] == "swapped":
@@ -119,7 +140,9 @@ def repair_attribution(ctx: CallContext, cases: list[dict]) -> None:
             new_turns.append(t)
             new_turns.append(Turn(t.id + "b", t.n, t.ts, t.speaker, other, foreign, repaired=True))
     ctx.turns = new_turns
-    rate = len(touched) / max(1, len({t.n for t in ctx.turns}))
+    # C1 (Romain, 2026-11-20): the threshold applies after the repair, to the turns still wrong (doubtful)
+    doubtful = {t.n for t in ctx.turns if t.attribution_doubtful}
+    rate = len(doubtful) / max(1, len({t.n for t in ctx.turns}))
     if rate > 0.10:
         ctx.status = "diarization_suspect"
         ctx.flags.append("attribution_rate")

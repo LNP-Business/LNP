@@ -123,6 +123,13 @@ def test_attribution_repair_split():
     assert ids == ["T001", "T002", "T002b"]
     assert c.turn("T002b").role == "SALES" and "Time." in c.turn("T002").text
     assert c.n("T002b") == 2
+    assert c.status == "ok"                        # C1: a repaired turn is not counted against the 10 % (2026-11-20)
+
+
+def test_attribution_threshold_counts_the_turns_left_doubtful():
+    c = ctx_of([("SALES", "And the cost?"), ("PROSPECT", "Time, mostly."), ("SALES", "And the cost?")])
+    repair_attribution(c, [{"turn": "T003", "type": "echo"}])
+    assert c.status == "diarization_suspect" and "attribution_rate" in c.flags   # 1 of 3 turns left doubtful
 
 
 # ---------------------------------------------------------------- aggregation

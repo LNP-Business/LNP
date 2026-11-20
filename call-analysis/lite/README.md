@@ -1,8 +1,9 @@
 # Lite engine (`callqa_lite`, 2026-11-03)
 
-A low-cost reading of a sales call: **five whole-transcript model steps instead of about 540 closed questions asked
+A low-cost reading of a sales call: **a voice check, then five whole-transcript model steps instead of about 540 closed questions asked
 three times**, the code still checking every quote and deciding every level, verdict and score. Target set by Romain:
-at most 0.10 USD a call (estimate below: about 0.02 to 0.03 USD).
+at most 0.10 USD a call (measured: 0.019 to 0.028 USD for the five steps on the calls of November 2026; about 0.012
+USD more for the voice check and its control, so about 0.04 to 0.05 USD, below).
 
 Switch (per job, read by the worker from the claim): `update crm_ca_config set engine = 'lite';` (back:
 `engine = 'full'`), migration `web/supabase/035_crm_ca_engine_choice.sql`. The reference engine
@@ -47,6 +48,7 @@ most steps fail, the job stops (`ModelErrors`, not retried).
 
 | Step | Asked | The code then |
 |---|---|---|
+| SV `lite.sv_voices` + `lite.sv_control` (first, always on, 2026-11-19, `voices.py`) | on the recorder's lines (`L001 [SALES] text`, one per sentence, its own cached prefix and system prompt `prompts/sv_system.md`), in chunks of 150 lines: every line whose speaker label is wrong, the whole line or from an exact quote on (`prompts/sv_voices.md`) | checks each correction (line in the chunk, role SALES / PROSPECT / OTHER and different from the label, the `from` quote in the line), relabels and splits the lines (second part `L073b`); a line whose quote is not found is doubtful (a turn of its own, left out). Then the **control** (`lite.sv_control`, Romain 2026-11-20): the repaired lines are read again with the same question; what is still flagged plus the doubtful lines are the errors left after the repair: more than 10 % of the lines → `diarization_suspect` (flag `attribution_rate`), the call is not analysed; otherwise the control's corrections are applied too. The turns (consecutive lines of one role) are rebuilt from the repaired lines. `meta.voices`: relabelled, split, doubtful, `control`, `residual`, `share_residual`. No valid answer: the transcript stays as recorded (`voices_unchecked`); a control with no valid answer keeps the repair without the measure (`voices_control_unchecked`) |
 | S0 `lite.s0_phases` | every sales turn with an offer description, a screen share, an amount for the offer or a decision request, with the engine's closed flags (`foundation.phases`) | checks each quote (SALES turn) and places the anchors with the engine's `decide_phases` (PB-1, PB-2/PB-17, PB-3/PB-18, PB-19, PB-4) and `discovery_end` (SB-1) |
 | S1 `lite.s1_discovery` | every sales solicitation before the first pitch start or price: exact quote, letter (gates in order, OUT reason), object, stopping question, register domain and basis with quote, the prospect's answer, the atoms of the answer (SITUATION … VALUE, with the engine's atom fields). Chunks of 160 turns; an answer cut by `max_tokens` is asked again as two halves | drops a question that is not an exact passage of a SALES turn or comes after the pitch (SB-34); hard rules of §3 (a validation tail or a closed need-payoff → OUT agreement); perimeter (SB-1, SB-2); answer spans (SB-5 to SB-8, engine `answer_spans`); every atom must be an exact passage of a PROSPECT turn of that question's answer span (engine `_validate_atoms`), then the engine's atom decisions (`build_atoms`: SB-9 to SB-24); follow-ups (SB-17, SB-19); chains (`find_chains`, SB-16 to SB-20); register checks (engine `_validate_register`, SB-32: quote place, rule order, word-list conflict); items D1 to D5 (`score_items`) |
 | S2 `lite.s2_gap` | every playback passage up to the first price: its sales turns, each restated clause (component, sales quote, source turn, key expression), a new-topic question at the end, the validation read on the prospect turn right after; the deadlines attached to a target | runs the engine's `GapCompetence` unchanged: its closed questions (`gap.restitution`, `gap.validation`, `gap.a_current`, `gap.stopping`, `gap.horizon`) are answered from S2 and S1 and checked by the engine validators; the verbatim rule GB-22, the formula, the gate, G1 to G6 are the engine's code. A passage the model found and the code inventory missed is added as a candidate (signal `S5_lite`) |
@@ -71,7 +73,7 @@ read by `app/crm/call_analysis_view.js` (checked in a browser with a lite record
 register with the letter chips and the question + answer panel, the gap panel and its four checks, the pitch staircase
 and verbatim, the objections table with A · I · E · M), plus:
 
-- `meta`: `{"engine": "lite", "version": "callqa-lite-1.0", "tier", "effort", "failed_steps", "steps": {S0..S4:
+- `meta`: `{"engine": "lite", "version": "callqa-lite-1.1", "tier", "effort", "failed_steps", "voices" (SV: lines, relabelled, split, doubtful, control, residual, share_residual, turns before and after), "steps": {SV, SV2, S0..S4:
   {"dropped": n, "reasons": {...}}}}`; 035 keeps `meta.engine`, `meta.engine_version` and `meta.engine_steps` in
   `crm_ca_records.meta`;
 - `concordance: "single_reading"` on every competence; SPIN `solicitations[].status = "single_reading"`, each with its
@@ -83,6 +85,17 @@ and verbatim, the objections table with A · I · E · M), plus:
 
 `crm_ca_jobs.usage` keeps the token usage per tier as before, plus `engine` and `effort`; `callqa_lite.cost.estimate`
 turns it into USD.
+
+## Cost of the voice check (SV, 2026-11-19)
+
+The recorder's lines (525 to 740 for a 50 to 70-minute call) are a second prefix of about 21 000 to 29 000 tokens
+(measured ratio of the turn prefix: 0.44 token per character). For about 650 lines, five chunks. Repair: cache write 27 000 ×
+0.125 = 0.0034; cache reads 4 × 27 000 × 0.01 = 0.0011; chunk prompts ≈ 1 500 × 0.10 = 0.0002; output ≈ 15 000 (about
+300 corrections of 15 to 25 tokens, plus a short thinking) × 0.50 = 0.0075; about 0.012 USD. Control (a second prefix
+of the repaired lines, few corrections): 0.0034 + 0.0011 + 0.0002 + ≈ 6 000 × 0.50 = 0.003; about 0.008 USD. **About
+0.02 USD a call**, so about 0.04 to 0.05 USD with the five steps (measured `crm_ca_jobs.usage`, November 2026: 0.019 to
+0.028 USD). The same two passes on claude-sonnet-5-5 (2 / 10 / 0.10 / 2.50) would cost about 0.35 USD. To be measured
+on real calls.
 
 ## Cost estimate (60-minute call, about 15 000 transcript tokens)
 
@@ -111,8 +124,12 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
 2. **Invalid evidence is dropped item by item**, not replayed (C3 rule 7 replays a unit once, then `to_review`): an
    unproved atom, clause, claim or gesture counts as not said / not done; the whole step is replayed once only when its
    JSON is invalid. Counts per reason in `meta.steps`.
-3. **No attribution check** (C1 merged / swapped / echo turns): only the code's diarization gate runs. A call with
-   mislabelled turns is not repaired and its quotes may be rejected as `wrong_speaker`.
+3. **Attribution check on the lines** (C1, since 2026-11-19, step SV): the model reads the recorder's lines, not the
+   turns, and lists merged (two speakers in one line) and swapped lines; echoes are not looked for. C1 counts the
+   repaired and the doubtful turns against its 10 % threshold; on these calls 41 to 52 % of the lines are mislabelled,
+   so the lite applies the threshold **after the repair** (Romain, 2026-11-20, `voices.RESIDUAL_MAX_SHARE`): a control
+   reading of the repaired lines counts the errors left (still flagged, or doubtful); more than 10 % of the lines → the
+   call is `diarization_suspect`. Errors the control does not see either are not counted.
 4. **SPIN letters**: the model gives the letter after walking the gates in the prompt, instead of answering each gate
    with its proof (§3); the code enforces the hard rules it can read in the text: validation tail, closed need-payoff,
    and since 2026-11-19 a tail alone ("Tu vois ?"), the load of a solution (time to dedicate, budget: `SOLUTION_LOAD`)
@@ -147,7 +164,7 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
 
 ## Files
 
-`callqa_lite/engine.py` pipeline · `steps.py` model calls, JSON, replay, mock client · `shim.py` the engine's runner
+`callqa_lite/engine.py` pipeline · `voices.py` SV, who says each line · `steps.py` model calls, JSON, replay, mock client · `shim.py` the engine's runner
 interface answered from a step · `phases.py` S0 · `spin.py` S1 → SPIN · `gap.py` S2 → Gap · `pitch.py` S3 → Pitch ·
 `objections.py` S4 → Objections · `cost.py` · `prompts/*.md` (English: translating them would change the reading) ·
 `tests/` (fictional call `synthetic_call.py`, no real data).

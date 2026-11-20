@@ -228,7 +228,7 @@ def test_record_has_the_contract_fields_the_screen_reads():
     rec, _ = run()
     assert {"call_id", "sales_id", "start_utc", "timezone", "status", "flags", "turns", "phases", "results", "audit",
             "meta"} <= set(rec)
-    assert rec["meta"]["engine"] == "lite" and rec["meta"]["version"] == "callqa-lite-1.0"
+    assert rec["meta"]["engine"] == "lite" and rec["meta"]["version"] == "callqa-lite-1.1"
     assert {"id", "ts", "role", "speaker", "text", "repaired", "attribution_doubtful"} == set(rec["turns"][0])
     for c in ("SPIN", "GAP", "PITCH", "OBJECTIONS"):
         assert {"competence", "rules_version", "status", "verdict", "reasons", "score", "items", "flags", "details",
