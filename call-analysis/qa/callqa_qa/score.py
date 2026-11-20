@@ -17,6 +17,14 @@ def _pair(right: int, out_of: int) -> Pair:
     return [right, out_of]
 
 
+def _num(v: Any) -> Optional[float]:
+    """A score as a number (a stored record may hold it as text)."""
+    try:
+        return None if v is None else float(v)
+    except (TypeError, ValueError):
+        return None
+
+
 def _turn_text(rec: dict) -> dict[str, str]:
     return {t["id"]: t["text"] for t in rec.get("turns") or []}
 
@@ -195,7 +203,7 @@ def statuses(ref: dict, rec: dict) -> dict:
                 out["errors"].append({"kind": f"status:{k}", "expected": ref["status"][k], "found": r.get("status")})
         rng = (ref.get("scores") or {}).get(k)
         if rng:
-            sc = r.get("score")
+            sc = _num(r.get("score"))
             ok = sc is not None and rng[0] <= sc <= rng[1]
             out["score"][0] += ok
             out["score"][1] += 1
@@ -251,7 +259,7 @@ def reproducibility(ref: dict, records: list[dict]) -> dict:
     spread = {}
     for k in COMPETENCES:
         vals = [((r.get("results") or {}).get(k) or {}) for r in records]
-        scores = [v.get("score") for v in vals if v.get("score") is not None]
+        scores = [_num(v.get("score")) for v in vals if _num(v.get("score")) is not None]
         spread[k] = {"scores": [v.get("score") if v.get("score") is not None else v.get("status") for v in vals],
                      "spread": (max(scores) - min(scores)) if scores else None}
     return {"runs": len(records), "same_letter": _pair(same_letter, n), "same_register": _pair(same_reg, n),
