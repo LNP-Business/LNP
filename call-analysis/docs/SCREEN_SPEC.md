@@ -40,7 +40,7 @@ language (see Design tokens).
 - **What the sales said · exact verbatim**: the full text of the restitution turn(s), unedited, with every evaluated passage highlighted and labelled: her exact words (green), paraphrase (red, does not count), sales' own framing (orange, does not count), not her figure (grey), validation request (blue). Under it, the prospect's validation turn, with its outcome chip (confirmed / confirmed with content / corrected / rejected / none).
 - **Four validity checks**, each ✓ or ✗ with a one-line justification: In one go (GB-34) · Before pitch & price · Problem + cost verbatim (GB-22) · Validated (GB-8..GB-10).
 - **Component table**: Component · Prospect said (quote + timestamp) · Sales played back (quote) · Verbatim (yes / no · reason).
-- Roadmap material line: number of other blockers ticked in P or I answers; Copilot warning when fewer than the roadmap steps.
+- Roadmap material line: number of other blockers ticked in P or I answers; roadmap warning when fewer than the roadmap steps.
 
 ### 2.3 The pitch
 - Status chip: `Compliant` or `Non-compliant · <reason>` (pitch before the yes / outside her gap or the offer / outcome promise).

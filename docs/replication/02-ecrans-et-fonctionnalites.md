@@ -957,7 +957,7 @@ existe), sinon la fenêtre d'ajout.
    « confirmé avec contenu », « corrigé », « rejeté », « aucune réponse »…). **Quatre contrôles** ✓/✗ : « En une fois »,
    « Avant l'offre et le prix », « Problème + coût mot pour mot », « Validé ». **Tableau** Élément / Ce qu'a dit le prospect /
    Ce qu'a reformulé le commercial / Mot pour mot (sans reformulation : ce que le prospect a donné, « non reformulé »). Ligne
-   « Matière pour la feuille de route : n autre(s) blocage(s) relevé(s) dans les réponses P ou I[ · Alerte Copilot : …] ».
+   « Matière pour la feuille de route : n autre(s) blocage(s) relevé(s) dans les réponses P ou I[ · Alerte feuille de route : …] ».
 4. **« 3 La présentation de l'offre »** (« Conforme » / « Non conforme · <raison> ») : sous-titre « Blocage validé « … » →
    <catégorie> · un blocage, un mécanisme, quatre étapes, puis feuille de route, montant, décision. » ; puces « ✓ Offre
    présentée après le oui » / « ✗ … avant le oui » / « ✗ … avant la reformulation de l'écart », « ? n affirmation(s) à vérifier
