@@ -142,10 +142,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Analyse d'appel (écran) : `app/crm/call_analysis.js`, `call_analysis_view.js`, `transcript_parse.js` ; les codes du moteur
   sont traduits à l'affichage, les citations restent mot pour mot.
   Section « La découverte » (Romain, 2026-11-20 ; fait dans la vue embarquée de `app/lnp.html`, à reporter dans
-  `call_analysis_view.js`) : la frise de la découverte (chaque question à son heure sur la durée de la découverte, la lettre SPIN
-  dans la couleur de son sujet, l'heure dessous), la colonne Profondeur en échelle de 0 à 10 (`profondeur()` : faits, douleurs,
-  désirs, chiffre, chaînes approfondies, question d'implication ; l'état reste sous l'échelle) et la question choisie lue dans un
-  panneau à droite (`pane()`), depuis la frise ou le tableau. Section « L'écart reformulé » (même jour) : à gauche la reformulation
+  `call_analysis_view.js`) : le temps de la découverte dans le tableau, colonne « Questions posées » (`piste()`, `axe()` : une seule
+  échelle de la première question de diagnostic à l'offre, graduée dans l'en-tête et prolongée dans chaque ligne, chaque question
+  placée à son heure, pour comparer les sujets ; plus de frise à part), la colonne Profondeur en échelle de 0 à 10 (`profondeur()` :
+  faits, douleurs, désirs, chiffre, chaînes approfondies, question d'implication ; dessous, ce que le prospect a confié puis l'état ;
+  plus de colonne « Ce qu'il a confié ») et la question choisie lue dans un panneau à droite (`pane()`). Section « L'écart reformulé » (même jour) : à gauche la reformulation
   entière, mot pour mot, chaque élément surligné ; à droite la liste des éléments de l'écart (Problème, Coût, Point A, Point B,
   Validation), chacun statué (ses mots, paraphrase, pas ses mots, non repris) avec les mots exacts du prospect et ceux de la
   reformulation. Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant
