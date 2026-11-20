@@ -162,6 +162,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   Découverte : la suite des questions dans l'ordre de l'appel, les lettres neutres (seul l'état, fait obtenu ou non, se voit),
   « 2 douleurs · 1 désir » en mots ; Objections : « Avant le prix » puis « Après le prix », « Ta réponse » et « Réaction du
   prospect » ; aucun numéro de tour ni code de règle à l'écran. « Remplacer la transcription » est en bas de l'analyse.
+  « Comment c'est noté » sous chaque section (`HOW`, la méthode en clair) ; les points d'attention de la qualification visibles ;
+  la transcription en panneau à droite, avec une recherche sans accents (`.cav-find`) ; Échap ferme d'abord la fenêtre d'un geste,
+  la question ouverte ou la transcription, puis l'analyse, et le focus revient au bouton qui l'a ouverte.
 - Paramètres › Alertes : `gabarits/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/lnp-web.js`.
 - Connexion, équipe, accès par écran, interface `window.claude.use("user" | "crm")` : `web/public/lnp-web.js`.
 
