@@ -92,7 +92,9 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   const axe = await p.$$eval('#cav-s1 table thead .tkl', e => e.map(x => [x.textContent, x.style.left]));
   check('l’axe dans l’en-tête : une graduation toutes les 5 minutes de la découverte (01:10 → 14:20)', axe.length === 2 && axe[0][0] === '05:00' && axe[1][0] === '10:00', axe);
   const leg = await p.textContent('#cav-s1');
-  check('la légende dit l’échelle commune', /l’axe : le temps de la découverte, 01:10 → 14:20, à la même échelle pour chaque sujet/.test(leg), null);
+  check('rien d’expliqué à l’écran : ni la légende des lettres, ni « cliquez », ni l’échelle, ni la définition de la profondeur', !/S Situation/.test(leg) && !/cliquez/i.test(leg) && !/même échelle/.test(leg) && !/intensité émotionnelle/.test(leg), null);
+  const tq = await p.getAttribute('#cav-s1 th .th-i', 'title'), tp = await p.$$eval('#cav-s1 th .th-i', e => e[1].getAttribute('title'));
+  check('les explications sont dans une fenêtre au survol des titres « Questions » et « Profondeur »', /S Situation · P Problème/.test(tq) && /01:10 → 14:20, à la même échelle/.test(tq) && /intensité émotionnelle/.test(tp) && /Approfondi/.test(tp), [tq, tp]);
   const rows = await p.$$eval('#cav-s1 table tbody tr', e => e.map(r => [r.querySelector('td b') && r.querySelector('td b').textContent, !!r.querySelector('.tk'), [...r.querySelectorAll('.tk .chip')].map(c => [c.textContent, c.style.left, c.className])]));
   check('chaque sujet a sa piste, les questions placées à leur heure sur la même échelle', rows.length === 6 && rows.every(r => r[1]) && rows.filter(r => r[2].length).length === 5, rows.map(r => [r[0], r[2].length]));
   const pos = {}; rows.forEach(r => r[2].forEach(c => { pos[c[1]] = (pos[c[1]] || 0) + 1; }));
@@ -104,17 +106,18 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   check('chaque piste tient sur une seule ligne', tops.length === 6 && tops.every(x => x === '0px'), tops);
   const grid = await p.$$eval('#cav-s1 table tbody .tk .tkt', e => e.length);
   check('les graduations se prolongent dans chaque piste pour lire l’alignement', grid === 6 * 2, grid);
-  check('le panneau de droite vide au départ', /Cliquez sur une lettre/.test(await p.textContent('#cav-sol-pane')), null);
-  const prof = await p.$$eval('.cav .scb', e => e.map(x => x.parentElement.getAttribute('title')));
+  check('pas de panneau ni de consigne au départ : le tableau prend toute la largeur', !(await p.$('#cav-sol-pane')) && (await p.$eval('.cav .disc', e => getComputedStyle(e).gridTemplateColumns.split(' ').length)) === 1, null);
+  const prof = await p.$$eval('.cav .scb', e => e.map(x => x.parentElement.getAttribute('title').replace(/ · (Effleuré|Chiffré|Valeur exprimée|Approfondi|Rien de retenu|Non exploré)$/, '')));
   check('Profondeur : une échelle de 10 segments par sujet questionné (pas pour « Temps et charge », sans question), le calcul en infobulle', prof.length === 4 && prof.every(t => /Profondeur \d+ sur 10/.test(t)) && (await p.$$eval('.cav .scb i', e => e.length)) === 40, prof);
   const finP = prof.find(t => /2 faits/.test(t));
   check('Financier : 2 faits, 1 douleur ou blocage, 1 désir, chiffré, chaîne approfondie, implication et bénéfice → 10/10', !!finP && /Profondeur 10 sur 10/.test(finP) && /chiffré/.test(finP) && /1 chaîne approfondie/.test(finP) && /question d’implication/.test(finP), finP);
   check('Identité : 1 fait sans douleur → 2/10', prof.some(t => /Profondeur 2 sur 10 : 1 fait \(\+1,5\)/.test(t)), prof);
   check('Autre : rien de retenu → 0/10', prof.some(t => /Profondeur 0 sur 10/.test(t)), prof);
   const under = await p.$$eval('.cav .scb', e => e.map(x => x.parentElement.nextElementSibling && x.parentElement.nextElementSibling.textContent));
-  check('sous l’échelle : ce qu’il a confié, puis l’état', under.includes('1 douleur · 1 désir · Approfondi') && under.includes('1 fait de sa situation · Effleuré') && under.includes('rien de retenu · Rien de retenu'), under);
+  const profFull = await p.$$eval('.cav .scb', e => e.map(x => x.parentElement.getAttribute('title')));
+  check('sous l’échelle : seulement ce qu’il a confié, l’état au survol', under.includes('1 douleur · 1 désir') && under.includes('1 fait de sa situation') && under.includes('rien de retenu') && !under.some(x => /Approfondi|Effleuré|Rien de retenu/.test(x || '')) && profFull.some(x => / · Approfondi$/.test(x)), [under, profFull]);
   await p.screenshot({ path: path.join(OUT, 'analyse-decouverte-01.png') });
-  await p.click('.cav table .tk .chip[data-cav-sol="Q007.1"]'); await p.waitForSelector('.pane:not(.empty)');
+  await p.click('.cav table .tk .chip[data-cav-sol="Q007.1"]'); await p.waitForSelector('#cav-sol-pane');
   let t = await p.textContent('#cav-sol-pane');
   check('un clic sur une lettre de la piste : la question et la réponse à droite, avec le sujet', /Question 3 · Implication/.test(t) && /à 06:05/.test(t) && /Financier/.test(t) && /400 euros de moins/.test(t) && /Retenu dans la réponse/.test(t), t.slice(0, 240));
   check('la lettre est marquée choisie', (await p.$$eval('[data-cav-sol="Q007.1"][aria-expanded="true"]', e => e.length)) === 1, null);
@@ -123,9 +126,9 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   await p.click('.cav table .chip[data-cav-sol="Q005.1"]'); await p.waitForFunction(() => /Question 2/.test(document.querySelector('#cav-sol-pane').textContent));
   t = await p.textContent('#cav-sol-pane');
   check('une autre lettre, d’un autre sujet, remplace le panneau', /Question 2 · Problème/.test(t) && /Mental et émotionnel/.test(t) && /épuisant/.test(t), t.slice(0, 200));
-  await p.click('#cav-sol-pane [data-cav-sol=""]'); await p.waitForSelector('.pane.empty');
-  check('« Fermer » vide le panneau', true, null);
-  await p.click('.cav table .chip.cO'); await p.waitForSelector('.pane:not(.empty)');
+  await p.click('#cav-sol-pane [data-cav-sol=""]'); await p.waitForFunction(() => !document.querySelector('#cav-sol-pane'));
+  check('« Fermer » retire le panneau', true, null);
+  await p.click('.cav table .chip.cO'); await p.waitForSelector('#cav-sol-pane');
   check('une autre question (accord) s’ouvre aussi', /Autre question · demande d’accord|Autre question · demande d'accord/.test(await p.textContent('#cav-sol-pane')), await p.textContent('#cav-sol-pane'));
   // ── 2 · the gap: the whole reformulation on the left, the checklist of its elements on the right
   await p.setViewportSize({ width: 1280, height: 900 });
@@ -139,8 +142,8 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   check('l’écart en deux colonnes', (await p.$eval('#cav-s2 .gx2', e => getComputedStyle(e).gridTemplateColumns.split(' ').length)) === 2, null);
   await (await p.$('#cav-s2')).screenshot({ path: path.join(OUT, 'analyse-ecart.png') });
   // ── 4 · the objections: the letter's passage on the left, whole, following the scroll
-  check('objections : le panneau de gauche vide au départ', /Cliquez sur une lettre A, I, E ou M/.test(await p.textContent('#cav-ob-side')), null);
-  await p.click('#cav-s4 .chip[data-cav-ep="0"][data-cav-g="A"]'); await p.waitForSelector('#cav-ob-side:not(.empty)');
+  check('objections : ni panneau ni consigne au départ, l’explication des lettres au survol du titre', !(await p.$('#cav-ob-side')) && /A accueillie · I isolée/.test(await p.getAttribute('#cav-s4 th .th-i', 'title')) && !/cliquez/i.test(await p.textContent('#cav-s4')), null);
+  await p.click('#cav-s4 .chip[data-cav-ep="0"][data-cav-g="A"]'); await p.waitForSelector('#cav-ob-side');
   let o = await p.textContent('#cav-ob-side');
   check('un clic sur A : le passage à gauche, avec l’objection, le geste et la réponse', /A · Accueillie/.test(o) && /fait/.test(o) && /Argent disponible/.test(o) && /c’est beaucoup pour nous/.test(o) && /Je comprends, c’est une vraie somme/.test(o), o.slice(0, 240));
   const gcols = await p.$eval('#cav-s4 .ob-grid', e => getComputedStyle(e).gridTemplateColumns.split(' '));
@@ -151,7 +154,7 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   await p.screenshot({ path: path.join(OUT, 'analyse-objections.png') });
   await p.click('#cav-s4 table .chip[data-cav-g="E"]'); await p.waitForFunction(() => /E · Explorée/.test(document.querySelector('#cav-ob-side').textContent));
   check('une autre lettre remplace le panneau', /par rapport à quoi/.test(await p.textContent('#cav-ob-side')), null);
-  await p.click('#cav-ob-side .ob-x'); await p.waitForSelector('#cav-ob-side.empty');
+  await p.click('#cav-ob-side .ob-x'); await p.waitForFunction(() => !document.querySelector('#cav-ob-side'));
   check('la croix referme le panneau', true, null);
   const txt = await p.evaluate(() => document.body.innerText);
   check('pas d’anglais à l’écran', !/closer|closing|discovery|loading/i.test(txt), (txt.match(/.{0,30}(closer|closing|discovery|loading).{0,30}/i) || [])[0]);
