@@ -289,6 +289,15 @@ def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
         # not in its answer (« pourquoi reprendre une activité à temps plein ? » was given Financial from the answer)
         drops.add(STEP, "register:named_in_question", q)
         a = {"asked_domain": REGISTER_DOMAIN[named[0]], "basis": "named", "quote": named[1], "reference_turn": None}
+    if a["basis"] == "answer" and a["quote"]:
+        # SB-35: the words that show the register are the proof; when the model names no answer turn or another one,
+        # the code looks for those words in the answer itself (they must still be the prospect's, in the answer span)
+        turns = E._answer_turns(ctx, u)
+        if a["reference_turn"] not in {t.id for t in turns}:
+            hit = [t.id for t in turns if norm(a["quote"]).strip(' .,?!"') in norm(t.text)]
+            if len(hit) == 1:
+                drops.add(STEP, "register:turn_found_by_code", q)
+                a = dict(a, reference_turn=hit[0])
     if a["asked_domain"] is None and a["basis"] is None:
         drops.add(STEP, "register:missing", q)
         errs = ["missing"]

@@ -172,7 +172,9 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
-6. **Registers**: single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
+6. **Registers**: a register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
+   when the prospect's words it quotes are in exactly one turn of the answer (`register:turn_found_by_code`); without
+   those words there is no proof and the register stays `to_review`. Single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
    (`agreement: null`). The SB-32 code checks still run (quote place, rule order, word-list conflict); a rejected
    register is `to_review` and left out of the counts.
 7. **Gap**: the X13 check (a figure that is not the present state) uses the atom's `figure_kind` from S1 (a figure
