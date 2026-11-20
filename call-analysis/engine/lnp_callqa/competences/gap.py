@@ -4,7 +4,7 @@ The model extracts and quotes; the code decides and scores (Part C, C2).
 
 Pipeline of this module
   1. Prospect statements (A, B, PROBLEM, COST) are read from the SPIN atoms (exact prospect quotes) (§3).
-  2. Gap formula: selected A / B / P (GB-28..GB-30), roadmap blockers (GB-32), Copilot warning (GB-33).
+  2. Gap formula: selected A / B / P (GB-28..GB-30), roadmap blockers (GB-32), roadmap warning (GB-33).
      Selection is done by code from the atoms, before reading the restitution; the model only answers small
      closed questions (present state of a figure, stopping question, horizon of B).
   3. Restitution inventory by code (signals S1/S2/S3, window A2, span GB-1/GB-2), then one model task per
@@ -382,7 +382,7 @@ def roadmap_blockers(ctx: CallContext, end: Optional[str], selected_p: Optional[
     return out
 
 
-def copilot_warning(blockers: list[dict], steps: int = ROADMAP_STEPS) -> bool:
+def roadmap_warning(blockers: list[dict], steps: int = ROADMAP_STEPS) -> bool:
     """GB-33: warn the sales before generating the roadmap page when fewer blockers than steps."""
     return len(blockers) < steps
 
@@ -1173,7 +1173,7 @@ class GapCompetence:
         sel_p, p_rule = select_p(ctx, P, stopping, before_atoms)
         horizon = self._horizon(ctx, runner, sel_b, cutoff, concs) if sel_b else None
         blockers = roadmap_blockers(ctx, ctx.phases.pitch_start or wend, sel_p)
-        warn = copilot_warning(blockers)
+        warn = roadmap_warning(blockers)
         if warn:
             res.flags.append("roadmap_insufficient_blockers")              # GB-33
 

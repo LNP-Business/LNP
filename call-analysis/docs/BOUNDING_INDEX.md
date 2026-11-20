@@ -105,7 +105,7 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | GB-30 | Selecting P (one single blocker) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-31 | Formula conformity of a restitution | `methodology/02_gap_B_bounding_rules.md` |
 | GB-32 | Roadmap blockers | `methodology/02_gap_B_bounding_rules.md` |
-| GB-33 | Copilot warning | `methodology/02_gap_B_bounding_rules.md` |
+| GB-33 | Roadmap warning | `methodology/02_gap_B_bounding_rules.md` |
 | GB-34 | In one go | `methodology/02_gap_B_bounding_rules.md` |
 ## Pitch · anchors, segments, steps, roadmap, claims, promises, adhesion
 

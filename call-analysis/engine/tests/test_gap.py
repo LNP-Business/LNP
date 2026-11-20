@@ -411,9 +411,9 @@ def test_gb20_after_pitch_passing_beats_cost_missing():
     assert g.gate([R(["PROBLEM", "COST"], True, "none")])[1] == ["not_validated"]
 
 
-def test_copilot_warning_threshold():
-    assert g.copilot_warning([{"object": "x"}, {"object": "y"}]) is True
-    assert g.copilot_warning([{"object": "x"}, {"object": "y"}, {"object": "z"}]) is False
+def test_roadmap_warning_threshold():
+    assert g.roadmap_warning([{"object": "x"}, {"object": "y"}]) is True
+    assert g.roadmap_warning([{"object": "x"}, {"object": "y"}, {"object": "z"}]) is False
 
 
 # =========================================================================================== Annex B, real calls
@@ -596,7 +596,7 @@ def test_B4_1_call_078_selected_A_is_current_income_not_past():
 
 def test_B4_2_call_024_several_blockers_and_roadmap():
     """B4.2 / B1.7: three blockers in one answer to a stopping question; restitution T103 restates two
-    (`several_blockers`, G5 capped); COST untraced so the gate fails; 3 roadmap blockers, no Copilot warning."""
+    (`several_blockers`, G5 capped); COST untraced so the gate fails; 3 roadmap blockers, no roadmap warning."""
     turns = load_turns("024")
     sols = [sol("Q041", "T041", "P", turns[40].text, ["T042"])]
     atoms = [atom("p1", "BLOCKER", "T042", "maybe limiting self-beliefs or having self-doubts", "P", "Q041", "self-doubt"),

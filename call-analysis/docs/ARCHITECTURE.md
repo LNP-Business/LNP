@@ -18,7 +18,7 @@ _Technical specification: how one sales call becomes four reliable, auditable co
 - **Accuracy drops with load.** A model that reads 25 pages of rules and a 90-minute transcript at once makes more errors than short calls that each read one passage and one rule section.
 - **Reproducibility.** A closed answer with a quote can be compared across three passes, replayed, arbitrated and tested. A free-form agent verdict cannot.
 
-**Where a real agent is used.** Only where open reasoning is the job: the **arbiter** (cases where the three passes disagree or no rule decides), the **period coaching synthesis**, and the **live Copilot** (a separate system that reads the same prospect facts).
+**Where a real agent is used.** Only where open reasoning is the job: the **arbiter** (cases where the three passes disagree or no rule decides), the **period coaching synthesis**, and the **live pitch assistant** (a separate system that reads the same prospect facts).
 
 # 2. Principles
 
@@ -58,8 +58,8 @@ The foundation and SPIN produce the facts every other stage uses:
 | Phase map | Turn ids of discovery start and end, pitch start, offer mentions, first price, early price, decision request, pitch end, with quotes | All |
 | Solicitations | Each sales solicitation: text, turn, letter S / P / I / N / OUT, OUT reason, answer turns, followed up | SPIN, Gap (A from S and I, B from N, P from P) |
 | Atoms | Each prospect atom: type (SITUATION, PAIN, BLOCKER, IMPACT, DESIRE, VALUE), exact quote, solicitation and letter, object label, domain, quantified, value, unit, volunteered, prompted by sales | SPIN, Gap, Pitch |
-| Gap details | Verdict, validation turn, selected A / B / P, validated P and its key expression, cost quotes, roadmap blockers | Pitch, Copilot |
-| Pitch details | Validated P category, steps, roadmap span | Objections, Copilot |
+| Gap details | Verdict, validation turn, selected A / B / P, validated P and its key expression, cost quotes, roadmap blockers | Pitch, pitch assistant |
+| Pitch details | Validated P category, steps, roadmap span | Objections, pitch assistant |
 
 # 4. Model tasks
 
@@ -190,7 +190,7 @@ The test set of the gold set is never used to adjust a rule, a prompt or a thres
 |---|---|---|
 | Performance screen (single screen, four competences) | Period results per sales: score, interval, level, delta, item rates, bottleneck, evidence of each item | On demand, per window (7 days, this month, all) |
 | Call card | Call results with evidence: quotes, turns, timestamps, transcript extract ± 3 minutes | On click |
-| Copilot (live pitch) | The same prospect fact base during the call: selected A, B, P, validated P category, roadmap blockers, missing figures ("To ask") | Live; a separate system with its own latency constraints |
+| Pitch assistant (live) | The same prospect fact base during the call: selected A, B, P, validated P category, roadmap blockers, missing figures ("To ask") | Live; a separate system with its own latency constraints |
 | Methodology owner | Arbitration backlog: `rule_ambiguity` and `uncovered_case` with quotes | Weekly |
 | Admin › Proof gaps | Calls where no matching client case existed, by category of P and starting point | Weekly |
 

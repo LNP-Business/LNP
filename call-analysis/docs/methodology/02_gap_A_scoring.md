@@ -56,7 +56,7 @@ The cost of P is added to this sentence, in the prospect's words: it remains man
 | **B** · Where he wants to go | His target, in the same unit as A; his deadline if he gave one | Prospect answers to **N** solicitations | The target expressed in A's unit (GB-29) |
 | **P** · What blocks him | **One single blocker** | Prospect answers to **P** solicitations | The blocker he named when asked what stops him; otherwise the one he comes back to most (GB-30) |
 
-**The other blockers are not lost.** Every other blocker the prospect stated in answer to a P or I solicitation becomes a step of his roadmap, presented in the pitch. A roadmap of 3 steps needs at least 3 distinct blockers ticked from P or I answers; below that, **the Copilot warns the sales before generating the roadmap page** (GB-33). The roadmap count is a diagnostic: it never changes the Gap score.
+**The other blockers are not lost.** Every other blocker the prospect stated in answer to a P or I solicitation becomes a step of his roadmap, presented in the pitch. A roadmap of 3 steps needs at least 3 distinct blockers ticked from P or I answers; below that, **the pitch assistant warns the sales before generating the roadmap page** (GB-33). The roadmap count is a diagnostic: it never changes the Gap score.
 
 **What the system selects, what the sales must say.** The code selects A, B and P from the prospect's quotes with the rules of Annex A (GB-28 to GB-30), before reading the restitution. It then checks whether the restitution restates **these** A, B and P, verbatim (GB-22), with one single blocker (GB-31). A restitution that restates another figure, another unit or several blockers can still pass the absence gate if it contains a verbatim PROBLEM and COST, but it cannot reach level 2 on G5.
 
@@ -145,7 +145,7 @@ A gap that passes the gate therefore scores at least 25 (G5 = 1, G6 = 1).
 | Restitution timing | Minutes between the last discovery question and the restitution; minutes between validation and first pitch |
 | Corrections | Restitutions corrected by the prospect, and whether the sales restated after the correction |
 | Formula conformity | Share of restitutions that state the selected A, B and single P; most frequent deviation (`A_not_selected`, `unit_mismatch`, `several_blockers`, `P_not_selected`) |
-| Roadmap material | Number of distinct blockers ticked in P or I answers per call; share of calls with fewer than 3 (`roadmap_insufficient_blockers`, the Copilot warning) |
+| Roadmap material | Number of distinct blockers ticked in P or I answers per call; share of calls with fewer than 3 (`roadmap_insufficient_blockers`, the roadmap warning) |
 
 **Reference observed on Valentino (85 calls, June to October 2026, indirect indicators measured before this version):** point A quantified by the prospect in 93 % of calls with discovery, point B in 89 %, a restitution of at least two components before the pitch in 84 %. The presence of the cost in the restitution and the prospect's validation were not measured; the share of gaps that pass the absence gate is therefore unknown and is the first figure to establish.
 

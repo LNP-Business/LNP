@@ -15,7 +15,7 @@ _Scoring methodology: how the system measures whether the sales pitched the one 
 **The test that decides everything.** **This pitch is only true for him.** Every step must contain something that only this prospect said (his blocker, his figures, his words, a case that started where he is). A step that could be said word for word to any other prospect is generic and cannot reach the top level.
 
 **What is forbidden, even if it would help to sign (hard exclusions).**
-1. **Pitching before the yes.** Presenting the offer before the gap is validated. The Copilot blocks the pitch until the gap is validated.
+1. **Pitching before the yes.** Presenting the offer before the gap is validated. The pitch assistant blocks the pitch until the gap is validated.
 2. **Anything outside his gap or the offer.** A figure, a client case, a price or a guarantee that is neither in the prospect's gap (his quotes) nor in the offer reference (offer, case library).
 3. **Promising that the Academy does his work.** Saying that the Academy will run his business, find or sign his clients, or deliver his projects. The Academy brings the systems, the feedback and the coaching; he runs his business.
 
@@ -30,7 +30,7 @@ The rules that find each element in a raw transcript (units, start and end marke
 
 ## 2.1 The offer: 9 blockers, 9 mechanisms
 
-Each mechanism answers one blocker and carries its name. The Copilot picks the mechanism that matches the prospect's P, from the sentence the prospect said.
+Each mechanism answers one blocker and carries its name. The pitch assistant picks the mechanism that matches the prospect's P, from the sentence the prospect said.
 
 | Blocker (= mechanism) | The prospect's sentence, typically |
 |---|---|
@@ -57,7 +57,7 @@ Each step starts from what the prospect said. Short sentences, natural when spok
 | **1 · Restate the blocker** | P (gap) | "What's blocking you today is…" | His blocker, with **his exact words**. No translation, no summary | Saying it in the sales' vocabulary: he no longer recognises himself |
 | **2 · The mechanism** | P turned around | "What makes that give way is…" | **One** mechanism, the one of his blocker, said as a principle he can repeat in one sentence, then the phase of the offer that carries it. Example: Legitimacy | Adding a second mechanism, or reciting the content of the offer |
 | **3 · The transformation** | A → B (gap) | "You go from A to B." | In **his unit**: his euros, his hours, his clients. His deadline **only if he gave one**. Ends with a concrete image of his life once there, **in his words** | Speaking in the sales' unit, or inventing a date |
-| **4 · The proof** | A, his starting point | "Someone who started exactly where you are…" | A **real client case**, cited with the client's consent, whose starting point resembles his. Without a matching case, the Copilot leaves a slot to fill: it **never invents** | Bringing out the best case: he does not recognise himself in it |
+| **4 · The proof** | A, his starting point | "Someone who started exactly where you are…" | A **real client case**, cited with the client's consent, whose starting point resembles his. Without a matching case, the pitch assistant leaves a slot to fill: it **never invents** | Bringing out the best case: he does not recognise himself in it |
 
 **And only after:** his roadmap, then the amount, then the decision. **Neither the pitch nor the roadmap page gives the price.**
 
@@ -88,7 +88,7 @@ The pitch treats the blocker he validated. **His other blockers become the steps
 
 The ◇ checks inform without blocking: a step without proof is counted in **Admin › Proof gaps**, to know which proof to collect first.
 
-**Number of blockers.** A 3-step roadmap needs at least 3 blockers ticked in P or I answers; below that, the Copilot warns the sales before generating the page (Gap methodology, GB-32 and GB-33). Open point à confirmer: whether the blocker treated in the pitch also counts as a roadmap step (the board says "the others become the steps", while the page shows "Step 1 · his blocker").
+**Number of blockers.** A 3-step roadmap needs at least 3 blockers ticked in P or I answers; below that, the pitch assistant warns the sales before generating the page (Gap methodology, GB-32 and GB-33). Open point à confirmer: whether the blocker treated in the pitch also counts as a roadmap step (the board says "the others become the steps", while the page shows "Step 1 · his blocker").
 
 ## 2.4 Other terms
 
@@ -164,7 +164,7 @@ Seven items, each scored 0, 1 or 2. **Call score = Σ (weight × level / 2)**, r
 
 **The test "only true for him".** K1 to K4 reach level 2 only if the step contains at least one element that only this prospect said: his key expression (K1), his figures and his words (K3), a case matched on his A (K4); K2 reaches level 2 only if it follows a K1 that does. A step that would be identical with any other prospect is capped at level 1 (`generic_step`).
 
-**Step 4 without a matching case.** If the case library holds no case whose starting point matches his A, step 4 is `not_applicable` for K4 (the sales must not invent one; the Copilot leaves a slot to fill) and the call is counted in **Proof gaps**. K4's weight is then spread proportionally over the other items.
+**Step 4 without a matching case.** If the case library holds no case whose starting point matches his A, step 4 is `not_applicable` for K4 (the sales must not invent one; the pitch assistant leaves a slot to fill) and the call is counted in **Proof gaps**. K4's weight is then spread proportionally over the other items.
 
 **P outside the nine categories.** If `P_category_unknown`, K2 is `not_applicable` and its weight is spread proportionally over the other items; the case is reported to the methodology owner.
 

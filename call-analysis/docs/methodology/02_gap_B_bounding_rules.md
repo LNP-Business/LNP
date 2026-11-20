@@ -123,7 +123,7 @@ The code applies the order; the model only supplies the atoms, their object labe
 
 **GB-32 · Roadmap blockers.** `roadmap_blockers` = the distinct blocker objects (SB-16) stated by the prospect in answers to **P** or **I** solicitations, before the first pitch, each with its exact quote. Same object stated several times counts once. Blockers prompted by the sales and only approved do not count (X12). The selected P is included in the count (to confirm).
 
-**GB-33 · Copilot warning.** Before generating the roadmap page of the pitch, the Copilot reads `roadmap_blockers.count`: with fewer than 3 for a 3-step roadmap (in general, fewer than the number of steps), it warns the sales (`roadmap_insufficient_blockers`) and shows which blockers are ticked. The warning is a coaching diagnostic: it does not change the Gap score.
+**GB-33 · Roadmap warning.** Before generating the roadmap page of the pitch, the pitch assistant reads `roadmap_blockers.count`: with fewer than 3 for a 3-step roadmap (in general, fewer than the number of steps), it warns the sales (`roadmap_insufficient_blockers`) and shows which blockers are ticked. The warning is a coaching diagnostic: it does not change the Gap score.
 
 **GB-34 · In one go.** The gap exists only if PROBLEM and COST are restated in the **same restitution** (one span, GB-1) and that restitution is validated. Components restated in different restitutions are never added up (GB-2), whatever their timing: a gap given in pieces, with the prospect speaking in between, is not a gap. The span and its duration (start and end timestamps) are stored and displayed with the gap.
 
