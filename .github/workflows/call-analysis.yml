@@ -18,6 +18,14 @@ on:
         type: choice
         options: [none, low, default]
         default: none
+      task:
+        description: "worker: analyse the queued calls; measure: run the quality measure (call-analysis/qa) on the reference set"
+        type: choice
+        options: [worker, measure]
+        default: worker
+      repeat:
+        description: "measure: analyses per call (5 to measure the reproducibility, C4)"
+        default: "1"
 env:
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}  # LNP: repository variable, https://<ref>.supabase.co
 jobs:
@@ -52,9 +60,11 @@ jobs:
         run: cd call-analysis/worker && python3 -m pytest -q tests
       - name: Lite engine
         run: cd call-analysis/lite && python3 -m pytest -q tests
+      - name: Quality measure
+        run: cd call-analysis/qa && python3 -m pytest -q tests
 
   worker:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.task != 'measure')
     runs-on: ubuntu-latest
     timeout-minutes: 150
     concurrency:
@@ -80,3 +90,36 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           CALLQA_EFFORT: ${{ inputs.effort || 'none' }}
         run: python3 call-analysis/worker/run.py --budget-min 120
+
+  # Quality measure (call-analysis/qa/README.md): the reference set and its cases come from the private bucket
+  # callqa-fixtures (qa/reference.tar.gz, qa/cases.tar.gz, never in git); the report, which quotes the calls, goes back to
+  # the bucket (qa/reports/), never to the log or to an artifact. The log shows numbers only.
+  measure:
+    if: github.event_name == 'workflow_dispatch' && inputs.task == 'measure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Measure the lite engine on the reference set
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          EFFORT: ${{ inputs.effort == 'none' && 'low' || inputs.effort }}
+          REPEAT: ${{ inputs.repeat }}
+        run: |
+          set -e
+          mkdir -p /tmp/qa/reference /tmp/qa/cases
+          for f in reference cases; do
+            curl -fsS -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+              "$SUPABASE_URL/storage/v1/object/callqa-fixtures/qa/$f.tar.gz" -o /tmp/qa/$f.tgz
+            tar xzf /tmp/qa/$f.tgz -C /tmp/qa/$f
+          done
+          python3 call-analysis/qa/qa_run.py --cases /tmp/qa/cases --refs /tmp/qa/reference --mode live \
+            --repeat "${REPEAT:-1}" --effort "$EFFORT" --out /tmp/qa/report.json || true
+          curl -fsS -X POST -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "content-type: application/json" \
+            --data-binary @/tmp/qa/report.json \
+            "$SUPABASE_URL/storage/v1/object/callqa-fixtures/qa/reports/${{ github.run_id }}.json"
+          rm -rf /tmp/qa
