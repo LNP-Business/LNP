@@ -18,6 +18,10 @@ the last clause after a comma, SB-28), the register is read in the question, nev
 under an OUT question goes to the question whose answer holds its turn instead of being lost. Gap (2026-11-19): the
 restitution starts at its first restated clause, so an offer word said before it in the same turn does not cut it (GB-1).
 
+Disguised price (Romain, 2026-11-20, PB-3): a market tour of price ranges whose levels are the company's offers is the
+first price when S0 quotes the later sales turn that ties one level to the offer (`market_tour`, `tied_later`); the call
+is flagged `disguised_price` (« Prix donné trop tôt » on the screen); a tour never tied stays a market price.
+
 Phase rules checked by the code (Romain, 2026-11-03, `phases.py`): the first price is the sales' price **for the
 offer**, with the quoted sales turn that explains that offer (`lnp_offer_price`, `offer_explained`); an offer mention
 followed by a quoted discovery question is a mention, not the pitch start (`next_discovery_question`); a valid price

@@ -12,6 +12,10 @@ Romain, 2026-11-03, two rules checked by the code before the anchors are placed:
   an exact passage of a later SALES turn);
 - a valid LNP price said before the pitch start found that way belongs to the explanation of the offer: the pitch starts
   at the turn that explains it (or at the price turn).
+Romain, 2026-11-20 (PB-3): a "market tour" (price ranges given as what the market offers) whose levels are the company's
+own offers is a disguised price, an error of the sales: it is the first price when the model quotes the later SALES turn
+that presents one of these levels as the offer (`tied_later`, an exact passage after it); the call is flagged
+`disguised_price`. A market tour never tied to the offer stays a market price (`price:market_tour_not_tied`).
 The end of the discovery is then moved to the gap's validation when a gap is made (engine.py, after S2)."""
 from __future__ import annotations
 
@@ -52,13 +56,14 @@ def apply_phases(ctx: CallContext, answer: dict, drops: Drops) -> None:
             for k in FLAGS:
                 prev[k] = bool(prev.get(k) or c.get(k))
             prev["amount"] = prev.get("amount") or c.get("amount")
-            for k in ("next_discovery_question", "lnp_offer_price", "offer_explained"):
+            for k in ("next_discovery_question", "lnp_offer_price", "offer_explained", "market_tour", "tied_later"):
                 prev[k] = prev.get(k) or c.get(k)
         else:
             answers[t.id] = dict(c)
     explained = _apply_rules(ctx, answers, drops)
     decide_phases(ctx, answers)
     ph = ctx.phases
+    disguised = {t for t, a in answers.items() if a.get("price_for_offer") and a.get("market_tour")}
     if ph.early_price and (not ph.first_price or ctx.n(ph.early_price) < ctx.n(ph.first_price)):
         start = explained.get(ph.early_price) or ph.early_price           # the price goes with the offer's explanation
         ph.pitch_start = min(start, ph.early_price, key=ctx.n)
@@ -73,6 +78,10 @@ def apply_phases(ctx: CallContext, answer: dict, drops: Drops) -> None:
             if x and (not ph.pitch_start or ctx.n(x) >= ctx.n(ph.pitch_start))]
     ph.pitch_end = min(ends, key=ctx.n) if ends else None
     ph.discovery_end = discovery_end(ctx)
+    if ph.first_price and ph.first_price in disguised:                    # PB-3 (Romain, 2026-11-20): an error of the sales
+        ph.flags.append("disguised_price")
+        if "disguised_price" not in ctx.flags:
+            ctx.flags.append("disguised_price")
 
 
 def _sales_quote(ctx: CallContext, d: object) -> Optional[str]:
@@ -109,6 +118,17 @@ def _apply_rules(ctx: CallContext, answers: dict[str, dict], drops: Drops) -> di
                 drops.add(STEP, "pitch:discovery_too_far", a.get("next_discovery_question"))   # PB-2 / PB-17: 2 turns
             elif a.get("next_discovery_question"):
                 drops.add(STEP, "pitch:bad_discovery_quote", a.get("next_discovery_question"))
+        if a.get("price_for_offer") and a.get("market_tour"):              # PB-3: a disguised price, if tied to the offer
+            tied = _sales_quote(ctx, a.get("tied_later"))
+            if not tied or ctx.n(tied) <= ctx.n(tid):
+                a["price_for_offer"] = a["market_tour"] = False
+                drops.add(STEP, "price:market_tour_not_tied", {"turn": tid, "quote": a.get("quote")})
+                continue
+            a["lnp_offer_price"] = True
+            explained[tid] = _sales_quote(ctx, a.get("offer_explained")) or tid
+            if ctx.n(explained[tid]) > ctx.n(tid):
+                explained[tid] = tid
+            continue
         if a.get("price_for_offer"):
             if a.get("lnp_offer_price") is not True:
                 a["price_for_offer"] = False

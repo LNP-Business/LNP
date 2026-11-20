@@ -205,7 +205,9 @@ Appels d'un même cycle (Romain, 2026-11-20, partie C, C9, `call-analysis/engine
 un mauvais écart, il l'est (approfondir, reformuler) ; la présentation de l'offre n'est notée qu'une fois, dans le premier
 appel où elle a lieu ; une fois le prix donné, toutes les objections de l'appel suivant comptent dès le début ; un appel
 précédent non analysé → lu comme un premier appel ; un mauvais écart ni reformulé ni suivi d'un retour à la découverte avant
-l'offre est signalé « Écart à reprendre » (`gap_not_remedied`). Test d'écran : `app/crm/fiche_analyse_live.js` (27 contrôles).
+l'offre est signalé « Écart à reprendre » (`gap_not_remedied`). Prix déguisé (PB-3, Romain 2026-11-20) : un « tour du
+marché » dont les niveaux sont les offres de LNP est le premier prix, une erreur du commercial (« Prix donné trop tôt »,
+`disguised_price`). Test d'écran : `app/crm/fiche_analyse_live.js` (28 contrôles).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/lnp_callqa/core/lang_fr.py`, test `tests/test_french.py`) :
