@@ -29,7 +29,8 @@ repaired): format in `callqa_qa/reference.py`. Calls are `tuning` (used to find 
 looked at while tuning: they tell whether a fix generalises, C7).
 
 The reference files and the case files (transcript, speaker map, the stored model answers) hold **personal data**: they
-never go into git. They live in the private Storage bucket `callqa-fixtures`, folder `qa/` (`reference/`, `cases/`).
+never go into git. They live in the private Storage bucket `callqa-fixtures` (created 2026-11-20), as
+`qa/reference.tar.gz` and `qa/cases.tar.gz`; the measure job of the workflow writes its reports to `qa/reports/`.
 
 November 2026: the 6 analysed calls, read in the audit of 2026-11-19 (all `tuning`). Control calls are still to be
 read.
@@ -50,7 +51,7 @@ The printed lines hold numbers only; the quotes go to `--out` only.
 ## Baseline (2026-11-20)
 
 Replay of the stored model answers of the 6 analysed calls (lite engine, one reading on Haiku, answers of 2026-11-04;
-the code of 2026-11-20, step 1 French checks; the voice check gets empty answers in a replay):
+the code of 2026-11-20, step 1 French checks and recurrences as new episodes; the voice check gets empty answers in a replay):
 
 | Measure | Right |
 |---|---|
@@ -63,9 +64,9 @@ the code of 2026-11-20, step 1 French checks; the voice check gets empty answers
 | Gap verdict | 100 % (5/5) |
 | Gap elements found | 31 % (4/13) |
 | Pitch verdict | 80 % (4/5) |
-| Objections found | 40 % (8/20) |
-| Objection gestures | 60 % (9/15) |
+| Objections found | 43 % (9/21) |
+| Objection gestures | 53 % (9/17) |
 | Scores inside the expected range | 56 % (9/16) |
 
-227 errors in all: 104 effects missed, 53 questions missed, 21 wrong letters, 12 objections missed, 9 gap elements, 8
+230 errors in all: 104 effects missed, 53 questions missed, 21 wrong letters, 12 objections missed, 9 gap elements, 8
 registers. The reproducibility (C4) needs live runs (`--mode live --repeat 5`).

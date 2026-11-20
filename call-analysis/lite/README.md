@@ -33,8 +33,9 @@ problem (depending on a parent, exhaustion…) is a COST, not a PROBLEM.
    prospect's answer.
 2. The **gap** played back, with the Gap 1.3 methodology (absence gate, verbatim rule GB-22, formula GB-28 to GB-34).
 3. The **pitch**, with the Pitch 2.0 methodology (compliance gate, staircase, roadmap, claims, promises, adhesion).
-4. The **objections raised after the first price only** (OB-27), each objection **once** (its repeats merged, with all their
-   quotes), and **A · I · E · M** on each; plus the prevention facts before the first price.
+4. The **objections raised after the first price only** (OB-27), each episode once (an objection said again before the
+   sales moves on stays one episode; one that comes back after is a new episode linked to the first, OB-11, Romain
+   2026-11-20), and **A · I · E · M** on each; plus the prevention facts before the first price.
 
 ## The steps
 
@@ -57,11 +58,13 @@ most steps fail, the job stops (`ModelErrors`, not retried).
 
 S4 in code (`objections.py`): a quote must be an exact passage of a PROSPECT or co-decider turn **after the first
 price** (before it: dropped and counted); the nature comes from the subjects with the OB-3 boundary tests
-(`nature_of_subjects`, OB-24); objections of the same nature and theme, or sharing a quote, are merged into one with all
-their quotes; one episode per objection: response = the sales turns from its first passage to the topic change (the
-model's, checked: a SALES turn before the next objection), reaction = the prospect turns after the first response; a
-quote of the same objection inside the reaction is a repetition (persisting), one after the episode a recurrence
-(H5 = 0). Acknowledge, isolate, explore, gesture, resolution, latency, items H1 to H5, prevention R1 to R3, the 70/30
+(`nature_of_subjects`, OB-24); objections sharing a quote are merged; one of the same nature and theme said again before
+the end of the first episode is a repetition (same episode), after it a recurrence (OB-11, Romain 2026-11-20): its own
+episode, linked to the first (`recurrence_of`), which takes H5 = 0. A recurrence the model left under the first objection
+(no reading of its own) is an episode `to_review`, out of the scores but still counted in H5 (`recurrence:unread`). One
+episode: response = the sales turns from its first passage to the topic change (the model's, checked: a SALES turn
+before the next objection), reaction = the prospect turns after the first response (including the next resistance's
+turn when it opens with the reaction). Acknowledge, isolate, explore, gesture, resolution, latency, items H1 to H5, prevention R1 to R3, the 70/30
 combination: the engine's functions, each gesture reading checked by the engine task's validator.
 
 Never asked of the model: a score, a level, a verdict, the phase order, whether a component is verbatim.
@@ -147,8 +150,8 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    first). The validation must be read on the prospect turn right after the passage (GB-8, code): a reading of another
    turn makes the unit `to_review`.
 8. **Objections**: (a) only resistances after the first price (OB-27, Romain, 2026-11-03; the engine applies the same
-   rule). (b) One objection per nature and theme: repeats inside the episode are a repetition (persisting), after it a
-   recurrence (H5 = 0), and two natures in one passage (OB-4) are merged into one when they share a quote. (c) The
+   rule). (b) Since 2026-11-20 a recurrence opens its own episode as in the method (OB-11); two natures in one passage
+   (OB-4) are merged into one when they share a quote. (c) The
    topic change (OB-8) is the model's single answer, checked to be a SALES turn before the next objection, not the
    engine's code-and-question walk turn by turn. (d) The deadlines found at detection (OB-2, OB-25) do not feed
    prevention; only S4's prevention facts do.

@@ -86,13 +86,13 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   need-payoff); segmentation is the model's listing; same object (SB-16) = matching object labels + the lexical check;
   SB-21 left to the model's OUT reason; register agreement (SB-33) not measured.
 - Gap: X13 read from the atom's figure kind (no kind = present); the stopping question (GB-30) is a flag of S1.
-- Objections (Romain 2026-11-03): only after the pitch start, each objection once; repeats after its episode are a
-  recurrence (H5 = 0); two natures in one passage (OB-4) merged when they share a quote; topic change (OB-8) read once by
+- Objections (Romain 2026-11-03): only after the first price. Recurrence (Romain 2026-11-20, settled): the method's
+  OB-11, a new episode linked to the first, only after the first episode ended (topic change or another resistance);
+  said again before, a repetition. Two natures in one passage (OB-4) merged when they share a quote; topic change (OB-8) read once by
   the model and checked by code; detection deadlines (OB-2, OB-25) do not feed prevention.
 - Language (2026-11-19, `core/lang_fr.py`): the word lists read French as well as English. Two French readings to
-  confirm: (a) OB-13 counts « mais » as a contradiction like "but", so « pas de souci, …, mais là, disons-nous les
-  choses… » is not an acknowledgement (Ouala's call: H2 2 → 0); in spoken French « mais » is often a mere transition;
-  (b) « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (only alone is it a
+  confirm: (a) settled 2026-11-20 (Romain): « mais », « en fait », « sauf que » contradict only without a receiving
+  marker before them or when a counter or a denial follows (OB-13, French bullet); Objections memo to update; (b) « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (only alone is it a
   tail), unlike "you know?" in English.
 - SB-2 by code (2026-11-19): a social, logistic or framing question never starts the perimeter whatever its letter;
   the list (`SOCIAL_LOGISTIC`) includes « as-tu vu le live / la conférence ? ». SB-2 keeps « what made you book the

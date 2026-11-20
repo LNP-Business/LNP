@@ -1,13 +1,17 @@
 """S4 → Objections result (OBJ-1.1, lite reading): unique objections raised after the first price, A · I · E · M.
 
-Romain (2026-11-03): only the resistances raised after the first price count (OB-27; before: after the pitch start), and each objection appears once, with all
-its quotes. The code:
+Romain (2026-11-03): only the resistances raised after the first price count (OB-27; before: after the pitch start).
+Romain (2026-11-20): an objection that comes back after the sales moved on is a recurrence and opens a new episode linked
+to the first (OB-11, the method); said again before the sales moved on, it stays a repetition of the same episode. The code:
 - checks every quote (a PROSPECT or co-decider turn, exact passage, after the first price) and drops the others;
 - derives the nature from the subjects of the doubt with the boundary tests of OB-3 (`nature_of_subjects`, OB-24);
-- merges objections of the same nature and theme, or that share a quote, into one (with all their quotes);
+- merges objections that share a quote; keeps objections of the same nature and theme together while the first episode
+  lasts (a repetition) and opens a new episode for a passage after its end (a recurrence, OB-11: after the topic change
+  or another resistance); a recurrence the model listed under the first objection, without its own reading, opens an
+  episode `to_review` (counted in H5 of the first, left out of the scores);
 - bounds one episode per objection: response = sales turns from the first passage to the topic change (the model's,
   checked: a SALES turn before the next objection), reaction = prospect turns after the first response; a quote of
-  the same objection inside the reaction is a repetition (persisting), one after the episode is a recurrence (H5 = 0);
+  the same objection inside the reaction is a repetition (persisting); a recurrence gives H5 = 0 to the earlier episode;
 - judges A · I · E · M, resolution, latency and prevention with the reference engine's functions (acknowledged,
   isolation_valid, exploration, h1_level, h3_level, resolution_level, is_latent, episode_items, prevention_items).
 """
@@ -73,18 +77,69 @@ def unique_objections(ctx: CallContext, s4: dict, drops: Drops) -> list[dict]:
         items.append({"nature": nt[0], "subtype": nt[1], "quotes": quotes, "raw": o, "merged": 1})
     items.sort(key=lambda m: ctx.n(m["quotes"][0]["turn"]))
     merged: list[dict] = []
-    for it in items:                                                   # one objection, all its quotes (code)
-        tgt = next((m for m in merged if (m["nature"], m["subtype"]) == (it["nature"], it["subtype"])
-                    or _overlap(m["quotes"], it["quotes"])), None)
+    for it in items:                                                   # the same passage listed twice: one objection
+        tgt = next((m for m in merged if _overlap(m["quotes"], it["quotes"])), None)
         if tgt is None:
             merged.append(it)
             continue
-        tgt["merged"] += 1
-        for q in it["quotes"]:
-            if not _overlap(tgt["quotes"], [q]):
-                tgt["quotes"].append(q)
-        tgt["quotes"].sort(key=lambda q: ctx.n(q["turn"]))
-    return merged
+        _absorb(ctx, tgt, it)
+    return chain(ctx, merged)
+
+
+def _absorb(ctx: CallContext, tgt: dict, it: dict) -> None:
+    tgt["merged"] += 1
+    for q in it["quotes"]:
+        if not _overlap(tgt["quotes"], [q]):
+            tgt["quotes"].append(q)
+    tgt["quotes"].sort(key=lambda q: ctx.n(q["turn"]))
+
+
+def _theme(m: dict) -> tuple:
+    return m["nature"], m["subtype"]
+
+
+def episode_end(ctx: CallContext, m: dict, others: list[dict]) -> Optional[str]:
+    """Where the first episode of an objection ends: the sales' topic change (the model's, a SALES turn after the first
+    passage and before the next other resistance), else the start of the next resistance of another theme (OB-8)."""
+    pos = O._pos(ctx)
+    start = pos[m["quotes"][0]["turn"]]
+    nxt = min((o["quotes"][0]["turn"] for o in others if _theme(o) != _theme(m) and pos[o["quotes"][0]["turn"]] > start),
+              key=lambda t: pos[t], default=None)
+    tc = (m.get("raw") or {}).get("topic_change")
+    if isinstance(tc, dict) and tc.get("turn") in pos and pos[tc["turn"]] > start \
+            and (nxt is None or pos[tc["turn"]] < pos[nxt]) \
+            and not O._sales_ok(ctx, Evidence(tc.get("quote") or "", tc["turn"]), max_words=60):
+        return tc["turn"]
+    return nxt
+
+
+def chain(ctx: CallContext, items: list[dict]) -> list[dict]:
+    """OB-11 (Romain, 2026-11-20). A passage of the same nature and theme before the end of the first episode is a
+    repetition (same objection); after it, a recurrence: its own episode. The model lists a recurrence as its own item
+    (with its own reading); one it left under the first objection is split off without a reading (`unread`)."""
+    pos = O._pos(ctx)
+    out: list[dict] = []
+    for m in items:
+        end = episode_end(ctx, m, items)
+        later = [q for q in m["quotes"] if end and pos[q["turn"]] >= pos[end]]
+        if later and len(later) < len(m["quotes"]):
+            m["quotes"] = [q for q in m["quotes"] if q not in later]
+            out.append(m)
+            out.append({"nature": m["nature"], "subtype": m["subtype"], "quotes": later, "raw": {}, "merged": 0,
+                        "unread": True})
+        else:
+            out.append(m)
+    out.sort(key=lambda m: pos[m["quotes"][0]["turn"]])
+    kept: list[dict] = []
+    for it in out:
+        prev = next((m for m in reversed(kept) if _theme(m) == _theme(it)), None)
+        if prev is not None:
+            end = episode_end(ctx, prev, out)
+            if end is None or pos[it["quotes"][0]["turn"]] < pos[end]:
+                _absorb(ctx, prev, it)                                  # said again inside the episode: a repetition
+                continue
+        kept.append(it)
+    return kept
 
 
 def _first_sales(ctx: CallContext, after: str, before: Optional[str]) -> list:
@@ -93,7 +148,8 @@ def _first_sales(ctx: CallContext, after: str, before: Optional[str]) -> list:
     return [t for t in seq[pos[after] + 1: hi] if t.role == SALES]
 
 
-def bound(ctx: CallContext, m: dict, k: int, next_start: Optional[str], drops: Drops) -> O.Episode:
+def bound(ctx: CallContext, m: dict, k: int, next_start: Optional[str], drops: Drops,
+          next_quote: Optional[str] = None) -> O.Episode:
     seq, pos = O.seq(ctx), O._pos(ctx)
     first = m["quotes"][0]
     t0 = ctx.turn(first["turn"])
@@ -127,6 +183,9 @@ def bound(ctx: CallContext, m: dict, k: int, next_start: Optional[str], drops: D
         ep.end_reason = "topic_change" if tc_turn else "new_resistance" if next_start else "end_of_call"
     if ep.response:
         hi = pos[ep.end_turn] if ep.end_turn else len(seq)
+        if ep.end_turn and ep.end_turn == next_start and next_quote \
+                and norm(ctx.turn(next_start).text).find(norm(next_quote)) > 0:
+            hi += 1                    # the turn of the next resistance opens with the reaction to this one (2026-11-20)
         ep.reaction = [t.id for t in seq[pos[ep.response[0]] + 1: hi] if t.role != SALES]
     later = [q["turn"] for q in m["quotes"] if q["turn"] not in res.turns]
     ep.repeats = [t for t in later if t in ep.reaction]                 # inside the episode: persisting
@@ -222,6 +281,23 @@ def _prevention_facts(ctx: CallContext, raw: dict, drops: Drops) -> dict:
     return out
 
 
+def _link_same_call(ctx: CallContext, eps: list[O.Episode]) -> None:
+    """OB-11 inside the call, every episode included (a recurrence `to_review` still shows that the earlier
+    resolution did not hold): linked to the first episode of the chain, every earlier one recurs later (H5 = 0)."""
+    pos = O._pos(ctx)
+    end = lambda e: pos[e.end_turn] if e.end_turn else len(pos)
+    ordered = sorted(eps, key=lambda e: pos[e.res.start])
+    for i, e in enumerate(ordered):
+        earlier = [f for f in ordered[:i] if (f.res.nature, f.res.subtype) == (e.res.nature, e.res.subtype)
+                   and end(f) <= pos[e.res.start]]
+        if earlier:
+            e.recurrence_of = earlier[0].id
+            for f in earlier:
+                f.recurs_later = True
+                if "recurs_later" not in f.tags:
+                    f.tags.append("recurs_later")
+
+
 def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult:
     out = CompetenceResult("OBJECTIONS", "OBJ-1.1")
     if not ctx.offer_reference:
@@ -229,17 +305,24 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult
     objs = unique_objections(ctx, s4, drops)
     eps: list[O.Episode] = []
     for k, m in enumerate(objs, 1):
-        nxt = objs[k]["quotes"][0]["turn"] if k < len(objs) else None
-        eps.append(bound(ctx, m, k, nxt, drops))
+        nxt = objs[k]["quotes"][0] if k < len(objs) else None
+        eps.append(bound(ctx, m, k, nxt["turn"] if nxt else None, drops, nxt["quote"] if nxt else None))
     res_starts = {e.res.start for e in eps}
     for ep, m in zip(eps, objs):
+        if m.get("unread"):                                            # a recurrence with no reading of its own
+            ep.status = "to_review"
+            ep.tags.append("recurrence_unread")
+            drops.add(STEP, "recurrence:unread")
+            continue
         judge(ctx, ep, m["raw"], res_starts, drops)
+    _link_same_call(ctx, eps)
     previous = [dict(e, call_id=p.get("call_id")) for p in ctx.prior_inputs
                 if p.get("kind") == "objections_episodes" for e in p.get("episodes", [])]
     recurring_prev = O.link_recurrences(ctx, eps, previous)
     for ep in eps:
-        ep.items = O.episode_items(ctx, ep, ep.facts)
-        ep.score = call_score(ep.items)
+        if ep.status == "scored":
+            ep.items = O.episode_items(ctx, ep, ep.facts)
+            ep.score = call_score(ep.items)
 
     fp = ctx.phases.first_price
     h_status, p_status = O.applicability(len(eps), bool(fp))
@@ -260,7 +343,7 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult
         out.flags.append("h5_provisional")
     call_items: list[ItemScore] = []
     for hid in O.H_WEIGHTS:
-        levels = [(e, next(i for i in e.items if i.id == hid)) for e in eps]
+        levels = [(e, next(i for i in e.items if i.id == hid)) for e in eps if e.items]
         if levels:
             e, it = min(levels, key=lambda x: x[1].level)
             call_items.append(ItemScore(hid, O.H_WEIGHTS[hid], it.level, it.evidence, f"min over episodes ({e.id})"))

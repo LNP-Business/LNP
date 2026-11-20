@@ -106,8 +106,68 @@ _MARKER_RE = [(k, re.compile(p, re.I)) for k, ps in MARKERS.items() for p in ps]
 
 # OB-13 lexical contradiction markers, checked by code on the first sentence of the first response.
 CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree|"
-                              r"\bmais\b|\ben fait\b|^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|"
-                              r"je ne suis pas d'accord|pas du tout)", re.I)
+                              r"^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|c'est faux|je ne suis pas d'accord|"
+                              r"pas du tout|au contraire|\bmais (non|si)\b)", re.I)
+# OB-13 in French (Romain, 2026-11-20): « mais », « en fait », « sauf que » are often mere transitions in spoken French.
+# They cancel the acknowledgement only when nothing received the resistance before them in the sentence, or when what
+# follows them contradicts or denies what the prospect said. English "but" and "actually" keep the rule as written.
+TRANSITION_FR = re.compile(r"\b(mais|en fait|sauf que)\b", re.I)
+RECEIVING_FR = re.compile(r"\b(je (te |vous )?comprends|je (t'|vous )?entends|j'entends|c'est (tout à fait |complètement |"
+                          r"très )?(normal|légitime|compréhensible|logique|une (très )?bonne question)|ça se comprend|"
+                          r"pas de souci|pas de soucis|pas de problème|bien sûr|tout à fait|je vois|merci (de|pour)|"
+                          r"(tu as|t'as|vous avez) (bien )?raison|effectivement|d'accord|ok|okay|très bien|je note)\b", re.I)
+COUNTER_FR = re.compile(r"^[\s,.;:!-]*(non\b|si\b|justement|au contraire|c'est faux|dis-toi|dites-vous|tu sais|vous savez|"
+                        r"regarde|regardez|attends|attendez|en fait|sauf que)", re.I)
+DENIAL_FR = re.compile(r"(ce n'est pas|c'est pas|ça n'est pas|ce n pas|ce n'est quand même pas|il ne faut pas|faut pas|"
+                       r"tu n'as pas à|t'as pas à|vous n'avez pas à|ne t'inquiète pas|t'inquiète|ne vous inquiétez pas)", re.I)
+
+
+# OB-13 (Romain, 2026-11-20): first sentences that do not receive the resistance, whatever comes before them, by family.
+# Read on the first sentence only: the same words later in the response can be a matching gesture (OB-16).
+NON_ACK = {
+    "minimises": re.compile(  # family 3: the doubt made small
+        r"(ne t'inquiète pas|(^|[,.;!?] )t'inquiète\b|ne vous inquiétez pas|ne t'en fais pas|ce n'est rien|c'est rien|"
+        r"ce n'est pas grave|c'est pas grave|(ce n'est|c'est) pas si (cher|énorme|grave)|(ce n'est|c'est) pas énorme|"
+        r"(ce n'est|c'est) pas grand-chose|c'est trois fois rien|"
+        r"don't worry|it's nothing|no big deal|it's not a big deal|it's not that (expensive|much|bad))", re.I),
+    "counter_argument": re.compile(  # family 4: the answer before the doubt is received
+        r"(c'est un investissement|ce n'est pas une dépense|c'est pas une dépense|"
+        r"(tu vas|vous allez|tu vas vite|vous allez vite) (le |la |les )?rentabiliser|ça se rentabilise|c'est rentabilisé|"
+        r"ça (va )?se rembourse[r]?|ça revient à .{0,20}par (jour|semaine|mois)|ça fait .{0,20}par jour|"
+        r"moins (cher )?qu'un café|"
+        r"it's an investment|it pays for itself|you'?ll make it back|that'?s (only |just )?.{0,15}a day|"
+        r"less than a coffee)", re.I),
+    "disqualifies": re.compile(  # family 6: the feeling dismissed
+        r"(tout le monde (me )?dit ça|on me dit ça tout le temps|c'est (une|des) (fausse[s]? )?excuse[s]?|"
+        r"c'est dans (ta|votre) tête|c'est (ton|votre) mental qui|"
+        r"everyone says that|that'?s an excuse|it'?s all in your head)", re.I),
+    "pressure_question": re.compile(  # family 7: a question that puts the prospect in the wrong (case 5b)
+        r"((tu préfères|vous préférez) rester|(tu veux|vous voulez) (rester|continuer) comme ça|"
+        r"(tu ne veux|tu veux|vous ne voulez) pas réussir|(tu|vous) (vas|allez) (encore )?laisser passer|"
+        r"(do you|you) (want|wanna) to stay (where you are|stuck)|don't you want to succeed|you'?d rather stay)", re.I),
+}
+
+
+def not_acknowledged_by(sentence: str) -> Optional[str]:
+    """The family of a first sentence that does not receive the resistance (OB-13), or None."""
+    s = norm(sentence)
+    if CONTRADICTION_RE.search(s) or french_transition_contradicts(sentence):
+        return "contradiction"
+    return next((k for k, rx in NON_ACK.items() if rx.search(s)), None)
+
+
+def french_transition_contradicts(sentence: str) -> bool:
+    """OB-13 (Romain, 2026-11-20): a « mais » (« en fait », « sauf que ») contradicts unless a receiving marker comes
+    before it in the sentence and what follows it neither counters (« mais non », « mais justement », « mais dis-toi »)
+    nor denies the resistance (« mais ce n'est pas cher », « mais ne t'inquiète pas »)."""
+    s = norm(sentence)
+    for m in TRANSITION_FR.finditer(s):
+        before, after = s[:m.start()], s[m.end():]
+        if not RECEIVING_FR.search(before):
+            return True
+        if COUNTER_FR.match(after) or DENIAL_FR.search(after[:80]):
+            return True
+    return False
 
 _LOCAL_STOP = set("""i me my mine we us our it's that's there's what's let's i'm i've i'll i'd you're don't doesn't
 didn't can't won't isn't aren't wasn't gonna wanna yes yeah no not so because just um uh oh hmm mm mm-hmm okay ok
@@ -357,7 +417,7 @@ def link_recurrences(ctx: CallContext, episodes: list[Episode], previous: Option
 # ----------------------------------------------------------------------------------------------- gestures (code)
 def acknowledged(first_sentence: str, ans: Optional[dict]) -> bool:
     """OB-13 / OB-20 / X5, read on the first sentence of the first response turn."""
-    if CONTRADICTION_RE.search(norm(first_sentence)):
+    if not_acknowledged_by(first_sentence):
         return False
     a = ans or {}
     if a.get("contradiction"):

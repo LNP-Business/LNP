@@ -104,3 +104,39 @@ def test_french_objection_markers_and_contradiction():
     kinds = {k for k, rx in O._MARKER_RE if rx.search("c'est un peu cher pour moi")}
     assert "objection_price_money" in kinds
     assert O.CONTRADICTION_RE.search("Non, en fait ce n'est pas le cas")
+
+
+def test_a_french_transition_after_a_receiving_marker_keeps_the_acknowledgement():
+    """OB-13 (Romain, 2026-11-20): « mais » cancels the acknowledgement only when it contradicts."""
+    rm = {"receiving_marker": True}
+    assert O.acknowledged("Pas de souci, je t'entends, mais là, disons-nous les choses.", rm)       # a transition
+    assert O.acknowledged("Je comprends, mais du coup, qu'est-ce qui te fait dire ça ?", rm)
+    assert O.acknowledged("Ok, en fait, ce que tu me dis, c'est que le montant te fait peur.", rm)
+    assert not O.acknowledged("Mais tu sais, c'est un investissement.", rm)                         # nothing received first
+    assert not O.acknowledged("En fait, tu vas le rentabiliser en deux mois.", rm)
+    assert not O.acknowledged("Je comprends, mais non, c'est pas cher quand tu compares.", rm)      # « mais non »
+    assert not O.acknowledged("Je comprends, mais ce n'est pas une dépense, c'est un investissement.", rm)   # denial
+    assert not O.acknowledged("Je t'entends, mais justement, c'est pour ça qu'il faut y aller.", rm)
+    assert not O.acknowledged("Je comprends, mais ne t'inquiète pas, tout le monde y arrive.", rm)
+    assert not O.acknowledged("Non, c'est faux, ça marche très bien.", rm)
+    assert O.acknowledged("I hear you.", rm) and not O.acknowledged("I hear you, but think about it.", rm)   # English as written
+
+
+def test_first_sentences_that_do_not_receive_the_resistance():
+    """OB-13 (Romain, 2026-11-20): families 3, 4, 6 and 7, in French and in English, on the first sentence only."""
+    rm = {"receiving_marker": True}
+    cases = {
+        "minimises": ["T'inquiète, ça va bien se passer.", "Je comprends, c'est pas si cher en vrai.", "Don't worry about it."],
+        "counter_argument": ["C'est un investissement, pas une dépense.", "Tu vas le rentabiliser en deux mois.",
+                             "Ça revient à 3 euros par jour.", "It pays for itself."],
+        "disqualifies": ["Tout le monde dit ça au début.", "C'est une excuse, ça.", "That's an excuse."],
+        "pressure_question": ["Tu préfères rester comme ça ?", "Tu ne veux pas réussir ?", "Do you want to stay stuck?"],
+    }
+    for family, sentences in cases.items():
+        for s in sentences:
+            assert O.not_acknowledged_by(s) == family, s
+            assert not O.acknowledged(s, rm), s
+    # what receives the doubt stays acknowledged
+    for s in ["C'est normal d'avoir ce doute.", "Je comprends tout à fait, c'est une vraie somme.",
+              "Ok, qu'est-ce qui t'inquiète le plus ?", "Je t'entends, c'est important de bien y réfléchir."]:
+        assert O.not_acknowledged_by(s) is None and O.acknowledged(s, rm), s
