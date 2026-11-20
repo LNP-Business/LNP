@@ -443,7 +443,12 @@ SOCIAL_LOGISTIC = re.compile(
     r"\b(tu as|t'as|as-tu|as|vous avez|avez-vous) (pu )?(voir|vu|regardé|regarder|suivi|suivre|assisté)( à)? "
     r"(le |la |au |à la )?(live|conférence|webinaire|vidéo|masterclass|replay)|"
     r"(décale|décaler|reporter|reporte) (cet |l')?(appel|rendez-vous|rdv)|un autre créneau|"
-    r"combien de temps (tu as|vous avez|t'as) (devant (toi|vous)|pour (l'appel|cet appel))", re.I)
+    r"combien de temps (tu as|vous avez|t'as) (devant (toi|vous)|pour (l'appel|cet appel))|"
+    # framing of the call itself (Romain, 2026-11-20, SB-2): what the prospect expects from the call, not from the help
+    r"(qu'est-ce que|qu'est ce que|qu') ?(tu attends|t'attends|vous attendez|attends-tu|attendez-vous) "
+    r"(de |d')(notre|cet|ce|l'|l’)? ?(appel|échange|rendez-vous|rdv|call|entretien)|"
+    r"what do you (expect|want) (from|out of) (this|our|the|today's) call|"
+    r"what are you hoping to get out of (this|our|the|today's) call", re.I)
 
 
 # §3 hard rules the code can read in the text (LNP, 2026-11-19; the lite engine left them to the model, README

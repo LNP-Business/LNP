@@ -428,3 +428,19 @@ def test_an_atom_under_an_out_question_goes_to_the_question_of_its_answer():
     rec, _ = run(a)
     kept = [x for x in rec["results"]["SPIN"]["details"]["atom_decisions"] if x["decision"] == "kept"]
     assert any(x["quote"] == moved["quote"] and x["solicitation"] == "Q003.1" for x in kept)
+
+
+def test_a_framing_question_is_out_and_an_effect_said_after_an_out_question_counts():
+    """SB-2 and SB-8 (Romain, 2026-11-20): the framing question is OUT `nothing`; an effect the prospect states in answer
+    to it, in no coded answer, is volunteered speech attached to the first coded question (D1 to D4, never D5)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_discovery"]["questions"].insert(0, {
+        "turn": "T001", "quote": "can you hear me okay?", "letter": "S",
+        "atoms": [{"type": "DESIRE", "turn": "T002", "quote": "thanks for having me today"}]})
+    rec, _ = run(a)
+    s = next(x for x in sols(rec) if x["turn"] == "T001")
+    assert s["letter"] in (None, "OUT")
+    atoms = rec["results"]["SPIN"]["details"]["atom_decisions"]
+    got = [x for x in atoms if x["turn"] == "T002"]
+    assert got and got[0]["solicitation"] == "Q003.1"                      # the first coded question
+    assert rec["meta"]["steps"]["S1"]["reasons"]["atom:outside_answers"] == 1     # only the sales turn of the fixture

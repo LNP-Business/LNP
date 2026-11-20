@@ -105,6 +105,8 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 
 ## F. Settled 2026-11-20 (Romain)
 - « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (E (b), confirmed).
+- SB-2: « qu'est-ce que tu attends de notre appel ? » is framing (OUT `nothing`), never the discovery start.
+- SB-8: an effect stated in answer to an OUT question counts, as volunteered speech (D1 to D4, never D5). SPIN memo to update.
 - Disguised price (PB-3): a market tour whose levels are the company's offers, tied to the offer later, is the first
   price, an error of the sales (`disguised_price`; Anastasia's T095). Pitch memo to update.
 - Calls of one cycle (Part C, C9): discovery and gap evaluated in a later call only after a bad gap (absent, incomplete

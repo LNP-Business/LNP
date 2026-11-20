@@ -6,7 +6,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 **SB-1 · Borders.** The perimeter starts at the first solicitation on the prospect's situation, goals or problems that is neither social, nor logistic, nor framing. It ends when the gap is made: at the prospect's validation of the restitution that makes the gap present (Gap annex, absence gate) (Romain, 2026-11-03). When no gap is made, it ends at the first pitch start or the first price (Pitch annex, PB-1 and PB-3). A restitution that does not make the gap present does not end it. (Lite engine: applied; reference engine: still ends at the pitch start or price, see OPEN_DECISIONS.)
 
-**SB-2 · Social and framing questions.** Never the perimeter start: where the prospect is calling from, how their day is, family small talk, "can you see and hear me?", "here is how the call will go, sound good?". A question about what made them book the call ("what were you hoping we could help you with?") **is** a valid start.
+**SB-2 · Social and framing questions.** Never the perimeter start: where the prospect is calling from, how their day is, family small talk, "can you see and hear me?", "here is how the call will go, sound good?". A question about what made them book the call ("what were you hoping we could help you with?") **is** a valid start. What the prospect expects from the call itself (« qu'est-ce que tu attends de notre appel ? », "what do you expect from this call?") is framing (Romain, 2026-11-20): OUT `nothing`, never the start.
 
 **SB-3 · Reopenings.** *Superseded by SB-34 (v1.2): no reopening; kept for the record.* After the end, a sales solicitation that asks a new diagnostic question about the prospect's situation, problems or goals reopens the perimeter; the reopening ends at the next offer segment, price, decision request or topic change. Not reopenings: questions about the offer, logistics (hours available, start date), financing (savings, credit, monthly budget), and clarification of a resistance (Objections competence).
 
@@ -20,7 +20,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 **SB-7 · Short first answer.** If the first prospect turn has fewer than 6 words and the sales does not speak in between, the next prospect turn is included in the answer.
 
-**SB-8 · Volunteered speech.** Prospect statements made outside any answer span inside the perimeter (the prospect keeps talking after the sales' acknowledgement) are attached to the last solicitation before them, with the flag `volunteered`. Volunteered atoms count for items D1 to D4, never for D5 (chains).
+**SB-8 · Volunteered speech.** Prospect statements made outside any answer span inside the perimeter (the prospect keeps talking after the sales' acknowledgement) are attached to the last solicitation before them, with the flag `volunteered`. Volunteered atoms count for items D1 to D4, never for D5 (chains). The same holds for an effect the prospect states in answer to an OUT question (framing, closed question), in no coded answer (Romain, 2026-11-20): it counts, as volunteered speech attached to the last coded solicitation before it, or to the first one when it comes before the perimeter.
 
 ## A3. Atoms
 
