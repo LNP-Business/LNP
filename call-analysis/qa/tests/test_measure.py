@@ -109,3 +109,23 @@ def test_the_runner_replays_the_stored_answers_and_writes_the_errors_to_the_file
     assert "fiction" in printed and "TOTAL" in printed and "husband" not in printed      # numbers only in the log
     rep = json.loads(out.read_text())
     assert rep["total"]["spin.questions_found"]["share"] == 1.0 and rep["calls"][0]["n_errors"] >= 5
+
+
+def test_the_screen_corrections_become_reference_answers(tmp_path):
+    import corrections_to_reference as ctr
+    ref = copy.deepcopy(REF)
+    rows = [{"call_id": "c-lite", "unit_id": "Q015.1", "value": "N", "engine_value": "P", "note": "valeur",
+             "created_at": "2026-11-20T10:00:00Z", "quote": "And why does that matter to you?"},
+            {"call_id": "c-lite", "unit_id": "Q015.1", "value": "N", "engine_value": "P", "note": None,
+             "created_at": "2026-11-20T09:00:00Z", "quote": "And why does that matter to you?"},
+            {"call_id": "c-lite", "unit_id": "Q019.1", "value": "OUT", "engine_value": "S", "note": None,
+             "created_at": "2026-11-20T11:00:00Z", "quote": "Let me share my screen"}]
+    ref, changed, added = ctr.merge(ref, rows)
+    assert (changed, added) == (1, 1)
+    assert next(q for q in ref["questions"] if q["quote"].startswith("And why"))["letter"] == "N"
+    assert ref["questions"][-1]["letter"] == "OUT"
+    (tmp_path / "refs").mkdir()
+    (tmp_path / "refs" / "fiction.json").write_text(json.dumps(REF))
+    (tmp_path / "c.json").write_text(json.dumps(rows))
+    assert ctr.main(["--corrections", str(tmp_path / "c.json"), "--refs", str(tmp_path / "refs")]) == 0
+    assert json.loads((tmp_path / "refs" / "fiction.json").read_text())["questions"][-1]["letter"] == "OUT"

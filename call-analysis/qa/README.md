@@ -35,6 +35,14 @@ never go into git. They live in the private Storage bucket `callqa-fixtures` (cr
 November 2026: the 6 analysed calls, read in the audit of 2026-11-19 (all `tuning`). Control calls are still to be
 read.
 
+## Corrections made on the screen (2026-11-20)
+
+An administrator corrects the letter of a discovery question in the call analysis (migration 063,
+`crm_ca_correct`); every correction is kept, with the engine's letter, the person's, the note, the author and the date
+(`crm_ca_corrections`, additions only, Part C, C8); the score is not recomputed. `corrections_to_reference.py` turns them
+into reference answers (the query is in its docstring): this is how the reference set grows with the calls people
+actually check.
+
 ## Commands
 
 ```

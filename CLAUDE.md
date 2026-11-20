@@ -150,8 +150,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   une lettre A · I · E · M ouvre sa citation dans une fenêtre posée sur le tableau, sous la lettre (`gPanel`, `.ob-pop`), refermée par
   la même lettre ou sa croix ; le tableau garde sa hauteur. Une lettre (SPIN dans la Découverte, A · I · E · M dans les Objections)
   montre le passage concerné en clair et les répliques autour à 50 % (`ctxRows` : 2 avant et 2 après pour SPIN, 2 avant et 4 après
-  pour une objection) ; test
-  `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>`.
+  pour une objection). Un administrateur corrige la lettre d'une question dans le panneau qui s'ouvre (« Corriger la
+  lettre », raison facultative ; Romain 2026-11-20, migration 063 `crm_ca_correct`, table `crm_ca_corrections` en ajout seulement) :
+  la lettre corrigée s'affiche en pointillés, celle du moteur en infobulle, la note n'est pas recalculée (C8) ; les corrections
+  nourrissent le jeu de référence (`call-analysis/qa/corrections_to_reference.py`) ; test
+  `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>` (31 contrôles).
 - Paramètres › Alertes : `gabarits/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/lnp-web.js`.
 - Connexion, équipe, accès par écran, interface `window.claude.use("user" | "crm")` : `web/public/lnp-web.js`.
 
@@ -214,7 +217,7 @@ précédente (« Pourquoi ? ») ; le modèle lit chaque question listée, puis r
 désir, hors découverte) pour chacune, par paquets de 25 avec leur contexte, deux fois ; si les deux lectures donnent des lettres
 différentes, le niveau « arbitre » (`crm_ca_config.tiers.arbiter`) relit les portes de ces questions ; une question non tranchée est
 « à revoir » et sort des notes ; le code décide la lettre (étape S1g ; moteur
-allégé ; le moteur complet découpe encore question par question). Test d'écran : `app/crm/fiche_analyse_live.js` (28 contrôles).
+allégé ; le moteur complet découpe encore question par question). Test d'écran : `app/crm/fiche_analyse_live.js` (31 contrôles).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/lnp_callqa/core/lang_fr.py`, test `tests/test_french.py`) :
