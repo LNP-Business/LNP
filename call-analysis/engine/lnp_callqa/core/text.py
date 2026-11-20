@@ -5,6 +5,7 @@ import re
 import unicodedata
 from typing import Optional
 
+from . import lang_fr as FR
 from .models import CallContext, Evidence
 
 _QUOTES = {"’": "'", "‘": "'", "“": '"', "”": '"', "«": '"', "»": '"'}
@@ -18,8 +19,21 @@ def norm(s: Optional[str]) -> str:
     return re.sub(r"\s+", " ", s).strip().lower()
 
 
+# a word starts with a letter (accented letters included: LNP, 2026-11-19, "épuisée" was cut into "puis" + "e"), a digit or a
+# currency sign; a French elided word ("j'ai", "d'être") is split after its apostrophe so both sides are cut the same way
+_WORD = re.compile(r"(?:[^\W_]|[$€£])(?:[^\W_]|['$€£,.\-])*")
+_ELISION = re.compile(r"^(" + "|".join(re.escape(e) for e in FR.ELISIONS) + r")(?=[^\W_])")
+
+
 def words(s: str) -> list[str]:
-    return re.findall(r"[a-z0-9$€£][a-z0-9'$€£,.\-]*", norm(s))
+    out = []
+    for w in _WORD.findall(norm(s)):
+        m = _ELISION.match(w)
+        if m:
+            out += [m.group(1), w[m.end():]]
+        else:
+            out.append(w)
+    return out
 
 
 def clean_tokens(s: str) -> list[str]:
@@ -60,8 +74,8 @@ def quote_ok(ctx: CallContext, ev: Evidence, *, min_words: int = 2, max_words: i
 # ---------------------------------------------------------------- approval-only turns (C3 rule 5)
 _APPROVAL = re.compile(
     r"^(yes|yeah|yep|yup|exactly|right|correct|totally|absolutely|for sure|sure|mm-?hmm|uh-?huh|ok(ay)?|"
-    r"that's (right|true|correct|it)|100 ?%|pretty much|definitely|of course|no|nope)[\s.,!]*"
-    r"((yes|yeah|exactly|right|totally|for sure|okay|cool)[\s.,!]*)*$")
+    r"that's (right|true|correct|it)|100 ?%|pretty much|definitely|of course|no|nope|" + FR.APPROVAL + r")[\s.,!]*"
+    r"((yes|yeah|exactly|right|totally|for sure|okay|cool|" + FR.APPROVAL + r")[\s.,!]*)*$")
 
 
 def approval_only(text: str) -> bool:
@@ -74,18 +88,29 @@ PERSON_SHIFT = {"i": "you", "me": "you", "my": "your", "mine": "yours", "myself"
                 "am": "are", "i'm": "you're", "im": "you're", "i've": "you've", "i'd": "you'd",
                 "i'll": "you'll", "we're": "you're", "we've": "you've", "we'd": "you'd",
                 "we'll": "you'll", "was": "were"}
+PERSON_SHIFT_FR = dict(FR.PERSON_SHIFT)
 STOP = set("""a an the and or but so to of in on at for with by from as about into over than then
 that this these those it its is are be been being were was do does did have has had not no
 you your you're you've you'd you'll yours yourself he she they them their there here what which who
 whom when where why how if just very really also too can could would will should may might must
-um uh oh yeah okay ok right like kind sort""".split())
+um uh oh yeah okay ok right like kind sort""".split()) | FR.STOP
 GENERIC = set("""thing things stuff something everything anything way ways lot lots life people good bad
 better hard easy want wants wanted feel feels felt like make makes made get gets got know knows think
-thinks really just kind sort able""".split())
+thinks really just kind sort able""".split()) | FR.GENERIC
 
 _NUM_WORDS = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
               "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20,
-              "thirty": 30, "forty": 40, "fifty": 50, "hundred": 100, "thousand": 1000}
+              "thirty": 30, "forty": 40, "fifty": 50, "hundred": 100, "thousand": 1000, **FR.NUM_WORDS}
+# French-only function words: the language of a passage, for the person shift (the word "me" is English and French)
+_FR_MARKERS = {"je", "j'", "tu", "est", "suis", "les", "des", "pas", "que", "qu'", "c'", "d'", "une", "et", "pour", "avec",
+               "dans", "mais", "moi", "toi", "mon", "ma", "mes", "ton", "ta", "tes", "nous", "vous", "ai", "as", "ça"}
+_EN_MARKERS = {"i", "you", "the", "is", "are", "and", "my", "your", "it", "that", "to", "of", "was", "i'm", "we"}
+
+
+def lang_of(tokens: list[str]) -> str:
+    """'fr' when the passage has more French than English function words (default English, as before)."""
+    fr = sum(t in _FR_MARKERS for t in tokens)
+    return "fr" if fr and fr >= sum(t in _EN_MARKERS for t in tokens) else "en"
 
 
 def norm_number(tok: str) -> Optional[str]:
@@ -113,24 +138,32 @@ def _singular(w: str) -> str:
     return w
 
 
-def canon(tokens: list[str], shift: bool) -> list[str]:
-    """Allowed transformations of GB-22 (b): person shift, singular/plural, number normalisation."""
+def canon(tokens: list[str], shift: bool, lang: Optional[str] = None) -> list[str]:
+    """Allowed transformations of GB-22 (b): person shift, singular/plural, number normalisation.
+
+    lang ('en' / 'fr', guessed from the tokens when not given) picks the person shift: "je" → "tu" in French."""
+    lang = lang or lang_of(tokens)
+    shift_map = PERSON_SHIFT_FR if lang == "fr" else PERSON_SHIFT
     out = []
-    # merge "ten thousand" / "5 grand"
+    # merge "ten thousand" / "5 grand" / "deux mille" / "1 500" (a French thousands group)
     i = 0
     while i < len(tokens):
         t = tokens[i]
         nxt = tokens[i + 1] if i + 1 < len(tokens) else ""
-        if norm_number(t) and nxt in ("thousand", "grand", "k"):
+        if norm_number(t) and nxt in ("thousand", "grand", "k") + FR.THOUSAND_WORDS:
             out.append(str(int(float(norm_number(t)) * 1000)))
             i += 2
             continue
+        if re.fullmatch(r"\d{1,3}", t) and re.fullmatch(r"\d{3}", nxt):
+            t, i = t + nxt, i + 1
         n = norm_number(t)
         if n is not None and (re.search(r"\d", t) or t in _NUM_WORDS):
             out.append(n)
         else:
             if shift:
-                t = PERSON_SHIFT.get(t, t)
+                t = shift_map.get(t, t)
+            if lang == "fr":
+                t = FR.SECOND_PERSON_ALIAS.get(t, t)
             out.append(_singular(t))
         i += 1
     return out
@@ -158,8 +191,9 @@ def key_expression_ok(key_expression: str, prospect_text: str, sales_text: str) 
         # allow numbers written differently in the key expression vs source
         if not _contains(canon(src, False), canon(ke, False)):
             return False, "not_in_source"
-    # (b) in the restitution after the allowed transformations
-    if not _contains(canon(clean_tokens(sales_text), False), canon(ke, True)):
+    # (b) in the restitution after the allowed transformations (the person shift in the language of the two passages)
+    lang = lang_of(src + clean_tokens(sales_text))
+    if not _contains(canon(clean_tokens(sales_text), False, lang), canon(ke, True, lang)):
         return False, "not_in_restitution"
     return True, "ok"
 

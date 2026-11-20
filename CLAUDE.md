@@ -215,6 +215,11 @@ La fiche d'un lead (ligne « Appels », `crm_ca_board`) liste et numérote les a
 (migration 062 : les absences ne décalent plus le R1 ; test `web/supabase/tests/ca_board_rounds_test.sql`).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
+Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/lnp_callqa/core/lang_fr.py`, test `tests/test_french.py`) :
+lettres accentuées, mots vides, « je » → « tu », nombres, formes de question, registres, ouvertures et validations de l'écart, marqueurs
+d'objection. Le code applique aussi au moteur allégé les règles dures de la découverte (charge de la solution, question sur l'offre),
+le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une mention de l'offre (PB-2) et le registre lu dans la question
+quand elle nomme un domaine (SB-27). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel) : cinq questions au modèle sur l'appel entier
 (phases, questions de découverte, écart, présentation de l'offre, objections après la présentation), le code vérifie
 chaque citation et calcule les notes avec les fonctions du moteur de référence. Choix par analyse :

@@ -22,6 +22,7 @@ from typing import Any, Optional
 from ..core.models import CallContext, CompetenceResult, Evidence, ItemScore, OTHER, PROSPECT, SALES, Turn
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core import lang_fr as FR
 from ..core.text import GENERIC, STOP, approval_only, clean_tokens, norm, norm_number, quote_ok, sentences
 
 # ----------------------------------------------------------------------------------------------- constants
@@ -78,15 +79,39 @@ MARKERS: dict[str, list[str]] = {
                 r"think about it", r"sleep on it", r"sit on it", r"not right now", r"don'?t want to do it today",
                 r"can'?t make (a )?decisions?", r"fine as it is"],
 }
+# French markers (LNP, 2026-11-19): candidates only, as above
+MARKERS_FR: dict[str, list[str]] = {
+    "objection_price_money": [r"trop cher", r"\bcher\b", r"beaucoup d'argent", r"pas les moyens", r"pas l'argent",
+                              r"pas les fonds", r"mon budget", r"\bcrédit\b", r"financement", r"c'est (quand même )?beaucoup",
+                              r"\bla somme\b", r"\ble montant\b", r"\bl'argent\b", r"en plusieurs fois", r"payer"],
+    "objection_trust_relevance": [r"pas sûr(e)? que (ça|ca) marche", r"j'ai déjà vu", r"arnaque", r"\bconfiance\b",
+                                  r"pas besoin", r"je sais déjà", r"c'est de la vente"],
+    "objection_time": [r"pas (beaucoup |assez |le )?temps", r"avec mon (travail|boulot)", r"avec les enfants",
+                       r"\bdébordée?\b", r"\bchargée?\b", r"je cours partout"],
+    "objection_co_decider": [r"en parler (à|a|avec) (mon|ma) (mari|femme|conjoint|conjointe|compagnon|compagne|copain|copine)",
+                             r"demander (à|a) (mon|ma) (mari|femme|conjoint|conjointe|compagnon|compagne)",
+                             r"on décide (à|a) deux", r"voir avec (mon|ma)", r"en discuter avec"],
+    "anxiety_capability": [r"j'ai peur", r"\bpeur\b", r"je ne sais pas si (je peux|j'y arriverai|je vais y arriver)",
+                           r"pas sûr(e)? de (pouvoir|réussir|y arriver)", r"pas à la hauteur", r"j'abandonne toujours",
+                           r"je vais abandonner"],
+    "anxiety_choice": [r"et si (ça|ca) ne marche pas", r"je me suis (déjà )?fait avoir", r"me tromper",
+                       r"comment je (peux )?(sais|savoir)", r"qu'est-ce qui me garantit"],
+    "inertia": [r"pas le bon moment", r"plus tard", r"après les (vacances|fêtes)", r"(ça|ca) me va comme (ça|ca)",
+                r"(je vais |je dois )?réfléchir", r"y réfléchir", r"pas maintenant", r"pas tout de suite",
+                r"l'année prochaine", r"en janvier", r"à la rentrée"],
+}
+for _k, _ps in MARKERS_FR.items():
+    MARKERS[_k] = MARKERS[_k] + _ps
 _MARKER_RE = [(k, re.compile(p, re.I)) for k, ps in MARKERS.items() for p in ps]
 
 # OB-13 lexical contradiction markers, checked by code on the first sentence of the first response.
-CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree)",
-                              re.I)
+CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree|"
+                              r"\bmais\b|\ben fait\b|^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|"
+                              r"je ne suis pas d'accord|pas du tout)", re.I)
 
 _LOCAL_STOP = set("""i me my mine we us our it's that's there's what's let's i'm i've i'll i'd you're don't doesn't
 didn't can't won't isn't aren't wasn't gonna wanna yes yeah no not so because just um uh oh hmm mm mm-hmm okay ok
-cool sure right got get go going one also even still well say said see""".split())
+cool sure right got get go going one also even still well say said see""".split()) | FR.STOP
 
 
 # ----------------------------------------------------------------------------------------------- data

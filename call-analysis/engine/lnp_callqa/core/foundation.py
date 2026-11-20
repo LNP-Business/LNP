@@ -137,10 +137,22 @@ def run_attribution(ctx: CallContext, runner: Runner, chunk_size: int = 60) -> N
 
 # ------------------------------------------------------------------------------------------- S2 phase map
 OFFER_CUES = re.compile(r"\b(the program|the mentorship|the academy|what we do|the way we help|how it works|"
-                        r"pillar|module|six-month|6-month|let me show you|share my screen|my screen)\b", re.I)
-AMOUNT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?)\b|\b\d{1,3},\d{3}\b)", re.I)
+                        r"pillar|module|six-month|6-month|let me show you|share my screen|my screen|"
+                        # French (LNP, 2026-11-19)
+                        r"l'accompagnement|notre accompagnement|le programme|notre programme|notre méthode|ce qu'on fait|"
+                        r"comment ça se passe concrètement|comment ça marche|je vais te montrer|je vais vous montrer|"
+                        r"je partage mon écran|je te partage|je vous partage|mon écran|les modules|le module|quatre mois|4 mois)\b",
+                        re.I)
+AMOUNT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?)\b|\b\d{1,3},\d{3}\b|"
+                    r"\b\d{1,3}(?:[  ]\d{3})+\s?(€|euros?|balles)|\b\d[\d.]*\s?(€|balles)|"
+                    r"\b(mille|deux mille|trois mille|quatre mille|cinq mille)\s+(€|euros?|balles))", re.I)
 DECISION = re.compile(r"\b(ready to (get started|move forward|start)|what would you like to do|do you want to "
-                      r"(join|move forward|get started)|shall we get you started|how would you like to proceed)\b", re.I)
+                      r"(join|move forward|get started)|shall we get you started|how would you like to proceed|"
+                      # French (LNP, 2026-11-19)
+                      r"est-ce que (tu veux|vous voulez) (qu'on y aille|te lancer|vous lancer|démarrer|commencer|rejoindre)|"
+                      r"(tu es|vous êtes|t'es) (prête?|partante?) (à|pour)|qu'est-ce que tu en dis|qu'est-ce que vous en dites|"
+                      r"on y va|on démarre|on part là-dessus|comment (tu veux|vous voulez) procéder|"
+                      r"(tu veux|vous voulez) (qu'on|que l'on) (avance|démarre|commence))\b", re.I)
 
 
 def phase_candidates(ctx: CallContext) -> list[Turn]:

@@ -84,6 +84,16 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 - Objections (Romain 2026-11-03): only after the pitch start, each objection once; repeats after its episode are a
   recurrence (H5 = 0); two natures in one passage (OB-4) merged when they share a quote; topic change (OB-8) read once by
   the model and checked by code; detection deadlines (OB-2, OB-25) do not feed prevention.
-- Language: the engine's word lists (approvals, tails, GB-22 person shift, stop words) are English; on a French call
-  they apply as in the reference engine.
+- Language (2026-11-19, `core/lang_fr.py`): the word lists read French as well as English. Two French readings to
+  confirm: (a) OB-13 counts « mais » as a contradiction like "but", so « pas de souci, …, mais là, disons-nous les
+  choses… » is not an acknowledgement (Ouala's call: H2 2 → 0); in spoken French « mais » is often a mere transition;
+  (b) « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (only alone is it a
+  tail), unlike "you know?" in English.
+- SB-2 by code (2026-11-19): a social, logistic or framing question never starts the perimeter whatever its letter;
+  the list (`SOCIAL_LOGISTIC`) includes « as-tu vu le live / la conférence ? ». SB-2 keeps « what made you book the
+  call? » as a valid start; « qu'est-ce que t'attends de notre appel ? » is left to the model (start, N or OUT).
+- SB-27 by code (2026-11-19): the register of a question whose asked clause names one domain is read in the question,
+  not in its answer; the asked clause is the last sentence, after the last comma (SB-28 premise).
+- GB-1 (2026-11-19): an offer word said before the first restated clause, in the same turn, does not end the
+  restitution (« dans notre accompagnement on préconise 4 heures… En fait, je comprends que… »). Gap memo to update.
 - Screen: the objections table shows the first quote of each objection; `episodes[].quotes` holds the others.

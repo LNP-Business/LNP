@@ -67,6 +67,11 @@ def apply_phases(ctx: CallContext, answer: dict, drops: Drops) -> None:
     elif ph.first_price and not ph.pitch_start:                           # a price with no pitch start: its explanation
         ph.pitch_start = min(explained.get(ph.first_price) or ph.first_price, ph.first_price, key=ctx.n)
         ph.flags.append("pitch_start_from_price")
+    # PB-4: the pitch ends at the first price or the first decision request after its start; recomputed once the code has
+    # moved the price or the start (LNP, 2026-11-19: Antoine's pitch end was left on a turn that was neither)
+    ends = [x for x in (ph.first_price, ph.decision_request)
+            if x and (not ph.pitch_start or ctx.n(x) >= ctx.n(ph.pitch_start))]
+    ph.pitch_end = min(ends, key=ctx.n) if ends else None
     ph.discovery_end = discovery_end(ctx)
 
 
@@ -83,13 +88,25 @@ def _sales_quote(ctx: CallContext, d: object) -> Optional[str]:
     return t.id
 
 
+# PB-2 / PB-17: an offer description is a mention (not the pitch start) only when the return to discovery questions comes
+# within 2 sales turns (LNP, 2026-11-19: any later question used to count, and Maria's pitch was read at the price)
+MENTION_RETURN_SALES_TURNS = 2
+
+
+def _sales_turns_between(ctx: CallContext, a: str, b: str) -> int:
+    """The sales turns after a, up to b included."""
+    return sum(1 for t in ctx.turns if t.role == SALES and ctx.n(a) < ctx.n(t.id) <= ctx.n(b))
+
+
 def _apply_rules(ctx: CallContext, answers: dict[str, dict], drops: Drops) -> dict[str, str]:
     explained: dict[str, str] = {}
     for tid, a in answers.items():
         if a.get("offer_description") or a.get("screen_share"):
             nq = _sales_quote(ctx, a.get("next_discovery_question"))
-            if nq and ctx.n(nq) > ctx.n(tid):
+            if nq and ctx.n(nq) > ctx.n(tid) and _sales_turns_between(ctx, tid, nq) <= MENTION_RETURN_SALES_TURNS:
                 a["followed_by_discovery"] = True                          # PB-2: a mention, not the pitch start
+            elif nq and ctx.n(nq) > ctx.n(tid):
+                drops.add(STEP, "pitch:discovery_too_far", a.get("next_discovery_question"))   # PB-2 / PB-17: 2 turns
             elif a.get("next_discovery_question"):
                 drops.add(STEP, "pitch:bad_discovery_quote", a.get("next_discovery_question"))
         if a.get("price_for_offer"):
