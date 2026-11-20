@@ -140,3 +140,14 @@ def test_first_sentences_that_do_not_receive_the_resistance():
     for s in ["C'est normal d'avoir ce doute.", "Je comprends tout à fait, c'est une vraie somme.",
               "Ok, qu'est-ce qui t'inquiète le plus ?", "Je t'entends, c'est important de bien y réfléchir."]:
         assert O.not_acknowledged_by(s) is None and O.acknowledged(s, rm), s
+
+
+def test_what_the_prospect_expects_from_the_call_is_framing():
+    """SB-2 (Romain, 2026-11-20): « qu'est-ce que tu attends de notre appel ? » frames the call; it is not discovery.
+    What made them book, or what they hope we can help with, stays a valid start."""
+    for q in ["Qu'est-ce que tu attends de notre appel ?", "Et qu'attendez-vous de cet échange ?",
+              "Qu'est-ce que t'attends de ce rendez-vous ?", "What do you expect from this call?"]:
+        assert S.social_or_logistic(q), q
+    for q in ["Qu'est-ce qui t'a amenée à réserver cet appel ?", "Qu'est-ce que tu attends de ta vie pro ?",
+              "What were you hoping we could help you with?"]:
+        assert not S.social_or_logistic(q), q

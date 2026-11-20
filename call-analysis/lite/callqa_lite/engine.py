@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 from . import LITE_VERSION
 from lnp_callqa.competences import pitch as P
+from lnp_callqa.core import rounds
 from lnp_callqa.core.foundation import diarization_gate
 from lnp_callqa.core.models import CallContext, CompetenceResult
 from lnp_callqa.pipeline import result_record
@@ -36,6 +37,10 @@ DEFAULTS: dict[str, Any] = {
     "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
+WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
+                "nothing said before the first price is an objection (OB-27).")
+WINDOW_START = ("The price was already given in an earlier call of this sales cycle: read resistances in EVERY PROSPECT "
+                "turn of this call, from its first turn (OB-27). Leave \"prevention\" empty: it belongs to the earlier call.")
 
 
 class LiteModelError(RuntimeError):
@@ -103,7 +108,8 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
     cfg = {**DEFAULTS, **(config or {})}
     cfg["max_tokens"] = {**DEFAULTS["max_tokens"], **((config or {}).get("max_tokens") or {})}
     drops = Drops()
-    meta = {"engine": "lite", "version": LITE_VERSION, "tier": cfg["tier"], "effort": cfg["effort"]}
+    meta = {"engine": "lite", "version": LITE_VERSION, "tier": cfg["tier"], "effort": cfg["effort"],
+            "cycle": rounds.public(ctx.cycle)}
     if ctx.lines:                                            # C1: the model lists the wrong labels, the code repairs
         meta["voices"] = run_voices(ctx, client, cfg, drops)
     diarization_gate(ctx)                                    # C1 (code): word shares, after the repair
@@ -113,7 +119,7 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         return _record(ctx, meta, drops)
     steps = Steps(client, ctx, tier=cfg["tier"], effort=cfg["effort"])
     failed: list[str] = []
-    attempted = ["S0", "S1"]
+    attempted = ["S0"]
 
     # S0 · phase map
     s0 = steps.ask("lite.s0_phases", "call", load("s0_phases"), cfg["max_tokens"]["S0"])
@@ -121,10 +127,21 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         raise LiteModelError(f"phase map (S0): {s0.error}")
     apply_phases(ctx, s0.answer, drops)
 
-    # S1 · discovery → SPIN and the shared fact base
-    questions = run_s1(ctx, steps, cfg, drops)
+    # C9 (Romain, 2026-11-20): a good gap made in an earlier call of the cycle: no discovery, no gap in this one
+    skip = rounds.skip_reason(ctx, "SPIN")
+    questions: Optional[list] = None
     facts = SpinFacts()
-    if questions is None:
+    if skip:
+        ctx.results["SPIN"] = CompetenceResult("SPIN", RULES["SPIN"], status="not_applicable", reasons=[skip])
+        ctx.results["GAP"] = CompetenceResult("GAP", RULES["GAP"], status="not_applicable", reasons=[skip],
+                                              details=rounds.carried_gap(ctx))
+    # S1 · discovery → SPIN and the shared fact base
+    if not skip:
+        attempted.append("S1")
+        questions = run_s1(ctx, steps, cfg, drops)
+    if skip:
+        pass
+    elif questions is None:
         failed.append("S1")
         ctx.results["SPIN"] = _to_review("SPIN")
     else:
@@ -135,7 +152,9 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         ctx.results["SPIN"] = _safe(ctx, "SPIN", spin)
 
     # S2 · gap (needs the discovery facts)
-    if "engine_error" in ctx.results["SPIN"].reasons:
+    if skip:
+        pass
+    elif "engine_error" in ctx.results["SPIN"].reasons:
         ctx.results["GAP"] = _to_review("GAP", "engine_error")
     else:
         wlimit = ctx.phases.first_price or ctx.phases.decision_request
@@ -148,10 +167,15 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             ctx.results["GAP"] = _to_review("GAP")
         else:
             ctx.results["GAP"] = _safe(ctx, "GAP", lambda: run_gap(ctx, s2.answer, facts, drops))
-    _gap_rules(ctx, questions, drops, meta)
+    if not skip:
+        _gap_rules(ctx, questions, drops, meta)
+        meta["gap_remediation"] = rounds.gap_remediation(ctx)        # C9: a bad gap followed up before the pitch
 
     # S3 · pitch (needs the Gap result: validated P, selected A and B, roadmap blockers)
-    if not ctx.phases.pitch_start:
+    pskip = rounds.skip_reason(ctx, "PITCH")                    # C9: the offer was presented in an earlier call
+    if pskip:
+        ctx.results["PITCH"] = CompetenceResult("PITCH", RULES["PITCH"], status="not_applicable", reasons=[pskip])
+    elif not ctx.phases.pitch_start:
         ctx.results["PITCH"] = _safe(ctx, "PITCH", lambda: P.decide(ctx, {}))          # not applicable (§4)
     else:
         c = context_text(ctx)
@@ -166,12 +190,14 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             ctx.results["PITCH"] = _safe(ctx, "PITCH", lambda: run_pitch(ctx, s3.answer, drops))
 
     # S4 · objections after the first price (OB-27), prevention before it; no price = nothing to read
-    if not ctx.phases.first_price:
+    from_start = rounds.objections_from_start(ctx)              # C9: the price was given in an earlier call
+    if not ctx.phases.first_price and not from_start:
         ctx.results["OBJECTIONS"] = CompetenceResult("OBJECTIONS", RULES["OBJECTIONS"], status="not_applicable",
                                                      reasons=["no_resistance_no_price"], concordance="single_reading")
     else:
         attempted.append("S4")
-        s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections"), anchors=anchors(ctx)),
+        s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections"), anchors=anchors(ctx),
+                                                          window=WINDOW_START if from_start else WINDOW_PRICE),
                        cfg["max_tokens"]["S4"])
         if s4.answer is None:
             failed.append("S4")

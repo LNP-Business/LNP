@@ -104,3 +104,32 @@ Until every threshold is met on the current rules version, every score carries t
 - Every call result stores the rules version, the model identifier, the prompt hash, the three raw passes, the arbiter decision if any, and the timestamp of computation.
 - A score computed under one rules version is never compared with a score computed under another. When a version changes, the historical calls of the window are re-scored before any delta is shown.
 - Every arbitration and every human correction is logged with: unit id, readings, decision, case label, author, date. A human may correct a verdict; nobody may edit a stored score by hand.
+
+## C9. Calls of one sales cycle (R1, R2, R3)
+
+Romain, 2026-11-20. What a call is evaluated on depends on what the earlier analysed calls of the same cycle already did
+(`engine/lnp_callqa/core/rounds.py`, both engines).
+
+| In this call | Evaluated when | Otherwise |
+|---|---|---|
+| Discovery (SPIN) and Gap | first call of the cycle, or the last gap read in an earlier call is **bad** | `not_applicable`, reason `gap_made_in_previous_call` |
+| Pitch | no earlier call of the cycle had a pitch start | `not_applicable`, reason `pitch_made_in_previous_call` |
+| Objections | always | — |
+
+- **A good gap** is present (validated) with its four components restated: problem, cost, A and B. **A bad gap** is
+  absent, incomplete (one component missing) or not validated. After a bad gap, the next call must deepen the discovery
+  and restate the gap: both are evaluated there. A later call reads the last call that had a gap reading (a call that
+  did not evaluate the gap passes the earlier reading on).
+- **A pitch made in a later call after a good gap made earlier** is read against that earlier gap (validated problem,
+  A, B, roadmap blockers, carried as `carried_from`): the pitch comes after the gap (PB-37), the roadmap steps are matched
+  to the earlier blockers by their words (PB-34).
+- **Objections once the price was given in an earlier call:** every resistance of the call counts, from its first turn
+  (OB-27 reads "after the first price of the cycle"); prevention (OB-18, OB-19), which belongs before the first price, is
+  not evaluated again.
+- **An earlier call that was not analysed** (no recording, no transcript, not processed) is unknown: the call is evaluated
+  as a first call.
+- **Inside a call, a bad gap must be followed up** before the pitch, by a new restatement or a return to discovery (any
+  coded S, P, I or N question after the bad restatement). When neither comes, the call is flagged `gap_not_remedied`
+  (shown as « Écart à reprendre »); it has no weight of its own: the new restatement and the reopened discovery count in
+  the Gap and SPIN scores as usual. A call with no restatement at all is simply "gap absent".
+

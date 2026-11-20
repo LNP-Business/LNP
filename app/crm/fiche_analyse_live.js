@@ -163,6 +163,30 @@ const { chromium } = require('playwright');
   if (OUT) await p.screenshot({ path: OUT + '/fiche-analyse.png' });
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   check('Échap ferme la fenêtre, la fiche reste ouverte', !(await win()) && await cf.evaluate(() => !!document.querySelector('#layer .ls-calls')), null);
+  // C9 (Romain, 2026-11-20) : le rendu d'un R2 après un bon écart et une offre déjà présentée au R1, puis d'un écart à reprendre
+  const c9 = await cf.evaluate(async () => {
+    const CAV = window.LNP_CAV || window.parent.LNP_CAV; if (!CAV) return null;
+    const base = await window.parent.LNP_CRM.caRecord('j1'), out = [];
+    for (const v of [1, 2]) {
+      const r = JSON.parse(JSON.stringify(base));
+      if (v === 1) {
+        r.results.SPIN = { competence: 'SPIN', status: 'not_applicable', reasons: ['gap_made_in_previous_call'], details: {} };
+        r.results.PITCH = { competence: 'PITCH', status: 'not_applicable', reasons: ['pitch_made_in_previous_call'], details: {} };
+        r.results.GAP = { competence: 'GAP', status: 'not_applicable', reasons: ['gap_made_in_previous_call'], details: Object.assign({}, r.results.GAP.details, { carried_from: 'r1' }) };
+      } else {
+        Object.assign(r.results.GAP, { verdict: 'absent', score: 0 });
+        Object.assign(r.results.GAP.details, { verdict: 'absent', absence_reason: 'not_validated', remediation: { needed: true, done: null, after: 'T040' } });
+      }
+      const d = document.createElement('div'); d.innerHTML = CAV.html(r); out.push(d.textContent);
+    }
+    const r3 = JSON.parse(JSON.stringify(base)); r3.phases.flags = ['disguised_price'];
+    r3.results.PITCH = { competence: 'PITCH', status: 'scored', verdict: 'non_compliant', score: 0, reasons: ['price_before_roadmap'], items: [],
+      details: { verdict: 'non_compliant', non_compliance: ['price_before_roadmap'], steps: {}, claims: [], adhesion: [], roadmap: { steps: [] } } };
+    const d3 = document.createElement('div'); d3.innerHTML = CAV.html(r3); out.push(d3.textContent);
+    return out; });
+  check('R2 : découverte, écart et offre « déjà faits lors d’un appel précédent »', c9 && /écart déjà fait lors d.un appel précédent du cycle/.test(c9[0]) && /offre déjà présentée lors d.un appel précédent du cycle/.test(c9[0]) && !/Si je résume/.test(c9[0]), c9 && c9[0].slice(0, 500));
+  check('prix déguisé en « tour du marché » : bandeau dans la présentation de l’offre', c9 && /Prix donné trop tôt, déguisé en « tour du marché »/.test(c9[2]), c9 && c9[2].slice(0, 300));
+  check('écart mauvais non repris : « Écart à reprendre »', c9 && /Écart à reprendre : il n.a été suivi ni d.une nouvelle reformulation ni d.un retour à la découverte/.test(c9[1]), c9 && c9[1].slice(0, 300));
   // le lien de l'historique (bulle « R1 honoré · analyse et transcription »)
   const chatLink = await cf.$('#layer #lrChat [data-ca]');
   if (chatLink) { await chatLink.click(); await p.waitForTimeout(900); w = await win();

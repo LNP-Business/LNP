@@ -3,8 +3,7 @@ STEP S4 · OBJECTIONS AFTER THE FIRST PRICE, AND PREVENTION (Objections annex OB
 A resistance is a PROSPECT (or co-decider) passage that expresses a doubt or a reserve: an objection, an anxiety or an
 inertia. Not a resistance (OB-2): a request for information ("how long is it?"), a conditional acceptance ("if I can
 pay monthly, then yes"), a neutral fact about who decides, a delay with an external verifiable reason (a deadline; if
-it also limits their time, it is a time objection, OB-25). Read resistances ONLY in PROSPECT turns after the first
-price (anchor above) to the end of the call: nothing said before the first price is an objection (OB-27). List each resistance once: when the same doubt is said again before the sales moves on, add its quotes to the same item.
+it also limits their time, it is a time objection, OB-25). {window} List each resistance once: when the same doubt is said again before the sales moves on, add its quotes to the same item.
 When the same doubt comes back AFTER the sales moved on to another subject or after another resistance (a recurrence,
 OB-11), list it as a NEW item, with its own quotes and the sales response to that passage.
 For each resistance:

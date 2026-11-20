@@ -17,6 +17,11 @@ For each such turn also give:
 - "lnp_offer_price" (price_for_offer turns): true only if the amount is what THIS prospect would pay the sales'
   company for the offer the sales is presenting. False for an example of what the prospect could charge her own
   students ("a 10-week programme at 500 euros"), a market price, an ad budget, an income;
+- "market_tour" (price_for_offer turns): true when the sales gives the amounts as what is found "on the market" or "in
+  general" (kinds of training or coaching with price ranges) and these levels are in fact the company's own offers: a
+  later SALES turn presents one of them as the offer ("the first one, as you told me", "the second programme I
+  mentioned"). Such a disguised price IS a price for the offer: set price_for_offer and lnp_offer_price to true;
+- "tied_later" (market_tour turns): {"turn", "quote"}, the exact words of that later SALES turn;
 - "offer_explained" (price_for_offer turns): {"turn", "quote"}, the exact words of the SALES turn (this one or an
   earlier one) that explains the offer this amount is the price of;
 - "hypothetical": the amount is explicitly hypothetical or disowned ("let's say it was 10K, this is not the price");
@@ -24,5 +29,6 @@ For each such turn also give:
 - "quote": the exact words of that turn that show it.
 JSON: {"turns": [{"turn": "T085", "quote": "...", "offer_description": true, "screen_share": true,
                   "followed_by_discovery": false, "next_discovery_question": null, "price_for_offer": false,
-                  "lnp_offer_price": null, "offer_explained": null, "amount": null, "range": null,
+                  "lnp_offer_price": null, "offer_explained": null, "market_tour": false, "tied_later": null,
+                  "amount": null, "range": null,
                   "hypothetical": false, "decision_request": false}]}

@@ -429,6 +429,8 @@ def pitch_before_gap(ctx: CallContext, gap: dict, pitch_start: Optional[str]) ->
     An offer_mention before the validation is not a pitch (it never sets pitch_start, PB-17)."""
     if pitch_start is None:
         return False
+    if gap.get("carried_from") and gap.get("verdict") == "present":
+        return False                                   # C9: the gap was validated in an earlier call of the cycle
     if gap.get("verdict") != "present" or not gap.get("validation_turn"):
         return True
     return not ctx.before(gap["validation_turn"], pitch_start)
@@ -663,6 +665,11 @@ def roadmap_steps_matched(ctx: CallContext, gap: dict, steps: list[dict]) -> lis
     out = []
     for s in steps:
         src, ke = s.get("source"), s.get("key_expression")
+        if gap.get("carried_from"):                    # C9: the blockers were said in an earlier call: their words
+            ok = bool(ke and any(key_expression_ok(ke, b.get("quote") or "", s["quote"])[0]
+                                 for b in gap.get("roadmap_blockers") or []))
+            out.append(ok)
+            continue
         ok = bool(src and ke and src["turn"] in rb_turns and
                   key_expression_ok(ke, ctx.turn(src["turn"]).text, s["quote"])[0])
         out.append(ok)

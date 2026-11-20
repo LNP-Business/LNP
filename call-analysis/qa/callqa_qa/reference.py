@@ -31,6 +31,7 @@ LETTERS = ("S", "P", "I", "N", "OUT")
 REGISTERS = ("financial", "time_load", "identity_status", "mental_emotional", "other")
 ATOMS = ("SITUATION", "PAIN", "BLOCKER", "IMPACT", "DESIRE", "VALUE")          # engine spin.ATOM_TYPES
 COMPETENCES = ("SPIN", "GAP", "PITCH", "OBJECTIONS")
+NATURES = ("objection", "anxiety_capability", "anxiety_choice", "inertia")     # engine objections.nature_of_subjects
 ANCHORS = ("discovery_start", "pitch_start", "first_price", "decision_request")
 
 
@@ -99,6 +100,9 @@ def validate(ref: dict, transcript: str) -> list[str]:
         for j, a in enumerate(q.get("atoms") or []):
             if "type" in a and not accepted(a["type"]) <= set(ATOMS):
                 errs.append(f"questions[{i}].atoms[{j}].type: {a['type']}")
+    for i, o in enumerate(ref.get("objections") or []):
+        if "nature" in o and not accepted(o["nature"]) <= set(NATURES):
+            errs.append(f"objections[{i}].nature: {o['nature']}")
     text = norm(re.sub(r"^\[[^\]]*\]\s*[^:]{1,80}:\s*", "", transcript or "", flags=re.M))
     for where, q in _quotes(ref):
         if not norm(q) or norm(q) not in text:

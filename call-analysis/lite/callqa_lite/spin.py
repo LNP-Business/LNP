@@ -93,6 +93,9 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if E.offer_question(sentence):                                    # §3: a question about the offer
         forced.append("offer_info")
         tags.append("offer_info_by_code")
+    if E.social_or_logistic(sentence):                                # SB-2: social, logistic, framing of the call
+        forced.append("nothing")
+        tags.append("framing_by_code")
     if forced:
         cands = forced + ([reason] if letter == E.OUT and reason in E.OUT_PRIORITY else [])
         return E.LetterDecision(E.OUT, 1, min(cands, key=E.OUT_PRIORITY.index), sorted(set(tags)))
@@ -163,12 +166,30 @@ def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops,
     """Each atom goes to the question whose answer span (SB-5 to SB-8, code) holds its turn.
 
     The atoms are read from every listed question (listed), not only the coded ones: an atom the model put under an OUT
-    question ("Ça te va ?") goes to the coded question whose answer holds its turn, or is counted as dropped; it used to
-    disappear without a trace (LNP, 2026-11-19)."""
+    question ("Ça te va ?") goes to the coded question whose answer holds its turn (LNP, 2026-11-19). SB-8 (Romain,
+    2026-11-20): an effect the prospect states in answer to an OUT question (a framing question, a closed question), in
+    no coded answer, still counts: it is volunteered speech, attached to the last coded question before it (the first
+    one when it comes before the perimeter), for D1 to D4 and never for D5."""
     owner: dict[str, LUnit] = {}
     for u in coded:
         for t in list(u.sol.answer_turns) + list(u.volunteered_turns):
             owner[t] = u
+    order = sorted(coded, key=lambda u: ctx.n(u.turn.id))
+    end = ctx.phases.discovery_end
+
+    def volunteered_owner(tid: str) -> Optional[LUnit]:
+        try:
+            t = ctx.turn(tid)
+        except KeyError:
+            return None
+        if not order or t.role != PROSPECT or (end and ctx.n(tid) >= ctx.n(end)):
+            return None
+        before = [u for u in order if ctx.n(u.turn.id) < ctx.n(tid)]
+        u = before[-1] if before else order[0]
+        if tid not in u.volunteered_turns:
+            u.volunteered_turns.append(tid)
+        owner[tid] = u
+        return u
     out: dict[str, list[dict]] = {}
     seen = set()
     for u0 in (listed or coded):
@@ -181,6 +202,8 @@ def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops,
                 continue
             seen.add(k)
             u = owner.get(x.get("turn") or "")
+            if u is None and u0 not in coded:                            # SB-8: answered to an OUT question
+                u = volunteered_owner(x.get("turn") or "")
             if u is None:
                 drops.add(STEP, "atom:outside_answers", x)
                 continue

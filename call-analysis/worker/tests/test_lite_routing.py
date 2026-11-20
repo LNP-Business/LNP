@@ -87,3 +87,14 @@ def test_loop_stores_a_lite_record_with_the_lite_version(monkeypatch):
     assert name == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.1"
     assert args["p_record"]["meta"]["engine"] == "lite"
     assert args["p_usage"]["engine"] == "lite" and args["p_usage"]["effort"] == "low"
+
+
+def test_the_claim_gives_the_round_and_what_earlier_calls_did():
+    """C9 (Romain, 2026-11-20): crm_ca_claim's call round and `prior` reach the context."""
+    from callqa_worker.job import build_context
+    c = lite_claim()
+    c["call"]["sales_round"] = 2
+    c["prior"] = [{"call_id": "r1", "results": {"GAP": {"verdict": "absent"}, "PITCH": {"phases": {"pitch_start": "T050"}}}}]
+    ctx = build_context(c)
+    assert ctx.sales_round == 2
+    assert (ctx.cycle["gap_good"], ctx.cycle["pitch_done"], ctx.cycle["price_given"]) == (False, True, False)

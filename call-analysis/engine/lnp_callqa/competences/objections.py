@@ -23,6 +23,7 @@ from ..core.models import CallContext, CompetenceResult, Evidence, ItemScore, OT
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
 from ..core import lang_fr as FR
+from ..core import rounds
 from ..core.text import GENERIC, STOP, approval_only, clean_tokens, norm, norm_number, quote_ok, sentences
 
 # ----------------------------------------------------------------------------------------------- constants
@@ -850,7 +851,8 @@ class ObjectionsCompetence:
         # OB-27 (Romain 2026-11-03): an objection is only read after the first price; nothing before it is an objection
         pos = _pos(ctx)
         fp = ctx.phases.first_price
-        after_price = (lambda t: fp is not None and pos[t.id] > pos[fp])
+        from_start = rounds.objections_from_start(ctx)                # C9: the price was given in an earlier call
+        after_price = (lambda t: from_start or (fp is not None and pos[t.id] > pos[fp]))
         cands = {t.id: t for t in find_candidates(ctx) if after_price(t)}
         nom = T.nominate()
         s = [t for t in seq(ctx) if after_price(t)]
@@ -1036,7 +1038,7 @@ class ObjectionsCompetence:
 
         # prevention
         fp = ctx.phases.first_price
-        h_status, p_status = applicability(len(eps), bool(fp))
+        h_status, p_status = applicability(len(eps), bool(fp) and not rounds.objections_from_start(ctx))
         prevention, p_items, p_score = None, [], None
         if p_status == "scored":
             r = T.run(runner, ctx, T.prevention(), "prevention:pre_price", fp)
