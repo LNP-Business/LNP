@@ -122,6 +122,40 @@ DENIAL_FR = re.compile(r"(ce n'est pas|c'est pas|ça n'est pas|ce n pas|ce n'est
                        r"tu n'as pas à|t'as pas à|vous n'avez pas à|ne t'inquiète pas|t'inquiète|ne vous inquiétez pas)", re.I)
 
 
+# OB-13 (Romain, 2026-11-20): first sentences that do not receive the resistance, whatever comes before them, by family.
+# Read on the first sentence only: the same words later in the response can be a matching gesture (OB-16).
+NON_ACK = {
+    "minimises": re.compile(  # family 3: the doubt made small
+        r"(ne t'inquiète pas|(^|[,.;!?] )t'inquiète\b|ne vous inquiétez pas|ne t'en fais pas|ce n'est rien|c'est rien|"
+        r"ce n'est pas grave|c'est pas grave|(ce n'est|c'est) pas si (cher|énorme|grave)|(ce n'est|c'est) pas énorme|"
+        r"(ce n'est|c'est) pas grand-chose|c'est trois fois rien|"
+        r"don't worry|it's nothing|no big deal|it's not a big deal|it's not that (expensive|much|bad))", re.I),
+    "counter_argument": re.compile(  # family 4: the answer before the doubt is received
+        r"(c'est un investissement|ce n'est pas une dépense|c'est pas une dépense|"
+        r"(tu vas|vous allez|tu vas vite|vous allez vite) (le |la |les )?rentabiliser|ça se rentabilise|c'est rentabilisé|"
+        r"ça (va )?se rembourse[r]?|ça revient à .{0,20}par (jour|semaine|mois)|ça fait .{0,20}par jour|"
+        r"moins (cher )?qu'un café|"
+        r"it's an investment|it pays for itself|you'?ll make it back|that'?s (only |just )?.{0,15}a day|"
+        r"less than a coffee)", re.I),
+    "disqualifies": re.compile(  # family 6: the feeling dismissed
+        r"(tout le monde (me )?dit ça|on me dit ça tout le temps|c'est (une|des) (fausse[s]? )?excuse[s]?|"
+        r"c'est dans (ta|votre) tête|c'est (ton|votre) mental qui|"
+        r"everyone says that|that'?s an excuse|it'?s all in your head)", re.I),
+    "pressure_question": re.compile(  # family 7: a question that puts the prospect in the wrong (case 5b)
+        r"((tu préfères|vous préférez) rester|(tu veux|vous voulez) (rester|continuer) comme ça|"
+        r"(tu ne veux|tu veux|vous ne voulez) pas réussir|(tu|vous) (vas|allez) (encore )?laisser passer|"
+        r"(do you|you) (want|wanna) to stay (where you are|stuck)|don't you want to succeed|you'?d rather stay)", re.I),
+}
+
+
+def not_acknowledged_by(sentence: str) -> Optional[str]:
+    """The family of a first sentence that does not receive the resistance (OB-13), or None."""
+    s = norm(sentence)
+    if CONTRADICTION_RE.search(s) or french_transition_contradicts(sentence):
+        return "contradiction"
+    return next((k for k, rx in NON_ACK.items() if rx.search(s)), None)
+
+
 def french_transition_contradicts(sentence: str) -> bool:
     """OB-13 (Romain, 2026-11-20): a « mais » (« en fait », « sauf que ») contradicts unless a receiving marker comes
     before it in the sentence and what follows it neither counters (« mais non », « mais justement », « mais dis-toi »)
@@ -383,7 +417,7 @@ def link_recurrences(ctx: CallContext, episodes: list[Episode], previous: Option
 # ----------------------------------------------------------------------------------------------- gestures (code)
 def acknowledged(first_sentence: str, ans: Optional[dict]) -> bool:
     """OB-13 / OB-20 / X5, read on the first sentence of the first response turn."""
-    if CONTRADICTION_RE.search(norm(first_sentence)) or french_transition_contradicts(first_sentence):
+    if not_acknowledged_by(first_sentence):
         return False
     a = ans or {}
     if a.get("contradiction"):

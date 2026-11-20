@@ -120,3 +120,23 @@ def test_a_french_transition_after_a_receiving_marker_keeps_the_acknowledgement(
     assert not O.acknowledged("Je comprends, mais ne t'inquiète pas, tout le monde y arrive.", rm)
     assert not O.acknowledged("Non, c'est faux, ça marche très bien.", rm)
     assert O.acknowledged("I hear you.", rm) and not O.acknowledged("I hear you, but think about it.", rm)   # English as written
+
+
+def test_first_sentences_that_do_not_receive_the_resistance():
+    """OB-13 (Romain, 2026-11-20): families 3, 4, 6 and 7, in French and in English, on the first sentence only."""
+    rm = {"receiving_marker": True}
+    cases = {
+        "minimises": ["T'inquiète, ça va bien se passer.", "Je comprends, c'est pas si cher en vrai.", "Don't worry about it."],
+        "counter_argument": ["C'est un investissement, pas une dépense.", "Tu vas le rentabiliser en deux mois.",
+                             "Ça revient à 3 euros par jour.", "It pays for itself."],
+        "disqualifies": ["Tout le monde dit ça au début.", "C'est une excuse, ça.", "That's an excuse."],
+        "pressure_question": ["Tu préfères rester comme ça ?", "Tu ne veux pas réussir ?", "Do you want to stay stuck?"],
+    }
+    for family, sentences in cases.items():
+        for s in sentences:
+            assert O.not_acknowledged_by(s) == family, s
+            assert not O.acknowledged(s, rm), s
+    # what receives the doubt stays acknowledged
+    for s in ["C'est normal d'avoir ce doute.", "Je comprends tout à fait, c'est une vraie somme.",
+              "Ok, qu'est-ce qui t'inquiète le plus ?", "Je t'entends, c'est important de bien y réfléchir."]:
+        assert O.not_acknowledged_by(s) is None and O.acknowledged(s, rm), s
