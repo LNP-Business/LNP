@@ -73,6 +73,15 @@ def analyse(case: dict, mode: str, effort: str) -> dict:
     return rec
 
 
+def safe_analyse(case: dict, mode: str, effort: str) -> dict:
+    """One analysis; a failure (model error, cut answer) is a result of the measure, not the end of it: the record
+    only carries the kind of error (no message: it may quote the call)."""
+    try:
+        return analyse(case, mode, effort)
+    except Exception as e:  # noqa: BLE001
+        return {"qa_failed": type(e).__name__}
+
+
 def line(m: dict) -> str:
     def s(a, b):
         v = share((m.get(a) or {}).get(b))
@@ -102,7 +111,7 @@ def main(argv=None) -> int:
     ap.add_argument("--workers", type=int, default=1, help="analyses run at the same time (live mode)")
     ap.add_argument("--out")
     a = ap.parse_args(argv)
-    measures, repro, problems = [], {}, {}
+    measures, repro, problems, failed = [], {}, {}, []
     for rp in sorted(Path(a.refs).glob("*.json")):
         ref = load(rp)
         if a.split != "all" and ref.get("split") != a.split:
@@ -121,9 +130,14 @@ def main(argv=None) -> int:
         if a.workers > 1 and n > 1:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(max_workers=min(a.workers, n)) as pool:
-                recs = list(pool.map(lambda _: analyse(case, a.mode, a.effort), range(n)))
+                runs = list(pool.map(lambda _: safe_analyse(case, a.mode, a.effort), range(n)))
         else:
-            recs = [analyse(case, a.mode, a.effort) for _ in range(n)]
+            runs = [safe_analyse(case, a.mode, a.effort) for _ in range(n)]
+        recs = [r for r in runs if "qa_failed" not in r]
+        for r in runs:
+            if "qa_failed" in r:
+                failed.append({"slug": ref.get("slug"), "error": r["qa_failed"]})
+                print(f"{ref.get('slug'):<12} analysis failed: {r['qa_failed']}", flush=True)
         ms = [measure(ref, r) for r in recs]
         for m in ms:
             print(line(m), flush=True)
@@ -133,10 +147,10 @@ def main(argv=None) -> int:
             print(repro_line(ref.get("slug"), repro[ref.get("slug")]), flush=True)
     tot = total(measures)
     print("TOTAL " + " · ".join(f"{k} {v['share']:.0%} ({v['right']}/{v['out_of']})" for k, v in tot.items()
-                                if isinstance(v, dict) and v["out_of"]) + f" · errors {tot['errors']}", flush=True)
+                                if isinstance(v, dict) and v["out_of"]) + f" · errors {tot['errors']} · failed analyses {len(failed)}", flush=True)
     if a.out:
         Path(a.out).write_text(json.dumps({"mode": a.mode, "repeat": a.repeat, "split": a.split, "total": tot,
-                                           "calls": measures, "reproducibility": repro, "invalid_references": problems},
+                                           "calls": measures, "reproducibility": repro, "failed": failed, "invalid_references": problems},
                                           ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     return 1 if problems else 0
 
