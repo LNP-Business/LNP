@@ -73,9 +73,35 @@ def sentence_of(text: str, quote: str) -> tuple[str, str]:
     return quote, ""
 
 
+def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
+    """S1g (2026-11-20): the engine's decide_letter on the model's gate answers (SPIN §3, the code applies the order of
+    the gates); returns the letter fields S1 would give, or None (no gates, or a gate whose quote failed)."""
+    g = q.get("gates")
+    if not isinstance(g, dict):
+        return None
+    low = sentence.strip().lower()
+    attrs = {"validation_tail": any(re.search(p, low) for p in E.TAILS), "system": bool(E.SYSTEM_LINE.search(sentence))}
+    d = E.decide_letter(g, attrs, q.get("quote") or sentence)
+    if d.invalid_proof:
+        return None
+    if d.letter in E.LETTERS:
+        return {"letter": d.letter, "gate_tags": d.tags}
+    if d.letter == E.OUT:
+        return {"letter": E.OUT, "out_reason": d.reason, "closed_need_payoff": "closed_need_payoff" in d.tags,
+                "gate_tags": d.tags}
+    return {"letter": d.letter, "gate_tags": d.tags}                  # routing, not a solicitation, doubtful voice
+
+
 def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
-    """The model's letter, then the hard rules of §3 that the code enforces over it."""
-    letter, tags = q["letter"], []
+    """The letter decided by code from the gates (S1g) when they are there, else the model's letter; then the hard
+    rules of §3 that the code enforces over it."""
+    fg = letter_from_gates(q, sentence)
+    if fg:
+        q = dict(q, **{k: v for k, v in fg.items() if k != "gate_tags"})
+        if "out_reason" not in fg:
+            q.pop("out_reason", None)
+            q.pop("closed_need_payoff", None)
+    letter, tags = q["letter"], (["gates_by_code"] if fg else [])
     reason = (q.get("out_reason") if q.get("out_reason") in E.OUT_PRIORITY else "absent") if letter == E.OUT else None
     forced = []
     if q.get("closed_need_payoff"):
@@ -117,7 +143,16 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         if end and ctx.n(tid) >= ctx.n(end):                    # SB-34: nothing after the pitch start or price
             drops.add(STEP, "question:after_pitch", q)
             continue
-        if q.get("letter") not in E.LETTERS + (E.OUT,):
+        fg = letter_from_gates(q, quote)
+        if q.get("gates") is not None and fg is None:
+            drops.add(STEP, "gates:bad_quote", q)                        # the gates' quotes failed: S1's letter stays
+        if fg and fg["letter"] in E.ROUTING:                             # gate 0: not a discovery solicitation
+            drops.add(STEP, "question:routing", q)
+            continue
+        if fg and fg["letter"] in ("NOT_SOLICITATION", "ATTRIBUTION_DOUBTFUL"):
+            drops.add(STEP, "question:" + fg["letter"].lower(), q)
+            continue
+        if (fg or q).get("letter") not in E.LETTERS + (E.OUT,):
             drops.add(STEP, "question:bad_letter", q)
             continue
         key = (tid, norm(quote).strip(' .,?!"'))

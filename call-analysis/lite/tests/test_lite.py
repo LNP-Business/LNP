@@ -285,12 +285,12 @@ def test_record_has_the_contract_fields_the_screen_reads():
 # ------------------------------------------------------------------ model calls: cache, JSON, replay, chunks
 def test_one_call_per_step_with_the_transcript_as_the_same_cached_prefix():
     rec, client = run()
-    assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
-                                                 "lite.s4_objections"]
+    assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s2_gap",
+                                                 "lite.s3_pitch", "lite.s4_objections"]
     prefixes = {c["prefix"] for c in client.calls}
     assert len(prefixes) == 1 and next(iter(prefixes)).splitlines()[1] == "T001 [SALES] Hi Alex, can you hear me okay?"
-    assert "pitch start T019" in client.calls[2]["prompt"] and "[T014] \"I want to make 6,000" in client.calls[2]["prompt"]
-    assert "\"turn\": \"T008\"" in client.calls[3]["prompt"]                       # the validated P, from the Gap code
+    assert "pitch start T019" in client.calls[3]["prompt"] and "[T014] \"I want to make 6,000" in client.calls[3]["prompt"]
+    assert "\"turn\": \"T008\"" in client.calls[4]["prompt"]                       # the validated P, from the Gap code
     assert all(c["effort"] == "low" and c["tier"] == "fast" for c in client.calls)
 
 

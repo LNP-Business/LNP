@@ -32,11 +32,12 @@ from lnp_callqa.core.text import norm
 DEFAULTS: dict[str, Any] = {
     "tier": "fast",                 # crm_ca_config.tiers.fast (claude-haiku-5-5)
     "effort": "low",                # thinking on, kept short
-    "s1_chunk_turns": 160,          # turns of discovery per S1 call (a split happens anyway if an answer is cut)
-    "s1_min_chunk_turns": 30,
+    "s1_chunk_turns": 40,           # turns of discovery per S1 call (2026-11-20: was 160, the model skimmed)
+    "s1_min_chunk_turns": 15,
+    "gates_batch": 25,              # S1g: listed questions per call, each with its context (2026-11-20)
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
-    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S2": 8000, "S3": 10000, "S4": 10000},
+    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S1g": 12000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
@@ -135,6 +136,58 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
     return out if done else None
 
 
+def _short(t, n: int = 300) -> str:
+    return f"[{t.id} {t.role}] " + (t.text if len(t.text) <= n else t.text[:n] + "…")
+
+
+def gates_units_text(ctx: CallContext, items: list[dict]) -> str:
+    """S1g: each listed question with its context: the 2 turns before it, the other questions of its turn, the answer
+    (the prospect turns after it, up to the next sales turn that asks something)."""
+    out = []
+    for q in items:
+        i = ctx.n(q["turn"])
+        before = [_short(t) for t in ctx.turns[max(0, i - 2):i]]
+        answer = []
+        for t in ctx.turns[i + 1:i + 6]:
+            if t.role == "SALES" and SP.group_turn(t.text):
+                break
+            answer.append(_short(t))
+        others = [x for x in q.get("grouped") or [] if x != q["quote"]]
+        out.append("\n".join([f'{q["id"]} · {q["turn"]}',
+                               "BEFORE: " + (" | ".join(before) or "(none)"),
+                               "OTHER QUESTIONS IN THE TURN: " + (" | ".join(f'"{x}"' for x in others) or "(none)"),
+                               f'PRIORITY: "{q["quote"]}"',
+                               "ANSWER: " + (" | ".join(answer) or "(none)")]))
+    return "\n\n".join(out)
+
+
+def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions: list) -> dict[str, dict]:
+    """S1g (2026-11-20, SPIN §3): the model answers the closed gates of each listed question, in batches with their
+    context; the code then decides the letter with the engine's decide_letter. An answer whose quotes fail the engine's
+    check is dropped (`gates:invalid`): the question keeps S1's letter."""
+    items = [q for q in questions if q.get("id") and q.get("turn") and q.get("quote") and not q.get("added_by_model")]
+    out: dict[str, dict] = {}
+    size = max(1, int(cfg.get("gates_batch") or 25))
+    for k in range(0, len(items), size):
+        batch = items[k:k + size]
+        ans = steps.ask("lite.s1_gates", f"{batch[0]['id']}-{batch[-1]['id']}",
+                        fill(load("s1_gates"), units=gates_units_text(ctx, batch)), cfg["max_tokens"]["S1g"])
+        if ans.answer is None:
+            drops.add("S1", "gates:chunk_failed")
+            continue
+        by_id = {q["id"]: q for q in batch}
+        for g in ans.answer.get("units") or []:
+            q = by_id.get((g or {}).get("id") if isinstance(g, dict) else None)
+            if q is None:
+                continue
+            errs = SP._validate_gate_obj(g, q["quote"])
+            if errs:
+                drops.add("S1", "gates:invalid", {"turn": q["turn"]})
+                continue
+            out[q["id"]] = g
+    return out
+
+
 def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]:
     """The model's readings on the code's list: a listed question keeps the code's turn and priority question (the
     model cannot move or reword it), one reading per turn; a listed question still unread is counted
@@ -148,6 +201,9 @@ def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]
     for q in got:
         it = by_id.get(q.get("id") or "") or (by_turn.get(q.get("turn") or "") if not q.get("id") else None)
         if it is None:
+            if q.get("id"):
+                drops.add("S1", "question:unknown_id", q)
+                continue
             if q.get("turn") in by_turn:
                 drops.add("S1", "question:same_turn_as_listed", q)   # SEG-1: one item per turn
             else:
@@ -226,6 +282,11 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
     if not skip:
         attempted.append("S1")
         questions = run_s1(ctx, steps, cfg, drops)
+        if questions:                                            # S1g: the letter decided by code, gate by gate
+            gates = run_gates(ctx, steps, cfg, drops, questions)
+            for q in questions:
+                if q.get("id") in gates:
+                    q["gates"] = gates[q["id"]]
     if skip:
         pass
     elif questions is None:
