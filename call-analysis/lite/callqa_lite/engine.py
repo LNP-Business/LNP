@@ -27,6 +27,7 @@ from .spin import SpinFacts, run_spin
 from .steps import Steps, fill, load
 from .voices import run_voices
 from lnp_callqa.competences import spin as SP
+from . import spin as LS
 from lnp_callqa.core.text import norm
 
 DEFAULTS: dict[str, Any] = {
@@ -35,9 +36,11 @@ DEFAULTS: dict[str, Any] = {
     "s1_chunk_turns": 40,           # turns of discovery per S1 call (2026-11-20: was 160, the model skimmed)
     "s1_min_chunk_turns": 15,
     "gates_batch": 25,              # S1g: listed questions per call, each with its context (2026-11-20)
+    "gates_passes": 2,              # S1g: two independent readings; a disagreement goes to the arbiter (C4)
+    "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
-    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S1g": 12000, "S2": 8000, "S3": 10000, "S4": 10000},
+    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
@@ -161,30 +164,93 @@ def gates_units_text(ctx: CallContext, items: list[dict]) -> str:
     return "\n\n".join(out)
 
 
+ARBITER_PREFIX = "Each unit below carries its own context (the turns before it and its answer)."
+
+
+def _read_gates(steps: Steps, unit_id: str, prompt: str, max_tokens: int, by_id: dict, drops: Drops,
+                task: str = "lite.s1_gates") -> dict[str, dict]:
+    """One reading of the gates for a batch: the answers whose quotes pass the engine's check, by question id."""
+    ans = steps.ask(task, unit_id, prompt, max_tokens)
+    if ans.answer is None:
+        drops.add("S1", "gates:chunk_failed")
+        return {}
+    out = {}
+    for g in ans.answer.get("units") or []:
+        q = by_id.get(g.get("id")) if isinstance(g, dict) else None
+        if q is None:
+            continue
+        if SP._validate_gate_obj(g, q["quote"]):
+            drops.add("S1", "gates:invalid", {"turn": q["turn"]})
+            continue
+        out[q["id"]] = g
+    return out
+
+
+def _reading_text(g: Optional[dict], quote: str) -> str:
+    if not g:
+        return "no valid answer"
+    d = LS.gate_letter(g, quote)
+    parts = [f'{k} {json.dumps({x: y for x, y in (g.get(k) or {}).items() if y not in (None, False)}, ensure_ascii=False)}'
+             for k in ("g1", "g2", "g3", "g4", "g5") if any(v not in (None, False, "none") for v in (g.get(k) or {}).values())]
+    return f"letter {d[0] if d else '?'}" + (f" ({d[1]})" if d and d[1] else "") + " · " + ("; ".join(parts) or "no gate")
+
+
 def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions: list) -> dict[str, dict]:
-    """S1g (2026-11-20, SPIN §3): the model answers the closed gates of each listed question, in batches with their
-    context; the code then decides the letter with the engine's decide_letter. An answer whose quotes fail the engine's
-    check is dropped (`gates:invalid`): the question keeps S1's letter."""
+    """S1g (2026-11-20, SPIN §3, Part C, C4): the model answers the closed gates of each listed question, in batches
+    with their context; the code decides the letter with the engine's decide_letter. Two independent readings (the second
+    with the units in reverse order); when they lead to the same letter it is `agreed`; otherwise the arbiter tier walks
+    the gates again on the disputed units (`arbitrated`), its own prompt carrying their context (no transcript prefix).
+    A unit with one valid reading only keeps it (`single_reading`). Returns {id: gates} with "_status"."""
     items = [q for q in questions if q.get("id") and q.get("turn") and q.get("quote") and not q.get("added_by_model")]
-    out: dict[str, dict] = {}
     size = max(1, int(cfg.get("gates_batch") or 25))
+    passes = max(1, int(cfg.get("gates_passes") or 1))
+    readings: list[dict[str, dict]] = [{} for _ in range(passes)]
     for k in range(0, len(items), size):
         batch = items[k:k + size]
-        ans = steps.ask("lite.s1_gates", f"{batch[0]['id']}-{batch[-1]['id']}",
-                        fill(load("s1_gates"), units=gates_units_text(ctx, batch)), cfg["max_tokens"]["S1g"])
-        if ans.answer is None:
-            drops.add("S1", "gates:chunk_failed")
-            continue
         by_id = {q["id"]: q for q in batch}
-        for g in ans.answer.get("units") or []:
-            q = by_id.get((g or {}).get("id") if isinstance(g, dict) else None)
-            if q is None:
-                continue
-            errs = SP._validate_gate_obj(g, q["quote"])
-            if errs:
-                drops.add("S1", "gates:invalid", {"turn": q["turn"]})
-                continue
-            out[q["id"]] = g
+        uid = f"{batch[0]['id']}-{batch[-1]['id']}"
+        for p in range(passes):
+            order = batch if p % 2 == 0 else list(reversed(batch))
+            readings[p].update(_read_gates(steps, uid + (f":p{p + 1}" if p else ""),
+                                           fill(load("s1_gates"), units=gates_units_text(ctx, order)),
+                                           cfg["max_tokens"]["S1g"], by_id, drops))
+    out: dict[str, dict] = {}
+    disputed = []
+    for q in items:
+        got = [r.get(q["id"]) for r in readings]
+        valid = [g for g in got if g]
+        if not valid:
+            continue
+        if passes == 1:
+            out[q["id"]] = dict(valid[0], _status="single_reading")
+            continue
+        letters = {LS.gate_letter(g, q["quote"]) for g in valid}
+        if len(valid) == passes and len(letters) == 1:
+            out[q["id"]] = dict(valid[0], _status="agreed")
+        else:
+            disputed.append((q, got))
+    if disputed:
+        arb = Steps(steps.client, ctx, tier=cfg.get("arbiter_tier") or "arbiter", effort=steps.effort,
+                    prefix=ARBITER_PREFIX)
+        for k in range(0, len(disputed), size):
+            chunk = disputed[k:k + size]
+            text = gates_units_text(ctx, [q for q, _ in chunk])
+            blocks = text.split("\n\n")
+            text = "\n\n".join(b + "\n" + "\n".join(f"READER {i + 1}: {_reading_text(g, q['quote'])}"
+                                                    for i, g in enumerate(got))
+                                for b, (q, got) in zip(blocks, chunk))
+            prompt = load("s1_gates_arbiter") + fill(load("s1_gates"), units=text)
+            by_id = {q["id"]: q for q, _ in chunk}
+            res = _read_gates(arb, f"{chunk[0][0]['id']}-{chunk[-1][0]['id']}:arbiter", prompt,
+                              cfg["max_tokens"]["S1a"], by_id, drops, task="lite.s1_gates_arbiter")
+            for q, got in chunk:
+                if q["id"] in res:
+                    out[q["id"]] = dict(res[q["id"]], _status="arbitrated")
+                else:                                              # the arbiter failed: a valid reading, flagged
+                    one = next((g for g in got if g), None)
+                    if one:
+                        drops.add("S1", "gates:arbiter_failed", {"turn": q["turn"]})
+                        out[q["id"]] = dict(one, _status="to_review")
     return out
 
 
@@ -286,7 +352,9 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             gates = run_gates(ctx, steps, cfg, drops, questions)
             for q in questions:
                 if q.get("id") in gates:
-                    q["gates"] = gates[q["id"]]
+                    g = dict(gates[q["id"]])
+                    q["gates_status"] = g.pop("_status", None)
+                    q["gates"] = g
     if skip:
         pass
     elif questions is None:

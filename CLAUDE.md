@@ -210,7 +210,9 @@ marché » dont les niveaux sont les offres de LNP est le premier prix, une erre
 `disguised_price`). Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
 commercial ; plusieurs questions d'une même réplique n'en font qu'une, lue sur la dernière, sauf si elle ne fait que relancer la
 précédente (« Pourquoi ? ») ; le modèle lit chaque question listée, puis répond aux portes de la méthode (situation, problème, conséquence,
-désir, hors découverte) pour chacune, par paquets de 25 avec leur contexte, et le code décide la lettre (étape S1g ; moteur
+désir, hors découverte) pour chacune, par paquets de 25 avec leur contexte, deux fois ; si les deux lectures donnent des lettres
+différentes, le niveau « arbitre » (`crm_ca_config.tiers.arbiter`) relit les portes de ces questions ; une question non tranchée est
+« à revoir » et sort des notes ; le code décide la lettre (étape S1g ; moteur
 allégé ; le moteur complet découpe encore question par question). Test d'écran : `app/crm/fiche_analyse_live.js` (28 contrôles).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.

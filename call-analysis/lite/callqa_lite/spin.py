@@ -92,6 +92,12 @@ def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
     return {"letter": d.letter, "gate_tags": d.tags}                  # routing, not a solicitation, doubtful voice
 
 
+def gate_letter(g: dict, quote: str) -> Optional[tuple]:
+    """The code's decision on one reading of the gates: (letter, OUT reason), or None when a quote failed."""
+    fg = letter_from_gates({"gates": g, "quote": quote}, quote)
+    return (fg["letter"], fg.get("out_reason")) if fg else None
+
+
 def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     """The letter decided by code from the gates (S1g) when they are there, else the model's letter; then the hard
     rules of §3 that the code enforces over it."""
@@ -183,7 +189,7 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         prev = [x for x in turns[:i] if x.role == PROSPECT][-2:]
         u = LUnit(sol, t, rank[t.id], q["quote"], q, preamble=preamble, prev_prospect=prev, decision=d,
                   window_end=end)
-        sol.letter, sol.out_reason, sol.status = d.letter, d.reason, SINGLE
+        sol.letter, sol.out_reason, sol.status = d.letter, d.reason, q.get("gates_status") or SINGLE
         units.append(u)
     return units
 
@@ -309,7 +315,8 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
     facts = SpinFacts()
     units = build_units(ctx, questions, drops)
     perimeter = place_perimeter(ctx, units)
-    coded = [u for u in units if u.in_perimeter and E.is_coded_letter(u.decision.letter)]
+    coded = [u for u in units if u.in_perimeter and E.is_coded_letter(u.decision.letter)
+             and u.sol.status != "to_review"]                          # C4: undecided, left out of every score
     E.answer_spans(ctx, coded, {u.turn.id for u in units})
 
     # the prospect's answer as quoted by the model: kept only inside the code's answer span
@@ -386,7 +393,7 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
         "chains": [{k: v for k, v in c.items() if k != "evidence"} for c in chains],
         "diagnostics": diag,
         "health": health,
-        "unit_status": {SINGLE: len(coded)},
+        "unit_status": {st: sum(1 for u in units if u.in_perimeter and u.sol.status == st) for st in sorted({u.sol.status for u in units if u.in_perimeter})},
         "atom_decisions": atom_log,
         "solicitations": [{"id": u.sol.id, "turn": u.turn.id, "ts": u.turn.ts, "letter": u.sol.letter,
                            "gate_letter": u.decision.letter, "out_reason": u.sol.out_reason, "gate": u.decision.gate,

@@ -47,7 +47,8 @@ fixed order: foundation → SPIN → Gap → Pitch → Objections.
 ## Lite engine (`lite/callqa_lite`, 2026-11-03)
 A voice check on the recorder's lines (SV, `voices.py`, always on: the wrong speaker labels are repaired before
 anything else), then the steps on the fast tier, one reading: phases, discovery (the code lists the questions, the model reads 40
-turns per call, then answers the gates of each question and the code decides the letter: S1g), gap, pitch,
+turns per call, then answers the gates of each question twice, an arbiter tier walking them again on a
+disagreement, and the code decides the letter: S1g), gap, pitch,
 objections after the pitch;
 the code checks every quote and reuses the engine's decision code (Gap and Pitch competences unchanged, through
 `shim.StepRunner`). Selected per job by `crm_ca_config.engine = 'lite'`. Read `lite/README.md` (approximations) first.
@@ -68,5 +69,5 @@ French form. Tests: `engine/tests/test_french.py`.
 cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (210 pass; 20 need CALLQA_CORPUS)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
-cd lite && python3 -m pytest -q tests                                 # lite engine (62 tests)
+cd lite && python3 -m pytest -q tests                                 # lite engine (66 tests)
 ```
