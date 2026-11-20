@@ -29,6 +29,7 @@ from ..core.models import (CallContext, CompetenceResult, Evidence, ItemScore, O
                            Solicitation, Turn)
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core.costs import prospect_costs
 from ..core.figures import dimension as unit_dim, prospect_figures, units_match
 from ..core.text import (GENERIC, STOP, _contains, approval_only, canon, clean_tokens, key_expression_ok, norm,
                          norm_number, quote_ok, sentences)
@@ -309,7 +310,7 @@ def _letter_of(ctx: CallContext, tid: str) -> tuple[Optional[str], Optional[str]
 
 
 def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict[str, list[Statement]]:
-    """§3 statements (the model's atoms) merged with the figures the code lists (GB-28b, GB-29b, 2026-11-20):
+    """§3 statements (the model's atoms) merged with the figures (GB-28b) and the costs (GB-7b) the code lists (2026-11-20):
     a `present` figure is an A statement, a `target` figure or a target clause is a B statement. A figure the model
     already holds (same turn, same value) is not added, but gives its unit to the model's atom when it has none.
     Prompted figures (X12), past figures, expenses and the offer's prices are listed in `_figures` only."""
@@ -333,9 +334,19 @@ def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict
         st[comp].append(Statement(comp, f"F{n:03d}", f.quote, f.turn, letter, sol, None, f.dimension,
                                   f.value is not None, f.value, f.unit, "SITUATION" if comp == "A" else "DESIRE",
                                   "figure" if f.value is not None else "target", f.kind))
+    # the costs the code lists (GB-7b): a clause stating a consequence in a cost domain, the model's atoms first
+    costs = prospect_costs(ctx, ctx.phases.discovery_start, end)
+    for k, c in enumerate(costs, 1):
+        if c.prompted or any(x.turn == c.turn and (norm(x.quote) in norm(c.quote) or norm(c.quote) in norm(x.quote))
+                             for x in st["COST"]):
+            continue
+        letter, sol = _letter_of(ctx, c.turn)
+        st["COST"].append(Statement("COST", f"C{k:03d}", c.quote, c.turn, letter, sol, None, c.domain, False, None,
+                                    None, "IMPACT", "cost"))
     for comp in st:
         st[comp].sort(key=lambda s: _pos(ctx, s.turn, s.quote))
     st["_figures"] = figs                                                 # type: ignore[assignment]
+    st["_costs"] = costs                                                  # type: ignore[assignment]
     return st
 
 
@@ -1336,8 +1347,9 @@ class GapCompetence:
         elif to_review:
             res.flags.append("units_to_review:" + ",".join(to_review))
         res.concordance = min(concs, key=lambda c: _conc_rank(c)) if concs else None
+        # what the prospect said (problems, costs, figures): the whole window, not only before the first restitution
         res.details = self._details(ctx, rs, verdict, reasons, scored, diag_r, items, sel_a, sel_b, sel_p, ab_rule,
-                                    p_rule, horizon, blockers, warn, st, B_out)
+                                    p_rule, horizon, blockers, warn, st_all, B_out)
         return res
 
     def candidate_spans(self, ctx: CallContext) -> list[Span]:
@@ -1489,7 +1501,8 @@ class GapCompetence:
             "formula": {"selected_A": sa, "selected_B": sb, "selected_P": sp, "rule_AB": ab_rule,
                         "conformity": main.conformity if main else None,
                         "B_outside_N": [s.to_dict() for s in B_out],
-                        "figures": [f.to_dict() for f in st.get("_figures", [])]},
+                        "figures": [f.to_dict() for f in st.get("_figures", [])],
+                        "costs": [c.to_dict() for c in st.get("_costs", [])]},
             "roadmap": {"blockers": blockers, "count": len(blockers), "warning": warn,
                         "steps": ROADMAP_STEPS},
             "diagnostic_items": [{"id": x.id, "level": x.level, "note": x.note} for x in items],

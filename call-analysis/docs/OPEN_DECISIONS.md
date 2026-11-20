@@ -136,3 +136,7 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   an unrelated fact (no unquantified fallback); B is the most recent target in figures, N answers first, else the most
   recent target wherever it was said. Replay on the 16 stored analyses: gap elements right 46 % → 82 %. Scores G1 to G3
   move with the rules version (C8): the stored analyses are to be re-run. Gap memo to update (§2.1 and Annex A).
+- GB-7b (GAP-1.4, 2026-11-20): the code lists the prospect's cost statements with a lexicon per cost domain
+  (`core/costs.py`), next to the model's IMPACT atoms; what the prospect said is listed over the whole window. Replay:
+  costs right 5 → 11 of 12 on the six calls (tuning set: control calls still to be read, C7). The lexicon is a
+  configuration to grow from the calls people check; a cost the lexicon misses is still the model's to list.

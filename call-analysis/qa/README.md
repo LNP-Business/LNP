@@ -91,9 +91,11 @@ count each):
 | Point A | 3 / 15 | 15 / 15 |
 | Point B | 7 / 15 | 14 / 15 (the last one: a pitch start read too early, the target is outside the window) |
 | Problem | 11 / 15 | 13 / 15 |
-| Cost | 5 / 12 | 5 / 12 (the model lists no cost atom in these calls; the code lists no cost) |
-| All elements | 46 % (26/57) | 82 % (47/57) |
+| Cost | 5 / 12 | 11 / 12 |
+| All elements | 46 % (26/57) | 93 % (53/57) |
 
 What changed: the code lists the prospect's figures (`engine/lnp_callqa/core/figures.py`, GB-28b) and the formula
-selects A on B's dimension, never an unrelated fact (GB-28, GB-29 v1.4). What is left: the problems and costs the model
-does not list as atoms (a change of the S1 prompt, to measure in `live` mode), and the phases.
+selects A on B's dimension, never an unrelated fact (GB-28, GB-29 v1.4); the code lists the prospect's cost statements
+with a lexicon per cost domain (`core/costs.py`, GB-7b). What is left (4 of 57): three elements of one analysis whose
+pitch start is read at the 18th turn (the discovery falls outside the window) and one problem the model typed as a cost.
+These six calls are the tuning set: the generalisation of the lexicon is to be read on control calls (C7).

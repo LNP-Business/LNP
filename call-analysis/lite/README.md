@@ -37,7 +37,8 @@ problem (depending on a parent, exhaustion…) is a COST, not a PROBLEM.
    prospect's answer.
 2. The **gap** played back, with the Gap 1.3 methodology (absence gate, verbatim rule GB-22, formula GB-28 to GB-34; since
    2026-11-20, rules version GAP-1.4: A and B are selected on the model's atoms **and** on the figures the code lists in the
-   prospect's turns, `core/figures.py`, so a figure the model missed still gives A or B, and A is never a fact unrelated to B).
+   prospect's turns, `core/figures.py`, so a figure the model missed still gives A or B, and A is never a fact unrelated to B;
+   the costs the prospect states are listed the same way, `core/costs.py`, GB-7b).
 3. The **pitch**, with the Pitch 2.0 methodology (compliance gate, staircase, roadmap, claims, promises, adhesion).
 4. The **objections raised after the first price only** (OB-27), each episode once (an objection said again before the
    sales moves on stays one episode; one that comes back after is a new episode linked to the first, OB-11, Romain
