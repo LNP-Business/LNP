@@ -24,7 +24,7 @@ def test_job_routes_engine_lite_to_the_lite_engine():
     client = MockLiteClient(sc.ANSWERS)
     rec = run_job(c, client, rounds=True, workers=24)
     assert rec["meta"]["engine"] == "lite" and engine_of(c) == "lite" and engine_version(c) == "callqa-lite-1.1"
-    assert {x["task"] for x in client.calls} == {"lite.sv_voices", "lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
+    assert {x["task"] for x in client.calls} == {"lite.sv_voices", "lite.sv_control", "lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
                                                   "lite.s4_objections"}
     assert all(x["tier"] == "fast" and x["effort"] == "low" for x in client.calls)
     assert set(rec["results"]) == {"SPIN", "GAP", "PITCH", "OBJECTIONS"} and rec["results"]["GAP"]["verdict"] == "present"

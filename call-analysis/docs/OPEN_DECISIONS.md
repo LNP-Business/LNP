@@ -77,10 +77,11 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 - Invalid evidence dropped item by item (an unproved atom, clause, claim or gesture counts as not said / not done)
   instead of a replay of the unit (C3 rule 7); only an invalid JSON answer is asked again once.
 - Attribution (C1, since 2026-11-19, step SV, always on): the model lists the mislabelled lines of the recorder (whole
-  line or from an exact quote), the code checks and repairs them before any other step; no echo check. **To confirm:**
-  the 10 % threshold of C1 counts only the lines left doubtful (a correction whose quote is not in its line), not the
-  repaired ones: on the calls of November 2026, 41 to 52 % of the lines are mislabelled, so C1 as written would exclude
-  almost every call. The repair is one reading (no second pass).
+  line or from an exact quote), the code checks and repairs them before any other step; no echo check. The 10 % threshold
+  of C1 applies **after the repair** (Romain, 2026-11-20): a control reading of the repaired lines counts the errors left
+  (still flagged, or doubtful); more than 10 % of the lines → `diarization_suspect`. C1 as written also counts the
+  repaired turns: on the calls of November 2026, 41 to 52 % of the lines are mislabelled, so it would exclude almost
+  every call. Methodology (Part C, C1) to update.
 - SPIN: the letter is the model's reading of the gates, with the code's hard rules (validation tail, closed
   need-payoff); segmentation is the model's listing; same object (SB-16) = matching object labels + the lexical check;
   SB-21 left to the model's OUT reason; register agreement (SB-33) not measured.

@@ -5,7 +5,7 @@ import copy
 import synthetic_call as sc
 from callqa_lite.engine import analyse
 from callqa_lite.steps import MockLiteClient
-from callqa_lite.voices import apply, check, render_lines
+from callqa_lite.voices import apply, check, render_lines, run_voices
 from callqa_lite.shim import Drops
 from lnp_callqa.core.foundation import parse_lines, parse_transcript
 from lnp_callqa.core.models import CallContext
@@ -74,8 +74,7 @@ def test_the_turns_are_rebuilt_from_the_repaired_lines():
     ]
     assert [t.repaired for t in turns] == [False, False, True, False, True, True, False]
     assert turns[4].speaker == S and turns[5].speaker == P                # a relabelled line takes its role's name
-    assert st | {"turns_before": 0} == {"lines": 6, "relabelled": 2, "split": 1, "doubtful": 0, "share_corrected": 0.5,
-                                         "share_doubtful": 0.0, "turns_before": 0, "turns_after": 7}
+    assert st == {"relabelled": 2, "split": 1, "doubtful": 0}
 
 
 def test_a_doubtful_line_is_a_turn_of_its_own_left_out_of_the_prefix():
@@ -123,7 +122,7 @@ def test_more_than_ten_percent_of_doubtful_lines_excludes_the_call():
     rec = analyse(ctx_of(), client)
     assert rec["status"] == "diarization_suspect" and "attribution_rate" in rec["flags"]
     assert all(r["status"] == "excluded" for r in rec["results"].values())
-    assert [x["task"] for x in client.calls] == ["lite.sv_voices"]
+    assert [x["task"] for x in client.calls] == ["lite.sv_voices", "lite.sv_control"]
 
 
 def test_a_call_with_right_labels_is_analysed_as_before():
@@ -134,3 +133,41 @@ def test_a_call_with_right_labels_is_analysed_as_before():
     without = analyse(sc.context(), MockLiteClient(copy.deepcopy(sc.ANSWERS)))
     assert with_sv["results"] == without["results"] and with_sv["phases"] == without["phases"]
     assert with_sv["meta"]["voices"]["share_corrected"] == 0.0
+
+
+# ------------------------------------------------------------------ control reading (Romain, 2026-11-20)
+def long_ctx(n=20):
+    """n lines, sales and prospect in turn."""
+    raw = "\n".join(f"[00:{i:02d}:00] {S if i % 2 == 0 else P}: phrase numéro {i} de cet appel." for i in range(n))
+    return ctx_of(raw)
+
+
+def test_the_control_reads_the_repaired_lines_and_its_fixes_are_applied():
+    c = long_ctx()
+    client = MockLiteClient({"lite.sv_voices": {"lines": [{"line": "L002", "role": "SALES", "from": "numéro 1"}]},
+                             "lite.sv_control": {"lines": [{"line": "L002b", "role": "PROSPECT"}]}})
+    v = run_voices(c, client, {"tier": "fast", "effort": "low", "max_tokens": {}}, Drops())
+    ctl = next(x for x in client.calls if x["task"] == "lite.sv_control")
+    assert "L002 [PROSPECT] phrase\nL002b [SALES] numéro 1 de cet appel." in ctl["prefix"]     # the repaired lines
+    assert (v["split"], v["control"]["relabelled"], v["residual"], v["share_residual"]) == (1, 1, 1, 0.05)
+    assert c.status == "ok" and c.turns[1].text == "phrase numéro 1 de cet appel."              # back in one turn
+
+
+def test_more_than_ten_percent_of_errors_left_after_the_repair_excludes_the_call():
+    c = long_ctx()
+    left = [{"line": f"L{i:03d}", "role": "SALES" if i % 2 == 0 else "PROSPECT"} for i in (2, 4, 6)]   # 3 of 20 = 15 %
+    client = MockLiteClient({"lite.sv_voices": {"lines": []}, "lite.sv_control": {"lines": left}})
+    v = run_voices(c, client, {"tier": "fast", "effort": "low", "max_tokens": {}}, Drops())
+    assert v["share_residual"] == 0.15 and c.status == "diarization_suspect" and "attribution_rate" in c.flags
+    c2 = long_ctx()
+    run_voices(c2, MockLiteClient({"lite.sv_voices": {"lines": []}, "lite.sv_control": {"lines": left[:2]}}),
+               {"tier": "fast", "effort": "low", "max_tokens": {}}, Drops())
+    assert c2.status == "ok"                                                                    # 2 of 20 = 10 %: kept
+
+
+def test_a_control_with_no_valid_answer_keeps_the_repair_and_says_so():
+    c = long_ctx()
+    client = MockLiteClient({"lite.sv_voices": {"lines": [{"line": "L002", "role": "SALES"}]}, "lite.sv_control": "x"})
+    v = run_voices(c, client, {"tier": "fast", "effort": "low", "max_tokens": {}}, Drops())
+    assert v["control"] == {"status": "unchecked"} and v["share_residual"] is None
+    assert "voices_control_unchecked" in c.flags and c.status == "ok" and v["relabelled"] == 1
