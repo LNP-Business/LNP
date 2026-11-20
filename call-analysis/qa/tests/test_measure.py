@@ -135,3 +135,12 @@ def test_an_excluded_call_prints_no_share_instead_of_failing():
     from qa_run import repro_line
     out = repro_line("cut", {"runs": 5, "same_letter_share": None, "same_register_share": None})
     assert "same letter -" in out and "same register -" in out and "5 runs" in out
+
+
+def test_a_failed_analysis_is_counted_and_the_measure_goes_on(monkeypatch):
+    import qa_run
+
+    def boom(case, mode, effort):
+        raise RuntimeError("phase map (S0): truncated answer (max_tokens) « a quote »")
+    monkeypatch.setattr(qa_run, "analyse", boom)
+    assert qa_run.safe_analyse({}, "live", "low") == {"qa_failed": "RuntimeError"}

@@ -40,7 +40,8 @@ DEFAULTS: dict[str, Any] = {
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
-    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 8000, "S3": 10000, "S4": 10000},
+    "max_tokens": {"SV": 8000, "S0": 12000,      # S0 6000 → 12000 (2026-11-20): an R2 of the reference set was cut twice
+                   "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
