@@ -35,7 +35,8 @@ REF = {
     "pitch": {"verdict": "compliant"},
     "objections": [{"quote": "That's a lot of money for me right now", "nature": "objection", "acknowledge": True,
                     "isolate": True, "explore": True, "gesture_match": True},
-                   {"quote": "I need to talk to my husband first", "acknowledge": True, "isolate": True}],
+                   {"quote": "I need to talk to my husband first", "acknowledge": True, "isolate": True},
+                   {"quote": "the money is still a lot", "nature": "objection"}],              # a recurrence (OB-11)
 }
 
 
@@ -69,7 +70,7 @@ def test_each_measure_counts_what_the_reference_states():
     assert m["phases"]["anchors"] == [3, 4]                        # the decision request is found, none was expected
     assert m["gap"]["verdict"] == [1, 1] and m["gap"]["components"] == [3, 3]
     assert m["pitch"]["verdict"] == [1, 1]
-    assert m["objections"]["found"] == [2, 2] and m["objections"]["gestures"] == [5, 6] and m["objections"]["extra"] == 0
+    assert m["objections"]["found"] == [3, 3] and m["objections"]["gestures"] == [5, 6] and m["objections"]["extra"] == 0
     assert m["status"]["status"] == [4, 4] and m["status"]["score"] == [2, 2]
     kinds = sorted(e["kind"] for e in m["errors"])
     assert kinds == ["atom_missed", "letter", "objection_isolate", "phase:decision_request", "register"]
