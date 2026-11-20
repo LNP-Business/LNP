@@ -86,9 +86,9 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   const ok = [], bad = []; const check = (n, c, d) => (c ? ok : bad).push(n + (c ? '' : ' :: ' + JSON.stringify(d)));
   check('plus de frise à part : le temps est dans le tableau', !(await p.$('.fr')), null);
   const head = await p.textContent('#cav-s1 table thead');
-  check('le tableau : Sujet abordé, Questions posées dans le temps de la découverte, Profondeur ; plus de colonne « Ce qu’il a confié »', /Sujet abordé/.test(head) && /Questions posées, dans le temps de la découverte/.test(head) && /Profondeur/.test(head) && !/Ce qu’il a confié/.test(head), head);
+  check('le tableau : Sujet abordé, Questions, Profondeur ; plus de colonne « Ce qu’il a confié »', /Sujet abordé/.test(head) && /Questions/.test(head) && !/Questions posées/.test(head) && /Profondeur/.test(head) && !/Ce qu’il a confié/.test(head), head);
   const widths = await p.$$eval('#cav-s1 table thead th', e => e.map(x => x.style.width));
-  check('la colonne des questions est la plus large (50 %)', JSON.stringify(widths) === JSON.stringify(['22%', '50%', '28%']), widths);
+  check('la colonne des questions est la plus large (60 %), Profondeur réduite (18 %)', JSON.stringify(widths) === JSON.stringify(['22%', '60%', '18%']), widths);
   const axe = await p.$$eval('#cav-s1 table thead .tkl', e => e.map(x => [x.textContent, x.style.left]));
   check('l’axe dans l’en-tête : une graduation toutes les 5 minutes de la découverte (01:10 → 14:20)', axe.length === 2 && axe[0][0] === '05:00' && axe[1][0] === '10:00', axe);
   const leg = await p.textContent('#cav-s1');
@@ -100,6 +100,8 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   const pct = s => parseFloat(s);
   check('les pistes sont alignées : I à 06:05 (Financier) est à 37 % de la découverte, P à 03:40 (Mental) à 19 %, à gauche du I', Math.abs(pct(fin[0][1]) - 37.3) < 1 && Math.abs(pct(men[0][1]) - 19) < 1 && pct(men[0][1]) < pct(fin[0][1]), [fin, men]);
   check('les lettres gardent leur sens : a donné un fait (plein) ou rien retenu (pointillé), autre question', fin.every(c => /cF/.test(c[2])) && rows.find(r => r[0] === 'Autre')[2][0][2].indexOf('cX') >= 0 && rows.find(r => r[0] === 'Autres questions')[2][0][2].indexOf('cO') >= 0, null);
+  const tops = await p.$$eval('#cav-s1 table tbody .tk .chip', e => e.map(x => x.style.top));
+  check('chaque piste tient sur une seule ligne', tops.length === 6 && tops.every(x => x === '0px'), tops);
   const grid = await p.$$eval('#cav-s1 table tbody .tk .tkt', e => e.length);
   check('les graduations se prolongent dans chaque piste pour lire l’alignement', grid === 6 * 2, grid);
   check('le panneau de droite vide au départ', /Cliquez sur une lettre/.test(await p.textContent('#cav-sol-pane')), null);

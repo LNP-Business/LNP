@@ -142,9 +142,10 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Analyse d'appel (écran) : `app/crm/call_analysis.js`, `call_analysis_view.js`, `transcript_parse.js` ; les codes du moteur
   sont traduits à l'affichage, les citations restent mot pour mot.
   Section « La découverte » (Romain, 2026-11-20 ; fait dans la vue embarquée de `app/lnp.html`, à reporter dans
-  `call_analysis_view.js`) : le temps de la découverte dans le tableau, colonne « Questions posées » (`piste()`, `axe()` : une seule
+  `call_analysis_view.js`) : le temps de la découverte dans le tableau, colonne « Questions » (60 % ; `piste()`, `axe()` : une seule
   échelle de la première question de diagnostic à l'offre, graduée dans l'en-tête et prolongée dans chaque ligne, chaque question
-  placée à son heure, pour comparer les sujets ; plus de frise à part), la colonne Profondeur en échelle de 0 à 10 (`profondeur()` :
+  placée à son heure sur une seule ligne par sujet, une question qui en couvrirait une autre est poussée à droite ; plus de frise
+  à part), la colonne Profondeur (18 %) en échelle de 0 à 10 (`profondeur()` :
   faits, douleurs, désirs, chiffre, chaînes approfondies, question d'implication ; dessous, ce que le prospect a confié puis l'état ;
   plus de colonne « Ce qu'il a confié ») et la question choisie lue dans un panneau à droite (`pane()`). Section « L'écart reformulé » (même jour) : à gauche la reformulation
   entière, mot pour mot, chaque élément surligné ; à droite la liste des éléments de l'écart (Problème, Coût, Point A, Point B,
