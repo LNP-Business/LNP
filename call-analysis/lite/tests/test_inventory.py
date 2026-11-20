@@ -64,3 +64,15 @@ def test_a_question_s1_routes_is_kept_for_the_gates():
     qs, _, d = run([answer])
     assert [(q["id"], q.get("s1_routing")) for q in qs] == [("Q001", None), ("Q005", True)]
     assert d.counts["S1"] == {"question:routing_s1": 1}
+
+
+def test_a_question_read_in_another_chunk_is_not_a_second_unit():
+    c = ctx()
+    first = {"questions": [{"id": "Q001", "letter": "S"},
+                           {"turn": "T005", "quote": "Et qu'est-ce que tu voudrais dans un an ?", "letter": "N"}]}
+    second = {"questions": [{"id": "Q005", "letter": "N"}]}
+    client = MockLiteClient({"lite.s1_discovery": [first, second]})
+    d = Drops()
+    qs = run_s1(c, Steps(client, c), dict(DEFAULTS, s1_chunk_turns=3), d)
+    assert [q["id"] for q in qs] == ["Q001", "Q005"] and not any(q.get("added_by_model") for q in qs)
+    assert d.counts["S1"] == {"question:turn_of_another_chunk": 1}

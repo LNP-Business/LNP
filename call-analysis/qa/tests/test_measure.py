@@ -169,3 +169,11 @@ def test_a_question_to_review_is_found_but_left_out_of_the_letters():
     m = spin_measure(ref, rec)
     assert m["questions_found"] == [2, 2] and m["questions_to_review"] == [1, 2] and m["letters"] == [1, 1]
     assert m["errors"] == []
+
+
+def test_the_replay_gives_each_chunk_the_stored_readings_of_its_own_turns():
+    from qa_run import ReplayClient
+    c = ReplayClient({"lite.s1_discovery": [{"questions": [{"turn": "T037", "quote": "a ?"}, {"turn": "T080", "quote": "b ?"}]}]})
+    got = json.loads(c.complete("lite.s1_discovery", "T001-T040", "fast", "", "", "")["text"])["questions"]
+    assert [q["turn"] for q in got] == ["T037"]
+    assert json.loads(c.complete("lite.s1_discovery", "T001-T040:missing", "fast", "", "", "")["text"])["questions"] == []
