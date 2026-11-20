@@ -76,3 +76,18 @@ def test_a_question_read_in_another_chunk_is_not_a_second_unit():
     qs = run_s1(c, Steps(client, c), dict(DEFAULTS, s1_chunk_turns=3), d)
     assert [q["id"] for q in qs] == ["Q001", "Q005"] and not any(q.get("added_by_model") for q in qs)
     assert d.counts["S1"] == {"question:turn_of_another_chunk": 1}
+
+
+def test_seg1_two_questions_the_model_adds_on_an_unpunctuated_turn_are_one():
+    lines = [(S, "Bonjour Julie."), (P, "Bonjour."),
+             (S, "je veux comprendre c'est quoi le projet en gros est ce que c'est vraiment ton projet de donner des cours"),
+             (P, "Oui, l'enseignement me manque.")]
+    raw = "\n".join(f"[00:{i:02d}:00] {w}: {t}" for i, (w, t) in enumerate(lines))
+    c = CallContext("c", "s", "2026-11-20T10:00:00Z", "Europe/Paris", parse_transcript(raw, {S: "SALES", P: "PROSPECT"}))
+    answer = {"questions": [{"turn": "T003", "quote": "c'est quoi le projet en gros", "letter": "S"},
+                            {"turn": "T003", "quote": "est ce que c'est vraiment ton projet de donner des cours", "letter": "S"}]}
+    d = Drops()
+    qs = run_s1(c, Steps(MockLiteClient({"lite.s1_discovery": answer}), c), dict(DEFAULTS), d)
+    assert [q["quote"] for q in qs] == ["est ce que c'est vraiment ton projet de donner des cours"]
+    assert qs[0]["grouped"] == ["c'est quoi le projet en gros", "est ce que c'est vraiment ton projet de donner des cours"]
+    assert d.counts["S1"] == {"question:same_turn_grouped": 1}

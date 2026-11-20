@@ -138,7 +138,32 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
             if again.answer:
                 got += [q for q in again.answer.get("questions") or [] if isinstance(q, dict) and q.get("id")]
         out += with_inventory(got, inv, drops, listed)
-    return out if done else None
+    return group_added(ctx, out, drops) if done else None
+
+
+def group_added(ctx: CallContext, items: list[dict], drops: Drops) -> list[dict]:
+    """SEG-1 for the questions the model added on a turn the code did not list (no question mark: the recorder did not
+    punctuate): one per turn too, the last one in the turn, unless it only follows up the previous one (the code's
+    follows_previous); the others are counted (`question:same_turn_grouped`) and kept in `grouped`."""
+    added: dict[str, list[dict]] = {}
+    for q in items:
+        if q.get("added_by_model"):
+            added.setdefault(q.get("turn"), []).append(q)
+    drop = set()
+    for tid, qs in added.items():
+        if len(qs) < 2 or ctx.turn(tid) is None:
+            continue
+        text = norm(ctx.turn(tid).text)
+        qs = sorted(qs, key=lambda q: text.find(norm(q.get("quote") or "").strip(' .,?!"')))
+        k = len(qs) - 1
+        while k > 0 and SP.follows_previous(qs[k].get("quote") or "", qs[k - 1].get("quote") or ""):
+            k -= 1
+        qs[k]["grouped"] = [q.get("quote") for q in qs]
+        for j, q in enumerate(qs):
+            if j != k:
+                drop.add(id(q))
+                drops.add("S1", "question:same_turn_grouped", {"turn": tid})
+    return [q for q in items if id(q) not in drop]
 
 
 def _short(t, n: int = 300) -> str:
