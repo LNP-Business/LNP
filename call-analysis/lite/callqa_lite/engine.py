@@ -105,6 +105,7 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
     """S1 over the turns before the first pitch start or price, in chunks; an answer cut by max_tokens is asked again
     as two halves. Returns the questions, or None if every chunk failed."""
     queue, out, failed, done = _windows(ctx, cfg["s1_chunk_turns"]), [], 0, 0
+    listed = {it["turn"] for a, b in queue for it in inventory(ctx, a, b)}     # SEG-1: every turn the code lists
     end = ctx.phases.discovery_end
     if not queue:                                   # the pitch starts at the first turn: no discovery (SPIN §5)
         return []
@@ -136,7 +137,7 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
                               cfg["max_tokens"]["S1"], replay_truncated=False)
             if again.answer:
                 got += [q for q in again.answer.get("questions") or [] if isinstance(q, dict) and q.get("id")]
-        out += with_inventory(got, inv, drops)
+        out += with_inventory(got, inv, drops, listed)
     return out if done else None
 
 
@@ -255,7 +256,7 @@ def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions
     return out
 
 
-def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]:
+def with_inventory(got: list[dict], inv: list[dict], drops: Drops, listed: Optional[set] = None) -> list[dict]:
     """The model's readings on the code's list: a listed question keeps the code's turn and priority question (the
     model cannot move or reword it), one reading per turn; a question the model added counts only on a turn the code
     did not list. C4 (2026-11-20): one reading never removes a listed question. A listed question still unread is
@@ -276,6 +277,8 @@ def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]
                 continue
             if q.get("turn") in by_turn:
                 drops.add("S1", "question:same_turn_as_listed", q)   # SEG-1: one item per turn
+            elif q.get("turn") in (listed or ()):
+                drops.add("S1", "question:turn_of_another_chunk", q)  # SEG-1: read with its own chunk, never twice
             else:
                 extra.append(dict(q, added_by_model=True))
             continue

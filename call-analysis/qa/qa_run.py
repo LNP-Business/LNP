@@ -44,6 +44,31 @@ def stored_answers(case: dict) -> dict:
     return answers
 
 
+class ReplayClient:
+    """Replay: the stored answers, played again in order; the stored S1 readings (lite.s1_discovery) are given to each
+    chunk by turn, since the chunks of today's code are not those of the stored analysis (a reading given to the wrong
+    chunk would not reach its turn's item, SEG-1)."""
+
+    def __init__(self, answers: dict):
+        from callqa_lite.steps import MockLiteClient
+        answers = dict(answers)
+        s1 = answers.pop("lite.s1_discovery", None)
+        self.mock = MockLiteClient(answers)
+        self.calls, self.usage = self.mock.calls, self.mock.usage
+        self.s1 = [q for a in (s1 or []) for q in (a.get("questions") or []) if isinstance(q, dict)]
+
+    def complete(self, task_id, unit_id, tier, system, prefix, prompt, max_tokens=16000, effort="low"):
+        import re
+        if task_id != "lite.s1_discovery":
+            return self.mock.complete(task_id, unit_id, tier, system, prefix, prompt, max_tokens, effort)
+        self.calls.append({"task": task_id, "unit": unit_id, "tier": tier, "prompt": prompt, "prefix": prefix,
+                           "max_tokens": max_tokens, "effort": effort})
+        m = re.match(r"T(\d+)-T(\d+)$", unit_id or "")
+        num = lambda t: int(t[1:]) if re.match(r"T\d+$", str(t or "")) else -1
+        qs = [q for q in self.s1 if m and int(m.group(1)) <= num(q.get("turn")) <= int(m.group(2))]
+        return {"text": json.dumps({"questions": qs}, ensure_ascii=False), "stop_reason": "end_turn"}
+
+
 def live_tiers(url: str, key: str) -> dict:
     """The model ids per tier the worker uses (crm_ca_config.tiers): the measure runs what production runs."""
     import urllib.request
@@ -56,11 +81,10 @@ def live_tiers(url: str, key: str) -> dict:
 
 def analyse(case: dict, mode: str, effort: str) -> dict:
     from callqa_lite.engine import analyse as lite
-    from callqa_lite.steps import MockLiteClient
     from callqa_worker.job import build_context
     claim = claim_of(case)
     if mode == "replay":
-        client = MockLiteClient(stored_answers(case))
+        client = ReplayClient(stored_answers(case))
     else:
         from callqa_worker.gateway import GatewayClient
         url, key = os.environ.get("SUPABASE_URL", ""), os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")

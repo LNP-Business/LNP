@@ -52,7 +52,8 @@ python3 call-analysis/qa/qa_run.py --cases DIR --refs DIR --mode live --repeat 5
 ```
 
 `replay` plays the model answers kept with each analysis again (no model call, no cost): it measures a change of the
-code. `live` asks the model through the gateway `callqa-llm` (needs `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`):
+code. The stored discovery readings are given to each chunk by turn (the chunks of today's code are not those of the
+stored analysis), so that the questions of one turn are read as one (SEG-1). `live` asks the model through the gateway `callqa-llm` (needs `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`):
 it measures a change of a prompt or a model, and with `--repeat` the reproducibility. About 0.05 USD per analysis.
 The printed lines hold numbers only; the quotes go to `--out` only.
 
