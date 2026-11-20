@@ -149,8 +149,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   faits, douleurs, désirs, chiffre, chaînes approfondies, question d'implication ; dessous, seulement ce que le prospect a confié,
   l'état et le détail de la note au survol ; plus de colonne « Ce qu'il a confié ») et la question choisie lue dans un panneau à
   droite (`pane()`), qui n'apparaît qu'au clic. Rien d'expliqué à l'écran (Romain, 2026-11-20 : le plus épuré possible) : la
-  légende des lettres, l'échelle et la définition de la profondeur sont dans une fenêtre au survol des titres « Questions » et
-  « Profondeur » (`.th-i`) ; pareil pour les gestes A · I · E · M des objections, dont le panneau n'apparaît qu'au clic. Section « L'écart reformulé » (même jour) : à gauche la reformulation
+  légende des lettres, l'échelle et la définition de la profondeur sont dans une fenêtre au survol d'un petit ⓘ dans l'en-tête
+  (`.th-i`) ; les titres des colonnes ne s'affichent pas (lecteur d'écran seulement, `.sr`) ; pareil pour les gestes A · I · E · M
+  des objections, dont le panneau n'apparaît qu'au clic. Les questions sans registre sont dans la ligne « Autre ». Section « L'écart reformulé » (même jour) : à gauche la reformulation
   entière, mot pour mot, chaque élément surligné ; à droite la liste des éléments de l'écart (Problème, Coût, Point A, Point B,
   Validation), chacun statué (ses mots, paraphrase, pas ses mots, non repris) avec les mots exacts du prospect et ceux de la
   reformulation. Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant

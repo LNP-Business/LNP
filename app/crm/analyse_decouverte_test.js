@@ -85,8 +85,8 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   await p.goto('file://' + PAGE); await p.waitForSelector('.cav table .tk');
   const ok = [], bad = []; const check = (n, c, d) => (c ? ok : bad).push(n + (c ? '' : ' :: ' + JSON.stringify(d)));
   check('plus de frise à part : le temps est dans le tableau', !(await p.$('.fr')), null);
-  const head = await p.textContent('#cav-s1 table thead');
-  check('le tableau : Sujet abordé, Questions, Profondeur ; plus de colonne « Ce qu’il a confié »', /Sujet abordé/.test(head) && /Questions/.test(head) && !/Questions posées/.test(head) && /Profondeur/.test(head) && !/Ce qu’il a confié/.test(head), head);
+  const head = await p.$eval('#cav-s1 table thead', e => e.innerText), headSr = await p.textContent('#cav-s1 table thead');
+  check('plus de titre de colonne à l’écran (seulement pour un lecteur d’écran), ni de colonne « Ce qu’il a confié »', !/Sujet abordé|Questions|Profondeur/.test(head) && /Sujet abordé/.test(headSr) && /Profondeur/.test(headSr) && !/Ce qu’il a confié/.test(headSr), head);
   const widths = await p.$$eval('#cav-s1 table thead th', e => e.map(x => x.style.width));
   check('la colonne des questions est la plus large (60 %), Profondeur réduite (18 %)', JSON.stringify(widths) === JSON.stringify(['22%', '60%', '18%']), widths);
   const axe = await p.$$eval('#cav-s1 table thead .tkl', e => e.map(x => [x.textContent, x.style.left]));
@@ -94,7 +94,7 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   const leg = await p.textContent('#cav-s1');
   check('rien d’expliqué à l’écran : ni la légende des lettres, ni « cliquez », ni l’échelle, ni la définition de la profondeur', !/S Situation/.test(leg) && !/cliquez/i.test(leg) && !/même échelle/.test(leg) && !/intensité émotionnelle/.test(leg), null);
   const tq = await p.getAttribute('#cav-s1 th .th-i', 'title'), tp = await p.$$eval('#cav-s1 th .th-i', e => e[1].getAttribute('title'));
-  check('les explications sont dans une fenêtre au survol des titres « Questions » et « Profondeur »', /S Situation · P Problème/.test(tq) && /01:10 → 14:20, à la même échelle/.test(tq) && /intensité émotionnelle/.test(tp) && /Approfondi/.test(tp), [tq, tp]);
+  check('les explications sont dans une fenêtre au survol d’un petit ⓘ dans l’en-tête des questions et de la profondeur', /S Situation · P Problème/.test(tq) && /01:10 → 14:20, à la même échelle/.test(tq) && /intensité émotionnelle/.test(tp) && /Approfondi/.test(tp), [tq, tp]);
   const rows = await p.$$eval('#cav-s1 table tbody tr', e => e.map(r => [r.querySelector('td b') && r.querySelector('td b').textContent, !!r.querySelector('.tk'), [...r.querySelectorAll('.tk .chip')].map(c => [c.textContent, c.style.left, c.className])]));
   check('chaque sujet a sa piste, les questions placées à leur heure sur la même échelle', rows.length === 6 && rows.every(r => r[1]) && rows.filter(r => r[2].length).length === 5, rows.map(r => [r[0], r[2].length]));
   const pos = {}; rows.forEach(r => r[2].forEach(c => { pos[c[1]] = (pos[c[1]] || 0) + 1; }));
