@@ -117,21 +117,33 @@ def gap(ref: dict, rec: dict) -> dict:
                                   "found": det.get("absence_reason")})
     comps = exp.get("components") or {}
     if comps:
-        sel = {"A": det.get("selected_A"), "B": det.get("selected_B"), "PROBLEM": det.get("selected_P")}
-        cost = det.get("cost") or []
         right = 0
         for k, q in comps.items():
-            if k == "COST":
-                got = [c.get("quote") or "" for c in cost if isinstance(c, dict)]
-                ok = (not got) if q is None else any(same_words(q, x, 0.5) for x in got)
-            else:
-                x = sel.get(k)
-                ok = (x is None) if q is None else bool(x) and same_words(q, x.get("quote") or "", 0.5)
+            got = component_quotes(det, k)
+            ok = (not got) if q is None else any(same_words(q, x, 0.5) for x in got)
             right += ok
             if not ok:
-                out["errors"].append({"kind": f"gap_component:{k}", "expected": q,
-                                      "found": (sel.get(k) or {}).get("quote") if k != "COST" else None})
+                out["errors"].append({"kind": f"gap_component:{k}", "expected": q, "found": got[:3] or None})
         out["components"] = _pair(right, len(comps))
+    return out
+
+
+def component_quotes(det: dict, comp: str) -> list[str]:
+    """Every prospect passage the analysis holds for one gap component: the element it selected, the validated problem,
+    the source of a restated clause, the problems and costs it collected."""
+    out: list[str] = []
+    sel = det.get({"A": "selected_A", "B": "selected_B", "PROBLEM": "selected_P"}.get(comp, "")) or {}
+    if isinstance(sel, dict) and sel.get("quote"):
+        out.append(sel["quote"])
+    if comp == "PROBLEM" and isinstance(det.get("validated_P"), str):
+        out.append(det["validated_P"])
+    for c in (det.get("restitution") or {}).get("clauses") or []:
+        if c.get("component") == comp:
+            out += [x for x in (c.get("source_quote"), c.get("key_expression")) if x]
+    g = det.get("gap") or {}
+    lst = {"PROBLEM": g.get("problem"), "COST": (g.get("cost") or []) + (det.get("cost") or []),
+           "A": [g.get("A")], "B": [g.get("B")]}.get(comp) or []
+    out += [x.get("quote") for x in lst if isinstance(x, dict) and x.get("quote")]
     return out
 
 

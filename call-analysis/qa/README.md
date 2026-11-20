@@ -46,3 +46,26 @@ python3 call-analysis/qa/qa_run.py --cases DIR --refs DIR --mode live --repeat 5
 code. `live` asks the model through the gateway `callqa-llm` (needs `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`):
 it measures a change of a prompt or a model, and with `--repeat` the reproducibility. About 0.05 USD per analysis.
 The printed lines hold numbers only; the quotes go to `--out` only.
+
+## Baseline (2026-11-20)
+
+Replay of the stored model answers of the 6 analysed calls (lite engine, one reading on Haiku, answers of 2026-11-04;
+the code of 2026-11-20, step 1 French checks; the voice check gets empty answers in a replay):
+
+| Measure | Right |
+|---|---|
+| Status (applicable or not) | 96 % (23/24) |
+| Phases | 84 % (16/19) |
+| Questions found | 64 % (93/146) |
+| Letters | 77 % (69/90) |
+| Registers | 68 % (21/31), target 92 % |
+| Effects found | **18 % (22/126)** |
+| Gap verdict | 100 % (5/5) |
+| Gap elements found | 31 % (4/13) |
+| Pitch verdict | 80 % (4/5) |
+| Objections found | 40 % (8/20) |
+| Objection gestures | 60 % (9/15) |
+| Scores inside the expected range | 56 % (9/16) |
+
+227 errors in all: 104 effects missed, 53 questions missed, 21 wrong letters, 12 objections missed, 9 gap elements, 8
+registers. The reproducibility (C4) needs live runs (`--mode live --repeat 5`).
