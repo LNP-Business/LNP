@@ -91,6 +91,7 @@ def main(argv=None) -> int:
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--split", choices=["tuning", "control", "all"], default="all")
     ap.add_argument("--effort", default="low")
+    ap.add_argument("--workers", type=int, default=1, help="analyses run at the same time (live mode)")
     ap.add_argument("--out")
     a = ap.parse_args(argv)
     measures, repro, problems = [], {}, {}
@@ -108,7 +109,13 @@ def main(argv=None) -> int:
             problems[ref.get("slug")] = errs
             print(f"{ref.get('slug')}: reference file invalid ({len(errs)} errors), not measured", flush=True)
             continue
-        recs = [analyse(case, a.mode, a.effort) for _ in range(max(1, a.repeat if a.mode == "live" else 1))]
+        n = max(1, a.repeat if a.mode == "live" else 1)
+        if a.workers > 1 and n > 1:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=min(a.workers, n)) as pool:
+                recs = list(pool.map(lambda _: analyse(case, a.mode, a.effort), range(n)))
+        else:
+            recs = [analyse(case, a.mode, a.effort) for _ in range(n)]
         ms = [measure(ref, r) for r in recs]
         for m in ms:
             print(line(m), flush=True)
