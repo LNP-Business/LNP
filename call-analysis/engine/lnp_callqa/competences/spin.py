@@ -521,6 +521,44 @@ OFFER_QUESTION = re.compile(
     re.I)
 
 
+# §3 hard rules added 2026-11-20 (Romain), read in the priority question by the code, from gate 1's definitions:
+# a check-in on the sales' own speech ("does that make sense?") is OUT `nothing`; a closed restatement that only asks
+# the prospect to confirm what the sales says ("so your problem is time?") is OUT `agreement`; a choice among options
+# the sales gives, with no open branch ("would you rather X or Y?"), is OUT `sales_list`.
+CHECK_IN = re.compile(
+    r"^\W*(et |alors |ok |okay |donc )?(est-ce que )?(ça|cela|c'est|ça te|ça vous)? ?"
+    r"(fait sens|te parle|vous parle|parle|est clair|clair|te va|vous va|va)\s*\?\s*$|"
+    r"^\W*(et |alors |ok |donc )?(tu me suis|vous me suivez|tu vois ce que je veux dire|vous voyez ce que je veux dire|"
+    r"tu (as|aurais) des questions|vous (avez|auriez) des questions|des questions|"
+    r"(est-ce que )?c'est clair (pour (toi|vous))?)\s*\?\s*$|"
+    r"^\W*(and |so |ok |okay )?(does (that|this) make sense|any questions|are you with me|you with me|"
+    r"do you have any questions|is that clear)\s*\?\s*$", re.I)
+RESTATEMENT_OPENER = re.compile(
+    r"^\W*(ok,? |okay,? |d'accord,? |très bien,? )?(donc|alors donc|en gros|si je comprends bien|si j'ai bien compris|"
+    r"autrement dit|en résumé|so basically|so|if i understand( correctly)?|in other words)\b", re.I)
+OPEN_WORDS = re.compile(
+    r"\b(qu'est-ce|qu'est ce|quoi|comment|pourquoi|combien|quel|quelle|quels|quelles|où|quand|lequel|laquelle|"
+    r"lesquels|lesquelles|qui|what|how|why|which|where|when|who)\b", re.I)
+CHOICE_LIST = re.compile(
+    r"\b(tu préfères|vous préférez|tu préférerais|vous préféreriez|tu dirais plutôt|vous diriez plutôt|c'est plutôt|"
+    r"plutôt|would you rather|do you prefer|would you say it's more|is it more)\b[^?]*\b(ou|or)\b[^?]*\?", re.I)
+OPEN_BRANCH = re.compile(r"\b(ou|or) (autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
+
+
+def check_in_question(text: str) -> bool:
+    return bool(CHECK_IN.search(norm(text or "")))
+
+
+def closed_restatement(text: str) -> bool:
+    t = norm(text or "")
+    return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1)))
+
+
+def choice_list_question(text: str) -> bool:
+    t = norm(text or "")
+    return bool(CHOICE_LIST.search(t) and not OPEN_BRANCH.search(t))
+
+
 def solution_load_question(text: str) -> bool:
     return bool(SOLUTION_LOAD.search(norm(text or "")))
 

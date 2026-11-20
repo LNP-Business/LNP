@@ -218,7 +218,8 @@ Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/ln
 lettres accentuées, mots vides, « je » → « tu », nombres, formes de question, registres, ouvertures et validations de l'écart, marqueurs
 d'objection. Le code applique aussi au moteur allégé les règles dures de la découverte (charge de la solution, question sur l'offre),
 le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une mention de l'offre (PB-2) et le registre lu dans la question
-quand elle nomme un domaine (SB-27). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+quand elle nomme un domaine (SB-27), et depuis le 2026-11-20 la vérification de suivi (« ça fait sens ? »), la
+reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et

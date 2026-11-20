@@ -153,7 +153,8 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (S1g, the engine's `decide_letter`), as in §3; S1's own letter is only the fallback when no valid gate answer
    came back; the code enforces the hard rules it can read in the text: validation tail, closed need-payoff,
    and since 2026-11-19 a tail alone ("Tu vois ?"), the load of a solution (time to dedicate, budget: `SOLUTION_LOAD`)
-   and a question about the offer (`OFFER_QUESTION`), in English and French. Segmentation (SEG-1, Romain 2026-11-20):
+   and a question about the offer (`OFFER_QUESTION`), in English and French. Since 2026-11-20 also: a check-in (`CHECK_IN`), a closed restatement
+   (`closed_restatement`) and a choice among the sales' options (`CHOICE_LIST`), §3. Segmentation (SEG-1, Romain 2026-11-20):
    the code lists the solicitations, one per sales turn read on its priority question (`spin.group_turn`,
    `engine.inventory`); the model reads every listed item by its id (a forgotten one is asked again once, then counted
    `question:not_read`; a gap validation request is answered `routing` and set aside) and may add a request without a

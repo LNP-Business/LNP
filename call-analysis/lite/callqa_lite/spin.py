@@ -122,6 +122,15 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if E.social_or_logistic(sentence):                                # SB-2: social, logistic, framing of the call
         forced.append("nothing")
         tags.append("framing_by_code")
+    if E.check_in_question(sentence):                                 # §3 (2026-11-20): "does that make sense?"
+        forced.append("nothing")
+        tags.append("check_in_by_code")
+    if E.closed_restatement(sentence):                                # §3 (2026-11-20): "so your problem is time?"
+        forced.append("agreement")
+        tags.append("closed_restatement_by_code")
+    if E.choice_list_question(sentence):                              # §3 (2026-11-20): "would you rather X or Y?"
+        forced.append("sales_list")
+        tags.append("choice_list_by_code")
     if forced:
         cands = forced + ([reason] if letter == E.OUT and reason in E.OUT_PRIORITY else [])
         return E.LetterDecision(E.OUT, 1, min(cands, key=E.OUT_PRIORITY.index), sorted(set(tags)))

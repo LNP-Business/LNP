@@ -169,3 +169,22 @@ def test_the_questions_of_one_turn_are_one_unit_read_on_the_priority_question():
         assert g["priority"] == priority, turn
         assert len(g["questions"]) == len([x for x in S.split_sentences(turn) if x.endswith("?")])
     assert S.group_turn("D'accord, je comprends.") is None
+
+
+def test_three_more_hard_rules_read_in_the_question():
+    """§3 (Romain, 2026-11-20), from gate 1's definitions, in French and in English."""
+    for q in ["Ça fait sens ?", "Tu me suis ?", "Est-ce que c'est clair pour toi ?", "Tu as des questions ?",
+              "Does that make sense?"]:
+        assert S.check_in_question(q), q                                          # OUT nothing
+    for q in ["Donc ton problème, c'est le temps ?", "Si je comprends bien, tu donnes des cours le soir ?",
+              "So your goal is 10K a month?"]:
+        assert S.closed_restatement(q), q                                         # OUT agreement
+    for q in ["Tu préfères vivre de tes cours ou garder ton job ?", "C'est plutôt le temps ou l'argent ?",
+              "Would you rather work less or earn more?"]:
+        assert S.choice_list_question(q), q                                       # OUT sales_list
+    # what stays open
+    assert not S.closed_restatement("Donc tu as combien d'élèves ?")
+    assert not S.closed_restatement("Alors, qu'est-ce qui te bloque ?")
+    assert not S.choice_list_question("C'est plutôt le temps, l'argent ou autre chose ?")      # an open branch
+    assert not S.choice_list_question("Tu es salariée ou à ton compte ?")                       # two verifiable facts
+    assert not S.check_in_question("Qu'est-ce qui fait sens pour toi dans ton métier ?")

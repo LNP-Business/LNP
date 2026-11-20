@@ -59,3 +59,14 @@ def test_the_questions_go_in_batches_with_their_context():
     p = calls[0]["prompt"]
     assert "Q003 · T003" in p and "BEFORE: [T001 SALES]" in p and "ANSWER: [T004 PROSPECT] I have been doing" in p
     assert "You do NOT choose a letter" in p
+
+
+def test_the_new_hard_rules_override_the_gates():
+    """§3 (2026-11-20): a check-in, a closed restatement and a choice among the sales' options are OUT whatever the
+    gates say."""
+    from callqa_lite.spin import decide_letter
+    for sentence, reason, tag in [("Ça fait sens ?", "nothing", "check_in_by_code"),
+                                  ("Donc ton problème, c'est le temps ?", "agreement", "closed_restatement_by_code"),
+                                  ("C'est plutôt le temps ou l'argent ?", "sales_list", "choice_list_by_code")]:
+        d = decide_letter({"letter": "P"}, sentence)
+        assert (d.letter, d.reason) == ("OUT", reason) and tag in d.tags, sentence
