@@ -91,9 +91,8 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   said again before, a repetition. Two natures in one passage (OB-4) merged when they share a quote; topic change (OB-8) read once by
   the model and checked by code; detection deadlines (OB-2, OB-25) do not feed prevention.
 - Language (2026-11-19, `core/lang_fr.py`): the word lists read French as well as English. Two French readings to
-  confirm: (a) OB-13 counts « mais » as a contradiction like "but", so « pas de souci, …, mais là, disons-nous les
-  choses… » is not an acknowledgement (Ouala's call: H2 2 → 0); in spoken French « mais » is often a mere transition;
-  (b) « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (only alone is it a
+  confirm: (a) settled 2026-11-20 (Romain): « mais », « en fait », « sauf que » contradict only without a receiving
+  marker before them or when a counter or a denial follows (OB-13, French bullet); Objections memo to update; (b) « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (only alone is it a
   tail), unlike "you know?" in English.
 - SB-2 by code (2026-11-19): a social, logistic or framing question never starts the perimeter whatever its letter;
   the list (`SOCIAL_LOGISTIC`) includes « as-tu vu le live / la conférence ? ». SB-2 keeps « what made you book the

@@ -54,6 +54,7 @@ This annex says how the system finds, in a raw transcript, each resistance, its 
 **OB-13 · Acknowledge.** Read on the first sentence of the first response turn.
 - Acknowledged: a receiving marker without contradiction ("I hear you", "that makes total sense", "totally fair", "I understand", "good question", "I appreciate you sharing that") or a neutral reformulation of the resistance.
 - Not acknowledged: the first sentence starts with or contains a contradiction ("but", "actually", "no,", "that's not true", "the thing is", "I disagree") or a counter-argument.
+- French (Romain, 2026-11-20): « non, », « c'est faux », « pas du tout », « au contraire », « je ne suis pas d'accord », « mais non », « mais si » always contradict. « Mais », « en fait », « sauf que » are often mere transitions in spoken French: they contradict only when no receiving marker comes before them in the sentence, or when what follows them counters (« mais justement », « mais dis-toi », « mais tu sais ») or denies the resistance (« mais ce n'est pas cher », « mais ne t'inquiète pas »). « Pas de souci, je t'entends, mais là, disons-nous les choses » is acknowledged; « Mais tu sais, c'est un investissement » is not.
 
 **OB-14 · Isolate.** A sales solicitation that asks whether the resistance is the only obstacle: "apart from…", "other than…", "is that the only thing", "if we solved that, would you…", "is there anything else stopping you". Must be in the episode, before the answer.
 

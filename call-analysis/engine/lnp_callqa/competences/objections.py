@@ -106,8 +106,34 @@ _MARKER_RE = [(k, re.compile(p, re.I)) for k, ps in MARKERS.items() for p in ps]
 
 # OB-13 lexical contradiction markers, checked by code on the first sentence of the first response.
 CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree|"
-                              r"\bmais\b|\ben fait\b|^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|"
-                              r"je ne suis pas d'accord|pas du tout)", re.I)
+                              r"^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|c'est faux|je ne suis pas d'accord|"
+                              r"pas du tout|au contraire|\bmais (non|si)\b)", re.I)
+# OB-13 in French (Romain, 2026-11-20): « mais », « en fait », « sauf que » are often mere transitions in spoken French.
+# They cancel the acknowledgement only when nothing received the resistance before them in the sentence, or when what
+# follows them contradicts or denies what the prospect said. English "but" and "actually" keep the rule as written.
+TRANSITION_FR = re.compile(r"\b(mais|en fait|sauf que)\b", re.I)
+RECEIVING_FR = re.compile(r"\b(je (te |vous )?comprends|je (t'|vous )?entends|j'entends|c'est (tout à fait |complètement |"
+                          r"très )?(normal|légitime|compréhensible|logique|une (très )?bonne question)|ça se comprend|"
+                          r"pas de souci|pas de soucis|pas de problème|bien sûr|tout à fait|je vois|merci (de|pour)|"
+                          r"(tu as|t'as|vous avez) (bien )?raison|effectivement|d'accord|ok|okay|très bien|je note)\b", re.I)
+COUNTER_FR = re.compile(r"^[\s,.;:!-]*(non\b|si\b|justement|au contraire|c'est faux|dis-toi|dites-vous|tu sais|vous savez|"
+                        r"regarde|regardez|attends|attendez|en fait|sauf que)", re.I)
+DENIAL_FR = re.compile(r"(ce n'est pas|c'est pas|ça n'est pas|ce n pas|ce n'est quand même pas|il ne faut pas|faut pas|"
+                       r"tu n'as pas à|t'as pas à|vous n'avez pas à|ne t'inquiète pas|t'inquiète|ne vous inquiétez pas)", re.I)
+
+
+def french_transition_contradicts(sentence: str) -> bool:
+    """OB-13 (Romain, 2026-11-20): a « mais » (« en fait », « sauf que ») contradicts unless a receiving marker comes
+    before it in the sentence and what follows it neither counters (« mais non », « mais justement », « mais dis-toi »)
+    nor denies the resistance (« mais ce n'est pas cher », « mais ne t'inquiète pas »)."""
+    s = norm(sentence)
+    for m in TRANSITION_FR.finditer(s):
+        before, after = s[:m.start()], s[m.end():]
+        if not RECEIVING_FR.search(before):
+            return True
+        if COUNTER_FR.match(after) or DENIAL_FR.search(after[:80]):
+            return True
+    return False
 
 _LOCAL_STOP = set("""i me my mine we us our it's that's there's what's let's i'm i've i'll i'd you're don't doesn't
 didn't can't won't isn't aren't wasn't gonna wanna yes yeah no not so because just um uh oh hmm mm mm-hmm okay ok
@@ -357,7 +383,7 @@ def link_recurrences(ctx: CallContext, episodes: list[Episode], previous: Option
 # ----------------------------------------------------------------------------------------------- gestures (code)
 def acknowledged(first_sentence: str, ans: Optional[dict]) -> bool:
     """OB-13 / OB-20 / X5, read on the first sentence of the first response turn."""
-    if CONTRADICTION_RE.search(norm(first_sentence)):
+    if CONTRADICTION_RE.search(norm(first_sentence)) or french_transition_contradicts(first_sentence):
         return False
     a = ans or {}
     if a.get("contradiction"):
