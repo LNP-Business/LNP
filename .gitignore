@@ -10,3 +10,7 @@ call-analysis/engine/tests/fixtures/transcripts/
 call-analysis/docs/screen/
 __pycache__/
 .pytest_cache/
+
+# skill de conception Impeccable (.claude/skills/impeccable) : son moteur téléchargé et ses caches ne vont pas dans le dépôt
+.claude/skills/impeccable/scripts/bin/
+**/.impeccable/

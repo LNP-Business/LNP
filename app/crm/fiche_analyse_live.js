@@ -118,10 +118,10 @@ const { chromium } = require('playwright');
   check('écart : ce qui manque pour un écart parfait, avec les points à gagner', gx && gx.todo.some(t => /chiffrer ce coût/.test(t) && /\+20/.test(t)) && gx.todo.some(t => /Reprendre ce coût avec ses mots/.test(t)) && gx.todo.some(t => /validation dans ses mots/.test(t) && /\+13/.test(t)), gx && gx.todo);
   check('écart : la reformulation parfaite remplie avec ses mots', gx && /300 euros par mois/.test(gx.formula) && /1 500 euros par mois/.test(gx.formula) && /me vendre/.test(gx.formula), gx && gx.formula);
   if (OUT) { await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); c.scrollIntoView(); document.querySelector('.ca-scrim').scrollTop -= 110; }); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart.png', fullPage: false }); await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop += 560); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart-manque.png' }); }
-  // découverte : une lettre SPIN montre la question et la réponse en clair, les répliques autour à 50 %
+  // découverte : une lettre SPIN montre la question et la réponse en clair, les répliques autour atténuées (une couleur lisible, pas une opacité)
   await cf.click('.ca-scrim [data-cav-sol="Q015"]'); await p.waitForTimeout(300);
-  const sp = await cf.evaluate(() => { const r = document.querySelector('.ca-scrim [data-cav-sol=""]'); const box = r && r.closest('td'); return box ? [...box.querySelectorAll('.row')].map(x => ({ id: x.dataset.tid, dim: x.classList.contains('dim'), op: getComputedStyle(x).opacity })) : null; });
-  check('découverte : la lettre P montre la question et la réponse en clair, plus de répliques autour à 50 %', sp && sp.filter(r => !r.dim).map(r => r.id).join() === 'T015,T020' && sp.filter(r => r.dim).length >= 3 && sp.filter(r => r.dim).every(r => r.op === '0.5'), sp);
+  const sp = await cf.evaluate(() => { const r = document.querySelector('.ca-scrim [data-cav-sol=""]'); const box = r && r.closest('td'); return box ? [...box.querySelectorAll('.row')].map(x => ({ id: x.dataset.tid, dim: x.classList.contains('dim'), op: getComputedStyle(x.querySelector('.tx')).color })) : null; });
+  check('découverte : la lettre P montre la question et la réponse en clair, plus de répliques autour atténuées', sp && sp.filter(r => !r.dim).map(r => r.id).join() === 'T015,T020' && sp.filter(r => r.dim).length >= 3 && sp.filter(r => r.dim).every(r => r.op === 'rgb(90, 100, 120)'), sp);
   if (OUT) { await cf.evaluate(() => document.querySelector('.ca-scrim [data-cav-sol=""]').closest('td').scrollIntoView({ block: 'center' })); await p.waitForTimeout(150); await p.screenshot({ path: OUT + '/spin-lettre.png' }); }
   await cf.click('.ca-scrim [data-cav-sol=""]'); await p.waitForTimeout(200);
   // objections : la lettre ouvre sa citation sous l'objection qui la porte, un second clic la referme
@@ -132,8 +132,8 @@ const { chromium } = require('playwright');
   await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
   ob = await obRows();
   check('objections : la lettre A de la 2e objection ouvre sa citation, sous cette objection', ob && !ob[0].pan && ob[1].pan && /Accueillie/.test(ob[1].txt) && /parler à deux/.test(ob[1].txt) && !(await cf.$('.ca-scrim table + .ob-pan')), ob);
-  const obCtx = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return [...e.querySelectorAll('.row')].map(r => ({ id: r.dataset.tid, dim: r.classList.contains('dim'), op: getComputedStyle(r).opacity })); });
-  check('objections : le passage concerné (résistance et réponse) en clair, les répliques autour à 50 %', obCtx.length >= 4 && obCtx.filter(r => !r.dim).map(r => r.id).join() === 'T064,T065' && obCtx.filter(r => r.dim).every(r => r.op === '0.5') && obCtx.some(r => r.dim && r.id === 'T063') && obCtx.some(r => r.dim && r.id === 'T066'), obCtx);
+  const obCtx = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return [...e.querySelectorAll('.row')].map(r => ({ id: r.dataset.tid, dim: r.classList.contains('dim'), op: getComputedStyle(r.querySelector('.tx')).color })); });
+  check('objections : le passage concerné (résistance et réponse) en clair, les répliques autour atténuées', obCtx.length >= 4 && obCtx.filter(r => !r.dim).map(r => r.id).join() === 'T064,T065' && obCtx.filter(r => r.dim).every(r => r.op === 'rgb(90, 100, 120)') && obCtx.some(r => r.dim && r.id === 'T063') && obCtx.some(r => r.dim && r.id === 'T066'), obCtx);
   const obPop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return { pos: getComputedStyle(e).position, x: !!e.querySelector('.ob-x') }; });
   check('objections : une fenêtre posée par-dessus le tableau, avec une croix', obPop.pos === 'absolute' && obPop.x, obPop);
   const hNow = await cf.evaluate(() => document.querySelectorAll('.ca-scrim table')[document.querySelectorAll('.ca-scrim table').length - 1].getBoundingClientRect().height);
@@ -188,7 +188,7 @@ const { chromium } = require('playwright');
     const d = document.createElement('div'); d.innerHTML = C.html({ results: { SPIN: { status: 'scored', details: { solicitations: [{ id: 'Q005', letter: 'S', turn: 'T005', in_perimeter: true }] } } }, corrections: [], can_correct: false }, { sol: 'Q005' });
     return !d.querySelector('[data-cav-fix]'); });
   check('un commercial voit la correction mais ne peut pas corriger', reader === true, reader);
-  await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+  for (let k = 0; k < 3 && await win(); k++) { await p.keyboard.press('Escape'); await p.waitForTimeout(300); }   // Échap ferme par étapes
   // C9 (Romain, 2026-11-20) : le rendu d'un R2 après un bon écart et une offre déjà présentée au R1, puis d'un écart à reprendre
   const c9 = await cf.evaluate(async () => {
     const CAV = window.LNP_CAV || window.parent.LNP_CAV; if (!CAV) return null;

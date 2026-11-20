@@ -149,12 +149,25 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   parfaite remplie avec ses mots) ; affichage seulement, les règles restent celles du moteur. Objections : comme dans la Découverte,
   une lettre A · I · E · M ouvre sa citation dans une fenêtre posée sur le tableau, sous la lettre (`gPanel`, `.ob-pop`), refermée par
   la même lettre ou sa croix ; le tableau garde sa hauteur. Une lettre (SPIN dans la Découverte, A · I · E · M dans les Objections)
-  montre le passage concerné en clair et les répliques autour à 50 % (`ctxRows` : 2 avant et 2 après pour SPIN, 2 avant et 4 après
-  pour une objection). Un administrateur corrige la lettre d'une question dans le panneau qui s'ouvre (« Corriger la
-  lettre », raison facultative ; Romain 2026-11-20, migration 063 `crm_ca_correct`, table `crm_ca_corrections` en ajout seulement) :
-  la lettre corrigée s'affiche en pointillés, celle du moteur en infobulle, la note n'est pas recalculée (C8) ; les corrections
-  nourrissent le jeu de référence (`call-analysis/qa/corrections_to_reference.py`) ; test
-  `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>` (31 contrôles).
+  montre le passage concerné en clair et les répliques autour atténuées, en couleur et non en opacité (`ctxRows` : 2 avant et 2
+  après pour SPIN, 2 avant et 4 après pour une objection). Un administrateur corrige la lettre d'une question dans le panneau qui
+  s'ouvre (« Corriger la lettre », raison facultative ; Romain 2026-11-20, migration 063 `crm_ca_correct`, table `crm_ca_corrections`
+  en ajout seulement) : la lettre corrigée s'affiche en pointillés, celle du moteur en infobulle, la note n'est pas recalculée (C8) ;
+  les corrections nourrissent le jeu de référence (`call-analysis/qa/corrections_to_reference.py`) ; test
+  `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>`.
+  Passe Impeccable (Romain, 2026-11-20 ; critique 21/40, objectif 18/20) : en haut, les quatre notes restent visibles au défilement
+  et mènent à leur section (`header`, `.cav-nav`), avec les points à gagner (100 − note) ; puis « Pour ton prochain appel » : les
+  trois actions qui rapportent le plus et « Ce qui a marché » (`plan`, `ACT`, `WON` : poids × (2 − niveau) / 2 des items du moteur,
+  ramené à ce qui manque pour 100 ; pour les objections, les gestes et la prévention à 70 / 30). Un seul état par compétence, le
+  même dans la tuile et dans la section (`compState`, `stateTag`) : vert maîtrisé, bleu en progrès ou en partie, ambre à travailler
+  ou manqué, rouge seulement pour une règle enfreinte, neutre à vérifier. Textes à 12, 14, 16, 20 et 28 px, contraste d'au moins
+  4,5:1, cibles de 24 px, vrais titres (h1, h2) et en-têtes de tableau, focus tenu dans la fenêtre et rendu à l'ouverture.
+  Découverte : la suite des questions dans l'ordre de l'appel, les lettres neutres (seul l'état, fait obtenu ou non, se voit),
+  « 2 douleurs · 1 désir » en mots ; Objections : « Avant le prix » puis « Après le prix », « Ta réponse » et « Réaction du
+  prospect » ; aucun numéro de tour ni code de règle à l'écran. « Remplacer la transcription » est en bas de l'analyse.
+  « Comment c'est noté » sous chaque section (`HOW`, la méthode en clair) ; les points d'attention de la qualification visibles ;
+  la transcription en panneau à droite, avec une recherche sans accents (`.cav-find`) ; Échap ferme d'abord la fenêtre d'un geste,
+  la question ouverte ou la transcription, puis l'analyse, et le focus revient au bouton qui l'a ouverte.
 - Paramètres › Alertes : `gabarits/Settings.pre-hz.dc.html` ; Compte et Accès : `gen_access.py` et `web/public/lnp-web.js`.
 - Connexion, équipe, accès par écran, interface `window.claude.use("user" | "crm")` : `web/public/lnp-web.js`.
 
