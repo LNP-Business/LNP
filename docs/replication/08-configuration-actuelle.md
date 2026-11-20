@@ -22,7 +22,7 @@ des réglages publics et des compteurs. À utiliser comme état attendu d'une r�
 | Tables (`public`) | 41, toutes avec RLS |
 | Fonctions (`public`) | 131 |
 | Extensions | `citext`, `pg_cron`, `pg_net`, `pg_stat_statements`, `pgcrypto`, `plpgsql`, `supabase_vault`, `uuid-ossp` |
-| Stockage | aucun bucket pour l'instant (`library` est créé au premier dépôt de fichier ; `callqa-fixtures` n'existe pas) |
+| Stockage | `callqa-fixtures` (privé, créé le 2026-11-20 : `qa/reference.tar.gz` et `qa/cases.tar.gz`, le jeu de référence de la mesure de l'analyse d'appel, `call-analysis/qa` ; données personnelles, jamais dans Git) ; `library` est créé au premier dépôt de fichier |
 | Fonctions Edge | `iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`, `process-inbox`, `crm-import`, `sla-tick`, `callqa-llm` (toutes `verify_jwt = false`) ; `whatsapp-in` remplace `sendblue-in` (Sendblue abandonné le 9 novembre 2026, il n'a jamais envoyé de données) et se met en service avec la migration `052_crm_whatsapp`, pas encore appliquée |
 | Secrets des fonctions | seulement ceux créés par Supabase (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PUBLISHABLE_KEYS`, `SUPABASE_SECRET_KEYS`, `SUPABASE_DB_URL`, `SUPABASE_JWKS`) ; les secrets des outils (iClosed, Fathom, WhatsApp, Close, Anthropic, Slack) restent à ajouter |
 

@@ -29,7 +29,8 @@ repaired): format in `callqa_qa/reference.py`. Calls are `tuning` (used to find 
 looked at while tuning: they tell whether a fix generalises, C7).
 
 The reference files and the case files (transcript, speaker map, the stored model answers) hold **personal data**: they
-never go into git. They live in the private Storage bucket `callqa-fixtures`, folder `qa/` (`reference/`, `cases/`).
+never go into git. They live in the private Storage bucket `callqa-fixtures` (created 2026-11-20), as
+`qa/reference.tar.gz` and `qa/cases.tar.gz`; the measure job of the workflow writes its reports to `qa/reports/`.
 
 November 2026: the 6 analysed calls, read in the audit of 2026-11-19 (all `tuning`). Control calls are still to be
 read.
