@@ -200,6 +200,12 @@ les traduire changerait l'analyse. Le worker tourne dans `.github/workflows/call
 La fiche d'un lead (ligne « Appels », `crm_ca_board`) liste et numérote les appels exactement comme l'analyse
 (`crm_ca_call_info`) : dans un cycle enregistré par Fathom, un appel de vente est un appel enregistré et son numéro est son rang
 (migration 062 : les absences ne décalent plus le R1 ; test `web/supabase/tests/ca_board_rounds_test.sql`).
+Appels d'un même cycle (Romain, 2026-11-20, partie C, C9, `call-analysis/engine/lnp_callqa/core/rounds.py`) : après un bon
+écart (présent, validé, avec problème, coût, A et B), l'appel suivant n'est plus noté sur la découverte ni sur l'écart ; après
+un mauvais écart, il l'est (approfondir, reformuler) ; la présentation de l'offre n'est notée qu'une fois, dans le premier
+appel où elle a lieu ; une fois le prix donné, toutes les objections de l'appel suivant comptent dès le début ; un appel
+précédent non analysé → lu comme un premier appel ; un mauvais écart ni reformulé ni suivi d'un retour à la découverte avant
+l'offre est signalé « Écart à reprendre » (`gap_not_remedied`). Test d'écran : `app/crm/fiche_analyse_live.js` (27 contrôles).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/lnp_callqa/core/lang_fr.py`, test `tests/test_french.py`) :

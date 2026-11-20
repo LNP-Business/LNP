@@ -3,8 +3,9 @@
     python3 call-analysis/qa/qa_run.py --cases DIR --refs DIR [--mode replay|live] [--repeat N] [--split tuning|control|all]
                                     [--out report.json]
 
-A case file (one per call, `<slug>.json`): {"call": {"call_id", "transcript_raw", "speaker_map", "scheduled_start"},
-"config": {"tiers": {...}}, "audit": [{"entry": {"task", "answer"}}, ...]}; the reference file has the same slug.
+A case file (one per call, `<slug>.json`): {"call": {"call_id", "transcript_raw", "speaker_map", "scheduled_start",
+"sales_round"}, "prior": [earlier analysed calls of the cycle, as crm_ca_claim gives them], "config": {"tiers": {...}},
+"audit": [{"entry": {"task", "answer"}}, ...]}; the reference file has the same slug.
 - replay: the model answers kept with the analysis (crm_ca_audit) are played again, no model call. A step the stored
   analysis did not have (the voice check before 2026-11-19) gets an empty answer.
 - live: the lite engine asks the model through the gateway ($SUPABASE_URL/functions/v1/callqa-llm,
@@ -28,10 +29,10 @@ from callqa_qa.score import measure, reproducibility, share, total  # noqa: E402
 
 def claim_of(case: dict) -> dict:
     c = case["call"]
-    return {"call": {"call_id": c["call_id"], "sales_id": c.get("sales_id") or "qa",
+    return {"call": {"call_id": c["call_id"], "sales_id": c.get("sales_id") or "qa", "sales_round": c.get("sales_round"),
                      "start_utc": c.get("scheduled_start") or "", "timezone": "Europe/Paris"},
             "transcript": c["transcript_raw"], "speaker_map": c["speaker_map"], "offer_reference": case.get("offer") or {},
-            "case_library": case.get("cases") or [], "prior": [], "config": case.get("config") or {}}
+            "case_library": case.get("cases") or [], "prior": case.get("prior") or [], "config": case.get("config") or {}}
 
 
 def stored_answers(case: dict) -> dict:

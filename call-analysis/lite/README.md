@@ -37,6 +37,15 @@ problem (depending on a parent, exhaustion…) is a COST, not a PROBLEM.
    sales moves on stays one episode; one that comes back after is a new episode linked to the first, OB-11, Romain
    2026-11-20), and **A · I · E · M** on each; plus the prevention facts before the first price.
 
+## Calls of one cycle (Part C, C9, Romain 2026-11-20)
+
+The worker passes the call's round and the earlier analysed calls of the cycle (`crm_ca_claim.prior`):
+`core/rounds.plan` reads them. After a good gap in an earlier call, S1 and S2 are not asked (SPIN and Gap
+`not_applicable`, `gap_made_in_previous_call`; the earlier gap is carried for the pitch); after a pitch in an earlier
+call, S3 is not asked (`pitch_made_in_previous_call`); once the price was given earlier, S4 reads every resistance from
+the first turn and prevention is not evaluated. A bad gap with no new restatement nor discovery question before the
+pitch flags the call `gap_not_remedied` (`meta.gap_remediation`). `meta.cycle` shows the plan.
+
 ## The steps
 
 All steps go through the gateway `callqa-llm` on the `fast` tier of `crm_ca_config.tiers` (claude-haiku-5-5), effort

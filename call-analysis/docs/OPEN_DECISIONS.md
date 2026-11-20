@@ -102,3 +102,9 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 - GB-1 (2026-11-19): an offer word said before the first restated clause, in the same turn, does not end the
   restitution (« dans notre accompagnement on préconise 4 heures… En fait, je comprends que… »). Gap memo to update.
 - Screen: the objections table shows the first quote of each objection; `episodes[].quotes` holds the others.
+
+## F. Settled 2026-11-20 (Romain)
+- Calls of one cycle (Part C, C9): discovery and gap evaluated in a later call only after a bad gap (absent, incomplete
+  or not validated); the pitch evaluated once, in the first call where it happens; objections from the start of a call
+  once the price was given earlier; an unknown earlier call → read as a first call; a bad gap not followed up before the
+  pitch → flag `gap_not_remedied`, no weight of its own. Memos to update: SPIN, Gap, Pitch, Objections (one paragraph each).

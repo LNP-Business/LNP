@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from typing import Optional, Protocol
 
+from .core import rounds
 from .core.foundation import parse_transcript, run_foundation
 from .core.models import CallContext, CompetenceResult
 from .core.runner import Runner
@@ -36,12 +37,19 @@ def analyse_call(ctx: CallContext, runner: Runner, competences: Optional[list[Co
             ctx.results[comp.name] = CompetenceResult(comp.name, comp.rules_version, status="excluded",
                                                       reasons=[ctx.status])
             continue
+        skip = rounds.skip_reason(ctx, comp.name)                 # C9: done in an earlier call of the cycle
+        if skip:
+            ctx.results[comp.name] = CompetenceResult(
+                comp.name, comp.rules_version, status="not_applicable", reasons=[skip],
+                details=rounds.carried_gap(ctx) if comp.name == "GAP" else {})
+            continue
         try:
             ctx.results[comp.name] = comp.run(ctx, runner)
         except Exception as e:  # noqa: BLE001 - a crash in one competence never blocks the others
             ctx.audit.append({"competence": comp.name, "error": repr(e)})
             ctx.results[comp.name] = CompetenceResult(comp.name, comp.rules_version, status="to_review",
                                                       reasons=["engine_error"])
+    rounds.gap_remediation(ctx)                                   # C9: a bad gap is followed up before the pitch
     return ctx
 
 

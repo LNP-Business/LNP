@@ -2252,6 +2252,10 @@ window.lnpCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
     prompted_by_sales: "soufflé par le commercial", income_not_cost: "un revenu, pas un coût",
     all_episodes_to_review: "toutes les objections sont à vérifier", candidates_to_review: "des objections possibles sont à vérifier",
     prevention_to_review: "la prévention est à vérifier", no_resistance_no_price: "ni résistance ni prix",
+    gap_made_in_previous_call: "écart déjà fait lors d'un appel précédent du cycle",
+    pitch_made_in_previous_call: "offre déjà présentée lors d'un appel précédent du cycle",
+    no_discovery_no_pitch: "ni découverte ni présentation de l'offre",
+    gap_not_remedied: "écart à reprendre : ni nouvelle reformulation ni retour à la découverte avant l'offre",
     "no_resistance: call score = prevention score": "aucune résistance : le score de l'appel est celui de la prévention"
   };
   var UNIT = { category: "catégorie du blocage", roadmap: "feuille de route", step1: "étape 1", step2: "étape 2", step3: "étape 3", step4: "étape 4" };
@@ -2537,8 +2541,9 @@ window.lnpCrmTab=function(t){S.cx.tab=t;closeMenu();renderCRM()};</script><scrip
     var table = rowsT.length ? '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:640px"><thead><tr><th class="th">Élément</th><th class="th">Ce qu\'a dit le prospect</th><th class="th">Ce qu\'a reformulé le commercial</th><th class="th">Mot pour mot</th></tr></thead><tbody>' + rowsT.join("") + "</tbody></table></div>" : "";
     var rb = obj(d.roadmap), road = '<div style="font-size:13px" class="muted">Matière pour la feuille de route : ' + (rb.count != null ? rb.count : arr(d.roadmap_blockers).length) + " autre(s) blocage(s) relevé(s) dans les réponses P ou I" + (rb.warning ? ' · <b style="color:#A2450E">Alerte Copilot</b> : ' + esc(typeof rb.warning === "string" ? rb.warning : "moins de blocages que d'étapes dans la feuille de route") : "") + ".</div>";
     var absent = !present && x.status === "scored" ? '<div class="ban">Écart absent : ' + esc(why(d.absence_reason || arr(x.reasons)[0])) + "." + (!isRest && cands.length ? " " + cands.length + " passage" + (cands.length === 1 ? " s'en est approché ; il n'était pas valable." : "s s'en sont approchés ; aucun n'était valable.") : "") + "</div>" : "";
+    var rm = obj(d.remediation), redo = rm.needed ? (rm.done ? '<div class="muted" style="font-size:13px">Écart repris avant la présentation de l\'offre : ' + (rm.done === "restatement" ? "nouvelle reformulation" : "retour à la découverte") + ".</div>" : '<div class="ban">Écart à reprendre : il n\'a été suivi ni d\'une nouvelle reformulation ni d\'un retour à la découverte avant la présentation de l\'offre.</div>') : "";
     return '<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">' + sectionHead(2, "L'écart reformulé", tag) +
-      sub("Problème et coût reformulés en une fois, avec les mots exacts du prospect, validés par le prospect, avant la présentation de l'offre et le prix.") + notScored(x) + absent + timing + verb + chk + table + road + "</div>";
+      sub("Problème et coût reformulés en une fois, avec les mots exacts du prospect, validés par le prospect, avant la présentation de l'offre et le prix.") + notScored(x) + absent + redo + timing + verb + chk + table + road + "</div>";
   }
 
   // ------------------------------------------------------------------ 3 · the pitch

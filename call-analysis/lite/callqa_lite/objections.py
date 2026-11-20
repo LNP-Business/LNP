@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from lnp_callqa.competences import objections as O
+from lnp_callqa.core import rounds
 from lnp_callqa.core.models import CallContext, CompetenceResult, Evidence, ItemScore, SALES
 from lnp_callqa.core.scoring import call_score
 from lnp_callqa.core.text import norm, sentences
@@ -40,7 +41,7 @@ def _valid_quotes(ctx: CallContext, o: dict, drops: Drops) -> list[dict]:
         if e:
             drops.add(STEP, f"quote:{e}", q)
             continue
-        if not fp or ctx.n(q["turn"]) <= ctx.n(fp):
+        if not rounds.objections_from_start(ctx) and (not fp or ctx.n(q["turn"]) <= ctx.n(fp)):
             drops.add(STEP, "quote:before_price", q)            # OB-27, Romain 2026-11-03: after the first price only
             continue
         out.append({"turn": q["turn"], "quote": q["quote"]})
@@ -325,7 +326,7 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult
             ep.score = call_score(ep.items)
 
     fp = ctx.phases.first_price
-    h_status, p_status = O.applicability(len(eps), bool(fp))
+    h_status, p_status = O.applicability(len(eps), bool(fp) and not rounds.objections_from_start(ctx))
     prevention, p_items, p_score = None, [], None
     if p_status == "scored":
         p_items, prevention, pf = O.prevention_items(ctx, _prevention_facts(ctx, s4.get("prevention") or {}, drops), fp)
