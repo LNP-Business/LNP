@@ -114,6 +114,8 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   claude-haiku-5-5), set in the online configuration when the S1g PRs are merged; to be confirmed by the measure.
 - SPIN letters (2026-11-20): the lite engine asks the closed gates of each question (S1g, batches of 25 with context)
   and decides the letter by code with the engine's `decide_letter`, as in §3; S1 reads 40 turns per call (was 160).
+- Cut recordings (C1): a recording shorter than 20 minutes (its last timestamp) is not analysed
+  (`recording_incomplete`, no model call), whatever the planned length of the call.
 - SEG-1: the questions of one sales turn are one solicitation, read on the last one unless it only follows up the one
   before (« pourquoi ? »): then the one before. The code lists them, one per turn; the model reads every listed one (a
   forgotten one is asked again once, then counted `question:not_read`). Lite engine only: **the reference engine still

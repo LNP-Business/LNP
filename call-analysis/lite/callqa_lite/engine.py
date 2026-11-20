@@ -14,7 +14,7 @@ from typing import Any, Optional
 from . import LITE_VERSION
 from lnp_callqa.competences import pitch as P
 from lnp_callqa.core import rounds
-from lnp_callqa.core.foundation import diarization_gate
+from lnp_callqa.core.foundation import diarization_gate, recording_gate
 from lnp_callqa.core.models import CallContext, CompetenceResult
 from lnp_callqa.pipeline import result_record
 
@@ -319,6 +319,10 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
     drops = Drops()
     meta = {"engine": "lite", "version": LITE_VERSION, "tier": cfg["tier"], "effort": cfg["effort"],
             "cycle": rounds.public(ctx.cycle)}
+    if not recording_gate(ctx):                              # C1 (2026-11-20): under 20 minutes, the recording is cut
+        for name, rv in RULES.items():
+            ctx.results[name] = CompetenceResult(name, rv, status="excluded", reasons=[ctx.status])
+        return _record(ctx, meta, drops)
     if ctx.lines:                                            # C1: the model lists the wrong labels, the code repairs
         meta["voices"] = run_voices(ctx, client, cfg, drops)
     diarization_gate(ctx)                                    # C1 (code): word shares, after the repair

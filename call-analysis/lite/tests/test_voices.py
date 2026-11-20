@@ -15,12 +15,12 @@ MAP = {S: "SALES", P: "PROSPECT"}
 # the recorder's lines, with the label errors it makes: a question under the prospect's name, an answer under the
 # sales' name, a line holding the end of one speaker and the start of the other
 RAW = "\n".join([
-    f"[00:00:05] {S}: Bonjour Julie, tu m'entends bien ?",
-    f"[00:00:08] {P}: Oui, je t'entends. Alors, qu'est-ce qui t'a amenée à réserver cet appel ?",
-    f"[00:00:15] {P}: Je donne des cours depuis deux ans, mais je n'ai pas assez d'élèves.",
-    f"[00:00:24] {P}: Et tu as combien d'élèves aujourd'hui ?",
-    f"[00:00:27] {S}: Trois élèves, surtout le soir.",
-    f"[00:00:31] {S}: D'accord.",
+    f"[00:30:05] {S}: Bonjour Julie, tu m'entends bien ?",
+    f"[00:30:08] {P}: Oui, je t'entends. Alors, qu'est-ce qui t'a amenée à réserver cet appel ?",
+    f"[00:30:15] {P}: Je donne des cours depuis deux ans, mais je n'ai pas assez d'élèves.",
+    f"[00:30:24] {P}: Et tu as combien d'élèves aujourd'hui ?",
+    f"[00:30:27] {S}: Trois élèves, surtout le soir.",
+    f"[00:30:31] {S}: D'accord.",
 ])
 FIXES = {"lines": [
     {"line": "L002", "role": "SALES", "from": "Alors, qu'est-ce qui"},       # split: the head stays the prospect's
@@ -90,7 +90,7 @@ def test_a_doubtful_line_is_a_turn_of_its_own_left_out_of_the_prefix():
 def test_the_step_runs_first_in_chunks_with_its_own_prefix():
     client = MockLiteClient({"lite.sv_voices": [{"lines": FIXES["lines"][:1]}, {"lines": FIXES["lines"][1:]}, {}]})
     long_answer = "Je voudrais vivre de mes cours, " + "avoir plus d'élèves le soir et le week-end, " * 25
-    c = ctx_of(RAW + f"\n[00:00:35] {P}: {long_answer}")          # enough prospect words for the diarization gate
+    c = ctx_of(RAW + f"\n[00:30:35] {P}: {long_answer}")          # enough prospect words for the diarization gate
     rec = analyse(c, client, {"sv_chunk_lines": 3})
     sv = [x for x in client.calls if x["task"] == "lite.sv_voices"]
     assert client.calls[0]["task"] == "lite.sv_voices" and [x["unit"] for x in sv] == ["L001-L003", "L004-L006", "L007-L007"]

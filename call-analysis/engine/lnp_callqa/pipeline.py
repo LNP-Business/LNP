@@ -10,7 +10,7 @@ import json
 from typing import Optional, Protocol
 
 from .core import rounds
-from .core.foundation import parse_transcript, run_foundation
+from .core.foundation import parse_transcript, recording_gate, run_foundation
 from .core.models import CallContext, CompetenceResult
 from .core.runner import Runner
 
@@ -31,7 +31,8 @@ def default_competences() -> list[Competence]:
 
 
 def analyse_call(ctx: CallContext, runner: Runner, competences: Optional[list[Competence]] = None) -> CallContext:
-    run_foundation(ctx, runner)
+    if recording_gate(ctx):                                       # C1: a cut recording is not analysed (no model call)
+        run_foundation(ctx, runner)
     for comp in competences or default_competences():
         if ctx.status != "ok":
             ctx.results[comp.name] = CompetenceResult(comp.name, comp.rules_version, status="excluded",
