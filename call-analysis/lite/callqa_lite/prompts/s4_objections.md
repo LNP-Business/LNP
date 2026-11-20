@@ -3,16 +3,17 @@ STEP S4 · OBJECTIONS AFTER THE FIRST PRICE, AND PREVENTION (Objections annex OB
 A resistance is a PROSPECT (or co-decider) passage that expresses a doubt or a reserve: an objection, an anxiety or an
 inertia. Not a resistance (OB-2): a request for information ("how long is it?"), a conditional acceptance ("if I can
 pay monthly, then yes"), a neutral fact about who decides, a delay with an external verifiable reason (a deadline; if
-it also limits their time, it is a time objection, OB-25). Read resistances ONLY in PROSPECT turns after the first
-price (anchor above) to the end of the call: nothing said before the first price is an objection (OB-27). List each DIFFERENT resistance ONCE: when the same doubt comes back later, add its quotes to the same item.
+it also limits their time, it is a time objection, OB-25). {window} List each resistance once: when the same doubt is said again before the sales moves on, add its quotes to the same item.
+When the same doubt comes back AFTER the sales moved on to another subject or after another resistance (a recurrence,
+OB-11), list it as a NEW item, with its own quotes and the sales response to that passage.
 For each resistance:
 - "subjects": what the doubt is about (OB-3), one or more of: price, money_available, offer_trust, offer_relevance,
   time, co_decider (the offer, its price or terms, the company, or a resource they lack), self_capability (themselves:
   not managing, not lasting), own_decision (choosing wrong, being fooled), present_attachment, postponement (attachment
   to the present, postponing without an external reason). "denied_subjects": the ones the prospect explicitly denies
   ("I'm not scared, it's just the amount", OB-24).
-- "quotes": every PROSPECT passage where it is said, in order: [{"turn", "quote"}].
-- The sales response to the FIRST passage, until the sales moves on:
+- "quotes": every PROSPECT passage where it is said until the sales moves on, in order: [{"turn", "quote"}].
+- The sales response to the FIRST passage of the item, until the sales moves on:
   "topic_change": {"turn", "quote"}: the first SALES turn that moves to a new subject (a new discovery question, a new
   part of the offer, logistics, the close) without reusing the words of the resistance; omit it if none comes before
   the next resistance or the end of the call (OB-8).

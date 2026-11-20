@@ -22,6 +22,8 @@ from typing import Any, Optional
 from ..core.models import CallContext, CompetenceResult, Evidence, ItemScore, OTHER, PROSPECT, SALES, Turn
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core import lang_fr as FR
+from ..core import rounds
 from ..core.text import GENERIC, STOP, approval_only, clean_tokens, norm, norm_number, quote_ok, sentences
 
 # ----------------------------------------------------------------------------------------------- constants
@@ -78,15 +80,99 @@ MARKERS: dict[str, list[str]] = {
                 r"think about it", r"sleep on it", r"sit on it", r"not right now", r"don'?t want to do it today",
                 r"can'?t make (a )?decisions?", r"fine as it is"],
 }
+# French markers (LNP, 2026-11-19): candidates only, as above
+MARKERS_FR: dict[str, list[str]] = {
+    "objection_price_money": [r"trop cher", r"\bcher\b", r"beaucoup d'argent", r"pas les moyens", r"pas l'argent",
+                              r"pas les fonds", r"mon budget", r"\bcrédit\b", r"financement", r"c'est (quand même )?beaucoup",
+                              r"\bla somme\b", r"\ble montant\b", r"\bl'argent\b", r"en plusieurs fois", r"payer"],
+    "objection_trust_relevance": [r"pas sûr(e)? que (ça|ca) marche", r"j'ai déjà vu", r"arnaque", r"\bconfiance\b",
+                                  r"pas besoin", r"je sais déjà", r"c'est de la vente"],
+    "objection_time": [r"pas (beaucoup |assez |le )?temps", r"avec mon (travail|boulot)", r"avec les enfants",
+                       r"\bdébordée?\b", r"\bchargée?\b", r"je cours partout"],
+    "objection_co_decider": [r"en parler (à|a|avec) (mon|ma) (mari|femme|conjoint|conjointe|compagnon|compagne|copain|copine)",
+                             r"demander (à|a) (mon|ma) (mari|femme|conjoint|conjointe|compagnon|compagne)",
+                             r"on décide (à|a) deux", r"voir avec (mon|ma)", r"en discuter avec"],
+    "anxiety_capability": [r"j'ai peur", r"\bpeur\b", r"je ne sais pas si (je peux|j'y arriverai|je vais y arriver)",
+                           r"pas sûr(e)? de (pouvoir|réussir|y arriver)", r"pas à la hauteur", r"j'abandonne toujours",
+                           r"je vais abandonner"],
+    "anxiety_choice": [r"et si (ça|ca) ne marche pas", r"je me suis (déjà )?fait avoir", r"me tromper",
+                       r"comment je (peux )?(sais|savoir)", r"qu'est-ce qui me garantit"],
+    "inertia": [r"pas le bon moment", r"plus tard", r"après les (vacances|fêtes)", r"(ça|ca) me va comme (ça|ca)",
+                r"(je vais |je dois )?réfléchir", r"y réfléchir", r"pas maintenant", r"pas tout de suite",
+                r"l'année prochaine", r"en janvier", r"à la rentrée"],
+}
+for _k, _ps in MARKERS_FR.items():
+    MARKERS[_k] = MARKERS[_k] + _ps
 _MARKER_RE = [(k, re.compile(p, re.I)) for k, ps in MARKERS.items() for p in ps]
 
 # OB-13 lexical contradiction markers, checked by code on the first sentence of the first response.
-CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree)",
-                              re.I)
+CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree|"
+                              r"^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|c'est faux|je ne suis pas d'accord|"
+                              r"pas du tout|au contraire|\bmais (non|si)\b)", re.I)
+# OB-13 in French (Romain, 2026-11-20): « mais », « en fait », « sauf que » are often mere transitions in spoken French.
+# They cancel the acknowledgement only when nothing received the resistance before them in the sentence, or when what
+# follows them contradicts or denies what the prospect said. English "but" and "actually" keep the rule as written.
+TRANSITION_FR = re.compile(r"\b(mais|en fait|sauf que)\b", re.I)
+RECEIVING_FR = re.compile(r"\b(je (te |vous )?comprends|je (t'|vous )?entends|j'entends|c'est (tout à fait |complètement |"
+                          r"très )?(normal|légitime|compréhensible|logique|une (très )?bonne question)|ça se comprend|"
+                          r"pas de souci|pas de soucis|pas de problème|bien sûr|tout à fait|je vois|merci (de|pour)|"
+                          r"(tu as|t'as|vous avez) (bien )?raison|effectivement|d'accord|ok|okay|très bien|je note)\b", re.I)
+COUNTER_FR = re.compile(r"^[\s,.;:!-]*(non\b|si\b|justement|au contraire|c'est faux|dis-toi|dites-vous|tu sais|vous savez|"
+                        r"regarde|regardez|attends|attendez|en fait|sauf que)", re.I)
+DENIAL_FR = re.compile(r"(ce n'est pas|c'est pas|ça n'est pas|ce n pas|ce n'est quand même pas|il ne faut pas|faut pas|"
+                       r"tu n'as pas à|t'as pas à|vous n'avez pas à|ne t'inquiète pas|t'inquiète|ne vous inquiétez pas)", re.I)
+
+
+# OB-13 (Romain, 2026-11-20): first sentences that do not receive the resistance, whatever comes before them, by family.
+# Read on the first sentence only: the same words later in the response can be a matching gesture (OB-16).
+NON_ACK = {
+    "minimises": re.compile(  # family 3: the doubt made small
+        r"(ne t'inquiète pas|(^|[,.;!?] )t'inquiète\b|ne vous inquiétez pas|ne t'en fais pas|ce n'est rien|c'est rien|"
+        r"ce n'est pas grave|c'est pas grave|(ce n'est|c'est) pas si (cher|énorme|grave)|(ce n'est|c'est) pas énorme|"
+        r"(ce n'est|c'est) pas grand-chose|c'est trois fois rien|"
+        r"don't worry|it's nothing|no big deal|it's not a big deal|it's not that (expensive|much|bad))", re.I),
+    "counter_argument": re.compile(  # family 4: the answer before the doubt is received
+        r"(c'est un investissement|ce n'est pas une dépense|c'est pas une dépense|"
+        r"(tu vas|vous allez|tu vas vite|vous allez vite) (le |la |les )?rentabiliser|ça se rentabilise|c'est rentabilisé|"
+        r"ça (va )?se rembourse[r]?|ça revient à .{0,20}par (jour|semaine|mois)|ça fait .{0,20}par jour|"
+        r"moins (cher )?qu'un café|"
+        r"it's an investment|it pays for itself|you'?ll make it back|that'?s (only |just )?.{0,15}a day|"
+        r"less than a coffee)", re.I),
+    "disqualifies": re.compile(  # family 6: the feeling dismissed
+        r"(tout le monde (me )?dit ça|on me dit ça tout le temps|c'est (une|des) (fausse[s]? )?excuse[s]?|"
+        r"c'est dans (ta|votre) tête|c'est (ton|votre) mental qui|"
+        r"everyone says that|that'?s an excuse|it'?s all in your head)", re.I),
+    "pressure_question": re.compile(  # family 7: a question that puts the prospect in the wrong (case 5b)
+        r"((tu préfères|vous préférez) rester|(tu veux|vous voulez) (rester|continuer) comme ça|"
+        r"(tu ne veux|tu veux|vous ne voulez) pas réussir|(tu|vous) (vas|allez) (encore )?laisser passer|"
+        r"(do you|you) (want|wanna) to stay (where you are|stuck)|don't you want to succeed|you'?d rather stay)", re.I),
+}
+
+
+def not_acknowledged_by(sentence: str) -> Optional[str]:
+    """The family of a first sentence that does not receive the resistance (OB-13), or None."""
+    s = norm(sentence)
+    if CONTRADICTION_RE.search(s) or french_transition_contradicts(sentence):
+        return "contradiction"
+    return next((k for k, rx in NON_ACK.items() if rx.search(s)), None)
+
+
+def french_transition_contradicts(sentence: str) -> bool:
+    """OB-13 (Romain, 2026-11-20): a « mais » (« en fait », « sauf que ») contradicts unless a receiving marker comes
+    before it in the sentence and what follows it neither counters (« mais non », « mais justement », « mais dis-toi »)
+    nor denies the resistance (« mais ce n'est pas cher », « mais ne t'inquiète pas »)."""
+    s = norm(sentence)
+    for m in TRANSITION_FR.finditer(s):
+        before, after = s[:m.start()], s[m.end():]
+        if not RECEIVING_FR.search(before):
+            return True
+        if COUNTER_FR.match(after) or DENIAL_FR.search(after[:80]):
+            return True
+    return False
 
 _LOCAL_STOP = set("""i me my mine we us our it's that's there's what's let's i'm i've i'll i'd you're don't doesn't
 didn't can't won't isn't aren't wasn't gonna wanna yes yeah no not so because just um uh oh hmm mm mm-hmm okay ok
-cool sure right got get go going one also even still well say said see""".split())
+cool sure right got get go going one also even still well say said see""".split()) | FR.STOP
 
 
 # ----------------------------------------------------------------------------------------------- data
@@ -332,7 +418,7 @@ def link_recurrences(ctx: CallContext, episodes: list[Episode], previous: Option
 # ----------------------------------------------------------------------------------------------- gestures (code)
 def acknowledged(first_sentence: str, ans: Optional[dict]) -> bool:
     """OB-13 / OB-20 / X5, read on the first sentence of the first response turn."""
-    if CONTRADICTION_RE.search(norm(first_sentence)):
+    if not_acknowledged_by(first_sentence):
         return False
     a = ans or {}
     if a.get("contradiction"):
@@ -765,7 +851,8 @@ class ObjectionsCompetence:
         # OB-27 (Romain 2026-11-03): an objection is only read after the first price; nothing before it is an objection
         pos = _pos(ctx)
         fp = ctx.phases.first_price
-        after_price = (lambda t: fp is not None and pos[t.id] > pos[fp])
+        from_start = rounds.objections_from_start(ctx)                # C9: the price was given in an earlier call
+        after_price = (lambda t: from_start or (fp is not None and pos[t.id] > pos[fp]))
         cands = {t.id: t for t in find_candidates(ctx) if after_price(t)}
         nom = T.nominate()
         s = [t for t in seq(ctx) if after_price(t)]
@@ -951,7 +1038,7 @@ class ObjectionsCompetence:
 
         # prevention
         fp = ctx.phases.first_price
-        h_status, p_status = applicability(len(eps), bool(fp))
+        h_status, p_status = applicability(len(eps), bool(fp) and not rounds.objections_from_start(ctx))
         prevention, p_items, p_score = None, [], None
         if p_status == "scored":
             r = T.run(runner, ctx, T.prevention(), "prevention:pre_price", fp)

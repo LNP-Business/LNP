@@ -43,6 +43,62 @@ def parse_transcript(raw: str, speaker_map: dict[str, str]) -> list[Turn]:
     return turns
 
 
+def parse_lines(raw: str, speaker_map: dict[str, str]) -> list[Turn]:
+    """The transcript as the recorder wrote it, one item per line ("L001"), before same-speaker lines are joined into
+    turns: the speaker label of a line is the unit the lite voice check (lite/callqa_lite/voices.py) corrects.
+    A line without a timestamp continues the line before it, as in parse_transcript."""
+    lines: list[Turn] = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = LINE.match(line)
+        if not m:
+            if lines:
+                lines[-1].text = (lines[-1].text + " " + re.sub(r"\s+", " ", line)).strip()
+            continue
+        ts, spk, text = m.groups()
+        role = speaker_map.get(spk.strip(), OTHER)
+        if role not in (SALES, PROSPECT, OTHER):
+            role = {"sales": SALES, "prospect": PROSPECT}.get(role.lower(), OTHER)
+        n = len(lines) + 1
+        lines.append(Turn(f"L{n:03d}", n, ts, spk.strip(), role, re.sub(r"\s+", " ", text).strip()))
+    return lines
+
+
+# C1 (Romain, 2026-11-20): a recording shorter than this is cut (the call went on unrecorded): not analysed
+MIN_RECORDING_MINUTES = 20
+
+
+def _minutes(ts: str) -> Optional[float]:
+    try:
+        parts = [int(x) for x in (ts or "").split(":")]
+    except ValueError:
+        return None
+    if len(parts) == 2:
+        return parts[0] + parts[1] / 60
+    if len(parts) == 3:
+        return parts[0] * 60 + parts[1] + parts[2] / 60
+    return None
+
+
+def recording_minutes(ctx: CallContext) -> Optional[float]:
+    """The length of the recording: its last timestamp (the recorder's lines, else the turns)."""
+    vals = [m for m in (_minutes(t.ts) for t in (ctx.lines or ctx.turns)) if m is not None]
+    return max(vals) if vals else None
+
+
+def recording_gate(ctx: CallContext) -> bool:
+    """C1: a recording of less than MIN_RECORDING_MINUTES is incomplete: the call is not analysed
+    (status `recording_incomplete`, no model call). Returns True when the call may be analysed."""
+    m = recording_minutes(ctx)
+    if m is not None and m < MIN_RECORDING_MINUTES:
+        ctx.status = "recording_incomplete"
+        ctx.flags.append(f"recording_minutes:{round(m, 1)}")
+        return False
+    return True
+
+
 def diarization_gate(ctx: CallContext, max_share: float = 0.92, min_prospect_words: int = 150) -> None:
     if not ctx.turns:
         ctx.status = "no_transcript"
@@ -89,13 +145,11 @@ def repair_attribution(ctx: CallContext, cases: list[dict]) -> None:
     the foreign part of a merged turn becomes a sub-turn "T050b" inserted right after (ids stay sortable)."""
     by_id = {t.id: t for t in ctx.turns}
     new_turns: list[Turn] = []
-    touched = set()
     for t in ctx.turns:
         cs = [c for c in cases if c.get("turn") == t.id]
         if not cs:
             new_turns.append(t)
             continue
-        touched.add(t.id)
         c = cs[0]
         other = SALES if t.role == PROSPECT else PROSPECT
         if c["type"] == "swapped":
@@ -119,7 +173,9 @@ def repair_attribution(ctx: CallContext, cases: list[dict]) -> None:
             new_turns.append(t)
             new_turns.append(Turn(t.id + "b", t.n, t.ts, t.speaker, other, foreign, repaired=True))
     ctx.turns = new_turns
-    rate = len(touched) / max(1, len({t.n for t in ctx.turns}))
+    # C1 (Romain, 2026-11-20): the threshold applies after the repair, to the turns still wrong (doubtful)
+    doubtful = {t.n for t in ctx.turns if t.attribution_doubtful}
+    rate = len(doubtful) / max(1, len({t.n for t in ctx.turns}))
     if rate > 0.10:
         ctx.status = "diarization_suspect"
         ctx.flags.append("attribution_rate")
@@ -137,10 +193,22 @@ def run_attribution(ctx: CallContext, runner: Runner, chunk_size: int = 60) -> N
 
 # ------------------------------------------------------------------------------------------- S2 phase map
 OFFER_CUES = re.compile(r"\b(the program|the mentorship|the academy|what we do|the way we help|how it works|"
-                        r"pillar|module|six-month|6-month|let me show you|share my screen|my screen)\b", re.I)
-AMOUNT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?)\b|\b\d{1,3},\d{3}\b)", re.I)
+                        r"pillar|module|six-month|6-month|let me show you|share my screen|my screen|"
+                        # French (LNP, 2026-11-19)
+                        r"l'accompagnement|notre accompagnement|le programme|notre programme|notre méthode|ce qu'on fait|"
+                        r"comment ça se passe concrètement|comment ça marche|je vais te montrer|je vais vous montrer|"
+                        r"je partage mon écran|je te partage|je vous partage|mon écran|les modules|le module|quatre mois|4 mois)\b",
+                        re.I)
+AMOUNT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?)\b|\b\d{1,3},\d{3}\b|"
+                    r"\b\d{1,3}(?:[  ]\d{3})+\s?(€|euros?|balles)|\b\d[\d.]*\s?(€|balles)|"
+                    r"\b(mille|deux mille|trois mille|quatre mille|cinq mille)\s+(€|euros?|balles))", re.I)
 DECISION = re.compile(r"\b(ready to (get started|move forward|start)|what would you like to do|do you want to "
-                      r"(join|move forward|get started)|shall we get you started|how would you like to proceed)\b", re.I)
+                      r"(join|move forward|get started)|shall we get you started|how would you like to proceed|"
+                      # French (LNP, 2026-11-19)
+                      r"est-ce que (tu veux|vous voulez) (qu'on y aille|te lancer|vous lancer|démarrer|commencer|rejoindre)|"
+                      r"(tu es|vous êtes|t'es) (prête?|partante?) (à|pour)|qu'est-ce que tu en dis|qu'est-ce que vous en dites|"
+                      r"on y va|on démarre|on part là-dessus|comment (tu veux|vous voulez) procéder|"
+                      r"(tu veux|vous voulez) (qu'on|que l'on) (avance|démarre|commence))\b", re.I)
 
 
 def phase_candidates(ctx: CallContext) -> list[Turn]:

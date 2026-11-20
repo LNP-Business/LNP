@@ -1,4 +1,4 @@
-"""The lite pipeline: foundation (code) → S0 phases → S1 discovery → S2 gap → S3 pitch → S4 objections → call record.
+"""The lite pipeline: foundation (code) → SV voices → S0 phases → S1 discovery → S2 gap → S3 pitch → S4 objections → call record.
 
 `analyse(ctx, client, config)` returns the same record as lnp_callqa.pipeline.result_record (OUTPUT_CONTRACT.md),
 plus `meta` ({"engine": "lite", "version", "steps": what the code dropped per step}). The model is asked one question per
@@ -13,7 +13,8 @@ from typing import Any, Optional
 
 from . import LITE_VERSION
 from lnp_callqa.competences import pitch as P
-from lnp_callqa.core.foundation import diarization_gate
+from lnp_callqa.core import rounds
+from lnp_callqa.core.foundation import diarization_gate, recording_gate
 from lnp_callqa.core.models import CallContext, CompetenceResult
 from lnp_callqa.pipeline import result_record
 
@@ -24,15 +25,28 @@ from .pitch import context_text, run_pitch
 from .shim import Drops
 from .spin import SpinFacts, run_spin
 from .steps import Steps, fill, load
+from .voices import run_voices
+from lnp_callqa.competences import spin as SP
+from . import spin as LS
+from lnp_callqa.core.text import norm
 
 DEFAULTS: dict[str, Any] = {
     "tier": "fast",                 # crm_ca_config.tiers.fast (claude-haiku-5-5)
     "effort": "low",                # thinking on, kept short
-    "s1_chunk_turns": 160,          # turns of discovery per S1 call (a split happens anyway if an answer is cut)
-    "s1_min_chunk_turns": 30,
-    "max_tokens": {"S0": 6000, "S1": 16000, "S2": 8000, "S3": 10000, "S4": 10000},
+    "s1_chunk_turns": 40,           # turns of discovery per S1 call (2026-11-20: was 160, the model skimmed)
+    "s1_min_chunk_turns": 15,
+    "gates_batch": 25,              # S1g: listed questions per call, each with its context (2026-11-20)
+    "gates_passes": 2,              # S1g: two independent readings; a disagreement goes to the arbiter (C4)
+    "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
+    "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
+    "sv_min_chunk_lines": 40,
+    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 8000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
+WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
+                "nothing said before the first price is an objection (OB-27).")
+WINDOW_START = ("The price was already given in an earlier call of this sales cycle: read resistances in EVERY PROSPECT "
+                "turn of this call, from its first turn (OB-27). Leave \"prevention\" empty: it belongs to the earlier call.")
 
 
 class LiteModelError(RuntimeError):
@@ -56,6 +70,36 @@ def _windows(ctx: CallContext, size: int) -> list[tuple[int, int]]:
     return [(a, min(a + size, end) - 1) for a in range(0, end, size)] if end else []
 
 
+def inventory(ctx: CallContext, a: int, b: int) -> list[dict]:
+    """SEG-1 (Romain, 2026-11-20): the code lists one item per sales turn of turns[a..b] that asks something; several
+    questions of one turn are one item, read on its priority question (spin.group_turn). A backchannel (SEG-7) is not
+    listed."""
+    out = []
+    for t in ctx.turns[a:b + 1]:
+        if t.role != "SALES" or t.attribution_doubtful:
+            continue
+        g = SP.group_turn(t.text)
+        if not g:
+            continue
+        ws = [w for w in SP._fold(g["priority"]).split() if w]
+        if len(g["questions"]) == 1 and len(ws) <= 3 and all(w.strip("'?") in SP.ACK or w in ("ah", "oh", "hmm", "vraiment",
+                                                                                               "really") for w in ws):
+            continue                                                   # SEG-7: backchannel over the prospect
+        out.append({"id": f"Q{t.id[1:]}", "turn": t.id, "quote": g["priority"],
+                    "others": [q for k, q in enumerate(g["questions"]) if k != g["index"]]})
+    return out
+
+
+def inventory_text(items: list[dict]) -> str:
+    if not items:
+        return "(no question listed by the code in these turns)"
+    lines = []
+    for it in items:
+        extra = (" · also in the turn: " + " | ".join(f'"{q}"' for q in it["others"])) if it["others"] else ""
+        lines.append(f'{it["id"]} · {it["turn"]} · PRIORITY: "{it["quote"]}"{extra}')
+    return "\n".join(lines)
+
+
 def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[list]:
     """S1 over the turns before the first pitch start or price, in chunks; an answer cut by max_tokens is asked again
     as two halves. Returns the questions, or None if every chunk failed."""
@@ -69,7 +113,9 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
         window = (f"Read the questions asked in turns {ta} to {tb} only (their answers may continue after {tb}). "
                   + (f"The first pitch start or price is at {end}: nothing from {end} on is discovery (SB-34)."
                      if end else "No pitch start or price was found: the whole call can be discovery."))
-        ans = steps.ask("lite.s1_discovery", f"{ta}-{tb}", fill(load("s1_discovery"), window=window),
+        inv = inventory(ctx, a, b)
+        ans = steps.ask("lite.s1_discovery", f"{ta}-{tb}", fill(load("s1_discovery"), window=window,
+                                                                inventory=inventory_text(inv)),
                         cfg["max_tokens"]["S1"], replay_truncated=False)
         if ans.answer is None and ans.stop_reason == "max_tokens" and b - a + 1 > cfg["s1_min_chunk_turns"]:
             mid = (a + b) // 2
@@ -80,8 +126,179 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
             drops.add("S1", "chunk_failed")
             continue
         done += 1
-        out += [q for q in ans.answer.get("questions") or []]
+        got = [q for q in ans.answer.get("questions") or [] if isinstance(q, dict)]
+        read_ids = {q.get("id") for q in got} | {f"Q{str(q.get('turn'))[1:]}" for q in got if not q.get("id")}
+        missing = [it for it in inv if it["id"] not in read_ids]
+        if missing:                                                    # every listed question is read: asked once more
+            again = steps.ask("lite.s1_discovery", f"{ta}-{tb}:missing", fill(load("s1_discovery"), window=window,
+                                                                              inventory=inventory_text(missing)),
+                              cfg["max_tokens"]["S1"], replay_truncated=False)
+            if again.answer:
+                got += [q for q in again.answer.get("questions") or [] if isinstance(q, dict) and q.get("id")]
+        out += with_inventory(got, inv, drops)
     return out if done else None
+
+
+def _short(t, n: int = 300) -> str:
+    return f"[{t.id} {t.role}] " + (t.text if len(t.text) <= n else t.text[:n] + "…")
+
+
+def gates_units_text(ctx: CallContext, items: list[dict]) -> str:
+    """S1g: each listed question with its context: the 2 turns before it, the other questions of its turn, the answer
+    (the prospect turns after it, up to the next sales turn that asks something)."""
+    out = []
+    for q in items:
+        i = ctx.n(q["turn"])
+        before = [_short(t) for t in ctx.turns[max(0, i - 2):i]]
+        answer = []
+        for t in ctx.turns[i + 1:i + 6]:
+            if t.role == "SALES" and SP.group_turn(t.text):
+                break
+            answer.append(_short(t))
+        others = [x for x in q.get("grouped") or [] if x != q["quote"]]
+        out.append("\n".join([f'{q["id"]} · {q["turn"]}',
+                               "BEFORE: " + (" | ".join(before) or "(none)"),
+                               "OTHER QUESTIONS IN THE TURN: " + (" | ".join(f'"{x}"' for x in others) or "(none)"),
+                               f'PRIORITY: "{q["quote"]}"',
+                               "ANSWER: " + (" | ".join(answer) or "(none)")]))
+    return "\n\n".join(out)
+
+
+ARBITER_PREFIX = "Each unit below carries its own context (the turns before it and its answer)."
+
+
+def _read_gates(steps: Steps, unit_id: str, prompt: str, max_tokens: int, by_id: dict, drops: Drops,
+                task: str = "lite.s1_gates") -> dict[str, dict]:
+    """One reading of the gates for a batch: the answers whose quotes pass the engine's check, by question id."""
+    ans = steps.ask(task, unit_id, prompt, max_tokens)
+    if ans.answer is None:
+        drops.add("S1", "gates:chunk_failed")
+        return {}
+    out = {}
+    for g in ans.answer.get("units") or []:
+        q = by_id.get(g.get("id")) if isinstance(g, dict) else None
+        if q is None:
+            continue
+        if SP._validate_gate_obj(g, q["quote"]):
+            drops.add("S1", "gates:invalid", {"turn": q["turn"]})
+            continue
+        out[q["id"]] = g
+    return out
+
+
+def _reading_text(g: Optional[dict], quote: str) -> str:
+    if not g:
+        return "no valid answer"
+    d = LS.gate_letter(g, quote)
+    parts = [f'{k} {json.dumps({x: y for x, y in (g.get(k) or {}).items() if y not in (None, False)}, ensure_ascii=False)}'
+             for k in ("g1", "g2", "g3", "g4", "g5") if any(v not in (None, False, "none") for v in (g.get(k) or {}).values())]
+    return f"letter {d[0] if d else '?'}" + (f" ({d[1]})" if d and d[1] else "") + " · " + ("; ".join(parts) or "no gate")
+
+
+def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions: list) -> dict[str, dict]:
+    """S1g (2026-11-20, SPIN §3, Part C, C4): the model answers the closed gates of each listed question, in batches
+    with their context; the code decides the letter with the engine's decide_letter. Two independent readings (the second
+    with the units in reverse order); when they lead to the same letter it is `agreed`; otherwise the arbiter tier walks
+    the gates again on the disputed units (`arbitrated`), its own prompt carrying their context (no transcript prefix).
+    A unit with one valid reading only keeps it (`single_reading`). Returns {id: gates} with "_status"."""
+    items = [q for q in questions if q.get("id") and q.get("turn") and q.get("quote") and not q.get("added_by_model")]
+    size = max(1, int(cfg.get("gates_batch") or 25))
+    passes = max(1, int(cfg.get("gates_passes") or 1))
+    readings: list[dict[str, dict]] = [{} for _ in range(passes)]
+    for k in range(0, len(items), size):
+        batch = items[k:k + size]
+        by_id = {q["id"]: q for q in batch}
+        uid = f"{batch[0]['id']}-{batch[-1]['id']}"
+        for p in range(passes):
+            order = batch if p % 2 == 0 else list(reversed(batch))
+            readings[p].update(_read_gates(steps, uid + (f":p{p + 1}" if p else ""),
+                                           fill(load("s1_gates"), units=gates_units_text(ctx, order)),
+                                           cfg["max_tokens"]["S1g"], by_id, drops))
+    out: dict[str, dict] = {}
+    disputed = []
+    for q in items:
+        got = [r.get(q["id"]) for r in readings]
+        valid = [g for g in got if g]
+        if not valid:
+            continue
+        if passes == 1:
+            out[q["id"]] = dict(valid[0], _status="single_reading")
+            continue
+        letters = {LS.gate_letter(g, q["quote"]) for g in valid}
+        if len(valid) == passes and len(letters) == 1:
+            out[q["id"]] = dict(valid[0], _status="agreed")
+        else:
+            disputed.append((q, got))
+    if disputed:
+        arb = Steps(steps.client, ctx, tier=cfg.get("arbiter_tier") or "arbiter", effort=steps.effort,
+                    prefix=ARBITER_PREFIX)
+        for k in range(0, len(disputed), size):
+            chunk = disputed[k:k + size]
+            text = gates_units_text(ctx, [q for q, _ in chunk])
+            blocks = text.split("\n\n")
+            text = "\n\n".join(b + "\n" + "\n".join(f"READER {i + 1}: {_reading_text(g, q['quote'])}"
+                                                    for i, g in enumerate(got))
+                                for b, (q, got) in zip(blocks, chunk))
+            prompt = load("s1_gates_arbiter") + fill(load("s1_gates"), units=text)
+            by_id = {q["id"]: q for q, _ in chunk}
+            res = _read_gates(arb, f"{chunk[0][0]['id']}-{chunk[-1][0]['id']}:arbiter", prompt,
+                              cfg["max_tokens"]["S1a"], by_id, drops, task="lite.s1_gates_arbiter")
+            for q, got in chunk:
+                if q["id"] in res:
+                    out[q["id"]] = dict(res[q["id"]], _status="arbitrated")
+                else:                                              # the arbiter failed: a valid reading, flagged
+                    one = next((g for g in got if g), None)
+                    if one:
+                        drops.add("S1", "gates:arbiter_failed", {"turn": q["turn"]})
+                        out[q["id"]] = dict(one, _status="to_review")
+    return out
+
+
+def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]:
+    """The model's readings on the code's list: a listed question keeps the code's turn and priority question (the
+    model cannot move or reword it), one reading per turn; a listed question still unread is counted
+    (`question:not_read`); a question the model added counts only on a turn the code did not list. A reading without
+    id (an answer of the earlier per-question listing) goes to its turn's item: the one on the priority question, else
+    the last one of the turn."""
+    by_id = {it["id"]: it for it in inv}
+    by_turn = {it["turn"]: it for it in inv}
+    chosen: dict[str, dict] = {}
+    extra = []
+    for q in got:
+        it = by_id.get(q.get("id") or "") or (by_turn.get(q.get("turn") or "") if not q.get("id") else None)
+        if it is None:
+            if q.get("id"):
+                drops.add("S1", "question:unknown_id", q)
+                continue
+            if q.get("turn") in by_turn:
+                drops.add("S1", "question:same_turn_as_listed", q)   # SEG-1: one item per turn
+            else:
+                extra.append(dict(q, added_by_model=True))
+            continue
+        if q.get("routing") in ("validation_request", "decision_request"):   # gate 0: not a discovery solicitation
+            chosen[it["id"]] = {"_routing": True}
+            continue
+        prev = chosen.get(it["id"])
+        if prev and prev.get("_routing"):
+            continue
+        on_priority = norm(q.get("quote") or "").strip(" .,?!") in norm(it["quote"]) if q.get("quote") else False
+        if prev is None or q.get("id") or (on_priority and not prev.get("_on_priority")) or \
+                (not prev.get("_on_priority") and not prev.get("id")):
+            if prev is not None and prev.get("id") and not q.get("id"):
+                continue
+            chosen[it["id"]] = dict(q, _on_priority=on_priority or bool(q.get("id")))
+    out = []
+    for it in inv:
+        q = chosen.get(it["id"])
+        if q is None:
+            drops.add("S1", "question:not_read", {"turn": it["turn"]})
+            continue
+        if q.get("_routing"):
+            drops.add("S1", "question:routing", {"turn": it["turn"]})
+            continue
+        q = {k: v for k, v in q.items() if k != "_on_priority"}
+        out.append(dict(q, id=it["id"], turn=it["turn"], quote=it["quote"], grouped=[it["quote"]] + it["others"]))
+    return out + extra
 
 
 def _to_review(name: str, reason: str = "engine_error") -> CompetenceResult:
@@ -100,15 +317,22 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
     cfg = {**DEFAULTS, **(config or {})}
     cfg["max_tokens"] = {**DEFAULTS["max_tokens"], **((config or {}).get("max_tokens") or {})}
     drops = Drops()
-    meta = {"engine": "lite", "version": LITE_VERSION, "tier": cfg["tier"], "effort": cfg["effort"]}
-    diarization_gate(ctx)                                    # C1 (code); no model attribution check in lite
+    meta = {"engine": "lite", "version": LITE_VERSION, "tier": cfg["tier"], "effort": cfg["effort"],
+            "cycle": rounds.public(ctx.cycle)}
+    if not recording_gate(ctx):                              # C1 (2026-11-20): under 20 minutes, the recording is cut
+        for name, rv in RULES.items():
+            ctx.results[name] = CompetenceResult(name, rv, status="excluded", reasons=[ctx.status])
+        return _record(ctx, meta, drops)
+    if ctx.lines:                                            # C1: the model lists the wrong labels, the code repairs
+        meta["voices"] = run_voices(ctx, client, cfg, drops)
+    diarization_gate(ctx)                                    # C1 (code): word shares, after the repair
     if ctx.status != "ok":
         for name, rv in RULES.items():
             ctx.results[name] = CompetenceResult(name, rv, status="excluded", reasons=[ctx.status])
         return _record(ctx, meta, drops)
     steps = Steps(client, ctx, tier=cfg["tier"], effort=cfg["effort"])
     failed: list[str] = []
-    attempted = ["S0", "S1"]
+    attempted = ["S0"]
 
     # S0 · phase map
     s0 = steps.ask("lite.s0_phases", "call", load("s0_phases"), cfg["max_tokens"]["S0"])
@@ -116,10 +340,28 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         raise LiteModelError(f"phase map (S0): {s0.error}")
     apply_phases(ctx, s0.answer, drops)
 
-    # S1 · discovery → SPIN and the shared fact base
-    questions = run_s1(ctx, steps, cfg, drops)
+    # C9 (Romain, 2026-11-20): a good gap made in an earlier call of the cycle: no discovery, no gap in this one
+    skip = rounds.skip_reason(ctx, "SPIN")
+    questions: Optional[list] = None
     facts = SpinFacts()
-    if questions is None:
+    if skip:
+        ctx.results["SPIN"] = CompetenceResult("SPIN", RULES["SPIN"], status="not_applicable", reasons=[skip])
+        ctx.results["GAP"] = CompetenceResult("GAP", RULES["GAP"], status="not_applicable", reasons=[skip],
+                                              details=rounds.carried_gap(ctx))
+    # S1 · discovery → SPIN and the shared fact base
+    if not skip:
+        attempted.append("S1")
+        questions = run_s1(ctx, steps, cfg, drops)
+        if questions:                                            # S1g: the letter decided by code, gate by gate
+            gates = run_gates(ctx, steps, cfg, drops, questions)
+            for q in questions:
+                if q.get("id") in gates:
+                    g = dict(gates[q["id"]])
+                    q["gates_status"] = g.pop("_status", None)
+                    q["gates"] = g
+    if skip:
+        pass
+    elif questions is None:
         failed.append("S1")
         ctx.results["SPIN"] = _to_review("SPIN")
     else:
@@ -130,7 +372,9 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         ctx.results["SPIN"] = _safe(ctx, "SPIN", spin)
 
     # S2 · gap (needs the discovery facts)
-    if "engine_error" in ctx.results["SPIN"].reasons:
+    if skip:
+        pass
+    elif "engine_error" in ctx.results["SPIN"].reasons:
         ctx.results["GAP"] = _to_review("GAP", "engine_error")
     else:
         wlimit = ctx.phases.first_price or ctx.phases.decision_request
@@ -143,10 +387,15 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             ctx.results["GAP"] = _to_review("GAP")
         else:
             ctx.results["GAP"] = _safe(ctx, "GAP", lambda: run_gap(ctx, s2.answer, facts, drops))
-    _gap_rules(ctx, questions, drops, meta)
+    if not skip:
+        _gap_rules(ctx, questions, drops, meta)
+        meta["gap_remediation"] = rounds.gap_remediation(ctx)        # C9: a bad gap followed up before the pitch
 
     # S3 · pitch (needs the Gap result: validated P, selected A and B, roadmap blockers)
-    if not ctx.phases.pitch_start:
+    pskip = rounds.skip_reason(ctx, "PITCH")                    # C9: the offer was presented in an earlier call
+    if pskip:
+        ctx.results["PITCH"] = CompetenceResult("PITCH", RULES["PITCH"], status="not_applicable", reasons=[pskip])
+    elif not ctx.phases.pitch_start:
         ctx.results["PITCH"] = _safe(ctx, "PITCH", lambda: P.decide(ctx, {}))          # not applicable (§4)
     else:
         c = context_text(ctx)
@@ -161,12 +410,14 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             ctx.results["PITCH"] = _safe(ctx, "PITCH", lambda: run_pitch(ctx, s3.answer, drops))
 
     # S4 · objections after the first price (OB-27), prevention before it; no price = nothing to read
-    if not ctx.phases.first_price:
+    from_start = rounds.objections_from_start(ctx)              # C9: the price was given in an earlier call
+    if not ctx.phases.first_price and not from_start:
         ctx.results["OBJECTIONS"] = CompetenceResult("OBJECTIONS", RULES["OBJECTIONS"], status="not_applicable",
                                                      reasons=["no_resistance_no_price"], concordance="single_reading")
     else:
         attempted.append("S4")
-        s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections"), anchors=anchors(ctx)),
+        s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections"), anchors=anchors(ctx),
+                                                          window=WINDOW_START if from_start else WINDOW_PRICE),
                        cfg["max_tokens"]["S4"])
         if s4.answer is None:
             failed.append("S4")

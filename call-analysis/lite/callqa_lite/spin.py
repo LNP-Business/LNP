@@ -73,17 +73,70 @@ def sentence_of(text: str, quote: str) -> tuple[str, str]:
     return quote, ""
 
 
+def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
+    """S1g (2026-11-20): the engine's decide_letter on the model's gate answers (SPIN §3, the code applies the order of
+    the gates); returns the letter fields S1 would give, or None (no gates, or a gate whose quote failed)."""
+    g = q.get("gates")
+    if not isinstance(g, dict):
+        return None
+    low = sentence.strip().lower()
+    attrs = {"validation_tail": any(re.search(p, low) for p in E.TAILS), "system": bool(E.SYSTEM_LINE.search(sentence))}
+    d = E.decide_letter(g, attrs, q.get("quote") or sentence)
+    if d.invalid_proof:
+        return None
+    if d.letter in E.LETTERS:
+        return {"letter": d.letter, "gate_tags": d.tags}
+    if d.letter == E.OUT:
+        return {"letter": E.OUT, "out_reason": d.reason, "closed_need_payoff": "closed_need_payoff" in d.tags,
+                "gate_tags": d.tags}
+    return {"letter": d.letter, "gate_tags": d.tags}                  # routing, not a solicitation, doubtful voice
+
+
+def gate_letter(g: dict, quote: str) -> Optional[tuple]:
+    """The code's decision on one reading of the gates: (letter, OUT reason), or None when a quote failed."""
+    fg = letter_from_gates({"gates": g, "quote": quote}, quote)
+    return (fg["letter"], fg.get("out_reason")) if fg else None
+
+
 def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
-    """The model's letter, then the hard rules of §3 that the code enforces over it."""
-    letter, tags = q["letter"], []
+    """The letter decided by code from the gates (S1g) when they are there, else the model's letter; then the hard
+    rules of §3 that the code enforces over it."""
+    fg = letter_from_gates(q, sentence)
+    if fg:
+        q = dict(q, **{k: v for k, v in fg.items() if k != "gate_tags"})
+        if "out_reason" not in fg:
+            q.pop("out_reason", None)
+            q.pop("closed_need_payoff", None)
+    letter, tags = q["letter"], (["gates_by_code"] if fg else [])
     reason = (q.get("out_reason") if q.get("out_reason") in E.OUT_PRIORITY else "absent") if letter == E.OUT else None
     forced = []
     if q.get("closed_need_payoff"):
         forced.append("agreement")                                   # content supplied by the sales
         tags.append("closed_need_payoff")
+    if E.TAIL_ONLY.match(sentence.strip()):                           # SEG-4 / SEG-7: a tail alone ("Tu vois ?")
+        forced.append("agreement")
+        tags.append("tail_only")
     if any(re.search(p, sentence.strip().lower()) for p in E.TAILS):  # SEG-4 validation tail -> OUT agreement
         forced.append("agreement")
         tags.append("validation_tail")
+    if E.solution_load_question(sentence):                            # §3: the load of a solution (time, budget)
+        forced.append("solution_load")
+        tags.append("solution_load_by_code")
+    if E.offer_question(sentence):                                    # §3: a question about the offer
+        forced.append("offer_info")
+        tags.append("offer_info_by_code")
+    if E.social_or_logistic(sentence):                                # SB-2: social, logistic, framing of the call
+        forced.append("nothing")
+        tags.append("framing_by_code")
+    if E.check_in_question(sentence):                                 # §3 (2026-11-20): "does that make sense?"
+        forced.append("nothing")
+        tags.append("check_in_by_code")
+    if E.closed_restatement(sentence):                                # §3 (2026-11-20): "so your problem is time?"
+        forced.append("agreement")
+        tags.append("closed_restatement_by_code")
+    if E.choice_list_question(sentence):                              # §3 (2026-11-20): "would you rather X or Y?"
+        forced.append("sales_list")
+        tags.append("choice_list_by_code")
     if forced:
         cands = forced + ([reason] if letter == E.OUT and reason in E.OUT_PRIORITY else [])
         return E.LetterDecision(E.OUT, 1, min(cands, key=E.OUT_PRIORITY.index), sorted(set(tags)))
@@ -105,7 +158,16 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         if end and ctx.n(tid) >= ctx.n(end):                    # SB-34: nothing after the pitch start or price
             drops.add(STEP, "question:after_pitch", q)
             continue
-        if q.get("letter") not in E.LETTERS + (E.OUT,):
+        fg = letter_from_gates(q, quote)
+        if q.get("gates") is not None and fg is None:
+            drops.add(STEP, "gates:bad_quote", q)                        # the gates' quotes failed: S1's letter stays
+        if fg and fg["letter"] in E.ROUTING:                             # gate 0: not a discovery solicitation
+            drops.add(STEP, "question:routing", q)
+            continue
+        if fg and fg["letter"] in ("NOT_SOLICITATION", "ATTRIBUTION_DOUBTFUL"):
+            drops.add(STEP, "question:" + fg["letter"].lower(), q)
+            continue
+        if (fg or q).get("letter") not in E.LETTERS + (E.OUT,):
             drops.add(STEP, "question:bad_letter", q)
             continue
         key = (tid, norm(quote).strip(' .,?!"'))
@@ -127,7 +189,7 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         prev = [x for x in turns[:i] if x.role == PROSPECT][-2:]
         u = LUnit(sol, t, rank[t.id], q["quote"], q, preamble=preamble, prev_prospect=prev, decision=d,
                   window_end=end)
-        sol.letter, sol.out_reason, sol.status = d.letter, d.reason, SINGLE
+        sol.letter, sol.out_reason, sol.status = d.letter, d.reason, q.get("gates_status") or SINGLE
         units.append(u)
     return units
 
@@ -137,7 +199,7 @@ def place_perimeter(ctx: CallContext, units: list[LUnit]) -> dict:
     logistic or framing: OUT `nothing`, offer questions, loads); the first pitch start or price ends it (SB-34)."""
     start = None
     for u in units:
-        if start is None and E.is_valid_start(u.decision):
+        if start is None and E.is_valid_start(u.decision, u.sol.text):
             start = u
         if start is not None:
             u.in_perimeter = True
@@ -149,15 +211,38 @@ def place_perimeter(ctx: CallContext, units: list[LUnit]) -> dict:
     return {"start": ctx.phases.discovery_start, "end": ctx.phases.discovery_end, "reopenings": []}
 
 
-def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops) -> dict[str, list[dict]]:
-    """Each atom goes to the question whose answer span (SB-5 to SB-8, code) holds its turn."""
+def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops,
+                  listed: Optional[list[LUnit]] = None) -> dict[str, list[dict]]:
+    """Each atom goes to the question whose answer span (SB-5 to SB-8, code) holds its turn.
+
+    The atoms are read from every listed question (listed), not only the coded ones: an atom the model put under an OUT
+    question ("Ça te va ?") goes to the coded question whose answer holds its turn (LNP, 2026-11-19). SB-8 (Romain,
+    2026-11-20): an effect the prospect states in answer to an OUT question (a framing question, a closed question), in
+    no coded answer, still counts: it is volunteered speech, attached to the last coded question before it (the first
+    one when it comes before the perimeter), for D1 to D4 and never for D5."""
     owner: dict[str, LUnit] = {}
     for u in coded:
         for t in list(u.sol.answer_turns) + list(u.volunteered_turns):
             owner[t] = u
+    order = sorted(coded, key=lambda u: ctx.n(u.turn.id))
+    end = ctx.phases.discovery_end
+
+    def volunteered_owner(tid: str) -> Optional[LUnit]:
+        try:
+            t = ctx.turn(tid)
+        except KeyError:
+            return None
+        if not order or t.role != PROSPECT or (end and ctx.n(tid) >= ctx.n(end)):
+            return None
+        before = [u for u in order if ctx.n(u.turn.id) < ctx.n(tid)]
+        u = before[-1] if before else order[0]
+        if tid not in u.volunteered_turns:
+            u.volunteered_turns.append(tid)
+        owner[tid] = u
+        return u
     out: dict[str, list[dict]] = {}
     seen = set()
-    for u0 in coded:
+    for u0 in (listed or coded):
         for x in u0.raw.get("atoms") or []:
             if not isinstance(x, dict):
                 drops.add(STEP, "atom:not_an_object")
@@ -167,6 +252,8 @@ def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops) -> dict[st
                 continue
             seen.add(k)
             u = owner.get(x.get("turn") or "")
+            if u is None and u0 not in coded:                            # SB-8: answered to an OUT question
+                u = volunteered_owner(x.get("turn") or "")
             if u is None:
                 drops.add(STEP, "atom:outside_answers", x)
                 continue
@@ -178,10 +265,21 @@ def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops) -> dict[st
     return out
 
 
+# the domain the code gives a register it read in the question's words (one per register, SB-26)
+REGISTER_DOMAIN = {"financial": "money", "time_load": "time", "identity_status": "future",
+                   "mental_emotional": "self_belief", "other": "other"}
+
+
 def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
     q = u.raw
     a = {"asked_domain": q.get("register_domain"), "basis": q.get("register_basis"),
          "quote": q.get("register_quote"), "reference_turn": q.get("register_turn")}
+    named = E.lexicon_register_named(u.sol.text)
+    if a["basis"] in ("answer", "reference", "none") and named:
+        # SB-27 by the code (LNP, 2026-11-19): the question names one domain, so the register is read in the question,
+        # not in its answer (« pourquoi reprendre une activité à temps plein ? » was given Financial from the answer)
+        drops.add(STEP, "register:named_in_question", q)
+        a = {"asked_domain": REGISTER_DOMAIN[named[0]], "basis": "named", "quote": named[1], "reference_turn": None}
     if a["asked_domain"] is None and a["basis"] is None:
         drops.add(STEP, "register:missing", q)
         errs = ["missing"]
@@ -217,7 +315,8 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
     facts = SpinFacts()
     units = build_units(ctx, questions, drops)
     perimeter = place_perimeter(ctx, units)
-    coded = [u for u in units if u.in_perimeter and E.is_coded_letter(u.decision.letter)]
+    coded = [u for u in units if u.in_perimeter and E.is_coded_letter(u.decision.letter)
+             and u.sol.status != "to_review"]                          # C4: undecided, left out of every score
     E.answer_spans(ctx, coded, {u.turn.id for u in units})
 
     # the prospect's answer as quoted by the model: kept only inside the code's answer span
@@ -233,7 +332,7 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
                 drops.add(STEP, "answer:outside_span_or_bad_quote", a)
 
     # atoms (code decision rules on the model's atoms, SB-9..SB-15, SB-22..SB-24)
-    raw_by_sol = _attach_atoms(ctx, coded, drops)
+    raw_by_sol = _attach_atoms(ctx, coded, drops, units)
     atoms: list[Atom] = []
     meta: dict[str, dict] = {}
     atom_log: list[dict] = []
@@ -294,7 +393,7 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
         "chains": [{k: v for k, v in c.items() if k != "evidence"} for c in chains],
         "diagnostics": diag,
         "health": health,
-        "unit_status": {SINGLE: len(coded)},
+        "unit_status": {st: sum(1 for u in units if u.in_perimeter and u.sol.status == st) for st in sorted({u.sol.status for u in units if u.in_perimeter})},
         "atom_decisions": atom_log,
         "solicitations": [{"id": u.sol.id, "turn": u.turn.id, "ts": u.turn.ts, "letter": u.sol.letter,
                            "gate_letter": u.decision.letter, "out_reason": u.sol.out_reason, "gate": u.decision.gate,

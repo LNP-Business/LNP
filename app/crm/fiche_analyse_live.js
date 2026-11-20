@@ -111,33 +111,31 @@ const { chromium } = require('playwright');
   check('qualification : validé, invalidé, à vérifier, avec une raison courte', /Validé/.test(rows[0]) && /Invalidé/.test(rows[1]) && /Aucune ressource/.test(rows[1]) && /À vérifier/.test(rows[2]), rows);
   // l'écart : la chronologie lisible, le tableau élément par élément, ce qui manque
   const gx = await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); if (!c) return null;
-    return { leg: [...c.querySelectorAll('.gx-ev')].map(e => e.innerText.replace(/\s+/g, ' ')), rows: [...c.querySelectorAll('table.gx tbody tr')].map(r => r.innerText.replace(/\s+/g, ' ')),
+    return { leg: [...c.querySelectorAll('.gx-ev')].map(e => e.innerText.replace(/\s+/g, ' ')), rows: [...c.querySelectorAll('.gx-ci')].map(r => r.innerText.replace(/\s+/g, ' ')), refo: (c.querySelector('.gx2 > .gx-box:first-child') || {}).innerText || '',
       todo: [...c.querySelectorAll('.gx-todo li')].map(l => l.innerText.replace(/\s+/g, ' ')), formula: (c.querySelector('.gx-formula') || {}).innerText || '' }; });
   check('écart : la légende de la chronologie, un repère par case avec son heure', gx && gx.leg.length === 5 && /Découverte 05:10/.test(gx.leg[0]) && /Reformulation 20:00/.test(gx.leg[1]) && /Validation 20:40/.test(gx.leg[2]) && /Prix 35:00/.test(gx.leg[4]), gx && gx.leg);
-  check('écart : un tableau Problème, Coût, A, B, Validation, prospect et commercial côte à côte', gx && gx.rows.length === 5 && /^Problème/.test(gx.rows[0]) && /Ses mots/.test(gx.rows[0]) && /^Coût/.test(gx.rows[1]) && /Paraphrase/.test(gx.rows[1]) && /tous mes week-ends/.test(gx.rows[1]) && /ça te fatigue/.test(gx.rows[1]) && /^Validation/.test(gx.rows[4]) && /« oui »/.test(gx.rows[4]), gx && gx.rows);
+  check('écart : à gauche la reformulation entière, à droite la liste Problème, Coût, A, B, Validation, chacun statué avec les mots du prospect et ceux du commercial', gx && /la reformulation du commercial/i.test(gx.refo) && gx.rows.length === 5 && /Problème/.test(gx.rows[0]) && /Ses mots/.test(gx.rows[0]) && /Coût/.test(gx.rows[1]) && /Paraphrase/.test(gx.rows[1]) && /tous mes week-ends/.test(gx.rows[1]) && /ça te fatigue/.test(gx.rows[1]) && /Validation/.test(gx.rows[4]) && /« oui »/.test(gx.rows[4]), gx && gx.rows);
   check('écart : ce qui manque pour un écart parfait, avec les points à gagner', gx && gx.todo.some(t => /chiffrer ce coût/.test(t) && /\+20/.test(t)) && gx.todo.some(t => /Reprendre ce coût avec ses mots/.test(t)) && gx.todo.some(t => /validation dans ses mots/.test(t) && /\+13/.test(t)), gx && gx.todo);
   check('écart : la reformulation parfaite remplie avec ses mots', gx && /300 euros par mois/.test(gx.formula) && /1 500 euros par mois/.test(gx.formula) && /me vendre/.test(gx.formula), gx && gx.formula);
   if (OUT) { await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); c.scrollIntoView(); document.querySelector('.ca-scrim').scrollTop -= 110; }); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart.png', fullPage: false }); await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop += 560); await p.waitForTimeout(200); await p.screenshot({ path: OUT + '/ecart-manque.png' }); }
   // découverte : une lettre SPIN montre la question et la réponse en clair, les répliques autour atténuées (une couleur lisible, pas une opacité)
   await cf.click('.ca-scrim [data-cav-sol="Q015"]'); await p.waitForTimeout(300);
-  const sp = await cf.evaluate(() => { const r = document.querySelector('.ca-scrim [data-cav-sol=""]'); const box = r && r.closest('td'); return box ? [...box.querySelectorAll('.row')].map(x => ({ id: x.dataset.tid, dim: x.classList.contains('dim'), op: getComputedStyle(x.querySelector('.tx')).color })) : null; });
-  check('découverte : la lettre P montre la question et la réponse en clair, plus de répliques autour atténuées', sp && sp.filter(r => !r.dim).map(r => r.id).join() === 'T015,T020' && sp.filter(r => r.dim).length >= 3 && sp.filter(r => r.dim).every(r => r.op === 'rgb(90, 100, 120)'), sp);
-  if (OUT) { await cf.evaluate(() => document.querySelector('.ca-scrim [data-cav-sol=""]').closest('td').scrollIntoView({ block: 'center' })); await p.waitForTimeout(150); await p.screenshot({ path: OUT + '/spin-lettre.png' }); }
+  const sp = await cf.evaluate(() => { const r = document.querySelector('.ca-scrim [data-cav-sol=""]'); const box = r && r.closest('#cav-sol-pane'); return box ? [...box.querySelectorAll('.row')].map(x => ({ id: x.dataset.tid, dim: x.classList.contains('dim'), op: getComputedStyle(x.querySelector('.tx')).color })) : null; });
+  check('découverte : la lettre P montre la question et la réponse en clair dans le panneau de droite, les répliques autour atténuées', sp && sp.filter(r => !r.dim).map(r => r.id).join() === 'T015,T020' && sp.filter(r => r.dim).length >= 3 && sp.filter(r => r.dim).every(r => r.op === 'rgb(90, 100, 120)'), sp);
+  if (OUT) { await cf.evaluate(() => document.querySelector('.ca-scrim [data-cav-sol=""]').closest('#cav-sol-pane').scrollIntoView({ block: 'center' })); await p.waitForTimeout(150); await p.screenshot({ path: OUT + '/spin-lettre.png' }); }
   await cf.click('.ca-scrim [data-cav-sol=""]'); await p.waitForTimeout(200);
   // objections : la lettre ouvre sa citation sous l'objection qui la porte, un second clic la referme
-  const obRows = () => cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /Objections/.test((x.querySelector('.serif') || {}).textContent || '') || /^\s*4\s*Objections/.test(x.textContent)); const t = c && c.querySelector('table'); return t ? [...t.querySelectorAll('tbody > tr')].map(r => ({ name: r.querySelector('b').textContent, pan: !!r.querySelector('.ob-pan'), txt: (r.querySelector('.ob-pan') || {}).innerText || '' })) : null; });
+  const obRows = () => cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /Objections/.test((x.querySelector('.serif') || {}).textContent || '') || /^\s*4\s*Objections/.test(x.textContent)); const t = c && c.querySelector('table'); const side = c && c.querySelector('#cav-ob-side'); const ep = side && side.querySelector('.ob-x') ? side.querySelector('.ob-x').dataset.cavEp : null;
+    return t ? [...t.querySelectorAll('tbody > tr')].map((r, i) => ({ name: r.querySelector('b').textContent, pan: ep === String(i), txt: ep === String(i) ? side.innerText.replace(/\s+/g, ' ') : '' })) : null; });
   let ob = await obRows();
-  const hBefore = await cf.evaluate(() => document.querySelectorAll('.ca-scrim table')[document.querySelectorAll('.ca-scrim table').length - 1].getBoundingClientRect().height);
   check('objections : deux objections, aucun détail ouvert au départ', ob && ob.length === 2 && !ob.some(r => r.pan), ob);
   await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
   ob = await obRows();
-  check('objections : la lettre A de la 2e objection ouvre sa citation, sous cette objection', ob && !ob[0].pan && ob[1].pan && /Accueillie/.test(ob[1].txt) && /parler à deux/.test(ob[1].txt) && !(await cf.$('.ca-scrim table + .ob-pan')), ob);
+  check('objections : la lettre A de la 2e objection ouvre sa citation dans le panneau à gauche du tableau', ob && !ob[0].pan && ob[1].pan && /Accueillie/.test(ob[1].txt) && /parler à deux/.test(ob[1].txt) && (await cf.$eval('.ca-scrim .ob-grid', e => e.firstElementChild.id)) === 'cav-ob-side', ob);
   const obCtx = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return [...e.querySelectorAll('.row')].map(r => ({ id: r.dataset.tid, dim: r.classList.contains('dim'), op: getComputedStyle(r.querySelector('.tx')).color })); });
   check('objections : le passage concerné (résistance et réponse) en clair, les répliques autour atténuées', obCtx.length >= 4 && obCtx.filter(r => !r.dim).map(r => r.id).join() === 'T064,T065' && obCtx.filter(r => r.dim).every(r => r.op === 'rgb(90, 100, 120)') && obCtx.some(r => r.dim && r.id === 'T063') && obCtx.some(r => r.dim && r.id === 'T066'), obCtx);
-  const obPop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return { pos: getComputedStyle(e).position, x: !!e.querySelector('.ob-x') }; });
-  check('objections : une fenêtre posée par-dessus le tableau, avec une croix', obPop.pos === 'absolute' && obPop.x, obPop);
-  const hNow = await cf.evaluate(() => document.querySelectorAll('.ca-scrim table')[document.querySelectorAll('.ca-scrim table').length - 1].getBoundingClientRect().height);
-  check('objections : le tableau garde sa hauteur quand la fenêtre est ouverte', Math.abs(hNow - hBefore) < 2, { hBefore, hNow });
+  const obPop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .ob-pan'); return { pos: getComputedStyle(e).position, x: !!e.querySelector('.ob-x'), cols: getComputedStyle(e.parentElement).gridTemplateColumns.split(' ').length }; });
+  check('objections : un panneau collant à gauche du tableau, avec une croix', obPop.pos === 'sticky' && obPop.x && obPop.cols === 2, obPop);
   if (OUT) { await cf.evaluate(() => document.querySelector('.ca-scrim .ob-pan').scrollIntoView({ block: 'center' })); await p.waitForTimeout(150); await p.screenshot({ path: OUT + '/objection-lettre.png' }); }
   await cf.click('.ca-scrim [data-cav-ep="1"][data-cav-g="A"]'); await p.waitForTimeout(300);
   ob = await obRows();
@@ -163,6 +161,56 @@ const { chromium } = require('playwright');
   if (OUT) await p.screenshot({ path: OUT + '/fiche-analyse.png' });
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   check('Échap ferme la fenêtre, la fiche reste ouverte', !(await win()) && await cf.evaluate(() => !!document.querySelector('#layer .ls-calls')), null);
+  // 063 : corriger une lettre de la découverte (administrateur), la correction gardée et affichée
+  await cf.evaluate(() => openLead('c1')); await p.waitForTimeout(700);
+  await cf.click('#layer .ls-calls [data-ca]'); await p.waitForTimeout(1000);
+  const fix = await cf.evaluate(async () => {
+    const C = window.parent.LNP_CRM, base = await C.caRecord('j1'), store = [], calls = [];
+    C.caCorrect = async (job, unit, value, note) => { calls.push([job, unit, value, note]);
+      store.unshift({ unit_id: unit, field: 'letter', engine_value: 'S', value, note, author: 'Romain', created_at: '2026-11-20T10:00:00Z' }); return {}; };
+    C.caRecord = async () => Object.assign(JSON.parse(JSON.stringify(base)), { can_correct: true, corrections: store.slice() });
+    const root = document.querySelector('#caLead'); if (!root) return { err: 'pas de #caLead' };
+    const holder = document.createElement('div');
+    holder.innerHTML = '<input id="cav-fix-note" value="la question demande la difficulté"><button type="button" data-cav-fix="P" data-cav-unit="Q005">P</button>';
+    root.appendChild(holder); holder.querySelector('button').click();
+    await new Promise(r => setTimeout(r, 900));
+    const chipEl = document.querySelector('#caLead [data-cav-sol="Q005"]');
+    return { calls, title: chipEl && chipEl.title, outline: chipEl && chipEl.getAttribute('style') };
+  });
+  check('corriger une lettre : la correction part avec la note, puis la lettre corrigée s’affiche', fix && fix.calls && fix.calls.length === 1 && fix.calls[0][0] === 'j1' && fix.calls[0][2] === 'P' && /difficulté/.test(fix.calls[0][3]) && /lettre corrigée \(moteur : S\)/.test(fix.title || '') && /dashed/.test(fix.outline || ''), fix);
+  await cf.click('#caLead [data-cav-sol="Q005"]'); await p.waitForTimeout(300);
+  const panel = await cf.evaluate(() => { const b = document.querySelector('#caLead [data-cav-fix]'); const box = b && b.closest('#cav-sol-pane'); return box ? box.innerText : null; });
+  check('le panneau de la question : la correction faite (auteur, note) et les lettres pour corriger', panel && /Lettre corrigée : S → P · par Romain/.test(panel) && /Corriger la lettre/.test(panel) && /Hors SPIN/.test(panel), panel && panel.slice(0, 300));
+  if (OUT) await p.screenshot({ path: OUT + '/correction-lettre.png' });
+  const reader = await cf.evaluate(() => { const C = window.parent.LNP_CAV || window.LNP_CAV; if (!C) return null;
+    const d = document.createElement('div'); d.innerHTML = C.html({ results: { SPIN: { status: 'scored', details: { solicitations: [{ id: 'Q005', letter: 'S', turn: 'T005', in_perimeter: true }] } } }, corrections: [], can_correct: false }, { sol: 'Q005' });
+    return !d.querySelector('[data-cav-fix]'); });
+  check('un commercial voit la correction mais ne peut pas corriger', reader === true, reader);
+  for (let k = 0; k < 3 && await win(); k++) { await p.keyboard.press('Escape'); await p.waitForTimeout(300); }   // Échap ferme par étapes
+  // C9 (Romain, 2026-11-20) : le rendu d'un R2 après un bon écart et une offre déjà présentée au R1, puis d'un écart à reprendre
+  const c9 = await cf.evaluate(async () => {
+    const CAV = window.LNP_CAV || window.parent.LNP_CAV; if (!CAV) return null;
+    const base = await window.parent.LNP_CRM.caRecord('j1'), out = [];
+    for (const v of [1, 2]) {
+      const r = JSON.parse(JSON.stringify(base));
+      if (v === 1) {
+        r.results.SPIN = { competence: 'SPIN', status: 'not_applicable', reasons: ['gap_made_in_previous_call'], details: {} };
+        r.results.PITCH = { competence: 'PITCH', status: 'not_applicable', reasons: ['pitch_made_in_previous_call'], details: {} };
+        r.results.GAP = { competence: 'GAP', status: 'not_applicable', reasons: ['gap_made_in_previous_call'], details: Object.assign({}, r.results.GAP.details, { carried_from: 'r1' }) };
+      } else {
+        Object.assign(r.results.GAP, { verdict: 'absent', score: 0 });
+        Object.assign(r.results.GAP.details, { verdict: 'absent', absence_reason: 'not_validated', remediation: { needed: true, done: null, after: 'T040' } });
+      }
+      const d = document.createElement('div'); d.innerHTML = CAV.html(r); out.push(d.textContent);
+    }
+    const r3 = JSON.parse(JSON.stringify(base)); r3.phases.flags = ['disguised_price'];
+    r3.results.PITCH = { competence: 'PITCH', status: 'scored', verdict: 'non_compliant', score: 0, reasons: ['price_before_roadmap'], items: [],
+      details: { verdict: 'non_compliant', non_compliance: ['price_before_roadmap'], steps: {}, claims: [], adhesion: [], roadmap: { steps: [] } } };
+    const d3 = document.createElement('div'); d3.innerHTML = CAV.html(r3); out.push(d3.textContent);
+    return out; });
+  check('R2 : découverte, écart et offre « déjà faits lors d’un appel précédent »', c9 && /écart déjà fait lors d.un appel précédent du cycle/.test(c9[0]) && /offre déjà présentée lors d.un appel précédent du cycle/.test(c9[0]) && !/Si je résume/.test(c9[0]), c9 && c9[0].slice(0, 500));
+  check('prix déguisé en « tour du marché » : bandeau dans la présentation de l’offre', c9 && /Prix donné trop tôt, déguisé en « tour du marché »/.test(c9[2]), c9 && c9[2].slice(0, 300));
+  check('écart mauvais non repris : « Écart à reprendre »', c9 && /Écart à reprendre : il n.a été suivi ni d.une nouvelle reformulation ni d.un retour à la découverte/.test(c9[1]), c9 && c9[1].slice(0, 300));
   // le lien de l'historique (bulle « R1 honoré · analyse et transcription »)
   const chatLink = await cf.$('#layer #lrChat [data-ca]');
   if (chatLink) { await chatLink.click(); await p.waitForTimeout(900); w = await win();

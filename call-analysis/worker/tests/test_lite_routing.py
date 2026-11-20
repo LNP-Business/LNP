@@ -23,8 +23,8 @@ def test_job_routes_engine_lite_to_the_lite_engine():
     c = lite_claim()
     client = MockLiteClient(sc.ANSWERS)
     rec = run_job(c, client, rounds=True, workers=24)
-    assert rec["meta"]["engine"] == "lite" and engine_of(c) == "lite" and engine_version(c) == "callqa-lite-1.0"
-    assert {x["task"] for x in client.calls} == {"lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
+    assert rec["meta"]["engine"] == "lite" and engine_of(c) == "lite" and engine_version(c) == "callqa-lite-1.1"
+    assert {x["task"] for x in client.calls} == {"lite.sv_voices", "lite.sv_control", "lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s2_gap", "lite.s3_pitch",
                                                   "lite.s4_objections"}
     assert all(x["tier"] == "fast" and x["effort"] == "low" for x in client.calls)
     assert set(rec["results"]) == {"SPIN", "GAP", "PITCH", "OBJECTIONS"} and rec["results"]["GAP"]["verdict"] == "present"
@@ -84,6 +84,17 @@ def test_loop_stores_a_lite_record_with_the_lite_version(monkeypatch):
     monkeypatch.setattr("sys.argv", ["run.py"])
     assert loop.main() == 0
     name, args = [x for x in stored if x[0] == "crm_ca_store"][0]   # an R1: crm_qualif_context comes first (046)
-    assert name == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.0"
+    assert name == "crm_ca_store" and args["p_engine"] == "callqa-lite-1.1"
     assert args["p_record"]["meta"]["engine"] == "lite"
     assert args["p_usage"]["engine"] == "lite" and args["p_usage"]["effort"] == "low"
+
+
+def test_the_claim_gives_the_round_and_what_earlier_calls_did():
+    """C9 (Romain, 2026-11-20): crm_ca_claim's call round and `prior` reach the context."""
+    from callqa_worker.job import build_context
+    c = lite_claim()
+    c["call"]["sales_round"] = 2
+    c["prior"] = [{"call_id": "r1", "results": {"GAP": {"verdict": "absent"}, "PITCH": {"phases": {"pitch_start": "T050"}}}}]
+    ctx = build_context(c)
+    assert ctx.sales_round == 2
+    assert (ctx.cycle["gap_good"], ctx.cycle["pitch_done"], ctx.cycle["price_given"]) == (False, True, False)

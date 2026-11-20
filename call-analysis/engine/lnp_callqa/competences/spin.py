@@ -30,6 +30,7 @@ from ..core.models import (PROSPECT, SALES, Atom, CallContext, CompetenceResult,
                            Solicitation, Turn)
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core import lang_fr as FR
 from ..core.text import approval_only, norm, norm_number, quote_ok
 
 # =============================================================================================== constants
@@ -81,6 +82,23 @@ REGISTER_LEXICON = {
                          "feel", "emotion", "frustrat", "proud", "health", "stress", "anxi", "burnout", "burn out",
                          "burned out", "exhaust", "tired", "sleep", "energy"),
 }
+# LNP (2026-11-19): the same domains in French, accent-folded like the text they are matched on (word starts)
+REGISTER_LEXICON_FR = {
+    "financial": ("argent", "revenu", "gagn", "salaire", "chiffre d'affaire", "euro", "prix", "paye", "paie", "dette",
+                  "credit", "loyer", "factur", "financ", "rentab", "benefice", "client", "eleve", "vente", "vendre", "payer",
+                  "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit"),
+    "time_load": ("temps", "heures", "heure ", "semaine", "week-end", "weekend", "emploi du temps", "charge de travail",
+                  "charge mentale", "occupe",
+                  "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
+                  "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
+    "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
+                        "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees"),
+    "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
+                         "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
+                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
+}
+for _reg, _ws in REGISTER_LEXICON_FR.items():
+    REGISTER_LEXICON[_reg] = REGISTER_LEXICON[_reg] + _ws
 
 
 # =============================================================================================== S1 inventory
@@ -92,30 +110,55 @@ def _fold(s: str) -> str:
 
 
 ACK = set("yes yeah yep yup ok okay right sure fine exactly totally absolutely definitely correct true indeed "
-          "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love".split())
+          "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love "
+          # French, accent-folded (LNP, 2026-11-19)
+          "oui ouais ouai d'accord daccord exactement exact parfait super top genial nickel voila carrement "
+          "effectivement evidemment absolument ah bon bien tres merci hum mmh hein".split())
 INTERRO = re.compile(r"^(how|what|what's|whats|when|where|why|who|which|whose|do|does|did|are|is|was|were|have|has|"
                      r"had|can|could|would|will|should|shall|may|might|am|isn't|aren't|don't|doesn't|didn't|won't|"
-                     r"wouldn't|couldn't)\b")
+                     r"wouldn't|couldn't)\b"
+                     # French (LNP, 2026-11-19): a question word or an inversion at the head of the clause
+                     r"|^(?:(?:et|alors|donc|du coup|ok|okay|d'accord|mais|bon|bah)[ ,]+)*"
+                     r"(est-ce|qu'est-ce|que|quoi|comment|combien|pourquoi|quand|où|quel|quelle|quels|quelles|qui|lequel|"
+                     r"laquelle|as-tu|avez-vous|es-tu|êtes-vous|peux-tu|pouvez-vous|veux-tu|voulez-vous|sais-tu|"
+                     r"savez-vous|penses-tu|pensez-vous|c'est quoi|ça fait combien|t'as|t'es)\b")
 IMPERATIVE = re.compile(r"^(tell me|walk me through|talk me through|describe|explain|help me understand|share with me|"
-                        r"give me a sense|paint me a picture)")
+                        r"give me a sense|paint me a picture"
+                        # French, accent-folded (the hyphen of "dis-moi" becomes a space)
+                        r"|(?:(?:et|alors|donc|du coup|ok)\s+)*(dis moi|dites moi|raconte moi|racontez moi|explique moi|"
+                        r"expliquez moi|decris|decrivez|parle moi|parlez moi|aide moi a comprendre|"
+                        r"aidez moi a comprendre))")
 TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"\byeah\?$", r"\bno\?$",
          r"\bis that it\?$", r"\bis that right\?$", r"\bam i right\?$", r"\bdoes that make sense\?$", r"\bfair\?$",
-         r"\byou know\?$", r"\bok\?$", r"\bokay\?$"]
+         r"\byou know\?$", r"\bok\?$", r"\bokay\?$",
+         # French (LNP, 2026-11-19), with the space a French transcript puts before "?"
+         r"\bnon\s*\?$", r"\bhein\s*\?$", r"\bc'est ça\s*\?$", r"\bc'est bien ça\s*\?$", r"\bd'accord\s*\?$",
+         r"\bok\s*\?$", r"\bt'es d'accord\s*\?$", r"\bça te parle\s*\?$",
+         r"\bça vous parle\s*\?$", r"\bn'est-ce pas\s*\?$", r"\bc'est clair\s*\?$", r"\bc'est bon\s*\?$",
+         r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$"]
 TAIL_ONLY = re.compile(r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
-                       r"isn't it)\s*\?$", re.I)
+                       r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|n'est-ce pas|ça te parle|"
+                       r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va|"
+                       # a French tic alone ("Tu vois ?"): never a question of its own (inside a sentence it is not a tail)
+                       r"(et |mais |donc )?(tu vois|vous voyez|tu sais|vous savez|tu comprends|tu me suis))\s*\?$", re.I)
 STOP = set(_fold("""the a an and or but so to of in on at for with that this it its is are was were be been i you he
 she we they me my your our their them there here what how when where why who which do does did have has had not no
 yes just like really very about from as if then than also can could would will should get got go going know think
 mean thing things kind sort lot little bit yeah okay right well one two some any more most much many even still now
-today make made want really actually maybe something anything everything people time""").split())
+today make made want really actually maybe something anything everything people time""").split()) | \
+    {_fold(w).strip() for w in FR.STOP if _fold(w).strip()}
 OFFER_WORDS = re.compile(r"\b(program|programme|academy|our (method|course|coaching|mentorship|offer)|the course|"
-                         r"enroll|tuition|investment|price|cost|payment plan)\b")
+                         r"enroll|tuition|investment|price|cost|payment plan|"
+                         # French (LNP, 2026-11-19)
+                         r"accompagnement|formation|notre (méthode|offre|coaching|programme)|investissement|prix|tarif|"
+                         r"paiement|mensualités?|en plusieurs fois)\b")
 SYSTEM_LINE = re.compile(r"SCREEN SHARING|https?://|WATCH:")
 
 
 def split_sentences(text: str) -> list[str]:
     t = re.sub(r"\s+", " ", text or "").strip()
-    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9\"'])", t) if p.strip()]
+    # a sentence starts with a capital, accented ones included (« À quel point ? », « Écoute »), a digit or a quote
+    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-ZÀ-ÖØ-Ý0-9\"'«])", t) if p.strip()]
 
 
 def question_form(s: str) -> Optional[str]:
@@ -128,6 +171,54 @@ def question_form(s: str) -> Optional[str]:
     if INTERRO.match(ns):
         return "interrogative_no_mark"
     return None
+
+
+# SEG-1 (Romain, 2026-11-20): the questions of one sales turn are one unit, read on its priority question: the last
+# one, unless it only follows up the one before it (« Pourquoi ? », « Depuis quand ? », a tail alone): then the one before.
+FOLLOW_UP = re.compile(
+    r"^\W*(et |and |so |alors |du coup )?(pourquoi|comment ça|comment|c'est-à-dire|dans quel sens|en quoi|"
+    r"par rapport à quoi|comparé à quoi|à quel point|depuis quand|depuis combien de temps|combien|lequel|laquelle|"
+    r"lesquels|lesquelles|et alors|et après|et ensuite|et toi|et vous|ou pas|c'est tout|"
+    r"why|how so|how come|in what way|compared to what|meaning|like what|since when|how much|how long|which one|"
+    r"and then|and you|or not)\b", re.I)
+FOLLOW_UP_MAX_WORDS = 6
+
+
+def turn_questions(text: str) -> list[str]:
+    """The questions of a sales turn, in order: its sentences that are solicitations (§2), an isolated tail merged into
+    the sentence it closes (SEG-4)."""
+    merged: list[str] = []
+    for s in split_sentences(text):
+        if TAIL_ONLY.match(s) and merged:
+            merged[-1] = merged[-1].rstrip(".!") + ", " + s
+        else:
+            merged.append(s)
+    return [s for s in merged if question_form(s)]
+
+
+def follows_previous(q: str, prev: str) -> bool:
+    """A short question that only follows up the previous one: a follow-up word (« pourquoi ? », « depuis quand ? »),
+    a tail alone, or no content word of its own beyond the previous question's."""
+    words = [w for w in _fold(q).split() if w]
+    if len(words) > FOLLOW_UP_MAX_WORDS:
+        return False
+    if TAIL_ONLY.match(q.strip()):
+        return True
+    low = q.strip().lower()
+    rest = FOLLOW_UP.sub("", low, count=1)                       # the follow-up words themselves bring no new object
+    return not (content_words(rest) - content_words(prev))
+
+
+def group_turn(text: str) -> Optional[dict]:
+    """SEG-1 (Romain, 2026-11-20): one unit per sales turn. {"questions": [...], "priority": the question read for the
+    letter, "index": its rank}, or None when the turn asks nothing."""
+    qs = turn_questions(text)
+    if not qs:
+        return None
+    k = len(qs) - 1
+    while k > 0 and follows_previous(qs[k], qs[k - 1]):
+        k -= 1
+    return {"questions": qs, "priority": qs[k], "index": k}
 
 
 def content_words(s: str) -> set[str]:
@@ -187,9 +278,10 @@ def inventory(ctx: CallContext) -> list[Unit]:
                 "validation_tail": any(re.search(p, low) for p in TAILS),                     # SEG-4
                 "backchannel": len(ws) <= 3 and all(w.strip("'") in ACK or w in ("oh", "really", "so", "and",
                                                                                   "hmm", "huh") for w in ws),  # SEG-7
-                "alternative": bool(re.search(r"\bor\b", low)) and low.endswith("?"),         # SEG-3
-                "open_branch": bool(re.search(r"\bor (something else|anything else|other|not)\b", low)),
-                "why": bool(re.search(r"\bwhy\b", low)),
+                "alternative": bool(re.search(r"\b(or|ou)\b", low)) and low.endswith("?"),    # SEG-3
+                "open_branch": bool(re.search(r"\bor (something else|anything else|other|not)\b|"
+                                              r"\bou (autre chose|pas|quelque chose d'autre|non)\b", low)),
+                "why": bool(re.search(r"\b(why|pourquoi)\b", low)),
                 "offer_mention": bool(OFFER_WORDS.search(low)),
                 "anchor_words": sorted(content_words(s) & pros_words),                        # SEG-5 anchoring
                 "n_words": len(ws),
@@ -387,9 +479,125 @@ def discovery_end(ctx: CallContext) -> Optional[str]:
     return min(c, key=ctx.n) if c else None
 
 
-def is_valid_start(d: LetterDecision) -> bool:
+# SB-2 (code, LNP 2026-11-19): social, logistic and framing questions are never the perimeter start, whatever letter the
+# model gave them ("tu viens de quelle région ?" coded S opened the discovery of three calls of November 2026)
+SOCIAL_LOGISTIC = re.compile(
+    r"where are you (calling|joining) from|how('s| is| was) your (day|week|weekend)|how are you|can you (see|hear) me|"
+    r"d'où (tu |vous )?(m'appelles|m'appelez|appelles|appelez|viens|venez)|de quelle (région|ville|coin)|"
+    r"tu habites où|vous habitez où|il (ne )?fait (pas )?(trop )?(froid|chaud|beau)|la météo|"
+    r"^\W*(et )?(ça va|comment (tu vas|vous allez|ça va)|tu vas bien|vous allez bien)\b.{0,30}\?\s*$|"
+    r"(bonne|bon|passé une bonne|passé un bon) (journée|semaine|week-end|weekend)|"
+    r"tu m'entends|vous m'entendez|tu me vois|vous me voyez|ça (coupe|bug|capte)|"
+    r"on (peut )?se (tutoie|tutoyer|vouvoie|vouvoyer)|on se tutoie|"
+    r"\b(tu as|t'as|as-tu|as|vous avez|avez-vous) (pu )?(voir|vu|regardé|regarder|suivi|suivre|assisté)( à)? "
+    r"(le |la |au |à la )?(live|conférence|webinaire|vidéo|masterclass|replay)|"
+    r"(décale|décaler|reporter|reporte) (cet |l')?(appel|rendez-vous|rdv)|un autre créneau|"
+    r"combien de temps (tu as|vous avez|t'as) (devant (toi|vous)|pour (l'appel|cet appel))|"
+    # framing of the call itself (Romain, 2026-11-20, SB-2): what the prospect expects from the call, not from the help
+    r"(qu'est-ce que|qu'est ce que|qu') ?(tu attends|t'attends|vous attendez|attends-tu|attendez-vous) "
+    r"(de |d')(notre|cet|ce|l'|l’)? ?(appel|échange|rendez-vous|rdv|call|entretien)|"
+    r"what do you (expect|want) (from|out of) (this|our|the|today's) call|"
+    r"what are you hoping to get out of (this|our|the|today's) call", re.I)
+
+
+# §3 hard rules the code can read in the text (LNP, 2026-11-19; the lite engine left them to the model, README
+# approximation 4): the load of a solution (the time or the money the prospect would put into it, SB-25 financing) is
+# OUT `solution_load`; a question about the offer is OUT `offer_info`
+SOLUTION_LOAD = re.compile(
+    r"how much time (can|could|would) you (dedicate|commit|put in|set aside|carve out|give)|"
+    r"how many hours (a |per )?(week |day )?(can|could|would) you (dedicate|commit|put in|set aside|give)|"
+    r"what('s| is) your budget|how much (can|could|would) you (invest|put in|spend)|"
+    r"(combien de temps|combien d'heures|disponibilité|disponible|heures par semaine|temps par semaine)"
+    r"[^?]{0,60}\b(allouer|consacrer|dégager|décaler|libérer|mettre|accorder|investir|te former|vous former|"
+    r"te faire accompagner|vous faire accompagner|y passer|y mettre|pour avancer)\b|"
+    r"\b(allouer|consacrer|dégager|libérer|accorder)\b[^?]{0,40}(combien|temps|heures)|"
+    r"(c'est quoi|quel est|quel serait) (ton |votre |le )?budget|\bton budget\b|\bvotre budget\b|"
+    r"combien (tu peux|vous pouvez|tu pourrais|vous pourriez|tu es prête? à|vous êtes prête? à|tu serais prête? à)"
+    r" (investir|mettre|payer|dépenser)", re.I)
+OFFER_QUESTION = re.compile(
+    r"about (the|our) (program|programme|mentorship|academy|offer|course|coaching)|"
+    r"\bnotre (accompagnement|programme|offre|méthode|formation|coaching)\b|\bl'offre\b|"
+    r"\b(sur|dans|de|pour) l'accompagnement\b|te lancer dans un accompagnement|vous lancer dans un accompagnement",
+    re.I)
+
+
+# §3 hard rules added 2026-11-20 (Romain), read in the priority question by the code, from gate 1's definitions:
+# a check-in on the sales' own speech ("does that make sense?") is OUT `nothing`; a closed restatement that only asks
+# the prospect to confirm what the sales says ("so your problem is time?") is OUT `agreement`; a choice among options
+# the sales gives, with no open branch ("would you rather X or Y?"), is OUT `sales_list`.
+CHECK_IN = re.compile(
+    r"^\W*(et |alors |ok |okay |donc )?(est-ce que )?(ça|cela|c'est|ça te|ça vous)? ?"
+    r"(fait sens|te parle|vous parle|parle|est clair|clair|te va|vous va|va)\s*\?\s*$|"
+    r"^\W*(et |alors |ok |donc )?(tu me suis|vous me suivez|tu vois ce que je veux dire|vous voyez ce que je veux dire|"
+    r"tu (as|aurais) des questions|vous (avez|auriez) des questions|des questions|"
+    r"(est-ce que )?c'est clair (pour (toi|vous))?)\s*\?\s*$|"
+    r"^\W*(and |so |ok |okay )?(does (that|this) make sense|any questions|are you with me|you with me|"
+    r"do you have any questions|is that clear)\s*\?\s*$", re.I)
+RESTATEMENT_OPENER = re.compile(
+    r"^\W*(ok,? |okay,? |d'accord,? |très bien,? )?(donc|alors donc|en gros|si je comprends bien|si j'ai bien compris|"
+    r"autrement dit|en résumé|so basically|so|if i understand( correctly)?|in other words)\b", re.I)
+OPEN_WORDS = re.compile(
+    r"\b(qu'est-ce|qu'est ce|quoi|comment|pourquoi|combien|quel|quelle|quels|quelles|où|quand|lequel|laquelle|"
+    r"lesquels|lesquelles|qui|what|how|why|which|where|when|who)\b", re.I)
+CHOICE_LIST = re.compile(
+    r"\b(tu préfères|vous préférez|tu préférerais|vous préféreriez|tu dirais plutôt|vous diriez plutôt|c'est plutôt|"
+    r"plutôt|would you rather|do you prefer|would you say it's more|is it more)\b[^?]*\b(ou|or)\b[^?]*\?", re.I)
+OPEN_BRANCH = re.compile(r"\b(ou|or) (autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
+
+
+def check_in_question(text: str) -> bool:
+    return bool(CHECK_IN.search(norm(text or "")))
+
+
+def closed_restatement(text: str) -> bool:
+    t = norm(text or "")
+    return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1)))
+
+
+def choice_list_question(text: str) -> bool:
+    t = norm(text or "")
+    return bool(CHOICE_LIST.search(t) and not OPEN_BRANCH.search(t))
+
+
+def solution_load_question(text: str) -> bool:
+    return bool(SOLUTION_LOAD.search(norm(text or "")))
+
+
+def offer_question(text: str) -> bool:
+    return bool(OFFER_QUESTION.search(norm(text or "")))
+
+
+def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
+    """SB-27 by the code: when the words of what the question asks name exactly one register (SB-30), its register and
+    the word that names it (an exact passage of the question); None otherwise. SB-28 (asked over premise): only the last
+    clause, after the last comma, is read ("not knowing where clients come from, what does that do to you?" asks
+    nothing about clients)."""
+    text = asked_part(text).rsplit(",", 1)[-1]
+    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
+    hits = {}
+    for reg, words in REGISTER_LEXICON.items():
+        for w in words:
+            m = re.search(r"[ $]" + re.escape(w), t)
+            if m:
+                hits.setdefault(reg, w.strip())
+    if len(hits) != 1:
+        return None
+    reg, w = next(iter(hits.items()))
+    folded = _fold(text)
+    i = folded.find(w)
+    return (reg, text[i:i + len(w)]) if i >= 0 and len(folded) == len(text) else (reg, w)
+
+
+def social_or_logistic(text: str) -> bool:
+    return bool(SOCIAL_LOGISTIC.search(norm(text or "")))
+
+
+def is_valid_start(d: LetterDecision, text: Optional[str] = None) -> bool:
     """SB-1 / SB-2: the start bears on the prospect's situation, goals or problems; social, logistic and framing
-    questions (gate 1 `nothing`), offer questions and loads are never the start."""
+    questions (gate 1 `nothing`), offer questions and loads are never the start. With the question's text, the code
+    also refuses a social or logistic question the model coded otherwise (SOCIAL_LOGISTIC)."""
+    if text is not None and social_or_logistic(text):
+        return False
     return d.letter in LETTERS or (d.letter == OUT and d.reason in ("agreement", "sales_list"))
 
 
@@ -600,7 +808,10 @@ def build_atoms(ctx: CallContext, u: Unit, raw_atoms: list[dict], start_index: i
 
 # =============================================================================================== follow-up
 ECHO = re.compile(r"^(and )?(tell me more|how so|what else|meaning|what do you mean|in what way|what way|like what|"
-                  r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$")
+                  r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$"
+                  # French (LNP, 2026-11-19)
+                  r"|^(et )?(c'est-à-dire|comment ça|dans quel sens|par exemple|quoi d'autre|et après|et ensuite|"
+                  r"à quel point|dis-m'en plus|raconte|pourquoi|comment|vraiment|genre|c'est-à-dire)\b.{0,25}\?*$")
 
 
 def follows_up(prev_answer: str, question: str, preamble: str = "") -> bool:
@@ -890,7 +1101,7 @@ def place_perimeter(ctx: CallContext, units: list[Unit], resolve: Callable[[Unit
             continue
         u.window_end = end
         resolve(u)
-        if start is None and u.decision and is_valid_start(u.decision):   # SB-1, SB-2
+        if start is None and u.decision and is_valid_start(u.decision, u.sol.text):   # SB-1, SB-2
             start = u
         if start is not None:
             u.in_perimeter = True
@@ -972,9 +1183,25 @@ def expand_splits(units: list[Unit]) -> list[Unit]:
 
 
 # =============================================================================================== registers
+# SB-30: words that only date the question are not the time domain ("ça fait combien de temps que…", "depuis quand")
+DATING = re.compile(r"(ca fait|depuis|il y a|pendant) combien de temps|depuis quand|combien d'annees|"
+                    r"how long (have|has|did|ago)|for how long")
+
+
+def asked_part(text: str, quote: Optional[str] = None) -> str:
+    """SB-28: the part of a solicitation that asks; the sentence holding the quote (or the last sentence), whatever the
+    case after the period (a transcript does not always capitalise)."""
+    parts = [p for p in re.split(r"(?<=[.!?])\s+", text or "") if p.strip()] or [text or ""]
+    if quote:
+        for p in parts:
+            if norm(quote) in norm(p):
+                return p
+    return parts[-1]
+
+
 def lexicon_registers(text: str) -> set[str]:
     """SB-30: the registers whose domain words appear in a text (word starts, case-insensitive)."""
-    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", _fold(text)) + " "
+    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = set()
     for reg, words in REGISTER_LEXICON.items():
         if any(re.search(r"[ $]" + re.escape(w), t) for w in words):
@@ -1031,7 +1258,7 @@ def _validate_register(a: dict, ctx: CallContext, u: Unit) -> list[str]:
         where = (u.preamble + " " + u.sol.text) if u.preamble else u.sol.text
         if not _proof_ok(q, where):
             return ["bad_quote:named"]
-        lex = lexicon_registers(u.sol.text)
+        lex = lexicon_registers(asked_part(u.sol.text, q))         # the asked sentence, not the preamble (SB-28)
         if len(lex) == 1 and REGISTER_OF_DOMAIN[dom] not in lex:
             return ["lexicon_conflict"]
         return []
@@ -1043,7 +1270,11 @@ def _validate_register(a: dict, ctx: CallContext, u: Unit) -> list[str]:
         if rt not in {t.id for t in _answer_turns(ctx, u)}:
             return ["bad_answer_turn"]
         e = quote_ok(ctx, Evidence(q or "", rt, PROSPECT), min_words=1, max_words=40)
-        return [f"bad_quote:{e}"] if e else []
+        if e:
+            return [f"bad_quote:{e}"]
+        # SB-27 (code, LNP 2026-11-19): a question whose asked clause names one domain is read in the question, never
+        # in its answer
+        return ["named_in_question"] if lexicon_register_named(u.sol.text) else []
     # reference: only for an open question with no answer; the words it points to, in the last prospect turns (SB-29)
     if answered:
         return ["reference_with_answer"]

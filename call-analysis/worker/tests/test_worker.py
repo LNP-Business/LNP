@@ -17,7 +17,7 @@ def synthetic_transcript() -> str:
     """A fictional call (no real prospect): enough words on both sides to pass the diarization gate."""
     lines = []
     for i in range(40):
-        m, s = divmod(i * 20, 60)
+        m, s = divmod(i * 40, 60)                        # 26 minutes: a whole call (C1: under 20, cut)
         if i % 2 == 0:
             lines.append(f"[{m:02d}:{s:02d}] Sam Rep: Question number {i}, can you tell me more about how your business works today?")
         else:

@@ -10,7 +10,8 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from lnp_callqa.core.foundation import parse_transcript
+from lnp_callqa.core import rounds
+from lnp_callqa.core.foundation import parse_lines, parse_transcript
 from lnp_callqa.core.models import CallContext
 from lnp_callqa.core.runner import RunConfig, Runner
 from lnp_callqa.pipeline import analyse_call, result_record
@@ -70,9 +71,13 @@ def prior_inputs(prior: list[dict]) -> list[dict]:
 def build_context(claim: dict) -> CallContext:
     call = claim.get("call") or {}
     turns = parse_transcript(claim.get("transcript") or "", claim.get("speaker_map") or {})
-    return CallContext(str(call.get("call_id")), str(call.get("sales_id") or "none"), str(call.get("start_utc") or ""),
-                       str(call.get("timezone") or "UTC"), turns, claim.get("offer_reference") or {},
-                       case_library(claim.get("case_library")), prior_inputs(claim.get("prior")))
+    ctx = CallContext(str(call.get("call_id")), str(call.get("sales_id") or "none"), str(call.get("start_utc") or ""),
+                      str(call.get("timezone") or "UTC"), turns, claim.get("offer_reference") or {},
+                      case_library(claim.get("case_library")), prior_inputs(claim.get("prior")))
+    ctx.lines = parse_lines(claim.get("transcript") or "", claim.get("speaker_map") or {})   # lite voice check
+    ctx.sales_round = call.get("sales_round")
+    ctx.cycle = rounds.plan(ctx.sales_round, claim.get("prior"))                         # C9: R1, R2, R3
+    return ctx
 
 
 def run_job(claim: dict, client: Any, config: Optional[RunConfig] = None, rounds: bool = False, workers: int = 16,

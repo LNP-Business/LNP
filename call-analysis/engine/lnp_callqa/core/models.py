@@ -122,6 +122,9 @@ class CallContext:
     atoms: list[Atom] = field(default_factory=list)
     results: dict[str, CompetenceResult] = field(default_factory=dict)
     audit: list[dict[str, Any]] = field(default_factory=list)          # every model pass, arbitration, error
+    lines: list[Turn] = field(default_factory=list)
+    sales_round: Optional[int] = None        # R1 = 1, R2 = 2… (crm_ca_call_info)
+    cycle: dict[str, Any] = field(default_factory=dict)   # what earlier calls of the cycle did (core/rounds.py, C9)   # the recorder's lines, one per sentence (lite voice check)
 
     # ---- helpers -------------------------------------------------------------
     def turn(self, tid: str) -> Turn:

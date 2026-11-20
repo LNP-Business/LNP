@@ -12,7 +12,9 @@ This part is identical in the four methodology documents (SPIN, Gap, Pitch, Obje
 | Offer reference | Current offer: name, components, price and payment options, guarantee | Pitch and Objections run with reduced checks and are flagged `offer_reference_missing` |
 | Rules version | The version of this document applied (for example `SPIN-1.0`) | Not allowed: every result must carry a version |
 
-**Diarization quality gate.** Before any analysis, the code computes the share of words attributed to each role. A call where one role holds more than 92 % of the words, or where the prospect holds fewer than 150 words, is flagged `diarization_suspect` and excluded from scoring (it remains visible in the call list). **Attribution check.** Before bounding, the model reads each turn against its label and flags three cases, each with a quote: (1) **merged turn**: a turn that contains the other role's speech (for example a sales question or a "right?" tail at the start or end of a prospect turn); (2) **swapped turn**: content that can only belong to the other role (the sales' own name, the offer described in the first person, the prospect's personal facts stated as "I" under a SALES label); (3) **echo**: the same sentence repeated under both labels within 3 turns. The code then splits a merged turn at the quoted boundary and relabels the part, relabels a swapped turn, and drops the echoed copy. A turn that cannot be repaired this way is marked `attribution_doubtful` and is excluded from every computation in which the speaker matters. A call where more than 10 % of turns are repaired or doubtful is flagged `diarization_suspect` (threshold to validate).
+**Recording gate** (Romain, 2026-11-20). A recording shorter than 20 minutes (its last timestamp) is cut: the call went on unrecorded. It is not analysed (status `recording_incomplete`, every competence excluded, no model call).
+
+**Diarization quality gate.** Before any analysis, the code computes the share of words attributed to each role. A call where one role holds more than 92 % of the words, or where the prospect holds fewer than 150 words, is flagged `diarization_suspect` and excluded from scoring (it remains visible in the call list). **Attribution check.** Before bounding, the model reads each turn against its label and flags three cases, each with a quote: (1) **merged turn**: a turn that contains the other role's speech (for example a sales question or a "right?" tail at the start or end of a prospect turn); (2) **swapped turn**: content that can only belong to the other role (the sales' own name, the offer described in the first person, the prospect's personal facts stated as "I" under a SALES label); (3) **echo**: the same sentence repeated under both labels within 3 turns. The code then splits a merged turn at the quoted boundary and relabels the part, relabels a swapped turn, and drops the echoed copy. A turn that cannot be repaired this way is marked `attribution_doubtful` and is excluded from every computation in which the speaker matters. The 10 % threshold applies **after the repair** (Romain, 2026-11-20): a call where more than 10 % of the transcript is still wrongly attributed once repaired is flagged `diarization_suspect` (threshold to validate). The reference engine counts the turns left `attribution_doubtful`; the lite engine reads the recorder's lines, repairs them, then reads the repaired lines again (control reading) and counts the lines still flagged or doubtful. Repaired turns are not counted: on the calls of November 2026, 41 to 52 % of the lines were mislabelled by the recorder.
 
 ## C2. Processing pipeline
 
@@ -104,3 +106,32 @@ Until every threshold is met on the current rules version, every score carries t
 - Every call result stores the rules version, the model identifier, the prompt hash, the three raw passes, the arbiter decision if any, and the timestamp of computation.
 - A score computed under one rules version is never compared with a score computed under another. When a version changes, the historical calls of the window are re-scored before any delta is shown.
 - Every arbitration and every human correction is logged with: unit id, readings, decision, case label, author, date. A human may correct a verdict; nobody may edit a stored score by hand.
+
+## C9. Calls of one sales cycle (R1, R2, R3)
+
+Romain, 2026-11-20. What a call is evaluated on depends on what the earlier analysed calls of the same cycle already did
+(`engine/lnp_callqa/core/rounds.py`, both engines).
+
+| In this call | Evaluated when | Otherwise |
+|---|---|---|
+| Discovery (SPIN) and Gap | first call of the cycle, or the last gap read in an earlier call is **bad** | `not_applicable`, reason `gap_made_in_previous_call` |
+| Pitch | no earlier call of the cycle had a pitch start | `not_applicable`, reason `pitch_made_in_previous_call` |
+| Objections | always | — |
+
+- **A good gap** is present (validated) with its four components restated: problem, cost, A and B. **A bad gap** is
+  absent, incomplete (one component missing) or not validated. After a bad gap, the next call must deepen the discovery
+  and restate the gap: both are evaluated there. A later call reads the last call that had a gap reading (a call that
+  did not evaluate the gap passes the earlier reading on).
+- **A pitch made in a later call after a good gap made earlier** is read against that earlier gap (validated problem,
+  A, B, roadmap blockers, carried as `carried_from`): the pitch comes after the gap (PB-37), the roadmap steps are matched
+  to the earlier blockers by their words (PB-34).
+- **Objections once the price was given in an earlier call:** every resistance of the call counts, from its first turn
+  (OB-27 reads "after the first price of the cycle"); prevention (OB-18, OB-19), which belongs before the first price, is
+  not evaluated again.
+- **An earlier call that was not analysed** (no recording, no transcript, not processed) is unknown: the call is evaluated
+  as a first call.
+- **Inside a call, a bad gap must be followed up** before the pitch, by a new restatement or a return to discovery (any
+  coded S, P, I or N question after the bad restatement). When neither comes, the call is flagged `gap_not_remedied`
+  (shown as « Écart à reprendre »); it has no weight of its own: the new restatement and the reopened discovery count in
+  the Gap and SPIN scores as usual. A call with no restatement at all is simply "gap absent".
+

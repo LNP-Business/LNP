@@ -123,7 +123,9 @@ def test_each_question_has_its_letter_register_and_the_prospect_answer():
     assert by["T005"]["answer_turns"] == ["T006"]                                 # SB-5, computed by code
     assert by["T003"]["answer"] == {"turn": "T004", "quote": "I only make about 1,500 a month from it"}
     reg = rec["results"]["SPIN"]["details"]["registers"]
-    assert reg["counts"] == {"financial": 4, "time_load": 2, "identity_status": 0, "mental_emotional": 1, "other": 0}
+    # SB-27 (2026-11-19): « Where do you want to be in twelve months? » names Identity & status (SB-30), read in the question
+    assert by["T013"]["register"] == "identity_status" and by["T013"]["register_basis"] == "named"
+    assert reg["counts"] == {"financial": 3, "time_load": 2, "identity_status": 1, "mental_emotional": 1, "other": 0}
     assert reg["flags"] == [] and reg["agreement"] is None and reg["single_reading"]
 
 
@@ -150,16 +152,20 @@ def test_a_closing_tail_makes_the_question_out_agreement():
 
 
 # ------------------------------------------------------------------ objections
-def test_objections_before_the_first_price_are_dropped_and_repeats_merged():
+def test_objections_before_the_first_price_are_dropped_and_a_recurrence_is_its_own_episode():
+    """OB-11 (Romain, 2026-11-20): the money comes back at T038, after the sales moved on to the co-decider: a new
+    episode linked to the first, which takes H5 = 0."""
     rec, _ = run()
     d = rec["results"]["OBJECTIONS"]["details"]
     eps = d["episodes"]
-    assert [(e["subtype"], e["resistance"]["turn"]) for e in eps] == [("price", "T028"), ("co_decider", "T036")]
+    assert [(e["subtype"], e["resistance"]["turn"]) for e in eps] == [("price", "T028"), ("co_decider", "T036"),
+                                                                       ("price", "T038")]
+    assert eps[2]["recurrence_of"] == "E1" and eps[2]["status"] == "scored"
     # OB-27: before the pitch (T010) and during the pitch but before the first price (T024, price at T027): dropped
     assert rec["meta"]["steps"]["S4"]["reasons"]["quote:before_price"] == 2
     assert d["lite"]["scope"] == "after_first_price"
     money = eps[0]
-    assert [q["turn"] for q in money["quotes"]] == ["T028", "T038"] and money["merged_items"] == 2
+    assert [q["turn"] for q in money["quotes"]] == ["T028"] and money["merged_items"] == 1
     assert money["recurs_later"] and next(i for i in money["items"] if i["id"] == "H5")["level"] == 0   # OB-11, X4
     assert (money["acknowledge"], money["isolate"], money["explore"], money["gesture_match"]) == \
         (True, True, {"asked": True, "answered_with_content": True}, "yes")
@@ -176,7 +182,31 @@ def test_no_objection_twice_even_when_listed_with_a_shared_quote():
                                                   "quotes": [{"turn": "T028", "quote": "a lot of money for me"}]})
     rec, _ = run(a)
     eps = rec["results"]["OBJECTIONS"]["details"]["episodes"]
-    assert len(eps) == 2 and len({(e["nature"], e["subtype"]) for e in eps}) == 2
+    assert [e["subtype"] for e in eps] == ["price", "co_decider", "price"]          # the shared quote: one objection
+    assert eps[0]["merged_items"] == 2
+
+
+def test_the_same_doubt_said_again_before_the_sales_moves_on_is_a_repetition():
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s4_objections"]["objections"][1]["quotes"].append({"turn": "T030", "quote": "it's really just the money"})
+    rec, _ = run(a)
+    eps = rec["results"]["OBJECTIONS"]["details"]["episodes"]
+    assert [q["turn"] for q in eps[0]["quotes"]] == ["T028", "T030"] and len(eps) == 3   # T030 is before T035
+
+
+def test_a_recurrence_left_under_the_first_objection_opens_an_episode_to_review():
+    a = copy.deepcopy(sc.ANSWERS)
+    objs = a["lite.s4_objections"]["objections"]
+    objs[1]["quotes"].append({"turn": "T038", "quote": "the money is still a lot"})
+    del objs[3]
+    rec, _ = run(a)
+    d = rec["results"]["OBJECTIONS"]["details"]
+    eps = d["episodes"]
+    assert [(e["subtype"], e["status"]) for e in eps] == [("price", "scored"), ("co_decider", "scored"),
+                                                         ("price", "to_review")]
+    assert eps[0]["recurs_later"] and eps[2]["recurrence_of"] == "E1" and "recurrence_unread" in eps[2]["tags"]
+    assert d["handling_score"] == round((90 + 38) / 2)                              # the unread one is left out
+    assert rec["meta"]["steps"]["S4"]["reasons"]["recurrence:unread"] == 1
 
 
 def test_prevention_is_read_before_the_first_price_only():
@@ -196,7 +226,7 @@ def test_scores_are_computed_by_code():
     assert r["PITCH"]["verdict"] == "compliant" and lv("PITCH")["K1"] == 2 and lv("PITCH")["K6"] == 0
     assert r["PITCH"]["score"] == 65
     d = r["OBJECTIONS"]["details"]
-    assert (d["handling_score"], d["prevention_score"], r["OBJECTIONS"]["score"]) == (64, 20, 51)
+    assert (d["handling_score"], d["prevention_score"], r["OBJECTIONS"]["score"]) == (52, 20, 42)   # 3 episodes (OB-11)
     assert all(x["concordance"] == "single_reading" for x in r.values())
 
 
@@ -226,7 +256,7 @@ def test_record_has_the_contract_fields_the_screen_reads():
     rec, _ = run()
     assert {"call_id", "sales_id", "start_utc", "timezone", "status", "flags", "turns", "phases", "results", "audit",
             "meta"} <= set(rec)
-    assert rec["meta"]["engine"] == "lite" and rec["meta"]["version"] == "callqa-lite-1.0"
+    assert rec["meta"]["engine"] == "lite" and rec["meta"]["version"] == "callqa-lite-1.1"
     assert {"id", "ts", "role", "speaker", "text", "repaired", "attribution_doubtful"} == set(rec["turns"][0])
     for c in ("SPIN", "GAP", "PITCH", "OBJECTIONS"):
         assert {"competence", "rules_version", "status", "verdict", "reasons", "score", "items", "flags", "details",
@@ -255,12 +285,12 @@ def test_record_has_the_contract_fields_the_screen_reads():
 # ------------------------------------------------------------------ model calls: cache, JSON, replay, chunks
 def test_one_call_per_step_with_the_transcript_as_the_same_cached_prefix():
     rec, client = run()
-    assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s2_gap", "lite.s3_pitch",
-                                                 "lite.s4_objections"]
+    assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s1_gates",
+                                                 "lite.s2_gap", "lite.s3_pitch", "lite.s4_objections"]
     prefixes = {c["prefix"] for c in client.calls}
     assert len(prefixes) == 1 and next(iter(prefixes)).splitlines()[1] == "T001 [SALES] Hi Alex, can you hear me okay?"
-    assert "pitch start T019" in client.calls[2]["prompt"] and "[T014] \"I want to make 6,000" in client.calls[2]["prompt"]
-    assert "\"turn\": \"T008\"" in client.calls[3]["prompt"]                       # the validated P, from the Gap code
+    assert "pitch start T019" in client.calls[4]["prompt"] and "[T014] \"I want to make 6,000" in client.calls[4]["prompt"]
+    assert "\"turn\": \"T008\"" in client.calls[5]["prompt"]                       # the validated P, from the Gap code
     assert all(c["effort"] == "low" and c["tier"] == "fast" for c in client.calls)
 
 
@@ -321,5 +351,96 @@ def test_the_code_narrows_a_key_expression_copied_as_a_whole_sentence():
     k = shared_key_expression("quelques 10% de ce qui coûte", src, sales)
     assert k and "10" in k and "quelques" not in k
     assert shared_key_expression("je suis dépendante actuellement de l'aide de ma mère",
-                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "dépendante"
+                                 "je suis dépendante actuellement de l'aide de ma mère", "es dépendante de ta maman") == "suis dépendante"
+    # (2026-11-19: the person shift is French too, so « je suis » is found in the sales' « es »: the longest shared run)
     assert shared_key_expression("je suis vraiment", "je suis vraiment", "tu es là") is None       # generic only: none
+
+
+# ---------------------------------------------------------------- 2026-11-19: phases and perimeter (audit of November 2026)
+def test_an_offer_description_far_from_the_next_question_is_the_pitch_start():
+    """PB-2 / PB-17: a mention only when the return to discovery comes within 2 sales turns (Maria's call: any later
+    question used to count, and her pitch was read at the price)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    t = next(x for x in a["lite.s0_phases"]["turns"] if x["turn"] == "T019")
+    t["next_discovery_question"] = {"turn": "T025", "quote": "Do you have any questions about how the weekly calls work?"}
+    rec, _ = run(a)
+    assert rec["phases"]["pitch_start"] == "T019"
+    assert rec["meta"]["steps"]["S0"]["reasons"].get("pitch:discovery_too_far") == 1
+
+
+def test_the_pitch_end_is_the_first_price_after_the_pitch_start():
+    """PB-4, recomputed after the code moves the price or the start (Antoine's pitch end was on no price nor request)."""
+    for answers in (sc.ANSWERS, None):
+        a = copy.deepcopy(sc.ANSWERS)
+        if answers is None:
+            t = next(x for x in a["lite.s0_phases"]["turns"] if x["turn"] == "T019")
+            t["followed_by_discovery"] = True
+            t["next_discovery_question"] = None
+        rec, _ = run(a)
+        assert rec["phases"]["pitch_end"] == rec["phases"]["first_price"] == "T027"
+
+
+def test_a_social_question_never_starts_the_discovery():
+    """SB-2 by the code: « can you hear me? » coded S by the model does not open the perimeter."""
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_discovery"]["questions"][0].update(letter="S", out_reason=None)
+    rec, _ = run(a)
+    assert rec["phases"]["discovery_start"] == "T003"
+    first = next(s for s in sols(rec) if s["turn"] == "T001")
+    assert not first["in_perimeter"] and "pre_perimeter" in first["tags"]
+
+
+# ---------------------------------------------------------------- 2026-11-19: SPIN rules the code now enforces
+def test_the_load_of_a_solution_and_an_offer_question_are_out_by_code():
+    """§3 hard rules read by the code (README approximation 4): time or budget the prospect would put into it, a question
+    about the offer. The letters of the audit of November 2026 (rewritten)."""
+    from callqa_lite.spin import decide_letter
+    for q in ("combien d'heures par semaine tu peux allouer ?", "tu as combien de temps à consacrer pour te former ?",
+              "c'est quoi le budget, du coup ?", "How many hours a week can you dedicate to it?"):
+        d = decide_letter({"letter": "S"}, q)
+        assert (d.letter, d.reason) == ("OUT", "solution_load"), q
+    for q in ("Qu'est-ce que tu as besoin de savoir sur notre accompagnement ?", "What do you want to know about the program?"):
+        d = decide_letter({"letter": "N"}, q)
+        assert (d.letter, d.reason) == ("OUT", "offer_info"), q
+    for q in ("ça fait combien de temps que tu donnes des cours ?", "tu as déjà suivi un accompagnement avant ?"):
+        assert decide_letter({"letter": "S"}, q).letter == "S", q
+
+
+def test_a_register_named_by_the_question_is_not_read_in_the_answer():
+    """SB-27 / SB-28 by the code: the asked clause names one domain (Ouala's Q032.1, rewritten in English here)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T011")
+    q.update(register_domain="money", register_basis="answer", register_turn="T012",
+             register_quote="I miss dinner three nights a week")                  # « your family » is asked: Time & load
+    rec, _ = run(a)
+    by = {x["turn"]: x for x in sols(rec)}
+    assert by["T011"]["register"] == "time_load" and by["T011"]["register_basis"] == "named"
+    assert rec["meta"]["steps"]["S1"]["reasons"].get("register:named_in_question", 0) >= 1
+
+
+def test_an_atom_under_an_out_question_goes_to_the_question_of_its_answer():
+    """An atom the model listed under an OUT question is not lost: it goes to the coded question whose answer holds its
+    turn (it used to disappear without being counted)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    t3 = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")
+    moved = t3["atoms"].pop(0)                                                    # the 1,500 a month SITUATION
+    a["lite.s1_discovery"]["questions"][0]["atoms"] = [moved]                     # put under « can you hear me okay? »
+    rec, _ = run(a)
+    kept = [x for x in rec["results"]["SPIN"]["details"]["atom_decisions"] if x["decision"] == "kept"]
+    assert any(x["quote"] == moved["quote"] and x["solicitation"] == "Q003.1" for x in kept)
+
+
+def test_a_framing_question_is_out_and_an_effect_said_after_an_out_question_counts():
+    """SB-2 and SB-8 (Romain, 2026-11-20): the framing question is OUT `nothing`; an effect the prospect states in answer
+    to it, in no coded answer, is volunteered speech attached to the first coded question (D1 to D4, never D5)."""
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_discovery"]["questions"].insert(0, {
+        "turn": "T001", "quote": "can you hear me okay?", "letter": "S",
+        "atoms": [{"type": "DESIRE", "turn": "T002", "quote": "thanks for having me today"}]})
+    rec, _ = run(a)
+    s = next(x for x in sols(rec) if x["turn"] == "T001")
+    assert s["letter"] in (None, "OUT")
+    atoms = rec["results"]["SPIN"]["details"]["atom_decisions"]
+    got = [x for x in atoms if x["turn"] == "T002"]
+    assert got and got[0]["solicitation"] == "Q003.1"                      # the first coded question
+    assert rec["meta"]["steps"]["S1"]["reasons"]["atom:outside_answers"] == 1     # only the sales turn of the fixture

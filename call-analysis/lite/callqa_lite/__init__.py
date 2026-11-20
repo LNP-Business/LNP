@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-LITE_VERSION = "callqa-lite-1.0"
+LITE_VERSION = "callqa-lite-1.1"
 
 _ENGINE = Path(__file__).resolve().parents[2] / "engine"
 if str(_ENGINE) not in sys.path:
