@@ -257,8 +257,11 @@ def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions
 
 def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]:
     """The model's readings on the code's list: a listed question keeps the code's turn and priority question (the
-    model cannot move or reword it), one reading per turn; a listed question still unread is counted
-    (`question:not_read`); a question the model added counts only on a turn the code did not list. A reading without
+    model cannot move or reword it), one reading per turn; a question the model added counts only on a turn the code
+    did not list. C4 (2026-11-20): one reading never removes a listed question. A listed question still unread is
+    counted (`question:not_read`) and kept for the gates (`s1_unread`); one S1 sends to gate 0 (a validation or
+    decision request) is counted (`question:routing_s1`) and kept for the gates too (`s1_routing`): the two
+    readings of the gates, and the arbiter on a disagreement, decide (spin.build_units). A reading without
     id (an answer of the earlier per-question listing) goes to its turn's item: the one on the priority question, else
     the last one of the turn."""
     by_id = {it["id"]: it for it in inv}
@@ -291,14 +294,17 @@ def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]
     out = []
     for it in inv:
         q = chosen.get(it["id"])
+        base = {"id": it["id"], "turn": it["turn"], "quote": it["quote"], "grouped": [it["quote"]] + it["others"]}
         if q is None:
             drops.add("S1", "question:not_read", {"turn": it["turn"]})
+            out.append(dict(base, s1_unread=True))
             continue
         if q.get("_routing"):
-            drops.add("S1", "question:routing", {"turn": it["turn"]})
+            drops.add("S1", "question:routing_s1", {"turn": it["turn"]})
+            out.append(dict(base, s1_routing=True))
             continue
         q = {k: v for k, v in q.items() if k != "_on_priority"}
-        out.append(dict(q, id=it["id"], turn=it["turn"], quote=it["quote"], grouped=[it["quote"]] + it["others"]))
+        out.append(dict(q, **base))
     return out + extra
 
 

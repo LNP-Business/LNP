@@ -49,9 +49,18 @@ def test_the_model_keeps_the_code_turn_and_question_and_a_forgotten_one_is_asked
     assert qs[0]["grouped"] == ["Combien d'élèves tu as aujourd'hui ?", "Et pourquoi ?"]
 
 
-def test_an_unread_question_is_counted_and_one_reading_per_turn():
+def test_an_unread_question_is_counted_kept_for_the_gates_and_one_reading_per_turn():
     answer = {"questions": [{"id": "Q001", "letter": "S"},
                             {"turn": "T001", "quote": "Et pourquoi ?", "letter": "P"}]}   # a second item on the same turn
     qs, client, d = run([answer, answer])
-    assert [q["id"] for q in qs] == ["Q001"] and qs[0]["letter"] == "S"
+    assert [q["id"] for q in qs] == ["Q001", "Q005"] and qs[0]["letter"] == "S"
+    assert qs[1]["s1_unread"] and "letter" not in qs[1]                            # C4: one reading never drops it
+    assert qs[1]["quote"] == "Et qu'est-ce que tu voudrais dans un an ?"
     assert d.counts["S1"] == {"question:not_read": 1}                              # Q005, even after the second asking
+
+
+def test_a_question_s1_routes_is_kept_for_the_gates():
+    answer = {"questions": [{"id": "Q001", "letter": "S"}, {"id": "Q005", "routing": "validation_request"}]}
+    qs, _, d = run([answer])
+    assert [(q["id"], q.get("s1_routing")) for q in qs] == [("Q001", None), ("Q005", True)]
+    assert d.counts["S1"] == {"question:routing_s1": 1}
