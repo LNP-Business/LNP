@@ -151,3 +151,21 @@ def test_what_the_prospect_expects_from_the_call_is_framing():
     for q in ["Qu'est-ce qui t'a amenée à réserver cet appel ?", "Qu'est-ce que tu attends de ta vie pro ?",
               "What were you hoping we could help you with?"]:
         assert not S.social_or_logistic(q), q
+
+
+def test_the_questions_of_one_turn_are_one_unit_read_on_the_priority_question():
+    """SEG-1 (Romain, 2026-11-20): the last question, unless it only follows up the one before (then the one before)."""
+    cases = {
+        "Combien d'élèves tu as aujourd'hui ? Et pourquoi ?": "Combien d'élèves tu as aujourd'hui ?",
+        "Qu'est-ce qui te bloque ? Pourquoi ça te bloque ?": "Qu'est-ce qui te bloque ?",
+        "Ok. Ça te rapporte combien ? Depuis combien de temps ?": "Ça te rapporte combien ?",
+        "Qu'est-ce qui te manque ? Comparé à quoi ?": "Qu'est-ce qui te manque ?",
+        "Tu fais quoi aujourd'hui ? Et qu'est-ce que tu voudrais dans un an ?": "Et qu'est-ce que tu voudrais dans un an ?",
+        "Tu as combien d'élèves ? À quel point ça te pèse ?": "À quel point ça te pèse ?",
+        "How many clients do you have? Why?": "How many clients do you have?",
+    }
+    for turn, priority in cases.items():
+        g = S.group_turn(turn)
+        assert g["priority"] == priority, turn
+        assert len(g["questions"]) == len([x for x in S.split_sentences(turn) if x.endswith("?")])
+    assert S.group_turn("D'accord, je comprends.") is None

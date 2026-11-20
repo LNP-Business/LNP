@@ -149,8 +149,11 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
 4. **SPIN letters**: the model gives the letter after walking the gates in the prompt, instead of answering each gate
    with its proof (§3); the code enforces the hard rules it can read in the text: validation tail, closed need-payoff,
    and since 2026-11-19 a tail alone ("Tu vois ?"), the load of a solution (time to dedicate, budget: `SOLUTION_LOAD`)
-   and a question about the offer (`OFFER_QUESTION`), in English and French. Segmentation (SEG-1 to SEG-8) is the
-   model's listing, not the code inventory. SB-21 (action-plan N without a future state) is left to the model's OUT
+   and a question about the offer (`OFFER_QUESTION`), in English and French. Segmentation (SEG-1, Romain 2026-11-20):
+   the code lists the solicitations, one per sales turn read on its priority question (`spin.group_turn`,
+   `engine.inventory`); the model reads every listed item by its id (a forgotten one is asked again once, then counted
+   `question:not_read`; a gap validation request is answered `routing` and set aside) and may add a request without a
+   question mark on a turn the code did not list. SB-21 (action-plan N without a future state) is left to the model's OUT
    `solution_load`. The perimeter never starts on a social, logistic or framing question, whatever its letter
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,

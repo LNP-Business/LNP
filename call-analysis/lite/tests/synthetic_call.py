@@ -125,7 +125,8 @@ S1 = {"questions": [
                 "object": "design income"}]},
     {"turn": "T014", "quote": "I want to make 6,000 a month", "letter": "N"},                 # a prospect turn: dropped
     {"turn": "T025", "quote": "Do you have any questions about how the weekly calls work?", "letter": "OUT",
-     "out_reason": "offer_info"},                                                             # after the pitch: dropped
+     "out_reason": "offer_info"},                                                             # after the pitch: dropped,
+    {"id": "Q017", "turn": "T017", "routing": "validation_request"},     # the gap's validation request (gate 0)
 ]}
 
 S2 = {"passages": [{

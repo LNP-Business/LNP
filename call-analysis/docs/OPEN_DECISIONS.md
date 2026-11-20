@@ -105,6 +105,10 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 
 ## F. Settled 2026-11-20 (Romain)
 - « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (E (b), confirmed).
+- SEG-1: the questions of one sales turn are one solicitation, read on the last one unless it only follows up the one
+  before (« pourquoi ? »): then the one before. The code lists them, one per turn; the model reads every listed one (a
+  forgotten one is asked again once, then counted `question:not_read`). Lite engine only: **the reference engine still
+  splits one unit per question** (its 12 calibration tests use `Q….2` units): to port with those cases. SPIN memo to update.
 - SB-2: « qu'est-ce que tu attends de notre appel ? » is framing (OUT `nothing`), never the discovery start.
 - SB-8: an effect stated in answer to an OUT question counts, as volunteered speech (D1 to D4, never D5). SPIN memo to update.
 - Disguised price (PB-3): a market tour whose levels are the company's offers, tied to the offer later, is the first

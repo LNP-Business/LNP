@@ -207,7 +207,10 @@ appel où elle a lieu ; une fois le prix donné, toutes les objections de l'appe
 précédent non analysé → lu comme un premier appel ; un mauvais écart ni reformulé ni suivi d'un retour à la découverte avant
 l'offre est signalé « Écart à reprendre » (`gap_not_remedied`). Prix déguisé (PB-3, Romain 2026-11-20) : un « tour du
 marché » dont les niveaux sont les offres de LNP est le premier prix, une erreur du commercial (« Prix donné trop tôt »,
-`disguised_price`). Test d'écran : `app/crm/fiche_analyse_live.js` (28 contrôles).
+`disguised_price`). Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
+commercial ; plusieurs questions d'une même réplique n'en font qu'une, lue sur la dernière, sauf si elle ne fait que relancer la
+précédente (« Pourquoi ? ») ; le modèle lit chaque question listée (moteur allégé ; le moteur complet découpe encore question par
+question). Test d'écran : `app/crm/fiche_analyse_live.js` (28 contrôles).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/lnp_callqa/core/lang_fr.py`, test `tests/test_french.py`) :

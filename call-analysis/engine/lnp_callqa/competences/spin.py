@@ -157,7 +157,8 @@ SYSTEM_LINE = re.compile(r"SCREEN SHARING|https?://|WATCH:")
 
 def split_sentences(text: str) -> list[str]:
     t = re.sub(r"\s+", " ", text or "").strip()
-    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9\"'])", t) if p.strip()]
+    # a sentence starts with a capital, accented ones included (« À quel point ? », « Écoute »), a digit or a quote
+    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-ZÀ-ÖØ-Ý0-9\"'«])", t) if p.strip()]
 
 
 def question_form(s: str) -> Optional[str]:
@@ -170,6 +171,54 @@ def question_form(s: str) -> Optional[str]:
     if INTERRO.match(ns):
         return "interrogative_no_mark"
     return None
+
+
+# SEG-1 (Romain, 2026-11-20): the questions of one sales turn are one unit, read on its priority question: the last
+# one, unless it only follows up the one before it (« Pourquoi ? », « Depuis quand ? », a tail alone): then the one before.
+FOLLOW_UP = re.compile(
+    r"^\W*(et |and |so |alors |du coup )?(pourquoi|comment ça|comment|c'est-à-dire|dans quel sens|en quoi|"
+    r"par rapport à quoi|comparé à quoi|à quel point|depuis quand|depuis combien de temps|combien|lequel|laquelle|"
+    r"lesquels|lesquelles|et alors|et après|et ensuite|et toi|et vous|ou pas|c'est tout|"
+    r"why|how so|how come|in what way|compared to what|meaning|like what|since when|how much|how long|which one|"
+    r"and then|and you|or not)\b", re.I)
+FOLLOW_UP_MAX_WORDS = 6
+
+
+def turn_questions(text: str) -> list[str]:
+    """The questions of a sales turn, in order: its sentences that are solicitations (§2), an isolated tail merged into
+    the sentence it closes (SEG-4)."""
+    merged: list[str] = []
+    for s in split_sentences(text):
+        if TAIL_ONLY.match(s) and merged:
+            merged[-1] = merged[-1].rstrip(".!") + ", " + s
+        else:
+            merged.append(s)
+    return [s for s in merged if question_form(s)]
+
+
+def follows_previous(q: str, prev: str) -> bool:
+    """A short question that only follows up the previous one: a follow-up word (« pourquoi ? », « depuis quand ? »),
+    a tail alone, or no content word of its own beyond the previous question's."""
+    words = [w for w in _fold(q).split() if w]
+    if len(words) > FOLLOW_UP_MAX_WORDS:
+        return False
+    if TAIL_ONLY.match(q.strip()):
+        return True
+    low = q.strip().lower()
+    rest = FOLLOW_UP.sub("", low, count=1)                       # the follow-up words themselves bring no new object
+    return not (content_words(rest) - content_words(prev))
+
+
+def group_turn(text: str) -> Optional[dict]:
+    """SEG-1 (Romain, 2026-11-20): one unit per sales turn. {"questions": [...], "priority": the question read for the
+    letter, "index": its rank}, or None when the turn asks nothing."""
+    qs = turn_questions(text)
+    if not qs:
+        return None
+    k = len(qs) - 1
+    while k > 0 and follows_previous(qs[k], qs[k - 1]):
+        k -= 1
+    return {"questions": qs, "priority": qs[k], "index": k}
 
 
 def content_words(s: str) -> set[str]:

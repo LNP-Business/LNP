@@ -26,6 +26,8 @@ from .shim import Drops
 from .spin import SpinFacts, run_spin
 from .steps import Steps, fill, load
 from .voices import run_voices
+from lnp_callqa.competences import spin as SP
+from lnp_callqa.core.text import norm
 
 DEFAULTS: dict[str, Any] = {
     "tier": "fast",                 # crm_ca_config.tiers.fast (claude-haiku-5-5)
@@ -64,6 +66,36 @@ def _windows(ctx: CallContext, size: int) -> list[tuple[int, int]]:
     return [(a, min(a + size, end) - 1) for a in range(0, end, size)] if end else []
 
 
+def inventory(ctx: CallContext, a: int, b: int) -> list[dict]:
+    """SEG-1 (Romain, 2026-11-20): the code lists one item per sales turn of turns[a..b] that asks something; several
+    questions of one turn are one item, read on its priority question (spin.group_turn). A backchannel (SEG-7) is not
+    listed."""
+    out = []
+    for t in ctx.turns[a:b + 1]:
+        if t.role != "SALES" or t.attribution_doubtful:
+            continue
+        g = SP.group_turn(t.text)
+        if not g:
+            continue
+        ws = [w for w in SP._fold(g["priority"]).split() if w]
+        if len(g["questions"]) == 1 and len(ws) <= 3 and all(w.strip("'?") in SP.ACK or w in ("ah", "oh", "hmm", "vraiment",
+                                                                                               "really") for w in ws):
+            continue                                                   # SEG-7: backchannel over the prospect
+        out.append({"id": f"Q{t.id[1:]}", "turn": t.id, "quote": g["priority"],
+                    "others": [q for k, q in enumerate(g["questions"]) if k != g["index"]]})
+    return out
+
+
+def inventory_text(items: list[dict]) -> str:
+    if not items:
+        return "(no question listed by the code in these turns)"
+    lines = []
+    for it in items:
+        extra = (" · also in the turn: " + " | ".join(f'"{q}"' for q in it["others"])) if it["others"] else ""
+        lines.append(f'{it["id"]} · {it["turn"]} · PRIORITY: "{it["quote"]}"{extra}')
+    return "\n".join(lines)
+
+
 def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[list]:
     """S1 over the turns before the first pitch start or price, in chunks; an answer cut by max_tokens is asked again
     as two halves. Returns the questions, or None if every chunk failed."""
@@ -77,7 +109,9 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
         window = (f"Read the questions asked in turns {ta} to {tb} only (their answers may continue after {tb}). "
                   + (f"The first pitch start or price is at {end}: nothing from {end} on is discovery (SB-34)."
                      if end else "No pitch start or price was found: the whole call can be discovery."))
-        ans = steps.ask("lite.s1_discovery", f"{ta}-{tb}", fill(load("s1_discovery"), window=window),
+        inv = inventory(ctx, a, b)
+        ans = steps.ask("lite.s1_discovery", f"{ta}-{tb}", fill(load("s1_discovery"), window=window,
+                                                                inventory=inventory_text(inv)),
                         cfg["max_tokens"]["S1"], replay_truncated=False)
         if ans.answer is None and ans.stop_reason == "max_tokens" and b - a + 1 > cfg["s1_min_chunk_turns"]:
             mid = (a + b) // 2
@@ -88,8 +122,61 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
             drops.add("S1", "chunk_failed")
             continue
         done += 1
-        out += [q for q in ans.answer.get("questions") or []]
+        got = [q for q in ans.answer.get("questions") or [] if isinstance(q, dict)]
+        read_ids = {q.get("id") for q in got} | {f"Q{str(q.get('turn'))[1:]}" for q in got if not q.get("id")}
+        missing = [it for it in inv if it["id"] not in read_ids]
+        if missing:                                                    # every listed question is read: asked once more
+            again = steps.ask("lite.s1_discovery", f"{ta}-{tb}:missing", fill(load("s1_discovery"), window=window,
+                                                                              inventory=inventory_text(missing)),
+                              cfg["max_tokens"]["S1"], replay_truncated=False)
+            if again.answer:
+                got += [q for q in again.answer.get("questions") or [] if isinstance(q, dict) and q.get("id")]
+        out += with_inventory(got, inv, drops)
     return out if done else None
+
+
+def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]:
+    """The model's readings on the code's list: a listed question keeps the code's turn and priority question (the
+    model cannot move or reword it), one reading per turn; a listed question still unread is counted
+    (`question:not_read`); a question the model added counts only on a turn the code did not list. A reading without
+    id (an answer of the earlier per-question listing) goes to its turn's item: the one on the priority question, else
+    the last one of the turn."""
+    by_id = {it["id"]: it for it in inv}
+    by_turn = {it["turn"]: it for it in inv}
+    chosen: dict[str, dict] = {}
+    extra = []
+    for q in got:
+        it = by_id.get(q.get("id") or "") or (by_turn.get(q.get("turn") or "") if not q.get("id") else None)
+        if it is None:
+            if q.get("turn") in by_turn:
+                drops.add("S1", "question:same_turn_as_listed", q)   # SEG-1: one item per turn
+            else:
+                extra.append(dict(q, added_by_model=True))
+            continue
+        if q.get("routing") in ("validation_request", "decision_request"):   # gate 0: not a discovery solicitation
+            chosen[it["id"]] = {"_routing": True}
+            continue
+        prev = chosen.get(it["id"])
+        if prev and prev.get("_routing"):
+            continue
+        on_priority = norm(q.get("quote") or "").strip(" .,?!") in norm(it["quote"]) if q.get("quote") else False
+        if prev is None or q.get("id") or (on_priority and not prev.get("_on_priority")) or \
+                (not prev.get("_on_priority") and not prev.get("id")):
+            if prev is not None and prev.get("id") and not q.get("id"):
+                continue
+            chosen[it["id"]] = dict(q, _on_priority=on_priority or bool(q.get("id")))
+    out = []
+    for it in inv:
+        q = chosen.get(it["id"])
+        if q is None:
+            drops.add("S1", "question:not_read", {"turn": it["turn"]})
+            continue
+        if q.get("_routing"):
+            drops.add("S1", "question:routing", {"turn": it["turn"]})
+            continue
+        q = {k: v for k, v in q.items() if k != "_on_priority"}
+        out.append(dict(q, id=it["id"], turn=it["turn"], quote=it["quote"], grouped=[it["quote"]] + it["others"]))
+    return out + extra
 
 
 def _to_review(name: str, reason: str = "engine_error") -> CompetenceResult:
