@@ -109,9 +109,9 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   OUT agreement, choice among the sales' options without an open branch → OUT sales_list. To watch in the measure:
   « Donc tu as déjà des élèves ? » is read as a closed restatement (agreement), not as an S.
 - SPIN letters, C4 (2026-11-20): the gates are read twice; a disagreement goes to the arbiter tier, which walks the
-  gates again (never a vote); an undecided unit is `to_review` and left out of the scores. **To decide:** the model of
-  the arbiter tier (`crm_ca_config.tiers.arbiter`, today claude-haiku-5-5 like the other tiers): a change of the
-  online configuration, Romain's call.
+  gates again (never a vote); an undecided unit is `to_review` and left out of the scores. Arbiter model (decided
+  2026-11-20, Romain left it to the team): claude-sonnet-5-5 for `crm_ca_config.tiers.arbiter` (fast and strong stay
+  claude-haiku-5-5), set in the online configuration when the S1g PRs are merged; to be confirmed by the measure.
 - SPIN letters (2026-11-20): the lite engine asks the closed gates of each question (S1g, batches of 25 with context)
   and decides the letter by code with the engine's `decide_letter`, as in §3; S1 reads 40 turns per call (was 160).
 - SEG-1: the questions of one sales turn are one solicitation, read on the last one unless it only follows up the one
