@@ -444,3 +444,17 @@ def test_a_framing_question_is_out_and_an_effect_said_after_an_out_question_coun
     got = [x for x in atoms if x["turn"] == "T002"]
     assert got and got[0]["solicitation"] == "Q003.1"                      # the first coded question
     assert rec["meta"]["steps"]["S1"]["reasons"]["atom:outside_answers"] == 1     # only the sales turn of the fixture
+
+
+def test_sb35_a_register_whose_answer_turn_is_missing_is_found_by_its_words():
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T009")
+    q.pop("register_turn")                                   # the words are given, the turn is not
+    rec, _ = run(a)
+    s = next(x for x in sols(rec) if x["turn"] == "T009")
+    assert s["register"] == "mental_emotional" and s["register_reference_turn"] == "T010"
+    assert rec["meta"]["steps"]["S1"]["reasons"]["register:turn_found_by_code"] == 1
+    q.pop("register_quote")                                  # no words: no proof, the register stays undecided
+    rec, _ = run(a)
+    s = next(x for x in sols(rec) if x["turn"] == "T009")
+    assert s["register"] is None and s["register_status"] == "to_review"
