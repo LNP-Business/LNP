@@ -153,9 +153,9 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (`.th-i`) ; les titres des colonnes ne s'affichent pas (lecteur d'écran seulement, `.sr`) ; pareil pour les gestes A · I · E · M
   des objections, dont le panneau n'apparaît qu'au clic. Les questions sans registre sont dans la ligne « Autre ». Section « L'écart reformulé » (Romain, 2026-11-20, troisième version) : deux
   fenêtres de la même taille sur la largeur de l'écran, qui défilent en elles-mêmes (`.gx3`, `.gx-win`) ; à gauche la reformulation
-  en chronologie verticale, étape par étape dans l'ordre du transcript (Point A, Point B, Problème, Coût, puis la Validation ; les
-  étapes non reprises en creux à la fin), chaque étape statuée et surlignée de sa couleur dans la phrase du commercial (`nodeL`) ;
-  à droite, les mêmes étapes, même ordre, même couleur, avec les mots exacts du lead (`nodeR`). Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant
+  en un seul texte complet (puis la validation du prospect), chaque étape surlignée de sa couleur, sans ligne d'étapes ; à droite
+  les étapes dans l'ordre du transcript (Point A, Point B, Problème, Coût, puis la Validation ; les non reprises en creux à la
+  fin), chacune statuée, de la couleur de son surlignage, avec les mots exacts du lead (`nodeR`). Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant
   sous la barre des notes et visible en entier (`gSide()`). Test `node app/crm/analyse_decouverte_test.js $PWD/app/lnp.html <dossier>`. Le lien « Analyse » de la fiche (Leads et Cycle de vente) et
   celui de l'historique ouvrent l'analyse complète en plein écran, le nom du lead et la croix restant en haut au défilement
   (`LNP_CA.open` → `leadView`, `.ca-full`, Romain 2026-11-19). La qualification y est un tableau (Critère, Résultat, Pourquoi :
