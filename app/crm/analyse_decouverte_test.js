@@ -130,16 +130,19 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   check('« Fermer » retire le panneau', true, null);
   await p.click('.cav table .chip.cO'); await p.waitForSelector('#cav-sol-pane');
   check('une autre question (accord) s’ouvre aussi', /Autre question · demande d’accord|Autre question · demande d'accord/.test(await p.textContent('#cav-sol-pane')), await p.textContent('#cav-sol-pane'));
-  // ── 2 · the gap: the whole reformulation on the left, the checklist of its elements on the right
+  // ── 2 · the gap: two windows of the same size, the reformulation as a vertical chronology on the left, the lead's words on the right
   await p.setViewportSize({ width: 1280, height: 900 });
-  const gl = await p.textContent('#cav-s2 .gx2 > .gx-box:first-child'), gr = await p.textContent('#cav-s2 .gx2 > .gx-box:last-child');
-  check('l’écart : à gauche la reformulation entière, mot pour mot, avec son heure et la validation', /La reformulation du commercial/.test(gl) && /Si je résume : tu es à 300 euros par mois/.test(gl) && /C’est bien ça \?/.test(gl) && /14:20/.test(gl) && /surtout le temps que je perds/.test(gl), gl.slice(0, 200));
-  check('chaque élément repris est surligné dans la reformulation (point A, point B, problème, coût)', (await p.$$eval('#cav-s2 .gx2 > .gx-box:first-child .mk', e => e.length)) >= 5, null);
-  check('à droite la liste des éléments : Problème, Coût, Point A, Point B, Validation, et le compte des retrouvés', /Les éléments de l’écart/.test(gr) && /3 sur 5 retrouvés/.test(gr) && ['Problème', 'Coût', 'Point A', 'Point B', 'Validation'].every(x => gr.includes(x)), gr.slice(0, 200));
-  const st = await p.$$eval('#cav-s2 .gx-ci', e => e.map(x => [x.className.replace('gx-ci ', ''), x.querySelector('.qx-s').textContent.trim()]));
-  check('chaque élément est statué : retrouvé avec ses mots, paraphrase, pas ses mots, validé', JSON.stringify(st) === JSON.stringify([['miss', '✕Paraphrase'], ['ok', '✓Ses mots'], ['ok', '✓Ses mots'], ['miss', '✕Pas ses mots'], ['ok', '✓Validé, avec ses mots']]), st);
-  check('pour chaque élément : ce que le prospect a dit, mot pour mot, et ce qui est dans la reformulation', /Le prospect a dit/.test(gr) && /J’ai du mal à trouver des élèves, c’est épuisant/.test(gr) && /Dans la reformulation/.test(gr) && /ce qui te bloque c’est de trouver des élèves/.test(gr) && /03:52/.test(gr), null);
-  check('l’écart en deux colonnes', (await p.$eval('#cav-s2 .gx2', e => getComputedStyle(e).gridTemplateColumns.split(' ').length)) === 2, null);
+  const gl = await p.textContent('#cav-s2 .gx3 > .gx-box:first-child'), gr = await p.textContent('#cav-s2 .gx3 > .gx-box:last-child');
+  const marksL = await p.$$eval('#cav-s2 .gx3 > .gx-box:first-child .mk', e => e.map(x => x.textContent));
+  check('l’écart, à gauche : un seul texte complet de la reformulation, puis la validation, chaque étape surlignée de sa couleur, sans ligne d’étapes', /la reformulation/i.test(gl) && /14:20/.test(gl) && /C’est bien ça \?/.test(gl) && /surtout le temps que je perds/.test(gl) && marksL.length === 5 && marksL.includes('tu es à 300 euros par mois') && !(await p.$('#cav-s2 .gx3 > .gx-box:first-child .gx-nd')), marksL);
+  const stepsL = await p.$$eval('#cav-s2 .gx3 > .gx-box:last-child .gx-nd', e => e.map(x => [x.querySelector('b').textContent, x.classList.contains('off'), x.querySelector('.qx-s').textContent.trim()]));
+  check('chaque étape est statuée à droite', JSON.stringify(stepsL.map(s => s[2])) === JSON.stringify(['✓Ses mots', '✕Pas ses mots', '✕Paraphrase', '✓Ses mots', '✓Validé, avec ses mots']), stepsL);
+  const stepsR = await p.$$eval('#cav-s2 .gx3 > .gx-box:last-child .gx-nd', e => e.map(x => [x.querySelector('b').textContent, x.querySelector('.gx-nt').textContent.trim()]));
+  check('à droite, les mêmes étapes dans le même ordre, avec les mots exacts du lead', JSON.stringify(stepsR.map(s => s[0])) === JSON.stringify(['Point A', 'Point B', 'Problème', 'Coût', 'Validation']) && /Facilement 400 euros de moins/.test(stepsR[0][1]) && /J’ai du mal à trouver des élèves, c’est épuisant/.test(stepsR[2][1]) && /surtout le temps que je perds/.test(stepsR[4][1]) && /03:52/.test(gr) && /3 sur 5 retrouvés/.test(gr), stepsR);
+  const dots = await p.$$eval('#cav-s2 .gx-nd b', e => e.map(x => x.style.color)), bgs = await p.$$eval('#cav-s2 .gx3 > .gx-box:first-child .mk', e => e.map(x => x.style.background));
+  check('une couleur par étape, la même à gauche (surlignage) et à droite (point)', dots.length === 5 && new Set(dots).size === 5 && new Set(bgs).size === 5, [dots, bgs]);
+  const wins = await p.$$eval('#cav-s2 .gx-win', e => e.map(x => { const b = x.getBoundingClientRect(); return { w: Math.round(b.width), h: Math.round(b.height), ov: getComputedStyle(x).overflowY, top: Math.round(b.top), bottom: Math.round(b.bottom) }; }));
+  check('deux fenêtres de la même taille, la largeur de l’écran, qui défilent en elles-mêmes', wins.length === 2 && wins[0].w === wins[1].w && wins[0].h === wins[1].h && wins.every(w => w.ov === 'auto') && wins[0].h <= 900, wins);
   await (await p.$('#cav-s2')).screenshot({ path: path.join(OUT, 'analyse-ecart.png') });
   // ── 4 · the objections: the letter's passage on the left, whole, following the scroll
   check('objections : ni panneau ni consigne au départ, l’explication des lettres au survol du titre', !(await p.$('#cav-ob-side')) && /A accueillie · I isolée/.test(await p.getAttribute('#cav-s4 th .th-i', 'title')) && !/cliquez/i.test(await p.textContent('#cav-s4')), null);

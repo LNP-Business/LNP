@@ -151,10 +151,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   droite (`pane()`), qui n'apparaît qu'au clic. Rien d'expliqué à l'écran (Romain, 2026-11-20 : le plus épuré possible) : la
   légende des lettres, l'échelle et la définition de la profondeur sont dans une fenêtre au survol d'un petit ⓘ dans l'en-tête
   (`.th-i`) ; les titres des colonnes ne s'affichent pas (lecteur d'écran seulement, `.sr`) ; pareil pour les gestes A · I · E · M
-  des objections, dont le panneau n'apparaît qu'au clic. Les questions sans registre sont dans la ligne « Autre ». Section « L'écart reformulé » (même jour) : à gauche la reformulation
-  entière, mot pour mot, chaque élément surligné ; à droite la liste des éléments de l'écart (Problème, Coût, Point A, Point B,
-  Validation), chacun statué (ses mots, paraphrase, pas ses mots, non repris) avec les mots exacts du prospect et ceux de la
-  reformulation. Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant
+  des objections, dont le panneau n'apparaît qu'au clic. Les questions sans registre sont dans la ligne « Autre ». Section « L'écart reformulé » (Romain, 2026-11-20, troisième version) : deux
+  fenêtres de la même taille sur la largeur de l'écran, qui défilent en elles-mêmes (`.gx3`, `.gx-win`) ; à gauche la reformulation
+  en un seul texte complet (puis la validation du prospect), chaque étape surlignée de sa couleur, sans ligne d'étapes ; à droite
+  les étapes dans l'ordre du transcript (Point A, Point B, Problème, Coût, puis la Validation ; les non reprises en creux à la
+  fin), chacune statuée, de la couleur de son surlignage, avec les mots exacts du lead (`nodeR`). Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant
   sous la barre des notes et visible en entier (`gSide()`). Test `node app/crm/analyse_decouverte_test.js $PWD/app/lnp.html <dossier>`. Le lien « Analyse » de la fiche (Leads et Cycle de vente) et
   celui de l'historique ouvrent l'analyse complète en plein écran, le nom du lead et la croix restant en haut au défilement
   (`LNP_CA.open` → `leadView`, `.ca-full`, Romain 2026-11-19). La qualification y est un tableau (Critère, Résultat, Pourquoi :
