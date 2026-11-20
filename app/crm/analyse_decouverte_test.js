@@ -25,7 +25,12 @@ const turns = [
   T('T009', '00:08:30', 'SALES', 'Et si tu avais cinq élèves réguliers, ça changerait quoi pour vous ?'), T('T010', '00:08:45', 'PROSPECT', 'On pourrait enfin mettre de côté pour la maison.'),
   T('T011', '00:11:15', 'SALES', 'Tu as déjà regardé des formations pour ça ?'), T('T012', '00:11:30', 'PROSPECT', 'Non, jamais.'),
   T('T013', '00:13:50', 'SALES', 'Est-ce que ça te parle, ce que je te décris ?'), T('T014', '00:14:00', 'PROSPECT', 'Oui.'),
-  T('T015', '00:15:00', 'SALES', 'Alors je t’explique comment on travaille : l’accompagnement dure quatre mois, c’est 3 000 euros.'), T('T016', '00:15:30', 'PROSPECT', 'D’accord.'),
+  T('T015', '00:14:20', 'SALES', 'Si je résume : tu es à 300 euros par mois, tu veux atteindre 1 200 euros, ce qui te bloque c’est de trouver des élèves, et ça te coûte 400 euros de moins chaque mois. C’est bien ça ?'),
+  T('T016', '00:14:40', 'PROSPECT', 'Oui, c’est ça, et surtout le temps que je perds.'),
+  T('T017', '00:15:00', 'SALES', 'Alors je t’explique comment on travaille : l’accompagnement dure quatre mois, c’est 3 000 euros.'), T('T018', '00:15:30', 'PROSPECT', '3 000 euros, c’est beaucoup pour nous.'),
+  T('T019', '00:15:40', 'SALES', 'Je comprends, c’est une vraie somme. Si on met le prix de côté une seconde, est-ce que le programme te paraît être la bonne solution ?'), T('T020', '00:15:55', 'PROSPECT', 'Oui, ça oui.'),
+  T('T021', '00:16:05', 'SALES', 'Qu’est-ce qui te fait dire que c’est beaucoup, par rapport à quoi ?'), T('T022', '00:16:15', 'PROSPECT', 'Par rapport à ce que je gagne avec les cours, 300 euros par mois.'),
+  T('T023', '00:16:30', 'SALES', 'Alors en deux fois 1 500 euros sans frais, avec cinq élèves la mise est récupérée au troisième mois.'), T('T024', '00:16:45', 'PROSPECT', 'Ok, dit comme ça, ça va.'),
 ];
 const Q = (id, turn, ts, letter, register, answers, out_reason) => ({ id, turn, ts, letter, gate_letter: letter, out_reason: out_reason || null, tags: [], in_perimeter: true, status: 'coded', answer_turns: answers, followed_up: false, register: register, register_status: register ? 'verified' : null });
 const sols = [
@@ -36,7 +41,7 @@ const sols = [
 const E = (turn, ts, quote, atom, question_id, question_letter, quantified) => ({ turn, ts, quote, atom, question_id, question_letter, quantified: !!quantified, domain: null, speaker: 'PROSPECT' });
 const record = {
   job: 'j1', call_id: 'c1', status: 'ok', flags: [], provisional: false, created_at: '2026-11-20T08:00:00Z', turns,
-  phases: { discovery_start: 'T003', discovery_end: 'T015', pitch_start: 'T015', pitch_end: 'T016', first_price: 'T015', offer_mentions: [], flags: [], early_price: null, decision_request: null },
+  phases: { discovery_start: 'T003', discovery_end: 'T015', pitch_start: 'T017', pitch_end: 'T018', first_price: 'T017', offer_mentions: [], flags: [], early_price: null, decision_request: null },
   meta: { round: 'R1', duration_seconds: 930 },
   results: {
     SPIN: { competence: 'SPIN', rules_version: 'v1.3', status: 'scored', verdict: null, reasons: [], score: 62, items: {}, flags: [],
@@ -46,15 +51,29 @@ const record = {
           D2: { level: 'ok', evidence: [E('T006', '00:03:52', 'J’ai du mal à trouver des élèves, c’est épuisant', 'PAIN', 'Q005.1', 'P')] },
           D3: { level: 'ok', evidence: [E('T008', '00:06:20', '400 euros de moins', 'IMPACT', 'Q007.1', 'I', true), E('T010', '00:08:45', 'mettre de côté pour la maison', 'DESIRE', 'Q009.1', 'N')] } },
         diagnostics: {}, health: {}, unit_status: {} } },
-    GAP: { competence: 'GAP', status: 'not_applicable', reasons: ['no_restitution'], score: null, details: {} },
+    GAP: { competence: 'GAP', status: 'scored', verdict: 'present', reasons: [], score: 70, items: [], flags: [],
+      details: { verdict: 'present', gap: { problem: [{ quote: 'J’ai du mal à trouver des élèves', turn: 'T006' }], gap_value: 900 }, cost: [{ quote: '400 euros de moins', turn: 'T008', quantified: true }],
+        selected_A: { quote: '300 euros par mois', turn: 'T008', quantified: true }, selected_B: { quote: 'mettre de côté pour la maison', turn: 'T010', quantified: false, horizon: null }, selected_P: null,
+        restitution: { span: ['T015', 'T015'], turns: ['T015'], is_restitution: true, effective_outcome: 'confirmed_with_content', before_first_pitch: true, before_first_price: true, conformity: { deviations: [], one_go: true },
+          clauses: [{ component: 'A', match: 'verbatim', sales_turn: 'T015', sales_quote: 'tu es à 300 euros par mois', source_turn: 'T008', source_quote: 'Facilement 400 euros de moins que ce que je pourrais faire.', key_expression: '300 euros' },
+            { component: 'B', match: 'untraced', sales_turn: 'T015', sales_quote: 'tu veux atteindre 1 200 euros', source_turn: 'T010', source_quote: 'On pourrait enfin mettre de côté pour la maison.', key_expression: '1 200 euros' },
+            { component: 'PROBLEM', match: 'paraphrased', sales_turn: 'T015', sales_quote: 'ce qui te bloque c’est de trouver des élèves', source_turn: 'T006', source_quote: 'J’ai du mal à trouver des élèves, c’est épuisant.', key_expression: 'trouver des élèves' },
+            { component: 'COST', match: 'verbatim', sales_turn: 'T015', sales_quote: 'ça te coûte 400 euros de moins chaque mois', source_turn: 'T008', source_quote: 'Facilement 400 euros de moins que ce que je pourrais faire.', key_expression: '400 euros de moins' }],
+          validation: { turn: 'T016', quote: 'Oui, c’est ça, et surtout le temps que je perds.', outcome: 'confirmed_with_content', content_quote: 'surtout le temps que je perds' } },
+        restitutions: [], validation_turn: 'T016', roadmap: { count: 0 }, roadmap_blockers: [], absence_reasons: [] } },
     PITCH: { competence: 'PITCH', status: 'not_applicable', reasons: [], score: null, details: {} },
-    OBJECTIONS: { competence: 'OBJECTIONS', status: 'not_applicable', reasons: [], score: null, details: {} },
+    OBJECTIONS: { competence: 'OBJECTIONS', status: 'scored', reasons: [], score: 75, items: [], flags: [],
+      details: { prevention: {}, episodes: [{ id: 'E1', nature: 'objection', subtype: 'money_available', status: 'scored', resistance: { role: 'PROSPECT', turn: 'T018', quote: '3 000 euros, c’est beaucoup pour nous.' },
+        response_turns: ['T019', 'T021', 'T023'], acknowledge: true, isolate: true, explore: { asked: true, answered_with_content: true }, gesture_match: { done: true },
+        items: [{ id: 'H2', level: 2, evidence: [{ role: 'SALES', turn: 'T019', quote: 'Je comprends, c’est une vraie somme.' }] }, { id: 'H3', level: 2, evidence: [{ role: 'SALES', turn: 'T019', quote: 'Si on met le prix de côté une seconde' }, { role: 'SALES', turn: 'T021', quote: 'par rapport à quoi' }] }, { id: 'H1', level: 2, evidence: [{ role: 'SALES', turn: 'T023', quote: 'en deux fois 1 500 euros sans frais' }] }],
+        reaction: { turn: 'T024', level: 'resolved', quote: 'Ok, dit comme ça, ça va.' } }] } },
   },
 };
 const page = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Analyse</title><style>body{margin:0;background:#F4F6FB;padding:20px}#wrap{max-width:1180px;margin:0 auto}</style></head><body><div id="wrap"><div class="cav" id="caLead" data-cycle="x"></div></div>' +
   '<script>' + view + '</script><script>var REC = ' + JSON.stringify(record) + '; var UI = {};' +
   'function repaint(){ document.getElementById("caLead").innerHTML = window.LNP_CAV.html(REC, UI); }' +
-  'document.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; if (b.hasAttribute("data-cav-sol")) { var id = b.getAttribute("data-cav-sol"); UI.sol = id && UI.sol !== id ? id : null; return repaint(); } });' +
+  'document.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; if (b.hasAttribute("data-cav-sol")) { var id = b.getAttribute("data-cav-sol"); UI.sol = id && UI.sol !== id ? id : null; return repaint(); }' +
+  ' if (b.dataset.cavG) { var ep = +b.dataset.cavEp, g = b.dataset.cavG; UI.gesture = UI.gesture && UI.gesture.ep === ep && UI.gesture.g === g ? null : { ep: ep, g: g }; return repaint(); } });' +
   'repaint();</script></body></html>';
 fs.mkdirSync(OUT, { recursive: true });
 const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, page);
@@ -66,13 +85,13 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   await p.goto('file://' + PAGE); await p.waitForSelector('.fr');
   const ok = [], bad = []; const check = (n, c, d) => (c ? ok : bad).push(n + (c ? '' : ' :: ' + JSON.stringify(d)));
   const t0 = await p.textContent('.fr');
-  check('la frise : du début à la fin de la découverte, sa durée, le nombre de questions', /01:10 → 15:00/.test(t0) && /13 min 50/.test(t0) && /6 questions/.test(t0), t0.slice(0, 160));
+  check('la frise : du début à la fin de la découverte, sa durée, le nombre de questions', /01:10 → 14:20/.test(t0) && /13 min 10/.test(t0) && /6 questions/.test(t0), t0.slice(0, 160));
   const labels = await p.$$eval('.frt .fl', e => e.map(x => x.textContent));
   check('une lettre par question, l’heure sous chacune (espacées)', (await p.$$eval('.frt .fc', e => e.length)) === 6 && ['01:10', '03:40', '06:05', '08:30', '11:15', '13:50'].every(x => labels.includes(x)), labels);
   const colors = await p.$$eval('.frt .fc:not(.o)', e => e.map(x => [x.textContent, getComputedStyle(x).backgroundColor]));
   check('la couleur de la lettre est celle du sujet (Financier bleu, Mental noir, Identité bleu nuit)', colors.some(c => c[0] === 'I' && c[1] === 'rgb(43, 108, 245)') && colors.some(c => c[0] === 'P' && c[1] === 'rgb(16, 21, 37)') && colors.some(c => c[0] === 'S' && c[1] === 'rgb(30, 42, 94)'), colors);
   check('la question hors SPIN : un petit repère hachuré', (await p.$$eval('.frt .fc.o', e => e.length)) === 1, null);
-  check('l’axe : une graduation toutes les 5 minutes (05:00, 10:00, 15:00)', (await p.$$eval('.frt .ft', e => e.length)) === 3 && ['05:00', '10:00', '15:00'].every(x => labels.includes(x)), labels);
+  check('l’axe : une graduation toutes les 5 minutes (05:00, 10:00)', (await p.$$eval('.frt .ft', e => e.length)) === 2 && ['05:00', '10:00'].every(x => labels.includes(x)), labels);
   check('le panneau de droite vide au départ', /Cliquez sur une lettre/.test(await p.textContent('#cav-sol-pane')), null);
   const head = await p.textContent('.cav table thead');
   check('le tableau : Sujet abordé, Questions posées, Ce qu’il a confié, Profondeur', /Sujet abordé/.test(head) && /Ce qu’il a confié/.test(head) && /Profondeur/.test(head), head);
@@ -98,6 +117,32 @@ const PAGE = path.join(OUT, 'analyse-decouverte.html'); fs.writeFileSync(PAGE, p
   check('« Fermer » vide le panneau', true, null);
   await p.click('.frt .fc.o'); await p.waitForSelector('.pane:not(.empty)');
   check('une autre question (accord) s’ouvre aussi', /Autre question · demande d’accord|Autre question · demande d'accord/.test(await p.textContent('#cav-sol-pane')), await p.textContent('#cav-sol-pane'));
+  // ── 2 · the gap: the whole reformulation on the left, the checklist of its elements on the right
+  await p.setViewportSize({ width: 1280, height: 900 });
+  const gl = await p.textContent('#cav-s2 .gx2 > .gx-box:first-child'), gr = await p.textContent('#cav-s2 .gx2 > .gx-box:last-child');
+  check('l’écart : à gauche la reformulation entière, mot pour mot, avec son heure et la validation', /La reformulation du commercial/.test(gl) && /Si je résume : tu es à 300 euros par mois/.test(gl) && /C’est bien ça \?/.test(gl) && /14:20/.test(gl) && /surtout le temps que je perds/.test(gl), gl.slice(0, 200));
+  check('chaque élément repris est surligné dans la reformulation (point A, point B, problème, coût)', (await p.$$eval('#cav-s2 .gx2 > .gx-box:first-child .mk', e => e.length)) >= 5, null);
+  check('à droite la liste des éléments : Problème, Coût, Point A, Point B, Validation, et le compte des retrouvés', /Les éléments de l’écart/.test(gr) && /3 sur 5 retrouvés/.test(gr) && ['Problème', 'Coût', 'Point A', 'Point B', 'Validation'].every(x => gr.includes(x)), gr.slice(0, 200));
+  const st = await p.$$eval('#cav-s2 .gx-ci', e => e.map(x => [x.className.replace('gx-ci ', ''), x.querySelector('.qx-s').textContent.trim()]));
+  check('chaque élément est statué : retrouvé avec ses mots, paraphrase, pas ses mots, validé', JSON.stringify(st) === JSON.stringify([['miss', '✕Paraphrase'], ['ok', '✓Ses mots'], ['ok', '✓Ses mots'], ['miss', '✕Pas ses mots'], ['ok', '✓Validé, avec ses mots']]), st);
+  check('pour chaque élément : ce que le prospect a dit, mot pour mot, et ce qui est dans la reformulation', /Le prospect a dit/.test(gr) && /J’ai du mal à trouver des élèves, c’est épuisant/.test(gr) && /Dans la reformulation/.test(gr) && /ce qui te bloque c’est de trouver des élèves/.test(gr) && /03:52/.test(gr), null);
+  check('l’écart en deux colonnes', (await p.$eval('#cav-s2 .gx2', e => getComputedStyle(e).gridTemplateColumns.split(' ').length)) === 2, null);
+  await (await p.$('#cav-s2')).screenshot({ path: path.join(OUT, 'analyse-ecart.png') });
+  // ── 4 · the objections: the letter's passage on the left, whole, following the scroll
+  check('objections : le panneau de gauche vide au départ', /Cliquez sur une lettre A, I, E ou M/.test(await p.textContent('#cav-ob-side')), null);
+  await p.click('#cav-s4 .chip[data-cav-ep="0"][data-cav-g="A"]'); await p.waitForSelector('#cav-ob-side:not(.empty)');
+  let o = await p.textContent('#cav-ob-side');
+  check('un clic sur A : le passage à gauche, avec l’objection, le geste et la réponse', /A · Accueillie/.test(o) && /fait/.test(o) && /Argent disponible/.test(o) && /c’est beaucoup pour nous/.test(o) && /Je comprends, c’est une vraie somme/.test(o), o.slice(0, 240));
+  const gcols = await p.$eval('#cav-s4 .ob-grid', e => getComputedStyle(e).gridTemplateColumns.split(' '));
+  check('le panneau est la colonne de gauche, le tableau à droite', gcols.length === 2 && (await p.$eval('#cav-s4 .ob-grid', e => e.firstElementChild.id)) === 'cav-ob-side', gcols);
+  await p.evaluate(() => { document.querySelector('#cav-s4').scrollIntoView(); window.scrollBy(0, 200); }); await p.waitForTimeout(100);
+  const box = await p.$eval('#cav-ob-side', e => { const b = e.getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom), h: window.innerHeight, sticky: getComputedStyle(e).position, scroll: e.scrollHeight <= e.clientHeight + 1 }; });
+  check('le panneau reste entièrement visible à l’écran quand la page défile (collant, sous la barre des notes)', box.sticky === 'sticky' && box.top >= 0 && box.bottom <= box.h && box.scroll, box);
+  await p.screenshot({ path: path.join(OUT, 'analyse-objections.png') });
+  await p.click('#cav-s4 table .chip[data-cav-g="E"]'); await p.waitForFunction(() => /E · Explorée/.test(document.querySelector('#cav-ob-side').textContent));
+  check('une autre lettre remplace le panneau', /par rapport à quoi/.test(await p.textContent('#cav-ob-side')), null);
+  await p.click('#cav-ob-side .ob-x'); await p.waitForSelector('#cav-ob-side.empty');
+  check('la croix referme le panneau', true, null);
   const txt = await p.evaluate(() => document.body.innerText);
   check('pas d’anglais à l’écran', !/closer|closing|discovery|loading/i.test(txt), (txt.match(/.{0,30}(closer|closing|discovery|loading).{0,30}/i) || [])[0]);
   await p.setViewportSize({ width: 820, height: 900 }); await p.waitForTimeout(100);

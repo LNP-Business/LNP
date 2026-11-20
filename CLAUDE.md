@@ -145,7 +145,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   `call_analysis_view.js`) : la frise de la découverte (chaque question à son heure sur la durée de la découverte, la lettre SPIN
   dans la couleur de son sujet, l'heure dessous), la colonne Profondeur en échelle de 0 à 10 (`profondeur()` : faits, douleurs,
   désirs, chiffre, chaînes approfondies, question d'implication ; l'état reste sous l'échelle) et la question choisie lue dans un
-  panneau à droite (`pane()`), depuis la frise ou le tableau. Test `node app/crm/analyse_decouverte_test.js $PWD/app/lnp.html <dossier>`. Le lien « Analyse » de la fiche (Leads et Cycle de vente) et
+  panneau à droite (`pane()`), depuis la frise ou le tableau. Section « L'écart reformulé » (même jour) : à gauche la reformulation
+  entière, mot pour mot, chaque élément surligné ; à droite la liste des éléments de l'écart (Problème, Coût, Point A, Point B,
+  Validation), chacun statué (ses mots, paraphrase, pas ses mots, non repris) avec les mots exacts du prospect et ceux de la
+  reformulation. Section « Objections » : le passage d'une lettre A, I, E, M s'ouvre dans un panneau à gauche du tableau, collant
+  sous la barre des notes et visible en entier (`gSide()`). Test `node app/crm/analyse_decouverte_test.js $PWD/app/lnp.html <dossier>`. Le lien « Analyse » de la fiche (Leads et Cycle de vente) et
   celui de l'historique ouvrent l'analyse complète en plein écran, le nom du lead et la croix restant en haut au défilement
   (`LNP_CA.open` → `leadView`, `.ca-full`, Romain 2026-11-19). La qualification y est un tableau (Critère, Résultat, Pourquoi :
   `qualification` dans `LNP_CAV` de `app/lnp.html`), le détail au survol de la raison. L'écart reformulé (`gap`, même module) : la
