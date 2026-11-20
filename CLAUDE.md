@@ -150,7 +150,10 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   une lettre A · I · E · M ouvre sa citation dans une fenêtre posée sur le tableau, sous la lettre (`gPanel`, `.ob-pop`), refermée par
   la même lettre ou sa croix ; le tableau garde sa hauteur. Une lettre (SPIN dans la Découverte, A · I · E · M dans les Objections)
   montre le passage concerné en clair et les répliques autour atténuées, en couleur et non en opacité (`ctxRows` : 2 avant et 2
-  après pour SPIN, 2 avant et 4 après pour une objection) ; test
+  après pour SPIN, 2 avant et 4 après pour une objection). Un administrateur corrige la lettre d'une question dans le panneau qui
+  s'ouvre (« Corriger la lettre », raison facultative ; Romain 2026-11-20, migration 063 `crm_ca_correct`, table `crm_ca_corrections`
+  en ajout seulement) : la lettre corrigée s'affiche en pointillés, celle du moteur en infobulle, la note n'est pas recalculée (C8) ;
+  les corrections nourrissent le jeu de référence (`call-analysis/qa/corrections_to_reference.py`) ; test
   `node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier>`.
   Passe Impeccable (Romain, 2026-11-20 ; critique 21/40, objectif 18/20) : en haut, les quatre notes restent visibles au défilement
   et mènent à leur section (`header`, `.cav-nav`), avec les points à gagner (100 − note) ; puis « Pour ton prochain appel » : les
@@ -220,14 +223,22 @@ appel où elle a lieu ; une fois le prix donné, toutes les objections de l'appe
 précédent non analysé → lu comme un premier appel ; un mauvais écart ni reformulé ni suivi d'un retour à la découverte avant
 l'offre est signalé « Écart à reprendre » (`gap_not_remedied`). Prix déguisé (PB-3, Romain 2026-11-20) : un « tour du
 marché » dont les niveaux sont les offres de LNP est le premier prix, une erreur du commercial (« Prix donné trop tôt »,
-`disguised_price`). Test d'écran : `app/crm/fiche_analyse_live.js` (28 contrôles).
+`disguised_price`). Enregistrement coupé (Romain 2026-11-20) : moins de 20 minutes d'enregistrement → appel non analysé
+(`recording_incomplete`, aucun appel au modèle). Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
+commercial ; plusieurs questions d'une même réplique n'en font qu'une, lue sur la dernière, sauf si elle ne fait que relancer la
+précédente (« Pourquoi ? ») ; le modèle lit chaque question listée, puis répond aux portes de la méthode (situation, problème, conséquence,
+désir, hors découverte) pour chacune, par paquets de 25 avec leur contexte, deux fois ; si les deux lectures donnent des lettres
+différentes, le niveau « arbitre » (`crm_ca_config.tiers.arbiter`) relit les portes de ces questions ; une question non tranchée est
+« à revoir » et sort des notes ; le code décide la lettre (étape S1g ; moteur
+allégé ; le moteur complet découpe encore question par question). Test d'écran : `app/crm/fiche_analyse_live.js` (31 contrôles).
 Qualification du lead (règle des portes 2.2 : Métier, Financement, Décision et timing ; `call-analysis/qualification`) : chaque R1 analysé est qualifié par le
 worker de l'analyse (`callqa_worker/qualif.py`, migration 046) et la qualification s'affiche dans l'analyse d'appel.
 Les contrôles du code lisent le français (2026-11-19, `call-analysis/engine/lnp_callqa/core/lang_fr.py`, test `tests/test_french.py`) :
 lettres accentuées, mots vides, « je » → « tu », nombres, formes de question, registres, ouvertures et validations de l'écart, marqueurs
 d'objection. Le code applique aussi au moteur allégé les règles dures de la découverte (charge de la solution, question sur l'offre),
 le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une mention de l'offre (PB-2) et le registre lu dans la question
-quand elle nomme un domaine (SB-27). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+quand elle nomme un domaine (SB-27), et depuis le 2026-11-20 la vérification de suivi (« ça fait sens ? »), la
+reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et

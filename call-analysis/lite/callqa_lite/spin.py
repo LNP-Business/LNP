@@ -73,9 +73,41 @@ def sentence_of(text: str, quote: str) -> tuple[str, str]:
     return quote, ""
 
 
+def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
+    """S1g (2026-11-20): the engine's decide_letter on the model's gate answers (SPIN §3, the code applies the order of
+    the gates); returns the letter fields S1 would give, or None (no gates, or a gate whose quote failed)."""
+    g = q.get("gates")
+    if not isinstance(g, dict):
+        return None
+    low = sentence.strip().lower()
+    attrs = {"validation_tail": any(re.search(p, low) for p in E.TAILS), "system": bool(E.SYSTEM_LINE.search(sentence))}
+    d = E.decide_letter(g, attrs, q.get("quote") or sentence)
+    if d.invalid_proof:
+        return None
+    if d.letter in E.LETTERS:
+        return {"letter": d.letter, "gate_tags": d.tags}
+    if d.letter == E.OUT:
+        return {"letter": E.OUT, "out_reason": d.reason, "closed_need_payoff": "closed_need_payoff" in d.tags,
+                "gate_tags": d.tags}
+    return {"letter": d.letter, "gate_tags": d.tags}                  # routing, not a solicitation, doubtful voice
+
+
+def gate_letter(g: dict, quote: str) -> Optional[tuple]:
+    """The code's decision on one reading of the gates: (letter, OUT reason), or None when a quote failed."""
+    fg = letter_from_gates({"gates": g, "quote": quote}, quote)
+    return (fg["letter"], fg.get("out_reason")) if fg else None
+
+
 def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
-    """The model's letter, then the hard rules of §3 that the code enforces over it."""
-    letter, tags = q["letter"], []
+    """The letter decided by code from the gates (S1g) when they are there, else the model's letter; then the hard
+    rules of §3 that the code enforces over it."""
+    fg = letter_from_gates(q, sentence)
+    if fg:
+        q = dict(q, **{k: v for k, v in fg.items() if k != "gate_tags"})
+        if "out_reason" not in fg:
+            q.pop("out_reason", None)
+            q.pop("closed_need_payoff", None)
+    letter, tags = q["letter"], (["gates_by_code"] if fg else [])
     reason = (q.get("out_reason") if q.get("out_reason") in E.OUT_PRIORITY else "absent") if letter == E.OUT else None
     forced = []
     if q.get("closed_need_payoff"):
@@ -96,6 +128,15 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if E.social_or_logistic(sentence):                                # SB-2: social, logistic, framing of the call
         forced.append("nothing")
         tags.append("framing_by_code")
+    if E.check_in_question(sentence):                                 # §3 (2026-11-20): "does that make sense?"
+        forced.append("nothing")
+        tags.append("check_in_by_code")
+    if E.closed_restatement(sentence):                                # §3 (2026-11-20): "so your problem is time?"
+        forced.append("agreement")
+        tags.append("closed_restatement_by_code")
+    if E.choice_list_question(sentence):                              # §3 (2026-11-20): "would you rather X or Y?"
+        forced.append("sales_list")
+        tags.append("choice_list_by_code")
     if forced:
         cands = forced + ([reason] if letter == E.OUT and reason in E.OUT_PRIORITY else [])
         return E.LetterDecision(E.OUT, 1, min(cands, key=E.OUT_PRIORITY.index), sorted(set(tags)))
@@ -117,7 +158,16 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         if end and ctx.n(tid) >= ctx.n(end):                    # SB-34: nothing after the pitch start or price
             drops.add(STEP, "question:after_pitch", q)
             continue
-        if q.get("letter") not in E.LETTERS + (E.OUT,):
+        fg = letter_from_gates(q, quote)
+        if q.get("gates") is not None and fg is None:
+            drops.add(STEP, "gates:bad_quote", q)                        # the gates' quotes failed: S1's letter stays
+        if fg and fg["letter"] in E.ROUTING:                             # gate 0: not a discovery solicitation
+            drops.add(STEP, "question:routing", q)
+            continue
+        if fg and fg["letter"] in ("NOT_SOLICITATION", "ATTRIBUTION_DOUBTFUL"):
+            drops.add(STEP, "question:" + fg["letter"].lower(), q)
+            continue
+        if (fg or q).get("letter") not in E.LETTERS + (E.OUT,):
             drops.add(STEP, "question:bad_letter", q)
             continue
         key = (tid, norm(quote).strip(' .,?!"'))
@@ -139,7 +189,7 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
         prev = [x for x in turns[:i] if x.role == PROSPECT][-2:]
         u = LUnit(sol, t, rank[t.id], q["quote"], q, preamble=preamble, prev_prospect=prev, decision=d,
                   window_end=end)
-        sol.letter, sol.out_reason, sol.status = d.letter, d.reason, SINGLE
+        sol.letter, sol.out_reason, sol.status = d.letter, d.reason, q.get("gates_status") or SINGLE
         units.append(u)
     return units
 
@@ -265,7 +315,8 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
     facts = SpinFacts()
     units = build_units(ctx, questions, drops)
     perimeter = place_perimeter(ctx, units)
-    coded = [u for u in units if u.in_perimeter and E.is_coded_letter(u.decision.letter)]
+    coded = [u for u in units if u.in_perimeter and E.is_coded_letter(u.decision.letter)
+             and u.sol.status != "to_review"]                          # C4: undecided, left out of every score
     E.answer_spans(ctx, coded, {u.turn.id for u in units})
 
     # the prospect's answer as quoted by the model: kept only inside the code's answer span
@@ -342,7 +393,7 @@ def run_spin(ctx: CallContext, questions: list, drops: Drops) -> tuple[Competenc
         "chains": [{k: v for k, v in c.items() if k != "evidence"} for c in chains],
         "diagnostics": diag,
         "health": health,
-        "unit_status": {SINGLE: len(coded)},
+        "unit_status": {st: sum(1 for u in units if u.in_perimeter and u.sol.status == st) for st in sorted({u.sol.status for u in units if u.in_perimeter})},
         "atom_decisions": atom_log,
         "solicitations": [{"id": u.sol.id, "turn": u.turn.id, "ts": u.turn.ts, "letter": u.sol.letter,
                            "gate_letter": u.decision.letter, "out_reason": u.sol.out_reason, "gate": u.decision.gate,

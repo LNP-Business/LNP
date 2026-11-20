@@ -66,6 +66,39 @@ def parse_lines(raw: str, speaker_map: dict[str, str]) -> list[Turn]:
     return lines
 
 
+# C1 (Romain, 2026-11-20): a recording shorter than this is cut (the call went on unrecorded): not analysed
+MIN_RECORDING_MINUTES = 20
+
+
+def _minutes(ts: str) -> Optional[float]:
+    try:
+        parts = [int(x) for x in (ts or "").split(":")]
+    except ValueError:
+        return None
+    if len(parts) == 2:
+        return parts[0] + parts[1] / 60
+    if len(parts) == 3:
+        return parts[0] * 60 + parts[1] + parts[2] / 60
+    return None
+
+
+def recording_minutes(ctx: CallContext) -> Optional[float]:
+    """The length of the recording: its last timestamp (the recorder's lines, else the turns)."""
+    vals = [m for m in (_minutes(t.ts) for t in (ctx.lines or ctx.turns)) if m is not None]
+    return max(vals) if vals else None
+
+
+def recording_gate(ctx: CallContext) -> bool:
+    """C1: a recording of less than MIN_RECORDING_MINUTES is incomplete: the call is not analysed
+    (status `recording_incomplete`, no model call). Returns True when the call may be analysed."""
+    m = recording_minutes(ctx)
+    if m is not None and m < MIN_RECORDING_MINUTES:
+        ctx.status = "recording_incomplete"
+        ctx.flags.append(f"recording_minutes:{round(m, 1)}")
+        return False
+    return True
+
+
 def diarization_gate(ctx: CallContext, max_share: float = 0.92, min_prospect_words: int = 150) -> None:
     if not ctx.turns:
         ctx.status = "no_transcript"

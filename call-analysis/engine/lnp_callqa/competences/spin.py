@@ -157,7 +157,8 @@ SYSTEM_LINE = re.compile(r"SCREEN SHARING|https?://|WATCH:")
 
 def split_sentences(text: str) -> list[str]:
     t = re.sub(r"\s+", " ", text or "").strip()
-    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9\"'])", t) if p.strip()]
+    # a sentence starts with a capital, accented ones included (« À quel point ? », « Écoute »), a digit or a quote
+    return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-ZÀ-ÖØ-Ý0-9\"'«])", t) if p.strip()]
 
 
 def question_form(s: str) -> Optional[str]:
@@ -170,6 +171,54 @@ def question_form(s: str) -> Optional[str]:
     if INTERRO.match(ns):
         return "interrogative_no_mark"
     return None
+
+
+# SEG-1 (Romain, 2026-11-20): the questions of one sales turn are one unit, read on its priority question: the last
+# one, unless it only follows up the one before it (« Pourquoi ? », « Depuis quand ? », a tail alone): then the one before.
+FOLLOW_UP = re.compile(
+    r"^\W*(et |and |so |alors |du coup )?(pourquoi|comment ça|comment|c'est-à-dire|dans quel sens|en quoi|"
+    r"par rapport à quoi|comparé à quoi|à quel point|depuis quand|depuis combien de temps|combien|lequel|laquelle|"
+    r"lesquels|lesquelles|et alors|et après|et ensuite|et toi|et vous|ou pas|c'est tout|"
+    r"why|how so|how come|in what way|compared to what|meaning|like what|since when|how much|how long|which one|"
+    r"and then|and you|or not)\b", re.I)
+FOLLOW_UP_MAX_WORDS = 6
+
+
+def turn_questions(text: str) -> list[str]:
+    """The questions of a sales turn, in order: its sentences that are solicitations (§2), an isolated tail merged into
+    the sentence it closes (SEG-4)."""
+    merged: list[str] = []
+    for s in split_sentences(text):
+        if TAIL_ONLY.match(s) and merged:
+            merged[-1] = merged[-1].rstrip(".!") + ", " + s
+        else:
+            merged.append(s)
+    return [s for s in merged if question_form(s)]
+
+
+def follows_previous(q: str, prev: str) -> bool:
+    """A short question that only follows up the previous one: a follow-up word (« pourquoi ? », « depuis quand ? »),
+    a tail alone, or no content word of its own beyond the previous question's."""
+    words = [w for w in _fold(q).split() if w]
+    if len(words) > FOLLOW_UP_MAX_WORDS:
+        return False
+    if TAIL_ONLY.match(q.strip()):
+        return True
+    low = q.strip().lower()
+    rest = FOLLOW_UP.sub("", low, count=1)                       # the follow-up words themselves bring no new object
+    return not (content_words(rest) - content_words(prev))
+
+
+def group_turn(text: str) -> Optional[dict]:
+    """SEG-1 (Romain, 2026-11-20): one unit per sales turn. {"questions": [...], "priority": the question read for the
+    letter, "index": its rank}, or None when the turn asks nothing."""
+    qs = turn_questions(text)
+    if not qs:
+        return None
+    k = len(qs) - 1
+    while k > 0 and follows_previous(qs[k], qs[k - 1]):
+        k -= 1
+    return {"questions": qs, "priority": qs[k], "index": k}
 
 
 def content_words(s: str) -> set[str]:
@@ -470,6 +519,44 @@ OFFER_QUESTION = re.compile(
     r"\bnotre (accompagnement|programme|offre|méthode|formation|coaching)\b|\bl'offre\b|"
     r"\b(sur|dans|de|pour) l'accompagnement\b|te lancer dans un accompagnement|vous lancer dans un accompagnement",
     re.I)
+
+
+# §3 hard rules added 2026-11-20 (Romain), read in the priority question by the code, from gate 1's definitions:
+# a check-in on the sales' own speech ("does that make sense?") is OUT `nothing`; a closed restatement that only asks
+# the prospect to confirm what the sales says ("so your problem is time?") is OUT `agreement`; a choice among options
+# the sales gives, with no open branch ("would you rather X or Y?"), is OUT `sales_list`.
+CHECK_IN = re.compile(
+    r"^\W*(et |alors |ok |okay |donc )?(est-ce que )?(ça|cela|c'est|ça te|ça vous)? ?"
+    r"(fait sens|te parle|vous parle|parle|est clair|clair|te va|vous va|va)\s*\?\s*$|"
+    r"^\W*(et |alors |ok |donc )?(tu me suis|vous me suivez|tu vois ce que je veux dire|vous voyez ce que je veux dire|"
+    r"tu (as|aurais) des questions|vous (avez|auriez) des questions|des questions|"
+    r"(est-ce que )?c'est clair (pour (toi|vous))?)\s*\?\s*$|"
+    r"^\W*(and |so |ok |okay )?(does (that|this) make sense|any questions|are you with me|you with me|"
+    r"do you have any questions|is that clear)\s*\?\s*$", re.I)
+RESTATEMENT_OPENER = re.compile(
+    r"^\W*(ok,? |okay,? |d'accord,? |très bien,? )?(donc|alors donc|en gros|si je comprends bien|si j'ai bien compris|"
+    r"autrement dit|en résumé|so basically|so|if i understand( correctly)?|in other words)\b", re.I)
+OPEN_WORDS = re.compile(
+    r"\b(qu'est-ce|qu'est ce|quoi|comment|pourquoi|combien|quel|quelle|quels|quelles|où|quand|lequel|laquelle|"
+    r"lesquels|lesquelles|qui|what|how|why|which|where|when|who)\b", re.I)
+CHOICE_LIST = re.compile(
+    r"\b(tu préfères|vous préférez|tu préférerais|vous préféreriez|tu dirais plutôt|vous diriez plutôt|c'est plutôt|"
+    r"plutôt|would you rather|do you prefer|would you say it's more|is it more)\b[^?]*\b(ou|or)\b[^?]*\?", re.I)
+OPEN_BRANCH = re.compile(r"\b(ou|or) (autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
+
+
+def check_in_question(text: str) -> bool:
+    return bool(CHECK_IN.search(norm(text or "")))
+
+
+def closed_restatement(text: str) -> bool:
+    t = norm(text or "")
+    return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1)))
+
+
+def choice_list_question(text: str) -> bool:
+    t = norm(text or "")
+    return bool(CHOICE_LIST.search(t) and not OPEN_BRANCH.search(t))
 
 
 def solution_load_question(text: str) -> bool:

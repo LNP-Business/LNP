@@ -163,6 +163,32 @@ const { chromium } = require('playwright');
   if (OUT) await p.screenshot({ path: OUT + '/fiche-analyse.png' });
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   check('Échap ferme la fenêtre, la fiche reste ouverte', !(await win()) && await cf.evaluate(() => !!document.querySelector('#layer .ls-calls')), null);
+  // 063 : corriger une lettre de la découverte (administrateur), la correction gardée et affichée
+  await cf.evaluate(() => openLead('c1')); await p.waitForTimeout(700);
+  await cf.click('#layer .ls-calls [data-ca]'); await p.waitForTimeout(1000);
+  const fix = await cf.evaluate(async () => {
+    const C = window.parent.LNP_CRM, base = await C.caRecord('j1'), store = [], calls = [];
+    C.caCorrect = async (job, unit, value, note) => { calls.push([job, unit, value, note]);
+      store.unshift({ unit_id: unit, field: 'letter', engine_value: 'S', value, note, author: 'Romain', created_at: '2026-11-20T10:00:00Z' }); return {}; };
+    C.caRecord = async () => Object.assign(JSON.parse(JSON.stringify(base)), { can_correct: true, corrections: store.slice() });
+    const root = document.querySelector('#caLead'); if (!root) return { err: 'pas de #caLead' };
+    const holder = document.createElement('div');
+    holder.innerHTML = '<input id="cav-fix-note" value="la question demande la difficulté"><button type="button" data-cav-fix="P" data-cav-unit="Q005">P</button>';
+    root.appendChild(holder); holder.querySelector('button').click();
+    await new Promise(r => setTimeout(r, 900));
+    const chipEl = document.querySelector('#caLead [data-cav-sol="Q005"]');
+    return { calls, title: chipEl && chipEl.title, outline: chipEl && chipEl.getAttribute('style') };
+  });
+  check('corriger une lettre : la correction part avec la note, puis la lettre corrigée s’affiche', fix && fix.calls && fix.calls.length === 1 && fix.calls[0][0] === 'j1' && fix.calls[0][2] === 'P' && /difficulté/.test(fix.calls[0][3]) && /lettre corrigée \(moteur : S\)/.test(fix.title || '') && /dashed/.test(fix.outline || ''), fix);
+  await cf.click('#caLead [data-cav-sol="Q005"]'); await p.waitForTimeout(300);
+  const panel = await cf.evaluate(() => { const b = document.querySelector('#caLead [data-cav-fix]'); const box = b && b.closest('td'); return box ? box.innerText : null; });
+  check('le panneau de la question : la correction faite (auteur, note) et les lettres pour corriger', panel && /Lettre corrigée : S → P · par Romain/.test(panel) && /Corriger la lettre/.test(panel) && /Hors SPIN/.test(panel), panel && panel.slice(0, 300));
+  if (OUT) await p.screenshot({ path: OUT + '/correction-lettre.png' });
+  const reader = await cf.evaluate(() => { const C = window.parent.LNP_CAV || window.LNP_CAV; if (!C) return null;
+    const d = document.createElement('div'); d.innerHTML = C.html({ results: { SPIN: { status: 'scored', details: { solicitations: [{ id: 'Q005', letter: 'S', turn: 'T005', in_perimeter: true }] } } }, corrections: [], can_correct: false }, { sol: 'Q005' });
+    return !d.querySelector('[data-cav-fix]'); });
+  check('un commercial voit la correction mais ne peut pas corriger', reader === true, reader);
+  for (let k = 0; k < 3 && await win(); k++) { await p.keyboard.press('Escape'); await p.waitForTimeout(300); }   // Échap ferme par étapes
   // C9 (Romain, 2026-11-20) : le rendu d'un R2 après un bon écart et une offre déjà présentée au R1, puis d'un écart à reprendre
   const c9 = await cf.evaluate(async () => {
     const CAV = window.LNP_CAV || window.parent.LNP_CAV; if (!CAV) return null;

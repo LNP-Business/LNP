@@ -68,3 +68,15 @@ def test_a_bad_gap_must_be_followed_by_a_restatement_or_a_return_to_discovery():
     assert rounds.gap_remediation(c)["done"] is None and "gap_not_remedied" in c.flags
     c = bad_gap_ctx([], rests=())
     assert rounds.gap_remediation(c) is None                                  # no restatement at all: nothing to follow
+
+
+def test_a_recording_shorter_than_20_minutes_is_incomplete():
+    from lnp_callqa.core.foundation import recording_gate, recording_minutes
+    c = ctx_with()
+    for i, t in enumerate(c.turns):
+        t.ts = f"00:{i * 3:02d}:30"
+    assert round(recording_minutes(c), 1) == 15.5 and recording_gate(c) is False and c.status == "recording_incomplete"
+    c = ctx_with()
+    for i, t in enumerate(c.turns):
+        t.ts = f"{i * 5}:10"                                                           # mm:ss up to 25:10
+    assert recording_gate(c) is True and c.status == "ok"

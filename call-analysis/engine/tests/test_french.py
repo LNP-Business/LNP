@@ -151,3 +151,40 @@ def test_what_the_prospect_expects_from_the_call_is_framing():
     for q in ["Qu'est-ce qui t'a amenée à réserver cet appel ?", "Qu'est-ce que tu attends de ta vie pro ?",
               "What were you hoping we could help you with?"]:
         assert not S.social_or_logistic(q), q
+
+
+def test_the_questions_of_one_turn_are_one_unit_read_on_the_priority_question():
+    """SEG-1 (Romain, 2026-11-20): the last question, unless it only follows up the one before (then the one before)."""
+    cases = {
+        "Combien d'élèves tu as aujourd'hui ? Et pourquoi ?": "Combien d'élèves tu as aujourd'hui ?",
+        "Qu'est-ce qui te bloque ? Pourquoi ça te bloque ?": "Qu'est-ce qui te bloque ?",
+        "Ok. Ça te rapporte combien ? Depuis combien de temps ?": "Ça te rapporte combien ?",
+        "Qu'est-ce qui te manque ? Comparé à quoi ?": "Qu'est-ce qui te manque ?",
+        "Tu fais quoi aujourd'hui ? Et qu'est-ce que tu voudrais dans un an ?": "Et qu'est-ce que tu voudrais dans un an ?",
+        "Tu as combien d'élèves ? À quel point ça te pèse ?": "À quel point ça te pèse ?",
+        "How many clients do you have? Why?": "How many clients do you have?",
+    }
+    for turn, priority in cases.items():
+        g = S.group_turn(turn)
+        assert g["priority"] == priority, turn
+        assert len(g["questions"]) == len([x for x in S.split_sentences(turn) if x.endswith("?")])
+    assert S.group_turn("D'accord, je comprends.") is None
+
+
+def test_three_more_hard_rules_read_in_the_question():
+    """§3 (Romain, 2026-11-20), from gate 1's definitions, in French and in English."""
+    for q in ["Ça fait sens ?", "Tu me suis ?", "Est-ce que c'est clair pour toi ?", "Tu as des questions ?",
+              "Does that make sense?"]:
+        assert S.check_in_question(q), q                                          # OUT nothing
+    for q in ["Donc ton problème, c'est le temps ?", "Si je comprends bien, tu donnes des cours le soir ?",
+              "So your goal is 10K a month?"]:
+        assert S.closed_restatement(q), q                                         # OUT agreement
+    for q in ["Tu préfères vivre de tes cours ou garder ton job ?", "C'est plutôt le temps ou l'argent ?",
+              "Would you rather work less or earn more?"]:
+        assert S.choice_list_question(q), q                                       # OUT sales_list
+    # what stays open
+    assert not S.closed_restatement("Donc tu as combien d'élèves ?")
+    assert not S.closed_restatement("Alors, qu'est-ce qui te bloque ?")
+    assert not S.choice_list_question("C'est plutôt le temps, l'argent ou autre chose ?")      # an open branch
+    assert not S.choice_list_question("Tu es salariée ou à ton compte ?")                       # two verifiable facts
+    assert not S.check_in_question("Qu'est-ce qui fait sens pour toi dans ton métier ?")

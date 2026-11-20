@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<script>window.LNP_BUILD = "4c67322e7c46cf47";</script>
+<script>window.LNP_BUILD = "44eeff69a1e727d5";</script>
 <script src="/api/config"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script src="/lnp-web.js"></script>
@@ -1317,6 +1317,8 @@ html { scroll-padding-bottom: 140px; }
     // one full call record, adding a transcript (queues the analysis), running it again; nothing outside the web edition
     caBoard: async function () { await ready(); if (mode !== "live") return []; return call("crm_ca_board", {}); },
     caRecord: function (jobId) { return call("crm_ca_record", { p_job: jobId }); },
+    // 063: an admin corrects the letter of a discovery question; kept with its author and date (C8)
+    caCorrect: function (jobId, unit, value, note) { return call("crm_ca_correct", { p_job: jobId, p_unit: unit, p_value: value, p_note: note || null }); },
     caAddTranscript: function (callId, raw, speakerMap) { return call("crm_ca_add_transcript", { p_call: callId, p_raw: raw, p_speaker_map: speakerMap, p_source: "upload" }); },
     caRetry: function (callId) { return call("crm_ca_retry", { p_call: callId }); },
     // cash entered by hand (022): the amount signed, a payment received, removing a payment entered by hand
@@ -2016,7 +2018,7 @@ html { scroll-padding-bottom: 140px; }
   window.LNP_LEADFEED = { css: CSS, feed: feed, todo: todo, bind: bind, settle: settle };
 })();
 </script>
-<script>window.LNP_DOCS_SRC = "/docs/lnp-docs.91d7ac95b9b30ee8.js";</script>
+<script>window.LNP_DOCS_SRC = "/docs/lnp-docs.bf51b671547dbf6e.js";</script>
 <script>/* LNP › Sales System › Sales Day (Romain 2026-10-31): the sales rep's day, one lead at a time. The queue is built from the CRM: outcomes to declare first (the call is over and nothing is declared),
    then today's calls to prepare, reschedules to plan (a missed R2, a canceled call), no-shows to re-engage and follow-ups due.
    A card is finished with its action (an outcome declared, or "Done" with what was done, saved as a note on the lead); it

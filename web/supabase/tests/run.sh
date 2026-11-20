@@ -195,3 +195,7 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/cockpit_corrections_test.sql | 
 run 062_crm_ca_board_rounds.sql
 run 062_crm_ca_board_rounds.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_board_rounds_test.sql | tail -1
+# 063 : un administrateur corrige la lettre d'une question de la découverte ; chaque correction est gardée (C8)
+run 063_crm_ca_corrections.sql
+run 063_crm_ca_corrections.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_corrections_test.sql | tail -1

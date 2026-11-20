@@ -84,3 +84,19 @@ def test_a_bad_gap_not_followed_up_before_the_pitch_is_flagged():
     assert rec["meta"]["gap_remediation"] == {"needed": True, "done": None, "after": "T017"}
     assert "gap_not_remedied" in rec["flags"] and "gap_not_remedied" in rec["results"]["GAP"]["flags"]
     assert first_call()["meta"]["gap_remediation"] == {"needed": False}
+
+
+def test_a_recording_under_20_minutes_is_cut_and_not_analysed():
+    """C1 (Romain, 2026-11-20): the call went on unrecorded; no model call, every competence excluded."""
+    from lnp_callqa.core.foundation import parse_lines, parse_transcript
+    from lnp_callqa.core.models import CallContext
+    raw = "\n".join(f"[{m:02d}:00] {who}: phrase {m}." for m, who in
+                    [(0, sc.S), (4, sc.P), (8, sc.S), (12, sc.P)])                     # 12 minutes
+    ctx = CallContext("c", "s", "2026-11-20T10:00:00Z", "Europe/Paris", parse_transcript(raw, sc.SPEAKERS))
+    ctx.lines = parse_lines(raw, sc.SPEAKERS)
+    client = MockLiteClient(copy.deepcopy(sc.ANSWERS))
+    rec = analyse(ctx, client)
+    assert rec["status"] == "recording_incomplete" and "recording_minutes:12.0" in rec["flags"]
+    assert all(r["status"] == "excluded" and r["reasons"] == ["recording_incomplete"] for r in rec["results"].values())
+    assert client.calls == []
+    assert first_call()["status"] == "ok"                                                # the fictional call lasts 30 min

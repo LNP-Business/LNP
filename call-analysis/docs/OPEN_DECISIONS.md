@@ -105,6 +105,24 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 
 ## F. Settled 2026-11-20 (Romain)
 - « tu vois ? » / « vous voyez ? » at the end of a question is a tic, not a validation tail (E (b), confirmed).
+- §3 hard rules added (2026-11-20): check-in → OUT nothing, closed restatement (« donc … ? » without an open word) →
+  OUT agreement, choice among the sales' options without an open branch → OUT sales_list. To watch in the measure:
+  « Donc tu as déjà des élèves ? » is read as a closed restatement (agreement), not as an S.
+- SPIN letters, C4 (2026-11-20): the gates are read twice; a disagreement goes to the arbiter tier, which walks the
+  gates again (never a vote); an undecided unit is `to_review` and left out of the scores. Arbiter model (decided
+  2026-11-20, Romain left it to the team): claude-sonnet-5-5 for `crm_ca_config.tiers.arbiter` (fast and strong stay
+  claude-haiku-5-5), set in the online configuration when the S1g PRs are merged; to be confirmed by the measure.
+- SPIN letters (2026-11-20): the lite engine asks the closed gates of each question (S1g, batches of 25 with context)
+  and decides the letter by code with the engine's `decide_letter`, as in §3; S1 reads 40 turns per call (was 160).
+- Human corrections (C8, migration 063): an administrator corrects a SPIN letter on the screen; the correction is kept
+  (additions only) and shown beside the engine's letter; the score is not recomputed; `qa/corrections_to_reference.py`
+  feeds the reference set. Other fields (registers, gap, objections) can follow the same table (`field`).
+- Cut recordings (C1): a recording shorter than 20 minutes (its last timestamp) is not analysed
+  (`recording_incomplete`, no model call), whatever the planned length of the call.
+- SEG-1: the questions of one sales turn are one solicitation, read on the last one unless it only follows up the one
+  before (« pourquoi ? »): then the one before. The code lists them, one per turn; the model reads every listed one (a
+  forgotten one is asked again once, then counted `question:not_read`). Lite engine only: **the reference engine still
+  splits one unit per question** (its 12 calibration tests use `Q….2` units): to port with those cases. SPIN memo to update.
 - SB-2: « qu'est-ce que tu attends de notre appel ? » is framing (OUT `nothing`), never the discovery start.
 - SB-8: an effect stated in answer to an OUT question counts, as volunteered speech (D1 to D4, never D5). SPIN memo to update.
 - Disguised price (PB-3): a market tour whose levels are the company's offers, tied to the offer later, is the first

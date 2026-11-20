@@ -243,6 +243,8 @@
     // one full call record, adding a transcript (queues the analysis), running it again; nothing outside the web edition
     caBoard: async function () { await ready(); if (mode !== "live") return []; return call("crm_ca_board", {}); },
     caRecord: function (jobId) { return call("crm_ca_record", { p_job: jobId }); },
+    // 063: an admin corrects the letter of a discovery question; kept with its author and date (C8)
+    caCorrect: function (jobId, unit, value, note) { return call("crm_ca_correct", { p_job: jobId, p_unit: unit, p_value: value, p_note: note || null }); },
     caAddTranscript: function (callId, raw, speakerMap) { return call("crm_ca_add_transcript", { p_call: callId, p_raw: raw, p_speaker_map: speakerMap, p_source: "upload" }); },
     caRetry: function (callId) { return call("crm_ca_retry", { p_call: callId }); },
     // cash entered by hand (022): the amount signed, a payment received, removing a payment entered by hand

@@ -16,7 +16,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 **SB-5 · Answer span.** The answer to a solicitation is the prospect's speech from the end of the solicitation to the next sales solicitation. Sales backchannel of 5 words or fewer inside it does not end it.
 
-**SB-6 · Stacked questions.** When several solicitations are stacked in one sales turn (SEG-1), the answer is attributed to the **last** one, unless the prospect explicitly answers an earlier one (quotes or reuses its key word); the other stacked solicitations get no answer (`unanswered`), which does not change their letter.
+**SB-6 · Stacked questions.** Since 2026-11-20 (SEG-1, Romain) the questions of one sales turn are one solicitation, read on its priority question: the answer is that solicitation's answer. (Before: one unit per question, the answer going to the last one.)
 
 **SB-7 · Short first answer.** If the first prospect turn has fewer than 6 words and the sales does not speak in between, the next prospect turn is included in the answer.
 
