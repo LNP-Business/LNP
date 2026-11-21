@@ -40,6 +40,16 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
   coaching_formation_pro = coaching, formation d'adultes ou d'entreprise
   autre = tout le reste (décris-le dans valeur)
  
+## projet (douleur et projet)
+- douleur.valeur : ce qui ne va pas aujourd'hui dans sa situation, dit par le prospect lui-même, en quelques mots (« usure », « revenus trop faibles », « manque d'élèves », « plus de sens dans le métier »…). "aucune" s'il dit que tout va bien et qu'il ne cherche rien à changer. "inconnu" si ce n'est pas abordé. Une difficulté que le sales suppose et que le prospect ne reprend pas ne compte pas.
+- intention.valeur :
+  enseigner_autrement = veut se lancer à son compte, vendre ses cours directement aux familles
+  developper = donne déjà des cours et veut en vivre, ou en donner davantage
+  pas_de_projet = dit ne pas vouloir se lancer : simple curiosité, information, « je regarde »
+  inconnu
+- revenu_vise_mensuel.valeur : le revenu qu'il vise, en euros par mois (nombre), s'il le dit ; sinon null. Un montant par an se divise par 12.
+- echeance : quand il veut atteindre son objectif. type "date" + date, type "delai" + delai_mois, type "vague" ou "absent" (mêmes conversions que pour le démarrage).
+
 ## financement
 - ressources_citees : liste des ressources que le prospect dit pouvoir mobiliser. type = salaire | epargne | pret | proche | autre. Une ressource au conditionnel compte (« je pourrais demander à ma sœur »). Une ressource suggérée par le sales et rejetée par le prospect ne compte pas.
 - objection_fonds : "oui" si le prospect dit ne pas avoir les fonds ou les moyens, à n'importe quel moment.
@@ -69,7 +79,7 @@ Si l'analyse et la transcription se contredisent, la transcription fait foi.
 - issue : paiement_complet | paiement_fractionne | acompte | aucun (paiement effectué pendant l'appel).
 - refus_explicite : "oui" si la personne refuse clairement l'offre.
 - relance.date : date de rappel fixée pendant l'appel, sinon null.
-- synthese_sales_presente : "oui" si le sales a reformulé métier, financement, décision et démarrage, et que le prospect a confirmé.
+- synthese_sales_presente : "oui" si le sales a reformulé métier, douleur, projet, financement, décision et démarrage, et que le prospect a confirmé.
  
 # FORMAT DE SORTIE
 Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"valeur": ..., "preuve": "...", "minutage": "mm:ss"}.
@@ -82,6 +92,12 @@ Réponds uniquement par ce JSON, sans texte autour. Chaque fait a la forme {"val
     "a_enseigne_scolaire": {"valeur": "oui|non|inconnu", "preuve": "", "minutage": ""},
     "cours_payants_actuels": {"valeur": "oui|non|inconnu", "preuve": "", "minutage": ""},
     "matiere": {"valeur": "", "categorie": "", "preuve": "", "minutage": ""}
+  },
+  "projet": {
+    "douleur": {"valeur": "", "preuve": "", "minutage": ""},
+    "intention": {"valeur": "enseigner_autrement|developper|pas_de_projet|inconnu", "preuve": "", "minutage": ""},
+    "revenu_vise_mensuel": {"valeur": null, "preuve": "", "minutage": ""},
+    "echeance": {"type": "date|delai|vague|absent", "date": null, "delai_mois": null, "preuve": "", "minutage": ""}
   },
   "financement": {
     "ressources_citees": [{"type": "", "preuve": "", "minutage": ""}],
