@@ -500,3 +500,14 @@ def test_sb31_a_neutral_question_without_register_reading_takes_its_answer_words
     s = next(x for x in sols(rec) if x["turn"] == "T003")
     assert s["register"] == "other" and s["register_status"] == "single_reading"
     assert rec["meta"]["steps"]["S1"]["reasons"]["register:other_by_code"] == 1
+
+
+def test_2026_11_21_the_work_of_today_has_no_register():
+    a = copy.deepcopy(sc.ANSWERS)
+    t = sc.context()
+    t.turns[2].text = "Great. So what's your job today, do you teach?"                  # names only the work of today
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")
+    q.update(quote="do you teach?", register_domain="money", register_basis="named", register_quote="do you teach")
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    assert s["register"] == "other" and s["register_basis"] == "named" and s["register_domain"] == "status"

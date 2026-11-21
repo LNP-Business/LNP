@@ -198,10 +198,11 @@ def test_a_cut_question_is_recognised():
         assert not S.cut_question(q), q
 
 
-def test_identity_and_status_covers_the_work_of_today():
-    from lnp_callqa.competences import spin as S
-    assert S.REGISTER_OF_DOMAIN["status"] == "identity_status"
-    assert S.lexicon_register_named("Et du coup, tu es professeur de quoi, toi ?")[0] == "identity_status"
-    assert S.lexicon_register_named("Tu es à la retraite depuis quand ?")[0] == "identity_status"
+def test_the_work_of_today_is_a_neutral_fact_with_no_register():
+    from lnp_callqa.competences import spin as S                     # Romain (2026-11-21): « Sans registre »
+    assert S.REGISTER_OF_DOMAIN["status"] == "other"
+    assert S.lexicon_register_named("Et du coup, tu es professeur de quoi, toi ?")[0] == "other"
+    assert S.lexicon_register_named("Tu es à la retraite depuis quand ?")[0] == "other"
+    assert S.lexicon_register_named("Tu te vois où dans quelques années ?")[0] == "identity_status"
     assert S.lexicon_register_named("Tu m'appelles d'où ?") is None                 # a place: still Other
     assert S.lexicon_register_named("Tu as combien d'élèves aujourd'hui ?")[0] == "financial"   # students stay Financial

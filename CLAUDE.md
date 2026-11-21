@@ -151,7 +151,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   droite (`pane()`), qui n'apparaît qu'au clic. Rien d'expliqué à l'écran (Romain, 2026-11-20 : le plus épuré possible) : la
   légende des lettres, l'échelle et la définition de la profondeur sont dans une fenêtre au survol d'un petit ⓘ dans l'en-tête
   (`.th-i`) ; les titres des colonnes ne s'affichent pas (lecteur d'écran seulement, `.sr`) ; pareil pour les gestes A · I · E · M
-  des objections, dont le panneau n'apparaît qu'au clic. Les questions sans registre sont dans la ligne « Autre ». Section « L'écart reformulé » (Romain, 2026-11-20, troisième version) : deux
+  des objections, dont le panneau n'apparaît qu'au clic. Les questions sans registre sont dans la ligne « Sans registre ». Section « L'écart reformulé » (Romain, 2026-11-20, troisième version) : deux
   fenêtres de la même taille sur la largeur de l'écran, qui défilent en elles-mêmes (`.gx3`, `.gx-win`) ; à gauche la reformulation
   en un seul texte complet (puis la validation du prospect), chaque étape surlignée de sa couleur, sans ligne d'étapes ; à droite
   les étapes dans l'ordre du transcript (Point A, Point B, Problème, Coût, puis la Validation ; les non reprises en creux à la
@@ -261,10 +261,11 @@ le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une 
 quand elle nomme un domaine (SB-27), et depuis le 2026-11-20 la vérification de suivi (« ça fait sens ? »), la
 reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Depuis le 2026-11-21 (Romain) : une question coupée (« Qu'est-ce qui va faire que… ») est hors SPIN · rien, une difficulté nommée
 par le commercial avec ses mots (« tu es en difficulté avec ça ? ») est une demande d'accord, et la découverte n'est exclue que s'il y a
-au moins 3 questions sans porte franchie et plus de 5 % (`ABSENT_MIN_COUNT`, §5). Registres : Identité et statut couvre aussi la
-situation professionnelle actuelle (domaine `status` : métier, matière, statut, ancienneté, parcours, retraite) ; « Autre » garde un
-lieu, une date, un outil, la logistique. Une question neutre sans registre lu prend le domaine que nomment les mots de sa réponse,
-sinon « Autre » (jamais « non tranché »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+au moins 3 questions sans porte franchie et plus de 5 % (`ABSENT_MIN_COUNT`, §5). Registres (Romain, 2026-11-21) : les quatre registres sont les leviers
+explorés ; « Autre » devient « Sans registre » (clé `other`) et reçoit les faits neutres de la situation (domaine `status` : métier,
+matière, ancienneté, retraite comme fait, quotidien), un lieu, une date, un outil ; Identité et statut garde l'avenir (devenir,
+reconversion, projet). Une question neutre sans registre lu prend le domaine que nomment les mots de sa réponse, sinon « Sans
+registre » (jamais « non tranché »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Écart, points A et B (Romain, 2026-11-20, règles GAP-1.4, `call-analysis/engine/lnp_callqa/core/figures.py`) : le code liste les
 chiffres du prospect (valeur, unité, nature : présent, cible, passé, dépense, offre) et ses cibles sans chiffre ; A est choisi
 sur la dimension de B, jamais un fait sans rapport (« la conférence m'a convaincu ») : sans chiffre sur la dimension de B, A est

@@ -282,6 +282,11 @@ REGISTER_DOMAIN = {"financial": "money", "time_load": "time", "identity_status":
                    "mental_emotional": "self_belief", "other": "other"}
 
 
+def _domain_of(register: str) -> str:
+    """The domain the code gives a register its words name; the words of « Sans registre » are the work of today (status)."""
+    return "status" if register == "other" else REGISTER_DOMAIN[register]
+
+
 def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
     q = u.raw
     a = {"asked_domain": q.get("register_domain"), "basis": q.get("register_basis"),
@@ -295,7 +300,7 @@ def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
         # SB-27 by the code (LNP, 2026-11-19): the question names one domain, so the register is read in the question,
         # not in its answer (« pourquoi reprendre une activité à temps plein ? » was given Financial from the answer)
         drops.add(STEP, "register:named_in_question", q)
-        a = {"asked_domain": REGISTER_DOMAIN[named[0]], "basis": "named", "quote": named[1], "reference_turn": None}
+        a = {"asked_domain": _domain_of(named[0]), "basis": "named", "quote": named[1], "reference_turn": None}
     if a["basis"] == "answer" and a["quote"]:
         # SB-35: the words that show the register are the proof; when the model names no answer turn or another one,
         # the code looks for those words in the answer itself (they must still be the prospect's, in the answer span)
@@ -312,7 +317,7 @@ def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
         hit = E.lexicon_register_in(answered[0].text) if answered else None
         if hit:
             drops.add(STEP, "register:answer_words_by_code", q)
-            a = {"asked_domain": REGISTER_DOMAIN[hit[0]], "basis": "answer", "quote": hit[1], "reference_turn": answered[0].id}
+            a = {"asked_domain": _domain_of(hit[0]), "basis": "answer", "quote": hit[1], "reference_turn": answered[0].id}
         else:
             drops.add(STEP, "register:other_by_code", q)
             return {"register": "other", "status": SINGLE, "concordance": "1/1", "domain": "other", "basis": "none",

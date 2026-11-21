@@ -62,9 +62,9 @@ EXPECTED_ATOMS = {"S": {"SITUATION"}, "P": {"PAIN", "BLOCKER"}, "I": {"IMPACT"},
 # Registers (SB-26..SB-33, Romain 2026-10-27): the code maps the domain a question asks about to one register.
 REGISTERS = ("financial", "time_load", "identity_status", "mental_emotional", "other")
 REGISTER_LABELS = {"financial": "Financial", "time_load": "Time & load", "identity_status": "Identity & status",
-                   "mental_emotional": "Mental & emotional", "other": "Other"}
+                   "mental_emotional": "Mental & emotional", "other": "No register"}
 REGISTER_OF_DOMAIN = {"money": "financial", "clients": "financial", "time": "time_load", "family": "time_load",
-                      "future": "identity_status", "status": "identity_status",   # status: their work today (2026-11-21)
+                      "future": "identity_status", "status": "other",   # status: their work today, a neutral fact (2026-11-21)
                       "self_belief": "mental_emotional", "health": "mental_emotional",
                       "other": "other", "none": "other"}
 REGISTER_BASES = ("named", "answer", "reference", "none")   # SB-28 / SB-35 / SB-29 / SB-31
@@ -79,9 +79,11 @@ REGISTER_LEXICON = {
     "time_load": ("time", "hour", "week", "weekend", "schedule", "workload", "busy", "family", "kid", "child", "wife",
                   "husband", "partner", "son", "daughter", "parent"),
     "identity_status": ("future", "years from now", "long term", "long-term", "where do you see yourself",
-                        "where do you want to be", "become", "dream", "vision", "career", "legacy", "status",
-                        "job", "profession", "occupation", "teach", "retire", "employee", "freelanc", "self-employed",
-                        "background", "degree"),
+                        "where do you want to be", "become", "dream", "vision", "career", "legacy", "status"),
+    # Romain (2026-11-21): the neutral facts of the prospect's situation, their work today, have no register (« Sans
+    # registre », key "other"): a question that names only them is read as such, never as Identity & status
+    "other": ("job", "profession", "occupation", "teach", "retire", "employee", "freelanc", "self-employed", "background",
+              "degree"),
     "mental_emotional": ("confiden", "believe in yourself", "self-belief", "motivat", "mindset", "fear", "doubt",
                          "feel", "emotion", "frustrat", "proud", "health", "stress", "anxi", "burnout", "burn out",
                          "burned out", "exhaust", "tired", "sleep", "energy"),
@@ -95,10 +97,11 @@ REGISTER_LEXICON_FR = {
                   "charge mentale", "occupe",
                   "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
                   "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
-    "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
-                        "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees",
-                        "professeur", "prof ", "profs ", "enseign", "matiere", "salarie", "fonctionnaire", "poste ",
-                        "parcours", "diplom", "auto-entrepreneur", "freelance", "anciennete", "projet"),
+    "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut",
+                        "reconversion", "dans quelques annees", "projet"),
+    "other": ("metier", "retraite", "independan", "a ton compte", "a mon compte", "professeur", "prof ", "profs ",
+              "enseign", "matiere", "salarie", "fonctionnaire", "poste ", "parcours", "diplom", "auto-entrepreneur",
+              "freelance", "anciennete"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
                          "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
