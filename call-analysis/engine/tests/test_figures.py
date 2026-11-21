@@ -177,3 +177,24 @@ def test_the_formula_runs_on_the_code_figures_when_the_model_listed_no_atom():
     items = g.score_items(ctx, None, sa, sb, None, None, None, {q.id: q for q in ctx.solicitations})
     assert {i.id: i.level for i in items if i.id in ("G1", "G3")} == {"G1": 2, "G3": 2}
     assert [f["kind"] for f in [x.to_dict() for x in st["_figures"]]].count("other") == 1   # « 20 euros de l'heure »
+
+
+def test_a_model_atom_that_is_the_present_figure_counts_in_an_n_answer():
+    """Live analysis of 2026-11-21: the model listed « là je suis à 2000 c'est… » as a quantified atom with unit "c" in
+    the N answer; the twin of the code's present figure, it is A whatever the letter, with the code's unit."""
+    from lnp_callqa.core.models import Atom, Evidence, Solicitation
+    lines = [("S", "Et tu vises quoi, comme revenu ?"),
+             ("P", "3000 euros, c'est ça qui me conviendrait pour vivre. En moyenne j'étais à 2008 net et là je suis à 2000 c'est un système de primes.")]
+    sols = [Solicitation("Q001", "T001", lines[0][1], "N", answer_turns=["T002"])]
+    ctx = ctx_of(lines, sols=sols)
+    ctx.atoms = [Atom("A001", "SITUATION", Evidence("là je suis à 2000 c'est un système de primes", "T002", PROSPECT),
+                      "Q001", "N", None, None, True, 2000.0, "c"),
+                 Atom("A002", "DESIRE", Evidence("3000 euros, c'est ça qui me conviendrait pour vivre", "T002", PROSPECT),
+                      "Q001", "N", None, None, True, 3000.0, "euros")]
+    st = g.statements_with_figures(ctx, None)
+    a = next(s for s in st["A"] if s.value == 2000)
+    assert (a.origin, a.kind, a.unit) == ("atom", "present", "money")
+    A = g.a_candidates(ctx, st, None)
+    B, B_out = g.b_candidates(ctx, st, None)
+    sa, sb, rule = g.select_a_b(ctx, A, B, B_out)
+    assert sa is a and sb.value == 3000 and rule == "same_unit"
