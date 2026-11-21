@@ -120,16 +120,24 @@ _UNIT_MAP = {"monthly": "month", "months": "month", "mo": "month", "yearly": "ye
              "mois": "month", "mensuel": "month", "mensuels": "month", "mensuelle": "month", "ans": "year",
              "année": "year", "années": "year", "annuel": "year", "annuelle": "year", "semaine": "week",
              "semaines": "week", "hebdo": "week", "heure": "hour", "heures": "hour", "jour": "day", "jours": "day",
-             "élève": "client", "élèves": "client", "eleve": "client", "eleves": "client", "client": "client"}
+             "élève": "client", "élèves": "client", "eleve": "client", "eleves": "client", "client": "client",
+             # 2026-11-21 (Romain)
+             "cliente": "client", "clientes": "client", "journée": "day", "journées": "day", "journee": "day",
+             "journees": "day", "quotidien": "day", "quotidienne": "day", "quotidiennement": "day",
+             "annuels": "year", "annuelles": "year", "annee": "year", "annees": "year", "mensuelles": "month",
+             "cours": "lesson", "lesson": "lesson", "lessons": "lesson"}
 _UNIT_DROP = {"$", "€", "£", "usd", "eur", "euro", "euros", "dollar", "dollars", "per", "a", "an", "/", "each",
               "every", "of", "in", "income", "revenue",
-              "par", "de", "d'", "du", "chaque", "chiffre", "d'affaires", "affaires", "revenu", "revenus", "ca", "balles", "net",
-              "brut"}
+              "par", "de", "d'", "d", "l", "du", "chaque", "chiffre", "d'affaires", "affaires", "revenu", "revenus", "ca",
+              "balles", "net", "brut", "k€", "le", "la", "les", "pour", "à"}
 
 
 def norm_unit(u: Optional[str]) -> frozenset:
-    """Unit comparison for 'his unit' (PB-30, PB-31): currency and filler words ignored, synonyms merged."""
-    toks = re.findall(r"[a-z$€£/]+", (u or "").lower().replace("/", " / "))
+    """Unit comparison for 'his unit' (PB-30, PB-31): currency and filler words ignored, synonyms merged. French
+    (2026-11-21): the accented letters stay in the word (« élèves », « année »), and « an » after « par » or « / » is the
+    year (« par an », « €/an »); alone it is the English article ("50 an hour")."""
+    toks = re.findall(r"[a-zà-öø-ÿœæ$€£/]+", (u or "").lower().replace("/", " / "))
+    toks = ["year" if t == "an" and i and toks[i - 1] in ("par", "/") else t for i, t in enumerate(toks)]
     return frozenset(_UNIT_MAP.get(t, t) for t in toks if t not in _UNIT_DROP)
 
 
@@ -711,13 +719,20 @@ def decide_k6(ctx: CallContext, gap: dict, roadmap: Optional[dict], last_step_po
 
 # ---- K7 · Adhesion (PB-14..PB-16, PB-23, PB-24)
 # PB-15: plain approvals and compliments are never adhesion
-_COMPLIMENT = re.compile(r"^((that|it|this) )?((all )?(sounds?|looks?|is|seems?) )?(really |so |very )?"
-                         r"(okay|ok|good|great|amazing|awesome|wow|cool|nice|perfect|interesting|i love (that|it))"
+_COMPLIMENT = re.compile(r"^((honestly|oh wow|oh)[\s.,!]+)?((that|it|this) )?((all )?(sounds?|looks?|is|seems?) )?"
+                         r"(really |so |very )?"
+                         r"(okay|ok|good|great|amazing|awesome|wow|cool|nice|perfect|interesting|incredible|excellent|"
+                         r"i love (that|it)|i like (that|it))"
                          r"[\s.,!]*((wow|amazing|great|cool)[\s.,!]*)*$"
-                         # French (LNP, 2026-11-19)
-                         r"|^((c'est|ça a l'air|ça semble|ça me paraît|ça paraît) )?(vraiment |très |trop |super )?"
-                         r"(bien|top|génial|super|intéressant|parfait|cool|chouette|clair|ok|d'accord|top top)"
-                         r"[\s.,!]*((génial|super|top|parfait|ok)[\s.,!]*)*$")
+                         # French (LNP, 2026-11-19; 2026-11-21, Romain: « ah oui », « franchement », « waouh », « j'adore »,
+                         # « j'aime bien », « ça me plaît », « dingue », « ouf », « incroyable », « excellent »; « ça me parle »
+                         # and « ça donne envie » wait for Romain, docs/OPEN_DECISIONS.md)
+                         r"|^((ah oui|oh oui|ah|oh|franchement|honnêtement|waouh|wow)[\s.,!]+)?"
+                         r"((c'est|c'était|ça a l'air|ça semble|ça me semble|ça me paraît|ça paraît) )?"
+                         r"(vraiment |très |trop |super |hyper |franchement )?"
+                         r"(bien|top|génial|super|intéressant|parfait|cool|chouette|clair|ok|d'accord|top top|waouh|dingue|"
+                         r"ouf|incroyable|excellent|j'adore( ça)?|j'aime (bien|beaucoup)( ça)?|ça me plaît( bien| beaucoup)?)"
+                         r"[\s.,!]*((génial|super|top|parfait|ok|waouh|wow|incroyable|trop bien)[\s.,!]*)*$")
 
 
 def plain_approval(text: str) -> bool:

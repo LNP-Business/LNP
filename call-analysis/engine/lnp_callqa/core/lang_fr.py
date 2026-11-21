@@ -28,8 +28,13 @@ sentir sens savoir sais penser pense vouloir veux veut voudrais aimerais aime vr
 PERSON_SHIFT = {"je": "tu", "j'": "tu", "me": "te", "m'": "t'", "moi": "toi", "mon": "ton", "ma": "ta", "mes": "tes",
                 "nous": "vous", "notre": "votre", "nos": "vos", "suis": "es", "ai": "as", "vais": "vas", "sais": "sais",
                 "mien": "tien", "mienne": "tienne", "miens": "tiens", "miennes": "tiennes", "moi-même": "toi-même"}
-# Second-person forms written two ways ("t'as" / "tu as", "t'es" / "tu es"): the same token on both sides
-SECOND_PERSON_ALIAS = {"t'": "tu"}
+# Second-person forms written two ways ("t'as" / "tu as", "t'es" / "tu es"): the same token on both sides. The French
+# « vous » of a sales who does not say « tu » counts as « tu » (2026-11-21, Romain), and a possessive is read without
+# its gender (« ta maison » = « ton » = « votre maison »): a restatement is not judged on its grammar (GB-22 (b)).
+SECOND_PERSON_ALIAS = {"t'": "tu", "te": "tu", "toi": "tu", "vous": "tu", "ta": "ton", "votre": "ton", "vos": "tes",
+                       "êtes": "es", "avez": "as", "allez": "vas", "savez": "sais", "pouvez": "peux", "voulez": "veux",
+                       "vous-même": "toi-même", "vous-mêmes": "toi-même", "tienne": "tien", "vôtre": "tien",
+                       "tiennes": "tiens", "vôtres": "tiens"}
 
 # Elided words split from the word they precede ("j'ai" = "j'" + "ai"), so both sides are cut the same way
 ELISIONS = ("jusqu'", "lorsqu'", "puisqu'", "qu'", "l'", "d'", "j'", "m'", "t'", "s'", "n'", "c'")
@@ -38,9 +43,11 @@ ELISIONS = ("jusqu'", "lorsqu'", "puisqu'", "qu'", "l'", "d'", "j'", "m'", "t'",
 NUM_WORDS = {"zéro": 0, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6, "sept": 7, "huit": 8, "neuf": 9,
              "dix": 10, "onze": 11, "douze": 12, "treize": 13, "quatorze": 14, "quinze": 15, "seize": 16, "vingt": 20,
              "trente": 30, "quarante": 40, "cinquante": 50, "soixante": 60, "cent": 100, "mille": 1000}
-THOUSAND_WORDS = ("mille",)
+THOUSAND_WORDS = ("mille", "k€")        # « 2 k€ », « 2,5 k€ » written as two words
 
-# A turn that is only an agreement (C3 rule 5)
-APPROVAL = (r"oui|ouais|ouai|ouep|ok|okay|d'accord|exactement|exact|tout à fait|carrément|voilà|c'est ça|c'est vrai|"
+# A turn that is only an agreement (C3 rule 5). The longer forms come first (« c'est exactement ça » before « c'est ça »).
+APPROVAL = (r"c'est exactement ça|exactement ça|c'est bien ça|c'est clair|c'est sûr|c'est juste|sans aucun doute|"
+            r"bah oui|ben oui|eh oui|totalement|clairement|grave|"
+            r"oui|ouais|ouai|ouep|ok|okay|d'accord|exactement|exact|tout à fait|carrément|voilà|c'est ça|c'est vrai|"
             r"c'est exact|bien sûr|absolument|effectivement|parfait|super|très bien|en effet|évidemment|non|nan|"
             r"mmh|mm|hum|hm|ah oui|oh oui|oui oui|mais oui|tout à fait ça")

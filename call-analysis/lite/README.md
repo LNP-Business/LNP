@@ -174,7 +174,11 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    and a question nobody read stays listed `to_review` (tag `unread`, left out of the scores). The code's own
    priority question is not held to the 40-word limit of a quoted question. SB-21 (action-plan N without a future state) is left to the model's OUT
    `solution_load`. The perimeter never starts on a social, logistic or framing question, whatever its letter
-   (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
+   (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19). Since 2026-11-21 (Romain, SB-1) the discovery opens on a register: the first S, P, I or N question
+   whose register (read on a copy of the units before the perimeter, as for the discovery) is one of the four, or the
+   first prospect turn with an effect the model read, a fact naming a register, or one of the code's figures, costs or
+   blockers (`spin.code_opening_info`), whichever comes first (`perimeter.opened_by`: `question` or `prospect_info`).
+   A question no gate passes while its answer holds an S1 effect is read once more by the arbiter (`gates:absent_reread`).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
    S1g prompt (2026-11-21): French examples for gate 2 (an open question on the present situation) and gate 5 (what
