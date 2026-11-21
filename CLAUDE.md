@@ -270,7 +270,8 @@ repris du commercial). Mesure par rejeu sur les 6 appels (`call-analysis/qa/READ
 (A 15/15, B 14/15, problème 13/15, coût 11/12). Les notes G1 à G3 changent avec la version des règles : les analyses stockées sont
 à relancer (C8). Premières analyses réelles en GAP-1.4 (2026-11-21) : la formule est lue avant la reformulation jugée (la dernière
 qui passe la porte, sinon la dernière avant l'offre), plus avant la première ; un atome du modèle qui est le chiffre présent du code
-compte quelle que soit la question (unité du code si celle du modèle n'a pas de dimension).
+compte quelle que soit la question (unité du code si celle du modèle n'a pas de dimension) ; la lecture du code (présent) tient pour
+ses chiffres, même quand le modèle lit « j'étais à » comme un passé (X13 n'est demandé que sur les autres atomes).
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et

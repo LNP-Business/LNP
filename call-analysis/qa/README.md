@@ -107,6 +107,11 @@ restitution (an early partial playback hid « minimum 2 000 euros »); it is now
 (the last passing, else the last before the pitch). A model atom that is the code's present figure (« là je suis à 2000
 c'est… », unit read as "c" by the model) is a candidate whatever the question it answers, with the code's unit. Replay of
 the six live analyses added to the cases: A 5/5, B 5/5, problem 5/5, cost 4/4; the 22 analyses: 95 % (72/76).
+Second live run (same day, code of PR 72): the model called « j'étais à un peu plus de 1000€ » (the month before the
+call) a past figure and A was lost (X13); the code's reading of its own figures now stands. Replay of the 27 analyses
+(16 stored, 11 live): A 25/25, B 24/25, problem 23/25, cost 19/20, 96 %. What moves from one live analysis to the next
+is the reading of the restitution (S2): the same call gets `cost_missing`, `not_validated` or `no_restitution`, the
+elements stay.
 
 ## First live measure (2026-11-20, run 44754260316)
 

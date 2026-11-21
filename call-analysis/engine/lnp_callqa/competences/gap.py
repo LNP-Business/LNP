@@ -1389,11 +1389,13 @@ class GapCompetence:
         return None
 
     def _a_present_check(self, ctx, runner, st, cutoff, concs) -> set[str]:
-        """X13: a quantified A candidate must describe the present (not a past income, savings, a budget)."""
+        """X13: a quantified A candidate must describe the present (not a past income, savings, a budget). The question is
+    asked about the model's atoms only; a figure the code read as present (« là j'ai fait le mois d'octobre, j'étais à
+    un peu plus de 1000€ »: a recent month is where he is, GB-28b) keeps the code's reading, whoever listed it."""
         out = set()
         for s in a_candidates(ctx, st, cutoff):
-            if not s.quantified or s.origin != "atom":                     # a code figure carries its own kind
-                continue
+            if not s.quantified or s.origin != "atom" or s.kind == "present":
+                continue                       # a code figure, or the model's atom that is one, carries its own kind
             rr = runner.run(ctx, A_CURRENT, f"acur:{s.atom_id}:{s.turn}", s)
             concs.append(rr.concordance)
             if rr.answer is not None and rr.answer.get("present_state") is False:

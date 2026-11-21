@@ -198,3 +198,30 @@ def test_a_model_atom_that_is_the_present_figure_counts_in_an_n_answer():
     B, B_out = g.b_candidates(ctx, st, None)
     sa, sb, rule = g.select_a_b(ctx, A, B, B_out)
     assert sa is a and sb.value == 3000 and rule == "same_unit"
+
+
+def test_the_code_s_present_figure_is_not_sent_to_the_past_check():
+    """Second live run of 2026-11-21: the model called « j'étais à un peu plus de 1000€ » (the month before) a past figure
+    (X13) and A was lost. The code read a recent month: where he is. Its reading stands for the twin atom."""
+    from lnp_callqa.competences.gap import GapCompetence
+    from lnp_callqa.core.llm import MockClient
+    from lnp_callqa.core.models import Atom, Evidence, Solicitation
+    from lnp_callqa.core.runner import Runner
+    lines = [("S", "Tu as des objectifs précis, tu peux m'en dire plus ?"),
+             ("P", "J'aimerais bien, là j'ai fait le mois d'octobre, j'étais à un peu plus de 1000€ en net de CA, voilà, "
+                   "j'aimerais bien tenir ça dans la distance, ça serait un objectif."),
+             ("S", "Je vois. Alors je te présente l'offre."),
+             ("P", "D'accord.")]
+    sols = [Solicitation("Q001", "T001", lines[0][1], "N", answer_turns=["T002"])]
+    ctx = ctx_of(lines, pitch="T003", sols=sols)
+    ctx.atoms = [Atom("A001", "SITUATION", Evidence("j'étais à un peu plus de 1000€ en net de CA", "T002", PROSPECT),
+                      "Q001", "N", "monthly revenue", "money", True, 1000.0, None)]
+    asked = []
+    def fb(task_id, unit_id, prompt, pass_no):
+        asked.append(task_id)
+        return {"present_state": False} if task_id == "gap.a_current" else \
+            {"clauses": [], "ends_with_new_topic_question": False, "new_topic_question_quote": None} if task_id == "gap.restitution" else {}
+    d = GapCompetence().run(ctx, Runner(MockClient({}, fb))).details
+    assert "gap.a_current" not in asked
+    assert d["selected_A"]["quote"].endswith("1000€ en net de CA") and d["selected_A"]["unit"] == "EUR"
+    assert d["selected_B"]["quote"].startswith("j'aimerais bien tenir ça dans la distance")

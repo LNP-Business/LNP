@@ -144,3 +144,6 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   before the restitution that is judged (last passing, else last before the pitch), no longer before the first
   restitution; a model atom that is the code's present figure counts whatever the question it answers, with the code's
   unit when the model's has no dimension. Live: A 4/5 → 5/5, B 5/5 on the six calls (cases replayed).
+- X13 and the code's present figures (2026-11-21, second live run): the model called « j'étais à un peu plus de 1000€ »
+  (the month before the call) a past figure and A was lost; the code's kind (GB-28b: a recent month is where he is)
+  stands for its figures and their twins, X13 is asked about the model's other atoms only.
