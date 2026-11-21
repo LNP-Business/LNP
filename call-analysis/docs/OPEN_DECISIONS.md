@@ -174,3 +174,22 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   neutral facts of the situation (domain `status`: trade, subject, seniority, retirement as a fact, daily life), a place,
   a date, a tool. Identity & status keeps the future (who they want to become, a change of path, « projet »). On the 5
   calls: Identity & status back to the real identity questions, the intake facts under « Sans registre ».
+- SPIN SB-1, the discovery start (Romain, third decision of 2026-11-21): « La phase de découverte commence soit par une
+  question qui ouvre sur un registre, soit par le fait que le client donne une information qui rentre dans un des
+  registres ; toutes les questions qui précèdent sont dans la phase de cadrage et de warm up. » The start is the first S,
+  P, I or N question whose register is one of the four, or the first prospect turn with an effect (pain, blocker, impact,
+  desire, value), a fact naming one of the four registers, a figure of their situation, a cost or a blocker, whichever
+  comes first. A demand for agreement, a framing question or a neutral fact (« Sans registre ») no longer opens it. On the
+  5 calls (replay): Anastasia T003 → T013, Christelle T020 → T027, Maria T001 → T044 (her trade and retirement questions
+  are warm-up), Ouala T020 → T011 (« je n'ai pas assez de budget »), Antoine unchanged. SPIN memo to update (§ borders).
+- SPIN, same day, from the quality report: a question asked without a question mark inside the sentence is listed (§2);
+  the priority question of a turn is never a cut question, a check-in, a tail or a closed restatement when an open question
+  comes before it, nor a shorter re-ask (SEG-1); an alternative in two sentences and a bare list of options are one unit,
+  OUT `sales_list` (SEG-3); the time free for the solution is OUT `solution_load`; the framing forms in the oral order
+  (SB-2); phrases like « le temps de la regarder » and French words that are English words (« son ») are not register
+  words (SB-30); a cut question asked whole before the cut is not cut; a question no gate passes whose answer holds an
+  effect is read once more by the arbiter before it counts as absent (§5). Prompts: French examples of consequence
+  questions (gate 4), a prospect's question is not an effect (S1), wanting to know the price is not an objection and the
+  co-decider needs another person (S4, OB-2). Memos to update: SPIN (§2, §3, SEG-1, SEG-3, §5) and Objections (OB-2).
+- Still open for Romain (2026-11-21): is « on gagne quelques 10 % de ce que coûte un cours » the problem or the cost of the
+  gap (it decides Anastasia's gap verdict)?

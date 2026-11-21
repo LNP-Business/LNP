@@ -128,7 +128,8 @@ INTERRO = re.compile(r"^(how|what|what's|whats|when|where|why|who|which|whose|do
                      r"wouldn't|couldn't)\b"
                      # French (LNP, 2026-11-19): a question word or an inversion at the head of the clause
                      r"|^(?:(?:et|alors|donc|du coup|ok|okay|d'accord|mais|bon|bah)[ ,]+)*"
-                     r"(est-ce|qu'est-ce|que|quoi|comment|combien|pourquoi|quand|où|quel|quelle|quels|quelles|qui|lequel|"
+                     r"(est-ce|qu'est-ce|que(?= \S+-(?:tu|vous|il|elle|on)\b)|quoi|comment|combien|pourquoi|quand|où|quel|quelle|quels|"
+    r"quelles|qui|lequel|"
                      r"laquelle|as-tu|avez-vous|es-tu|êtes-vous|peux-tu|pouvez-vous|veux-tu|voulez-vous|sais-tu|"
                      r"savez-vous|penses-tu|pensez-vous|c'est quoi|ça fait combien|t'as|t'es)\b")
 IMPERATIVE = re.compile(r"^(tell me|walk me through|talk me through|describe|explain|help me understand|share with me|"
@@ -170,8 +171,40 @@ def split_sentences(text: str) -> list[str]:
     return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-ZÀ-ÖØ-Ý0-9\"'«])", t) if p.strip()]
 
 
+# §2 (2026-11-21): the recorder often drops the question mark and the sentence ends: a question word inside the sentence,
+# followed by its subject (« Et toi aujourd'hui comment tu te sens… », « toi, c'est quand la dernière fois où tu… »,
+# « tu aimerais avoir combien de revenus », « est ce que c'est vraiment ton projet »), is a question too. Not after a verb
+# of saying, knowing or showing (« je vais t'expliquer comment tu vas faire »); « quand » and « où » alone are
+# conjunctions (« quand tu as commencé, … »), only « c'est quand », « t'es où », « il se passe quoi » ask.
+EMBEDDED_Q = re.compile(
+    r"(?:^|[\s,;:])(?P<q>(?:est[- ]ce (?:que|qu')|qu'est[- ]ce (?:que|qui|qu')|qu'est que|c'est quoi|c'est quand|"
+    r"c'est combien)\b"
+    r"|(?:comment|combien|pourquoi|quel|quelle|quels|quelles)\b"
+    r"(?:\s+\S+){0,3}?\s+(?:tu|t'|vous|ça|ca|c'|ton|ta|tes|votre|vos|il|elle|on)\b"
+    r"|(?:tu|vous) (?:\S+ ){0,3}combien\b"
+    r"|(?:il se passe quoi|t'es où|tu es où|vous êtes où|tu en es où|t'en es où)\b)", re.I)
+EMBEDDED_NOT_AFTER = re.compile(
+    r"\b(sais|sait|savoir|savez|montrer|montre|montrerai|expliquer|explique|expliquerai|dire|dis|dit|voir|vois|voit|"
+    r"comprendre|comprends|comprend|ignore|regarder|regarde|apprendre|apprends|découvrir|raconter|parler|"
+    r"c'est pour ça|c'est là|peu importe|n'importe)\W+(\w+\W+){0,1}$", re.I)
+
+
+def embedded_question(s: str) -> Optional[int]:
+    """§2 (2026-11-21): the start (offset in s) of a question asked inside a sentence without a question mark, or None."""
+    for m in EMBEDDED_Q.finditer(s):
+        if EMBEDDED_NOT_AFTER.search(s[:m.start("q")]):
+            continue
+        cut = max(s.rfind(",", 0, m.start("q")), s.rfind(". ", 0, m.start("q")))
+        lead = s[:m.start("q")] if cut < 0 else s[cut + 1:m.start("q")]
+        if len(re.findall(r"\w+", lead)) <= 4:                           # « Et toi aujourd'hui comment… »: kept with it
+            return 0 if cut < 0 else cut + 1 + (len(lead) - len(lead.lstrip()))
+        return m.start("q")
+    return None
+
+
 def question_form(s: str) -> Optional[str]:
-    """§2 Solicitation: final question mark, interrogative form without mark, or imperative of request."""
+    """§2 Solicitation: final question mark, interrogative form without mark, or imperative of request; a question asked
+    inside the sentence without a mark (2026-11-21, `embedded_question`)."""
     ns = s.strip().lower()
     if ns.endswith("?"):
         return "interrogative"
@@ -179,6 +212,8 @@ def question_form(s: str) -> Optional[str]:
         return "imperative"
     if INTERRO.match(ns):
         return "interrogative_no_mark"
+    if embedded_question(s.strip()) is not None:
+        return "interrogative_embedded"
     return None
 
 
@@ -200,9 +235,18 @@ def turn_questions(text: str) -> list[str]:
     for s in split_sentences(text):
         if TAIL_ONLY.match(s) and merged:
             merged[-1] = merged[-1].rstrip(".!") + ", " + s
+        elif merged and merged[-1].endswith("?") and re.match(r"(ou|or)\s", s, re.I):   # SEG-3: the other branch
+            merged[-1] = merged[-1] + " " + s
         else:
             merged.append(s)
-    return [s for s in merged if question_form(s)]
+    out = []
+    for s in merged:
+        form = question_form(s)
+        if form == "interrogative_embedded":                               # the question, from its clause on (SEG-1)
+            s = s[embedded_question(s):].strip()
+        if form:
+            out.append(s)
+    return out
 
 
 def follows_previous(q: str, prev: str) -> bool:
@@ -225,9 +269,25 @@ def group_turn(text: str) -> Optional[dict]:
     if not qs:
         return None
     k = len(qs) - 1
-    while k > 0 and follows_previous(qs[k], qs[k - 1]):
+    # SEG-1 (2026-11-21): a question cut before its end, a check-in (« tu vois ce que je veux dire ? »), a tail alone or a
+    # closed restatement at the end of the turn is never its priority when an open question comes before it
+    weak = lambda q: cut_question(q) or check_in_question(q) or bool(TAIL_ONLY.match(q.strip())) or closed_restatement(q)
+    if weak(qs[k]):
+        j = next((i for i in range(k - 1, -1, -1) if not weak(qs[i])), None)
+        if j is not None:
+            k = j
+    while k > 0 and (follows_previous(qs[k], qs[k - 1]) or re_asks(qs[k], qs[k - 1])):
         k -= 1
     return {"questions": qs, "priority": qs[k], "index": k}
+
+
+def re_asks(q: str, prev: str) -> bool:
+    """SEG-1 (2026-11-21): a shorter question that asks the previous one again with the same question words (« combien
+    de temps tu peux te dégager pour avancer à côté de ta thèse ? Toi, combien de temps environ, par semaine ? »)."""
+    head = lambda x: re.search(r"\b(combien de \w+|comment|pourquoi|qu'est-ce qu\w*|c'est quoi|quel\w* \w+|"
+                               r"how (much|many|long)( \w+)?|what|why)\b", _fold(x))
+    a, b = head(q), head(prev)
+    return bool(a and b and a.group(0) == b.group(0) and len(q.split()) < len(prev.split()))
 
 
 def content_words(s: str) -> set[str]:
@@ -510,6 +570,13 @@ SOCIAL_LOGISTIC = re.compile(
     # framing of the call itself (Romain, 2026-11-20, SB-2): what the prospect expects from the call, not from the help
     r"(qu'est-ce que|qu'est ce que|qu') ?(tu attends|t'attends|vous attendez|attends-tu|attendez-vous) "
     r"(de |d')(notre|cet|ce|l'|l’)? ?(appel|échange|rendez-vous|rdv|call|entretien)|"
+    r"(t'attends|tu attends|vous attendez) quoi( \w+)? (de|d') ?(notre|cet|ce|l'|l’)? ?(appel|échange|rendez-vous|rdv|call|entretien)|"
+    r"qu'est que (tu attends|t'attends|vous attendez) (de |d')|"
+    # 2026-11-21: where from, in the oral order; the time to watch the conference; the moment spent with us; the booking
+    r"(tu|vous) (m'appelles|m'appelez|appelles|appelez) d'où|"
+    r"(tu as|t'as|vous avez|as-tu|avez-vous) (eu|pris) le temps de (la |le |les |l')?(regarder|voir|lire|écouter|suivre)|"
+    r"(tu as|t'as|vous avez) passé un (bon|agréable|super) moment|"
+    r"(pris|réservé|booké|bloqué) (ce |le |un |cet )?(rendez-vous|rdv|appel|créneau|call)( \w+)? (suite|après)|"
     r"what do you (expect|want) (from|out of) (this|our|the|today's) call|"
     r"what are you hoping to get out of (this|our|the|today's) call", re.I)
 
@@ -527,7 +594,9 @@ SOLUTION_LOAD = re.compile(
     r"\b(allouer|consacrer|dégager|libérer|accorder)\b[^?]{0,40}(combien|temps|heures)|"
     r"(c'est quoi|quel est|quel serait) (ton |votre |le )?budget|\bton budget\b|\bvotre budget\b|"
     r"combien (tu peux|vous pouvez|tu pourrais|vous pourriez|tu es prête? à|vous êtes prête? à|tu serais prête? à)"
-    r" (investir|mettre|payer|dépenser)", re.I)
+    r" (investir|mettre|payer|dépenser)|"
+    # 2026-11-21: the time free for it (« tu as du temps de dispo là ? »)
+    r"\b(temps|heures?) de dispo(nible|nibilité)?s?\b|\bde la dispo\b|\btes dispos?\b|\bvos dispos?\b", re.I)
 OFFER_QUESTION = re.compile(
     r"about (the|our) (program|programme|mentorship|academy|offer|course|coaching)|"
     r"\bnotre (accompagnement|programme|offre|méthode|formation|coaching)\b|\bl'offre\b|"
@@ -565,7 +634,21 @@ CUT_QUESTION = re.compile(r"(\.\.\.|…)\s*\??\s*$")
 
 
 def cut_question(text: str) -> bool:
-    return bool(CUT_QUESTION.search((text or "").strip()))
+    """§3 (2026-11-21): a question cut before it says what it asks (« Qu'est-ce qui va faire que... »). A question asked
+    whole in a clause before the cut one still asks it."""
+    t = (text or "").strip()
+    if not CUT_QUESTION.search(t):
+        return False
+    body = CUT_QUESTION.sub("", t)
+    heads = list(re.finditer(r"\b(qu'est[- ]ce (que|qui|qu')|est[- ]ce (que|qu')|c'est quoi|comment|combien|pourquoi|quand|"
+                             r"quel\w*|what|why|how|which|where|when)\b", body, re.I))
+    if not heads:
+        return True
+    # the question was asked whole in a clause before the cut one (« tu aimerais avoir combien de revenus, à peu près,
+    # faire combien de chiffres d'affaires grâce au... »)
+    last_comma = body.rfind(",")
+    return not any(h.end() < last_comma and len(re.findall(r"\w+", body[h.end():body.find(",", h.end())])) >= 2
+                   for h in heads)
 
 
 def check_in_question(text: str) -> bool:
@@ -577,8 +660,19 @@ def closed_restatement(text: str) -> bool:
     return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1)))
 
 
+# SEG-3 (2026-11-21): an alternative asked in two sentences (« travail salarié qui ne te plaît pas, c'est ça ? Ou qui t'a
+# poussé au burn-out ? ») and a bare list of options (« Lycée, collège, études sup ? ») are the sales' list
+CHOICE_ALT = re.compile(r"\?\s+(ou|or)\s", re.I)
+NOUN_LIST = re.compile(r"^[^,?]{1,30}(,\s*[^,?]{1,30}){2,}\s*\?$")
+NO_SUBJECT = re.compile(r"\b(tu|t'|vous|je|j'|il|elle|on|you|i)\b", re.I)
+
+
 def choice_list_question(text: str) -> bool:
     t = norm(text or "")
+    if CHOICE_ALT.search(t) and not OPEN_BRANCH.search(t):
+        return True
+    if NOUN_LIST.match(t.strip()) and not NO_SUBJECT.search(t) and len(t.split()) <= 10:
+        return True
     return bool(CHOICE_LIST.search(t) and not OPEN_BRANCH.search(t))
 
 
@@ -600,16 +694,36 @@ def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
     return lexicon_register_in(text)
 
 
-def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
-    """SB-30: the one register whose domain words appear in a text, and the word (an exact passage); None when the text
-    names none or several (SB-31 by the code, 2026-11-21, reads the first answer turn of a neutral question with it)."""
-    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
-    hits = {}
+# SB-30 (2026-11-21): phrases whose register word means nothing of the prospect's life (« tu as eu le temps de la
+# regarder ? », « la semaine dernière », « de temps en temps ») are not read, nor the English words that are French words
+# too (« son » is « his » or « sound », « rent » opens « rentrer », « sales » means dirty) in a French text
+LEXICON_IDIOMS = re.compile(
+    r"\b(eu|pris|prendre|prends|prend|avoir|as|ai|a|avez|aurais|auras) le temps de\b|\bde temps en temps\b|"
+    r"\ben meme temps\b|\bla semaine (derniere|prochaine|d'avant|d'apres)\b|\btout a l'heure\b|\ba l'heure\b|"
+    r"\bdans l'heure\b|\b(bonne|bon) (semaine|week-end|weekend)\b")
+LEXICON_FALSE_FRIENDS = ("son", "rent", "sales")
+FRENCH_TEXT = re.compile(r" (je|tu|il|elle|on|nous|vous|le|la|les|des|de|du|et|est|pas|que|qui|ce|ça|ca) ")
+
+
+def lexicon_hits(text: str) -> dict[str, str]:
+    """SB-30: every register whose domain words appear in a text, with the first word found (folded)."""
+    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", LEXICON_IDIOMS.sub(" ", DATING.sub(" ", _fold(text)))) + " "
+    french = bool(FRENCH_TEXT.search(t))
+    hits: dict[str, str] = {}
     for reg, words in REGISTER_LEXICON.items():
         for w in words:
+            if french and w in LEXICON_FALSE_FRIENDS:
+                continue
             m = re.search(r"[ $']" + re.escape(w), t)                      # a word after an elision: « d'élèves »
             if m:
                 hits.setdefault(reg, w.strip())
+    return hits
+
+
+def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
+    """SB-30: the one register whose domain words appear in a text, and the word (an exact passage); None when the text
+    names none or several (SB-31 by the code, 2026-11-21, reads the first answer turn of a neutral question with it)."""
+    hits = lexicon_hits(text)
     if len(hits) != 1:
         return None
     reg, w = next(iter(hits.items()))
@@ -620,6 +734,41 @@ def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
 
 def social_or_logistic(text: str) -> bool:
     return bool(SOCIAL_LOGISTIC.search(norm(text or "")))
+
+
+# SB-1 (Romain, 2026-11-21): the discovery opens on a register. The four registers are the levers explored; « Sans
+# registre » (`other`: the neutral facts of the situation, job, subject, seniority) does not open it.
+OPENING_REGISTERS = ("financial", "time_load", "identity_status", "mental_emotional")
+OPENING_ATOM_TYPES = ("PAIN", "BLOCKER", "IMPACT", "DESIRE", "VALUE")
+
+
+def question_opens(d: LetterDecision, text: Optional[str], register: Optional[str]) -> bool:
+    """SB-1 (2026-11-21), first way: a discovery question (S, P, I, N; never social, logistic or framing, SB-2) whose
+    register is one of the four."""
+    if text is not None and social_or_logistic(text):
+        return False
+    return d.letter in LETTERS and register in OPENING_REGISTERS
+
+
+def info_opens(atom_type: Optional[str], quote: str) -> bool:
+    """SB-1 (2026-11-21), second way: the prospect gives information that falls in a register: an effect (pain, blocker,
+    impact, desire, value: they bear on money, time, identity or the mind), or a fact of the situation whose words name
+    one of the four registers (« je m'occupe seul de mon fils » opens, « je suis professeure d'espagnol » does not)."""
+    if atom_type in OPENING_ATOM_TYPES:
+        return True
+    return atom_type == "SITUATION" and bool(set(lexicon_hits(quote)) & set(OPENING_REGISTERS))
+
+
+def code_opening_info(ctx: CallContext, end: Optional[str]) -> Optional[str]:
+    """SB-1 (2026-11-21), second way, read by the code: the first prospect turn before `end` that states a figure of
+    their situation (money, time, clients: GB-28b, never the offer's price), a cost (GB-7b) or what prevents them
+    (GB-30): each falls in a register. None when there is none."""
+    from ..core.blockers import prospect_blockers
+    from ..core.costs import prospect_costs
+    from ..core.figures import prospect_figures
+    turns = [f.turn for f in prospect_figures(ctx, None, end) if f.kind != "offer"]
+    turns += [c.turn for c in prospect_costs(ctx, None, end)] + [b.turn for b in prospect_blockers(ctx, None, end)]
+    return min(turns, key=ctx.n) if turns else None
 
 
 def is_valid_start(d: LetterDecision, text: Optional[str] = None) -> bool:
@@ -1117,6 +1266,18 @@ def applicability(units: list[Unit], discovery_start: Optional[str]) -> tuple[st
     return "scored", [], health
 
 
+def _opening_register(ctx: CallContext, u: Unit) -> Optional[str]:
+    """SB-1 (2026-11-21) in the reference engine, before the registers are read: the register the question's words name
+    (SB-27), else one of the four named by the words of its first answer turn (SB-35), else None."""
+    named = lexicon_register_named(u.sol.text)
+    if named:
+        return named[0]
+    i = next((k for k, t in enumerate(ctx.turns) if t.id == u.turn.id), None)
+    nxt = next((t for t in ctx.turns[i + 1:] if t.role == PROSPECT), None) if i is not None else None
+    hits = [r for r in lexicon_hits(nxt.text) if r in OPENING_REGISTERS] if nxt else []
+    return hits[0] if hits else None
+
+
 # =============================================================================================== orchestration
 def place_perimeter(ctx: CallContext, units: list[Unit], resolve: Callable[[Unit], None],
                     reopen_end: Callable[[Unit], Optional[str]]) -> dict:
@@ -1126,19 +1287,28 @@ def place_perimeter(ctx: CallContext, units: list[Unit], resolve: Callable[[Unit
     pre = [u for u in units if end is None or ctx.n(u.turn.id) < ctx.n(end)]
     post = [u for u in units if u not in pre]
     start: Optional[Unit] = None
+    # SB-1 (Romain, 2026-11-21): the first question that opens on one of the four registers (here: named by its words,
+    # SB-27; the lite engine also reads the register in the answer), or the first information of the prospect in one of
+    # them (the code's figures, costs and blockers), whichever comes first; what comes before is framing and warm-up
+    info = code_opening_info(ctx, end)
     for u in pre:
         if u.attrs["backchannel"] or u.attrs["system"]:           # SEG-7: never a solicitation (code)
             u.sol.tags.append("not_coded")
             continue
         u.window_end = end
         resolve(u)
-        if start is None and u.decision and is_valid_start(u.decision, u.sol.text):   # SB-1, SB-2
+        if start is None and u.decision and (
+                (info is not None and ctx.n(u.turn.id) > ctx.n(info))
+                or question_opens(u.decision, u.sol.text, _opening_register(ctx, u))):
             start = u
         if start is not None:
             u.in_perimeter = True
         else:
             u.sol.tags.append("pre_perimeter")
-    ctx.phases.discovery_start = start.turn.id if start else None
+    opened = start.turn.id if start else None
+    if info is not None and (opened is None or ctx.n(info) < ctx.n(opened)):
+        opened = info
+    ctx.phases.discovery_start = opened
     # SB-34: after the first pitch start or price nothing is SPIN: not read, not coded, no register
     reopenings: list[dict] = []
     if not REOPENINGS:

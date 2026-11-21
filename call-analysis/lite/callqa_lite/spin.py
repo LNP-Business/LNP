@@ -206,21 +206,66 @@ def build_units(ctx: CallContext, questions: list, drops: Drops) -> list[LUnit]:
     return units
 
 
-def place_perimeter(ctx: CallContext, units: list[LUnit]) -> dict:
-    """SB-1, SB-2: the first solicitation on the prospect's situation, goals or problems starts it (not social,
-    logistic or framing: OUT `nothing`, offer questions, loads); the first pitch start or price ends it (SB-34)."""
-    start = None
+def _opening_info(ctx: CallContext, units: list[LUnit]) -> Optional[str]:
+    """SB-1 (Romain, 2026-11-21), second way: the first prospect turn where the model read an effect, or a fact naming one
+    of the four registers (E.info_opens), with a valid quote of the prospect."""
+    best = None
     for u in units:
-        if start is None and E.is_valid_start(u.decision, u.sol.text):
-            start = u
-        if start is not None:
+        for x in u.raw.get("atoms") or []:
+            if not isinstance(x, dict) or not x.get("turn") or not x.get("quote"):
+                continue
+            try:
+                ctx.turn(x["turn"])
+            except KeyError:
+                continue
+            if quote_ok(ctx, Evidence(x["quote"], x["turn"], PROSPECT), min_words=1, max_words=60):
+                continue
+            if E.info_opens(x.get("type"), x["quote"]) and (best is None or ctx.n(x["turn"]) < ctx.n(best)):
+                best = x["turn"]
+    return best
+
+
+def _opening_question(ctx: CallContext, units: list[LUnit]) -> Optional[LUnit]:
+    """SB-1 (Romain, 2026-11-21), first way: the first discovery question whose register is one of the four. The registers
+    are read on a copy (answer spans and SB-26 to SB-35 as for the discovery), before the perimeter is placed."""
+    import copy
+    cand = [u for u in copy.deepcopy(units) if u.decision and u.decision.letter in E.LETTERS
+            and u.sol.status != "to_review" and not E.social_or_logistic(u.sol.text)]
+    if not cand:
+        return None
+    E.answer_spans(ctx, cand, {u.turn.id for u in units})
+    scratch = Drops()
+    for c in cand:
+        if E.question_opens(c.decision, c.sol.text, _register(ctx, c, scratch)["register"]):
+            return next(u for u in units if u.sol.id == c.sol.id)
+    return None
+
+
+def place_perimeter(ctx: CallContext, units: list[LUnit]) -> dict:
+    """SB-1, SB-2 (Romain, 2026-11-21): the discovery opens at the first question that opens on one of the four registers,
+    or at the first information of the prospect that falls in one of them, whichever comes first; every question before
+    is framing and warm-up, out of the discovery (social, logistic, framing questions, neutral facts « Sans registre »);
+    the first pitch start or price ends it (SB-34)."""
+    q = _opening_question(ctx, units)
+    found = [t for t in (_opening_info(ctx, units), E.code_opening_info(ctx, ctx.phases.discovery_end)) if t]
+    info = min(found, key=ctx.n) if found else None
+    if info and (q is None or ctx.n(info) < ctx.n(q.turn.id)):
+        start_turn, opened = info, "prospect_info"
+        first = lambda u: ctx.n(u.turn.id) > ctx.n(info)
+    else:
+        start_turn, opened = (q.turn.id if q else None), ("question" if q else None)
+        first = lambda u: q is not None and ctx.n(u.turn.id) >= ctx.n(q.turn.id)
+    started = False
+    for u in units:
+        started = started or (start_turn is not None and first(u))
+        if started:
             u.in_perimeter = True
         else:
             u.sol.tags.append("pre_perimeter")
             u.sol.tags.append("not_coded")
             u.sol.letter = u.sol.out_reason = None
-    ctx.phases.discovery_start = start.turn.id if start else None
-    return {"start": ctx.phases.discovery_start, "end": ctx.phases.discovery_end, "reopenings": []}
+    ctx.phases.discovery_start = start_turn
+    return {"start": start_turn, "opened_by": opened, "end": ctx.phases.discovery_end, "reopenings": []}
 
 
 def _attach_atoms(ctx: CallContext, coded: list[LUnit], drops: Drops,

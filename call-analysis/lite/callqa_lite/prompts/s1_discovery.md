@@ -54,7 +54,8 @@ For each solicitation:
   consequence of the problem in another domain; DESIRE a desired future state; VALUE why solving it matters, what it
   would change. One atom = one continuous passage of 2 to 40 words of one prospect turn; the same thing said twice is
   one atom; two different consequences are two atoms; a sentence with a state and why it matters gives a DESIRE and a
-  VALUE. An answer that only agrees has no atom. Also give:
+  VALUE. An answer that only agrees has no atom; a question the prospect asks (« est-ce que je pourrais y
+  arriver ? ») is not an atom. Also give:
   "quantified" (an amount, a count or a duration; a frequency alone or "a lot" is not), with "value" (a number) and
   "unit" ("month", "clients", "hours per week"); for IMPACT "domain" and "problem_domain" (money, time, clients,
   family, health, self_belief, future, other); "figure_kind" for a figure: "present" (about today), "loss" (what the

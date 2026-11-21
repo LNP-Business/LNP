@@ -80,7 +80,7 @@ def test_a_question_read_in_another_chunk_is_not_a_second_unit():
 
 def test_seg1_two_questions_the_model_adds_on_an_unpunctuated_turn_are_one():
     lines = [(S, "Bonjour Julie."), (P, "Bonjour."),
-             (S, "je veux comprendre c'est quoi le projet en gros est ce que c'est vraiment ton projet de donner des cours"),
+             (S, "je veux comprendre c'est quoi le projet en gros je veux savoir est ce que c'est vraiment ton projet de donner des cours"),
              (P, "Oui, l'enseignement me manque.")]
     raw = "\n".join(f"[00:{i:02d}:00] {w}: {t}" for i, (w, t) in enumerate(lines))
     c = CallContext("c", "s", "2026-11-20T10:00:00Z", "Europe/Paris", parse_transcript(raw, {S: "SALES", P: "PROSPECT"}))

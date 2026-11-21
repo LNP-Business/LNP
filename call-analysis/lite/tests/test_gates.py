@@ -165,3 +165,13 @@ def test_not_a_question_and_out_nothing_are_one_outcome_no_arbiter():
     s = sol(rec, "T001")
     assert s["status"] == "agreed" and s["gate_letter"] == "OUT"            # before the discovery: listed, not coded
     assert not any(c["task"] == "lite.s1_gates_arbiter" for c in client.calls)
+
+
+def test_5_2026_11_21_an_absent_question_whose_answer_holds_effects_is_read_again_by_the_arbiter():
+    # two readings: no gate passes for « how does that affect your family? », whose answer holds an IMPACT (S1 atoms)
+    rec, client = run2([gate("Q011")], [gate("Q011")],
+                       arbiter=[gate("Q011", g4={"consequence": True, "quote": "affect your family"})])
+    s = sol(rec, "T011")
+    assert (s["letter"], s["status"]) == ("I", "arbitrated")
+    assert rec["meta"]["steps"]["S1"]["reasons"]["gates:absent_reread"] == 1
+    assert any(c["task"] == "lite.s1_gates_arbiter" and "Q011 · T011" in c["prompt"] for c in client.calls)

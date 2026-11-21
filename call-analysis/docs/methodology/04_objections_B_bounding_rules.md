@@ -17,7 +17,8 @@ This annex says how the system finds, in a raw transcript, each resistance, its 
 | Inertia | "not the right time", "maybe later", "after the holidays", "I'm okay for now", "I need to think about it" (without a reason), "let me sleep on it" |
 
 **OB-2 · Exclusions at detection.**
-- A request for information ("how long is it?", "how many calls a week?", "is there a payment plan?") is not a resistance, unless the prospect states a reserve in the same turn.
+- A request for information ("how long is it?", "how many calls a week?", "is there a payment plan?") is not a resistance, unless the prospect states a reserve in the same turn. Wanting to know the price is not doubting it (2026-11-21: « je veux toujours comprendre combien ça va me coûter »); nor is saying one did not know yet (« je ne savais pas, c'est dans l'abstrait »).
+- An objection · co-decider needs another person who has a say in the purchase (spouse, partner, associate); the prospect's own prices or income (« je ne peux pas augmenter les prix ») are never co-decider (2026-11-21).
 - A delay with a verifiable external reason ("I'm moving in January", "my severance ends in March") is a decision-circuit deadline, not inertia.
 - A decision-circuit fact stated neutrally during discovery ("my husband handles the money") is circuit information, not an objection. It becomes an objection when it is put forward as a reason not to decide now.
 - A conditional acceptance ("if I can pay monthly, then yes") is a decision criterion, not a resistance.
