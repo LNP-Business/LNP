@@ -174,3 +174,14 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   neutral facts of the situation (domain `status`: trade, subject, seniority, retirement as a fact, daily life), a place,
   a date, a tool. Identity & status keeps the future (who they want to become, a change of path, « projet »). On the 5
   calls: Identity & status back to the real identity questions, the intake facts under « Sans registre ».
+- French words and turns of phrase of the closed PR 65 (2026-11-21, Romain): only their behaviour is taken (identifiers
+  and prompts stay in English). Units of PB-30 / PB-31 read with their accents and « par an »; SB-24 French quantities;
+  SB-17 elisions and stop words; PB-15 French compliments; A1 S1 / S2 / S3 and GB-15 French forms; OB-1 markers (’ and
+  unaccented forms), OB-13 transitions; GB-22 « vous » = « tu », « k€ »; SEG-4 tails; registers and phase cues. Replay on
+  the reference set: TOTAL unchanged. Tests: `engine/tests/test_french.py`. Three points are left **to decide (Romain)**:
+  1. « Mouais », « à peu près », « plus ou moins » as an approval only (C3 rule 5, GB-1)? They are partial agreements
+     that can come before a correction (GB-16); the English list already has "pretty much". Not added.
+  2. « Ça me parle » and « ça donne envie » as plain compliments (PB-15, never adhesion), or as a start of adhesion?
+     Not added: they stay readable as adhesion.
+  3. The offer's duration in the phase cues (S2 phase map): the code has « quatre mois » / « 4 mois »; PR 65 had « six
+     mois ». Not changed until the duration of the offer is confirmed (a business fact).
