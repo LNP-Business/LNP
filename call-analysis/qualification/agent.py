@@ -23,8 +23,8 @@ from typing import Any, Optional
 from qualification_lnp import PARAMS, qualifier
 
 HERE = Path(__file__).resolve().parent
-PROMPT_VERSION = "lnp-sql-v2.2-2026-11-05"
-RULES_VERSION = "qualification_lnp-v2.2"
+PROMPT_VERSION = "lnp-sql-v2.3-2026-11-21"
+RULES_VERSION = "qualification_lnp-v2.3"
 SALES_DOMAIN = "@lesnouveauxprofs.fr"
 
 

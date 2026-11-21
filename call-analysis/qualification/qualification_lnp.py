@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """
-Qualification SQL des appels LNP — version 2.2 (5 novembre 2026).
+Qualification SQL des appels LNP — version 2.3 (21 novembre 2026).
 
-V2.2 (Romain, 5 novembre 2026) : la porte « Douleur et projet » est supprimée. Trois portes : Métier, Financement,
-Décision et timing (le document « Questions de qualification du lead » ne la pose plus).
+V2.2 (Romain, 5 novembre 2026) : la porte « Douleur et projet » est supprimée.
+V2.3 (Romain, 21 novembre 2026) : la douleur et le projet reviennent, en deux portes, et comptent comme les autres.
+Cinq portes : Métier, Financement, Décision et timing, Douleur, Projet.
+- Douleur : ouverte si le prospect dit lui-même ce qui ne va pas dans sa situation ; fermée s'il dit que tout va bien ;
+  non vérifiée si elle n'est pas abordée.
+- Projet : ouvert s'il veut se lancer (ou développer ses cours) ET donne un revenu visé ou une échéance ; fermé s'il n'a pas
+  l'intention de se lancer ; non vérifié avec une intention seule, ou s'il n'est pas abordé.
 
 Étape 2 du pipeline : applique la règle des portes (proposition du
-27 octobre 2026, trois portes depuis la V2.2) aux faits extraits par le modèle (étape 1, prompt d'extraction).
+27 octobre 2026, cinq portes depuis la V2.3) aux faits extraits par le modèle (étape 1, prompt d'extraction).
 Le modèle ne décide rien : il extrait. Ce script décide, toujours de la même façon.
 
 Usage :
@@ -49,11 +54,13 @@ PARAMS = {
 }
 
 OUVERTE, FERMEE, NV = "OUVERTE", "FERMÉE", "NON VÉRIFIÉE"
-PORTES = ("metier", "financement", "decision_timing")
+PORTES = ("metier", "financement", "decision_timing", "douleur", "projet")
 LIBELLES = {
     "metier": "Porte 1 — Métier",
     "financement": "Porte 2 — Financement",
     "decision_timing": "Porte 3 — Décision et timing",
+    "douleur": "Porte 4 — Douleur",
+    "projet": "Porte 5 — Projet",
 }
 
 
@@ -109,7 +116,7 @@ def jours_depuis(appel, bloc):
 
 
 # ---------------------------------------------------------------------------
-# Les trois portes — chaque fonction renvoie (statut, preuve, raisons)
+# Les cinq portes — chaque fonction renvoie (statut, preuve, raisons)
 # ---------------------------------------------------------------------------
 def porte_metier(f):
     m = f.get("metier", {})
@@ -205,6 +212,35 @@ def porte_decision_timing(f, date_appel, alertes):
     return (OUVERTE, p, []) if not raisons else (NV, p, raisons)
 
 
+def porte_douleur(f):
+    """V2.3 : la douleur dite par le prospect lui-même (ce qui ne va pas dans sa situation actuelle)."""
+    pr = f.get("projet", {})
+    d = v(pr, "douleur")
+    p = preuve(pr, "douleur")
+    if d is None:
+        return NV, p, ["Douleur non abordée"]
+    if str(d).strip().lower() == "aucune":
+        return FERMEE, p, ["Dit que tout va bien : aucune douleur exprimée"]
+    return OUVERTE, p, []
+
+
+def porte_projet(f):
+    """V2.3 : l'intention de se lancer (ou de développer ses cours) ET un objectif : un revenu visé ou une échéance."""
+    pr = f.get("projet", {})
+    intention = v(pr, "intention")
+    revenu = v(pr, "revenu_vise_mensuel")
+    ech = pr.get("echeance") if isinstance(pr.get("echeance"), dict) else {}
+    echeance = ech.get("type") in ("date", "delai") and (ech.get("date") or ech.get("delai_mois") is not None)
+    p = " / ".join(x for x in (preuve(pr, "intention"), preuve(pr, "revenu_vise_mensuel"), preuve(pr, "echeance")) if x)
+    if intention is None:
+        return NV, p, ["Projet non abordé"]
+    if intention == "pas_de_projet":
+        return FERMEE, p, ["Pas d'intention de se lancer"]
+    if revenu is not None or echeance:
+        return OUVERTE, p, []
+    return NV, p, ["Intention sans revenu visé ni échéance"]
+
+
 def solution_aware(f):
     """Renvoie (True/False, preuve). Compare d'autres offres d'accompagnement ET a pris ou prévoit
     un rendez-vous avec une autre offre (mode strict), ou l'un des deux (mode large)."""
@@ -225,6 +261,8 @@ def evaluer_portes(f, date_appel):
         "metier": porte_metier(f),
         "financement": porte_financement(f),
         "decision_timing": porte_decision_timing(f, date_appel, alertes),
+        "douleur": porte_douleur(f),
+        "projet": porte_projet(f),
     }
     return res, alertes
 
@@ -378,7 +416,7 @@ def _finir(out, saisie_issue, saisie_outcome):
 
 # ---------------------------------------------------------------------------
 def main():
-    ap = argparse.ArgumentParser(description="Qualification SQL LNP — règle des portes (V2.2 : trois portes)")
+    ap = argparse.ArgumentParser(description="Qualification SQL LNP — règle des portes (V2.3 : cinq portes)")
     ap.add_argument("lectures", nargs="+", help="1 ou 2 fichiers JSON produits par le prompt d'extraction")
     ap.add_argument("--date-appel")
     ap.add_argument("--fathom", choices=["oui", "non"])

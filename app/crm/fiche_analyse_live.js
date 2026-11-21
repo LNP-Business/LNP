@@ -1,6 +1,6 @@
 // node app/crm/fiche_analyse_live.js $PWD/app/lnp.html <dossier> — le lien « Analyse » de la fiche d'un lead (Leads et Cycle de vente)
 // ouvre l'analyse de l'appel (Découverte SPIN, Écart, Présentation de l'offre, Objections) en plein écran, le nom du lead et la croix
-// restant en haut au défilement ; la qualification en tableau, le détail au survol (Romain 2026-11-19). Cycles et analyse simulés.
+// restant en haut au défilement ; la qualification en cinq fenêtres sur une ligne, le détail au survol (Romain 2026-11-21). Cycles et analyse simulés.
 const { chromium } = require('playwright');
 (async () => {
   const OUT = process.argv[3]; const ok = [], bad = []; const check = (n, c, i) => (c ? ok : bad).push(n + (c ? '' : ' → ' + JSON.stringify(i)));
@@ -41,7 +41,7 @@ const { chromium } = require('playwright');
       caBoard: async () => [{ cycle_id: 'c1', call_id: 'k1', round: 1, start: iso(-80), status: 'done', job: 'j1', done_job: 'j1', transcript: true, scores: { SPIN: { score: 64, status: 'scored' }, GAP: { score: 50, status: 'scored', verdict: 'partial' }, PITCH: { score: 70, status: 'scored' }, OBJECTIONS: { score: 40, status: 'scored' } } }, { cycle_id: 'c2', call_id: 'k2', round: 1, start: iso(-20), status: 'done', job: 'j2', done_job: 'j2', transcript: true, scores: { SPIN: { score: 58, status: 'scored' } } }],
       caRecord: async () => ({ status: 'ok', flags: [], meta: { duration: '45:00', person: 'Paul Payé' },
         phases: { discovery_start: 'T010', discovery_end: 'T041', pitch_start: 'T050', first_price: 'T060' },
-        qualification: { status: 'À REVOIR', rules_version: 'qualification_lnp-v2.2', result: { statut: 'À REVOIR', confiance: 'basse', solution_aware: false, base: { motif: 'Portes à vérifier : Porte 3 — Décision et timing' }, portes: { metier: { statut: 'OUVERTE', raisons: [], preuve: 'je suis professeur de maths au lycée [00:15] / je donne aussi des cours le soir [02:10]' }, financement: { statut: 'FERMÉE', raisons: ['Aucune ressource : au RSA'], preuve: 'Je suis au RSA en ce moment [31:02]' }, decision_timing: { statut: 'NON VÉRIFIÉE', raisons: ['Date ou délai de démarrage non établi'], preuve: 'Je vais réfléchir [44:30]' } }, alertes: ['Synthèse des portes absente en fin de découverte', 'Contradiction du prospect : dit ne rien avoir puis cite une épargne'] } },
+        qualification: { status: 'À REVOIR', rules_version: 'qualification_lnp-v2.3', result: { statut: 'À REVOIR', confiance: 'basse', solution_aware: false, base: { motif: 'Portes à vérifier : Porte 3 — Décision et timing' }, portes: { metier: { statut: 'OUVERTE', raisons: [], preuve: 'je suis professeur de maths au lycée [00:15] / je donne aussi des cours le soir [02:10]' }, financement: { statut: 'FERMÉE', raisons: ['Aucune ressource : au RSA'], preuve: 'Je suis au RSA en ce moment [31:02]' }, decision_timing: { statut: 'NON VÉRIFIÉE', raisons: ['Date ou délai de démarrage non établi'], preuve: 'Je vais réfléchir [44:30]' }, douleur: { statut: 'OUVERTE', raisons: [], preuve: 'Je ne sais pas me vendre auprès des parents [08:00]' }, projet: { statut: 'NON VÉRIFIÉE', raisons: ['Intention sans revenu visé ni échéance'], preuve: 'je voudrais donner plus de cours [12:00]' } }, alertes: ['Synthèse des portes absente en fin de découverte', 'Contradiction du prospect : dit ne rien avoir puis cite une épargne'] } },
         results: { SPIN: { competence: 'SPIN', status: 'scored', score: 64, items: [], details: {
             solicitations: [{ id: 'Q005', letter: 'S', turn: 'T005', answer_turns: ['T010'], in_perimeter: true, ts: '00:04:50' }, { id: 'Q015', letter: 'P', turn: 'T015', answer_turns: ['T020'], in_perimeter: true, ts: '00:07:40' }],
             items_evidence: { S1: { evidence: [{ atom: 'SITUATION', domain: 'revenus', turn: 'T010', quote: 'ça me rapporte 300 euros par mois', question_id: 'Q005', quantified: true }] },
@@ -106,9 +106,10 @@ const { chromium } = require('playwright');
   const lay = await cf.evaluate(() => { const w = document.querySelector('.ca-scrim'), d = w.querySelector('.ca-dlg').getBoundingClientRect();
     return { w: d.width, vw: innerWidth, top: d.top, left: d.left }; });
   check('l’analyse prend tout l’écran, comme un nouvel écran', Math.abs(lay.w - lay.vw) < 20 && lay.top < 4 && lay.left < 4, lay);
-  const rows = await cf.$$eval('.ca-scrim table.qx tbody tr', rs => rs.map(r => r.innerText.replace(/\s+/g, ' ').trim()));
-  check('qualification : un tableau, une ligne par critère (Métier, Financement, Décision et timing)', rows.length === 3 && /^Métier/.test(rows[0]) && /^Financement/.test(rows[1]) && /^Décision et timing/.test(rows[2]), rows);
-  check('qualification : validé, invalidé, à vérifier, avec une raison courte', /Validé/.test(rows[0]) && /Invalidé/.test(rows[1]) && /Aucune ressource/.test(rows[1]) && /À vérifier/.test(rows[2]), rows);
+  const rows = await cf.$$eval('.ca-scrim .qg .qg-c', rs => rs.map(r => ({ t: r.innerText.replace(/\s+/g, ' ').trim(), top: Math.round(r.getBoundingClientRect().top) })));
+  check('qualification : cinq fenêtres sur la même ligne (Métier, Financement, Décision et timing, Douleur, Projet)', rows.length === 5 && rows.every(r => r.top === rows[0].top) &&
+    ['Métier', 'Financement', 'Décision et timing', 'Douleur', 'Projet'].every((n, i) => rows[i].t.indexOf(n) === 0), rows);
+  check('qualification : chaque fenêtre dit seulement Validé, Refusé ou Incomplet', /Validé$/.test(rows[0].t) && /Refusé$/.test(rows[1].t) && /Incomplet$/.test(rows[2].t) && /Validé$/.test(rows[3].t) && /Incomplet$/.test(rows[4].t), rows);
   // l'écart : la chronologie lisible, le tableau élément par élément, ce qui manque
   const gx = await cf.evaluate(() => { const c = [...document.querySelectorAll('.ca-scrim .card')].find(x => /L'écart reformulé/.test(x.textContent)); if (!c) return null;
     return { leg: [...c.querySelectorAll('.gx-ev')].map(e => e.innerText.replace(/\s+/g, ' ')), rows: [...c.querySelectorAll('.gx3 > .gx-box:last-child .gx-nd')].map(r => r.innerText.replace(/\s+/g, ' ')), refo: (c.querySelector('.gx3 > .gx-box:first-child') || {}).innerText.replace(/\s+/g, ' ') || '',
@@ -145,12 +146,12 @@ const { chromium } = require('playwright');
   await cf.click('.ca-scrim .ob-pan .ob-x'); await p.waitForTimeout(300);
   ob = await obRows();
   check('objections : la croix en haut à droite referme la fenêtre', opened && ob && !ob.some(r => r.pan), { opened, ob });
-  const pw = await cf.$('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'); if (!pw) { console.log(bad.join('\n')); console.log((await win()).txt.slice(0, 1500)); process.exit(1); }
+  const pw = await cf.$('.ca-scrim .qg > .qx-w:nth-child(2)'); if (!pw) { console.log(bad.join('\n')); console.log((await win()).txt.slice(0, 1500)); process.exit(1); }
   await pw.scrollIntoViewIfNeeded(); await pw.hover(); await p.waitForTimeout(250);
-  const pop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-pop'); return e && getComputedStyle(e).display !== 'none' ? e.innerText : null; });
-  check('survol de la raison : le détail (pourquoi, ce que le prospect a dit, pour valider)', pop && /RSA/.test(pop) && /Je suis au RSA/.test(pop) && /Pour valider/i.test(pop), pop);
+  const pop = await cf.evaluate(() => { const e = document.querySelector('.ca-scrim .qg > .qx-w:nth-child(2) .qx-pop'); return e && getComputedStyle(e).display !== 'none' ? e.innerText : null; });
+  check('survol d’un critère : le détail (pourquoi, ce que le prospect a dit, pour valider)', pop && /RSA/.test(pop) && /Je suis au RSA/.test(pop) && /Pour valider/i.test(pop), pop);
   if (OUT) await p.screenshot({ path: OUT + '/qualif-survol.png' });
-  const up = await cf.evaluate(() => { const w = document.querySelector('.ca-scrim table.qx tbody tr:nth-child(2) .qx-w'), pp = w.querySelector('.qx-pop').getBoundingClientRect(); return { bottom: Math.round(pp.bottom), top: Math.round(pp.top), vh: innerHeight }; });
+  const up = await cf.evaluate(() => { const w = document.querySelector('.ca-scrim .qg > .qx-w:nth-child(2)'), pp = w.querySelector('.qx-pop').getBoundingClientRect(); return { bottom: Math.round(pp.bottom), top: Math.round(pp.top), vh: innerHeight }; });
   check('le détail reste dans l’écran (il s’ouvre vers le haut près du bas)', up.top >= 0 && up.bottom <= up.vh, up);
   await cf.evaluate(() => document.querySelector('.ca-scrim').scrollTop = 1500); await p.waitForTimeout(300);
   const hd = await cf.evaluate(() => { const t = document.querySelector('.ca-scrim .ca-top').getBoundingClientRect(), x = document.querySelector('.ca-scrim .ca-x').getBoundingClientRect();

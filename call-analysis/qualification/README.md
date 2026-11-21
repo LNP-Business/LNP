@@ -14,6 +14,14 @@ catégorie `matiere_education_nationale` (prompt `lnp-sql-v2.1-2026-11-05`).
 `lnp-sql-v2.2-2026-11-05`, règles `qualification_lnp-v2.2`, 29 cas). L'analyse reste lancée à la main (pas de mise en file
 automatique, Romain 2026-11-03 et 2026-11-05).
 
+**Version 2.3 (21 novembre 2026, Romain)** : la douleur et le projet reviennent, en deux portes qui comptent comme les autres
+(une porte fermée rend le lead Non SQL, une porte non vérifiée le laisse à revoir). Cinq portes : Métier, Financement,
+Décision et timing, **Douleur** (ouverte si le prospect dit lui-même ce qui ne va pas dans sa situation, fermée s'il dit que
+tout va bien) et **Projet** (ouvert s'il veut se lancer ou développer ses cours ET donne un revenu visé ou une échéance, fermé
+s'il n'a pas l'intention de se lancer, à vérifier avec une intention seule). La consigne d'extraction retrouve le bloc
+`projet` (douleur, intention, revenu visé, échéance) : prompt `lnp-sql-v2.3-2026-11-21`, règles `qualification_lnp-v2.3`,
+33 cas.
+
 **Dans l'analyse d'appel (046)** : chaque R1 analysé est qualifié par le worker de l'analyse
 (`call-analysis/worker/callqa_worker/qualif.py`), sur les mêmes répliques que l'analyse ; le résultat est gardé avec l'analyse
 et s'affiche dans l'écran d'analyse d'appel (section « Qualification du lead ») et sur la pastille du prospect. Le workflow
