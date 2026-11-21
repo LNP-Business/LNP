@@ -90,6 +90,19 @@ def test_a_gap_element_may_list_several_accepted_answers_or_null():
     assert any("gap.components.A[2]" in e for e in validate(ref, sc.transcript()))
 
 
+def test_the_blocker_state_and_the_stopping_question_are_measured():
+    ref = copy.deepcopy(REF)
+    ref["gap"]["blocker_state"] = ["named_when_asked", "said_unasked"]
+    ref["gap"]["stopping_question"] = "What's been stopping you from getting more clients?"
+    m = measure(ref, record())
+    assert m["gap"]["blocker_state"] == [1, 1] and m["gap"]["stopping_question"] == [1, 1]
+    ref["gap"]["blocker_state"] = "not_asked"
+    m = measure(ref, record())
+    assert m["gap"]["blocker_state"] == [0, 1] and any(e["kind"] == "gap_blocker_state" for e in m["errors"])
+    bad = copy.deepcopy(ref); bad["gap"]["blocker_state"] = "unknown"
+    assert any("gap.blocker_state" in e for e in validate(bad, sc.transcript()))
+
+
 def test_totals_add_the_calls_up():
     m = measure(REF, record())
     t = total([m, m])

@@ -381,7 +381,8 @@ def test_pair_14a_14b_single_blocker_and_several_blockers():
              atom("p2", "BLOCKER", "T002", "Two, change is scary", "P", "Q1", "fear of change")]
     ctx = ctx_of(turns, sols=sols, atoms=atoms)
     st = g.statements_from_atoms(ctx)
-    sel_p, rule = g.select_p(ctx, st["PROBLEM"], [sols[0]], ctx.atoms)
+    sel_p, rule, state, question = g.select_p(ctx, st["PROBLEM"], [sols[0]], ctx.atoms)
+    assert state == "named_when_asked" and question["turn"] == sols[0].turn
     assert sel_p.atom_id == "p1" and rule == "tie_named_first"                     # GB-30 step 3
     r14a = restit(ctx, "T005", "T005", [
         clause("PROBLEM", "T005", "What's holding you back today is self-doubt", "T002", "self-doubt",

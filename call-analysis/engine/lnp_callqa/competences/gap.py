@@ -29,7 +29,9 @@ from ..core.models import (CallContext, CompetenceResult, Evidence, ItemScore, O
                            Solicitation, Turn)
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
+from ..core.blockers import prospect_blockers, stopping_questions as code_stopping_questions
 from ..core.costs import prospect_costs
+from ..core.restate import perfect_formula
 from ..core.figures import dimension as unit_dim, prospect_figures, units_match
 from ..core.text import (GENERIC, STOP, _contains, approval_only, canon, clean_tokens, key_expression_ok, norm,
                          norm_number, quote_ok, sentences)
@@ -344,10 +346,20 @@ def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict
         letter, sol = _letter_of(ctx, c.turn)
         st["COST"].append(Statement("COST", f"C{k:03d}", c.quote, c.turn, letter, sol, None, c.domain, False, None,
                                     None, "IMPACT", "cost"))
+    # the blockers the code lists (GB-30b): a first-person clause that says what prevents them, the model's atoms first
+    blks = prospect_blockers(ctx, ctx.phases.discovery_start, end)
+    for k, b in enumerate(blks, 1):
+        if b.prompted or any(x.turn == b.turn and (norm(x.quote) in norm(b.quote) or norm(b.quote) in norm(x.quote))
+                             for x in st["PROBLEM"]):
+            continue
+        letter, sol = _letter_of(ctx, b.turn)
+        st["PROBLEM"].append(Statement("PROBLEM", f"K{k:03d}", b.quote, b.turn, letter, sol, None, None, False, None,
+                                       None, "BLOCKER", "blocker"))
     for comp in st:
         st[comp].sort(key=lambda s: _pos(ctx, s.turn, s.quote))
     st["_figures"] = figs                                                 # type: ignore[assignment]
     st["_costs"] = costs                                                  # type: ignore[assignment]
+    st["_blockers"] = blks                                                # type: ignore[assignment]
     return st
 
 
@@ -444,41 +456,82 @@ def select_a_b(ctx: CallContext, A: list[Statement], B: list[Statement],
     return None, sel_b, "no_A:" + b_rule
 
 
-def select_p(ctx: CallContext, P: list[Statement], stopping: list[Solicitation],
-             all_atoms_before: list[Atom]) -> tuple[Optional[Statement], Optional[str]]:
-    """GB-30. P = PAIN/BLOCKER statements in P answers (before the cutoff), in transcript order.
-    stopping = P solicitations that are stopping questions, in transcript order."""
+BLOCKER_STATES = ("named_when_asked", "asked_not_answered", "said_unasked", "not_asked")
+
+
+def select_p(ctx: CallContext, P: list[Statement], stopping: list, all_atoms_before: list[Atom]
+             ) -> tuple[Optional[Statement], Optional[str], str, Optional[dict]]:
+    """GB-30 (version 1.4, 2026-11-21): the blocker and its **state**. P = the PROBLEM statements before the cutoff (the
+    model's PAIN and BLOCKER atoms, the code's blocker clauses), in transcript order; `stopping` = the sales' stopping
+    questions in transcript order, each with its answer turns (`answer_turns`, a Solicitation or a StoppingQuestion).
+    Returns (selected_P, rule, state, question):
+    - `named_when_asked`: the first stopping question whose answer holds a blocker; one object → it; several → the one
+      coming back most, tie → the first named;
+    - `asked_not_answered`: a stopping question was asked, no blocker in its answer: P = None;
+    - `said_unasked`: no stopping question, the prospect said of their own what prevents them (a BLOCKER atom or a code
+      blocker clause; else a PAIN): the one coming back most, tie → the most recent, to confirm;
+    - `not_asked`: no stopping question, nothing said: P = None. A pain stated elsewhere is never P by default."""
+    def key_obj(x: Statement) -> str:
+        return norm(x.object) if x.object else f"#{x.atom_id}"
+
+    def most(pool: list[Statement]) -> list[Statement]:
+        turns_by_obj: dict[str, set[str]] = {}
+        for a in all_atoms_before:
+            if a.object and not a.prompted_by_sales:
+                turns_by_obj.setdefault(norm(a.object), set()).add(a.evidence.turn)
+        for x in P:
+            turns_by_obj.setdefault(key_obj(x), set()).add(x.turn)
+        best = max(len(turns_by_obj.get(key_obj(x), ())) for x in pool)
+        return [x for x in pool if len(turns_by_obj.get(key_obj(x), ())) == best]
+
+    def qdict(q) -> dict:
+        return {"turn": q.turn, "quote": getattr(q, "text", None) or getattr(q, "quote", None)}
+
+    for q in stopping:                                   # state 1 / 2: the first stopping question
+        ans = [x for x in P if x.turn in (getattr(q, "answer_turns", None) or [])]
+        if not ans:
+            continue
+        if len({key_obj(x) for x in ans}) == 1:
+            return ans[0], "named_when_asked", "named_when_asked", qdict(q)
+        top = most(ans)
+        if len({key_obj(x) for x in top}) == 1:
+            return top[0], "comes_back_most", "named_when_asked", qdict(q)
+        return min(top, key=lambda x: _pos(ctx, x.turn, x.quote)), "tie_named_first", "named_when_asked", qdict(q)
+    if stopping:
+        return None, None, "asked_not_answered", qdict(stopping[0])
     if not P:
-        return None, None
+        return None, None, "not_asked", None
+    pool = [x for x in P if x.atom_type == "BLOCKER" or x.origin == "blocker"] or P
+    top = most(pool)
+    if len({key_obj(x) for x in top}) == 1:
+        return top[0], "comes_back_most", "said_unasked", None
+    return max(top, key=lambda x: _pos(ctx, x.turn, x.quote)), "tie_most_recent", "said_unasked", None
 
-    def key_obj(s: Statement) -> str:
-        return norm(s.object) if s.object else f"#{s.atom_id}"
 
-    pool, named = P, None
-    for q in stopping:                                   # step 1: first stopping question with a blocker
-        ans = [s for s in P if s.solicitation == q.id]
-        if ans:
-            named = ans
-            break
-    if named is not None:
-        if len({key_obj(s) for s in named}) == 1:
-            return named[0], "named_when_asked"
-        pool = named                                     # several blockers: step 2 among them only
-    # step 2: object appearing in the largest number of distinct prospect turns before the first restitution
-    turns_by_obj: dict[str, set[str]] = {}
-    for a in all_atoms_before:
-        if a.object and not a.prompted_by_sales:
-            turns_by_obj.setdefault(norm(a.object), set()).add(a.evidence.turn)
-    for s in P:
-        turns_by_obj.setdefault(key_obj(s), set()).add(s.turn)
-    best = max(len(turns_by_obj.get(key_obj(s), ())) for s in pool)
-    top = [s for s in pool if len(turns_by_obj.get(key_obj(s), ())) == best]
-    if len({key_obj(s) for s in top}) == 1:
-        return top[0], "comes_back_most"
-    # step 3: tie-break: named first in answer to the stopping question, then the most recent (to validate)
-    if named is not None:
-        return min(top, key=lambda s: _pos(ctx, s.turn, s.quote)), "tie_named_first"
-    return max(top, key=lambda s: _pos(ctx, s.turn, s.quote)), "tie_most_recent"
+COST_DIM_RANK = {"money": 0, "health": 1, "family": 2, "time": 3, "self_belief": 4, "self-belief": 4, "clients": 5}
+
+
+def select_cost(ctx: CallContext, costs: list[Statement], sel_p: Optional[Statement],
+                cutoff: Optional[str]) -> Optional[Statement]:
+    """The cost the perfect restitution attaches to the blocker (§2.1, 2026-11-21): a cost stated in the turn of the
+    blocker or in the two prospect turns after it; else a quantified cost; else the most recent before the cutoff,
+    money before health, family, time, self-belief, clients."""
+    pool = [c for c in costs if cutoff is None or ctx.before(c.turn, cutoff)]
+    if not pool:
+        return None
+    if sel_p is not None:
+        try:
+            n0 = ctx.n(sel_p.turn)
+            near = [c for c in pool if n0 <= ctx.n(c.turn) <= n0 + 4]
+        except KeyError:
+            near = []
+        if near:
+            return near[-1]
+    q = [c for c in pool if c.quantified]
+    if q:
+        return q[-1]
+    best = min(COST_DIM_RANK.get((c.domain or "").lower(), 9) for c in pool)
+    return [c for c in pool if COST_DIM_RANK.get((c.domain or "").lower(), 9) == best][-1]
 
 
 def roadmap_blockers(ctx: CallContext, end: Optional[str], selected_p: Optional[Statement] = None) -> list[dict]:
@@ -962,7 +1015,7 @@ def _matches(c: Clause, s: Optional[Statement]) -> bool:
 
 
 def formula_conformity(ctx: CallContext, r: Restitution, sel_a: Optional[Statement], sel_b: Optional[Statement],
-                       sel_p: Optional[Statement]) -> dict:
+                       sel_p: Optional[Statement], blocker_state: Optional[str] = None) -> dict:
     """GB-31: selected A, selected B, one single blocker which is the selected P, all verbatim."""
     v = [c for c in r.clauses if c.match == "verbatim"]
     a_cl = [c for c in v if c.component == "A"]
@@ -996,6 +1049,8 @@ def formula_conformity(ctx: CallContext, r: Restitution, sel_a: Optional[Stateme
                                              (sel_p.object and norm(sel_p.object) in objs))
     if p_cl and single and not p_ok:
         dev.append("P_not_selected")
+    if blocker_state in ("not_asked", "asked_not_answered"):
+        dev.append("blocker_not_asked")                                     # GB-30 v1.4: the sales never got the blocker
     long_ke = any(len(clean_tokens(c.key_expression or "")) >= LONG_KEY_EXPRESSION_WORDS or
                   _has_figure(clean_tokens(c.key_expression or "")) for c in v)
     conforms = a_ok and b_ok and p_ok and "unit_mismatch" not in dev and "COST" in r.components
@@ -1318,11 +1373,13 @@ class GapCompetence:
         A = a_candidates(ctx, st, cutoff, not_present)
         B, B_out = b_candidates(ctx, st, cutoff)
         sel_a, sel_b, ab_rule = select_a_b(ctx, A, B, B_out)
-        P = [s for s in st["PROBLEM"] if s.letter == "P"]
-        stopping = self._stopping_questions(ctx, runner, P, concs)
-        before_atoms = [a for a in ctx.atoms if a.evidence and ctx.before(a.evidence.turn, cutoff)
+        # the blocker and its state (GB-30 v1.4) are read over the whole discovery window: the question « qu'est-ce qui
+        # t'a bloqué ? » asked after an early restitution still counts, and its answer is the blocker
+        P = [s for s in st_all["PROBLEM"] if ctx.before(s.turn, wend)]     # v1.4: whatever the question's letter
+        stopping = self._stopping_questions(ctx, runner, [s for s in P if s.letter == "P"], concs, wend)
+        before_atoms = [a for a in ctx.atoms if a.evidence and ctx.before(a.evidence.turn, wend)
                         and a.type in ("PAIN", "BLOCKER", "IMPACT")]
-        sel_p, p_rule = select_p(ctx, P, stopping, before_atoms)
+        sel_p, p_rule, p_state, p_question = select_p(ctx, P, stopping, before_atoms)
         horizon = self._horizon(ctx, runner, sel_b, cutoff, concs) if sel_b else None
         blockers = roadmap_blockers(ctx, ctx.phases.pitch_start or wend, sel_p)
         warn = roadmap_warning(blockers)
@@ -1331,7 +1388,7 @@ class GapCompetence:
 
         # ---- conformity and items
         for r in rs:
-            r.conformity = formula_conformity(ctx, r, sel_a, sel_b, sel_p) if r.is_restitution else None
+            r.conformity = formula_conformity(ctx, r, sel_a, sel_b, sel_p, p_state) if r.is_restitution else None
         sol_by_id = {q.id: q for q in ctx.solicitations}
         diag_r = judged
         items = score_items(ctx, diag_r, sel_a, sel_b, horizon, sel_p, (diag_r.conformity if diag_r else None),
@@ -1351,7 +1408,7 @@ class GapCompetence:
         res.concordance = min(concs, key=lambda c: _conc_rank(c)) if concs else None
         # what the prospect said (problems, costs, figures): the whole window, not only before the first restitution
         res.details = self._details(ctx, rs, verdict, reasons, scored, diag_r, items, sel_a, sel_b, sel_p, ab_rule,
-                                    p_rule, horizon, blockers, warn, st_all, B_out)
+                                    p_rule, horizon, blockers, warn, st_all, B_out, p_state, p_question, cutoff)
         return res
 
     def candidate_spans(self, ctx: CallContext) -> list[Span]:
@@ -1402,20 +1459,24 @@ class GapCompetence:
                 out.add(s.atom_id)
         return out
 
-    def _stopping_questions(self, ctx, runner, P, concs) -> list[Solicitation]:
-        """GB-30 step 1: P solicitations that ask what stops the prospect (regex, else one closed question)."""
+    def _stopping_questions(self, ctx, runner, P, concs, cutoff=None) -> list:
+        """GB-30 step 1 (v1.4): the stopping questions in transcript order. The code reads every sales turn of the
+        discovery (STOPPING, French forms tolerant to dropped « n' »); the model is asked only about the P solicitations
+        the code did not match (one closed question each)."""
+        found = {q.turn: q for q in code_stopping_questions(ctx, ctx.phases.discovery_start, cutoff)}
         ids = {s.solicitation for s in P}
-        out = []
-        for q in sorted((x for x in ctx.solicitations if x.letter == "P" and x.id in ids),
+        for q in sorted((x for x in ctx.solicitations if x.letter == "P" and x.id in ids and x.turn not in found),
                         key=lambda x: ctx.n(x.turn)):
+            if cutoff is not None and not ctx.before(q.turn, cutoff):
+                continue
             if STOPPING_Q.search(norm(q.text)):
-                out.append(q)
+                found[q.turn] = q
                 continue
             rr = runner.run(ctx, STOPPING, f"stop:{q.id}:{q.turn}", q)
             concs.append(rr.concordance)
             if rr.answer and rr.answer.get("is_stopping_question"):
-                out.append(q)
-        return out
+                found[q.turn] = q
+        return sorted(found.values(), key=lambda q: ctx.n(q.turn))
 
     def _horizon(self, ctx, runner, b: Statement, cutoff, concs) -> Optional[dict]:
         """GB-29: horizon in the same or a following N answer."""
@@ -1448,7 +1509,7 @@ class GapCompetence:
 
     # ---------------------------------------------------------------- output
     def _details(self, ctx, rs, verdict, reasons, scored, diag_r, items, sel_a, sel_b, sel_p, ab_rule, p_rule,
-                 horizon, blockers, warn, st, B_out) -> dict:
+                 horizon, blockers, warn, st, B_out, p_state=None, p_question=None, cutoff=None) -> dict:
         same_unit = bool(sel_a and sel_b and sel_a.quantified and sel_b.quantified and
                          units_match(sel_a.unit, sel_b.unit))
         gap_value = (sel_b.value - sel_a.value) if same_unit and sel_a.value is not None and \
@@ -1457,7 +1518,11 @@ class GapCompetence:
         sb = dict(sel_b.to_dict(), horizon=(horizon or {}).get("horizon") or (horizon or {}).get("quote"),
                   binding=(horizon or {}).get("binding"), same_unit=same_unit) if sel_b else None
         sp = {"quote": sel_p.quote, "turn": sel_p.turn, "object": sel_p.object, "rule": p_rule,
-              "solicitation": sel_p.letter} if sel_p else None
+              "solicitation": sel_p.letter, "state": p_state, "origin": sel_p.origin} if sel_p else None
+        blocker = {"state": p_state, "rule": p_rule, "question": p_question,
+                   "candidates": [b.to_dict() for b in st.get("_blockers", [])]}
+        chosen_cost = select_cost(ctx, st["COST"], sel_p, cutoff)
+        perfect = perfect_formula(ctx, sel_a, sel_b, horizon, sel_p, p_state, chosen_cost, units_match)
         validated_p = None
         if scored is not None:
             pcl = [c for c in scored.clauses if c.component == "PROBLEM" and c.match == "verbatim"]
@@ -1494,7 +1559,7 @@ class GapCompetence:
             "absence_reasons": reasons,
             "validation_turn": scored.validation.get("turn") if scored else None,
             "restitution_span": [scored.span.start, scored.span.end] if scored else None,
-            "selected_A": sa, "selected_B": sb, "selected_P": sp, "validated_P": validated_p,
+            "selected_A": sa, "selected_B": sb, "selected_P": sp, "validated_P": validated_p, "blocker": blocker,
             "roadmap_blockers": blockers, "cost": cost,
             "gap": {"A": sa, "B": sb, "gap_value": gap_value,
                     "problem": [{"type": None, "quote": s.quote, "turn": s.turn, "object": s.object}
@@ -1506,7 +1571,8 @@ class GapCompetence:
                         "conformity": main.conformity if main else None,
                         "B_outside_N": [s.to_dict() for s in B_out],
                         "figures": [f.to_dict() for f in st.get("_figures", [])],
-                        "costs": [c.to_dict() for c in st.get("_costs", [])]},
+                        "costs": [c.to_dict() for c in st.get("_costs", [])],
+                        "blocker": blocker, "perfect": perfect},
             "roadmap": {"blockers": blockers, "count": len(blockers), "warning": warn,
                         "steps": ROADMAP_STEPS},
             "diagnostic_items": [{"id": x.id, "level": x.level, "note": x.note} for x in items],

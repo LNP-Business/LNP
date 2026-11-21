@@ -21,7 +21,7 @@ from .text import STOP, clean_tokens, norm
 # French first, then the English twin of each family (the English tests behave as before: nothing matched them).
 LEXICON: dict[str, re.Pattern] = {
     "money": re.compile(r"difficult\w+ financi\w+|galère\w* financi\w*|problèmes? d'argent|problèmes? financi\w+|"
-                        r"dettes?\b|découvert\b|je n'arrive pas à payer|pas les moyens|fins? de mois difficile\w*|"
+                        r"dettes?\b|découvert\b|je n'arrive pas à payer|fins? de mois difficile\w*|"
                         r"dépendante? (?:financièrement )?de|l'aide de (?:ma|mes|mon) (?:mère|parents|père|famille)|"
                         r"argent perdu|perte d'argent|je perds de l'argent|"
                         r"financial (?:trouble|difficult\w+|stress)|in debt|can't pay|i'm broke|depend(?:ent|ing)? on my"),
@@ -46,6 +46,7 @@ LEXICON: dict[str, re.Pattern] = {
                               r"doubt myself|ashamed|it eats (?:at )?me"),
 }
 NEGATION = re.compile(r"\b(?:pas|jamais|plus|not|never|n't|no)\s*$")
+HYPOTHESIS = re.compile(r"\b(?:si|if)(?:\s+\S+){0,3}\s*$")        # « si je me donne pas les moyens »: a hypothesis
 # a clause whose subject is the sales (« tu sais te valoriser »), not « je t'en parle »
 SECOND_PERSON = re.compile(r"^\s*(?:tu|vous|you)\b|\b(?:tu|vous) (?:es|as|sais|vois|vas|dis|dites|êtes|avez|allez|fais|"
                            r"faites|peux|pouvez|parles|parlez)\b|\byou(?:'re| are| have| know| said| can)\b")
@@ -119,7 +120,8 @@ def prospect_costs(ctx: CallContext, start, end) -> list[Cost]:
                     n_marker = len(m.group(0).split())
                     around = " ".join(nwords[max(0, nb - 8): nb + n_marker + 8])
                     before = " ".join(nwords[max(0, nb - 8): nb])
-                    if SECOND_PERSON.search(around) or REPORTED.search(before) or NEGATION.search(before + " "):
+                    if SECOND_PERSON.search(around) or REPORTED.search(before) or NEGATION.search(before + " ") \
+                            or HYPOTHESIS.search(before):
                         continue
                     lo, hi = max(0, nb - WORDS_BEFORE), min(len(words), nb + n_marker + WORDS_AFTER)
                     if lo >= len(words) or hi <= lo or any(a <= nb < b for a, b in taken):
