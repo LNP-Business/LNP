@@ -8,7 +8,10 @@ closed questions about each PRIORITY question; the code applies the order of the
 The rule that governs everything: read the answer the question REQUESTS, never the sales' intent and never the answer
 obtained. A painful context does not colour the question.
 
-- is_solicitation: false for a statement that starts with an interrogative word, a politeness formula, a system line.
+- is_solicitation: true for every sentence that asks the prospect for an answer, even a social, logistic or framing
+  one ("vous m'entendez ?", "comment allez-vous ?": those are true, with g1 `nothing`). Every unit below was listed by
+  the code because it has a question form, so false is rare: ONLY a sentence that asks for no answer at all (a
+  statement that merely starts with an interrogative word, "comment dire…", "pourquoi pas"), or a recorder/system line.
 - attribution_doubtful: true if the sentence is obviously the prospect's (wrong speaker label).
 - routing: "VALIDATION_REQUEST" if it asks to confirm a complete restitution of the gap just said (at least two of:
   where they are, where they want to go, what blocks them); "DECISION_REQUEST" if it asks for a purchase or commitment
