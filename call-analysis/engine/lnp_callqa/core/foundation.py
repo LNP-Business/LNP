@@ -197,7 +197,11 @@ OFFER_CUES = re.compile(r"\b(the program|the mentorship|the academy|what we do|t
                         # French (LNP, 2026-11-19)
                         r"l'accompagnement|notre accompagnement|le programme|notre programme|notre méthode|ce qu'on fait|"
                         r"comment ça se passe concrètement|comment ça marche|je vais te montrer|je vais vous montrer|"
-                        r"je partage mon écran|je te partage|je vous partage|mon écran|les modules|le module|quatre mois|4 mois)\b",
+                        r"je partage mon écran|je te partage|je vous partage|mon écran|les modules|le module|quatre mois|4 mois|"
+                        # 2026-11-21 (Romain); the offer's duration (« six mois ») waits for Romain (docs/OPEN_DECISIONS.md)
+                        r"notre (?:formation|coaching|suivi|académie|mentorat|offre)|nos (?:modules|séances|formations|coachs)|"
+                        r"piliers?|comment ça fonctionne|ce que nous faisons|comment (?:on|je|nous) (?:t'|vous )aid(?:e|ons)|"
+                        r"je (?:veux|vais) (?:te|vous) (?:montrer|présenter)|(?:te|vous) partager (?:mon|l')écran)\b",
                         re.I)
 AMOUNT = re.compile(r"(\$\s?\d[\d,.]*\s?(k|grand)?|\b\d[\d,.]*\s?(k|grand|dollars|usd|euros?)\b|\b\d{1,3},\d{3}\b|"
                     r"\b\d{1,3}(?:[  ]\d{3})+\s?(€|euros?|balles)|\b\d[\d.]*\s?(€|balles)|"
@@ -208,12 +212,20 @@ DECISION = re.compile(r"\b(ready to (get started|move forward|start)|what would 
                       r"est-ce que (tu veux|vous voulez) (qu'on y aille|te lancer|vous lancer|démarrer|commencer|rejoindre)|"
                       r"(tu es|vous êtes|t'es) (prête?|partante?) (à|pour)|qu'est-ce que tu en dis|qu'est-ce que vous en dites|"
                       r"on y va|on démarre|on part là-dessus|comment (tu veux|vous voulez) procéder|"
-                      r"(tu veux|vous voulez) (qu'on|que l'on) (avance|démarre|commence))\b", re.I)
+                      r"(tu veux|vous voulez) (qu'on|que l'on) (avance|démarre|commence)|"
+                      # 2026-11-21 (Romain): candidates only, the model decides
+                      r"prête?s? à (?:démarrer|commencer|te lancer|vous lancer|y aller|nous rejoindre)|"
+                      r"qu'est-ce que (?:tu veux|vous voulez|tu aimerais|vous aimeriez|tu souhaites|vous souhaitez) faire|"
+                      r"(?:tu veux|vous voulez|tu souhaites|vous souhaitez) nous rejoindre|"
+                      r"(?:tu souhaites|vous souhaitez) (?:te |vous )lancer|on se lance|"
+                      r"comment (?:tu souhaites|vous souhaitez) procéder)\b", re.I)
 
 
 def phase_candidates(ctx: CallContext) -> list[Turn]:
-    return [t for t in ctx.turns if t.role == SALES and not t.attribution_doubtful and
-            (OFFER_CUES.search(t.text) or AMOUNT.search(t.text) or DECISION.search(t.text))]
+    def cue(text: str) -> bool:
+        text = text.replace("’", "'")                  # the typographic apostrophe of some transcripts (2026-11-21)
+        return bool(OFFER_CUES.search(text) or AMOUNT.search(text) or DECISION.search(text))
+    return [t for t in ctx.turns if t.role == SALES and not t.attribution_doubtful and cue(t.text)]
 
 
 def _ph_build(ctx: CallContext, t: Turn) -> str:

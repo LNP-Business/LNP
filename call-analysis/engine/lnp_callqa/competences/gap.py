@@ -85,7 +85,18 @@ OPENERS = re.compile(
     r"si je résume|si je reformule|pour résumer|en résumé|si j'ai bien compris|si je comprends bien|"
     r"corrige-moi si je me trompe|corrigez-moi si je me trompe|ce que j'entends|ce que je comprends|"
     r"si je récapitule|pour récapituler|donc si je reprends|je reprends ce que tu|je reprends ce que vous|"
-    r"là où tu en es|aujourd'hui tu es)\b")
+    r"là où tu en es|aujourd'hui tu es|"
+    # 2026-11-21 (Romain, French forms of the closed PR 65)
+    r"je reformule|(?:laisse|laissez)-moi (?:reformuler|résumer|récapituler|te résumer|vous résumer)|"
+    r"si (?:je t'ai|je vous ai) bien compris|si je (?:te|vous) comprends bien|"
+    r"(?:d'après|de) ce que (?:j'entends|j'ai entendu|je comprends|j'ai compris|tu m'as dit|tu me dis|vous m'avez dit|"
+    r"vous me dites)|ce que je retiens|ce que j'ai retenu|si je reprends|pour reprendre|(?:si je|je) fais le point|"
+    r"on fait le point|là où (?:t'en es|vous en êtes))\b")
+# GB-15 family in French (2026-11-21, Romain): « j'ai oublié / loupé / zappé quelque chose / un truc ? », « je n'ai rien
+# oublié ? », « je me suis trompé(e) ? », « j'ai mal compris ? »; shared by S3 and GB-15
+FR_MISSING = (r"(?:oublié|raté|manqué|loupé|zappé)s? (?:quelque chose|qqch|un truc|des choses|un point|un élément)|"
+              r"\brien (?:d')?oublié|\bil (?:te |vous )manque (?:quelque chose|un truc)|\bje me suis trompée?\b|"
+              r"\bj'ai mal compris|\bje (?:t'|vous )?ai mal compris")
 # A1 S3 validation requests (end of the passage)
 VALIDATION_REQUEST = re.compile(
     r"(did i get (that|this|it|everything) right|have i got (that|this|it) right|got that right|is that fair|"
@@ -98,10 +109,17 @@ VALIDATION_REQUEST = re.compile(
     r"je me trompe\s*\?|j'ai oublié quelque chose|j'ai raté quelque chose|il manque quelque chose|"
     r"tu te retrouves (là-dedans|dans ce que je dis)|vous vous retrouvez|ça te parle\s*\?|ça vous parle\s*\?|"
     r"c'est juste\s*\?|on est d'accord\s*\?|t'es d'accord\s*\?|tu es d'accord\s*\?|vous êtes d'accord\s*\?|"
-    r"c'est bien ça que tu vis|ça résume bien)")
+    r"c'est bien ça que tu vis|ça résume bien|"
+    # 2026-11-21 (Romain): explicit requests only, never a generic tail (« …, non ? », « …, d'accord ? », « …, hein ? »)
+    r"(?:j'ai|je l'ai|je t'ai|je vous ai) bien (?:résumé|compris|comprise|reformulé|saisi|cerné)|"
+    r"ça (?:te|vous) (?:correspond|semble juste|semble correct|paraît juste|parait juste)|"
+    r"c'est (?:bien )?correct\s*\?|c'est bien juste\s*\?|est-ce que c'est (?:bien )?juste|"
+    r"on est (?:bien )?d'accord\s*\?|on est (?:bien )?alignés?\s*\?|tu (?:valides|confirmes)\s*\?|"
+    r"vous (?:validez|confirmez)\s*\?|c'est bien là où (?:tu en es|t'en es|vous en êtes)|" + FR_MISSING + r")")
 # GB-15: "did I miss anything?" family: a bare "no" is agreement
 MISSING_REQUEST = re.compile(r"(miss(ed|ing)? (anything|something)|anything i(?:'ve)? missed|got (anything )?wrong|"
-                             r"oublié quelque chose|raté quelque chose|il manque quelque chose|je me trompe)")
+                             r"oublié quelque chose|raté quelque chose|il manque quelque chose|je me trompe|"
+                             + FR_MISSING + r")")
 # GB-1 / GB-5: first mention of the offer ends the span
 OFFER_WORDS = re.compile(
     r"\b(our program|the program|the mentorship|the academy|what we do|how we help|how we can help|"
@@ -109,7 +127,12 @@ OFFER_WORDS = re.compile(
     # French (LNP, 2026-11-19)
     r"l'accompagnement|notre accompagnement|le programme|notre programme|notre méthode|ce qu'on fait|"
     r"comment on t'aide|comment on vous aide|je vais te montrer|je vais vous montrer|je partage mon écran|"
-    r"je te partage mon écran|je vous partage mon écran)\b")
+    r"je te partage mon écran|je vous partage mon écran|"
+    # 2026-11-21 (Romain): « notre » / « nos » + a noun of the offer (the nouns alone are discovery words: « tu as suivi
+    # une formation ? »), and the sales who starts to show it
+    r"notre (?:formation|coaching|suivi|académie|mentorat|offre)|"
+    r"nos (?:programmes|accompagnements|formations|modules|séances|coachs|coaches)|"
+    r"(?:laisse|laissez)-moi (?:te |vous )montrer|je (?:te|vous) montre)\b")
 # GB-30 step 1: stopping questions (code detection; the model is asked only when this does not match)
 STOPPING_Q = re.compile(
     r"(held you back|holding you back|hold you back|stopp(ed|ing) you|stops you|getting in the way|"
@@ -119,14 +142,21 @@ STOPPING_Q = re.compile(
     r"qu'est-ce qui te bloque|qu'est-ce qui vous bloque|qu'est-ce qui t'a bloqué|qu'est-ce qui vous a bloqué|"
     r"qu'est-ce qui t'empêche|qu'est-ce qui vous empêche|qu'est-ce qui t'a empêché|qu'est-ce qui vous a empêché|"
     r"pourquoi tu n'as pas|pourquoi vous n'avez pas|pourquoi tu n'y es pas|qu'est-ce qui te freine|"
-    r"qu'est-ce qui vous freine|ce qui te retient|ce qui vous retient)")
+    r"qu'est-ce qui vous freine|ce qui te retient|ce qui vous retient|"
+    # 2026-11-21 (Romain): « t'en empêche », « t'arrête », « coince », only after « qu'est-ce qui » / « ce qui »
+    # (« je te bloque un créneau » asks nothing); « tes freins » / « vos freins »
+    r"(?:qu'est-ce qui|ce qui) (?:t'|te |vous )(?:en )?(?:a |as |avait )?(?:empêch|empech|arrêt|arret|bloqu|frein|retien|"
+    r"retenu)\w*|(?:qu'est-ce qui|ce qui) (?:te |vous )?coince|\b(?:tes|vos) freins\b)")
 # GB-23 quoting markers
 QUOTING_MARKER = re.compile(r"\b(in your (own )?words|as you said|you used the word|from your words|"
                             r"like you said|you said it yourself|"
                             r"comme tu (l'as |me l'as )?dit|comme vous (l'avez |me l'avez )?dit|avec tes mots|avec vos mots|"
                             r"tu as dit|vous avez dit|pour reprendre tes mots|pour reprendre vos mots)\b")
+# A1 S2: a sentence cut into clauses at punctuation and at the conjunctions (French « et », « mais », « donc », 2026-11-21:
+# a French restatement often has no comma, « tu es prof et tu donnes des cours le soir et tu es épuisée »)
+CLAUSE_SPLIT = re.compile(r"[;,]\s*|\s+(?:and|but|so|et|mais|donc)\s+")
 SUBJECT_YOU = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself", "tu", "t'", "vous", "ton", "ta", "tes",
-               "votre", "vos"}
+               "votre", "vos", "toi"}          # « toi, tu es… » (2026-11-21)
 LEAD_WORDS = {"so", "and", "but", "now", "then", "also", "obviously", "basically", "like", "well", "okay", "right",
               "currently", "today", "ultimately", "essentially", "just",
               "donc", "et", "mais", "alors", "aujourd'hui", "aussi", "bon", "bah", "ben", "voilà", "ok", "okay", "en", "fait",
@@ -141,7 +171,9 @@ SECOND_PERSON = {"you", "your", "you're", "you've", "you'd", "you'll", "yourself
 BACKCHANNEL = {"yeah", "yes", "yep", "mm", "mhm", "hmm", "mm-hmm", "uh-huh", "okay", "ok", "cool", "right", "sure",
                "got", "it", "exactly", "totally", "true", "no", "nope", "oh", "wow", "great", "perfect", "nice",
                "oui", "ouais", "d'", "accord", "exactement", "exact", "voilà", "non", "ah", "super", "parfait", "carrément",
-               "effectivement", "mmh", "hum", "bien", "sûr", "tout", "à", "fait", "c'", "est", "ça", "vrai"}
+               "effectivement", "mmh", "hum", "bien", "sûr", "tout", "à", "fait", "c'", "est", "ça", "vrai",
+               # 2026-11-21 (Romain): « je vois », « je comprends », « nickel », « top », « génial » (English: "I see")
+               "je", "vois", "comprends", "nickel", "top", "génial", "i", "see"}
 
 
 # ------------------------------------------------------------------------------------------- small helpers
@@ -597,7 +629,7 @@ def candidate_signals(ctx: CallContext, t: Turn, prior_prospect_tokens: set[str]
         for sent in sentences(t.text):
             if sent.rstrip().endswith("?") or INTERROGATIVE.match(norm(sent)):
                 continue                                   # S2 counts declarative clauses only
-            for c in re.split(r"[;,]\s*|\s+(?:and|but|so)\s+", norm(sent)):
+            for c in CLAUSE_SPLIT.split(norm(sent)):
                 ct = [w for w in clean_tokens(c) if w not in LEAD_WORDS]
                 if not ct or ct[0] not in SUBJECT_YOU:     # the prospect as subject
                     continue

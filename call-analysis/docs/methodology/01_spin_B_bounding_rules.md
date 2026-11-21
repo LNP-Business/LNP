@@ -42,7 +42,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 **SB-16 · Object.** Each PAIN, BLOCKER and IMPACT atom carries a short object label. Two atoms share an object when the model links them and the code finds at least one shared content word between their quotes or the quotes of the questions that produced them.
 
-**SB-17 · Followed up.** A solicitation is followed up when it reuses at least one content word (4 letters or more, outside the stop list) or one number from the previous answer.
+**SB-17 · Followed up.** A solicitation is followed up when it reuses at least one content word (4 letters or more, outside the stop list) or one number from the previous answer. French (Romain, 2026-11-21): an elided word is read without its elision (« c'est », « j'ai », « qu'est » are function words; « d'élèves » reuses « élèves »), and « depuis », « pendant », « fois », « gens », « chose(s) » are in the stop list (« temps » and « personne » are not). SEG-1's reading of a question's own words is unchanged.
 
 **SB-18 · Deep chain.** P (answer: PAIN or BLOCKER on object X) → I (answer: IMPACT on X) → I or N (answer: IMPACT, DESIRE or VALUE on X), consecutive among coded S/P/I/N solicitations, each followed up. One OUT `nothing` question in between (a backchannel question) does not break the chain; any other coded question does.
 
@@ -58,7 +58,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 **SB-23 · Reported speech.** Words the prospect attributes to someone else ("my brother says I'll never make money from this") are an atom only if the prospect takes them on as their own in the same answer ("and honestly he's right" or an equivalent statement in the first person).
 
-**SB-24 · Quantified, precisely.** Replaces SB-15. An atom is quantified if it contains an amount, a count or a duration ("2K", "three clients", "two years", "15 hours a week"). A frequency alone ("every month", "all the time") is not enough.
+**SB-24 · Quantified, precisely.** Replaces SB-15. An atom is quantified if it contains an amount, a count or a duration ("2K", "three clients", "two years", "15 hours a week"). A frequency alone ("every month", "all the time") is not enough. French (Romain, 2026-11-21): numbers in words (« deux enfants », « trois ans », « quinze euros », « mille », « une dizaine »), « un an », « une semaine », « un mois », « une journée », « une heure », « un client », « une élève » count; « un jour » (« un jour, je voudrais… »), « tous les mois » and « beaucoup » do not. The value is read with the French thousands space (« 2 000 euros » = 2000) and its unit may be accented or « € ».
 
 **SB-25 · Financing questions.** A question about how the prospect would pay for the solution (savings, credit, monthly budget available for the program) is OUT `solution_load`, wherever it occurs; it never reopens the perimeter (SB-3).
 

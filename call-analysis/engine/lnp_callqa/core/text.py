@@ -74,7 +74,8 @@ def quote_ok(ctx: CallContext, ev: Evidence, *, min_words: int = 2, max_words: i
 # ---------------------------------------------------------------- approval-only turns (C3 rule 5)
 _APPROVAL = re.compile(
     r"^(yes|yeah|yep|yup|exactly|right|correct|totally|absolutely|for sure|sure|mm-?hmm|uh-?huh|ok(ay)?|"
-    r"that's (right|true|correct|it)|100 ?%|pretty much|definitely|of course|no|nope|" + FR.APPROVAL + r")[\s.,!]*"
+    r"that's (right|true|correct|it)|100 ?%|pretty much|definitely|of course|clearly|without a doubt|no doubt|no|nope|"
+    + FR.APPROVAL + r")[\s.,!]*"
     r"((yes|yeah|exactly|right|totally|for sure|okay|cool|" + FR.APPROVAL + r")[\s.,!]*)*$")
 
 
@@ -199,12 +200,14 @@ def key_expression_ok(key_expression: str, prospect_text: str, sales_text: str) 
 
 
 def sentences(text: str) -> list[str]:
-    """PB-33 sentence split: end punctuation, then split long sentences at ', and' + subject."""
+    """PB-33 sentence split: end punctuation, then split long sentences at ', and' + subject (French, 2026-11-21:
+    ', et' + subject, « …, et tu as aussi… », « …, et j'ai… »)."""
     parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", text.strip()) if p.strip()]
     out: list[str] = []
     for p in parts:
         if len(p.split()) > 40:
-            out += [x for x in re.split(r",?\s+and (?=(?:you|we|i|it|that|this|he|she|they)\b)", p) if x]
+            out += [x for x in re.split(r",?\s+and (?=(?:you|we|i|it|that|this|he|she|they)\b)|"
+                                        r",\s+et (?=(?:tu|vous|on|je|il|elle|ils|elles|nous|ça)\b|[jc]['’])", p) if x]
         else:
             out.append(p)
     return out

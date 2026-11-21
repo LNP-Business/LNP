@@ -92,19 +92,24 @@ REGISTER_LEXICON = {
 REGISTER_LEXICON_FR = {
     "financial": ("argent", "revenu", "gagn", "salaire", "chiffre d'affaire", "euro", "prix", "paye", "paie", "dette",
                   "credit", "loyer", "factur", "financ", "rentab", "benefice", "client", "eleve", "vente", "vendre", "payer",
-                  "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit"),
+                  "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit",
+                  "fins de mois", "tarif"),                                                  # 2026-11-21 (Romain)
     "time_load": ("temps", "heures", "heure ", "semaine", "week-end", "weekend", "emploi du temps", "charge de travail",
                   "charge mentale", "occupe",
                   "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
-                  "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
+                  "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib",
+                  # 2026-11-21 (Romain): the family is already here (« compagnon », « conjoint »)
+                  "planning", "deborde", "compagne", "gosse", "gamin"),
     "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut",
-                        "reconversion", "dans quelques annees", "projet"),
+                        "reconversion", "dans quelques annees", "projet",
+                        "reconverti"),                                                       # 2026-11-21 (Romain)
     "other": ("metier", "retraite", "independan", "a ton compte", "a mon compte", "professeur", "prof ", "profs ",
               "enseign", "matiere", "salarie", "fonctionnaire", "poste ", "parcours", "diplom", "auto-entrepreneur",
               "freelance", "anciennete"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
-                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
+                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime",
+                         "culpabil", "honte", "etat d'esprit"),                                # 2026-11-21 (Romain)
 }
 for _reg, _ws in REGISTER_LEXICON_FR.items():
     REGISTER_LEXICON[_reg] = REGISTER_LEXICON[_reg] + _ws
@@ -122,7 +127,8 @@ ACK = set("yes yeah yep yup ok okay right sure fine exactly totally absolutely d
           "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love "
           # French, accent-folded (LNP, 2026-11-19)
           "oui ouais ouai d'accord daccord exactement exact parfait super top genial nickel voila carrement "
-          "effectivement evidemment absolument ah bon bien tres merci hum mmh hein".split())
+          "effectivement evidemment absolument ah bon bien tres merci hum mmh hein "
+          "ouaip dac clairement totalement waouh excellent incroyable magnifique".split())      # 2026-11-21
 INTERRO = re.compile(r"^(how|what|what's|whats|when|where|why|who|which|whose|do|does|did|are|is|was|were|have|has|"
                      r"had|can|could|would|will|should|shall|may|might|am|isn't|aren't|don't|doesn't|didn't|won't|"
                      r"wouldn't|couldn't)\b"
@@ -137,7 +143,11 @@ IMPERATIVE = re.compile(r"^(tell me|walk me through|talk me through|describe|exp
                         # French, accent-folded (the hyphen of "dis-moi" becomes a space)
                         r"|(?:(?:et|alors|donc|du coup|ok)\s+)*(dis moi|dites moi|raconte moi|racontez moi|explique moi|"
                         r"expliquez moi|decris|decrivez|parle moi|parlez moi|aide moi a comprendre|"
-                        r"aidez moi a comprendre))")
+                        r"aidez moi a comprendre|"
+                        # 2026-11-21 (Romain): requests only; « développe », « précise », « détaille » are also advice
+                        # (« développe ton réseau ») and stay out
+                        r"(?:dis|dites) m'en\b|(?:raconte|racontez|explique|expliquez)\b|(?:fais|faites) moi comprendre|"
+                        r"(?:donne|donnez) moi une idee|(?:partage|partagez) avec moi))")
 TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"\byeah\?$", r"\bno\?$",
          r"\bis that it\?$", r"\bis that right\?$", r"\bam i right\?$", r"\bdoes that make sense\?$", r"\bfair\?$",
          r"\byou know\?$", r"\bok\?$", r"\bokay\?$",
@@ -145,18 +155,31 @@ TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"
          r"\bnon\s*\?$", r"\bhein\s*\?$", r"\bc'est ça\s*\?$", r"\bc'est bien ça\s*\?$", r"\bd'accord\s*\?$",
          r"\bok\s*\?$", r"\bt'es d'accord\s*\?$", r"\bça te parle\s*\?$",
          r"\bça vous parle\s*\?$", r"\bn'est-ce pas\s*\?$", r"\bc'est clair\s*\?$", r"\bc'est bon\s*\?$",
-         r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$"]
-TAIL_ONLY = re.compile(r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
-                       r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|n'est-ce pas|ça te parle|"
-                       r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va|"
-                       # a French tic alone ("Tu vois ?"): never a question of its own (inside a sentence it is not a tail)
-                       r"(et |mais |donc )?(tu vois|vous voyez|tu sais|vous savez|tu comprends|tu me suis))\s*\?$", re.I)
+         r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$",
+         # 2026-11-21 (Romain); « ça fait sens ? », « tu me suis ? », « tu comprends ? », « tu vois ? » are CHECK_IN
+         r"\bpas vrai\s*\?$", r"\boui\s*\?$", r"\bouais\s*\?$", r"\bexact\s*\?$", r"\bj'ai raison\s*\?$",
+         r"\bje me trompe\s*\?$", r"\bc'est logique\s*\?$", r"\bc'est bien juste\s*\?$"]
+# the transcripts may write the typographic apostrophe (’): the tails read both (2026-11-21)
+TAILS = [p.replace("'", "['’]") for p in TAILS]
+TAIL_ONLY = re.compile((r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
+                        r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|n'est-ce pas|ça te parle|"
+                        r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va|"
+                        # (« Oui ? » alone is left out: after a question it is the sales asking for the answer)
+                        r"pas vrai|exact|j'ai raison|je me trompe|c'est juste|c'est logique|c'est bien juste|"
+                        # a French tic alone ("Tu vois ?"): never a question of its own (inside a sentence it is not a tail)
+                        r"(et |mais |donc )?(tu vois|vous voyez|tu sais|vous savez|tu comprends|tu me suis))\s*\?$")
+                       .replace("'", "['’]"), re.I)
 STOP = set(_fold("""the a an and or but so to of in on at for with that this it its is are was were be been i you he
 she we they me my your our their them there here what how when where why who which do does did have has had not no
 yes just like really very about from as if then than also can could would will should get got go going know think
 mean thing things kind sort lot little bit yeah okay right well one two some any more most much many even still now
-today make made want really actually maybe something anything everything people time""").split()) | \
-    {_fold(w).strip() for w in FR.STOP if _fold(w).strip()}
+today make made want really actually maybe something anything everything people time since during""").split()) | \
+    {_fold(w).strip() for w in FR.STOP if _fold(w).strip()} | \
+    set("depuis pendant fois gens chose choses".split())     # SB-17 (2026-11-21, Romain): « temps » and « personne » stay
+# SEG-1's reading of a question's own words (follows_previous) is left as it was before 2026-11-21: elisions kept whole
+_STOP_SEG1 = STOP - set("depuis pendant fois gens chose choses since during".split())
+# An elided word is read without its elision in SB-17 (« c'est » → « est », « d'élèves » → « eleves »), as in core/text
+_ELISION_FOLDED = re.compile(r"^(?:" + "|".join(re.escape(_fold(e)) for e in FR.ELISIONS) + r")(?=\w)")
 OFFER_WORDS = re.compile(r"\b(program|programme|academy|our (method|course|coaching|mentorship|offer)|the course|"
                          r"enroll|tuition|investment|price|cost|payment plan|"
                          # French (LNP, 2026-11-19)
@@ -169,6 +192,11 @@ def split_sentences(text: str) -> list[str]:
     t = re.sub(r"\s+", " ", text or "").strip()
     # a sentence starts with a capital, accented ones included (« À quel point ? », « Écoute »), a digit or a quote
     return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-ZÀ-ÖØ-Ý0-9\"'«])", t) if p.strip()]
+
+
+def _apostrophe(s: str) -> str:
+    """The typographic apostrophes (’ ‘) read as the straight one, for the patterns read on the raw text (2026-11-21)."""
+    return (s or "").replace("’", "'").replace("‘", "'")
 
 
 # §2 (2026-11-21): the recorder often drops the question mark and the sentence ends: a question word inside the sentence,
@@ -205,14 +233,14 @@ def embedded_question(s: str) -> Optional[int]:
 def question_form(s: str) -> Optional[str]:
     """§2 Solicitation: final question mark, interrogative form without mark, or imperative of request; a question asked
     inside the sentence without a mark (2026-11-21, `embedded_question`)."""
-    ns = s.strip().lower()
+    ns = _apostrophe(s.strip().lower())
     if ns.endswith("?"):
         return "interrogative"
     if IMPERATIVE.match(_fold(ns).strip()):
         return "imperative"
     if INTERRO.match(ns):
         return "interrogative_no_mark"
-    if embedded_question(s.strip()) is not None:
+    if embedded_question(_apostrophe(s.strip())) is not None:
         return "interrogative_embedded"
     return None
 
@@ -243,7 +271,7 @@ def turn_questions(text: str) -> list[str]:
     for s in merged:
         form = question_form(s)
         if form == "interrogative_embedded":                               # the question, from its clause on (SEG-1)
-            s = s[embedded_question(s):].strip()
+            s = s[embedded_question(_apostrophe(s)):].strip()
         if form:
             out.append(s)
     return out
@@ -257,9 +285,9 @@ def follows_previous(q: str, prev: str) -> bool:
         return False
     if TAIL_ONLY.match(q.strip()):
         return True
-    low = q.strip().lower()
+    low = _apostrophe(q.strip().lower())
     rest = FOLLOW_UP.sub("", low, count=1)                       # the follow-up words themselves bring no new object
-    return not (content_words(rest) - content_words(prev))
+    return not (content_words(rest, seg1=True) - content_words(prev, seg1=True))
 
 
 def group_turn(text: str) -> Optional[dict]:
@@ -290,9 +318,15 @@ def re_asks(q: str, prev: str) -> bool:
     return bool(a and b and a.group(0) == b.group(0) and len(q.split()) < len(prev.split()))
 
 
-def content_words(s: str) -> set[str]:
-    """SB-17: content words (4 letters or more, outside the stop list) and numbers."""
-    out = {w for w in _fold(s).split() if len(w) >= CONTENT_WORD_MIN and w not in STOP}
+def content_words(s: str, seg1: bool = False) -> set[str]:
+    """SB-17: content words (4 letters or more, outside the stop list) and numbers. A French elided word is read
+    without its elision (2026-11-21): « c'est », « j'ai », « qu'est » are function words, « d'élèves » is « élèves ».
+    seg1: the reading of SEG-1 (follows_previous), unchanged (elisions kept whole, the stop list of 2026-11-20)."""
+    if seg1:
+        words, stop = iter(_fold(s).split()), _STOP_SEG1
+    else:
+        words, stop = (_ELISION_FOLDED.sub("", w) for w in _fold(s).split()), STOP
+    out = {w for w in words if len(w) >= CONTENT_WORD_MIN and w not in stop}
     for tok in re.findall(r"\$?\d[\d,.]*k?", (s or "").lower()):
         n = norm_number(tok)
         if n is not None:
@@ -341,7 +375,7 @@ def inventory(ctx: CallContext) -> list[Unit]:
         pros_words = set().union(*[content_words(x.text) for x in prev_p]) if prev_p else set()
         for r, (k, s) in enumerate(qs, 1):
             ws = [w for w in _fold(s).split() if w]
-            low = s.strip().lower()
+            low = _apostrophe(s.strip().lower())
             attrs = {
                 "form": question_form(s),
                 "validation_tail": any(re.search(p, low) for p in TAILS),                     # SEG-4
@@ -888,22 +922,30 @@ def atoms_task(u: Unit) -> ModelTask:
 
 
 NUM_WORDS = r"(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|" \
-            r"sixty|hundred|thousand|million|dozen)"
+            r"sixty|hundred|thousand|million|dozen|" \
+            r"deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|" \
+            r"quarante|cinquante|soixante|cent|cents|mille|millions?|douzaines?|dizaines?|quinzaines?|vingtaines?|" \
+            r"centaines?)"                                                  # French (2026-11-21, Romain)
+# a duration or a count said with « un » / « une » (« depuis un an », « un mois sans élève »); « un jour » (« un jour, je
+# voudrais… ») is not a duration and stays out, as « a day » would be read in English only with a figure
+_ONE_FR = r"\b(un|une) (an|ans|année|mois|semaine|journée|demi-journée|heure|client|cliente|élève|demi)\b"
 
 
 def has_quantity(quote: str) -> bool:
-    """SB-24 (replaces SB-15): an amount, a count or a duration. A frequency alone ("every month") or a vague
-    quantity ("a lot", "forever", X6) is not enough."""
+    """SB-24 (replaces SB-15): an amount, a count or a duration. A frequency alone ("every month", « tous les mois ») or a
+    vague quantity ("a lot", « beaucoup », "forever", X6) is not enough."""
     q = (quote or "").lower()
     return bool(re.search(r"\d", q) or re.search(rf"\b{NUM_WORDS}\b", q) or
-                re.search(r"\b(a|one) (year|month|week|day|hour|client|half)s?\b", q))
+                re.search(r"\b(a|one) (year|month|week|day|hour|client|half)s?\b", q) or re.search(_ONE_FR, q))
 
 
 def parse_quantity(quote: str) -> tuple[Optional[float], Optional[str]]:
-    m = re.search(r"(\$?\d[\d,.]*\s?(k|grand)?)\s*(a |per |an )?([a-z]+)?", (quote or "").lower())
+    # French (2026-11-21): the thousands space (« 2 000 euros »), an accented unit (« élèves ») or « € », « par mois »
+    m = re.search(r"(\$?\d(?:[\d,.]|\s(?=\d{3}(?!\d)))*\s?(k|grand)?)\s*(a |per |an |par )?([a-zà-öø-ÿœ€]+)?",
+                  (quote or "").lower())
     if not m:
         return None, None
-    n = norm_number(m.group(1).replace(" ", ""))
+    n = norm_number(re.sub(r"\s", "", m.group(1)))
     try:
         return (float(n) if n is not None else None), m.group(4)
     except ValueError:
@@ -990,7 +1032,10 @@ ECHO = re.compile(r"^(and )?(tell me more|how so|what else|meaning|what do you m
                   r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$"
                   # French (LNP, 2026-11-19)
                   r"|^(et )?(c'est-à-dire|comment ça|dans quel sens|par exemple|quoi d'autre|et après|et ensuite|"
-                  r"à quel point|dis-m'en plus|raconte|pourquoi|comment|vraiment|genre|c'est-à-dire)\b.{0,25}\?*$")
+                  r"à quel point|dis-m'en plus|raconte|pourquoi|comment|vraiment|genre|c'est-à-dire|"
+                  # 2026-11-21 (Romain)
+                  r"dites-m'en plus|racontez|qu'est-ce que (?:tu veux|vous voulez) dire|de quelle (?:façon|manière)|"
+                  r"comme quoi|beaucoup|ah bon|continue|continuez|vas-y|allez-y|développe|développez)\b.{0,25}\?*$")
 
 
 def follows_up(prev_answer: str, question: str, preamble: str = "") -> bool:
