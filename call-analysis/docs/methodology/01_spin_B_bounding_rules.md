@@ -103,7 +103,7 @@ superseded. Engine constant `REOPENINGS = False`; the `spin.reopen_end` task is 
 
 ## A8. Registers of the questions (SPIN v1.2, Romain 2026-10-27; v1.3 SB-35, Romain 2026-10-29)
 
-Each question of the discovery is placed in one of four registers, or Other. The register is a reading aid for the
+Each question of the discovery is placed in one of four registers, or No register (« Sans registre », key `other`, 2026-11-21). The register is a reading aid for the
 sales and the coach (where the discovery went and where it did not); it is displayed and never scored: it changes
 no letter, no atom, no item and no score.
 
@@ -149,7 +149,7 @@ mindset, fear, doubt, feel, emotion, frustrated, proud, health, stress, anxiety,
 A target in money or clients ("how much do you want to make?") is Financial, not Identity & status; words that only
 date the question ("today", "last year", "in 12 months") are not the time domain.
 
-**SB-31 · Other.** Since v1.3 a question about a subject outside the eight domains (a tool, a place, a method) is an
+**SB-31 · No register (formerly Other).** Since v1.3 a question about a subject outside the eight domains (a tool, a place, a method) is an
 open question (SB-35). Other is given when the answer talks about none of the eight domains, or, for a question with
 no answer, when it names no subject and points to none. Since 2026-11-21 (Romain), by the code: a question with no register reading (unread, C4) or read « none » although the
 prospect answered, and whose words name no domain, takes the one domain the words of its first answer turn name (SB-30

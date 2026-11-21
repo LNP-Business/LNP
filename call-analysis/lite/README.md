@@ -184,8 +184,8 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
 6. **Registers**: when the words of the question name one register (SB-27), the code takes it, whether the model
    read the register in the answer, in the question with another domain, or gave no reading at all (an unread question); a neutral question with no reading, or read « none » though
    answered, takes the one domain its first answer turn names, else No register (« Sans registre », SB-31, `register:other_by_code`); the
-   work of today (domain `status`) has no register (Romain, 2026-11-21) (2026-11-21: « tu es à la retraite et tu donnes
-   des cours ? » read as money becomes Identity and status, instead of an undecided conflict). A register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
+   work of today (domain `status`) has no register (Romain, 2026-11-21: « tu es à la retraite et tu donnes des cours ? »
+   read as money is « Sans registre », a neutral fact, instead of an undecided conflict). A register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
    when the prospect's words it quotes are in exactly one turn of the answer (`register:turn_found_by_code`); without
    those words there is no proof and the register stays `to_review`. Single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
    (`agreement: null`). The SB-32 code checks still run (quote place, rule order, word-list conflict); a rejected
