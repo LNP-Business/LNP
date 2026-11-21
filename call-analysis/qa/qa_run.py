@@ -44,6 +44,31 @@ def stored_answers(case: dict) -> dict:
     return answers
 
 
+class ReplayClient:
+    """Replay: the stored answers, played again in order; the stored S1 readings (lite.s1_discovery) are given to each
+    chunk by turn, since the chunks of today's code are not those of the stored analysis (a reading given to the wrong
+    chunk would not reach its turn's item, SEG-1)."""
+
+    def __init__(self, answers: dict):
+        from callqa_lite.steps import MockLiteClient
+        answers = dict(answers)
+        s1 = answers.pop("lite.s1_discovery", None)
+        self.mock = MockLiteClient(answers)
+        self.calls, self.usage = self.mock.calls, self.mock.usage
+        self.s1 = [q for a in (s1 or []) for q in (a.get("questions") or []) if isinstance(q, dict)]
+
+    def complete(self, task_id, unit_id, tier, system, prefix, prompt, max_tokens=16000, effort="low"):
+        import re
+        if task_id != "lite.s1_discovery":
+            return self.mock.complete(task_id, unit_id, tier, system, prefix, prompt, max_tokens, effort)
+        self.calls.append({"task": task_id, "unit": unit_id, "tier": tier, "prompt": prompt, "prefix": prefix,
+                           "max_tokens": max_tokens, "effort": effort})
+        m = re.match(r"T(\d+)-T(\d+)$", unit_id or "")
+        num = lambda t: int(t[1:]) if re.match(r"T\d+$", str(t or "")) else -1
+        qs = [q for q in self.s1 if m and int(m.group(1)) <= num(q.get("turn")) <= int(m.group(2))]
+        return {"text": json.dumps({"questions": qs}, ensure_ascii=False), "stop_reason": "end_turn"}
+
+
 def live_tiers(url: str, key: str) -> dict:
     """The model ids per tier the worker uses (crm_ca_config.tiers): the measure runs what production runs."""
     import urllib.request
@@ -56,11 +81,10 @@ def live_tiers(url: str, key: str) -> dict:
 
 def analyse(case: dict, mode: str, effort: str) -> dict:
     from callqa_lite.engine import analyse as lite
-    from callqa_lite.steps import MockLiteClient
     from callqa_worker.job import build_context
     claim = claim_of(case)
     if mode == "replay":
-        client = MockLiteClient(stored_answers(case))
+        client = ReplayClient(stored_answers(case))
     else:
         from callqa_worker.gateway import GatewayClient
         url, key = os.environ.get("SUPABASE_URL", ""), os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
@@ -73,6 +97,15 @@ def analyse(case: dict, mode: str, effort: str) -> dict:
     return rec
 
 
+def safe_analyse(case: dict, mode: str, effort: str) -> dict:
+    """One analysis; a failure (model error, cut answer) is a result of the measure, not the end of it: the record
+    only carries the kind of error (no message: it may quote the call)."""
+    try:
+        return analyse(case, mode, effort)
+    except Exception as e:  # noqa: BLE001
+        return {"qa_failed": type(e).__name__}
+
+
 def line(m: dict) -> str:
     def s(a, b):
         v = share((m.get(a) or {}).get(b))
@@ -83,6 +116,14 @@ def line(m: dict) -> str:
             f"errors {m['n_errors']}")
 
 
+def repro_line(slug: str, r: dict) -> str:
+    """A call with nothing to compare (excluded, e.g. a cut recording) has no share: printed as "-"."""
+    def pct(v):
+        return "-" if v is None else f"{v:.0%}"
+    return (f"{slug:<12} same letter {pct(r.get('same_letter_share'))}, same register "
+            f"{pct(r.get('same_register_share'))} over {r.get('runs')} runs (C4 target 95 %)")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cases", required=True)
@@ -91,9 +132,10 @@ def main(argv=None) -> int:
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--split", choices=["tuning", "control", "all"], default="all")
     ap.add_argument("--effort", default="low")
+    ap.add_argument("--workers", type=int, default=1, help="analyses run at the same time (live mode)")
     ap.add_argument("--out")
     a = ap.parse_args(argv)
-    measures, repro, problems = [], {}, {}
+    measures, repro, problems, failed = [], {}, {}, []
     for rp in sorted(Path(a.refs).glob("*.json")):
         ref = load(rp)
         if a.split != "all" and ref.get("split") != a.split:
@@ -108,22 +150,31 @@ def main(argv=None) -> int:
             problems[ref.get("slug")] = errs
             print(f"{ref.get('slug')}: reference file invalid ({len(errs)} errors), not measured", flush=True)
             continue
-        recs = [analyse(case, a.mode, a.effort) for _ in range(max(1, a.repeat if a.mode == "live" else 1))]
+        n = max(1, a.repeat if a.mode == "live" else 1)
+        if a.workers > 1 and n > 1:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=min(a.workers, n)) as pool:
+                runs = list(pool.map(lambda _: safe_analyse(case, a.mode, a.effort), range(n)))
+        else:
+            runs = [safe_analyse(case, a.mode, a.effort) for _ in range(n)]
+        recs = [r for r in runs if "qa_failed" not in r]
+        for r in runs:
+            if "qa_failed" in r:
+                failed.append({"slug": ref.get("slug"), "error": r["qa_failed"]})
+                print(f"{ref.get('slug'):<12} analysis failed: {r['qa_failed']}", flush=True)
         ms = [measure(ref, r) for r in recs]
         for m in ms:
             print(line(m), flush=True)
         measures += ms
         if len(recs) > 1:
             repro[ref.get("slug")] = reproducibility(ref, recs)
-            r = repro[ref.get("slug")]
-            print(f"{ref.get('slug'):<12} same letter {r['same_letter_share']:.0%}, same register "
-                  f"{r['same_register_share']:.0%} over {r['runs']} runs (C4 target 95 %)", flush=True)
+            print(repro_line(ref.get("slug"), repro[ref.get("slug")]), flush=True)
     tot = total(measures)
     print("TOTAL " + " · ".join(f"{k} {v['share']:.0%} ({v['right']}/{v['out_of']})" for k, v in tot.items()
-                                if isinstance(v, dict) and v["out_of"]) + f" · errors {tot['errors']}", flush=True)
+                                if isinstance(v, dict) and v["out_of"]) + f" · errors {tot['errors']} · failed analyses {len(failed)}", flush=True)
     if a.out:
         Path(a.out).write_text(json.dumps({"mode": a.mode, "repeat": a.repeat, "split": a.split, "total": tot,
-                                           "calls": measures, "reproducibility": repro, "invalid_references": problems},
+                                           "calls": measures, "reproducibility": repro, "failed": failed, "invalid_references": problems},
                                           ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     return 1 if problems else 0
 

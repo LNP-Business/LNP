@@ -49,9 +49,45 @@ def test_the_model_keeps_the_code_turn_and_question_and_a_forgotten_one_is_asked
     assert qs[0]["grouped"] == ["Combien d'élèves tu as aujourd'hui ?", "Et pourquoi ?"]
 
 
-def test_an_unread_question_is_counted_and_one_reading_per_turn():
+def test_an_unread_question_is_counted_kept_for_the_gates_and_one_reading_per_turn():
     answer = {"questions": [{"id": "Q001", "letter": "S"},
                             {"turn": "T001", "quote": "Et pourquoi ?", "letter": "P"}]}   # a second item on the same turn
     qs, client, d = run([answer, answer])
-    assert [q["id"] for q in qs] == ["Q001"] and qs[0]["letter"] == "S"
+    assert [q["id"] for q in qs] == ["Q001", "Q005"] and qs[0]["letter"] == "S"
+    assert qs[1]["s1_unread"] and "letter" not in qs[1]                            # C4: one reading never drops it
+    assert qs[1]["quote"] == "Et qu'est-ce que tu voudrais dans un an ?"
     assert d.counts["S1"] == {"question:not_read": 1}                              # Q005, even after the second asking
+
+
+def test_a_question_s1_routes_is_kept_for_the_gates():
+    answer = {"questions": [{"id": "Q001", "letter": "S"}, {"id": "Q005", "routing": "validation_request"}]}
+    qs, _, d = run([answer])
+    assert [(q["id"], q.get("s1_routing")) for q in qs] == [("Q001", None), ("Q005", True)]
+    assert d.counts["S1"] == {"question:routing_s1": 1}
+
+
+def test_a_question_read_in_another_chunk_is_not_a_second_unit():
+    c = ctx()
+    first = {"questions": [{"id": "Q001", "letter": "S"},
+                           {"turn": "T005", "quote": "Et qu'est-ce que tu voudrais dans un an ?", "letter": "N"}]}
+    second = {"questions": [{"id": "Q005", "letter": "N"}]}
+    client = MockLiteClient({"lite.s1_discovery": [first, second]})
+    d = Drops()
+    qs = run_s1(c, Steps(client, c), dict(DEFAULTS, s1_chunk_turns=3), d)
+    assert [q["id"] for q in qs] == ["Q001", "Q005"] and not any(q.get("added_by_model") for q in qs)
+    assert d.counts["S1"] == {"question:turn_of_another_chunk": 1}
+
+
+def test_seg1_two_questions_the_model_adds_on_an_unpunctuated_turn_are_one():
+    lines = [(S, "Bonjour Julie."), (P, "Bonjour."),
+             (S, "je veux comprendre c'est quoi le projet en gros est ce que c'est vraiment ton projet de donner des cours"),
+             (P, "Oui, l'enseignement me manque.")]
+    raw = "\n".join(f"[00:{i:02d}:00] {w}: {t}" for i, (w, t) in enumerate(lines))
+    c = CallContext("c", "s", "2026-11-20T10:00:00Z", "Europe/Paris", parse_transcript(raw, {S: "SALES", P: "PROSPECT"}))
+    answer = {"questions": [{"turn": "T003", "quote": "c'est quoi le projet en gros", "letter": "S"},
+                            {"turn": "T003", "quote": "est ce que c'est vraiment ton projet de donner des cours", "letter": "S"}]}
+    d = Drops()
+    qs = run_s1(c, Steps(MockLiteClient({"lite.s1_discovery": answer}), c), dict(DEFAULTS), d)
+    assert [q["quote"] for q in qs] == ["est ce que c'est vraiment ton projet de donner des cours"]
+    assert qs[0]["grouped"] == ["c'est quoi le projet en gros", "est ce que c'est vraiment ton projet de donner des cours"]
+    assert d.counts["S1"] == {"question:same_turn_grouped": 1}

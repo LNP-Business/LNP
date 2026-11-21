@@ -40,7 +40,8 @@ DEFAULTS: dict[str, Any] = {
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
-    "max_tokens": {"SV": 8000, "S0": 6000, "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 8000, "S3": 10000, "S4": 10000},
+    "max_tokens": {"SV": 8000, "S0": 12000,      # S0 6000 → 12000 (2026-11-20): an R2 of the reference set was cut twice
+                   "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
@@ -104,6 +105,7 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
     """S1 over the turns before the first pitch start or price, in chunks; an answer cut by max_tokens is asked again
     as two halves. Returns the questions, or None if every chunk failed."""
     queue, out, failed, done = _windows(ctx, cfg["s1_chunk_turns"]), [], 0, 0
+    listed = {it["turn"] for a, b in queue for it in inventory(ctx, a, b)}     # SEG-1: every turn the code lists
     end = ctx.phases.discovery_end
     if not queue:                                   # the pitch starts at the first turn: no discovery (SPIN §5)
         return []
@@ -135,8 +137,33 @@ def run_s1(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> Optional[
                               cfg["max_tokens"]["S1"], replay_truncated=False)
             if again.answer:
                 got += [q for q in again.answer.get("questions") or [] if isinstance(q, dict) and q.get("id")]
-        out += with_inventory(got, inv, drops)
-    return out if done else None
+        out += with_inventory(got, inv, drops, listed)
+    return group_added(ctx, out, drops) if done else None
+
+
+def group_added(ctx: CallContext, items: list[dict], drops: Drops) -> list[dict]:
+    """SEG-1 for the questions the model added on a turn the code did not list (no question mark: the recorder did not
+    punctuate): one per turn too, the last one in the turn, unless it only follows up the previous one (the code's
+    follows_previous); the others are counted (`question:same_turn_grouped`) and kept in `grouped`."""
+    added: dict[str, list[dict]] = {}
+    for q in items:
+        if q.get("added_by_model"):
+            added.setdefault(q.get("turn"), []).append(q)
+    drop = set()
+    for tid, qs in added.items():
+        if len(qs) < 2 or ctx.turn(tid) is None:
+            continue
+        text = norm(ctx.turn(tid).text)
+        qs = sorted(qs, key=lambda q: text.find(norm(q.get("quote") or "").strip(' .,?!"')))
+        k = len(qs) - 1
+        while k > 0 and SP.follows_previous(qs[k].get("quote") or "", qs[k - 1].get("quote") or ""):
+            k -= 1
+        qs[k]["grouped"] = [q.get("quote") for q in qs]
+        for j, q in enumerate(qs):
+            if j != k:
+                drop.add(id(q))
+                drops.add("S1", "question:same_turn_grouped", {"turn": tid})
+    return [q for q in items if id(q) not in drop]
 
 
 def _short(t, n: int = 300) -> str:
@@ -195,6 +222,12 @@ def _reading_text(g: Optional[dict], quote: str) -> str:
     return f"letter {d[0] if d else '?'}" + (f" ({d[1]})" if d and d[1] else "") + " · " + ("; ".join(parts) or "no gate")
 
 
+def _same_outcome(letter: Optional[tuple]) -> Optional[tuple]:
+    """Two readings agree when they lead to the same outcome: "not a solicitation" and OUT `nothing` both leave the
+    sentence out of the discovery with nothing to read (SPIN §2, SB-2), so they are one outcome."""
+    return ("OUT", "nothing") if letter and letter[0] == "NOT_SOLICITATION" else letter
+
+
 def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions: list) -> dict[str, dict]:
     """S1g (2026-11-20, SPIN §3, Part C, C4): the model answers the closed gates of each listed question, in batches
     with their context; the code decides the letter with the engine's decide_letter. Two independent readings (the second
@@ -224,9 +257,10 @@ def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions
         if passes == 1:
             out[q["id"]] = dict(valid[0], _status="single_reading")
             continue
-        letters = {LS.gate_letter(g, q["quote"]) for g in valid}
+        letters = {_same_outcome(LS.gate_letter(g, q["quote"])) for g in valid}
         if len(valid) == passes and len(letters) == 1:
-            out[q["id"]] = dict(valid[0], _status="agreed")
+            keep = next((g for g in valid if g.get("is_solicitation") is not False), valid[0])   # listed, OUT nothing
+            out[q["id"]] = dict(keep, _status="agreed")
         else:
             disputed.append((q, got))
     if disputed:
@@ -254,10 +288,13 @@ def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions
     return out
 
 
-def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]:
+def with_inventory(got: list[dict], inv: list[dict], drops: Drops, listed: Optional[set] = None) -> list[dict]:
     """The model's readings on the code's list: a listed question keeps the code's turn and priority question (the
-    model cannot move or reword it), one reading per turn; a listed question still unread is counted
-    (`question:not_read`); a question the model added counts only on a turn the code did not list. A reading without
+    model cannot move or reword it), one reading per turn; a question the model added counts only on a turn the code
+    did not list. C4 (2026-11-20): one reading never removes a listed question. A listed question still unread is
+    counted (`question:not_read`) and kept for the gates (`s1_unread`); one S1 sends to gate 0 (a validation or
+    decision request) is counted (`question:routing_s1`) and kept for the gates too (`s1_routing`): the two
+    readings of the gates, and the arbiter on a disagreement, decide (spin.build_units). A reading without
     id (an answer of the earlier per-question listing) goes to its turn's item: the one on the priority question, else
     the last one of the turn."""
     by_id = {it["id"]: it for it in inv}
@@ -272,6 +309,8 @@ def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]
                 continue
             if q.get("turn") in by_turn:
                 drops.add("S1", "question:same_turn_as_listed", q)   # SEG-1: one item per turn
+            elif q.get("turn") in (listed or ()):
+                drops.add("S1", "question:turn_of_another_chunk", q)  # SEG-1: read with its own chunk, never twice
             else:
                 extra.append(dict(q, added_by_model=True))
             continue
@@ -290,14 +329,17 @@ def with_inventory(got: list[dict], inv: list[dict], drops: Drops) -> list[dict]
     out = []
     for it in inv:
         q = chosen.get(it["id"])
+        base = {"id": it["id"], "turn": it["turn"], "quote": it["quote"], "grouped": [it["quote"]] + it["others"]}
         if q is None:
             drops.add("S1", "question:not_read", {"turn": it["turn"]})
+            out.append(dict(base, s1_unread=True))
             continue
         if q.get("_routing"):
-            drops.add("S1", "question:routing", {"turn": it["turn"]})
+            drops.add("S1", "question:routing_s1", {"turn": it["turn"]})
+            out.append(dict(base, s1_routing=True))
             continue
         q = {k: v for k, v in q.items() if k != "_on_priority"}
-        out.append(dict(q, id=it["id"], turn=it["turn"], quote=it["quote"], grouped=[it["quote"]] + it["others"]))
+        out.append(dict(q, **base))
     return out + extra
 
 

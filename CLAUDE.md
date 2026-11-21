@@ -181,6 +181,11 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   Découverte : la suite des questions dans l'ordre de l'appel, les lettres neutres (seul l'état, fait obtenu ou non, se voit),
   « 2 douleurs · 1 désir » en mots ; Objections : « Avant le prix » puis « Après le prix », « Ta réponse » et « Réaction du
   prospect » ; aucun numéro de tour ni code de règle à l'écran. « Remplacer la transcription » est en bas de l'analyse.
+  Questions incertaines (Romain, 2026-11-21) : dans la découverte, une question identifiée ou traitée sans certitude porte une
+  lettre orange en pointillés avec un « ? », leur nombre s'affiche sous le titre et le panneau de la question donne les raisons
+  (non tranchée, arbitrée, lue une seule fois alors que l'analyse a lu les portes, aucune porte franchie, sujet non tranché,
+  réponse non trouvée, voix douteuse, effet reclassé ; `UNC` dans `discovery` de `LNP_CAV`). Une voix corrigée et confirmée par
+  la seconde lecture n'est pas une incertitude ; une lettre corrigée par un administrateur non plus.
   « Comment c'est noté » sous chaque section (`HOW`, la méthode en clair) ; les points d'attention de la qualification visibles ;
   la transcription en panneau à droite, avec une recherche sans accents (`.cav-find`) ; Échap ferme d'abord la fenêtre d'un geste,
   la question ouverte ou la transcription, puis l'analyse, et le focus revient au bouton qui l'a ouverte.

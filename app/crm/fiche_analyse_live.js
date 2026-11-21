@@ -211,6 +211,25 @@ const { chromium } = require('playwright');
   check('R2 : découverte, écart et offre « déjà faits lors d’un appel précédent »', c9 && /écart déjà fait lors d.un appel précédent du cycle/.test(c9[0]) && /offre déjà présentée lors d.un appel précédent du cycle/.test(c9[0]) && !/Si je résume/.test(c9[0]), c9 && c9[0].slice(0, 500));
   check('prix déguisé en « tour du marché » : bandeau dans la présentation de l’offre', c9 && /Prix donné trop tôt, déguisé en « tour du marché »/.test(c9[2]), c9 && c9[2].slice(0, 300));
   check('écart mauvais non repris : « Écart à reprendre »', c9 && /Écart à reprendre : il n.a été suivi ni d.une nouvelle reformulation ni d.un retour à la découverte/.test(c9[1]), c9 && c9[1].slice(0, 300));
+  // Romain 2026-11-21 : une question incertaine porte une lettre orange avec « ? » et ses raisons dans le panneau
+  const unc = await cf.evaluate(() => {
+    const CAV = window.LNP_CAV || window.parent.LNP_CAV; if (!CAV) return null;
+    const turns = [['T001', 'SALES', 'Tu fais quoi aujourd’hui ?'], ['T002', 'PROSPECT', 'Je donne des cours.'], ['T003', 'SALES', 'Qu’est-ce qui te bloque ?'],
+      ['T004', 'PROSPECT', 'Trouver des élèves.'], ['T005', 'SALES', 'Et donc ?'], ['T006', 'PROSPECT', 'Voilà.']].map((x, i) => ({ id: x[0], role: x[1], text: x[2], ts: '00:0' + i + ':00' }));
+    const sol = (id, turn, letter, status, extra) => Object.assign({ id, turn, letter, status, in_perimeter: true, answer_turns: ['T00' + (+turn.slice(-1) + 1)], tags: ['gates_by_code'], register: 'other', register_status: 'single_reading' }, extra || {});
+    const r = { status: 'ok', turns, phases: { discovery_start: 'T001', pitch_start: 'T006' }, corrections: [], can_correct: false,
+      results: { SPIN: { competence: 'SPIN', status: 'excluded', reasons: ['health_absent_share'], details: { solicitations: [
+        sol('Q001.1', 'T001', 'S', 'agreed'), sol('Q003.1', 'T003', 'P', 'arbitrated'), sol('Q005.1', 'T005', 'OUT', 'agreed', { out_reason: 'absent' })] } } } };
+    const d = document.createElement('div'); d.innerHTML = CAV.html(r, { sol: 'Q003.1' });
+    const old = JSON.parse(JSON.stringify(r)); old.results.SPIN.details.solicitations.forEach((q) => { q.status = 'single_reading'; q.tags = []; });
+    old.results.SPIN.details.solicitations[2].out_reason = 'nothing';
+    const e = document.createElement('div'); e.innerHTML = CAV.html(old, {});
+    return { unc: [...d.querySelectorAll('.chip.unc')].map((b) => b.getAttribute('data-cav-sol')), text: d.textContent, pane: (d.querySelector('#cav-sol-pane .unc-box') || {}).textContent || '',
+      old: e.querySelectorAll('.chip.unc').length };
+  });
+  check('question incertaine : lettre orange avec « ? » (arbitrée, aucune porte franchie), le nombre dans la découverte', unc && unc.unc.join() === 'Q003.1,Q005.1' && /2 questions incertaines/.test(unc.text), unc && { unc: unc.unc, t: unc.text.slice(0, 200) });
+  check('question incertaine : le panneau donne la raison', unc && /Question incertaine/.test(unc.pane) && /l'arbitre a tranché/.test(unc.pane), unc && unc.pane);
+  check('une analyse plus ancienne, lue une seule fois sans les portes, n’est pas marquée incertaine', unc && unc.old === 0, unc && unc.old);
   // le lien de l'historique (bulle « R1 honoré · analyse et transcription »)
   const chatLink = await cf.$('#layer #lrChat [data-ca]');
   if (chatLink) { await chatLink.click(); await p.waitForTimeout(900); w = await win();

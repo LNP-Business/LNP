@@ -163,13 +163,25 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (`closed_restatement`) and a choice among the sales' options (`CHOICE_LIST`), §3. Segmentation (SEG-1, Romain 2026-11-20):
    the code lists the solicitations, one per sales turn read on its priority question (`spin.group_turn`,
    `engine.inventory`); the model reads every listed item by its id (a forgotten one is asked again once, then counted
-   `question:not_read`; a gap validation request is answered `routing` and set aside) and may add a request without a
-   question mark on a turn the code did not list. SB-21 (action-plan N without a future state) is left to the model's OUT
+   `question:not_read`; a gap validation request is answered `routing`) and may add a request without a
+   question mark on a turn the code did not list (never on a turn listed in another chunk:
+   `question:turn_of_another_chunk`, the turn is read with its own chunk). Several questions the model adds on one
+   unpunctuated turn are one too, read on the last unless it only follows up the previous (`question:same_turn_grouped`). C4 (2026-11-20): one reading never removes a listed question: an
+   unread one and one S1 sends to gate 0 (`question:routing_s1`) go to the gates all the same, and the two readings of
+   the gates (the arbiter on a disagreement) decide; with no valid gate answer, S1's gate 0 stands (`question:routing`)
+   and a question nobody read stays listed `to_review` (tag `unread`, left out of the scores). The code's own
+   priority question is not held to the 40-word limit of a quoted question. SB-21 (action-plan N without a future state) is left to the model's OUT
    `solution_load`. The perimeter never starts on a social, logistic or framing question, whatever its letter
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
-6. **Registers**: single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
+   S1g readings (2026-11-21): "not a solicitation" and OUT `nothing` are one outcome when the two readings are compared
+   (§2, SB-2: neither leaves anything to read), so they agree without the arbiter. The prompt says that a social,
+   logistic or framing question is a solicitation (with g1 `nothing`); on 5 calls, 74 of 88 disagreements came from one
+   reading calling a plain question « not a solicitation ».
+6. **Registers**: a register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
+   when the prospect's words it quotes are in exactly one turn of the answer (`register:turn_found_by_code`); without
+   those words there is no proof and the register stays `to_review`. Single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
    (`agreement: null`). The SB-32 code checks still run (quote place, rule order, word-list conflict); a rejected
    register is `to_review` and left out of the counts.
 7. **Gap**: the X13 check (a figure that is not the present state) uses the atom's `figure_kind` from S1 (a figure

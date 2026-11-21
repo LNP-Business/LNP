@@ -142,3 +142,38 @@ def test_the_screen_corrections_become_reference_answers(tmp_path):
     (tmp_path / "c.json").write_text(json.dumps(rows))
     assert ctr.main(["--corrections", str(tmp_path / "c.json"), "--refs", str(tmp_path / "refs")]) == 0
     assert json.loads((tmp_path / "refs" / "fiction.json").read_text())["questions"][-1]["letter"] == "OUT"
+
+
+def test_an_excluded_call_prints_no_share_instead_of_failing():
+    from qa_run import repro_line
+    out = repro_line("cut", {"runs": 5, "same_letter_share": None, "same_register_share": None})
+    assert "same letter -" in out and "same register -" in out and "5 runs" in out
+
+
+def test_a_failed_analysis_is_counted_and_the_measure_goes_on(monkeypatch):
+    import qa_run
+
+    def boom(case, mode, effort):
+        raise RuntimeError("phase map (S0): truncated answer (max_tokens) « a quote »")
+    monkeypatch.setattr(qa_run, "analyse", boom)
+    assert qa_run.safe_analyse({}, "live", "low") == {"qa_failed": "RuntimeError"}
+
+
+def test_a_question_to_review_is_found_but_left_out_of_the_letters():
+    from callqa_qa.score import spin as spin_measure
+    ref = {"questions": [{"quote": "Combien d'élèves as-tu aujourd'hui ?", "letter": "S"},
+                         {"quote": "Et qu'est-ce que ça te fait ?", "letter": "I"}]}
+    rec = {"results": {"SPIN": {"details": {"solicitations": [
+        {"id": "Q1", "quote": "Combien d'élèves as-tu aujourd'hui ?", "letter": "S", "status": "agreed"},
+        {"id": "Q2", "quote": "Et qu'est-ce que ça te fait ?", "letter": "OUT", "status": "to_review"}]}}}}
+    m = spin_measure(ref, rec)
+    assert m["questions_found"] == [2, 2] and m["questions_to_review"] == [1, 2] and m["letters"] == [1, 1]
+    assert m["errors"] == []
+
+
+def test_the_replay_gives_each_chunk_the_stored_readings_of_its_own_turns():
+    from qa_run import ReplayClient
+    c = ReplayClient({"lite.s1_discovery": [{"questions": [{"turn": "T037", "quote": "a ?"}, {"turn": "T080", "quote": "b ?"}]}]})
+    got = json.loads(c.complete("lite.s1_discovery", "T001-T040", "fast", "", "", "")["text"])["questions"]
+    assert [q["turn"] for q in got] == ["T037"]
+    assert json.loads(c.complete("lite.s1_discovery", "T001-T040:missing", "fast", "", "", "")["text"])["questions"] == []

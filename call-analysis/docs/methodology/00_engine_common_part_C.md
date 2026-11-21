@@ -48,6 +48,10 @@ The engine follows one rule: **the model extracts and quotes, the code decides a
 - **Concordant (3/3).** The verdict is final, status `verified`.
 - **Divergent (2/3 or less), or an invalid quote.** The unit goes to an **arbiter**: a separate model call that did not take part in the three passes, receives the full rulebook (this document), the unit, its context and the three readings, and decides by walking the decision rules in order. It never votes between the readings. Status `arbitrated`, with a one-sentence justification and a case label: `application_error` (a reading did not follow a clear rule), `rule_ambiguity` (two readings are defensible with the text) or `uncovered_case` (no rule decides). The last two are reported to the methodology owner and feed the next rules version.
 - **Unresolved.** A unit the arbiter cannot decide stays `to_review` and is excluded from scores.
+- **No silent loss (2026-11-20).** A unit the code listed (a discovery question, SEG-1) is never removed by a single
+  model reading: being left unread, or read as "not a discovery question", sends it to the full reading (two passes,
+  the arbiter on a disagreement); a unit no valid reading decides stays listed `to_review`. The measure counts these
+  units apart (`questions_to_review`).
 - **Cost option.** When volume makes three passes too expensive, one pass is allowed in production **only** if the reproducibility protocol (C7) has shown at least 95 % item-level concordance on the current rules version, and three passes continue to run on a random 10 % sample of calls every week. Any week where that sample falls below 95 % restores three passes on every call.
 
 ## C5. Time windows and aggregation
