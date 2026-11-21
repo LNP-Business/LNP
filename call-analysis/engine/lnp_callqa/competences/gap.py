@@ -324,8 +324,9 @@ def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict
         comp = "A" if f.kind == "present" else "B"
         twin = next((s for s in st[comp] if s.turn == f.turn and s.quantified and s.value == f.value), None)
         if twin is not None:
-            if f.unit and not twin.unit:
+            if f.unit and (not twin.unit or unit_dim(twin.unit) is None):   # « 2000 c'est » read as unit "c" by the model
                 twin.unit = f.unit
+            twin.kind = f.kind                         # the model's atom is this very figure: where he is, or his target
             continue
         if f.value is None and any(s.turn == f.turn and (norm(s.quote) in norm(f.quote) or norm(f.quote) in norm(s.quote))
                                    for s in st[comp]):
@@ -361,7 +362,7 @@ def a_candidates(ctx: CallContext, st: dict[str, list[Statement]], cutoff: Optio
     for s in st["A"]:
         if not ctx.before(s.turn, cutoff) or s.atom_id in not_present:
             continue
-        if s.origin == "atom":
+        if s.origin == "atom" and s.kind != "present":        # a model atom that is a present figure counts anyway
             if s.letter not in ("S", "I"):
                 continue
             if s.atom_type == "IMPACT" and not s.quantified:
@@ -1305,9 +1306,13 @@ class GapCompetence:
             i += 1
         resolve_corrections(rs)
 
-        # ---- gap formula (GB-28..GB-33), cutoff = first restitution (or window end)
-        first = next((r.span.start for r in rs if r.is_restitution and r.before_pitch), None)
-        cutoff = first or wend
+        # ---- gate first: the formula is read before the restitution that is judged (GB-11: the last passing one,
+        # else the last one before the pitch), not before an early partial restitution (2026-11-21)
+        verdict, reasons, ok = gate(rs)
+        scored = ok[-1] if ok else None                                    # GB-11: last passing restitution
+        pre = [r for r in rs if r.is_restitution and r.before_pitch]
+        judged = scored or (pre[-1] if pre else None)
+        cutoff = judged.span.start if judged else wend
         st = statements_with_figures(ctx, cutoff)
         not_present = self._a_present_check(ctx, runner, st, cutoff, concs)
         A = a_candidates(ctx, st, cutoff, not_present)
@@ -1324,14 +1329,11 @@ class GapCompetence:
         if warn:
             res.flags.append("roadmap_insufficient_blockers")              # GB-33
 
-        # ---- gate and items
-        verdict, reasons, ok = gate(rs)
+        # ---- conformity and items
         for r in rs:
             r.conformity = formula_conformity(ctx, r, sel_a, sel_b, sel_p) if r.is_restitution else None
-        scored = ok[-1] if ok else None                                    # GB-11: last passing restitution
         sol_by_id = {q.id: q for q in ctx.solicitations}
-        pre = [r for r in rs if r.is_restitution and r.before_pitch]
-        diag_r = scored or (pre[-1] if pre else None)
+        diag_r = judged
         items = score_items(ctx, diag_r, sel_a, sel_b, horizon, sel_p, (diag_r.conformity if diag_r else None),
                             sol_by_id)
         if verdict == "present":

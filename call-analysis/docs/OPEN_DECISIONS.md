@@ -140,6 +140,10 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   (`core/costs.py`), next to the model's IMPACT atoms; what the prospect said is listed over the whole window. Replay:
   costs right 5 → 11 of 12 on the six calls (tuning set: control calls still to be read, C7). The lexicon is a
   configuration to grow from the calls people check; a cost the lexicon misses is still the model's to list.
+- Cutoff of the gap formula (GAP-1.4, 2026-11-21, first live analyses with the new rules): the candidates are read
+  before the restitution that is judged (last passing, else last before the pitch), no longer before the first
+  restitution; a model atom that is the code's present figure counts whatever the question it answers, with the code's
+  unit when the model's has no dimension. Live: A 4/5 → 5/5, B 5/5 on the six calls (cases replayed).
 
 ## G. Settled 2026-11-21 (Romain)
 
