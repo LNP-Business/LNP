@@ -24,7 +24,9 @@ obtained. A painful context does not colour the question.
   `sales_list` (a choice among options written by the sales, with no open branch; two verifiable facts are not a list),
   `agreement` (agreement with a sales assertion: "right?" tail, closed reformulation, content supplied by the sales)?
   Priority: nothing > offer_info > solution_load > sales_list > agreement. Else null.
-- g2 (S) neutral_fact: a neutral fact verifiable today (number, duration, name, status, what is done today). exclusion:
+- g2 (S) neutral_fact: a neutral fact verifiable today (number, duration, name, status, what is done today). An open
+  question on the prospect's present situation is one: "tu vois les choses comment aujourd'hui ?", "tu es professeur de
+  quoi ?", "ça fait longtemps ?", "par rapport à quoi, tu as une situation à côté ?", "tu fais comment aujourd'hui ?". exclusion:
   "difficulty" if it asks to NAME a difficulty, "consequence", "future_state"; else null. Counting a difficulty already
   named is not an exclusion.
 - g3 (N) state_or_value: a desired state that does not exist yet, or the value / importance of the resolution.
@@ -35,12 +37,17 @@ obtained. A painful context does not colour the question.
 - g4 (I) consequence: a consequence of the problem (cost, time lost, effect on clients, family, morale, beliefs,
   what happens if nothing changes). problem_domain and named_domain (or "open"): a time or place perimeter is not a
   domain. same_domain: the named domain is the problem's own domain. antecedent_solution: it starts from a solution.
-- g5 (P) difficulty: the difficulty itself (a lack, blocker, fear, failure, dissatisfaction, cause, what was tried).
+- g5 (P) difficulty: the difficulty itself (a lack, blocker, fear, failure, dissatisfaction, cause, what was tried), also
+  asked as a yes/no question: "qu'est-ce qui te bloque / t'a bloqué / t'empêche / te freine ?", "qu'est-ce qui ne va
+  pas ?", "c'est quoi le plus dur ?", "tu es en difficulté avec ça ?", "tu es à l'aise avec le fait que ça dure ?",
+  "qu'est-ce que tu as déjà essayé ?", "pourquoi ça n'a pas marché ?".
   sales_named: the question already names the difficulty in the sales' words. anchored: that wording reuses the
   prospect's word.
 - objection_clarification: true only if the question clarifies a resistance the prospect raised against buying.
 - quote: for every gate answered true (and for a g1 reason), an exact substring of the PRIORITY question (1 to 12 words).
-Answer every gate even after an earlier yes.
+Answer every gate even after an earlier yes. A discovery question almost always asks for a fact (g2), a desire (g3), a
+consequence (g4), a difficulty (g5) or nothing to read (g1): before answering all of them false, read the question
+again; all false is for a question that asks none of these.
 
 "quote" values are exact substrings of the PRIORITY question. Answer for EVERY unit, with its "id".
 JSON: {"units": [{"id": "Q030", "is_solicitation": true, "attribution_doubtful": false, "routing": null,

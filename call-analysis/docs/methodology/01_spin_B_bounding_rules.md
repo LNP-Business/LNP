@@ -103,7 +103,7 @@ superseded. Engine constant `REOPENINGS = False`; the `spin.reopen_end` task is 
 
 ## A8. Registers of the questions (SPIN v1.2, Romain 2026-10-27; v1.3 SB-35, Romain 2026-10-29)
 
-Each question of the discovery is placed in one of four registers, or Other. The register is a reading aid for the
+Each question of the discovery is placed in one of four registers, or No register (« Sans registre », key `other`, 2026-11-21). The register is a reading aid for the
 sales and the coach (where the discovery went and where it did not); it is displayed and never scored: it changes
 no letter, no atom, no item and no score.
 
@@ -111,9 +111,9 @@ no letter, no atom, no item and no score.
 |---|---|---|
 | Financial | money, clients | income, revenue, prices, debt; clients, projects, leads (a lack of clients turns into money) |
 | Time & load | time, family | hours, schedule, workload; the time taken from the family |
-| Identity & status | future | the gap between where the prospect is and where they want to be |
+| Identity & status | future | who the prospect wants to become, their place, what their work means to them, a change of path (the gap between where they are and where they want to be) |
 | Mental & emotional | self_belief, health | confidence, motivation, fear, feelings; stress, exhaustion, sleep |
-| Other | other, none | a subject outside the seven domains, or no subject at all |
+| No register (« Sans registre », key `other`) | status, other, none | the neutral facts of the prospect's situation, their work today (trade, subject, job status, seniority, retirement as a fact, daily life: domain `status`, Romain 2026-11-21), a place, a date, a tool, logistics, or no subject at all. A neutral fact that touches a lever keeps its register: « combien tu gagnes ? » is Financial |
 
 **SB-26 · Register of a question.** Every coded solicitation S, P, I or N of the discovery, from the perimeter start
 to the first pitch start or price (SB-1), gets one register. The model names one domain; the code maps it with the
@@ -121,7 +121,7 @@ table above (`other` and `none` give Other). No register is given to: a question
 nothing after it is SPIN (SB-34); an OUT solicitation (it is out of SPIN, confirmed by Romain 2026-10-27); a solicitation outside the
 perimeter; a unit gone `to_review`.
 
-**SB-27 · Read from the question, or from its effect.** When the question names one of the seven domains (SB-28,
+**SB-27 · Read from the question, or from its effect.** When the question names one of the eight domains (SB-28,
 SB-29 subject), the register is what it asks the prospect to talk about, in the sales' words, and the answer never
 changes it, in the same way that atoms never change the letter (§2). When it names none (an open question), its
 register is the effect it had: the answer decides (SB-35, v1.3).
@@ -131,7 +131,7 @@ about decides, not the premise. "With your clients being so up and down, what im
 asks about income: money, Financial (clients is the premise). When two domains are both asked ("your income and your
 family"), the first one asked, in reading order, decides.
 
-**SB-29 · Subject and reference.** A question that names a subject of the seven domains without asking for a domain
+**SB-29 · Subject and reference.** A question that names a subject of the eight domains without asking for a domain
 ("has that fear of failure cost you anything?", "where does that belief come from?") takes the domain of that subject.
 Since v1.3 a question that names nothing and points back ("how has that impacted you?") is an open question (SB-35): it
 takes the domain of what it points to, read in the last two prospect turns before it (`REGISTER_REFERENCE_TURNS = 2`),
@@ -142,14 +142,18 @@ only when it got no answer. "Personally", "your life", "you" name no domain.
 rent, finance, profit, dollar, paid, client, customer, project, leads, booking, pipeline, sales, an amount ("$5K", "10K");
 Time & load time, hour, week, weekend, schedule, workload, busy, family, kid, child, wife, husband, partner, son, daughter,
 parent; Identity & status future, years from now, long term, where do you see yourself, where do you want to be, become,
-dream, vision, career, legacy, status; Mental & emotional confidence, believe in yourself, self-belief, motivation,
+dream, vision, career, legacy, status (« devenir », « reconversion », « projet »); No register (2026-11-21) the work of today: job,
+profession, teach, retire, employee, freelance, background, degree (« métier », « professeur », « enseigner », « matière »,
+« retraite », « salarié », « parcours »); Mental & emotional confidence, believe in yourself, self-belief, motivation,
 mindset, fear, doubt, feel, emotion, frustrated, proud, health, stress, anxiety, burnout, exhausted, tired, sleep, energy.
 A target in money or clients ("how much do you want to make?") is Financial, not Identity & status; words that only
 date the question ("today", "last year", "in 12 months") are not the time domain.
 
-**SB-31 · Other.** Since v1.3 a question about a subject outside the seven domains (a tool, a place, a method) is an
-open question (SB-35). Other is given when the answer talks about none of the seven domains, or, for a question with
-no answer, when it names no subject and points to none.
+**SB-31 · No register (formerly Other).** Since v1.3 a question about a subject outside the eight domains (a tool, a place, a method) is an
+open question (SB-35). Other is given when the answer talks about none of the eight domains, or, for a question with
+no answer, when it names no subject and points to none. Since 2026-11-21 (Romain), by the code: a question with no register reading (unread, C4) or read « none » although the
+prospect answered, and whose words name no domain, takes the one domain the words of its first answer turn name (SB-30
+lexicon, the word quoted), else No register: a neutral question has no register, it is never left undecided.
 
 **SB-32 · Code checks.** (1) The model answers one closed question per unit: the asked domain, the basis (`named`,
 `answer`, `reference` or `none`) and a quote. (2) The quote is checked (C3): for `named`, exact words of the question or

@@ -182,8 +182,9 @@ class TestLetters:
         assert self.d(g).letter == "P"
 
     def test_p_named_by_sales_unless_anchored(self):
-        g = gate(self.T, "P", g5={"sales_named": True})
-        assert (self.d(g).letter, self.d(g).reason) == ("OUT", "absent")
+        g = gate(self.T, "P", g5={"sales_named": True})                  # §3 (2026-11-21): the question supplies the
+        d = self.d(g)                                                     # difficulty and asks for a yes: OUT agreement
+        assert (d.letter, d.reason) == ("OUT", "agreement") and "difficulty_named_by_sales" in d.tags
         g["g5"]["anchored"] = True
         assert self.d(g).letter == "P"
 
@@ -487,8 +488,12 @@ def test_applicability_and_health():
     assert res.reasons == ["fewer_than_5_coded_solicitations"]
     ctx = mk(SYN, pitch_start="T013")
     ans = syn_answers()
-    ans[("spin.gates", "gates:Q009.1")] = gate("How much do you make today?", "P", g5={"sales_named": True})
-    res, _ = run_spin(ctx, ans)                                          # 1 absent out of 5 coded = 20 % > 5 %
+    ans[("spin.gates", "gates:Q009.1")] = gate("How much do you make today?", "-")
+    res, _ = run_spin(ctx, ans)                                          # 1 absent out of 5 coded = 20 % > 5 %, but
+    assert res.status == "scored" and res.details["health"]["absent"] == 1   # fewer than 3: not excluded (§5, 2026-11-21)
+    ans[("spin.gates", "gates:Q011.1")] = gate("Where do you want to be?", "-")
+    ans[("spin.gates", "gates:Q007.1")] = gate("And with rent unpaid, how is your family taking it?", "-")
+    res, _ = run_spin(ctx, ans)                                          # 3 absent and 60 % > 5 %: excluded
     assert res.status == "excluded" and res.reasons == ["health_absent_share"]
     res, _ = run_spin(mk(SYN[:2], pitch_start=None), {})
     assert res.status == "not_applicable" and res.reasons == ["no_discovery"]

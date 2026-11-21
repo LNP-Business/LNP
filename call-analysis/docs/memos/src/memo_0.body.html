@@ -1,0 +1,498 @@
+<!-- META {"num": 0, "fichier": "LNP_Memo_0_Regles_communes.pdf", "kicker": "Mémo commun · Règles de l'analyse d'appel", "titre": "Les règles communes de l'analyse d'appel", "phrase": "Le modèle cite, le code décide et note : chaque note repose sur les mots exacts de l'appel, vérifiés, et un appel qu'on ne peut pas lire de façon fiable n'est pas noté.", "version": "Mémo 1.0 · 21 novembre 2026", "base": "méthode de l'analyse d'appel, partie C (le moteur commun aux quatre compétences), avec les décisions de Romain des 20 et 21 novembre 2026"} -->
+
+<section>
+<h2>Ce qui a changé</h2>
+<p>Ce mémo est nouveau : il rassemble les règles communes aux quatre compétences (découverte SPIN, formalisation de l'écart,
+présentation de l'offre, traitement des objections). Les mémos de chaque compétence renvoient ici pour tout ce qui ne leur est
+pas propre. Voici les décisions prises depuis les mémos d'octobre qui touchent ces règles communes.</p>
+<table class="changes">
+<tr><th>Date</th><th>Changement</th></tr>
+<tr><td>3 nov.</td><td>Un moteur allégé lit l'appel en quelques grandes étapes au lieu de centaines de petites questions, pour un coût
+visé d'au plus 0,10 USD par appel. Le principe ne change pas : le modèle cite, le code vérifie et note.</td></tr>
+<tr><td>3 nov.</td><td>Les phases de l'appel sont précisées : la découverte s'arrête quand l'écart est validé par le prospect (ou, sans
+écart, à la présentation de l'offre ou au premier prix) ; le premier prix est celui de l'offre de LNP, dit avec son explication ;
+les objections ne se lisent qu'après le premier prix. <small>(SB-1, PB-3, OB-27)</small></td></tr>
+<tr><td>19 nov.</td><td>Les appels sont en français : toutes les listes de mots du code (mots vides, accords, nombres, formes de question…)
+ont leur version française.</td></tr>
+<tr><td>19 nov.</td><td>Vérification des voix, toujours active : avant toute analyse, le modèle repère les phrases attribuées à la mauvaise
+personne par l'outil d'enregistrement, le code vérifie chaque correction et répare la transcription. <small>(C1)</small></td></tr>
+<tr><td>20 nov.</td><td>Un enregistrement de moins de 20 minutes est coupé : l'appel n'est pas analysé, quelle que soit sa durée prévue.
+<span class="nouveau">nouveau</span> <small>(C1)</small></td></tr>
+<tr><td>20 nov.</td><td>Le seuil de 10 % d'erreurs de voix s'applique après la réparation, mesuré par une lecture de contrôle de la
+transcription réparée. <span class="nouveau">nouveau</span> <small>(C1)</small></td></tr>
+<tr><td>20 nov.</td><td>Les questions de la découverte : le code les liste, une par réplique du commercial ; chaque question est lue deux
+fois ; en cas de désaccord, un arbitre relit les portes ; une question non tranchée est mise « à vérifier » et sort des notes.
+Aucune question listée ne disparaît sur une seule lecture. <span class="nouveau">nouveau</span> <small>(C4, SEG-1)</small></td></tr>
+<tr><td>20 nov.</td><td>Les appels d'un même cycle de vente (R1, R2, R3) ne sont plus lus de la même façon : ce qui a déjà été bien fait
+dans un appel précédent n'est pas noté de nouveau. <span class="nouveau">nouveau</span> <small>(C9)</small></td></tr>
+<tr><td>20 nov.</td><td>Un administrateur peut corriger à l'écran la lettre SPIN d'une question ; la correction est gardée à côté de la
+lettre du moteur, sans recalcul de la note. <span class="nouveau">nouveau</span> <small>(C8)</small></td></tr>
+<tr><td>20 nov.</td><td>Prix déguisé : un « tour du marché » dont les niveaux sont en réalité les offres de LNP compte comme le premier
+prix, donné trop tôt. <span class="nouveau">nouveau</span> <small>(PB-3)</small></td></tr>
+<tr><td>21 nov.</td><td>Santé de la découverte : elle n'est exclue que s'il y a au moins 3 questions qu'aucune porte ne classe et plus de
+5 % des questions. Une ou deux ne suffisent plus. <span class="nouveau">nouveau</span> <small>(C7)</small></td></tr>
+<tr><td>21 nov.</td><td>Questions incertaines : à l'écran, une question identifiée ou lue sans certitude porte une lettre orange en
+pointillés avec un « ? », et ses raisons sont données. <span class="nouveau">nouveau</span></td></tr>
+</table>
+</section>
+
+<section>
+<h2>En une phrase</h2>
+<p>L'analyse d'un appel est une suite de vérifications : un modèle de langue lit la transcription et cite les passages qui
+répondent à des questions fermées ; le code vérifie que chaque citation existe mot pour mot, au bon endroit et dans la bonne
+bouche ; puis le code seul applique les règles, décide et calcule les notes.</p>
+<div class="regle"><b>Règle d'or.</b> Le modèle cite, le code décide et note. Aucun modèle ne donne jamais une note, un niveau ni un
+verdict. Il répond à des questions fermées (oui, non, ou une valeur d'une liste fermée) et appuie chaque « oui » sur une citation
+exacte. <small>(C2)</small></div>
+<p>Ce mémo explique ces règles communes : ce qui fait foi comme preuve, quand un appel n'est pas analysé, comment l'appel est découpé
+en phases, comment on s'assure que la lecture est la même d'une fois sur l'autre, comment les notes d'un appel deviennent la note
+d'une période, et comment se lisent les appels successifs d'un même cycle de vente.</p>
+<div class="attention">Une règle propre à une compétence l'emporte toujours sur ce mémo quand les deux diffèrent. Ces différences
+sont dites dans le mémo de la compétence.</div>
+</section>
+
+<section>
+<h2>À quoi servent ces règles</h2>
+<ul>
+<li><b>Que chaque note se prouve.</b> Derrière chaque niveau, il y a des citations que l'on peut ouvrir et relire dans l'appel. Un
+coach peut toujours montrer au commercial la phrase exacte qui justifie la note.</li>
+<li><b>Que la même lecture donne la même note.</b> Le modèle peut varier d'une lecture à l'autre ; le code, non. En donnant au code
+toutes les décisions, deux analyses du même appel aboutissent au même résultat.</li>
+<li><b>Ne rien noter sur une base fragile.</b> Un enregistrement coupé ou une transcription qui confond le commercial et le prospect
+donnerait des notes fausses : ces appels sont écartés plutôt que mal notés.</li>
+<li><b>Comparer ce qui est comparable.</b> Une note n'est comparée qu'à une note calculée avec les mêmes règles ; les périodes trop
+petites sont signalées comme telles.</li>
+</ul>
+</section>
+
+<section>
+<h2>Le principe : le modèle cite, le code décide</h2>
+<h3>Les étapes de la lecture</h3>
+<p>Chaque appel suit le même chemin, dans le même ordre <small>(C2)</small> :</p>
+<table>
+<tr><th>Étape</th><th>Qui</th><th>Ce qui se passe</th></tr>
+<tr><td>Mise en forme</td><td>Code</td><td>La transcription est nettoyée et chaque réplique numérotée, avec son heure.</td></tr>
+<tr><td>Inventaire</td><td>Code</td><td>Le code liste les éléments à lire : questions de la découverte, reformulations de l'écart, passages de la
+présentation de l'offre, objections. Rien n'est supprimé : un élément douteux reste listé, avec une marque.</td></tr>
+<tr><td>Phases</td><td>Modèle, vérifié par le code</td><td>Le modèle place les repères (début de la découverte, première reformulation,
+début de la présentation de l'offre, premier prix, conclusion), chacun avec la réplique et la citation.</td></tr>
+<tr><td>Portes</td><td>Modèle</td><td>Pour chaque élément, le modèle répond aux questions fermées de la compétence, avec une citation pour
+chaque réponse positive.</td></tr>
+<tr><td>Vérification des citations</td><td>Code</td><td>Chaque citation est-elle exactement dans la réplique citée, dite par la bonne
+personne, dans la bonne phase ?</td></tr>
+<tr><td>Décision</td><td>Code</td><td>Le code applique les règles de la compétence dans leur ordre fixé : la première qui s'applique
+l'emporte.</td></tr>
+<tr><td>Reproductibilité</td><td>Code</td><td>Les lectures indépendantes sont comparées ; un désaccord part à l'arbitre.</td></tr>
+<tr><td>Notes</td><td>Code</td><td>Niveau de chaque critère, note de l'appel et liste de ses preuves.</td></tr>
+<tr><td>Période</td><td>Code</td><td>Note de la période, nombre d'appels, fourchette de confiance, évolution.</td></tr>
+</table>
+
+<h3>Ce qui fait une preuve</h3>
+<p>Une réponse positive du modèle ne compte que si sa citation passe toutes ces règles <small>(C3)</small> :</p>
+<ol>
+<li><b>Une citation exacte.</b> De 2 à 40 mots, copiés caractère pour caractère d'une seule réplique. La comparaison ignore les
+majuscules, les espaces en trop et la forme des guillemets. Les fautes de transcription restent telles quelles : elles ne sont
+jamais corrigées.</li>
+<li><b>La bonne personne.</b> Ce que le prospect a dit se prouve par une réplique du prospect ; ce que le commercial a fait, par une
+réplique du commercial. Une citation de la mauvaise personne annule la réponse.</li>
+<li><b>Le bon endroit.</b> La citation est dans la réplique citée, et dans la phase que la règle demande (par exemple « avant la
+présentation de l'offre »).</li>
+<li><b>Deux citations pour le niveau le plus haut.</b> Un critère au niveau 2 demande deux citations distinctes (deux répliques
+différentes, ou deux passages qui ne se chevauchent pas). Avec une seule, il plafonne au niveau 1.</li>
+<li><b>Un accord n'est pas une preuve.</b> Une réplique du prospect qui ne contient qu'un accord (« oui », « exactement », « c'est
+vrai », « carrément », « hm hm », « à 100 % ») ne prouve rien d'autre qu'un accord, et seulement là où une règle demande un
+accord.</li>
+<li><b>Les mots du commercial ne sont pas ceux du prospect.</b> Ce que le commercial a dit et que le prospect a seulement approuvé est
+marqué « suggéré par le commercial » et ne compte jamais comme dit par le prospect. Une exception, l'<b>ancrage</b> : quand le
+commercial reprend un mot que le prospect avait déjà dit, ce mot reste celui du prospect.</li>
+<li><b>Une réponse invalide.</b> Dans la méthode, une réponse dont la citation ne passe pas est redemandée une fois avec le message
+d'erreur ; si elle échoue encore, l'élément est mis « à vérifier » et sort de toutes les notes jusqu'à ce qu'un humain ou l'arbitre
+tranche. Le moteur allégé fait plus simple : une preuve invalide est retirée, et ce qu'elle devait prouver compte comme non dit ou non
+fait (voir les points ouverts).</li>
+</ol>
+
+<div class="exemple mauvais"><div class="titre">Ne compte pas comme dit par le prospect</div>
+<p class="dit"><span class="qui">Commercial</span> « Donc la préparation de tes cours te prend tout ton dimanche, c'est ça ? »</p>
+<p class="dit"><span class="qui">Prospect</span> « Oui, c'est ça. »</p>
+<p class="verdict">Le prospect a seulement approuvé. « Tout ton dimanche » vient du commercial : c'est un fait suggéré, qui ne
+compte pas comme une chose que le prospect a dite.</p></div>
+
+<div class="exemple bon"><div class="titre">Compte comme dit par le prospect</div>
+<p class="dit"><span class="qui">Commercial</span> « Et la préparation, concrètement, ça te prend combien de temps ? »</p>
+<p class="dit"><span class="qui">Prospect</span> « Tout mon dimanche. Six heures au moins, parfois plus. »</p>
+<p class="verdict">Le fait et le chiffre sortent de la bouche du prospect, en réponse à une question ouverte. La citation « Six heures
+au moins » est exacte, dans une réplique du prospect.</p></div>
+
+<div class="exemple bon"><div class="titre">L'ancrage : le mot reste au prospect</div>
+<p class="dit"><span class="qui">Prospect</span> (plus tôt) « Le soir, je suis épuisée, je n'arrive plus à corriger les copies. »</p>
+<p class="dit"><span class="qui">Commercial</span> (plus tard) « Tu me disais que tu es épuisée le soir… »</p>
+<p class="verdict">Le commercial reprend un mot que le prospect avait déjà dit : « épuisée » reste un mot du prospect.</p></div>
+</section>
+
+<section>
+<h2>Quand un appel n'est pas analysé</h2>
+<p>Certaines conditions doivent être remplies avant toute lecture. Sans elles, l'appel n'est pas noté ; il reste visible dans la
+liste des appels, avec la raison <small>(C1)</small>.</p>
+<table>
+<tr><th>Il faut</th><th>Sinon</th></tr>
+<tr><td>La transcription complète, une ligne par prise de parole, avec l'heure et qui parle</td><td>Appel non noté (« pas de
+transcription »)</td></tr>
+<tr><td>Savoir qui est le commercial, qui est le prospect, qui est un tiers (conjoint qui décide avec lui, assistant)</td><td>Appel non noté
+(« la transcription ne dit pas qui parle »)</td></tr>
+<tr><td>Les informations de l'appel : commercial, heure de début, fuseau horaire, type d'appel (premier appel, appel suivant)</td><td>L'appel
+n'entre pas dans les notes des périodes</td></tr>
+<tr><td>La référence de l'offre : nom, contenu, prix et modes de paiement, garantie</td><td>La présentation de l'offre et les objections
+sont lues avec moins de contrôles, et l'appel est signalé</td></tr>
+<tr><td>La version des règles appliquée</td><td>Impossible : chaque résultat porte une version</td></tr>
+</table>
+
+<h3>Un enregistrement de moins de 20 minutes <span class="nouveau">nouveau</span></h3>
+<p>Un enregistrement dont la dernière heure notée est inférieure à 20 minutes est coupé : l'appel a continué sans être enregistré.
+Il n'est pas analysé du tout : aucune compétence n'est notée et le modèle n'est même pas appelé. À l'écran : « enregistrement
+incomplet (moins de 20 minutes) : appel non analysé ». Peu importe la durée prévue du rendez-vous : seule compte la durée
+enregistrée. <small>(C1, Romain, 20 nov.)</small></p>
+
+<h3>Qui parle : la vérification des voix</h3>
+<p>L'outil d'enregistrement se trompe souvent de personne : sur les appels de novembre 2026, 41 à 52 % des phrases étaient
+attribuées à la mauvaise personne. Or presque toutes les règles dépendent de qui parle : une douleur ne compte que dite par le
+prospect, une question que posée par le commercial. Avant toute analyse, la transcription est donc vérifiée et réparée.</p>
+<ol>
+<li><b>Un premier contrôle grossier.</b> Si une seule personne tient plus de 92 % des mots, ou si le prospect dit moins de 150 mots,
+la transcription est jugée douteuse et l'appel n'est pas noté.</li>
+<li><b>La réparation.</b> Le modèle relit chaque phrase et signale trois cas, chacun avec une citation : une réplique qui contient
+aussi les mots de l'autre personne (une question du commercial collée au début d'une réponse du prospect) ; une réplique qui ne peut
+appartenir qu'à l'autre (le commercial qui décrit sa propre vie de professeur sous l'étiquette du commercial alors que c'est le
+prospect) ; une même phrase répétée sous les deux noms. Le code vérifie chaque correction, coupe la réplique au bon endroit ou change
+son étiquette. Une phrase qu'on ne peut pas réparer est marquée « voix douteuse » et sort de tous les calculs où la personne
+compte.</li>
+<li><b>La lecture de contrôle</b> <span class="nouveau">nouveau</span>. La transcription réparée est relue avec la même question. Ce
+qui est encore signalé, plus les phrases douteuses, forme les erreurs restantes. <b>Plus de 10 % d'erreurs restantes : l'appel n'est
+pas analysé</b> (« la transcription confond trop souvent qui a dit quoi »). Les phrases réparées ne comptent pas dans ces 10 % :
+sinon presque tous les appels seraient exclus. <small>(C1, Romain, 20 nov. ; seuil à valider)</small></li>
+</ol>
+<div class="exemple bon"><div class="titre">Réparé par le code</div>
+<p class="dit"><span class="qui">Commercial</span> (étiquette de l'enregistrement) « Moi, je donne des cours de maths depuis douze ans,
+surtout des lycéens. »</p>
+<p class="verdict">C'est la vie du prospect, dite à la première personne : le modèle signale la phrase, le code vérifie la citation et
+la rend au prospect. Elle compte alors comme un fait de sa situation.</p></div>
+<div class="attention">Une erreur de voix que ni la réparation ni le contrôle ne voient n'est pas comptée. C'est une limite connue : un
+coach qui voit une note étrange doit d'abord regarder qui parle dans le passage cité.</div>
+</section>
+
+<section>
+<h2>Les phases de l'appel</h2>
+<p>Chaque compétence ne se lit que dans sa phase. Le modèle place les repères, avec la réplique et la citation ; le code vérifie et
+applique les règles de chaque repère. Dans l'ordre :</p>
+<table>
+<tr><th>Phase</th><th>Où elle commence et finit</th></tr>
+<tr><td>Accueil et cadre</td><td>Les échanges sociaux (« tu m'entends bien ? », « tu appelles d'où ? »), la logistique et le cadre de
+l'appel (« voilà comment va se passer notre échange »). Ce n'est jamais le début de la découverte, ni « qu'est-ce que tu attends de notre
+appel ? ». En revanche, « qu'est-ce qui t'a donné envie de prendre ce rendez-vous ? » peut l'ouvrir. <small>(SB-2)</small></td></tr>
+<tr><td>Découverte</td><td>De la première vraie question sur la situation, les objectifs ou les problèmes du prospect, jusqu'à la
+validation par le prospect de la reformulation qui rend l'écart présent. Sans écart, elle s'arrête au début de la présentation de
+l'offre ou au premier prix. Elle ne rouvre jamais ensuite. <small>(SB-1, SB-34)</small></td></tr>
+<tr><td>Reformulation de l'écart</td><td>Le commercial redit au prospect, avec ses mots, d'où il part, où il veut aller, ce qui bloque et
+ce que cela lui coûte, puis demande sa validation. Une reformulation qui ne rend pas l'écart présent ne ferme pas la découverte.</td></tr>
+<tr><td>Présentation de l'offre</td><td>Elle commence au premier passage qui présente l'offre de LNP. Une description de l'offre suivie,
+dans les 2 répliques du commercial, d'un retour aux questions de découverte n'est qu'une mention, pas le début de la présentation.
+Elle finit au premier prix, à la première demande de décision ou à la fin de l'appel. <small>(PB-1, PB-2, PB-4, PB-17)</small></td></tr>
+<tr><td>Premier prix</td><td>Le premier montant dit par le commercial pour l'offre de LNP (prix, échéance, acompte, remise), avec
+l'explication de cette offre. Ne sont jamais un prix : le revenu d'un ancien élève, le tarif que le prospect pourrait demander à ses
+élèves, un budget de publicité, un montant cité par le prospect. <small>(PB-3)</small></td></tr>
+<tr><td>Objections</td><td>Seulement après le premier prix : une résistance dite avant ne se lit pas comme une objection.
+<small>(OB-27)</small></td></tr>
+</table>
+<h3>Le prix déguisé <span class="nouveau">nouveau</span></h3>
+<p>Un « tour du marché » (les formations ou accompagnements qu'on trouve, avec leurs fourchettes de prix) dont les niveaux sont en
+réalité les offres de LNP, comme le montre un passage plus loin, est un prix de l'offre donné trop tôt : une erreur du commercial.
+C'est le premier prix : la présentation de l'offre commence à son explication, la découverte s'arrête là et les objections se lisent
+à partir de là. L'appel est signalé « Prix donné trop tôt ». Un tour du marché jamais relié ensuite à l'offre reste un prix du marché.
+<small>(PB-3, Romain, 20 nov.)</small></p>
+<div class="exemple mauvais"><div class="titre">Prix déguisé (montants inventés)</div>
+<p class="dit"><span class="qui">Commercial</span> « Sur le marché, tu trouves en gros trois niveaux : un programme en groupe autour de
+1 000 €, un suivi à 3 000 €, un accompagnement complet vers 6 000 €. »</p>
+<p class="dit"><span class="qui">Commercial</span> (vingt minutes plus tard) « Le deuxième niveau dont je te parlais tout à l'heure,
+c'est exactement notre suivi. »</p>
+<p class="verdict">Le tour du marché est relié à l'offre : c'est le premier prix, placé au moment du tour du marché, avant la fin de
+la découverte.</p></div>
+<div class="attention">Ces règles de phases sont appliquées par le moteur allégé. Le moteur de référence arrête encore la découverte au
+début de la présentation de l'offre ou au prix (voir les points ouverts).</div>
+</section>
+
+<section>
+<h2>Une lecture qui se répète : arbitre, « à vérifier », aucune perte silencieuse</h2>
+<h3>Ce que demande la méthode</h3>
+<p>Un modèle de langue ne répond pas toujours la même chose à la même question. La méthode exige donc que chaque élément soit lu
+plusieurs fois, de façon indépendante, et que les lectures soient comparées <small>(C4)</small> :</p>
+<ul>
+<li><b>Trois lectures indépendantes</b>, avec la même consigne, sans qu'aucune ne voie les autres.</li>
+<li><b>Les trois concordent</b> : le verdict est définitif (« vérifié »).</li>
+<li><b>Elles divergent, ou une citation est invalide</b> : l'élément part à un <b>arbitre</b>, un appel distinct au modèle, qui n'a pas
+participé aux lectures. Il reçoit les règles, l'élément, son contexte et les lectures, et décide en reprenant les règles dans leur
+ordre. <b>Il ne vote jamais</b> entre les lectures. Il justifie sa décision en une phrase et dit de quel cas il s'agit : une lecture a
+mal appliqué une règle claire ; deux lectures se défendent avec le texte (règle ambiguë) ; aucune règle ne tranche (cas non couvert).
+Les deux derniers cas sont remontés au responsable de la méthode et nourrissent la version suivante des règles.</li>
+<li><b>L'arbitre ne peut pas trancher</b> : l'élément reste « à vérifier » et sort des notes.</li>
+<li><b>Une seule lecture</b> n'est permise que si la mesure a montré au moins 95 % de concordance sur la version actuelle des règles, et
+à condition que trois lectures continuent sur 10 % des appels, tirés au hasard chaque semaine. Une semaine sous 95 % rétablit les
+trois lectures partout.</li>
+</ul>
+<h3>Ce que fait aujourd'hui le moteur allégé</h3>
+<p>Pour les questions de la découverte <span class="nouveau">nouveau</span> : le code liste les questions, une par réplique du commercial
+(plusieurs questions d'une même réplique n'en font qu'une, lue sur la dernière, sauf si la dernière ne fait que relancer la
+précédente, comme « pourquoi ? »). Le modèle répond ensuite aux portes de la méthode pour chaque question (situation, problème,
+conséquence, désir, hors découverte), par paquets de 25 avec leur contexte, <b>deux fois</b>. Même lettre aux deux lectures :
+« concordante ». Lettres différentes : un arbitre, sur un modèle plus puissant, relit les portes de ces seules questions et le code
+décide la lettre. Non tranchée : « à vérifier », hors des notes. <small>(C4, SEG-1, Romain, 20 nov.)</small></p>
+<p>Pour le reste (écart, présentation de l'offre, objections), chaque fait est encore lu une seule fois. Ces résultats sont marqués
+« lecture unique » et restent provisoires tant que le moteur allégé n'a pas été comparé au moteur de référence sur les mêmes appels.</p>
+<div class="regle"><b>Aucune perte silencieuse.</b> Un élément que le code a listé (une question de la découverte) n'est jamais retiré
+sur une seule lecture du modèle. S'il n'a pas été lu, ou si une lecture dit « ce n'est pas une question de découverte », il passe
+quand même par la lecture complète (deux lectures, l'arbitre en cas de désaccord). Si aucune lecture valide ne le tranche, il reste
+listé « à vérifier », et la mesure le compte à part. <small>(C4, 20 nov.)</small></div>
+<div class="exemple bon"><div class="titre">Un désaccord tranché par l'arbitre</div>
+<p class="dit"><span class="qui">Commercial</span> « Et quand tu perds un élève en cours d'année, ça te fait quoi ? »</p>
+<p class="dit"><span class="qui">Prospect</span> « Ça me met une pression folle, je refais mes comptes tous les soirs. »</p>
+<p class="verdict">Une lecture voit une question d'implication, l'autre une question hors découverte. L'arbitre reprend les portes dans
+leur ordre, avec le contexte et les deux lectures, et le code décide la lettre à partir de ses réponses. Ce n'est pas un vote : la
+question est décidée par les règles.</p></div>
+</section>
+
+<section>
+<h2>Les notes, les niveaux et les périodes</h2>
+<h3>La note d'un appel</h3>
+<p>Chaque compétence a ses critères (cinq pour la découverte, six pour l'écart, sept pour la présentation de l'offre, cinq par objection, plus la prévention avant le prix).
+Chaque critère reçoit un niveau : <b>0</b> (pas fait), <b>1</b> (en partie) ou <b>2</b> (bien fait, avec deux citations). La note de
+l'appel, sur 100, est la somme des poids multipliés par le niveau divisé par 2. Les poids sont dans le mémo de chaque compétence.</p>
+<p>Pour une compétence donnée, un appel a l'un de ces statuts :</p>
+<table>
+<tr><th>Statut</th><th>Ce que cela veut dire</th><th>Compte dans la note de la période ?</th></tr>
+<tr><td>Noté</td><td>La compétence a été lue et notée</td><td>Oui</td></tr>
+<tr><td>Non applicable</td><td>Rien à noter (aucune objection, découverte déjà bien faite dans un appel précédent…)</td><td>Non, mais compté et
+affiché</td></tr>
+<tr><td>Exclu</td><td>La lecture n'est pas assez fiable (santé, transcription douteuse)</td><td>Non, mais compté et affiché</td></tr>
+<tr><td>À vérifier</td><td>Une partie n'a pas pu être tranchée</td><td>Non, mais compté et affiché</td></tr>
+</table>
+
+<h3>La note d'une période <small>(C5)</small></h3>
+<p>L'écran propose trois périodes, toujours dans le fuseau horaire du commercial et selon l'heure de début de l'appel :</p>
+<table>
+<tr><th>Période</th><th>Ce qu'elle couvre</th><th>Comparée à</th></tr>
+<tr><td>7 derniers jours</td><td>Aujourd'hui et les six jours d'avant</td><td>Les 7 jours qui précèdent</td></tr>
+<tr><td>Ce mois-ci</td><td>Du 1er du mois à maintenant</td><td>Le mois précédent, du 1er au même jour (ou à son dernier jour s'il est plus
+court)</td></tr>
+<tr><td>Tout</td><td>Tous les appels notés du commercial</td><td>Pas de comparaison</td></tr>
+</table>
+<ul>
+<li><b>Note de la période</b> : la moyenne simple des notes des appels notés. Chaque appel pèse autant, quelle que soit sa durée.</li>
+<li><b>Taux par critère</b> : la part des appels où le critère atteint le niveau 2, et la part où il atteint au moins le niveau 1.</li>
+<li><b>Volume minimum</b> : moins de 5 appels notés, la note s'affiche en gris avec « volume insuffisant (n appels) » et aucun niveau ;
+de 5 à 19 appels, elle s'affiche avec sa fourchette de confiance à 95 % ; à partir de 20, la fourchette n'apparaît qu'au survol.
+<small>(méthode de Student pour la moyenne, de Wilson pour les taux)</small></li>
+<li><b>Évolution</b> : la différence, en points, avec la période de comparaison, affichée seulement si les deux périodes ont au moins
+5 appels notés. Une évolution plus petite que la moitié de la largeur de la fourchette est affichée « stable ».</li>
+</ul>
+
+<h3>Les niveaux <small>(C6)</small></h3>
+<table>
+<tr><th>Note</th><th>Niveau</th><th>Ce que cela veut dire</th></tr>
+<tr><td>85 à 100</td><td>Maîtrisé</td><td>Bien fait sur presque tous les appels</td></tr>
+<tr><td>60 à 84</td><td>En progrès</td><td>Fait, avec des manques qui reviennent</td></tr>
+<tr><td>0 à 59</td><td>À travailler</td><td>Pas fait de façon fiable</td></tr>
+</table>
+<div class="regle"><b>Règle du plancher.</b> Si un seul critère de la compétence atteint le niveau 2 dans moins de 25 % des appels de la
+période, la compétence ne peut pas dépasser « En progrès », quelle que soit sa note. Une moyenne ne doit pas cacher un geste presque
+jamais fait.</div>
+<p><b>Le premier frein.</b> La compétence qui a la note de période la plus basse (parmi celles qui ont au moins 5 appels notés) est
+désignée comme le premier frein du commercial. En cas d'égalité, c'est celle qui a le taux de niveau 2 le plus bas sur un critère.</p>
+<p><b>Chaque chiffre s'ouvre.</b> Chaque niveau de chaque appel ouvre ses preuves : les citations, leurs répliques et leurs heures, et
+l'extrait de la transcription autour (3 minutes avant et après).</p>
+</section>
+
+<section>
+<h2>Les seuils de fiabilité</h2>
+<p>Aucun chiffre de justesse n'est publié avant d'avoir été mesuré <small>(C7)</small>. Voici ce qui est mesuré :</p>
+<table>
+<tr><th>Ce qu'on mesure</th><th>Comment</th><th>Seuil</th></tr>
+<tr><td>Accord entre humains sur le découpage</td><td>Deux annotateurs certifiés découpent les 3 mêmes appels, chacun de son côté</td><td>au
+moins 95 % d'éléments identiques</td></tr>
+<tr><td>Accord entre humains sur les critères</td><td>Deux annotateurs notent les mêmes appels sans se voir</td><td>au moins 85 % d'accord
+et un kappa de Cohen d'au moins 0,80 par critère</td></tr>
+<tr><td>Machine contre référence</td><td>30 vrais appels dont l'issue est connue : 20 pour régler, 10 pour tester, partage figé avant
+l'annotation</td><td>accord au moins égal à l'accord entre humains, moins 5 points</td></tr>
+<tr><td>Reproductibilité</td><td>Même verdict sur 3 lectures indépendantes</td><td>au moins 95 % par critère</td></tr>
+<tr><td>Ancrage</td><td>Citations retrouvées mot pour mot dans la transcription</td><td>100 % (tout le reste est un défaut)</td></tr>
+<tr><td>Santé <span class="nouveau">nouveau</span></td><td>Éléments qu'aucune règle n'a pu trancher dans un appel</td><td>au plus 5 % de
+l'appel, ou moins de 3 éléments ; au-delà, l'appel n'est pas montré au commercial</td></tr>
+</table>
+<p><b>La santé de la découverte</b> <span class="nouveau">nouveau</span>. Pour la découverte, ces éléments sont les questions qu'aucune
+porte ne classe (le modèle ne les a mises sous aucune lettre). La découverte d'un appel n'est exclue que si ces questions sont
+<b>au moins 3 et plus de 5 %</b> des questions de la découverte. Avant, une ou deux questions suffisaient à exclure la découverte de
+4 appels sur 5, sur des appels de 10 à 40 questions. <small>(C7, SPIN §5, Romain, 21 nov.)</small></p>
+<div class="regle"><b>Provisoire.</b> Tant que tous les seuils ne sont pas atteints sur la version actuelle des règles, chaque note porte à
+l'écran la mention « provisoire ». Les appels de test ne servent jamais à régler une règle, une consigne ou un seuil. Sous un seuil, on
+réécrit la règle ; on ne touche jamais au seuil.</div>
+</section>
+
+<section>
+<h2>Versions des règles et nouvelles analyses</h2>
+<p>Chaque résultat garde la version des règles, le modèle utilisé, la consigne envoyée, les lectures brutes, la décision de l'arbitre s'il
+y en a une, et la date du calcul <small>(C8)</small>. Les réponses du modèle sont conservées : une analyse peut être rejouée sans
+rappeler le modèle.</p>
+<div class="regle"><b>On ne compare jamais deux versions.</b> Une note calculée avec une version des règles n'est jamais comparée à une note
+calculée avec une autre. Quand la version change, les appels de la période sont analysés de nouveau avant qu'une évolution ne
+s'affiche.</div>
+<p>Exemple : le 20 novembre, la façon de choisir les points A et B de l'écart a changé (version de l'écart GAP-1.4). Les notes des trois
+premiers critères de l'écart bougent : les analyses déjà enregistrées sont à relancer.</p>
+<p>Chaque arbitrage et chaque correction humaine est consigné : élément, lectures, décision, type de cas, auteur, date. Un humain peut
+corriger un verdict ; <b>personne ne modifie une note enregistrée à la main</b>.</p>
+</section>
+
+<section>
+<h2>Les appels d'un même cycle de vente (R1, R2, R3) <span class="nouveau">nouveau</span></h2>
+<p>Un prospect peut avoir plusieurs appels de vente. Ce qu'un appel est noté dépend de ce que les appels précédents du même cycle, déjà
+analysés, ont fait <small>(C9, Romain, 20 nov.)</small>. Le numéro d'un appel est son rang parmi les appels enregistrés du cycle : une
+absence ne décale pas le R1.</p>
+<table>
+<tr><th>Dans cet appel</th><th>Noté quand</th><th>Sinon</th></tr>
+<tr><td>Découverte et écart</td><td>C'est le premier appel du cycle, ou le dernier écart lu dans un appel précédent est <b>mauvais</b></td><td>Non
+applicable : écart déjà fait lors d'un appel précédent</td></tr>
+<tr><td>Présentation de l'offre</td><td>Aucun appel précédent du cycle n'a présenté l'offre</td><td>Non applicable : offre déjà présentée</td></tr>
+<tr><td>Objections</td><td>Toujours</td><td>—</td></tr>
+</table>
+<ul>
+<li><b>Un bon écart</b> est présent, validé par le prospect, avec ses quatre éléments redits : le problème, le coût, le point A (d'où il
+part) et le point B (où il veut aller). <b>Un mauvais écart</b> est absent, incomplet (un élément manque) ou non validé. Après un mauvais
+écart, l'appel suivant doit approfondir la découverte et reformuler l'écart : les deux y sont notés. Un appel qui n'a pas noté l'écart
+transmet la lecture de l'appel d'avant.</li>
+<li><b>Une présentation de l'offre faite plus tard, après un bon écart fait avant</b>, est lue par rapport à cet écart : elle vient bien
+après la validation, et les étapes de la feuille de route sont rapprochées des blocages dits dans l'appel précédent.</li>
+<li><b>Une fois le prix donné dans un appel précédent</b>, toutes les résistances de l'appel comptent comme objections, dès sa première
+réplique ; la prévention, qui se joue avant le premier prix, n'est pas notée de nouveau.</li>
+<li><b>Un appel précédent non analysé</b> (pas d'enregistrement, pas de transcription, pas traité) est inconnu : l'appel est lu comme un
+premier appel.</li>
+<li><b>Dans un même appel, un mauvais écart doit être repris</b> avant la présentation de l'offre : par une nouvelle reformulation ou par un
+retour à la découverte (une question de situation, de problème, d'implication ou de bénéfice après la mauvaise reformulation). Sinon,
+l'appel est signalé « Écart à reprendre ». Ce signal n'a pas de poids : la nouvelle reformulation et la découverte rouverte comptent
+dans les notes de l'écart et de la découverte comme d'habitude. Un appel sans aucune reformulation est simplement « écart absent ».</li>
+</ul>
+<div class="exemple bon"><div class="titre">R2 après un bon écart</div>
+<p class="verdict">Au R1, Camille, professeure de piano, a validé un écart complet : elle part de 8 élèves, veut en avoir 20, se dit
+débordée par la recherche d'élèves, et cela lui coûte ses week-ends. Au R2, la découverte et l'écart sont « non applicables » :
+le commercial n'a pas à refaire la découverte. Si l'offre est présentée au R2, elle est lue par rapport à l'écart du R1.</p></div>
+<div class="exemple mauvais"><div class="titre">R2 après un mauvais écart</div>
+<p class="verdict">Au R1, le commercial a reformulé la situation de Karim, professeur d'anglais, sans le coût, et Karim n'a pas
+validé. Au R2, la découverte et l'écart sont notés de nouveau : le commercial doit approfondir et reformuler. S'il passe
+directement à la présentation de l'offre, l'appel est signalé « Écart à reprendre ».</p></div>
+</section>
+
+<section>
+<h2>Les corrections faites à l'écran <span class="nouveau">nouveau</span></h2>
+<p>Un administrateur peut corriger la lettre SPIN d'une question dans l'analyse d'appel : il ouvre la question, choisit « Corriger la
+lettre » et peut donner une raison (facultative). <small>(C8, Romain, 20 nov.)</small></p>
+<ul>
+<li>La correction est <b>ajoutée</b>, jamais écrasée : l'historique des corrections est gardé tel quel.</li>
+<li>À l'écran, la lettre corrigée s'affiche entourée de pointillés ; la lettre du moteur reste visible dans l'infobulle.</li>
+<li><b>La note n'est pas recalculée.</b> Une note enregistrée ne se modifie jamais à la main : la correction est une information pour le
+coach et pour la suite.</li>
+<li>Les corrections nourrissent le jeu de référence qui sert à mesurer et à améliorer le moteur.</li>
+</ul>
+<p>Aujourd'hui, seules les lettres SPIN se corrigent. Les autres éléments (registres, écart, objections) pourront suivre le même
+principe.</p>
+</section>
+
+<section>
+<h2>Les questions incertaines à l'écran <span class="nouveau">nouveau</span></h2>
+<p>Dans la découverte, une question identifiée ou traitée sans certitude porte une lettre <b>orange en pointillés avec un « ? »</b>
+(« question incertaine »). Leur nombre s'affiche sous le titre de la section, et le panneau de la question donne ses raisons
+<small>(Romain, 21 nov.)</small> :</p>
+<table>
+<tr><th>Raison affichée</th><th>Ce que cela veut dire</th></tr>
+<tr><td>Non tranchée par les lectures du modèle</td><td>Ni les deux lectures ni l'arbitre n'ont décidé : la question est hors des notes</td></tr>
+<tr><td>L'arbitre a tranché</td><td>Les deux lectures ne donnaient pas la même lettre</td></tr>
+<tr><td>Lue une seule fois</td><td>L'analyse a lu les portes, mais cette question n'a pas eu deux lectures valides</td></tr>
+<tr><td>Aucune lecture du modèle ne l'a lue</td><td>La question est restée listée sans lecture</td></tr>
+<tr><td>Aucune porte franchie</td><td>Le modèle ne l'a classée sous aucune lettre (dès 3 questions et plus de 5 %, la découverte n'est pas
+notée)</td></tr>
+<tr><td>Sujet non tranché</td><td>Le registre lu n'a pas pu être vérifié</td></tr>
+<tr><td>Réponse du prospect non trouvée</td><td>Une question de découverte sans réponse retrouvée</td></tr>
+<tr><td>Voix douteuse</td><td>On n'a pas pu établir qui parle dans la réplique</td></tr>
+<tr><td>Effet reclassé</td><td>Un effet de la réponse a été reclassé par le code</td></tr>
+</table>
+<div class="attention">Ne sont pas des incertitudes : une voix corrigée puis confirmée par la lecture de contrôle, et une lettre corrigée par
+un administrateur.</div>
+<p>Pour un coach : une question incertaine n'est pas une erreur du commercial. C'est un endroit où la machine doute ; le relire avant d'en
+tirer une leçon.</p>
+</section>
+
+<section>
+<h2>Cas limites et confusions fréquentes</h2>
+<ul>
+<li><b>« Non applicable » n'est pas « zéro ».</b> Un R2 où la découverte est non applicable ne fait pas baisser la note de la découverte :
+il n'entre pas dans la moyenne.</li>
+<li><b>Un appel exclu n'est pas un mauvais appel.</b> Il n'a simplement pas pu être lu de façon fiable (voix, enregistrement coupé, santé).</li>
+<li><b>Un rendez-vous long, un enregistrement court.</b> Un appel d'une heure dont l'enregistrement s'arrête à 18 minutes n'est pas analysé.</li>
+<li><b>« Oui, exactement » ne prouve pas une douleur.</b> Seulement un accord, et seulement là où une règle demande un accord.</li>
+<li><b>Une description de l'offre suivie de questions</b> n'est qu'une mention : la découverte continue.</li>
+<li><b>Un tarif cité en exemple</b> (ce que le prospect pourrait demander à ses élèves) n'est jamais le premier prix.</li>
+<li><b>Une évolution « stable »</b> peut cacher quelques points de différence : elle est plus petite que l'incertitude de la mesure.</li>
+<li><b>Une note grise</b> veut dire moins de 5 appels notés dans la période : aucun niveau n'est donné.</li>
+</ul>
+</section>
+
+<section>
+<h2>Glossaire</h2>
+<table>
+<tr><th>Terme</th><th>Sens dans l'analyse</th></tr>
+<tr><td>Réplique</td><td>Une prise de parole d'une personne dans la transcription, numérotée, avec son heure.</td></tr>
+<tr><td>Citation</td><td>De 2 à 40 mots copiés exactement d'une réplique ; la seule preuve admise.</td></tr>
+<tr><td>Ancrage</td><td>Le commercial reprend un mot déjà dit par le prospect : le mot reste au prospect.</td></tr>
+<tr><td>Suggéré par le commercial</td><td>Un fait dit par le commercial et seulement approuvé par le prospect : il ne compte pas comme dit par
+le prospect.</td></tr>
+<tr><td>Porte</td><td>Une question fermée posée au modèle sur un élément (par exemple : la réponse décrit-elle une conséquence ?).</td></tr>
+<tr><td>Lecture</td><td>Un passage du modèle sur les portes d'un élément ; la méthode en demande trois, le moteur allégé en fait deux pour les
+questions de la découverte.</td></tr>
+<tr><td>Arbitre</td><td>Un appel distinct au modèle qui reprend les règles dans l'ordre quand les lectures divergent ; il ne vote jamais.</td></tr>
+<tr><td>À vérifier</td><td>Élément qu'aucune lecture valide n'a tranché ; il sort des notes mais reste listé et compté.</td></tr>
+<tr><td>Lecture unique</td><td>Résultat lu une seule fois ; provisoire tant que la reproductibilité n'est pas mesurée.</td></tr>
+<tr><td>Vérification des voix</td><td>Réparation des phrases attribuées à la mauvaise personne, puis lecture de contrôle.</td></tr>
+<tr><td>Voix douteuse</td><td>Réplique dont on n'a pas pu établir qui parle ; elle sort des calculs où la personne compte.</td></tr>
+<tr><td>Enregistrement incomplet</td><td>Enregistrement de moins de 20 minutes : l'appel n'est pas analysé.</td></tr>
+<tr><td>Premier prix</td><td>Premier montant dit par le commercial pour l'offre de LNP, avec son explication.</td></tr>
+<tr><td>Prix déguisé</td><td>Un tour du marché dont les niveaux sont les offres de LNP : premier prix donné trop tôt.</td></tr>
+<tr><td>Bon écart / mauvais écart</td><td>Bon : validé, avec problème, coût, A et B. Mauvais : absent, incomplet ou non validé.</td></tr>
+<tr><td>Écart à reprendre</td><td>Un mauvais écart ni reformulé ni suivi d'un retour à la découverte avant la présentation de l'offre.</td></tr>
+<tr><td>Cycle de vente, R1, R2, R3</td><td>Les appels de vente successifs d'un même prospect, numérotés par leur rang parmi les appels
+enregistrés.</td></tr>
+<tr><td>Appel noté</td><td>Appel dont la compétence a le statut « Noté » ; seul à entrer dans la moyenne de la période.</td></tr>
+<tr><td>Règle du plancher</td><td>Un critère au niveau 2 dans moins de 25 % des appels empêche le niveau « Maîtrisé ».</td></tr>
+<tr><td>Premier frein</td><td>La compétence de plus basse note sur la période (au moins 5 appels notés).</td></tr>
+<tr><td>Santé</td><td>Part des éléments qu'aucune règle n'a tranchés ; pour la découverte, au moins 3 questions et plus de 5 % excluent la
+découverte.</td></tr>
+<tr><td>Provisoire</td><td>Mention portée par les notes tant que les seuils de fiabilité ne sont pas atteints.</td></tr>
+<tr><td>Version des règles</td><td>Identifiant des règles appliquées, gardé avec chaque résultat ; deux versions ne se comparent jamais.</td></tr>
+<tr><td>Question incertaine</td><td>Question de la découverte lue sans certitude : lettre orange en pointillés avec un « ? ».</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Points encore ouverts</h2>
+<ul>
+<li><b>Le seuil de 10 % d'erreurs de voix</b>, appliqué après la réparation, reste à valider. Les erreurs que la lecture de contrôle ne
+voit pas ne sont pas comptées.</li>
+<li><b>Une seule lecture</b> pour l'écart, la présentation de l'offre et les objections dans le moteur allégé : ces résultats restent
+provisoires tant que les deux moteurs n'ont pas été comparés sur les mêmes appels. La méthode n'autorise une lecture unique qu'après
+95 % de reproductibilité mesurée.</li>
+<li><b>Les preuves invalides</b> sont retirées une à une par le moteur allégé au lieu d'être redemandées une fois, comme le prévoit la
+méthode. Seule une réponse mal formée est redemandée.</li>
+<li><b>Le modèle de l'arbitre</b> des questions de la découverte a été choisi par l'équipe ; il reste à confirmer par la mesure.</li>
+<li><b>Le moteur de référence</b> ne suit pas encore toutes les décisions récentes : il arrête la découverte au début de la présentation de
+l'offre ou au prix, et il découpe encore une question par question au lieu d'une par réplique.</li>
+<li><b>La référence de l'offre</b> (prix, modes de paiement, contenu, garanties) n'est pas encore configurée : la présentation de l'offre et
+les objections sont lues avec moins de contrôles.</li>
+<li><b>Les cas de réglage</b> restent des propositions tant que deux annotateurs certifiés ne les ont pas confirmés sans se voir. Les poids,
+les seuils et le volume minimum de 5 appels notés sont des propositions à valider.</li>
+<li><b>Les corrections à l'écran</b> ne portent que sur les lettres SPIN ; les étendre aux registres, à l'écart et aux objections reste à
+faire.</li>
+</ul>
+</section>

@@ -152,3 +152,25 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
 - X13 and the code's present figures (2026-11-21, second live run): the model called « j'étais à un peu plus de 1000€ »
   (the month before the call) a past figure and A was lost; the code's kind (GB-28b: a recent month is where he is)
   stands for its figures and their twins, X13 is asked about the model's other atoms only.
+
+## G. Settled 2026-11-21 (Romain)
+
+- SPIN §5 health: a call's discovery is excluded only when more than 5 % of its perimeter questions are OUT `absent`
+  **and** at least 3 of them (`ABSENT_MIN_COUNT`). On calls of 10 to 40 questions, one or two such questions excluded the
+  discovery of 4 calls out of 5 (Part C, C7 health row updated).
+- SPIN §3 hard rules: a question cut before its end (ellipsis) is OUT `nothing`; a difficulty named by the sales in their
+  own words is OUT `agreement` (`difficulty_named_by_sales`). The lite gates prompt gives French examples for S and P.
+  On the 5 calls analysed on 2026-11-21: questions with no gate 10 → 3, discovery scored in 4 calls out of 5 instead of 1.
+  SPIN memo to update (§3 hard rules, §5 applicability) and Part C memo (C7 health).
+- (Replaced below, same day.) Registers (SB-26, SB-30): Identity & status also covers the prospect's work today (new domain `status`: trade, subject,
+  job status, seniority, background, retirement, activity); Other keeps a place, a date, a tool, logistics. The code's
+  lexicon gets the words of the work of today, reads a word after an elision (« d'élèves ») and skips a short tail
+  (« …, toi ? », « …, du coup ? ») to find the asked clause; a question with no S1 reading takes the register its words
+  name. On the 5 calls: Identity & status 9 → 15 questions, Other 9 → 3. SPIN memo to update (registers).
+- Registers (SB-31): a neutral question with no register reading, or read « none » though answered, takes the one domain
+  the words of its first answer turn name, else Other (never undecided). On the 5 calls: 5 undecided registers → 0.
+- Registers, second decision of 2026-11-21 (replaces « Identity & status covers the work of today »): the four registers are
+  the levers the discovery explores; « Other » becomes « No register » (« Sans registre », key `other`) and holds the
+  neutral facts of the situation (domain `status`: trade, subject, seniority, retirement as a fact, daily life), a place,
+  a date, a tool. Identity & status keeps the future (who they want to become, a change of path, « projet »). On the 5
+  calls: Identity & status back to the real identity questions, the intake facts under « Sans registre ».

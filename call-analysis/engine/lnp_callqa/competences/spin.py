@@ -38,6 +38,7 @@ from ..core.text import approval_only, norm, norm_number, quote_ok
 WEIGHTS = {"D1": 15, "D2": 20, "D3": 30, "D4": 20, "D5": 15}     # §6, weights to validate (§11)
 MIN_CODED = 5                     # §5: minimum coded solicitations for `scored` (to validate, §11)
 ABSENT_MAX_SHARE = 0.05           # §5 health: > 5 % OUT `absent` -> excluded (C7 health threshold)
+ABSENT_MIN_COUNT = 3              # §5 (Romain, 2026-11-21): and at least 3 such questions; one or two never exclude a call
 COUNT_VOLUNTEERED = True          # §11 proposal: volunteered atoms count for D1..D4 (never for D5, SB-8)
 BACKCHANNEL_MAX_WORDS = 5         # SB-5: sales backchannel of 5 words or fewer does not end an answer span
 SHORT_ANSWER_WORDS = 6            # SB-7
@@ -61,9 +62,10 @@ EXPECTED_ATOMS = {"S": {"SITUATION"}, "P": {"PAIN", "BLOCKER"}, "I": {"IMPACT"},
 # Registers (SB-26..SB-33, Romain 2026-10-27): the code maps the domain a question asks about to one register.
 REGISTERS = ("financial", "time_load", "identity_status", "mental_emotional", "other")
 REGISTER_LABELS = {"financial": "Financial", "time_load": "Time & load", "identity_status": "Identity & status",
-                   "mental_emotional": "Mental & emotional", "other": "Other"}
+                   "mental_emotional": "Mental & emotional", "other": "No register"}
 REGISTER_OF_DOMAIN = {"money": "financial", "clients": "financial", "time": "time_load", "family": "time_load",
-                      "future": "identity_status", "self_belief": "mental_emotional", "health": "mental_emotional",
+                      "future": "identity_status", "status": "other",   # status: their work today, a neutral fact (2026-11-21)
+                      "self_belief": "mental_emotional", "health": "mental_emotional",
                       "other": "other", "none": "other"}
 REGISTER_BASES = ("named", "answer", "reference", "none")   # SB-28 / SB-35 / SB-29 / SB-31
 REGISTER_ANSWER_TURNS = 3          # SB-35: an open question is read in (at most) the first three turns of its answer
@@ -78,6 +80,10 @@ REGISTER_LEXICON = {
                   "husband", "partner", "son", "daughter", "parent"),
     "identity_status": ("future", "years from now", "long term", "long-term", "where do you see yourself",
                         "where do you want to be", "become", "dream", "vision", "career", "legacy", "status"),
+    # Romain (2026-11-21): the neutral facts of the prospect's situation, their work today, have no register (« Sans
+    # registre », key "other"): a question that names only them is read as such, never as Identity & status
+    "other": ("job", "profession", "occupation", "teach", "retire", "employee", "freelanc", "self-employed", "background",
+              "degree"),
     "mental_emotional": ("confiden", "believe in yourself", "self-belief", "motivat", "mindset", "fear", "doubt",
                          "feel", "emotion", "frustrat", "proud", "health", "stress", "anxi", "burnout", "burn out",
                          "burned out", "exhaust", "tired", "sleep", "energy"),
@@ -91,8 +97,11 @@ REGISTER_LEXICON_FR = {
                   "charge mentale", "occupe",
                   "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
                   "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
-    "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
-                        "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees"),
+    "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut",
+                        "reconversion", "dans quelques annees", "projet"),
+    "other": ("metier", "retraite", "independan", "a ton compte", "a mon compte", "professeur", "prof ", "profs ",
+              "enseign", "matiere", "salarie", "fonctionnaire", "poste ", "parcours", "diplom", "auto-entrepreneur",
+              "freelance", "anciennete"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
                          "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
@@ -361,6 +370,11 @@ def decide_letter(g: dict, attrs: dict, text: str) -> LetterDecision:
         return LetterDecision("I", 4, None, tags, invalid)
     if gate(g5.get("difficulty") and (not g5.get("sales_named") or g5.get("anchored")), g5):
         return LetterDecision("P", 5, None, tags, invalid)
+    # §3 (Romain, 2026-11-21): a difficulty the sales already named in their own words (« tu es en difficulté avec ça ? »)
+    # is not P (gate 5); the question supplies the content and asks for a yes: OUT `agreement`, as a desired state
+    # contained in the question (closed need-payoff), never a question no gate could decide
+    if gate(g5.get("difficulty") and g5.get("sales_named") and not g5.get("anchored"), g5):
+        return LetterDecision(OUT, 1, "agreement", tags + ["difficulty_named_by_sales"], invalid)
     return LetterDecision(OUT, 1, "absent", tags, invalid)
 
 
@@ -545,6 +559,15 @@ CHOICE_LIST = re.compile(
 OPEN_BRANCH = re.compile(r"\b(ou|or) (autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
 
 
+# §3 hard rule added 2026-11-21 (Romain): a question cut before its end (the recorder closes it with an ellipsis, « Qu'est-ce
+# qui va faire que... ») asks for nothing that can be read: OUT `nothing`, never counted as a question no gate could decide.
+CUT_QUESTION = re.compile(r"(\.\.\.|…)\s*\??\s*$")
+
+
+def cut_question(text: str) -> bool:
+    return bool(CUT_QUESTION.search((text or "").strip()))
+
+
 def check_in_question(text: str) -> bool:
     return bool(CHECK_IN.search(norm(text or "")))
 
@@ -572,12 +595,19 @@ def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
     the word that names it (an exact passage of the question); None otherwise. SB-28 (asked over premise): only the last
     clause, after the last comma, is read ("not knowing where clients come from, what does that do to you?" asks
     nothing about clients)."""
-    text = asked_part(text).rsplit(",", 1)[-1]
+    parts = [p for p in asked_part(text).split(",") if p.strip()] or [""]
+    text = next((p for p in reversed(parts) if len(re.findall(r"\w+", p)) >= 3), parts[-1])   # « …, toi ? », « …, du coup ? »
+    return lexicon_register_in(text)
+
+
+def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
+    """SB-30: the one register whose domain words appear in a text, and the word (an exact passage); None when the text
+    names none or several (SB-31 by the code, 2026-11-21, reads the first answer turn of a neutral question with it)."""
     t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = {}
     for reg, words in REGISTER_LEXICON.items():
         for w in words:
-            m = re.search(r"[ $]" + re.escape(w), t)
+            m = re.search(r"[ $']" + re.escape(w), t)                      # a word after an elision: « d'élèves »
             if m:
                 hits.setdefault(reg, w.strip())
     if len(hits) != 1:
@@ -1081,7 +1111,8 @@ def applicability(units: list[Unit], discovery_start: Optional[str]) -> tuple[st
         return "not_applicable", ["no_discovery"], health
     if len(coded) < MIN_CODED:
         return "not_applicable", [f"fewer_than_{MIN_CODED}_coded_solicitations"], health
-    if health["absent_share"] > ABSENT_MAX_SHARE:
+    health["absent"] = absent
+    if absent >= ABSENT_MIN_COUNT and health["absent_share"] > ABSENT_MAX_SHARE:
         return "excluded", ["health_absent_share"], health
     return "scored", [], health
 
@@ -1204,7 +1235,7 @@ def lexicon_registers(text: str) -> set[str]:
     t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = set()
     for reg, words in REGISTER_LEXICON.items():
-        if any(re.search(r"[ $]" + re.escape(w), t) for w in words):
+        if any(re.search(r"[ $']" + re.escape(w), t) for w in words):      # a word after an elision: « d'élèves »
             hits.add(reg)
     if re.search(r"\$ ?\d|\d+ ?k\b", t):
         hits.add("financial")
