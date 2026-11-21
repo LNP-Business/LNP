@@ -549,5 +549,5 @@ def test_sb1_2026_11_21_a_framing_question_never_opens_with_an_idiom():
     assert E.lexicon_hits("on s'est vu la semaine dernière") == {}
     assert "time_load" not in E.lexicon_hits("je fais un peu de bruit, son coupe")    # « son » is French here
     assert E.lexicon_hits("my son is sick") == {"time_load": "son"}
-    assert E.info_opens("PAIN", "je ne sais plus quoi faire") and not E.info_opens("SITUATION", "je suis prof d'espagnol")
-    assert E.info_opens("SITUATION", "je m'occupe seule de mon fils")
+    assert E.info_opens("PAIN", "je ne sais plus quoi faire") and not E.info_opens("SITUATION", "je suis prof d'anglais")
+    assert E.info_opens("SITUATION", "je m'occupe seule de mes enfants")

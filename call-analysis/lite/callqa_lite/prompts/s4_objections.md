@@ -15,7 +15,7 @@ For each resistance:
   to the present, postponing without an external reason). "denied_subjects": the ones the prospect explicitly denies
   ("I'm not scared, it's just the amount", OB-24).
   co_decider only when another person (a spouse, a partner, an associate) has a say in the purchase; the prospect's
-  own prices or income ("je ne peux pas augmenter les prix") are never co_decider, and not a resistance unless they
+  own prices or income ("je ne peux pas monter mes tarifs") are never co_decider, and not a resistance unless they
   doubt the purchase.
 - "quotes": every PROSPECT passage where it is said until the sales moves on, in order: [{"turn", "quote"}].
 - The sales response to the FIRST passage of the item, until the sales moves on:

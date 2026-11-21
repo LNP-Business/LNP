@@ -195,35 +195,35 @@ def test_a_cut_question_is_recognised():
     for q in ("Qu'est-ce qui va faire que...", "Et du coup tu… ?", "So what would…"):
         assert S.cut_question(q), q
     for q in ("Qu'est-ce qui t'a bloqué jusque maintenant ?", "Pour faire les cours en ligne ?", "Combien… euh, combien d'élèves ?",
-              "tu aimerais avoir combien de revenus, peu près, faire combien de chiffres d'affaires grâce au..."):
+              "tu voudrais gagner combien par mois, à peu près, faire combien de chiffre grâce au..."):
         assert not S.cut_question(q), q
 
 
 def test_2026_11_21_a_question_without_mark_inside_the_sentence():
     from lnp_callqa.competences import spin as S
-    asked = {"Surtout, ce n'est pas normal, c'est clair. toi, c'est quand la dernière fois où tu t'es dit, là je me sens exploitée.":
+    asked = {"Bon, je comprends, c'est clair. toi, c'est quand la dernière fois où tu t'es dit, là j'en ai assez.":
              "c'est quand la dernière fois",
-             "Ok, ça marche. Et toi aujourd'hui comment tu te sens du fait d'être à la retraite.": "Et toi aujourd'hui comment",
-             "Parce que toi, Maria, si on arrive à te former, tu aimerais avoir combien de revenus, à peu près.": "tu aimerais avoir combien",
-             "d'accord on va faire un point sur ta situation est ce que c'est vraiment ton projet de donner des cours": "est ce que c'est vraiment",
+             "Ok, ça marche. Et toi aujourd'hui comment tu te sens par rapport à ton travail.": "Et toi aujourd'hui comment",
+             "Parce que toi, si on arrive à te former, tu voudrais gagner combien par mois, à peu près.": "tu voudrais gagner combien",
+             "d'accord on va faire un point sur ta situation est ce que c'est vraiment ton envie de te lancer": "est ce que c'est vraiment",
              "et donc dans six mois il se passe quoi pour toi": "il se passe quoi"}
     for text, start in asked.items():
         g = S.group_turn(text)
         assert g and g["priority"].startswith(start), (text, g)
     for text in ("Je vais t'expliquer comment tu vas faire.", "Je sais pas pourquoi tu dis ça.", "Alors que tu ne l'as jamais fait.",
-                 "On a des profs qui font ces chiffres-là.", "Tu vois, c'est comme ça que ça marche."):
+                 "On a des clients qui font ça.", "Tu vois, c'est comme ça que ça marche."):
         assert S.group_turn(text) is None, text
 
 
 def test_2026_11_21_seg1_never_a_cut_or_a_check_in_when_an_open_question_comes_before():
     from lnp_callqa.competences import spin as S
-    g = S.group_turn("Mais tu dis que tu ne t'es jamais donné les moyens. Pourquoi aujourd'hui, tu te les donnerais ? "
+    g = S.group_turn("Mais tu dis que tu n'as jamais essayé. Pourquoi maintenant, tu le ferais ? "
                      "Tu vois ce que je veux dire ? Qu'est-ce qui va faire que...")
-    assert g["priority"] == "Pourquoi aujourd'hui, tu te les donnerais ?"
+    assert g["priority"] == "Pourquoi maintenant, tu le ferais ?"
     g = S.group_turn("C'est quoi votre problème ? Ok, donc le problème aujourd'hui, c'est de se déplacer ?")
     assert g["priority"] == "C'est quoi votre problème ?"
-    g = S.group_turn("Combien de temps tu peux te dégager pour avancer à côté de ta thèse ? Toi, combien de temps environ, par semaine ?")
-    assert g["priority"].startswith("Combien de temps tu peux te dégager")
+    g = S.group_turn("Combien de temps tu peux te libérer à côté de ton travail ? Toi, combien de temps environ, par semaine ?")
+    assert g["priority"].startswith("Combien de temps tu peux te libérer")
     g = S.group_turn("Tu es prof de quoi ? Et pourquoi ?")                      # a follow-up word: still the first
     assert g["priority"] == "Tu es prof de quoi ?"
 
@@ -240,17 +240,17 @@ def test_the_work_of_today_is_a_neutral_fact_with_no_register():
 
 def test_2026_11_21_framing_choice_and_load_in_the_oral_order():
     from lnp_callqa.competences import spin as S
-    for q in ("Déjà tu m'appelles d'où toi ?", "Qu'est que t'attends de notre appel du coup aujourd'hui ?",
-              "Et t'attends quoi concrètement de notre appel aujourd'hui ?",
-              "ça va vous avez eu le temps de la regarder un petit peu ?", "Est-ce que tu as passé un bon moment avec nous ?",
-              "Tu as pris ce rendez-vous suite au live de dimanche soir, c'est bien ça ?"):
+    for q in ("Tu m'appelles d'où, toi ?", "Qu'est que t'attends de notre échange ?",
+              "Et t'attends quoi exactement de notre appel ?",
+              "vous avez eu le temps de la regarder, la vidéo ?", "Est-ce que tu as passé un bon moment avec nous ?",
+              "Tu as réservé ce rendez-vous suite au live de mardi, c'est bien ça ?"):
         assert S.social_or_logistic(q), q
     for q in ("Ça fait combien de temps que tu es prof ?", "Qu'est-ce que tu attends de ta vie pro ?"):
         assert not S.social_or_logistic(q), q
-    assert S.choice_list_question("Lycée, collège, études sup ?")
-    assert S.choice_list_question("Un travail salarié qui ne te plaît pas, c'est ça ? Ou qui t'a poussé au burn-out ?")
+    assert S.choice_list_question("Primaire, collège, lycée ?")
+    assert S.choice_list_question("Un métier qui te fatigue, c'est ça ? Ou qui t'ennuie ?")
     assert not S.choice_list_question("Tu es prof de quoi, toi, au collège ?")
-    g = S.group_turn("Un travail salarié qui ne te plaît pas, c'est ça ? Ou qui t'a poussé au burn-out ?")
+    g = S.group_turn("Un métier qui te fatigue, c'est ça ? Ou qui t'ennuie ?")
     assert len(g["questions"]) == 1                                   # SEG-3: the two branches are one unit
     assert S.solution_load_question("Tu as du temps de dispo là ?")
     assert not S.solution_load_question("Combien de temps tu as pour toi le soir ?")

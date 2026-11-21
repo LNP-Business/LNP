@@ -180,8 +180,9 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   P, I or N question whose register is one of the four, or the first prospect turn with an effect (pain, blocker, impact,
   desire, value), a fact naming one of the four registers, a figure of their situation, a cost or a blocker, whichever
   comes first. A demand for agreement, a framing question or a neutral fact (« Sans registre ») no longer opens it. On the
-  5 calls (replay): Anastasia T003 → T013, Christelle T020 → T027, Maria T001 → T044 (her trade and retirement questions
-  are warm-up), Ouala T020 → T011 (« je n'ai pas assez de budget »), Antoine unchanged. SPIN memo to update (§ borders).
+  5 calls (replay): the start moves later in 4 calls (by 7 to 43 turns: in one call the questions on the prospect's trade
+  and retirement are now warm-up; in another the discovery opens on a budget the prospect states before any question),
+  unchanged in the fifth. SPIN memo to update (§ borders).
 - SPIN, same day, from the quality report: a question asked without a question mark inside the sentence is listed (§2);
   the priority question of a turn is never a cut question, a check-in, a tail or a closed restatement when an open question
   comes before it, nor a shorter re-ask (SEG-1); an alternative in two sentences and a bare list of options are one unit,
@@ -191,8 +192,8 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   effect is read once more by the arbiter before it counts as absent (§5). Prompts: French examples of consequence
   questions (gate 4), a prospect's question is not an effect (S1), wanting to know the price is not an objection and the
   co-decider needs another person (S4, OB-2). Memos to update: SPIN (§2, §3, SEG-1, SEG-3, §5) and Objections (OB-2).
-- Still open for Romain (2026-11-21): is « on gagne quelques 10 % de ce que coûte un cours » the problem or the cost of the
-  gap (it decides Anastasia's gap verdict)?
+- Still open for Romain (2026-11-21): when the prospect says they earn only a small share of what a lesson costs, is it
+  the problem or the cost of the gap? On one of the 5 calls it decides the gap verdict (present or absent).
 - French words and turns of phrase of the closed PR 65 (2026-11-21, Romain): only their behaviour is taken (identifiers
   and prompts stay in English). Units of PB-30 / PB-31 read with their accents and « par an »; SB-24 French quantities;
   SB-17 elisions and stop words; PB-15 French compliments; A1 S1 / S2 / S3 and GB-15 French forms; OB-1 markers (’ and

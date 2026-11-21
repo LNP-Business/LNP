@@ -201,7 +201,7 @@ def _apostrophe(s: str) -> str:
 
 # §2 (2026-11-21): the recorder often drops the question mark and the sentence ends: a question word inside the sentence,
 # followed by its subject (« Et toi aujourd'hui comment tu te sens… », « toi, c'est quand la dernière fois où tu… »,
-# « tu aimerais avoir combien de revenus », « est ce que c'est vraiment ton projet »), is a question too. Not after a verb
+# « tu voudrais gagner combien par mois », « est ce que c'est vraiment ton envie de te lancer »), is a question too. Not after a verb
 # of saying, knowing or showing (« je vais t'expliquer comment tu vas faire »); « quand » and « où » alone are
 # conjunctions (« quand tu as commencé, … »), only « c'est quand », « t'es où », « il se passe quoi » ask.
 EMBEDDED_Q = re.compile(
@@ -311,7 +311,7 @@ def group_turn(text: str) -> Optional[dict]:
 
 def re_asks(q: str, prev: str) -> bool:
     """SEG-1 (2026-11-21): a shorter question that asks the previous one again with the same question words (« combien
-    de temps tu peux te dégager pour avancer à côté de ta thèse ? Toi, combien de temps environ, par semaine ? »)."""
+    de temps tu peux te libérer à côté de ton travail ? Toi, combien de temps environ, par semaine ? »)."""
     head = lambda x: re.search(r"\b(combien de \w+|comment|pourquoi|qu'est-ce qu\w*|c'est quoi|quel\w* \w+|"
                                r"how (much|many|long)( \w+)?|what|why)\b", _fold(x))
     a, b = head(q), head(prev)
@@ -695,7 +695,7 @@ def closed_restatement(text: str) -> bool:
 
 
 # SEG-3 (2026-11-21): an alternative asked in two sentences (« travail salarié qui ne te plaît pas, c'est ça ? Ou qui t'a
-# poussé au burn-out ? ») and a bare list of options (« Lycée, collège, études sup ? ») are the sales' list
+# poussé au burn-out ? ») and a bare list of options (« Primaire, collège, lycée ? ») are the sales' list
 CHOICE_ALT = re.compile(r"\?\s+(ou|or)\s", re.I)
 NOUN_LIST = re.compile(r"^[^,?]{1,30}(,\s*[^,?]{1,30}){2,}\s*\?$")
 NO_SUBJECT = re.compile(r"\b(tu|t'|vous|je|j'|il|elle|on|you|i)\b", re.I)
@@ -787,7 +787,7 @@ def question_opens(d: LetterDecision, text: Optional[str], register: Optional[st
 def info_opens(atom_type: Optional[str], quote: str) -> bool:
     """SB-1 (2026-11-21), second way: the prospect gives information that falls in a register: an effect (pain, blocker,
     impact, desire, value: they bear on money, time, identity or the mind), or a fact of the situation whose words name
-    one of the four registers (« je m'occupe seul de mon fils » opens, « je suis professeure d'espagnol » does not)."""
+    one of the four registers (« je m'occupe seule de mes enfants » opens, « je suis prof d'anglais » does not)."""
     if atom_type in OPENING_ATOM_TYPES:
         return True
     return atom_type == "SITUATION" and bool(set(lexicon_hits(quote)) & set(OPENING_REGISTERS))
