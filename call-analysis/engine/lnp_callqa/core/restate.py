@@ -69,7 +69,7 @@ def _w(w: str) -> str:
 
 
 CONJ = {"donc", "mais", "parce", "et", "puis", "alors", "enfin", "car", "sinon", "or", "but", "so", "because", "and"}
-DANGLING = {"et", "parce", "que", "qu'", "qui", "où", "car", "puis", "mais", "donc", "ça", "alors", "enfin", "quoi", "hein",
+DANGLING = {"et", "parce", "que", "qu'", "qui", "où", "car", "puis", "mais", "donc", "ça", "alors", "enfin", "quoi", "hein", "ou",
             "voilà", "là", "en", "fait", "tu", "vous", "si", "comme", "oui", "non", "pour", "à", "de", "dans", "sur", "avec",
             "par", "etc", "and", "but", "so", "because", "to", "of", "with"}
 
@@ -106,18 +106,21 @@ def clause_of(turn_text: str, quote: str) -> str:
         end = start + len(qw)
     lo = start
     head2 = " ".join(_w(w) for w in words[start:start + 2])
-    if not re.match(r"^(?:(?:là|moi|aujourd'hui|maintenant|actuellement) )?(je|j'|tu|moi|on|il|elle|ça|c'est|nous)\b", head2, re.I):
+    own_subject = re.match(r"^(?:(?:là|moi|aujourd'hui|maintenant|actuellement) )?(je|j'|tu|moi|on|il|elle|ça|c'est|nous)\b", head2, re.I)
+    if not own_subject:
         for i in range(start - 1, max(-1, start - 9), -1):        # back to the clause boundary, 8 words at most
             if words[i].endswith((",", ";", ":", ".", "!", "?")) or _w(words[i]) in CONJ:
                 break
             lo = i
-    hi = end
-    for i in range(end, min(len(words), end + 3)):                 # on to the next punctuation, 3 words at most
-        hi = i + 1
-        if words[i].endswith((",", ";", ":", ".", "!", "?")):
-            break
-    else:
-        hi = end
+    elif re.match(r"^(?:là )?j'(?:étais|avais)\b", head2, re.I):   # « j'étais à » takes the clause before when it dates it
+        prev = " ".join(_w(w) for w in words[max(0, start - 8):start])
+        if re.search(r"\b(mois|janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|"
+                     r"décembre|decembre|dernier|dernière|semaine|année|an)\b", prev):
+            i = start - 1
+            while i > 0 and not words[i - 1].endswith((",", ";", ":", ".", "!", "?")) and start - i < 8:
+                i -= 1
+            lo = i
+    hi = end                                                       # the clause ends where the quote ends
     seg = words[lo:hi]
     while len(seg) > MAX_WORDS and lo < start:                     # too long: give up words on the left first
         lo += 1
@@ -127,7 +130,13 @@ def clause_of(turn_text: str, quote: str) -> str:
     out = re.sub(r"^(?:parce qu'|puisqu'|qu')", "", out, flags=re.I)
     out = FILLERS.sub("", out)
     out = re.sub(r"^'[^\s]*\s+", "", out)                          # an orphan « 'est » left by the recorder
+    out = re.sub(r"^[a-zA-Zàéèy]\s+", "", out)                       # an orphan letter (« y la fatigue »)
     out = TAIL_FILLERS.sub("", out).strip(" ,;:.!?")
+    # a trailing fragment that opens a new clause (« parce que pour commencer », « si cette soutenance a lieu ou »,
+    # « c'est un système de primes ») is left out when enough words remain
+    cut = re.sub(r"[,\s]+(?:si|parce que|parce qu'|quand|c'est|alors)(?:\s+\S+){0,5}$", "", out, flags=re.I)
+    if len(cut.split()) >= MIN_WORDS:
+        out = cut
     toks = out.split()
     while toks and _w(toks[-1]) in DANGLING and len(toks) > MIN_WORDS:
         toks.pop()

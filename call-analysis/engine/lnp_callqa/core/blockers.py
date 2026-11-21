@@ -37,22 +37,32 @@ STOPPING = re.compile(
     r"qu'est-ce qui (?:te |vous )?manque")
 
 BLOCKER = re.compile(
-    r"je (?:n'|ne )?arrive pas à|j'arrive pas à|je (?:ne )?sais pas (?:comment|par où|par quoi|faire|me vendre|me mettre)|"
+    r"je (?:n'|ne |n )?arrive pas à|j'arrive pas à|je (?:ne )?sais pas (?:comment|par où|par quoi|faire|me vendre|me mettre)|"
     r"ce qui (?:me |m')(?:bloque|empêche|freine|retient|manque)|ça (?:me |m')(?:bloque|empêche|freine|retient)|"
-    r"je (?:n'|ne )?(?:ai|avais) pas (?:le temps|les moyens|la confiance|le réseau|les compétences|la visibilité|de visibilité|"
+    r"je (?:n'|ne |n )?(?:ai |avais )?pas (?:le temps|les moyens|la confiance|le réseau|les compétences|la visibilité|de visibilité|"
     r"de clients|d'élèves|de réseau|assez de|la méthode|de méthode|de structure|de stratégie|les codes|l'habitude|de temps)|"
     r"j'ai pas (?:le temps|les moyens|la confiance|le réseau|les compétences|de visibilité|de clients|d'élèves|de réseau|assez de|"
-    r"la méthode|de méthode|de temps)|je (?:ne )?me suis pas donné les moyens|je (?:n'|ne )?(?:ai|avais) jamais (?:réussi|osé|pris le temps|"
+    r"la méthode|de méthode|de temps)|je (?:ne )?me suis pas donné les moyens|je (?:n'|ne |n )?(?:ai |avais )?jamais (?:réussi|osé|pris le temps|"
     r"su|trouvé|eu l'occasion)|j'ai jamais (?:réussi|osé|su|trouvé|eu l'occasion)|je (?:n'|ne )?ose pas|j'ose pas|j'ai peur de|"
-    r"je (?:ne )?(?:connais|maîtrise) pas|je (?:n'|ne )?(?:ai|avais) pas (?:réussi|su|pu)|il faut se déplacer|je (?:ne )?peux pas (?:me |m')|"
-    r"je manque de|il me manque|l'occasion (?:ne )?s'est pas présentée|il n'y a rien qui tombe|il n'y rien qui tombe|rien ne tombe|"
+    r"je (?:ne )?(?:connais|maîtrise) pas|je (?:n'|ne |n )?(?:ai |avais )?pas (?:réussi|su|pu)|il faut se déplacer|je (?:ne )?peux pas (?:me |m')|"
+    r"je manque de|il me manque|l'occasion (?:ne )?s'est pas présentée|je (?:n'|ne |n )?(?:ai |avais )?pas (?:vraiment |du tout |beaucoup )?d'expérience|"
+    r"j'ai pas (?:vraiment |du tout )?d'expérience|je (?:ne )?l'ai jamais fait|j'ai jamais fait ça|il n'y a rien qui tombe|il n'y rien qui tombe|rien ne tombe|"
     r"rien qui tombe|personne ne (?:me )?répond|aucune réponse|ça ne (?:marche|prend|décolle) pas|ça marche pas|ça prend pas|"
     r"(?:le côté|à cause de mon|avec mon|c'est mon) âge|je (?:ne )?suis pas (?:à l'aise|capable|faite? pour|"
     r"commerciale?|vendeur|vendeuse)|je (?:ne )?me sens pas (?:capable|légitime|à l'aise)|"
     r"i can'?t |i don'?t know how|what'?s holding me back|i haven'?t (?:managed|been able|dared)|i'?m (?:scared|afraid) to|"
     r"i don'?t have (?:the time|the money|the network|the skills|enough)|i never (?:managed|dared)|i'?m not (?:good at|comfortable|a salesperson)")
 
-WORDS_BEFORE, WORDS_AFTER = 4, 10
+WORDS_BEFORE, WORDS_AFTER = 4, 8
+
+
+def about_offer(text: str) -> bool:
+    """A statement about paying for, or joining, the offer (« pas de moyens d'investir dans cette affaire »)."""
+    return bool(OFFER_CONTEXT.search(norm(text or "")))
+# a clause about paying for, or joining, the offer is a question on the offer, not what blocks the goal (X-offer)
+OFFER_CONTEXT = re.compile(r"\b(?:payer|paye|prix|tarif|collaboration avec vous|avec vous|le programme|l'accompagnement|"
+                           r"la formation|votre offre|vous rejoindre|m'inscrire|investir|mensualit\w*|budget pour|cette affaire|"
+                           r"cette somme|ces \d[\d ]* ?euros)\b")
 
 
 @dataclass
@@ -110,10 +120,14 @@ def prospect_blockers(ctx: CallContext, start, end) -> list[Blocker]:
         if turn.role != PROSPECT or turn.attribution_doubtful:
             continue
         text = turn.text
+        sentences = [(m.start(), m.end()) for m in re.finditer(r"[^.!?]+[.!?]*", text)]
         for cs, ce in _clauses(text):
             clause = text[cs:ce]
             nc = norm(clause)
             if not nc:
+                continue
+            sent = next((text[a:b] for a, b in sentences if a <= cs < b), clause)
+            if OFFER_CONTEXT.search(norm(sent)):
                 continue
             words = _tokens(clause)
             nwords = nc.split()

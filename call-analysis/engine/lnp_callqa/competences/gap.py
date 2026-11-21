@@ -29,7 +29,7 @@ from ..core.models import (CallContext, CompetenceResult, Evidence, ItemScore, O
                            Solicitation, Turn)
 from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
-from ..core.blockers import prospect_blockers, stopping_questions as code_stopping_questions
+from ..core.blockers import BLOCKER as BLOCKER_WORDS, about_offer, prospect_blockers, stopping_questions as code_stopping_questions
 from ..core.costs import prospect_costs
 from ..core.restate import perfect_formula
 from ..core.figures import dimension as unit_dim, prospect_figures, units_match
@@ -501,24 +501,31 @@ def select_p(ctx: CallContext, P: list[Statement], stopping: list, all_atoms_bef
         return None, None, "asked_not_answered", qdict(stopping[0])
     if not P:
         return None, None, "not_asked", None
-    pool = [x for x in P if x.atom_type == "BLOCKER" or x.origin == "blocker"] or P
+    # said unasked: a blocker in the prospect's own blocker words first (the code's clauses, or a model atom that
+    # holds one), then the model's BLOCKER atoms, then its pains; on a tie, the first said (the core one, the later
+    # ones are details). To confirm by asking.
+    pool = ([x for x in P if x.origin == "blocker" or BLOCKER_WORDS.search(norm(x.quote))]
+            or [x for x in P if x.atom_type == "BLOCKER"] or P)
     top = most(pool)
     if len({key_obj(x) for x in top}) == 1:
         return top[0], "comes_back_most", "said_unasked", None
-    return max(top, key=lambda x: _pos(ctx, x.turn, x.quote)), "tie_most_recent", "said_unasked", None
+    return min(top, key=lambda x: _pos(ctx, x.turn, x.quote)), "tie_first_said", "said_unasked", None
 
 
-COST_DIM_RANK = {"money": 0, "health": 1, "family": 2, "time": 3, "self_belief": 4, "self-belief": 4, "clients": 5}
+COST_DIM_RANK = {"money": 0, "family": 1, "health": 2, "time": 3, "self_belief": 4, "self-belief": 4, "clients": 5}
 
 
 def select_cost(ctx: CallContext, costs: list[Statement], sel_p: Optional[Statement],
-                cutoff: Optional[str]) -> Optional[Statement]:
-    """The cost the perfect restitution attaches to the blocker (§2.1, 2026-11-21): a cost stated in the turn of the
-    blocker or in the two prospect turns after it; else a quantified cost; else the most recent before the cutoff,
-    money before health, family, time, self-belief, clients."""
+                cutoff: Optional[str], restated_turns: frozenset = frozenset()) -> Optional[Statement]:
+    """The cost the perfect restitution attaches to the blocker (§2.1, 2026-11-21): the cost the sales restated when
+    there is one; else a cost stated in the turn of the blocker or in the two prospect turns after it; else a quantified
+    cost; else the most recent, money before family, health, time, self-belief, clients."""
     pool = [c for c in costs if cutoff is None or ctx.before(c.turn, cutoff)]
     if not pool:
         return None
+    restated = [c for c in pool if c.turn in restated_turns]
+    if restated:
+        return restated[-1]
     if sel_p is not None:
         try:
             n0 = ctx.n(sel_p.turn)
@@ -1375,7 +1382,7 @@ class GapCompetence:
         sel_a, sel_b, ab_rule = select_a_b(ctx, A, B, B_out)
         # the blocker and its state (GB-30 v1.4) are read over the whole discovery window: the question « qu'est-ce qui
         # t'a bloqué ? » asked after an early restitution still counts, and its answer is the blocker
-        P = [s for s in st_all["PROBLEM"] if ctx.before(s.turn, wend)]     # v1.4: whatever the question's letter
+        P = [s for s in st_all["PROBLEM"] if ctx.before(s.turn, wend) and not about_offer(s.quote)]   # v1.4: any letter
         stopping = self._stopping_questions(ctx, runner, [s for s in P if s.letter == "P"], concs, wend)
         before_atoms = [a for a in ctx.atoms if a.evidence and ctx.before(a.evidence.turn, wend)
                         and a.type in ("PAIN", "BLOCKER", "IMPACT")]
@@ -1521,7 +1528,8 @@ class GapCompetence:
               "solicitation": sel_p.letter, "state": p_state, "origin": sel_p.origin} if sel_p else None
         blocker = {"state": p_state, "rule": p_rule, "question": p_question,
                    "candidates": [b.to_dict() for b in st.get("_blockers", [])]}
-        chosen_cost = select_cost(ctx, st["COST"], sel_p, cutoff)
+        restated = frozenset(c.source_turn for r in rs for c in r.clauses if c.component == "COST" and c.source_turn)
+        chosen_cost = select_cost(ctx, st["COST"], sel_p, None, restated)    # the whole window: advice for the next call
         perfect = perfect_formula(ctx, sel_a, sel_b, horizon, sel_p, p_state, chosen_cost, units_match)
         validated_p = None
         if scored is not None:

@@ -48,7 +48,7 @@ def statement(quote, turn, letter, atom_type="PAIN", obj=None, origin="atom", id
 def test_the_four_states_of_the_blocker():
     ctx = ctx_of([("S", "x"), ("P", "a"), ("S", "y"), ("P", "b")])
     q = K.StoppingQuestion("T003", "Qu'est-ce qui t'a bloqué ?", ["T004"])
-    pain = statement("il faut se déplacer, ça me pose problème", "T002", "P", obj="déplacements", id_="p1")
+    pain = statement("ça me fatigue, je cours partout", "T002", "P", obj="fatigue", id_="p1")
     named = statement("je ne me suis pas donné les moyens", "T004", "P", "BLOCKER", obj="moyens", id_="p2")
     # named when asked: the answer to the stopping question, not the pain said before
     sel, rule, state, question = g.select_p(ctx, [pain, named], [q], [])
@@ -56,10 +56,13 @@ def test_the_four_states_of_the_blocker():
     # asked, not answered: a stopping question, no blocker in its answer
     sel, rule, state, question = g.select_p(ctx, [pain], [q], [])
     assert (sel, state, question["turn"]) == (None, "asked_not_answered", "T003")
-    # said unasked: no stopping question; a blocker clause of the code before a pain
+    # said unasked: no stopping question; a clause in blocker words (the code's, or a model atom holding one) before a pain
     code = statement("je ne sais pas comment trouver des élèves", "T004", "N", "BLOCKER", origin="blocker", id_="k1")
     sel, rule, state, question = g.select_p(ctx, [pain, code], [], [])
     assert (sel is code, state, question) == (True, "said_unasked", None)
+    worded = statement("il faut se déplacer, ça me pose problème", "T002", "P", obj="déplacements", id_="p3")
+    sel, rule, state, _ = g.select_p(ctx, [worded, code], [], [])
+    assert sel is worded and rule == "tie_first_said"                        # both in blocker words: the first said
     # not asked, nothing said
     assert g.select_p(ctx, [], [], []) == (None, None, "not_asked", None)
 
@@ -88,7 +91,7 @@ def test_person_shift_keeps_the_words_and_moves_the_person():
 
 def test_the_clause_around_a_quote():
     t = "J'aimerais bien, là j'ai fait le mois d'octobre, j'étais à un peu plus de 1000€ en net de CA, voilà, j'aimerais bien tenir ça dans la distance, ça serait un objectif."
-    assert R.clause_of(t, "j'étais à un peu plus de 1000€ en net de CA") == "j'étais à un peu plus de 1000€ en net de CA"
+    assert R.clause_of(t, "j'étais à un peu plus de 1000€ en net de CA") == "j'ai fait le mois d'octobre, j'étais à un peu plus de 1000€ en net de CA"
     assert R.clause_of(t, "j'aimerais bien tenir ça dans la distance, ça serait un objectif") == "j'aimerais bien tenir ça dans la distance, ça serait un objectif"
     t2 = "Je veux un salaire, le revenu que je veux chercher, c'est déjà minimum 2 000 euros. Minimum 2 000 euros."
     assert R.clause_of(t2, "minimum 2 000 euros") == "c'est déjà minimum 2 000 euros"

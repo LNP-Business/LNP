@@ -124,6 +124,9 @@ def prospect_costs(ctx: CallContext, start, end) -> list[Cost]:
                             or HYPOTHESIS.search(before):
                         continue
                     lo, hi = max(0, nb - WORDS_BEFORE), min(len(words), nb + n_marker + WORDS_AFTER)
+                    subj = [i for i in range(lo, nb) if re.match(r"^(?:je|j'|j'ai|on|ça|c'est|il)$", nwords[i].split("'")[0] + ("'" if "'" in nwords[i] else ""))]
+                    if subj:
+                        lo = subj[-1]                                       # « mais là je t'en parle j'ai envie d'en pleurer » → « j'ai envie… »
                     if lo >= len(words) or hi <= lo or any(a <= nb < b for a, b in taken):
                         continue
                     taken.append((lo, hi))
