@@ -129,14 +129,15 @@ def test_each_question_has_its_letter_register_and_the_prospect_answer():
     assert reg["flags"] == [] and reg["agreement"] is None and reg["single_reading"]
 
 
-def test_a_register_against_the_domain_words_is_rejected():
+def test_sb27_a_register_against_the_question_words_takes_the_words_register():
     a = copy.deepcopy(sc.ANSWERS)
     q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T005")
-    q.update(register_domain="time")                    # "How many clients": only Financial words (SB-32 rule 3)
+    q.update(register_domain="time")                    # "How many clients": only Financial words (SB-27, SB-32 rule 3)
     rec, _ = run(a)
     by = {x["turn"]: x for x in sols(rec)}
-    assert by["T005"]["register"] is None and by["T005"]["register_status"] == "to_review"
-    assert rec["meta"]["steps"]["S1"]["reasons"]["register:lexicon_conflict"] == 1
+    # 2026-11-21: the words of the question name one register, so it is that one (no longer left undecided)
+    assert by["T005"]["register"] == "financial" and by["T005"]["register_basis"] == "named"
+    assert rec["meta"]["steps"]["S1"]["reasons"]["register:named_in_question"] >= 1
 
 
 def test_a_closing_tail_makes_the_question_out_agreement():
@@ -458,3 +459,55 @@ def test_sb35_a_register_whose_answer_turn_is_missing_is_found_by_its_words():
     rec, _ = run(a)
     s = next(x for x in sols(rec) if x["turn"] == "T009")
     assert s["register"] is None and s["register_status"] == "to_review"
+
+
+def test_s3_2026_11_21_a_question_cut_before_its_end_is_out_nothing():
+    a = copy.deepcopy(sc.ANSWERS)
+    t = sc.context()
+    t.turns[6].text = "What's been stopping you from getting more..."
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T007")
+    q["quote"] = "What's been stopping you from getting more..."
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T007")
+    assert s["letter"] == "OUT" and s["out_reason"] == "nothing" and "cut_by_code" in s["tags"]
+
+
+def test_sb27_a_question_without_s1_reading_takes_the_register_its_words_name():
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T007")      # "...more clients?": Financial
+    for k in ("register_domain", "register_basis", "register_turn", "register_quote"):
+        q.pop(k, None)
+    rec, _ = run(a)
+    s = next(x for x in sols(rec) if x["turn"] == "T007")
+    assert s["register"] == "financial" and s["register_basis"] == "named"
+
+
+def test_sb31_a_neutral_question_without_register_reading_takes_its_answer_words_else_other():
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")       # "what made you book this call?"
+    for k in ("register_domain", "register_basis", "register_turn", "register_quote"):
+        q.pop(k, None)
+    t = sc.context()
+    t.turns[3].text = "My income from design is about 1,500 a month."                # the answer names money
+    q["answer"] = None
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    assert s["register"] == "financial" and s["register_basis"] == "answer" and s["register_reference_turn"] == "T004"
+    t = sc.context()
+    t.turns[3].text = "I saw your video and I wanted to talk to you."               # an answer that names no domain
+    q["answer"] = None
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    assert s["register"] == "other" and s["register_status"] == "single_reading"
+    assert rec["meta"]["steps"]["S1"]["reasons"]["register:other_by_code"] == 1
+
+
+def test_2026_11_21_the_work_of_today_has_no_register():
+    a = copy.deepcopy(sc.ANSWERS)
+    t = sc.context()
+    t.turns[2].text = "Great. So what's your job today, do you teach?"                  # names only the work of today
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")
+    q.update(quote="do you teach?", register_domain="money", register_basis="named", register_quote="do you teach")
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    assert s["register"] == "other" and s["register_basis"] == "named" and s["register_domain"] == "status"

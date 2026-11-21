@@ -33,12 +33,14 @@ For each solicitation:
 - For S, P, I and N only, the register (SB-26 to SB-35): "register_domain" is one of money (income, revenue, prices,
   debt, savings), clients (clients, customers, projects, leads, bookings), time (hours, schedule, workload), family
   (partner, children, parents), future (where they want to be, who they want to become, their career or status ahead;
-  a target amount of money or clients is money or clients), self_belief (confidence, motivation, fear, doubt,
-  feelings), health (stress, exhaustion, sleep, energy), other, none. "register_basis", in this order:
+  a target amount of money or clients is money or clients), status (their work today: trade, subject taught, job
+  status, seniority, background, retirement, current activity: "tu es professeur de quoi ?", "ça fait combien de temps
+  que tu enseignes ?"), self_belief (confidence, motivation, fear, doubt,
+  feelings), health (stress, exhaustion, sleep, energy), other (a place, a date, a tool, logistics), none. "register_basis", in this order:
   1 "named": the question names a domain as what the prospect should talk about (the domain asked wins over a
     premise; when two are asked, the first asked), or names a subject of one domain ("has that fear cost you
     anything?"); "register_quote" = those words of the question.
-  2 "answer": an open question, that names none of the seven domains, takes the domain the prospect's answer talks
+  2 "answer": an open question, that names none of the eight domains, takes the domain the prospect's answer talks
     about (the first one in the answer; "other" if none); "register_turn" = that answer turn (one of the first three
     turns of the answer), "register_quote" = the prospect's words that show it.
   3 only when the question got no answer: "reference" when it points back ("that", "it", "ça") to what the prospect

@@ -175,11 +175,17 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
+   S1g prompt (2026-11-21): French examples for gate 2 (an open question on the present situation) and gate 5 (what
+   blocks, what is hard, « tu es en difficulté ? »), and a re-reading before answering every gate false.
    S1g readings (2026-11-21): "not a solicitation" and OUT `nothing` are one outcome when the two readings are compared
    (§2, SB-2: neither leaves anything to read), so they agree without the arbiter. The prompt says that a social,
    logistic or framing question is a solicitation (with g1 `nothing`); on 5 calls, 74 of 88 disagreements came from one
    reading calling a plain question « not a solicitation ».
-6. **Registers**: a register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
+6. **Registers**: when the words of the question name one register (SB-27), the code takes it, whether the model
+   read the register in the answer, in the question with another domain, or gave no reading at all (an unread question); a neutral question with no reading, or read « none » though
+   answered, takes the one domain its first answer turn names, else No register (« Sans registre », SB-31, `register:other_by_code`); the
+   work of today (domain `status`) has no register (Romain, 2026-11-21) (2026-11-21: « tu es à la retraite et tu donnes
+   des cours ? » read as money becomes Identity and status, instead of an undecided conflict). A register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
    when the prospect's words it quotes are in exactly one turn of the answer (`register:turn_found_by_code`); without
    those words there is no proof and the register stays `to_review`. Single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
    (`agreement: null`). The SB-32 code checks still run (quote place, rule order, word-list conflict); a rejected

@@ -128,6 +128,9 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if E.social_or_logistic(sentence):                                # SB-2: social, logistic, framing of the call
         forced.append("nothing")
         tags.append("framing_by_code")
+    if E.cut_question(sentence):                                      # §3 (2026-11-21): a question cut before its end
+        forced.append("nothing")
+        tags.append("cut_by_code")
     if E.check_in_question(sentence):                                 # §3 (2026-11-20): "does that make sense?"
         forced.append("nothing")
         tags.append("check_in_by_code")
@@ -279,16 +282,25 @@ REGISTER_DOMAIN = {"financial": "money", "time_load": "time", "identity_status":
                    "mental_emotional": "self_belief", "other": "other"}
 
 
+def _domain_of(register: str) -> str:
+    """The domain the code gives a register its words name; the words of « Sans registre » are the work of today (status)."""
+    return "status" if register == "other" else REGISTER_DOMAIN[register]
+
+
 def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
     q = u.raw
     a = {"asked_domain": q.get("register_domain"), "basis": q.get("register_basis"),
          "quote": q.get("register_quote"), "reference_turn": q.get("register_turn")}
     named = E.lexicon_register_named(u.sol.text)
-    if a["basis"] in ("answer", "reference", "none") and named:
+    # SB-27 by the code (2026-11-21): also when the model reads the register in the question but gives another domain than
+    # the one its words name (« tu es à la retraite et tu donnes des cours ? » read as money: the words name identity)
+    other = a["basis"] == "named" and named and E.REGISTER_OF_DOMAIN.get(a["asked_domain"]) != named[0]
+    unread = a["asked_domain"] is None and a["basis"] is None       # no S1 reading (C4): the question's words, if they name one
+    if (a["basis"] in ("answer", "reference", "none") or other or unread) and named:
         # SB-27 by the code (LNP, 2026-11-19): the question names one domain, so the register is read in the question,
         # not in its answer (« pourquoi reprendre une activité à temps plein ? » was given Financial from the answer)
         drops.add(STEP, "register:named_in_question", q)
-        a = {"asked_domain": REGISTER_DOMAIN[named[0]], "basis": "named", "quote": named[1], "reference_turn": None}
+        a = {"asked_domain": _domain_of(named[0]), "basis": "named", "quote": named[1], "reference_turn": None}
     if a["basis"] == "answer" and a["quote"]:
         # SB-35: the words that show the register are the proof; when the model names no answer turn or another one,
         # the code looks for those words in the answer itself (they must still be the prospect's, in the answer span)
@@ -298,6 +310,18 @@ def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
             if len(hit) == 1:
                 drops.add(STEP, "register:turn_found_by_code", q)
                 a = dict(a, reference_turn=hit[0])
+    answered = E._answer_turns(ctx, u)
+    if (unread or (a["basis"] == "none" and answered)) and not named:
+        # SB-31 by the code (Romain, 2026-11-21): a neutral question with no register reading, or read « none » though the
+        # prospect answered, takes the register the words of the first answer turn name, else Other (it is neutral)
+        hit = E.lexicon_register_in(answered[0].text) if answered else None
+        if hit:
+            drops.add(STEP, "register:answer_words_by_code", q)
+            a = {"asked_domain": _domain_of(hit[0]), "basis": "answer", "quote": hit[1], "reference_turn": answered[0].id}
+        else:
+            drops.add(STEP, "register:other_by_code", q)
+            return {"register": "other", "status": SINGLE, "concordance": "1/1", "domain": "other", "basis": "none",
+                    "quote": None, "reference_turn": None}
     if a["asked_domain"] is None and a["basis"] is None:
         drops.add(STEP, "register:missing", q)
         errs = ["missing"]

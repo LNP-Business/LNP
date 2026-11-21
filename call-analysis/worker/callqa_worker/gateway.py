@@ -10,6 +10,7 @@ kind of answer: quotes are still checked by code, three passes and the arbiter s
 """
 from __future__ import annotations
 
+import http.client
 import json
 import threading
 import time
@@ -95,7 +96,7 @@ class GatewayClient:
                     raise GatewayError(last, final=True) from None
                 if e.code not in (429, 503, 504, 500, 502):
                     raise GatewayError(last) from None
-            except (urllib.error.URLError, TimeoutError) as e:
-                last = str(e)
+            except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as e:
+                last = str(e) or type(e).__name__        # also a connection reset while the answer is read (2026-11-21)
             self.sleep(min(2 ** (i + 1), 30))
         raise GatewayError("model gateway unavailable: " + last)
