@@ -107,6 +107,22 @@ restitution (an early partial playback hid « minimum 2 000 euros »); it is now
 (the last passing, else the last before the pitch). A model atom that is the code's present figure (« là je suis à 2000
 c'est… », unit read as "c" by the model) is a candidate whatever the question it answers, with the code's unit. Replay of
 the six live analyses added to the cases: A 5/5, B 5/5, problem 5/5, cost 4/4; the 22 analyses: 95 % (72/76).
+Second live run (same day, code of PR 72): the model called « j'étais à un peu plus de 1000€ » (the month before the
+call) a past figure and A was lost (X13); the code's reading of its own figures now stands. Replay of the 27 analyses
+(16 stored, 11 live): A 25/25, B 24/25, problem 23/25, cost 19/20, 96 %. What moves from one live analysis to the next
+is the reading of the restitution (S2): the same call gets `cost_missing`, `not_validated` or `no_restitution`, the
+elements stay.
+
+## The blocker's state and the perfect restitution (2026-11-21)
+
+Romain: « ce qui bloque » was filled even when the sales never asked. The reference now gives, per call, the sales'
+stopping question when there is one (`gap.stopping_question`) and the expected state of the blocker (`gap.blocker_state`:
+named when asked, asked not answered, said unasked, not asked; GB-30 v1.4). On the 27 analyses: state right 24/25,
+question 13/14 (the one left is the analysis whose pitch start is read at the 18th turn). The perfect restitution is the
+engine's (`formula.perfect`): checked by eye on the six calls, e.g. « Aujourd'hui, tu es payée maximum 15 euros de
+l'heure · tu veux plus que 15 euros de l'heure · ce qui te bloque, c'est que tu penses qu'il y a le côté âge · et ça te
+coûte : tu vas te retrouver dans des difficultés financières très très graves. C'est bien ça ? » instead of « tu veux
+atteindre "travailler" · ce qui te bloque c'est "arnaquer" · et ça te coûte "exploité" ».
 
 ## First live measure (2026-11-20, run 44754260316)
 

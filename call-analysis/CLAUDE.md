@@ -57,7 +57,10 @@ the code checks every quote and reuses the engine's decision code (Gap and Pitch
 The gap formula (A, B) is selected on the model's atoms **and** on the figures the code lists in the prospect's turns
 (`engine/lnp_callqa/core/figures.py`, GB-28b): value, unit, kind (present, target, past, expense, offer). A is never
 a fact unrelated to B; B is the most recent target in figures, N answers first. The costs the prospect states are listed
-the same way (`core/costs.py`, GB-7b: a lexicon per cost domain, exact passages). Measured by replay on the reference
+the same way (`core/costs.py`, GB-7b: a lexicon per cost domain, exact passages). The blocker has a **state** (GB-30 v1.4,
+`core/blockers.py`: named when asked, asked not answered, said unasked, not asked) read from the sales' stopping questions
+and the prospect's blocker clauses; the perfect restitution is the engine's (`core/restate.py`, `formula.perfect`:
+complete clauses in the second person, never the sales' reused words). Measured by replay on the reference
 set (`qa/README.md`): gap elements right 46 % → 93 % (A 15/15, B 14/15, problem 13/15, cost 11/12). Tests:
 `engine/tests/test_figures.py`, `engine/tests/test_costs.py`.
 

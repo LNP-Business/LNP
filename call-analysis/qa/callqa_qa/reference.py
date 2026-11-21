@@ -12,7 +12,9 @@ repaired or the parsing changes, the words do not. `validate()` checks the file 
   "questions": [{"quote": "…", "letter": "S|P|I|N|OUT", "register": "financial|time_load|identity_status|
                  mental_emotional|other", "atoms": [{"type": "SITUATION|PAIN|BLOCKER|IMPACT|DESIRE|VALUE", "quote": "…"}], "note": "…"}],
   "gap": {"verdict": "present|absent", "absence_reason": "…", "components": {"PROBLEM": "quote"|null, "COST": …,
-          "A": …, "B": …}},                   # a component may list several accepted quotes, null among them
+          "A": …, "B": …},                    # a component may list several accepted quotes, null among them
+          "blocker_state": "named_when_asked|asked_not_answered|said_unasked|not_asked",   # GB-30 v1.4 (or a list)
+          "stopping_question": "quote"},      # the sales' question that asks what stops them, when there is one
                                               # ("said here or there, or rightly not selected")
   "pitch": {"verdict": "compliant|non_compliant"},
   "objections": [{"quote": "…", "nature": "…", "acknowledge": bool, "isolate": bool, "explore": bool,
@@ -34,6 +36,7 @@ ATOMS = ("SITUATION", "PAIN", "BLOCKER", "IMPACT", "DESIRE", "VALUE")          #
 COMPETENCES = ("SPIN", "GAP", "PITCH", "OBJECTIONS")
 NATURES = ("objection", "anxiety_capability", "anxiety_choice", "inertia")     # engine objections.nature_of_subjects
 ANCHORS = ("discovery_start", "pitch_start", "first_price", "decision_request")
+BLOCKER_STATES = ("named_when_asked", "asked_not_answered", "said_unasked", "not_asked")
 
 
 def norm(s: str) -> str:
@@ -79,6 +82,8 @@ def _quotes(ref: dict) -> Iterable[tuple[str, str]]:
         for i, x in enumerate(q if isinstance(q, list) else [q]):
             if x:
                 yield f"gap.components.{k}[{i}]", x
+    if (ref.get("gap") or {}).get("stopping_question"):
+        yield "gap.stopping_question", ref["gap"]["stopping_question"]
     for i, o in enumerate(ref.get("objections") or []):
         yield f"objections[{i}]", o.get("quote", "")
 
@@ -105,6 +110,9 @@ def validate(ref: dict, transcript: str) -> list[str]:
     for i, o in enumerate(ref.get("objections") or []):
         if "nature" in o and not accepted(o["nature"]) <= set(NATURES):
             errs.append(f"objections[{i}].nature: {o['nature']}")
+    bs = (ref.get("gap") or {}).get("blocker_state")
+    if bs is not None and not accepted(bs) <= set(BLOCKER_STATES):
+        errs.append(f"gap.blocker_state: {bs}")
     text = norm(re.sub(r"^\[[^\]]*\]\s*[^:]{1,80}:\s*", "", transcript or "", flags=re.M))
     for where, q in _quotes(ref):
         if not norm(q) or norm(q) not in text:

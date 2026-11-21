@@ -276,7 +276,17 @@ repris du commercial). Mesure par rejeu sur les 6 appels (`call-analysis/qa/READ
 (A 15/15, B 14/15, problème 13/15, coût 11/12). Les notes G1 à G3 changent avec la version des règles : les analyses stockées sont
 à relancer (C8). Premières analyses réelles en GAP-1.4 (2026-11-21) : la formule est lue avant la reformulation jugée (la dernière
 qui passe la porte, sinon la dernière avant l'offre), plus avant la première ; un atome du modèle qui est le chiffre présent du code
-compte quelle que soit la question (unité du code si celle du modèle n'a pas de dimension).
+compte quelle que soit la question (unité du code si celle du modèle n'a pas de dimension) ; la lecture du code (présent) tient pour
+ses chiffres, même quand le modèle lit « j'étais à » comme un passé (X13 n'est demandé que sur les autres atomes).
+Blocage et reformulation parfaite (Romain, 2026-11-21, GB-30 v1.4, `core/blockers.py`, `core/restate.py`) : le blocage a un **état**
+décidé par le code sur toute la découverte, à partir des questions du blocage du commercial (« qu'est-ce qui t'a empêché… »,
+« pourquoi tu ne l'as jamais fait ? ») et des phrases du prospect qui disent ce qui l'empêche : « nommé à la question du
+blocage », « demandé, non dit », « dit de lui-même, à confirmer », « jamais demandé » ; une douleur dite ailleurs n'est plus
+jamais P par défaut ; l'écran affiche l'état et le conseil (poser la question, relancer, faire confirmer). La reformulation
+parfaite vient du moteur (`formula.perfect`) : les propositions complètes du prospect, passées à la deuxième personne (« je
+suis payée 15 euros » → « tu es payée 15 euros »), jamais les mots repris par le commercial ; une case non dite dit la question
+à poser ; le coût rattaché au blocage (dit dans sa réponse ou juste après, sinon chiffré, sinon le plus récent). Mesure : état
+du blocage et question du blocage dans la référence (`gap.blocker_state`, `gap.stopping_question`).
 Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et

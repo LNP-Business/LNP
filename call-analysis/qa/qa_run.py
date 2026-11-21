@@ -111,7 +111,7 @@ def line(m: dict) -> str:
         v = share((m.get(a) or {}).get(b))
         return "  -  " if v is None else f"{v:5.0%}"
     return (f"{m['slug']:<12} {m['split']:<8} questions {s('spin', 'questions_found')} letters {s('spin', 'letters')} "
-            f"registers {s('spin', 'registers')} effects {s('spin', 'atoms_found')} gap {s('gap', 'components')} "
+            f"registers {s('spin', 'registers')} effects {s('spin', 'atoms_found')} gap {s('gap', 'components')} blocage {s('gap', 'blocker_state')} "
             f"objections {s('objections', 'found')} gestures {s('objections', 'gestures')} scores {s('status', 'score')} "
             f"errors {m['n_errors']}")
 

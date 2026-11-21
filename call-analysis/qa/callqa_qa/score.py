@@ -118,6 +118,18 @@ def gap(ref: dict, rec: dict) -> dict:
         if not ok:
             out["errors"].append({"kind": "gap_absence_reason", "expected": exp["absence_reason"],
                                   "found": det.get("absence_reason")})
+    if "blocker_state" in exp:
+        found = (det.get("blocker") or {}).get("state")
+        ok = found in accepted(exp["blocker_state"])
+        out["blocker_state"] = _pair(int(ok), 1)
+        if not ok:
+            out["errors"].append({"kind": "gap_blocker_state", "expected": exp["blocker_state"], "found": found})
+    if exp.get("stopping_question"):
+        found = ((det.get("blocker") or {}).get("question") or {}).get("quote") or ""
+        ok = same_words(exp["stopping_question"], found, 0.5)
+        out["stopping_question"] = _pair(int(ok), 1)
+        if not ok:
+            out["errors"].append({"kind": "gap_stopping_question", "expected": exp["stopping_question"], "found": found or None})
     comps = exp.get("components") or {}
     if comps:
         right = 0
@@ -250,7 +262,8 @@ def total(measures: list[dict]) -> dict:
     """The measures of several calls added up, as shares."""
     keys = [("status", "status"), ("status", "score"), ("phases", "anchors"), ("spin", "questions_found"),
             ("spin", "questions_to_review"), ("spin", "letters"), ("spin", "registers"), ("spin", "atoms_found"), ("spin", "atom_types"),
-            ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("pitch", "verdict"),
+            ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("gap", "blocker_state"),
+            ("gap", "stopping_question"), ("pitch", "verdict"),
             ("objections", "found"), ("objections", "nature"), ("objections", "gestures")]
     out = {}
     for a, b in keys:
