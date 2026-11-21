@@ -153,3 +153,15 @@ def test_c4_a_question_s1_routes_comes_back_when_both_gate_readings_see_a_questi
     reasons = rec["meta"]["steps"]["S1"]["reasons"]
     assert reasons["question:routing_s1"] == 1 and "question:routing" not in reasons
     assert any(x["turn"] == "T017" for x in rec["results"]["SPIN"]["details"]["solicitations"])
+
+
+def test_not_a_question_and_out_nothing_are_one_outcome_no_arbiter():
+    # « can you hear me okay? »: one reading says « not a question », the other OUT nothing (SPIN §2, SB-2)
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s1_gates"] = [{"units": [gate("Q001", is_solicitation=False, g1={"reason": "nothing", "quote": "can you hear me"})]},
+                          {"units": [gate("Q001", g1={"reason": "nothing", "quote": "can you hear me"})]}]
+    client = MockLiteClient(a)
+    rec = analyse(sc.context(), client, None)
+    s = sol(rec, "T001")
+    assert s["status"] == "agreed" and s["gate_letter"] == "OUT"            # before the discovery: listed, not coded
+    assert not any(c["task"] == "lite.s1_gates_arbiter" for c in client.calls)

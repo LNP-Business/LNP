@@ -77,5 +77,5 @@ French form. Tests: `engine/tests/test_french.py`.
 cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (211 pass; 20 need CALLQA_CORPUS)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
-cd lite && python3 -m pytest -q tests                                 # lite engine (74 tests)
+cd lite && python3 -m pytest -q tests                                 # lite engine (75 tests)
 ```

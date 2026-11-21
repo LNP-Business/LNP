@@ -175,6 +175,10 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
+   S1g readings (2026-11-21): "not a solicitation" and OUT `nothing` are one outcome when the two readings are compared
+   (§2, SB-2: neither leaves anything to read), so they agree without the arbiter. The prompt says that a social,
+   logistic or framing question is a solicitation (with g1 `nothing`); on 5 calls, 74 of 88 disagreements came from one
+   reading calling a plain question « not a solicitation ».
 6. **Registers**: a register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
    when the prospect's words it quotes are in exactly one turn of the answer (`register:turn_found_by_code`); without
    those words there is no proof and the register stays `to_review`. Single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed

@@ -41,7 +41,7 @@ DEFAULTS: dict[str, Any] = {
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
     "max_tokens": {"SV": 8000, "S0": 12000,      # S0 6000 → 12000 (2026-11-20): an R2 of the reference set was cut twice
-                   "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 8000, "S3": 10000, "S4": 10000},
+                   "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.3", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
@@ -222,6 +222,12 @@ def _reading_text(g: Optional[dict], quote: str) -> str:
     return f"letter {d[0] if d else '?'}" + (f" ({d[1]})" if d and d[1] else "") + " · " + ("; ".join(parts) or "no gate")
 
 
+def _same_outcome(letter: Optional[tuple]) -> Optional[tuple]:
+    """Two readings agree when they lead to the same outcome: "not a solicitation" and OUT `nothing` both leave the
+    sentence out of the discovery with nothing to read (SPIN §2, SB-2), so they are one outcome."""
+    return ("OUT", "nothing") if letter and letter[0] == "NOT_SOLICITATION" else letter
+
+
 def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions: list) -> dict[str, dict]:
     """S1g (2026-11-20, SPIN §3, Part C, C4): the model answers the closed gates of each listed question, in batches
     with their context; the code decides the letter with the engine's decide_letter. Two independent readings (the second
@@ -251,9 +257,10 @@ def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions
         if passes == 1:
             out[q["id"]] = dict(valid[0], _status="single_reading")
             continue
-        letters = {LS.gate_letter(g, q["quote"]) for g in valid}
+        letters = {_same_outcome(LS.gate_letter(g, q["quote"])) for g in valid}
         if len(valid) == passes and len(letters) == 1:
-            out[q["id"]] = dict(valid[0], _status="agreed")
+            keep = next((g for g in valid if g.get("is_solicitation") is not False), valid[0])   # listed, OUT nothing
+            out[q["id"]] = dict(keep, _status="agreed")
         else:
             disputed.append((q, got))
     if disputed:
