@@ -190,8 +190,11 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   (SB-2); phrases like « le temps de la regarder » and French words that are English words (« son ») are not register
   words (SB-30); a cut question asked whole before the cut is not cut; a question no gate passes whose answer holds an
   effect is read once more by the arbiter before it counts as absent (§5). Prompts: French examples of consequence
-  questions (gate 4), a prospect's question is not an effect (S1), wanting to know the price is not an objection and the
-  co-decider needs another person (S4, OB-2). Memos to update: SPIN (§2, §3, SEG-1, SEG-3, §5) and Objections (OB-2).
+  questions (gate 4), a prospect's question is not an effect (S1). Tried and withdrawn the same day: telling S4 that
+  wanting to know the price, or not knowing yet, is not a resistance, and that a co-decider needs another person; on the
+  objections step alone (5 calls × 2 readings) it found 20 of 48 expected objections against 25 with the prompt before,
+  with more extras (5 against 2). The doubtful objections it aimed at stay open. Memo to update: SPIN (§2, §3, SEG-1,
+  SEG-3, §5).
 - SPIN, same day, after the first live run of these rules: gate 4's « same domain » holds only when the question names a
   domain (a model answer « open » and « same domain » together read as an I); SB-21 decided by the code in the lite engine
   (an action-plan question is N with a future state or value in its answer, else OUT `solution_load`).

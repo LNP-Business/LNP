@@ -1,9 +1,7 @@
 STEP S4 · OBJECTIONS AFTER THE FIRST PRICE, AND PREVENTION (Objections annex OB-1 to OB-26, gestures A · I · E · M)
 {anchors}
 A resistance is a PROSPECT (or co-decider) passage that expresses a doubt or a reserve: an objection, an anxiety or an
-inertia. Not a resistance (OB-2): a request for information ("how long is it?", "je veux comprendre combien ça va me
-coûter", "c'est combien ?": wanting to know the price is not doubting it), a statement of not knowing yet ("je ne
-savais pas, c'est dans l'abstrait"), a conditional acceptance ("if I can
+inertia. Not a resistance (OB-2): a request for information ("how long is it?"), a conditional acceptance ("if I can
 pay monthly, then yes"), a neutral fact about who decides, a delay with an external verifiable reason (a deadline; if
 it also limits their time, it is a time objection, OB-25). {window} List each resistance once: when the same doubt is said again before the sales moves on, add its quotes to the same item.
 When the same doubt comes back AFTER the sales moved on to another subject or after another resistance (a recurrence,
@@ -14,9 +12,6 @@ For each resistance:
   not managing, not lasting), own_decision (choosing wrong, being fooled), present_attachment, postponement (attachment
   to the present, postponing without an external reason). "denied_subjects": the ones the prospect explicitly denies
   ("I'm not scared, it's just the amount", OB-24).
-  co_decider only when another person (a spouse, a partner, an associate) has a say in the purchase; the prospect's
-  own prices or income ("je ne peux pas monter mes tarifs") are never co_decider, and not a resistance unless they
-  doubt the purchase.
 - "quotes": every PROSPECT passage where it is said until the sales moves on, in order: [{"turn", "quote"}].
 - The sales response to the FIRST passage of the item, until the sales moves on:
   "topic_change": {"turn", "quote"}: the first SALES turn that moves to a new subject (a new discovery question, a new
