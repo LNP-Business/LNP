@@ -268,7 +268,15 @@ au moins 3 questions sans porte franchie et plus de 5 % (`ABSENT_MIN_COUNT`, §5
 explorés ; « Autre » devient « Sans registre » (clé `other`) et reçoit les faits neutres de la situation (domaine `status` : métier,
 matière, ancienneté, retraite comme fait, quotidien), un lieu, une date, un outil ; Identité et statut garde l'avenir (devenir,
 reconversion, projet). Une question neutre sans registre lu prend le domaine que nomment les mots de sa réponse, sinon « Sans
-registre » (jamais « non tranché »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+registre » (jamais « non tranché »). Début de la découverte (Romain, 2026-11-21, SB-1) : elle s'ouvre sur un registre, à la
+première question dont le registre est un des quatre ou à la première information du prospect qui entre dans un registre (effet lu
+par le modèle, fait nommant un registre, chiffre, coût ou blocage listés par le code : `spin.code_opening_info`) ; ce qui précède est
+cadrage et mise en route (`perimeter.opened_by`). Une question sans « ? » dont le mot interrogatif est dans la phrase est listée
+(`embedded_question`) ; la question prioritaire d'une réplique n'est jamais une question coupée, une vérification ou une
+reformulation fermée quand une question ouverte la précède (SEG-1) ; une question sans porte dont la réponse porte un effet est
+relue par l'arbitre (`gates:absent_reread`). Mots français repris de la PR 65 fermée (comportement seulement : quantités en
+lettres, unités accentuées, élisions, compliments, ouvertures et validations de l'écart, marqueurs d'objection, apostrophe ’).
+Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Écart, points A et B (Romain, 2026-11-20, règles GAP-1.4, `call-analysis/engine/lnp_callqa/core/figures.py`) : le code liste les
 chiffres du prospect (valeur, unité, nature : présent, cible, passé, dépense, offre) et ses cibles sans chiffre ; A est choisi
 sur la dimension de B, jamais un fait sans rapport (« la conférence m'a convaincu ») : sans chiffre sur la dimension de B, A est
