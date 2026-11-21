@@ -150,3 +150,8 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   own words is OUT `agreement` (`difficulty_named_by_sales`). The lite gates prompt gives French examples for S and P.
   On the 5 calls analysed on 2026-11-21: questions with no gate 10 → 3, discovery scored in 4 calls out of 5 instead of 1.
   SPIN memo to update (§3 hard rules, §5 applicability) and Part C memo (C7 health).
+- Registers (SB-26, SB-30): Identity & status also covers the prospect's work today (new domain `status`: trade, subject,
+  job status, seniority, background, retirement, activity); Other keeps a place, a date, a tool, logistics. The code's
+  lexicon gets the words of the work of today, reads a word after an elision (« d'élèves ») and skips a short tail
+  (« …, toi ? », « …, du coup ? ») to find the asked clause; a question with no S1 reading takes the register its words
+  name. On the 5 calls: Identity & status 9 → 15 questions, Other 9 → 3. SPIN memo to update (registers).

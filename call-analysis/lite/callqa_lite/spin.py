@@ -290,7 +290,8 @@ def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
     # SB-27 by the code (2026-11-21): also when the model reads the register in the question but gives another domain than
     # the one its words name (« tu es à la retraite et tu donnes des cours ? » read as money: the words name identity)
     other = a["basis"] == "named" and named and E.REGISTER_OF_DOMAIN.get(a["asked_domain"]) != named[0]
-    if (a["basis"] in ("answer", "reference", "none") or other) and named:
+    unread = a["asked_domain"] is None and a["basis"] is None       # no S1 reading (C4): the question's words, if they name one
+    if (a["basis"] in ("answer", "reference", "none") or other or unread) and named:
         # SB-27 by the code (LNP, 2026-11-19): the question names one domain, so the register is read in the question,
         # not in its answer (« pourquoi reprendre une activité à temps plein ? » was given Financial from the answer)
         drops.add(STEP, "register:named_in_question", q)

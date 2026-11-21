@@ -64,7 +64,8 @@ REGISTERS = ("financial", "time_load", "identity_status", "mental_emotional", "o
 REGISTER_LABELS = {"financial": "Financial", "time_load": "Time & load", "identity_status": "Identity & status",
                    "mental_emotional": "Mental & emotional", "other": "Other"}
 REGISTER_OF_DOMAIN = {"money": "financial", "clients": "financial", "time": "time_load", "family": "time_load",
-                      "future": "identity_status", "self_belief": "mental_emotional", "health": "mental_emotional",
+                      "future": "identity_status", "status": "identity_status",   # status: their work today (2026-11-21)
+                      "self_belief": "mental_emotional", "health": "mental_emotional",
                       "other": "other", "none": "other"}
 REGISTER_BASES = ("named", "answer", "reference", "none")   # SB-28 / SB-35 / SB-29 / SB-31
 REGISTER_ANSWER_TURNS = 3          # SB-35: an open question is read in (at most) the first three turns of its answer
@@ -78,7 +79,9 @@ REGISTER_LEXICON = {
     "time_load": ("time", "hour", "week", "weekend", "schedule", "workload", "busy", "family", "kid", "child", "wife",
                   "husband", "partner", "son", "daughter", "parent"),
     "identity_status": ("future", "years from now", "long term", "long-term", "where do you see yourself",
-                        "where do you want to be", "become", "dream", "vision", "career", "legacy", "status"),
+                        "where do you want to be", "become", "dream", "vision", "career", "legacy", "status",
+                        "job", "profession", "occupation", "teach", "retire", "employee", "freelanc", "self-employed",
+                        "background", "degree"),
     "mental_emotional": ("confiden", "believe in yourself", "self-belief", "motivat", "mindset", "fear", "doubt",
                          "feel", "emotion", "frustrat", "proud", "health", "stress", "anxi", "burnout", "burn out",
                          "burned out", "exhaust", "tired", "sleep", "energy"),
@@ -93,7 +96,9 @@ REGISTER_LEXICON_FR = {
                   "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
                   "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
     "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
-                        "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees"),
+                        "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees",
+                        "professeur", "prof ", "profs ", "enseign", "matiere", "salarie", "fonctionnaire", "poste ",
+                        "parcours", "diplom", "auto-entrepreneur", "freelance", "anciennete"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
                          "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
@@ -587,12 +592,13 @@ def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
     the word that names it (an exact passage of the question); None otherwise. SB-28 (asked over premise): only the last
     clause, after the last comma, is read ("not knowing where clients come from, what does that do to you?" asks
     nothing about clients)."""
-    text = asked_part(text).rsplit(",", 1)[-1]
+    parts = [p for p in asked_part(text).split(",") if p.strip()] or [""]
+    text = next((p for p in reversed(parts) if len(re.findall(r"\w+", p)) >= 3), parts[-1])   # « …, toi ? », « …, du coup ? »
     t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = {}
     for reg, words in REGISTER_LEXICON.items():
         for w in words:
-            m = re.search(r"[ $]" + re.escape(w), t)
+            m = re.search(r"[ $']" + re.escape(w), t)                      # a word after an elision: « d'élèves »
             if m:
                 hits.setdefault(reg, w.strip())
     if len(hits) != 1:
@@ -1220,7 +1226,7 @@ def lexicon_registers(text: str) -> set[str]:
     t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = set()
     for reg, words in REGISTER_LEXICON.items():
-        if any(re.search(r"[ $]" + re.escape(w), t) for w in words):
+        if any(re.search(r"[ $']" + re.escape(w), t) for w in words):      # a word after an elision: « d'élèves »
             hits.add(reg)
     if re.search(r"\$ ?\d|\d+ ?k\b", t):
         hits.add("financial")

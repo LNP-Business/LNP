@@ -470,3 +470,13 @@ def test_s3_2026_11_21_a_question_cut_before_its_end_is_out_nothing():
     rec = analyse(t, MockLiteClient(a))
     s = next(x for x in sols(rec) if x["turn"] == "T007")
     assert s["letter"] == "OUT" and s["out_reason"] == "nothing" and "cut_by_code" in s["tags"]
+
+
+def test_sb27_a_question_without_s1_reading_takes_the_register_its_words_name():
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T007")      # "...more clients?": Financial
+    for k in ("register_domain", "register_basis", "register_turn", "register_quote"):
+        q.pop(k, None)
+    rec, _ = run(a)
+    s = next(x for x in sols(rec) if x["turn"] == "T007")
+    assert s["register"] == "financial" and s["register_basis"] == "named"

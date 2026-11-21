@@ -168,7 +168,7 @@ These indicators explain the score; they never enter it.
 # 8b. Registers of the questions (displayed, never scored)
 
 Since v1.2 every coded question of the discovery, before the first pitch start or price, is placed in one register:
-**Financial** (money, clients), **Time & load** (time, family), **Identity & status** (future), **Mental & emotional**
+**Financial** (money, clients), **Time & load** (time, family), **Identity & status** (future, and the prospect's work today: status, since 2026-11-21), **Mental & emotional**
 (self-belief, health) or **Other**. The model names the domain the question asks about, with an exact quote; the code
 maps it to the register (Annex A, SB-26 to SB-33). Since v1.3 an open question, one that names none of the seven
 domains, takes the register of the prospect's answer to it, the effect it produced (SB-35, Romain 2026-10-29). Questions after the pitch (not SPIN at all, SB-34), OUT
