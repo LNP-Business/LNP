@@ -460,7 +460,10 @@ def decide_letter(g: dict, attrs: dict, text: str) -> LetterDecision:
         return LetterDecision("S", 2, None, tags, invalid)
     if gate(g3.get("state_or_value") and g3.get("antecedent") != "problem", g3):
         return LetterDecision("N", 3, None, tags, invalid)
-    if gate(g4.get("consequence") and not g4.get("same_domain") and not g4.get("antecedent_solution"), g4):
+    # gate 4 (2026-11-21): « same domain » compares the domain the question names with the problem's; a question that names
+    # none (`named_domain` open or empty: « qu'est-ce que tu ressens par rapport à ça ? ») cannot stay in the same domain
+    same = g4.get("same_domain") and g4.get("named_domain") not in (None, "", "open")
+    if gate(g4.get("consequence") and not same and not g4.get("antecedent_solution"), g4):
         return LetterDecision("I", 4, None, tags, invalid)
     if gate(g5.get("difficulty") and (not g5.get("sales_named") or g5.get("anchored")), g5):
         return LetterDecision("P", 5, None, tags, invalid)

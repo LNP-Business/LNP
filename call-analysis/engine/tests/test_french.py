@@ -448,3 +448,13 @@ def test_french_phase_cues():
               "Comment vous souhaitez procéder ?"]:
         assert F.DECISION.search(t), t
     assert not F.OFFER_CUES.search("Tu fais ça depuis six mois ?")                 # the offer's duration waits for Romain
+
+
+def test_2026_11_21_an_open_consequence_question_is_never_in_the_same_domain():
+    from lnp_callqa.competences import spin as S
+    q = "Qu'est-ce que tu ressens par rapport à ça, en fait ?"
+    g = {"g4": {"consequence": True, "problem_domain": "health", "named_domain": "open", "same_domain": True,
+                "antecedent_solution": False, "quote": "Qu'est-ce que tu ressens par rapport à ça"}}
+    assert S.decide_letter(g, {}, q).letter == "I"
+    g["g4"]["named_domain"] = "health"                                   # it names the problem's own domain: not I
+    assert S.decide_letter(g, {}, q).letter == "OUT"

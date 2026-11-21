@@ -192,6 +192,9 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   effect is read once more by the arbiter before it counts as absent (§5). Prompts: French examples of consequence
   questions (gate 4), a prospect's question is not an effect (S1), wanting to know the price is not an objection and the
   co-decider needs another person (S4, OB-2). Memos to update: SPIN (§2, §3, SEG-1, SEG-3, §5) and Objections (OB-2).
+- SPIN, same day, after the first live run of these rules: gate 4's « same domain » holds only when the question names a
+  domain (a model answer « open » and « same domain » together read as an I); SB-21 decided by the code in the lite engine
+  (an action-plan question is N with a future state or value in its answer, else OUT `solution_load`).
 - Still open for Romain (2026-11-21): when the prospect says they earn only a small share of what a lesson costs, is it
   the problem or the cost of the gap? On one of the 5 calls it decides the gap verdict (present or absent).
 - French words and turns of phrase of the closed PR 65 (2026-11-21, Romain): only their behaviour is taken (identifiers

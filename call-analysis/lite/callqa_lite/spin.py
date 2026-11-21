@@ -110,6 +110,15 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     letter, tags = q["letter"], (["gates_by_code"] if fg else [])
     reason = (q.get("out_reason") if q.get("out_reason") in E.OUT_PRIORITY else "absent") if letter == E.OUT else None
     forced = []
+    g3 = ((q.get("gates") or {}).get("g3") or {}) if fg else {}
+    if g3.get("state_or_value") and g3.get("action_plan") and (letter == "N" or reason == "absent"):
+        # SB-21 by the code (2026-11-21): a question on the prospect's own plan is N only if the answer states a future
+        # state or its value (a DESIRE or VALUE atom the model read); otherwise OUT `solution_load`
+        if any(isinstance(a, dict) and a.get("type") in ("DESIRE", "VALUE") for a in q.get("atoms") or []):
+            letter, reason = "N", None
+        else:
+            forced.append("solution_load")
+        tags.append("action_plan_by_code")
     if q.get("closed_need_payoff"):
         forced.append("agreement")                                   # content supplied by the sales
         tags.append("closed_need_payoff")

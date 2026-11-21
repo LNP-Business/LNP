@@ -76,7 +76,7 @@ The model does not choose a letter. It answers five gates in a fixed order, each
 | 1 OUT | Is the expected answer only an agreement with what the sales just asserted, a choice among options listed by the sales, information or an opinion about the sales' offer, the estimated load of a solution, or nothing of substance? | OUT, with its reason |
 | 2 S | Is the expected answer a neutral fact the prospect could verify today? (No if it asks them to name a difficulty, a consequence or a state that does not exist yet) | S |
 | 3 N | Is the expected answer a desired state that does not exist yet, or the value of the resolution? (No if the question already contains that state or value, names a load, or bears on the offer; no if the antecedent is the problem continuing) | N |
-| 4 I | Is the expected answer a consequence of the problem, in a domain other than the problem's own? | I |
+| 4 I | Is the expected answer a consequence of the problem, in a domain other than the problem's own? (A question that names no domain, « qu'est-ce que tu ressens par rapport à ça ? », is never in the problem's own domain: 2026-11-21) | I |
 | 5 P | Is the expected answer the difficulty itself, formulated by the prospect? (No if the sales already named it in their own words) | P |
 | none | No gate answered yes | OUT, reason `absent` (a system defect, never counted against the sales) |
 

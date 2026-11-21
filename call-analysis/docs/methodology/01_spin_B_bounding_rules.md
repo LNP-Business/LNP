@@ -52,7 +52,7 @@ The bounding of the **questions** (solicitation, segmentation rules SEG-1 to SEG
 
 **SB-20 · What breaks a chain.** Replaces the last sentence of SB-18. A chain is broken only by: a coded S, P, I or N solicitation on another object; or an OUT `sales_list` or `agreement` solicitation. An OUT `nothing` does not break it. An S that counts the problem of the chain itself ("how many clients did you lose?") does not break it, but does not count as one of its links.
 
-**SB-21 · Action-plan questions.** "What would you need to do differently?" and similar questions about the prospect's own plan are N only if the answer states a future state or its value; otherwise the question is OUT `solution_load` and its answer produces no DESIRE atom.
+**SB-21 · Action-plan questions.** "What would you need to do differently?" and similar questions about the prospect's own plan are N only if the answer states a future state or its value; otherwise the question is OUT `solution_load` and its answer produces no DESIRE atom. (Lite engine, 2026-11-21: decided by the code from gate 3's `action_plan` and the DESIRE or VALUE atoms the model read in the answer.)
 
 **SB-22 · Income drop.** A fall between a past and a current income, explicitly attributed by the prospect to the problem ("I went from 175K to 58K since…"), is a quantified IMPACT (money). A current income alone stays SITUATION (SB-11).
 
