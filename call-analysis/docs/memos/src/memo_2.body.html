@@ -110,7 +110,7 @@ composante, recopiée telle quelle. Une paraphrase, un synonyme, un résumé dan
 <div class="regle"><b>2. Trois changements permis, pas un de plus.</b> Le changement de personne (« je » → « tu », « mon » → « ton »,
 « je suis » → « tu es »…), le singulier ou le pluriel d'un même nom (« un doute » = « des doutes »), l'écriture d'un nombre
 (« 2 000 » = « 2000 » = « deux mille »). Rien d'autre : ni synonyme, ni autre forme du mot, ni changement d'ordre.</div>
-<div class="regle"><b>3. Ses chiffres, jamais les vôtres.</b> Un chiffre ne compte que si le prospect l'a dit. Un chiffre arrondi,
+<div class="regle"><b>3. Ses chiffres, jamais ceux du commercial.</b> Un chiffre ne compte que si le prospect l'a dit. Un chiffre arrondi,
 converti, ramené à l'année ou calculé par le commercial est le chiffre du commercial, même si le prospect l'approuve
 <small>(GB-24)</small>.</div>
 <div class="regle"><b>4. Jamais un coût qu'il n'a pas dit.</b> Le coût doit venir de ce que le prospect a dit. Un coût apporté pour la
@@ -327,17 +327,11 @@ s'applique à la fin de l'appel</td></tr>
 </table>
 
 <h3>7.7 Comment le système sait que le commercial a réussi</h3>
-<ol>
-<li><b>L'écart a été redit avant l'offre</b> : la reformulation est trouvée par les règles de bornage et sa place avant la présentation et
-le prix est vérifiée sur les numéros de tour.</li>
-<li><b>Il contient le problème et son coût, avec les mots du prospect</b> : le système retrouve chaque expression clé dans un tour antérieur
-du prospect et dans la phrase du commercial.</li>
-<li><b>Le prospect l'a validé</b> : la validation est lue sur sa réponse à cette reformulation, pas à une autre question.</li>
-<li><b>Sinon, l'écart est absent</b> : la porte est binaire, décidée par le système ; aucun point ne vient d'éléments recueillis mais jamais
-formalisés.</li>
-<li><b>Le modèle cite, le système décide.</b> Le modèle ne fait que relever et citer ; chaque citation est vérifiée lettre à lettre ; les
-lectures doivent concorder, sinon un arbitre reprend les règles une à une <small>(C3, C4)</small>.</li>
-</ol>
+<p>La reformulation est trouvée par les règles de bornage et sa place avant l'offre est vérifiée sur les numéros de tour. Chaque expression
+clé est retrouvée par le système dans un tour antérieur du prospect et dans la phrase du commercial. La validation est lue sur la réponse
+du prospect à cette reformulation, pas à une autre question. Le modèle ne fait que relever et citer ; chaque citation est vérifiée lettre à
+lettre ; si les lectures ne concordent pas, un arbitre reprend les règles une à une <small>(C3, C4)</small>. La porte est binaire : aucun
+point ne vient d'éléments recueillis mais jamais formalisés.</p>
 
 <h3>7.8 Ce que l'écran montre (sans changer la note)</h3>
 <p>Dans l'analyse d'appel, la section « L'écart reformulé » montre, à gauche, la reformulation en un seul texte, chaque composante surlignée
@@ -373,18 +367,18 @@ personne, dans une seule reformulation, validée avant toute offre : la porte pa
 <p class="dit"><span class="qui">Prospect</span> « Oui, voilà, je ne sais pas par où commencer. »</p>
 <p class="dit"><span class="qui">Commercial</span> « Et tu es épuisée, c'est ça ? » — « Oui. » — « Bon, je partage mon écran pour te montrer
 l'accompagnement. »</p>
-<p class="verdict">Pourquoi : chaque passage ne reprend qu'une composante, ce n'est donc pas une reformulation, et le tour de 6 mots du
-prospect les sépare : les morceaux ne s'additionnent jamais. Écart absent, raison « l'écart n'a pas été reformulé ». Le diagnostic montrera
+<p class="verdict">Pourquoi : chaque passage ne reprend qu'une composante, ce n'est donc pas une reformulation, et un tour du prospect de 6 mots ou plus
+les sépare : les morceaux ne s'additionnent jamais. Écart absent, raison « l'écart n'a pas été reformulé ». Le diagnostic montrera
 que le problème et le coût avaient été recueillis.</p></div>
 
 <h3>Cas 2 · Ses mots, pas un résumé (règles 1 et 2)</h3>
 <p>Julien, professeur de maths, a dit : « Je n'arrive pas à fixer mes prix, je n'ose pas. » et « Je donne des cours tous les samedis, je ne
 vois plus mes enfants le samedi. »</p>
 <div class="exemple bon"><div class="titre">Bien fait</div>
-<p class="dit"><span class="qui">Commercial</span> « … et ce qui te bloque, c'est de fixer tes prix. Et le prix que tu paies, c'est que tu ne
+<p class="dit"><span class="qui">Commercial</span> « … et ce qui te bloque, c'est de fixer tes prix. Et ce que ça te coûte, c'est que tu ne
 vois plus tes enfants le samedi. Je me trompe ? »</p>
 <p class="verdict">Pourquoi : « fixer mes prix » devient « fixer tes prix », « je ne vois plus mes enfants le samedi » devient « tu ne vois
-plus tes enfants le samedi » : seul le changement de personne. Expression de plus de 3 mots, utile pour G5 = 2.</p></div>
+plus tes enfants le samedi » : seul le changement de personne. Des expressions de 3 mots ou plus, utiles pour G5 = 2.</p></div>
 <div class="exemple mauvais"><div class="titre">Mal fait</div>
 <p class="dit"><span class="qui">Commercial</span> « … ton problème, c'est la tarification, et ça empiète sur ta vie de famille. C'est ça ? »</p>
 <p class="dit"><span class="qui">Prospect</span> « Oui, tout à fait. »</p>
@@ -399,10 +393,10 @@ près 12 heures de cours par semaine. » ; en réponse à une question <span cla
 euros par mois d'ici un an. » ; à la question « Qu'est-ce qui t'empêche d'y arriver ? » : « Je n'ose pas augmenter mes tarifs. Et je n'ai
 pas de site. Et je ne sais pas me vendre. » Elle revient deux fois ensuite sur ses tarifs.</p>
 <p><b>Ce que le système retient.</b> B = « au moins 2 000 euros par mois d'ici un an » (cible chiffrée, réponse <span class="lettre">N</span>,
-avec échéance). A = « 900 euros par mois » (où elle en est, même unité que B). Pas 2 800 euros (passé, autre chose que là où elle en est),
+avec échéance). A = « 900 euros par mois » (où elle en est, même unité que B). Pas 2 800 euros (un revenu passé),
 pas 12 heures (autre dimension), pas son âge de début (ni un chiffre de l'écart, ni en rapport avec B). P = les tarifs : sa réponse à la
 question d'arrêt en nomme trois, on prend celui sur lequel elle revient le plus. Le site et « me vendre » deviennent deux étapes de sa
-feuille de route : trois blocages distincts, pas d'avertissement.</p>
+feuille de route : trois blocages distincts en comptant les tarifs, pas d'avertissement.</p>
 <div class="exemple bon"><div class="titre">Bien fait</div>
 <p class="dit"><span class="qui">Commercial</span> « Tu es à 900 euros par mois, tu veux au moins 2 000 euros par mois d'ici un an, et ce
 qui te bloque aujourd'hui, c'est d'augmenter tes tarifs… »</p>
@@ -460,9 +454,9 @@ d'une nouvelle reformulation ni d'une question de découverte avant l'offre : l'
 R1, le R2 sera noté sur la découverte et sur l'écart.</p></div>
 <div class="exemple bon"><div class="titre">Bien fait</div>
 <p class="dit"><span class="qui">Commercial</span> (après le « Oui. ») « Et concrètement, aujourd'hui, qu'est-ce que ça te coûte ? »</p>
-<p class="dit"><span class="qui">Prospect</span> « Je refuse des concerts le week-end pour donner des cours. Je ne joue presque plus. »</p>
+<p class="dit"><span class="qui">Prospect</span> « Je refuse des concerts le week-end pour donner des cours. J'ai arrêté de jouer. »</p>
 <p class="dit"><span class="qui">Commercial</span> « Donc tu es à 600 euros par mois, tu veux 1 500 euros par mois, ce qui te bloque, c'est
-que tu n'as pas de méthode pour trouver des élèves, et ça te coûte beaucoup : tu ne joues presque plus. C'est bien ça ? »</p>
+que tu n'as pas de méthode pour trouver des élèves, et ce que ça te coûte : tu as arrêté de jouer. C'est bien ça ? »</p>
 <p class="dit"><span class="qui">Prospect</span> « Oui. Et ça me manque énormément. »</p>
 <p class="verdict">Pourquoi : retour à la découverte (question <span class="lettre">I</span>), puis nouvelle reformulation avec le coût mot
 pour mot, confirmée avec contenu. La porte passe ; G5 et G6 se notent sur cette dernière reformulation. Pas de signal « Écart à
@@ -551,8 +545,6 @@ décide si l'écart existe.</td></tr>
 validé.</td></tr>
 <tr><td>Écart à reprendre</td><td>Signal d'un mauvais écart suivi ni d'une nouvelle reformulation ni d'un retour à la découverte avant
 l'offre. Sans poids propre.</td></tr>
-<tr><td>Formule lue avant la reformulation jugée</td><td>A, B et P sont choisis parmi ce que le prospect a dit avant la dernière reformulation
-qui passe la porte, sinon avant la dernière reformulation avant l'offre.</td></tr>
 <tr><td>Unité, dimension</td><td>L'unité de A et B (euros par mois, élèves, heures par semaine) ; la dimension est plus large (argent, temps,
 élèves).</td></tr>
 <tr><td>Échéance</td><td>La date ou le délai attaché à B : contrainte (extérieure, vérifiable) ou souhaitée.</td></tr>
@@ -578,6 +570,8 @@ G1 = 2 : à confirmer.</li>
 <li>Le départage entre deux blocages cités aussi souvent (proposition : le premier nommé à la question d'arrêt, puis le plus récent) ; le
 blocage retenu compte-t-il parmi les 3 de la feuille de route (proposition : oui).</li>
 <li>L'ordre A → B → P est recommandé, pas vérifié.</li>
+<li>Le tableau des critères de la méthode décrit encore G2 avec une cible « dans les réponses N », alors que la règle du 20 novembre
+retient aussi une cible chiffrée dite ailleurs (signalée). Ce mémo suit la règle du 20 novembre ; le tableau est à aligner.</li>
 <li>Les six poids 10 / 10 / 10 / 20 / 25 / 25 sont des propositions.</li>
 <li>Le relevé des coûts et des chiffres a été réglé sur six appels : il reste à le vérifier sur des appels de contrôle. Un coût que le relevé
 manque reste à relever par le modèle.</li>
@@ -590,7 +584,7 @@ est à aligner.</li>
 <li>Trois cas d'étalonnage contredisent une règle (une réaction émotionnelle, un partage d'écran annoncé, la raison « après la
 présentation ») : le moteur suit la règle la plus récente.</li>
 <li>Le moteur allégé fait une seule lecture par fait : ses résultats restent provisoires tant qu'ils ne sont pas comparés au moteur complet.
-Tous les scores portent la mention « provisoire » tant que les seuils de fiabilité ne sont pas atteints.</li>
+Toutes les notes portent la mention « provisoire » tant que les seuils de fiabilité ne sont pas atteints.</li>
 <li>La part des appels dont l'écart passe la porte n'est pas encore connue : c'est le premier chiffre à établir.</li>
 </ul>
 </section>

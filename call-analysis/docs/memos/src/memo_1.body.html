@@ -146,7 +146,7 @@
 <tr><td>Un enregistrement de moins de 20 minutes <span class="nouveau">nouveau</span></td><td>Appel non analysé (enregistrement coupé)</td></tr>
 <tr><td>Plus de 10 % des phrases encore attribuées à la mauvaise personne après la réparation des voix ; ou une seule personne qui dit plus de 92 % des mots ; ou un prospect qui dit moins de 150 mots</td><td>Appel exclu (voix douteuses)</td></tr>
 </table>
-<p>La règle de santé a changé le 21 novembre : sur un appel de 10 à 40 questions, une ou deux questions sans porte franchie suffisaient à exclure toute la découverte. Désormais, une ou deux n'excluent jamais un appel. Les questions « à vérifier » ne comptent pas parmi les questions lues. Le minimum de 5 questions est encore à valider.</p>
+<p>Une ou deux questions sans porte franchie n'excluent jamais un appel (règle du 21 novembre). Les questions « à vérifier » ne comptent pas parmi les questions lues.</p>
 </section>
 
 <section>
@@ -244,7 +244,7 @@
 <li><b>Filet du code</b> <span class="nouveau">nouveau</span> : une question sans lecture de registre, ou lue « aucun » alors que le prospect a répondu, et dont les mots ne nomment aucun domaine, prend le domaine que nomment les mots de la première réplique de sa réponse ; sinon Sans registre. Une question neutre n'a pas de registre : elle n'est jamais laissée « non tranchée » (SB-31).</li>
 </ol>
 <p><b>Repères.</b> Une cible en argent ou en élèves (« tu voudrais gagner combien ? ») est Financier, pas Identité et statut. Les mots qui datent seulement la question (« aujourd'hui », « l'an dernier », « dans un an ») ne sont pas le domaine du temps. « Personnellement », « ta vie », « toi » ne nomment aucun domaine. La lettre ne décide jamais le registre : une I peut être Financier, Temps et charge ou Mental et émotionnel.</p>
-<p><b>Fiabilité.</b> Objectif : au moins 92 % des questions dans le bon registre. Chaque registre est prouvé par une citation vérifiée et croisé avec les listes de mots du code. Quand les registres d'un appel sont lus trois fois, un appel dont moins de 92 % des registres ont été décidés par trois lectures identiques est signalé, et l'écran dit que ses registres sont moins sûrs ; le moteur allégé, qui lit les registres une fois, ne fait pas cette mesure.</p>
+<p><b>Fiabilité.</b> Objectif : au moins 92 % des questions dans le bon registre, chaque registre prouvé par une citation vérifiée et croisé avec les listes de mots du code. Avec trois lectures, un appel dont moins de 92 % des registres ont été décidés à l'identique est signalé comme moins sûr ; le moteur allégé, qui lit les registres une fois, ne fait pas cette mesure.</p>
 <div class="exemple bon"><div class="titre">Une question ouverte, deux registres (inventé)</div>
 <p class="dit"><span class="qui">Commercial</span> « Et c'est jouable pour toi, en ce moment ? »</p>
 <p class="dit"><span class="qui">Prospect A</span> « Avec les enfants à la maison, je n'ai que mes soirées. »</p>
@@ -380,7 +380,6 @@
 <tr><th>Terme</th><th>Sens</th></tr>
 <tr><td>Découverte (périmètre)</td><td>De la première question, hors politesse et cadrage, sur la situation, les objectifs ou les problèmes du prospect, jusqu'au début de l'offre ou au premier prix (ou, dans le moteur allégé, à la validation d'un écart présent). Elle ne se rouvre jamais.</td></tr>
 <tr><td>Question</td><td>Toute demande de réponse du commercial : point d'interrogation, forme interrogative ou demande (« raconte-moi », « explique-moi »). Une réplique du commercial est une seule question.</td></tr>
-<tr><td>Question principale</td><td>La question sur laquelle une réplique est lue : la dernière, sauf simple relance (« Pourquoi ? »).</td></tr>
 <tr><td>Porte</td><td>Une question fermée posée au modèle sur la question du commercial. Les portes sont lues dans l'ordre ; la première franchie donne la lettre.</td></tr>
 <tr><td>Lettre</td><td>Ce que la question demande : <span class="lettre">S</span> un fait neutre d'aujourd'hui, <span class="lettre">P</span> la difficulté avec les mots du prospect, <span class="lettre">I</span> une conséquence dans un autre domaine, <span class="lettre">N</span> une situation souhaitée ou sa valeur, ou hors SPIN. Aide au coaching, jamais notée.</td></tr>
 <tr><td>Hors SPIN</td><td>Une question qui demande un accord, un choix dans la liste du commercial, une information sur l'offre, la charge d'une solution, ou rien de fond.</td></tr>
@@ -393,7 +392,6 @@
 <tr><td>Désir, valeur</td><td>La situation future souhaitée ; pourquoi elle compte, ce qu'elle changerait.</td></tr>
 <tr><td>Domaine</td><td>Une unité de perte : argent, temps, clients (élèves), famille, santé, confiance en soi, avenir.</td></tr>
 <tr><td>Chiffré</td><td>L'élément porte un montant, un nombre ou une durée dits par le prospect. Une fréquence seule ne suffit pas.</td></tr>
-<tr><td>Contenu soufflé</td><td>Un contenu dit d'abord par le commercial et seulement approuvé par le prospect. Ne compte jamais.</td></tr>
 <tr><td>Parole spontanée</td><td>Ce que le prospect dit hors de toute réponse à une question de découverte, ou en réponse à une question hors SPIN. Compte pour D1 à D4, jamais pour D5.</td></tr>
 <tr><td>Reprise</td><td>Une question qui réutilise un mot d'au moins 4 lettres ou un chiffre de la réponse précédente, ou un écho (« C'est-à-dire ? »).</td></tr>
 <tr><td>Suite approfondie</td><td>P (douleur ou blocage) → I (conséquence) → I ou N (conséquence, désir ou valeur), sur le même sujet, chaque question reprenant la réponse précédente.</td></tr>
@@ -402,7 +400,6 @@
 <tr><td>Question ouverte (registre)</td><td>Une question qui ne nomme aucun domaine, ni comme demande ni comme sujet. Son registre est celui de la réponse du prospect.</td></tr>
 <tr><td>À vérifier</td><td>Une question qu'aucune lecture valide n'a tranchée. Elle reste listée et sort des notes.</td></tr>
 <tr><td>Écart à reprendre</td><td>Signal d'un appel où un mauvais écart n'a été suivi ni d'une nouvelle reformulation ni d'un retour à la découverte avant l'offre. Sans poids.</td></tr>
-<tr><td>R1, R2, R3</td><td>Le premier, le deuxième, le troisième appel de vente d'un même cycle.</td></tr>
 </table>
 </section>
 
@@ -413,10 +410,8 @@
 <li><b>Listes de mots des registres</b> (SB-30) : encore ouvertes ; elles s'enrichissent avec les appels relus.</li>
 <li><b>Une réplique, une question</b> (SEG-1) et la fin de la découverte à la validation d'un écart présent (SB-1) ne sont appliquées que dans le moteur allégé ; le moteur complet lit encore une question par proposition interrogative et arrête la découverte au début de l'offre ou au premier prix.</li>
 <li><b>« Donc tu as déjà des élèves ? »</b> est lue comme une reformulation fermée (accord) et non comme une S : à surveiller dans la mesure.</li>
-<li><b>Niveau arbitre</b> des lettres : le modèle retenu est à confirmer par la mesure.</li>
-<li><b>Moteur allégé :</b> les éléments sont lus une fois (sans les trois lectures de la partie C) et restent provisoires tant que les deux moteurs n'ont pas été comparés sur les mêmes appels ; la fiabilité des registres (part décidée par trois lectures identiques) n'y est pas mesurée ; les questions de plan d'action (SB-21) sont laissées à la raison donnée par le modèle.</li>
-<li><b>Suites approfondies :</b> le moteur n'ouvre une suite que par une P.</li>
-<li><b>Contradictions entre règles et cas d'étalonnage</b>, où le moteur suit la règle la plus récente : une fréquence seule n'est pas un chiffre (SB-24) ; un écho comme « Beaucoup ? » est une reprise (SB-19) ; ce qui casse une suite (SB-20 l'emporte sur SB-18) ; les listes de domaines diffèrent entre deux passages de la méthode.</li>
+<li><b>Moteur allégé :</b> le modèle du niveau arbitre des lettres est à confirmer par la mesure ; les éléments sont lus une fois (sans les trois lectures de la partie C) et restent provisoires tant que les deux moteurs n'ont pas été comparés sur les mêmes appels ; la fiabilité des registres (part décidée par trois lectures identiques) n'y est pas mesurée ; les questions de plan d'action (SB-21) sont laissées à la raison donnée par le modèle.</li>
+<li><b>Contradictions entre règles et cas d'étalonnage</b>, où le moteur suit la règle la plus récente : une fréquence seule n'est pas un chiffre (SB-24) ; un écho comme « Beaucoup ? » est une reprise (SB-19) ; ce qui casse une suite (SB-20 l'emporte sur SB-18), et le moteur n'ouvre une suite que par une P ; les listes de domaines diffèrent entre deux passages de la méthode.</li>
 <li>Tous les verdicts des cas d'étalonnage restent des propositions tant que deux annotateurs certifiés ne les ont pas confirmés à l'aveugle.</li>
 </ul>
 </section>
