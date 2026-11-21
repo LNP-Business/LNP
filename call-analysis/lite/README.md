@@ -175,6 +175,8 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (SB-2, `SOCIAL_LOGISTIC`, 2026-11-19).
 5. **SPIN chains**: "same object" (SB-16) = the model's object labels agree and the engine's lexical check passes,
    instead of a `spin.link` question per pair.
+   S1g prompt (2026-11-21): French examples for gate 2 (an open question on the present situation) and gate 5 (what
+   blocks, what is hard, « tu es en difficulté ? »), and a re-reading before answering every gate false.
    S1g readings (2026-11-21): "not a solicitation" and OUT `nothing` are one outcome when the two readings are compared
    (§2, SB-2: neither leaves anything to read), so they agree without the arbiter. The prompt says that a social,
    logistic or framing question is a solicitation (with g1 `nothing`); on 5 calls, 74 of 88 disagreements came from one

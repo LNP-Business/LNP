@@ -53,7 +53,7 @@
   // LNP: the engine's codes (call-analysis/docs/OUTPUT_CONTRACT.md) stay in English in the record; only their labels are French
   function fr(map, code) { return code != null && map[code] != null ? map[code] : lbl(code); }
   var WHY = {
-    health_absent_share: "trop de questions de découverte n'ont pu être classées dans aucune lettre (plus de 5 %) pour noter de façon fiable",
+    health_absent_share: "trop de questions de découverte n'ont pu être classées dans aucune lettre (au moins 3, plus de 5 %) pour noter de façon fiable",
     diarization_suspect: "la transcription confond trop souvent qui a dit quoi",
     no_transcript: "pas de transcription", no_diarization: "la transcription ne dit pas qui parle", engine_error: "erreur du moteur d'analyse",
     no_discovery: "aucune découverte trouvée", no_restitution: "l'écart n'a pas été reformulé",

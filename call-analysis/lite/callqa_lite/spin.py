@@ -128,6 +128,9 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if E.social_or_logistic(sentence):                                # SB-2: social, logistic, framing of the call
         forced.append("nothing")
         tags.append("framing_by_code")
+    if E.cut_question(sentence):                                      # §3 (2026-11-21): a question cut before its end
+        forced.append("nothing")
+        tags.append("cut_by_code")
     if E.check_in_question(sentence):                                 # §3 (2026-11-20): "does that make sense?"
         forced.append("nothing")
         tags.append("check_in_by_code")

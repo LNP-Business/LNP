@@ -458,3 +458,14 @@ def test_sb35_a_register_whose_answer_turn_is_missing_is_found_by_its_words():
     rec, _ = run(a)
     s = next(x for x in sols(rec) if x["turn"] == "T009")
     assert s["register"] is None and s["register_status"] == "to_review"
+
+
+def test_s3_2026_11_21_a_question_cut_before_its_end_is_out_nothing():
+    a = copy.deepcopy(sc.ANSWERS)
+    t = sc.context()
+    t.turns[6].text = "What's been stopping you from getting more..."
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T007")
+    q["quote"] = "What's been stopping you from getting more..."
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T007")
+    assert s["letter"] == "OUT" and s["out_reason"] == "nothing" and "cut_by_code" in s["tags"]

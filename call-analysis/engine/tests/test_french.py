@@ -188,3 +188,11 @@ def test_three_more_hard_rules_read_in_the_question():
     assert not S.choice_list_question("C'est plutôt le temps, l'argent ou autre chose ?")      # an open branch
     assert not S.choice_list_question("Tu es salariée ou à ton compte ?")                       # two verifiable facts
     assert not S.check_in_question("Qu'est-ce qui fait sens pour toi dans ton métier ?")
+
+
+def test_a_cut_question_is_recognised():
+    from lnp_callqa.competences import spin as S
+    for q in ("Qu'est-ce qui va faire que...", "Et du coup tu… ?", "So what would…"):
+        assert S.cut_question(q), q
+    for q in ("Qu'est-ce qui t'a bloqué jusque maintenant ?", "Pour faire les cours en ligne ?", "Combien… euh, combien d'élèves ?"):
+        assert not S.cut_question(q), q

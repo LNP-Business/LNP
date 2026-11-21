@@ -38,6 +38,7 @@ from ..core.text import approval_only, norm, norm_number, quote_ok
 WEIGHTS = {"D1": 15, "D2": 20, "D3": 30, "D4": 20, "D5": 15}     # §6, weights to validate (§11)
 MIN_CODED = 5                     # §5: minimum coded solicitations for `scored` (to validate, §11)
 ABSENT_MAX_SHARE = 0.05           # §5 health: > 5 % OUT `absent` -> excluded (C7 health threshold)
+ABSENT_MIN_COUNT = 3              # §5 (Romain, 2026-11-21): and at least 3 such questions; one or two never exclude a call
 COUNT_VOLUNTEERED = True          # §11 proposal: volunteered atoms count for D1..D4 (never for D5, SB-8)
 BACKCHANNEL_MAX_WORDS = 5         # SB-5: sales backchannel of 5 words or fewer does not end an answer span
 SHORT_ANSWER_WORDS = 6            # SB-7
@@ -361,6 +362,11 @@ def decide_letter(g: dict, attrs: dict, text: str) -> LetterDecision:
         return LetterDecision("I", 4, None, tags, invalid)
     if gate(g5.get("difficulty") and (not g5.get("sales_named") or g5.get("anchored")), g5):
         return LetterDecision("P", 5, None, tags, invalid)
+    # §3 (Romain, 2026-11-21): a difficulty the sales already named in their own words (« tu es en difficulté avec ça ? »)
+    # is not P (gate 5); the question supplies the content and asks for a yes: OUT `agreement`, as a desired state
+    # contained in the question (closed need-payoff), never a question no gate could decide
+    if gate(g5.get("difficulty") and g5.get("sales_named") and not g5.get("anchored"), g5):
+        return LetterDecision(OUT, 1, "agreement", tags + ["difficulty_named_by_sales"], invalid)
     return LetterDecision(OUT, 1, "absent", tags, invalid)
 
 
@@ -543,6 +549,15 @@ CHOICE_LIST = re.compile(
     r"\b(tu préfères|vous préférez|tu préférerais|vous préféreriez|tu dirais plutôt|vous diriez plutôt|c'est plutôt|"
     r"plutôt|would you rather|do you prefer|would you say it's more|is it more)\b[^?]*\b(ou|or)\b[^?]*\?", re.I)
 OPEN_BRANCH = re.compile(r"\b(ou|or) (autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
+
+
+# §3 hard rule added 2026-11-21 (Romain): a question cut before its end (the recorder closes it with an ellipsis, « Qu'est-ce
+# qui va faire que... ») asks for nothing that can be read: OUT `nothing`, never counted as a question no gate could decide.
+CUT_QUESTION = re.compile(r"(\.\.\.|…)\s*\??\s*$")
+
+
+def cut_question(text: str) -> bool:
+    return bool(CUT_QUESTION.search((text or "").strip()))
 
 
 def check_in_question(text: str) -> bool:
@@ -1081,7 +1096,8 @@ def applicability(units: list[Unit], discovery_start: Optional[str]) -> tuple[st
         return "not_applicable", ["no_discovery"], health
     if len(coded) < MIN_CODED:
         return "not_applicable", [f"fewer_than_{MIN_CODED}_coded_solicitations"], health
-    if health["absent_share"] > ABSENT_MAX_SHARE:
+    health["absent"] = absent
+    if absent >= ABSENT_MIN_COUNT and health["absent_share"] > ABSENT_MAX_SHARE:
         return "excluded", ["health_absent_share"], health
     return "scored", [], health
 

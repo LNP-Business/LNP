@@ -259,7 +259,9 @@ lettres accentuées, mots vides, « je » → « tu », nombres, formes de quest
 d'objection. Le code applique aussi au moteur allégé les règles dures de la découverte (charge de la solution, question sur l'offre),
 le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une mention de l'offre (PB-2) et le registre lu dans la question
 quand elle nomme un domaine (SB-27), et depuis le 2026-11-20 la vérification de suivi (« ça fait sens ? »), la
-reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Depuis le 2026-11-21 (Romain) : une question coupée (« Qu'est-ce qui va faire que… ») est hors SPIN · rien, une difficulté nommée
+par le commercial avec ses mots (« tu es en difficulté avec ça ? ») est une demande d'accord, et la découverte n'est exclue que s'il y a
+au moins 3 questions sans porte franchie et plus de 5 % (`ABSENT_MIN_COUNT`, §5). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Écart, points A et B (Romain, 2026-11-20, règles GAP-1.4, `call-analysis/engine/lnp_callqa/core/figures.py`) : le code liste les
 chiffres du prospect (valeur, unité, nature : présent, cible, passé, dépense, offre) et ses cibles sans chiffre ; A est choisi
 sur la dimension de B, jamais un fait sans rapport (« la conférence m'a convaincu ») : sans chiffre sur la dimension de B, A est

@@ -179,3 +179,23 @@ def test_gateway_stops_on_a_refused_request():
     with pytest.raises(GatewayError) as e:
         GatewayClient("https://x/f", "k", TIERS, opener=op, sleep=lambda s: None).ask("t", "u", "fast", "s", "p", 1)
     assert e.value.final and "deprecated" in str(e.value)
+
+
+def test_gateway_retries_a_connection_reset_while_the_answer_is_read():
+    calls = []
+
+    class Reset:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            raise ConnectionResetError(104, "Connection reset by peer")
+
+    def op(req, timeout=None):
+        calls.append(1)
+        return Reset() if len(calls) == 1 else FakeResp(json.dumps({"text": "{\"ok\": true}", "stop_reason": "end_turn"}).encode())
+    g = GatewayClient("https://x/f", "k", TIERS, opener=op, sleep=lambda s: None, passes=1)
+    assert g.complete("lite.s0_phases", "call", "fast", "S", "P", "Q")["text"] == "{\"ok\": true}" and len(calls) == 2

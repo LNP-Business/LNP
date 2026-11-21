@@ -140,3 +140,13 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   (`core/costs.py`), next to the model's IMPACT atoms; what the prospect said is listed over the whole window. Replay:
   costs right 5 → 11 of 12 on the six calls (tuning set: control calls still to be read, C7). The lexicon is a
   configuration to grow from the calls people check; a cost the lexicon misses is still the model's to list.
+
+## G. Settled 2026-11-21 (Romain)
+
+- SPIN §5 health: a call's discovery is excluded only when more than 5 % of its perimeter questions are OUT `absent`
+  **and** at least 3 of them (`ABSENT_MIN_COUNT`). On calls of 10 to 40 questions, one or two such questions excluded the
+  discovery of 4 calls out of 5 (Part C, C7 health row updated).
+- SPIN §3 hard rules: a question cut before its end (ellipsis) is OUT `nothing`; a difficulty named by the sales in their
+  own words is OUT `agreement` (`difficulty_named_by_sales`). The lite gates prompt gives French examples for S and P.
+  On the 5 calls analysed on 2026-11-21: questions with no gate 10 → 3, discovery scored in 4 calls out of 5 instead of 1.
+  SPIN memo to update (§3 hard rules, §5 applicability) and Part C memo (C7 health).
