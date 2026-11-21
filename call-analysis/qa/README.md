@@ -101,6 +101,13 @@ with a lexicon per cost domain (`core/costs.py`, GB-7b). What is left (4 of 57):
 pitch start is read at the 18th turn (the discovery falls outside the window) and one problem the model typed as a cost.
 These six calls are the tuning set: the generalisation of the lexicon is to be read on control calls (C7).
 
+First live analyses with GAP-1.4 (2026-11-21, the six calls re-analysed in production by the worker, lite engine of
+PR 70): two selection faults showed up and were fixed the same day. The formula was read before the **first**
+restitution (an early partial playback hid « minimum 2 000 euros »); it is now read before the **judged** restitution
+(the last passing, else the last before the pitch). A model atom that is the code's present figure (« là je suis à 2000
+c'est… », unit read as "c" by the model) is a candidate whatever the question it answers, with the code's unit. Replay of
+the six live analyses added to the cases: A 5/5, B 5/5, problem 5/5, cost 4/4; the 22 analyses: 95 % (72/76).
+
 ## First live measure (2026-11-20, run 44754260316)
 
 Lite engine of 2026-11-20 (voice check, SEG-1, gates read twice, Sonnet arbiter, C9), 6 calls × 5 analyses

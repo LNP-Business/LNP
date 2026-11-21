@@ -630,3 +630,37 @@ def test_shared_state_contract_keys():
               "validated_P", "roadmap_blockers", "cost"):
         assert k in d
     assert d["roadmap"]["warning"] is True                                          # 1 blocker < 3 steps (GB-33)
+
+
+def test_the_formula_is_read_before_the_judged_restitution_not_the_first():
+    """2026-11-21: an early partial playback (T003) must not hide the target given afterwards (T006) from the formula;
+    the judged restitution is the last one before the pitch (T007)."""
+    lines = [("S", "Qu'est-ce qui t'amène ?"),
+             ("P", "Je veux reprendre une activité, mais il faut se déplacer et avec les enfants c'est compliqué."),
+             ("S", "Donc tu veux reprendre une activité, et se déplacer, ce n'est pas possible pour toi, c'est ça ?"),
+             ("P", "Oui, c'est ça, c'est fatigant physiquement, et on profite moins des enfants."),
+             ("S", "Et tu vises quoi, comme revenu, pour vivre ?"),
+             ("P", "Le revenu que je veux chercher, c'est déjà minimum 2 000 euros."),
+             ("S", "Si je comprends bien, tu as besoin d'un revenu de minimum 2 000 euros, et ce qui te bloque c'est se déplacer. C'est bien ça ?"),
+             ("P", "Oui, exactement."),
+             ("S", "Alors je te présente le programme.")]
+    turns = synth(lines)
+    sols = [sol("Q001", "T001", "S", lines[0][1], ["T002"]), sol("Q005", "T005", "N", lines[4][1], ["T006"])]
+    ctx = ctx_of(turns, pitch="T009", sols=sols)
+    first = restit(ctx, "T003", "T003", [clause("B", "T003", "tu veux reprendre une activité", "T002", "reprendre une activité"),
+                                          clause("PROBLEM", "T003", "se déplacer, ce n'est pas possible", "T002", "se déplacer")])
+    assert first.is_restitution
+    answers = {("gap.restitution", "restit:T003"): {"clauses": [c for c in [
+                    clause("B", "T003", "tu veux reprendre une activité", "T002", "reprendre une activité"),
+                    clause("PROBLEM", "T003", "se déplacer, ce n'est pas possible", "T002", "se déplacer")]],
+                "ends_with_new_topic_question": False, "new_topic_question_quote": None},
+               ("gap.restitution", "restit:T007"): {"clauses": [
+                    clause("B", "T007", "un revenu de minimum 2 000 euros", "T006", "minimum 2 000 euros"),
+                    clause("PROBLEM", "T007", "ce qui te bloque c'est se déplacer", "T002", "se déplacer", as_holding_back=True)],
+                "ends_with_new_topic_question": False, "new_topic_question_quote": None},
+               ("gap.validation", "valid:T003"): {"outcome": "confirmed_with_content", "turn": "T004", "agreement_quote": "Oui, c'est ça",
+                                                   "content_quote": "c'est fatigant physiquement"},
+               ("gap.validation", "valid:T007"): {"outcome": "confirmed", "turn": "T008", "agreement_quote": "Oui, exactement."}}
+    d = GapCompetence().run(ctx, runner(answers)).details
+    assert d["selected_B"] is not None and d["selected_B"]["quote"] == "minimum 2 000 euros"
+    assert d["restitution"]["span"] == ["T007", "T007"]
