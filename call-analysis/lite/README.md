@@ -181,7 +181,9 @@ lives 5 minutes, enough for the five steps of one call. To be measured by the le
    (§2, SB-2: neither leaves anything to read), so they agree without the arbiter. The prompt says that a social,
    logistic or framing question is a solicitation (with g1 `nothing`); on 5 calls, 74 of 88 disagreements came from one
    reading calling a plain question « not a solicitation ».
-6. **Registers**: a register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
+6. **Registers**: when the words of the question name one register (SB-27), the code takes it, whether the model
+   read the register in the answer or in the question with another domain (2026-11-21: « tu es à la retraite et tu donnes
+   des cours ? » read as money becomes Identity and status, instead of an undecided conflict). A register read in the answer (SB-35) whose answer turn is missing or wrong is placed by the code
    when the prospect's words it quotes are in exactly one turn of the answer (`register:turn_found_by_code`); without
    those words there is no proof and the register stays `to_review`. Single reading, so the SB-33 reliability measure (share decided 3/3, 92 %) is not computed
    (`agreement: null`). The SB-32 code checks still run (quote place, rule order, word-list conflict); a rejected

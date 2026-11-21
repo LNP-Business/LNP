@@ -129,14 +129,15 @@ def test_each_question_has_its_letter_register_and_the_prospect_answer():
     assert reg["flags"] == [] and reg["agreement"] is None and reg["single_reading"]
 
 
-def test_a_register_against_the_domain_words_is_rejected():
+def test_sb27_a_register_against_the_question_words_takes_the_words_register():
     a = copy.deepcopy(sc.ANSWERS)
     q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T005")
-    q.update(register_domain="time")                    # "How many clients": only Financial words (SB-32 rule 3)
+    q.update(register_domain="time")                    # "How many clients": only Financial words (SB-27, SB-32 rule 3)
     rec, _ = run(a)
     by = {x["turn"]: x for x in sols(rec)}
-    assert by["T005"]["register"] is None and by["T005"]["register_status"] == "to_review"
-    assert rec["meta"]["steps"]["S1"]["reasons"]["register:lexicon_conflict"] == 1
+    # 2026-11-21: the words of the question name one register, so it is that one (no longer left undecided)
+    assert by["T005"]["register"] == "financial" and by["T005"]["register_basis"] == "named"
+    assert rec["meta"]["steps"]["S1"]["reasons"]["register:named_in_question"] >= 1
 
 
 def test_a_closing_tail_makes_the_question_out_agreement():
