@@ -98,7 +98,7 @@ REGISTER_LEXICON_FR = {
     "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut", "metier",
                         "reconversion", "retraite", "independan", "a ton compte", "a mon compte", "dans quelques annees",
                         "professeur", "prof ", "profs ", "enseign", "matiere", "salarie", "fonctionnaire", "poste ",
-                        "parcours", "diplom", "auto-entrepreneur", "freelance", "anciennete"),
+                        "parcours", "diplom", "auto-entrepreneur", "freelance", "anciennete", "projet"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
                          "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
@@ -594,6 +594,12 @@ def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
     nothing about clients)."""
     parts = [p for p in asked_part(text).split(",") if p.strip()] or [""]
     text = next((p for p in reversed(parts) if len(re.findall(r"\w+", p)) >= 3), parts[-1])   # « …, toi ? », « …, du coup ? »
+    return lexicon_register_in(text)
+
+
+def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
+    """SB-30: the one register whose domain words appear in a text, and the word (an exact passage); None when the text
+    names none or several (SB-31 by the code, 2026-11-21, reads the first answer turn of a neutral question with it)."""
     t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
     hits = {}
     for reg, words in REGISTER_LEXICON.items():

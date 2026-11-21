@@ -143,14 +143,16 @@ rent, finance, profit, dollar, paid, client, customer, project, leads, booking, 
 Time & load time, hour, week, weekend, schedule, workload, busy, family, kid, child, wife, husband, partner, son, daughter,
 parent; Identity & status future, years from now, long term, where do you see yourself, where do you want to be, become,
 dream, vision, career, legacy, status, and since 2026-11-21 the work of today: job, profession, teach, retire, employee,
-freelance, background, degree (« professeur », « enseigner », « matière », « retraite », « salarié », « parcours »); Mental & emotional confidence, believe in yourself, self-belief, motivation,
+freelance, background, degree (« professeur », « enseigner », « matière », « retraite », « salarié », « parcours », « projet »); Mental & emotional confidence, believe in yourself, self-belief, motivation,
 mindset, fear, doubt, feel, emotion, frustrated, proud, health, stress, anxiety, burnout, exhausted, tired, sleep, energy.
 A target in money or clients ("how much do you want to make?") is Financial, not Identity & status; words that only
 date the question ("today", "last year", "in 12 months") are not the time domain.
 
 **SB-31 · Other.** Since v1.3 a question about a subject outside the eight domains (a tool, a place, a method) is an
 open question (SB-35). Other is given when the answer talks about none of the eight domains, or, for a question with
-no answer, when it names no subject and points to none.
+no answer, when it names no subject and points to none. Since 2026-11-21 (Romain), by the code: a question with no register reading (unread, C4) or read « none » although the
+prospect answered, and whose words name no domain, takes the one domain the words of its first answer turn name (SB-30
+lexicon, the word quoted), else Other: a neutral question is Other, never left undecided.
 
 **SB-32 · Code checks.** (1) The model answers one closed question per unit: the asked domain, the basis (`named`,
 `answer`, `reference` or `none`) and a quote. (2) The quote is checked (C3): for `named`, exact words of the question or

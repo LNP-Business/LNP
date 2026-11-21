@@ -305,6 +305,18 @@ def _register(ctx: CallContext, u: LUnit, drops: Drops) -> dict:
             if len(hit) == 1:
                 drops.add(STEP, "register:turn_found_by_code", q)
                 a = dict(a, reference_turn=hit[0])
+    answered = E._answer_turns(ctx, u)
+    if (unread or (a["basis"] == "none" and answered)) and not named:
+        # SB-31 by the code (Romain, 2026-11-21): a neutral question with no register reading, or read « none » though the
+        # prospect answered, takes the register the words of the first answer turn name, else Other (it is neutral)
+        hit = E.lexicon_register_in(answered[0].text) if answered else None
+        if hit:
+            drops.add(STEP, "register:answer_words_by_code", q)
+            a = {"asked_domain": REGISTER_DOMAIN[hit[0]], "basis": "answer", "quote": hit[1], "reference_turn": answered[0].id}
+        else:
+            drops.add(STEP, "register:other_by_code", q)
+            return {"register": "other", "status": SINGLE, "concordance": "1/1", "domain": "other", "basis": "none",
+                    "quote": None, "reference_turn": None}
     if a["asked_domain"] is None and a["basis"] is None:
         drops.add(STEP, "register:missing", q)
         errs = ["missing"]

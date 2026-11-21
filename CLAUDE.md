@@ -263,7 +263,8 @@ reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix e
 par le commercial avec ses mots (« tu es en difficulté avec ça ? ») est une demande d'accord, et la découverte n'est exclue que s'il y a
 au moins 3 questions sans porte franchie et plus de 5 % (`ABSENT_MIN_COUNT`, §5). Registres : Identité et statut couvre aussi la
 situation professionnelle actuelle (domaine `status` : métier, matière, statut, ancienneté, parcours, retraite) ; « Autre » garde un
-lieu, une date, un outil, la logistique. Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
+lieu, une date, un outil, la logistique. Une question neutre sans registre lu prend le domaine que nomment les mots de sa réponse,
+sinon « Autre » (jamais « non tranché »). Rejouer une analyse sans appel au modèle : les réponses du modèle sont gardées dans `crm_ca_audit`.
 Écart, points A et B (Romain, 2026-11-20, règles GAP-1.4, `call-analysis/engine/lnp_callqa/core/figures.py`) : le code liste les
 chiffres du prospect (valeur, unité, nature : présent, cible, passé, dépense, offre) et ses cibles sans chiffre ; A est choisi
 sur la dimension de B, jamais un fait sans rapport (« la conférence m'a convaincu ») : sans chiffre sur la dimension de B, A est

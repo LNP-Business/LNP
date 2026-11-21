@@ -155,3 +155,5 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   lexicon gets the words of the work of today, reads a word after an elision (« d'élèves ») and skips a short tail
   (« …, toi ? », « …, du coup ? ») to find the asked clause; a question with no S1 reading takes the register its words
   name. On the 5 calls: Identity & status 9 → 15 questions, Other 9 → 3. SPIN memo to update (registers).
+- Registers (SB-31): a neutral question with no register reading, or read « none » though answered, takes the one domain
+  the words of its first answer turn name, else Other (never undecided). On the 5 calls: 5 undecided registers → 0.

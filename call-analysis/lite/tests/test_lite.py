@@ -480,3 +480,23 @@ def test_sb27_a_question_without_s1_reading_takes_the_register_its_words_name():
     rec, _ = run(a)
     s = next(x for x in sols(rec) if x["turn"] == "T007")
     assert s["register"] == "financial" and s["register_basis"] == "named"
+
+
+def test_sb31_a_neutral_question_without_register_reading_takes_its_answer_words_else_other():
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")       # "what made you book this call?"
+    for k in ("register_domain", "register_basis", "register_turn", "register_quote"):
+        q.pop(k, None)
+    t = sc.context()
+    t.turns[3].text = "My income from design is about 1,500 a month."                # the answer names money
+    q["answer"] = None
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    assert s["register"] == "financial" and s["register_basis"] == "answer" and s["register_reference_turn"] == "T004"
+    t = sc.context()
+    t.turns[3].text = "I saw your video and I wanted to talk to you."               # an answer that names no domain
+    q["answer"] = None
+    rec = analyse(t, MockLiteClient(a))
+    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    assert s["register"] == "other" and s["register_status"] == "single_reading"
+    assert rec["meta"]["steps"]["S1"]["reasons"]["register:other_by_code"] == 1
