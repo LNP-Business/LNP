@@ -18,9 +18,10 @@ from lnp_callqa.core.foundation import diarization_gate, recording_gate
 from lnp_callqa.core.models import CallContext, CompetenceResult
 from lnp_callqa.pipeline import result_record
 
-from .gap import run_gap, statements_text
+from .gap import merge_readings, run_gap, statements_text
 from .objections import run_objections
 from .phases import apply_phases
+from .kind import STATUS as KIND_STATUS, call_kind
 from .pitch import context_text, run_pitch
 from .shim import Drops
 from .spin import SpinFacts, run_spin
@@ -37,6 +38,7 @@ DEFAULTS: dict[str, Any] = {
     "s1_min_chunk_turns": 15,
     "gates_batch": 25,              # S1g: listed questions per call, each with its context (2026-11-20)
     "gates_passes": 2,              # S1g: two independent readings; a disagreement goes to the arbiter (C4)
+    "s2_readings": 2,               # S2: two readings of the gap step, merged by the code (C4, 2026-11-23)
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
@@ -392,6 +394,14 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
     if s0.answer is None:
         raise LiteModelError(f"phase map (S0): {s0.error}")
     apply_phases(ctx, s0.answer, drops)
+    kind = call_kind(ctx, s0.answer, drops)                   # C1b (2026-11-23): a person already enrolled
+    if kind["not_sales"]:
+        ctx.status = KIND_STATUS
+        meta["call_kind"] = kind
+        for name, rv in RULES.items():
+            ctx.results[name] = CompetenceResult(name, rv, status="excluded", reasons=[KIND_STATUS],
+                                                 details={"call_kind": kind})
+        return _record(ctx, meta, drops)
 
     # C9 (Romain, 2026-11-20): a good gap made in an earlier call of the cycle: no discovery, no gap in this one
     skip = rounds.skip_reason(ctx, "SPIN")
@@ -435,11 +445,14 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
                       statements=statements_text(ctx))
         attempted.append("S2")
         s2 = steps.ask("lite.s2_gap", "call", prompt, cfg["max_tokens"]["S2"])
+        s2b = steps.ask("lite.s2_gap", "call:p2", prompt, cfg["max_tokens"]["S2"]) \
+            if s2.answer is not None and int(cfg.get("s2_readings") or 1) > 1 else None
         if s2.answer is None:
             failed.append("S2")
             ctx.results["GAP"] = _to_review("GAP")
         else:
-            ctx.results["GAP"] = _safe(ctx, "GAP", lambda: run_gap(ctx, s2.answer, facts, drops))
+            both = merge_readings(ctx, s2.answer, s2b.answer if s2b else None, drops)    # C4 (2026-11-23): two readings
+            ctx.results["GAP"] = _safe(ctx, "GAP", lambda: run_gap(ctx, both, facts, drops))
     if not skip:
         _gap_rules(ctx, questions, drops, meta)
         meta["gap_remediation"] = rounds.gap_remediation(ctx)        # C9: a bad gap followed up before the pitch

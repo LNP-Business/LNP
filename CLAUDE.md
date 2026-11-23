@@ -248,7 +248,9 @@ précédent non analysé → lu comme un premier appel ; un mauvais écart ni re
 l'offre est signalé « Écart à reprendre » (`gap_not_remedied`). Prix déguisé (PB-3, Romain 2026-11-20) : un « tour du
 marché » dont les niveaux sont les offres de LNP est le premier prix, une erreur du commercial (« Prix donné trop tôt »,
 `disguised_price`). Enregistrement coupé (Romain 2026-11-20) : moins de 20 minutes d'enregistrement → appel non analysé
-(`recording_incomplete`, aucun appel au modèle). Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
+(`recording_incomplete`, aucun appel au modèle). Pas un appel de vente (Romain 2026-11-23, C1b) : une séance avec une personne déjà
+inscrite (plateforme, modules, suivi) est exclue (`not_sales_call`, preuve citée, avant le premier prix), sans note ni qualification ;
+l'étape de la reformulation est lue deux fois et fusionnée par le code (C4). Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
 commercial ; plusieurs questions d'une même réplique n'en font qu'une, lue sur la dernière, sauf si elle ne fait que relancer la
 précédente (« Pourquoi ? ») ; le modèle lit chaque question listée, puis répond aux portes de la méthode (situation, problème, conséquence,
 désir, hors découverte) pour chacune, par paquets de 25 avec leur contexte, deux fois ; si les deux lectures donnent des lettres

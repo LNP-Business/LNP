@@ -27,7 +27,12 @@ For each such turn also give:
 - "hypothetical": the amount is explicitly hypothetical or disowned ("let's say it was 10K, this is not the price");
 - "amount" (a number, 5800 for "5,800") and "range" ([min, max]) when an amount is stated;
 - "quote": the exact words of that turn that show it.
-JSON: {"turns": [{"turn": "T085", "quote": "...", "offer_description": true, "screen_share": true,
+Also answer once for the whole call, in "enrolled_client": is the person ALREADY enrolled in the offer (they have paid
+or joined before this call: the sales shows them the platform or its modules as theirs, follows up their progress, tells
+them how long their access lasts, interviews them about their results)? {"value": true, "turn", "quote"} with the exact
+words of the turn that shows it, else {"value": false}. False for a prospect who took another training elsewhere, who
+attended a free event, who saw the offer's page, or who decides to join during this call.
+JSON: {"enrolled_client": {"value": false}, "turns": [{"turn": "T085", "quote": "...", "offer_description": true, "screen_share": true,
                   "followed_by_discovery": false, "next_discovery_question": null, "price_for_offer": false,
                   "lnp_offer_price": null, "offer_explained": null, "market_tour": false, "tied_later": null,
                   "amount": null, "range": null,

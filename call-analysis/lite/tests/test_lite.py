@@ -300,11 +300,12 @@ def test_record_has_the_contract_fields_the_screen_reads():
 def test_one_call_per_step_with_the_transcript_as_the_same_cached_prefix():
     rec, client = run()
     assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s1_gates",
-                                                 "lite.s2_gap", "lite.s3_pitch", "lite.s4_objections"]
+                                                 "lite.s2_gap", "lite.s2_gap", "lite.s3_pitch", "lite.s4_objections"]
     prefixes = {c["prefix"] for c in client.calls}
     assert len(prefixes) == 1 and next(iter(prefixes)).splitlines()[1] == "T001 [SALES] Hi Alex, can you hear me okay?"
     assert "pitch start T019" in client.calls[4]["prompt"] and "[T014] \"I want to make 6,000" in client.calls[4]["prompt"]
-    assert "\"turn\": \"T008\"" in client.calls[5]["prompt"]                       # the validated P, from the Gap code
+    assert client.calls[5]["unit"] == "call:p2" and client.calls[5]["prompt"] == client.calls[4]["prompt"]   # two readings
+    assert "\"turn\": \"T008\"" in client.calls[6]["prompt"]                       # the validated P, from the Gap code
     assert all(c["effort"] == "low" and c["tier"] == "fast" for c in client.calls)
 
 
@@ -315,7 +316,7 @@ def test_json_is_read_robustly_and_replayed_once():
         parse_json("no object")
     a = dict(sc.ANSWERS, **{"lite.s2_gap": ["{oops", sc.S2]})
     rec, client = run(a)
-    assert [c["task"] for c in client.calls].count("lite.s2_gap") == 2 and rec["results"]["GAP"]["verdict"] == "present"
+    assert [c["task"] for c in client.calls].count("lite.s2_gap") == 3 and rec["results"]["GAP"]["verdict"] == "present"
     assert "WAS REJECTED BY THE CODE" in [c for c in client.calls if c["task"] == "lite.s2_gap"][1]["prompt"]
 
 
@@ -577,3 +578,65 @@ def test_sb1_2026_11_21_a_framing_question_never_opens_with_an_idiom():
     assert E.lexicon_hits("my son is sick") == {"time_load": "son"}
     assert E.info_opens("PAIN", "je ne sais plus quoi faire") and not E.info_opens("SITUATION", "je suis prof d'anglais")
     assert E.info_opens("SITUATION", "je m'occupe seule de mes enfants")
+
+
+# ---------------------------------------------------------------- C1b (2026-11-23): a person already enrolled
+def _with_enrolled(value, turn=None, quote=None):
+    a = copy.deepcopy(sc.ANSWERS)
+    s0 = dict(a["lite.s0_phases"])
+    s0["enrolled_client"] = {"value": value, "turn": turn, "quote": quote}
+    a["lite.s0_phases"] = s0
+    return a
+
+
+def test_c1b_a_session_with_an_enrolled_person_is_not_scored():
+    rec, client = run(_with_enrolled(True, "T019", "show you the program"))
+    assert rec["status"] == "not_sales_call"
+    assert all(r["status"] == "excluded" and r["reasons"] == ["not_sales_call"] for r in rec["results"].values())
+    kind = rec["results"]["GAP"]["details"]["call_kind"]
+    assert kind["turn"] == "T019" and kind["quote"] == "show you the program" and rec["meta"]["call_kind"]["not_sales"]
+    assert [c["task"] for c in client.calls if not c["task"].startswith("lite.sv")] == ["lite.s0_phases"]   # nothing more is asked
+
+
+def test_c1b_the_code_keeps_the_call_without_a_valid_quote_or_when_the_person_joins_after_the_price():
+    for answers in (_with_enrolled(True, "T019", "an access you already paid for"),     # not in the turn
+                    _with_enrolled(True, "T027", "The investment is 5,800"),            # at the first price: a sale
+                    _with_enrolled(False)):
+        rec, _ = run(answers)
+        assert rec["status"] == "ok" and rec["results"]["GAP"]["status"] != "excluded"
+    rec, _ = run(_with_enrolled(True, "T027", "The investment is 5,800"))
+    assert rec["meta"]["steps"]["S0"]["reasons"]["enrolled_client:after_price"] == 1
+
+
+
+# ---------------------------------------------------------------- two readings of S2 (2026-11-23)
+def test_s2_two_readings_a_component_the_first_left_out_is_taken_from_the_second():
+    """The model left the cost out of the restitution in one reading: the second reading's cost is kept."""
+    a = copy.deepcopy(sc.ANSWERS)
+    first = copy.deepcopy(sc.S2)
+    first["passages"][0]["clauses"] = [c for c in first["passages"][0]["clauses"] if c["component"] != "COST"]
+    a["lite.s2_gap"] = [first, sc.S2]
+    rec, _ = run(a)
+    g = rec["results"]["GAP"]
+    assert g["verdict"] == "present" and g["details"]["restitution"]["components"]["COST"]["match"] == "verbatim"
+    assert rec["meta"]["steps"]["S2"]["reasons"]["readings:component_from_second"] == 1
+    rec1, _ = run(dict(a, **{"lite.s2_gap": first}), s2_readings=1)             # one reading: the cost is missing
+    assert rec1["results"]["GAP"]["verdict"] == "absent" and rec1["results"]["GAP"]["details"]["absence_reason"] == "cost_missing"
+
+
+def test_s2_two_readings_a_passing_clause_wins_and_a_failed_second_reading_changes_nothing():
+    from callqa_lite.gap import merge_readings
+    ctx = sc.context()
+    good = copy.deepcopy(sc.S2)
+    bad = copy.deepcopy(sc.S2)
+    for c in bad["passages"][0]["clauses"]:
+        if c["component"] == "COST":
+            c["key_expression"], c["sales_quote"] = "barely see my kids", "your family pays for it"
+    m = merge_readings(ctx, bad, good)
+    cost = [c for c in m["passages"][0]["clauses"] if c["component"] == "COST"]
+    assert cost and all(c["sales_quote"] != "your family pays for it" for c in cost)       # the passing clause wins
+    assert merge_readings(ctx, good, None) is good
+    a = copy.deepcopy(sc.ANSWERS)
+    a["lite.s2_gap"] = [sc.S2, "not json", "still not json"]
+    rec, _ = run(a)
+    assert rec["results"]["GAP"]["verdict"] == "present"                            # the first reading stands

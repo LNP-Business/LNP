@@ -169,3 +169,21 @@ expression itself in the prospect's statements of the component the model names.
 reason 10/15 → 11/15, verdict 18/20, elements 93/95, blocker state 24/25, unchanged. Live gain to measure: the variance
 was in the model's choice of words, which the replay holds fixed.
 
+## Not a sales call, and the gap step read twice (2026-11-23, live, this branch's code)
+
+Sales call gate (Part C, C1b): of 5 calls never analysed, the two sessions with an enrolled person are `not_sales_call`
+(0.02 USD each, nothing scored), the three sales calls are analysed; none of the 6 reference calls is excluded.
+
+The gap step read twice (Part C, C4), 6 reference calls × 2 analyses (one call is a cut recording, 10 analyses):
+
+| | One reading (30 analyses, run 45146451376) | Two readings, every passage kept (10) | Two readings, passages of both only (10) |
+|---|---|---|---|
+| Gap verdict | 85 % (17/20) | 100 % (8/8) | 88 % (7/8) |
+| Absence reason | 40 % (6/15) | 50 % (3/6) | 67 % (4/6) |
+| Gap elements | 97 % (92/95) | 87 % (33/38) | 90 % (34/38) |
+| Blocker state | 92 % (23/25) | 80 % (8/10) | 90 % (9/10) |
+| Cost per analysis | 0.068 USD | 0.076 USD | 0.070 USD |
+
+The samples are small: a measure of 5 analyses per call is needed before the two readings are taken as a gain on the
+elements (A and B move when another restitution passes the gate, since they are read before the judged restitution).
+
