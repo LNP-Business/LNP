@@ -206,7 +206,8 @@ def _read_gates(steps: Steps, unit_id: str, prompt: str, max_tokens: int, by_id:
         q = by_id.get(g.get("id")) if isinstance(g, dict) else None
         if q is None:
             continue
-        if SP._validate_gate_obj(g, q["quote"]):
+        g = LS.normalize_gates(g)                                     # answers by ids: what is left out is false
+        if SP._validate_gate_obj(g, q["quote"], require_quotes=False):   # a quote given is checked; none is needed
             drops.add("S1", "gates:invalid", {"turn": q["turn"]})
             continue
         out[q["id"]] = g

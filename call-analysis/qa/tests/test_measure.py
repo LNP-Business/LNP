@@ -8,7 +8,7 @@ import synthetic_call as sc
 from callqa_lite.engine import analyse
 from callqa_lite.steps import MockLiteClient
 from callqa_qa.reference import norm, same_words, validate
-from callqa_qa.score import measure, reproducibility, total
+from callqa_qa.score import costs, measure, reproducibility, total
 
 REF = {
     "call_id": "c-lite", "slug": "fiction", "split": "tuning", "round": "R1",
@@ -190,3 +190,12 @@ def test_the_replay_gives_each_chunk_the_stored_readings_of_its_own_turns():
     got = json.loads(c.complete("lite.s1_discovery", "T001-T040", "fast", "", "", "")["text"])["questions"]
     assert [q["turn"] for q in got] == ["T037"]
     assert json.loads(c.complete("lite.s1_discovery", "T001-T040:missing", "fast", "", "", "")["text"])["questions"] == []
+
+
+def test_the_cost_of_the_live_analyses_is_added_up_and_capped():
+    """2026-11-23: the measure prints the average and maximum cost of an analysis and fails above the limit."""
+    ms = [{"usd": 0.05}, {"usd": 0.11}, {"usd": None}, {}]
+    c = costs(ms, 0.08)
+    assert (c["analyses"], c["avg_usd"], c["max_usd"], c["exceeded"]) == (2, 0.08, 0.11, False)
+    assert costs(ms, 0.07)["exceeded"] is True
+    assert costs([{"usd": None}], 0.08) == {"analyses": 0, "avg_usd": None, "max_usd": None, "max_cost": 0.08, "exceeded": False}

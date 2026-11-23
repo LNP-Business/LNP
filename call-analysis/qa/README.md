@@ -55,8 +55,11 @@ python3 call-analysis/qa/qa_run.py --cases DIR --refs DIR --mode live --repeat 5
 `replay` plays the model answers kept with each analysis again (no model call, no cost): it measures a change of the
 code. The stored discovery readings are given to each chunk by turn (the chunks of today's code are not those of the
 stored analysis), so that the questions of one turn are read as one (SEG-1). `live` asks the model through the gateway `callqa-llm` (needs `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`):
-it measures a change of a prompt or a model, and with `--repeat` the reproducibility. About 0.05 USD per analysis.
-The printed lines hold numbers only; the quotes go to `--out` only.
+it measures a change of a prompt or a model, and with `--repeat` the reproducibility. Measured 0.04 to 0.175 USD per
+analysis on 2026-11-21 (0.104 on average). Since 2026-11-23 each live analysis carries its cost (`usd`, from the gateway's
+token usage and `callqa_lite.cost`, the prices of `crm_ca_config.tiers`' models): the `COST` line prints the number of
+analyses, the average and the maximum, and the run fails (exit 1, `cost.exceeded` in the report) when the average is above
+`--max-cost` (0.08 USD). A replay carries no cost. The printed lines hold numbers only; the quotes go to `--out` only.
 
 ## Baseline (2026-11-20)
 
