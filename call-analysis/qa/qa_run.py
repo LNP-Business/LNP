@@ -20,6 +20,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import callqa_qa  # noqa: E402,F401  (paths of the engine, the lite engine and the worker)
@@ -45,13 +46,31 @@ def stored_answers(case: dict) -> dict:
     return answers
 
 
+def stored_units(case: dict) -> tuple[dict, set]:
+    """The stored answers by (task, unit), and the units whose answer was cut by max_tokens: a chunk cut in production was
+    asked again as two halves, so answers replayed in order would go to the wrong chunk (2026-11-23)."""
+    units: dict = {}
+    cut: set = set()
+    for a in case.get("audit") or []:
+        e = a.get("entry", a)
+        if not e.get("task") or e.get("unit") is None:
+            continue
+        key = (e["task"], e["unit"])
+        if isinstance(e.get("answer"), dict):
+            units.setdefault(key, []).append(e["answer"])
+        elif e.get("stop_reason") == "max_tokens":
+            cut.add(key)
+    return units, cut - set(units)
+
+
 class ReplayClient:
     """Replay: the stored answers, played again in order; the stored S1 readings (lite.s1_discovery) are given to each
     chunk by turn, since the chunks of today's code are not those of the stored analysis (a reading given to the wrong
     chunk would not reach its turn's item, SEG-1)."""
 
-    def __init__(self, answers: dict):
+    def __init__(self, answers: dict, units: Optional[tuple] = None):
         from callqa_lite.steps import MockLiteClient
+        self.units, self.cut = units or ({}, set())
         answers = dict(answers)
         s1 = answers.pop("lite.s1_discovery", None)
         self.mock = MockLiteClient(answers)
@@ -61,12 +80,23 @@ class ReplayClient:
     def complete(self, task_id, unit_id, tier, system, prefix, prompt, max_tokens=16000, effort="low"):
         import re
         if task_id != "lite.s1_discovery":
+            key = (task_id, unit_id)
+            if key in self.units or key in self.cut:              # the answer this unit got, or the same cut
+                self.calls.append({"task": task_id, "unit": unit_id, "tier": tier, "prompt": prompt, "prefix": prefix,
+                                   "max_tokens": max_tokens, "effort": effort})
+                if key in self.cut:
+                    return {"text": "", "stop_reason": "max_tokens"}
+                got = self.units[key]
+                ans = got.pop(0) if len(got) > 1 else got[0]
+                return {"text": json.dumps(ans, ensure_ascii=False), "stop_reason": "end_turn"}
             return self.mock.complete(task_id, unit_id, tier, system, prefix, prompt, max_tokens, effort)
         self.calls.append({"task": task_id, "unit": unit_id, "tier": tier, "prompt": prompt, "prefix": prefix,
                            "max_tokens": max_tokens, "effort": effort})
         m = re.match(r"T(\d+)-T(\d+)$", unit_id or "")
         num = lambda t: int(t[1:]) if re.match(r"T\d+$", str(t or "")) else -1
-        qs = [q for q in self.s1 if m and int(m.group(1)) <= num(q.get("turn")) <= int(m.group(2))]
+        # answers by ids (2026-11-23): a listed reading carries its id only (Q057 is the question of turn T057)
+        where = lambda q: num(q.get("turn") or ("T" + str(q.get("id"))[1:] if q.get("id") else None))
+        qs = [q for q in self.s1 if m and int(m.group(1)) <= where(q) <= int(m.group(2))]
         return {"text": json.dumps({"questions": qs}, ensure_ascii=False), "stop_reason": "end_turn"}
 
 
@@ -85,7 +115,7 @@ def analyse(case: dict, mode: str, effort: str) -> dict:
     from callqa_worker.job import build_context
     claim = claim_of(case)
     if mode == "replay":
-        client = ReplayClient(stored_answers(case))
+        client = ReplayClient(stored_answers(case), stored_units(case))
     else:
         from callqa_worker.gateway import GatewayClient
         url, key = os.environ.get("SUPABASE_URL", ""), os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
