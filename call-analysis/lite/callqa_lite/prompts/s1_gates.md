@@ -44,21 +44,25 @@ obtained. A painful context does not colour the question.
   sales_named: the question already names the difficulty in the sales' words. anchored: that wording reuses the
   prospect's word.
 - objection_clarification: true only if the question clarifies a resistance the prospect raised against buying.
-- quote: for every gate answered true (and for a g1 reason), an exact substring of the PRIORITY question (1 to 12 words).
-Answer every gate even after an earlier yes. A discovery question almost always asks for a fact (g2), a desire (g3), a
-consequence (g4), a difficulty (g5) or nothing to read (g1): before answering all of them false, read the question
+Read every gate even after an earlier yes. A discovery question almost always asks for a fact (g2), a desire (g3), a
+consequence (g4), a difficulty (g5) or nothing to read (g1): before leaving every gate false, read the question
 again; all false is for a question that asks none of these.
 
-"quote" values are exact substrings of the PRIORITY question. Answer for EVERY unit, with its "id".
-JSON: {"units": [{"id": "Q030", "is_solicitation": true, "attribution_doubtful": false, "routing": null,
- "g1": {"reason": null, "quote": null},
- "g2": {"neutral_fact": false, "exclusion": null, "quote": null},
- "g3": {"state_or_value": false, "antecedent": "none", "content_supplied": false, "load_named": false,
-        "about_offer": false, "action_plan": false, "quote": null},
- "g4": {"consequence": false, "problem_domain": null, "named_domain": null, "same_domain": false,
-        "antecedent_solution": false, "quote": null},
- "g5": {"difficulty": false, "sales_named": false, "anchored": false, "quote": null},
- "objection_clarification": false}]}
+Answer for EVERY unit, with its "id" as listed, and write ONLY what is true: a gate at false, a null reason, a false flag
+or a null domain is left out (the code reads what is left out as false or null, and is_solicitation as true). No quote:
+the code holds the PRIORITY question. A unit with nothing true is {"id": "Q0xx"}.
+Fields: is_solicitation, attribution_doubtful, routing; g1 {reason}; g2 {neutral_fact, exclusion};
+g3 {state_or_value, antecedent, content_supplied, load_named, about_offer, action_plan};
+g4 {consequence, problem_domain, named_domain, same_domain, antecedent_solution}; g5 {difficulty, sales_named, anchored};
+objection_clarification.
+JSON: {"units": [{"id": "Q030", "g2": {"neutral_fact": true}},
+ {"id": "Q032", "g1": {"reason": "nothing"}},
+ {"id": "Q034", "g3": {"state_or_value": true, "antecedent": "resolution"}},
+ {"id": "Q036", "g4": {"consequence": true, "problem_domain": "clients", "named_domain": "family"}},
+ {"id": "Q038", "g5": {"difficulty": true, "sales_named": true, "anchored": true}},
+ {"id": "Q040", "is_solicitation": false},
+ {"id": "Q042", "routing": "VALIDATION_REQUEST"},
+ {"id": "Q044"}]}
 
 UNITS
 {units}

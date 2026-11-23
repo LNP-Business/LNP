@@ -41,6 +41,7 @@ The engine follows one rule: **the model extracts and quotes, the code decides a
 5. **Approval is not evidence.** A prospect turn whose only content is agreement ("yes", "exactly", "right", "that's true", "for sure", "mm-hmm", "100 %") never proves anything except an agreement, and only where a rule explicitly asks for an agreement.
 6. **Sales words are not prospect words.** Content that the sales stated and the prospect only approved is tagged `prompted_by_sales` and never counts as something the prospect said. The only exception is **anchoring**: when the sales reuses a word the prospect had already said, that word still belongs to the prospect.
 7. **Invalid answer handling.** An answer whose quote fails S4 is replayed once with the error message. If it fails again, the unit is marked `to_review` and is excluded from every score until a human or the arbiter resolves it.
+8. **Units the code listed (lite engine, 2026-11-23).** When the code itself listed the unit and holds its text (the discovery questions, SEG-1), the model answers by the unit's id and gives no quote of that text: there is nothing to prove by recopying words the code wrote. A quote it still gives is checked by rule 1. Rules 1 to 7 stay whole for everything the model reads in the transcript (the prospect's answers and effects, the restitution, the objections).
 
 ## C4. Reproducibility and arbitration
 

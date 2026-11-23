@@ -4,16 +4,16 @@ QUESTIONS LISTED BY THE CODE (SEG-1): one item per sales turn. When a turn asks 
 read on its PRIORITY question (the last one, or the one before it when the last only follows it up: "Pourquoi ?");
 the other questions of the turn are context.
 {inventory}
-Answer for EVERY listed id, in the order listed, with "id" (as listed); "turn" and "quote" are the code's, do not
-change them. If a sales turn of the window asks something the list missed (a request without a question mark: "tell
-me", "walk me through", "explique-moi", "raconte-moi"), add it with its "turn" and "quote" and no "id". A tail
+Answer for EVERY listed id, in the order listed, with "id" (as listed) and WITHOUT "turn" or "quote": the code holds
+them, do not recopy them. If a sales turn of the window asks something the list missed (a request without a question
+mark: "tell me", "walk me through", "explique-moi", "raconte-moi"), add it with its "turn" and "quote" and no "id". A tail
 ("..., right?", "..., non ?") belongs to the clause it closes (SEG-4). Backchannel over the prospect ("really?", "ah
 oui ?") is not a solicitation (SEG-7). Only the sales asks (SEG-8). A listed item that only asks to confirm a restatement of the
 gap ("did I get that right?") or asks for the purchase decision is answered with its "id" and "routing":
 "validation_request" or "decision_request", and nothing else.
 
 For each solicitation:
-- "turn", "quote": the exact words of the question itself.
+- "turn", "quote" (a question you add only): the exact words of the question itself.
 - "letter", read from the question only, never from the answer; in this order, the first that applies wins:
   OUT if the expected answer is only an agreement with what the sales just asserted (out_reason "agreement"; a
   need-payoff whose content the sales supplies, "so your goal is about 10K, right?", also gets "closed_need_payoff":
@@ -64,7 +64,7 @@ For each solicitation:
   "reported_speech" and "owned" (words of someone else, taken on in the first person); "object" (3 to 6 words, the
   problem it relates to); "dimension" for SITUATION and DESIRE (revenue, clients, time, career_status, other);
   "cause_quote" and "cause_turn" for a PAIN or BLOCKER whose cause the prospect states in a separate passage.
-JSON: {"questions": [{"id": "Q030", "turn": "T030", "quote": "...", "letter": "P", "object": "...", "stopping_question": true,
+JSON: {"questions": [{"id": "Q030", "letter": "P", "object": "...", "stopping_question": true,
   "register_domain": "clients", "register_basis": "named", "register_quote": "...",
   "answer": {"turn": "T031", "quote": "..."},
   "atoms": [{"type": "BLOCKER", "turn": "T031", "quote": "...", "object": "..."}]}]}

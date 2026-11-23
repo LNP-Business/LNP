@@ -174,3 +174,23 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   neutral facts of the situation (domain `status`: trade, subject, seniority, retirement as a fact, daily life), a place,
   a date, a tool. Identity & status keeps the future (who they want to become, a change of path, « projet »). On the 5
   calls: Identity & status back to the real identity questions, the intake facts under « Sans registre ».
+
+## H. 2026-11-23 (approved by Romain: « vas-y » on the next steps of the cost)
+
+- **Prices are configuration** (`lite/callqa_lite/cost.py`, `PRICES`): USD per million tokens of the provider's list as
+  given on 2026-11-03 (claude-haiku-5-5: 0.10 input, 0.50 output, 0.01 cache read, 0.125 cache write; claude-sonnet-5-5:
+  2, 10, 0.10, 2.50), to check against the provider's price list before relying on a figure. The Haiku price doubles above
+  100 000 prompt tokens (the steps send about 30 000: the table holds the lower price). Each tier is priced at the model
+  `crm_ca_config.tiers` names; without it, `DEFAULT_TIERS` (F: fast and strong Haiku, arbiter Sonnet). The worker stores
+  `usage.usd` on every job; the measure prints the average and the maximum and fails above 0.08 USD on the average
+  (`qa_run.py --max-cost`; the ceiling Romain set is 0.10 USD a call, measured 0.104 on average on 2026-11-21).
+- **Answers by ids, lite engine** (Part C, C3 adapted): a question listed by the code (SEG-1) is identified by its id and
+  its text is the code's; the model answers the gates without recopying a quote of the question, and writes only the gates
+  that are true (`prompts/s1_gates.md`, `spin.normalize_gates`, `spin.with_proofs`). A quote the model still gives is
+  checked as before. The same for the discovery reading (`prompts/s1_discovery.md`): a listed question carries its id only;
+  a question the model adds still carries its turn and its exact quote. The prospect's words (answers, atoms, registers)
+  are still quoted and checked: the rule « the model extracts and quotes » bears on what the prospect said, not on a
+  question the code wrote itself. Replay of the 27 stored analyses: same letters, same gap elements, one stored gate
+  answer with a null quote now accepted. Expected gain, to measure live: about a third of the model output of an analysis.
+  Part C memo to update (C3, lite engine).
+

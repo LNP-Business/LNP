@@ -416,7 +416,9 @@ def _gates_build(ctx: CallContext, u: Unit) -> str:
 GATE_REASONS = set(OUT_PRIORITY) | {None}
 
 
-def _validate_gate_obj(g: dict, text: str, depth: int = 0) -> list[str]:
+def _validate_gate_obj(g: dict, text: str, depth: int = 0, require_quotes: bool = True) -> list[str]:
+    """The gate answers of one unit. `require_quotes=False` (lite S1g, 2026-11-23): the question was listed by the code,
+    which holds its text, so a positive gate needs no quote; a quote that is given is still checked (C3 rule 1)."""
     errs = []
     if not isinstance(g, dict):
         return ["not_an_object"]
@@ -431,6 +433,8 @@ def _validate_gate_obj(g: dict, text: str, depth: int = 0) -> list[str]:
     for k, pos in positives:
         if pos:
             q = (g.get(k) or {}).get("quote")
+            if q is None and not require_quotes:
+                continue
             if not _proof_ok(q, text):
                 errs.append(f"bad_quote:{k}")
             elif len(norm(q).split()) > 40:

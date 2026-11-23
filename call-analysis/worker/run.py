@@ -14,6 +14,7 @@ import socket
 import sys
 import time
 from pathlib import Path
+from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "engine"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -23,6 +24,16 @@ from callqa_worker.job import ModelErrors, engine_of, engine_version, run_job, s
 from callqa_worker.prefetch import TooLong  # noqa: E402
 from callqa_worker.qualif import qualify, store as store_qualif  # noqa: E402
 from callqa_worker.supabase import Supabase  # noqa: E402
+
+
+def job_cost(usage_tiers: dict, tiers: Optional[dict]):
+    """USD of the job (callqa_lite.cost, the prices are configuration); None when the lite package is not there."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lite"))
+        from callqa_lite.cost import estimate
+        return estimate(usage_tiers, tiers)
+    except Exception:  # noqa: BLE001 - the cost never stops a job from being stored
+        return None
 
 
 def main() -> int:
@@ -52,7 +63,7 @@ def main() -> int:
             # an R1: the lead qualification is part of its analysis (046); a failure never stops the analysis
             qual = qualify(claim, client, db, log=lambda m: print(f"job {job}: {m}", flush=True))
             usage = {"tiers": client.usage, "seconds": round(time.time() - started), "effort": getattr(client, "effort", None),
-                     "engine": engine_of(claim)}
+                     "engine": engine_of(claim), "usd": job_cost(client.usage, cfg.get("tiers"))}
             if engine_of(claim) == "lite":
                 usage["effort"] = (record.get("meta") or {}).get("effort")
             if qual:
@@ -62,7 +73,7 @@ def main() -> int:
                 store_qualif(db, claim, job, qual)
             except Exception as e:  # noqa: BLE001 - the analysis is stored; the qualification can be run again
                 print(f"job {job}: qualification not stored ({type(e).__name__}: {str(e)[:200]})", flush=True)
-            print(f"job {job}: done in {usage['seconds']} s · {summary(record)} · usage {client.usage}", flush=True)
+            print(f"job {job}: done in {usage['seconds']} s · {summary(record)} · {usage['usd']} USD · usage {client.usage}", flush=True)
             done += 1
         except ModelErrors as e:   # never retried as is: the model questions fail, the record would be empty
             print(f"job {job}: stopped ({e})", flush=True)
