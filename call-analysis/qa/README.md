@@ -161,3 +161,11 @@ average** (0.104 on 2026-11-21 before answers by ids), 0.0378 to 0.1077 USD; per
 reason of the gap varies from one analysis to the next (6/15, S2 reading). The reference set holds the gap only: letters,
 registers and their reproducibility are not measured until the questions are read into it.
 
+## The key expression found by the code (2026-11-23, GAP-1.5, GB-22b)
+
+In the live measure, the gap's absence reason was right 6 times out of 15: on the same restitution, the model cited a
+different source and different words in each analysis, and only some passed the verbatim rule. The code now finds the key
+expression itself in the prospect's statements of the component the model names. Replay of the 27 stored analyses: absence
+reason 10/15 → 11/15, verdict 18/20, elements 93/95, blocker state 24/25, unchanged. Live gain to measure: the variance
+was in the model's choice of words, which the replay holds fixed.
+

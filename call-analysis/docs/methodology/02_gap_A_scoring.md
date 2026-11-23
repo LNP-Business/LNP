@@ -169,7 +169,7 @@ Illustrative cases, adapted and shortened from real calls. In production, every 
 
 ```
 {
-  "call_id": "…", "competence": "GAP", "rules_version": "GAP-1.4",
+  "call_id": "…", "competence": "GAP", "rules_version": "GAP-1.5",
   "status": "scored", "verdict": "present", "absence_reason": null, "score": 80,
   "gap": {"A": {"value": 2500, "unit": "USD/month", "quote": "…", "turn": "T088"},
           "B": {"value": 10000, "unit": "USD/month", "horizon": "12 months", "binding": false,

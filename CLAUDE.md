@@ -289,6 +289,9 @@ repris du commercial). Mesure par rejeu sur les 6 appels (`call-analysis/qa/READ
 qui passe la porte, sinon la dernière avant l'offre), plus avant la première ; un atome du modèle qui est le chiffre présent du code
 compte quelle que soit la question (unité du code si celle du modèle n'a pas de dimension) ; la lecture du code (présent) tient pour
 ses chiffres, même quand le modèle lit « j'étais à » comme un passé (X13 n'est demandé que sur les autres atomes).
+Règles GAP-1.5 (2026-11-23, GB-22b) : quand la source ou les mots clés qu'a cités le modèle pour un élément repris échouent,
+le code cherche lui-même les mots repris dans les phrases du prospect de cet élément (jamais un élément que le modèle n'a pas
+nommé) ; analyses stockées à relancer (C8).
 Blocage et reformulation parfaite (Romain, 2026-11-21, GB-30 v1.4, `core/blockers.py`, `core/restate.py`) : le blocage a un **état**
 décidé par le code sur toute la découverte, à partir des questions du blocage du commercial (« qu'est-ce qui t'a empêché… »,
 « pourquoi tu ne l'as jamais fait ? ») et des phrases du prospect qui disent ce qui l'empêche : « nommé à la question du

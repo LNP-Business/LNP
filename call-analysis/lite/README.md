@@ -36,7 +36,7 @@ problem (depending on a parent, exhaustion…) is a COST, not a PROBLEM.
    **register** (Financial, Time & load, Identity & status, Mental & emotional, Other; SB-26 to SB-35), and the
    prospect's answer.
 2. The **gap** played back, with the Gap 1.3 methodology (absence gate, verbatim rule GB-22, formula GB-28 to GB-34; since
-   2026-11-20, rules version GAP-1.4: A and B are selected on the model's atoms **and** on the figures the code lists in the
+   2026-11-20, rules version GAP-1.4, GAP-1.5 on 2026-11-23 with GB-22b: A and B are selected on the model's atoms **and** on the figures the code lists in the
    prospect's turns, `core/figures.py`, so a figure the model missed still gives A or B, and A is never a fact unrelated to B;
    the costs the prospect states are listed the same way, `core/costs.py`, GB-7b; the blocker has a state, GB-30 v1.4, read
    from the sales' stopping questions and the prospect's blocker clauses, `core/blockers.py`; the perfect restitution is

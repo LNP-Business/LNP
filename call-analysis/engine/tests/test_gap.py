@@ -665,3 +665,35 @@ def test_the_formula_is_read_before_the_judged_restitution_not_the_first():
     d = GapCompetence().run(ctx, runner(answers)).details
     assert d["selected_B"] is not None and d["selected_B"]["quote"] == "minimum 2 000 euros"
     assert d["restitution"]["span"] == ["T007", "T007"]
+
+
+# ------------------------------------------------------------------------------------------- GB-22b (GAP-1.5, 2026-11-23)
+def _blocker_ctx():
+    """A French call rewritten from the audit: the prospect names what blocks her, the sales restates it with her word."""
+    turns = synth([("S", "Et qu'est-ce qui t'a empêché de reprendre jusqu'ici ?"),
+                   ("P", "Le souci c'est qu'il faut se déplacer, et avec les enfants c'est compliqué."),
+                   ("S", "D'accord. Donc pour toi, ce qui coince, c'est de te déplacer à côté, c'est bien ça ?")])
+    ctx = ctx_of(turns)
+    ctx.phases.discovery_start = "T001"
+    return ctx, Span("T003", "T003", ["T003"], ["S3"])
+
+
+def test_gb22b_the_code_finds_the_prospect_s_words_when_the_model_cites_others():
+    ctx, sp = _blocker_ctx()
+    raw = clause("PROBLEM", "T003", "ce qui coince, c'est de te déplacer à côté", "T002", "c'est compliqué")
+    c = g.classify_clause(ctx, raw, sp, None)
+    assert c.match == "verbatim" and c.source_by_code and c.source_turn == "T002" and "déplacer" in c.key_expression
+    nosrc = g.classify_clause(ctx, clause("PROBLEM", "T003", "ce qui coince, c'est de te déplacer à côté"), sp, None)
+    assert nosrc.match == "verbatim" and nosrc.source_by_code                    # no source given: found too
+
+
+def test_gb22b_never_a_weak_word_a_statement_of_another_component_or_a_later_one():
+    ctx, sp = _blocker_ctx()
+    weak = g.classify_clause(ctx, clause("PROBLEM", "T003", "et c'est compliqué pour toi", "T002", "souci"), sp, None)
+    assert weak.match != "verbatim" or not weak.source_by_code or len(weak.key_expression.split()) > 1
+    other = g.classify_clause(ctx, clause("COST", "T003", "ce qui coince, c'est de te déplacer à côté", "T002", "souci"), sp, None)
+    assert other.match != "verbatim"                                             # a blocker is not a cost statement
+    ctx2, _ = _blocker_ctx()
+    early = Span("T001", "T001", ["T001"], ["S3"])
+    later = g.classify_clause(ctx2, clause("PROBLEM", "T001", "qu'est-ce qui t'a empêché de reprendre"), early, None)
+    assert later.match != "verbatim"                                             # nothing said before the clause

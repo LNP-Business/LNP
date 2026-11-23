@@ -64,7 +64,9 @@ a fact unrelated to B; B is the most recent target in figures, N answers first. 
 the same way (`core/costs.py`, GB-7b: a lexicon per cost domain, exact passages). The blocker has a **state** (GB-30 v1.4,
 `core/blockers.py`: named when asked, asked not answered, said unasked, not asked) read from the sales' stopping questions
 and the prospect's blocker clauses; the perfect restitution is the engine's (`core/restate.py`, `formula.perfect`:
-complete clauses in the second person, never the sales' reused words). Measured by replay on the reference
+complete clauses in the second person, never the sales' reused words). GAP-1.5 (2026-11-23, GB-22b): when the model's
+source or key expression of a restated component fails, the code finds it in the prospect's statements of that component
+(never a component the model did not name). Measured by replay on the reference
 set (`qa/README.md`): gap elements right 46 % → 93 % (A 15/15, B 14/15, problem 13/15, cost 11/12). Tests:
 `engine/tests/test_figures.py`, `engine/tests/test_costs.py`.
 
@@ -81,8 +83,8 @@ French form. Tests: `engine/tests/test_french.py`.
 
 ## Commands
 ```
-cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (260 pass; 20 need CALLQA_CORPUS)
+cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (263 pass; 20 need CALLQA_CORPUS)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
-cd lite && python3 -m pytest -q tests                                 # lite engine (88 tests)
+cd lite && python3 -m pytest -q tests                                 # lite engine (89 tests)
 ```

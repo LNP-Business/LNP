@@ -96,6 +96,18 @@ These rules make the prospect's exact words the backbone of the gap. They take p
 - (d) **it is not generic:** it contains at least one word outside the stop list and outside the generic list (thing, things, stuff, something, everything, way, lot, life, people, good, bad, better, hard, easy, want, feel, like, make, get, know, think, really, just, kind, sort, able). "You want to" or "a lot of things" is never a key expression.
 Conditions (a), (b) and (d) are checked by code; (c) is answered by the model and checked by the three passes (Part C, C4).
 
+**GB-22b · The key expression found by the code** (version 1.5, 2026-11-23). When the model names a restated component but
+its source or its key expression fails (a), (b) or (d), or it gives no source, the code looks for the key expression itself:
+it reads every prospect statement of **that component** said before the restitution (the model's atoms of the component,
+and the figures, target clauses, costs and blockers the code lists: GB-28b, GB-7b, GB-30b; never a prompted statement,
+X10), and keeps the longest run of its words that passes (a), (b) and (d) in the sales clause, the most recent statement on
+a tie. The source being a statement of the component, the expression carries it (c). A run whose only content word has
+fewer than four letters (« do », « vie ») is never taken, nor words the sales said first (X12). The clause is then decided
+as any other (X10 to X12, GB-7), and recorded `source_by_code`. Why: on the same restitution the model cited « se déplacer »
+in one analysis (verbatim) and « je préfère rester à la maison » in another (paraphrased); the restitution existed in one
+and not in the other. The code does **not** add a component the model did not name: tried the same day, a single common
+word (« temps », « mois », « enfants », « à côté ») made false components in 4 analyses of 27.
+
 **GB-23 · Quoting marker.** A sales clause that explicitly quotes the prospect ("in your words", "as you said", "you used the word…") still needs a key expression (GB-22): the marker alone proves nothing. With a key expression, the marker is recorded (`explicit_quote = true`) as a coaching strength.
 
 **GB-24 · Figures.** A quantified component is verbatim through its figure only if the figure is the prospect's (GB-22 b, after normalisation). A figure rounded, converted, annualised or computed by the sales ("so that's about 30K a year") is the sales' figure: the component can still be verbatim through another key expression, but the figure never counts for G1 to G4 (X10).

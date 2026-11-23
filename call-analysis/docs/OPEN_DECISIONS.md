@@ -230,4 +230,11 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   question the code wrote itself. Replay of the 27 stored analyses: same letters, same gap elements, one stored gate
   answer with a null quote now accepted. Expected gain, to measure live: about a third of the model output of an analysis.
   Part C memo to update (C3, lite engine).
+- **GB-22b, gap rules GAP-1.5** (2026-11-23, after the first live measure: the gap's absence reason right 6 times out of
+  15): the model names a restated component, the code finds its key expression in the prospect's statements of that
+  component when the model's source or words fail. Replay of the 27 stored analyses: absence reason 10/15 → 11/15, verdict
+  and elements unchanged. What stays: the model sometimes leaves a component out of a restitution (the cost « dépendante »
+  in one analysis of five of the same call); the code adding components itself was tried and withdrawn (false components on
+  single common words). Next lever, to decide: two readings of S2 merged by the code, about 0.005 USD more per call.
+  The stored analyses are to relaunch (C8). Gap memo to update (GB-22b).
 

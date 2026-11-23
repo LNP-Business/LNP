@@ -95,6 +95,7 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | GB-20 | Absence reasons: priority and plurality | `methodology/02_gap_B_bounding_rules.md` |
 | GB-21 | Merged turns | `methodology/02_gap_B_bounding_rules.md` |
 | GB-22 | Key expression | `methodology/02_gap_B_bounding_rules.md` |
+| GB-22b | Key expression found by the code in the statements of the component (GAP-1.5) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-23 | Quoting marker | `methodology/02_gap_B_bounding_rules.md` |
 | GB-24 | Figures | `methodology/02_gap_B_bounding_rules.md` |
 | GB-25 | Correction | `methodology/02_gap_B_bounding_rules.md` |
