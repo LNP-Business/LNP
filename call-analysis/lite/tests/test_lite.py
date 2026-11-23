@@ -344,6 +344,19 @@ def test_cost_estimate_with_the_haiku_prices():
     assert usd == pytest.approx(0.0009 + 0.015 + 0.00078 + 0.00195, abs=1e-6) and usd < 0.05
 
 
+def test_each_tier_is_priced_at_its_own_model():
+    """2026-11-23: the arbiter tier runs claude-sonnet-5-5 (OPEN_DECISIONS F); crm_ca_config.tiers names the models."""
+    from callqa_lite.cost import breakdown, estimate
+    usage = {"fast": {"calls": 1, "input_tokens": 1_000_000, "output_tokens": 0, "cache_read_input_tokens": 0,
+                      "cache_creation_input_tokens": 0},
+             "arbiter": {"calls": 1, "input_tokens": 0, "output_tokens": 100_000, "cache_read_input_tokens": 1_000_000,
+                         "cache_creation_input_tokens": 0}}
+    assert estimate(usage) == pytest.approx(0.10 + 1.0 + 0.10)                       # default models of the tiers
+    assert estimate(usage, {"arbiter": "claude-haiku-5-5-20261001"}) == pytest.approx(0.10 + 0.05 + 0.01)  # by family
+    b = breakdown(usage, {"arbiter": "claude-opus-5-5"})
+    assert b["unknown_models"] == ["claude-opus-5-5"] and b["per_tier"]["arbiter"] == pytest.approx(1.10)  # flagged floor
+
+
 def test_the_code_narrows_a_key_expression_copied_as_a_whole_sentence():
     """GB-22 by the code: the model copied the prospect's whole sentence; the shared words count (Anastasia's call)."""
     from callqa_lite.gap import shared_key_expression

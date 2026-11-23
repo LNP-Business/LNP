@@ -192,3 +192,29 @@ def test_sb21_2026_11_21_an_action_plan_question_is_n_only_with_a_future_state_i
     a["lite.s1_gates"] = {"units": [gate("Q011", **plan)]}
     rec = analyse(sc.context(), MockLiteClient(a), None)
     assert sol(rec, "T011")["letter"] == "N"
+
+
+# ---------------------------------------------------------------- answers by ids (2026-11-23): no recopied quotes
+def test_a_compact_answer_without_quotes_decides_the_letter():
+    """The model writes only what is true; the code holds the question (its proof) and reads what is left out as false."""
+    rec, client = run([{"id": "Q005", "g5": {"difficulty": True}}, {"id": "Q007"}, {"id": "Q013", "is_solicitation": False}])
+    assert sol(rec, "T005")["letter"] == "P" and "gates_by_code" in sol(rec, "T005")["tags"]
+    assert sol(rec, "T007")["letter"] == "OUT" and sol(rec, "T007")["out_reason"] == "absent"   # nothing true: no gate
+    assert not any(s["turn"] == "T013" for s in rec["results"]["SPIN"]["details"]["solicitations"])  # not a question
+    assert rec["meta"]["steps"]["S1"]["reasons"].get("gates:invalid") is None
+    prompt = next(c for c in client.calls if c["task"] == "lite.s1_gates")["prompt"]
+    assert "No quote" in prompt and '"quote"' not in prompt.split("UNITS")[0]
+
+
+def test_a_quote_the_model_still_gives_is_checked_as_before():
+    rec, _ = run([gate("Q005", g5={"difficulty": True, "quote": "never said"})])
+    assert sol(rec, "T005")["letter"] == "S" and rec["meta"]["steps"]["S1"]["reasons"]["gates:invalid"] == 2
+
+
+def test_normalize_gates_fills_every_default_and_keeps_what_is_given():
+    from callqa_lite.spin import GATE_DEFAULTS, normalize_gates, with_proofs
+    g = normalize_gates({"id": "Q005", "g3": {"state_or_value": True, "antecedent": "resolution"}, "routing": None})
+    assert g["is_solicitation"] is True and g["g2"] == GATE_DEFAULTS["g2"] and g["g5"]["difficulty"] is False
+    assert g["g3"] == dict(GATE_DEFAULTS["g3"], state_or_value=True, antecedent="resolution")
+    p = with_proofs(g, "Where do you want to be?")
+    assert p["g3"]["quote"] == "Where do you want to be?" and "quote" not in p["g2"]

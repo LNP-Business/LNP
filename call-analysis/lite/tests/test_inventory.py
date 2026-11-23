@@ -91,3 +91,12 @@ def test_seg1_two_questions_the_model_adds_on_an_unpunctuated_turn_are_one():
     assert [q["quote"] for q in qs] == ["est ce que c'est vraiment ton envie de te lancer"]
     assert qs[0]["grouped"] == ["c'est quoi le projet en gros", "est ce que c'est vraiment ton envie de te lancer"]
     assert d.counts["S1"] == {"question:same_turn_grouped": 1}
+
+
+def test_a_listed_reading_without_turn_or_quote_lands_on_the_code_s_question():
+    """Answers by ids (2026-11-23): the model no longer recopies the code's turn and quote for a listed question."""
+    qs, client, _ = run([{"questions": [{"id": "Q001", "letter": "S"}, {"id": "Q005", "letter": "N"}]}])
+    assert [(q["id"], q["turn"], q["quote"], q["letter"]) for q in qs] == [
+        ("Q001", "T001", "Combien d'élèves tu as aujourd'hui ?", "S"),
+        ("Q005", "T005", "Et qu'est-ce que tu voudrais dans un an ?", "N")]
+    assert len(client.calls) == 1 and 'WITHOUT "turn" or "quote"' in client.calls[0]["prompt"]

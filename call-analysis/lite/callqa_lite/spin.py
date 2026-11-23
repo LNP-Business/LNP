@@ -73,6 +73,42 @@ def sentence_of(text: str, quote: str) -> tuple[str, str]:
     return quote, ""
 
 
+GATE_DEFAULTS = {"is_solicitation": True, "attribution_doubtful": False, "routing": None,
+                 "g1": {"reason": None}, "g2": {"neutral_fact": False, "exclusion": None},
+                 "g3": {"state_or_value": False, "antecedent": "none", "content_supplied": False, "load_named": False,
+                        "about_offer": False, "action_plan": False},
+                 "g4": {"consequence": False, "problem_domain": None, "named_domain": None, "same_domain": False,
+                        "antecedent_solution": False},
+                 "g5": {"difficulty": False, "sales_named": False, "anchored": False},
+                 "objection_clarification": False}
+POSITIVE = {"g1": "reason", "g2": "neutral_fact", "g3": "state_or_value", "g4": "consequence", "g5": "difficulty"}
+
+
+def normalize_gates(g: dict) -> dict:
+    """S1g by ids (2026-11-23): the model answers only what is true; every field it leaves out is read at its default
+    (a gate at false, a null reason, `is_solicitation` true). The fields it gives are kept as given."""
+    out = dict(g)
+    for k, v in GATE_DEFAULTS.items():
+        if isinstance(v, dict):
+            given = out.get(k) if isinstance(out.get(k), dict) else {}
+            out[k] = {**v, **given}
+        elif k not in out or out[k] is None and k != "routing":
+            out[k] = v
+    return out
+
+
+def with_proofs(g: dict, question: str) -> dict:
+    """A positive gate without a quote takes the question itself as its proof: the question was listed by the code
+    (SEG-1), its text is the code's, there is nothing for the model to prove by recopying it (Part C, C3 for the lite
+    engine, 2026-11-23). A quote the model did give is kept and checked as before."""
+    out = dict(g)
+    for k, pos in POSITIVE.items():
+        part = out.get(k)
+        if isinstance(part, dict) and part.get(pos) and part.get("quote") is None:
+            out[k] = dict(part, quote=question)
+    return out
+
+
 def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
     """S1g (2026-11-20): the engine's decide_letter on the model's gate answers (SPIN §3, the code applies the order of
     the gates); returns the letter fields S1 would give, or None (no gates, or a gate whose quote failed)."""
@@ -81,7 +117,8 @@ def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
         return None
     low = sentence.strip().lower()
     attrs = {"validation_tail": any(re.search(p, low) for p in E.TAILS), "system": bool(E.SYSTEM_LINE.search(sentence))}
-    d = E.decide_letter(g, attrs, q.get("quote") or sentence)
+    text = q.get("quote") or sentence
+    d = E.decide_letter(with_proofs(normalize_gates(g), text), attrs, text)
     if d.invalid_proof:
         return None
     if d.letter in E.LETTERS:

@@ -24,7 +24,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import callqa_qa  # noqa: E402,F401  (paths of the engine, the lite engine and the worker)
 from callqa_qa.reference import load, validate  # noqa: E402
-from callqa_qa.score import measure, reproducibility, share, total  # noqa: E402
+from callqa_qa.score import costs, measure, reproducibility, share, total  # noqa: E402
+from callqa_lite.cost import estimate  # noqa: E402
 
 
 def claim_of(case: dict) -> dict:
@@ -94,6 +95,7 @@ def analyse(case: dict, mode: str, effort: str) -> dict:
         client = GatewayClient(url.rstrip("/") + "/functions/v1/callqa-llm", key, tiers, effort=effort, passes=1)
     rec = lite(build_context(claim), client, {"effort": effort})
     rec["qa_usage"] = getattr(client, "usage", {})
+    rec["qa_usd"] = estimate(rec["qa_usage"], tiers) if mode == "live" else None     # replay: no model call, no cost
     return rec
 
 
@@ -133,6 +135,8 @@ def main(argv=None) -> int:
     ap.add_argument("--split", choices=["tuning", "control", "all"], default="all")
     ap.add_argument("--effort", default="low")
     ap.add_argument("--workers", type=int, default=1, help="analyses run at the same time (live mode)")
+    ap.add_argument("--max-cost", type=float, default=0.08,
+                    help="USD: the measure fails when the average cost of an analysis is above it (live mode)")
     ap.add_argument("--out")
     a = ap.parse_args(argv)
     measures, repro, problems, failed = [], {}, {}, []
@@ -162,7 +166,7 @@ def main(argv=None) -> int:
             if "qa_failed" in r:
                 failed.append({"slug": ref.get("slug"), "error": r["qa_failed"]})
                 print(f"{ref.get('slug'):<12} analysis failed: {r['qa_failed']}", flush=True)
-        ms = [measure(ref, r) for r in recs]
+        ms = [dict(measure(ref, r), usd=r.get("qa_usd")) for r in recs]
         for m in ms:
             print(line(m), flush=True)
         measures += ms
@@ -172,11 +176,15 @@ def main(argv=None) -> int:
     tot = total(measures)
     print("TOTAL " + " · ".join(f"{k} {v['share']:.0%} ({v['right']}/{v['out_of']})" for k, v in tot.items()
                                 if isinstance(v, dict) and v["out_of"]) + f" · errors {tot['errors']} · failed analyses {len(failed)}", flush=True)
+    cost = costs(measures, a.max_cost)
+    if cost["analyses"]:
+        print(f"COST {cost['analyses']} analyses · average {cost['avg_usd']:.4f} USD · max {cost['max_usd']:.4f} USD "
+              f"(limit {a.max_cost:.2f} USD on the average: {'EXCEEDED' if cost['exceeded'] else 'ok'})", flush=True)
     if a.out:
-        Path(a.out).write_text(json.dumps({"mode": a.mode, "repeat": a.repeat, "split": a.split, "total": tot,
+        Path(a.out).write_text(json.dumps({"mode": a.mode, "repeat": a.repeat, "split": a.split, "total": tot, "cost": cost,
                                            "calls": measures, "reproducibility": repro, "failed": failed, "invalid_references": problems},
                                           ensure_ascii=False, indent=1, default=str), encoding="utf-8")
-    return 1 if problems else 0
+    return 1 if problems or cost["exceeded"] else 0
 
 
 if __name__ == "__main__":
