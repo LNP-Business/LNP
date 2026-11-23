@@ -55,7 +55,9 @@ the code checks every quote and reuses the engine's decision code (Gap and Pitch
 Answers by ids (2026-11-23): a question the code listed is answered by its id, without a recopied quote (Part C, C3 rule 8);
 the prospect's words are still quoted and checked. Cost: `lite/callqa_lite/cost.py` prices each tier at its model
 (`crm_ca_config.tiers`; prices are configuration, OPEN_DECISIONS H); the worker stores `usage.usd`, the measure fails
-above 0.08 USD on the average (`qa/qa_run.py --max-cost`).
+above 0.08 USD on the average (`qa/qa_run.py --max-cost`). Not a sales call (2026-11-23, C1b, `kind.py`): a session with a
+person already enrolled is `not_sales_call`, nothing scored, no qualification. The gap step is read twice and merged by
+code (C4, `gap.merge_readings`).
 
 ## The prospect's figures (GAP-1.4, 2026-11-20)
 The gap formula (A, B) is selected on the model's atoms **and** on the figures the code lists in the prospect's turns
@@ -86,5 +88,5 @@ French form. Tests: `engine/tests/test_french.py`.
 cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (263 pass; 20 need CALLQA_CORPUS)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
-cd lite && python3 -m pytest -q tests                                 # lite engine (89 tests)
+cd lite && python3 -m pytest -q tests                                 # lite engine (93 tests)
 ```

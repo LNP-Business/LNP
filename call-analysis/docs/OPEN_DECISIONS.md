@@ -237,4 +237,10 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   in one analysis of five of the same call); the code adding components itself was tried and withdrawn (false components on
   single common words). Next lever, to decide: two readings of S2 merged by the code, about 0.005 USD more per call.
   The stored analyses are to relaunch (C8). Gap memo to update (GB-22b).
+- **C1b, the sales call gate** (approved by Romain on 2026-11-23, « vas-y »): a session with a person already enrolled is
+  `not_sales_call`, decided by the code on the model's `enrolled_client` answer with its quote, before the first price.
+  Live check of the branch: the two sessions found among 5 new calls are excluded, the 3 sales calls and the 6 reference
+  calls are not. Lite engine only, the reference engine to port. The control candidates of the review hub are to screen
+  with this gate (a text search for « plateforme », « modules » cannot tell a session from a pitch).
+- **The gap step read twice** (approved the same day): see Part C, C4. Live, 6 reference calls × 2: see `qa/README.md`.
 

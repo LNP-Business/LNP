@@ -61,7 +61,9 @@ def main() -> int:
             started = time.time()
             record = run_job(claim, client, rounds=True, workers=24, budget_s=90 * 60, log=lambda m: print(f"job {job}: {m}", flush=True))
             # an R1: the lead qualification is part of its analysis (046); a failure never stops the analysis
-            qual = qualify(claim, client, db, log=lambda m: print(f"job {job}: {m}", flush=True))
+            # C1b (2026-11-23): a session with a person already enrolled is not a sales call: no lead qualification either
+            qual = None if record.get("status") == "not_sales_call" else \
+                qualify(claim, client, db, log=lambda m: print(f"job {job}: {m}", flush=True))
             usage = {"tiers": client.usage, "seconds": round(time.time() - started), "effort": getattr(client, "effort", None),
                      "engine": engine_of(claim), "usd": job_cost(client.usage, cfg.get("tiers"))}
             if engine_of(claim) == "lite":
