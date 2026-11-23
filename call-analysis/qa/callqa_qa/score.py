@@ -83,6 +83,7 @@ def spin(ref: dict, rec: dict) -> dict:
         matched = {s.get("id") for _, s in pairs if s}
         extra = [s for s in sols if s.get("id") not in matched]
         out["questions_extra"] = len(extra)
+        out["questions_extra_n"] = _pair(len(extra), len(sols))
         out["errors"] += [{"kind": "question_extra", "quote": s.get("quote")} for s in extra]
     return out
 
@@ -201,9 +202,16 @@ def objections(ref: dict, rec: dict) -> dict:
             if not ok:
                 out["errors"].append({"kind": "objection_nature", "quote": o["quote"], "expected": o["nature"],
                                       "found": hit.get("nature")})
+        if o.get("reaction"):                                  # the prospect's reaction level (resolved … persisting)
+            gestures["reaction_out_of"] += 1
+            lvl = (hit.get("reaction") or {}).get("level") if isinstance(hit.get("reaction"), dict) else hit.get("reaction")
+            ok = lvl in accepted(o["reaction"])
+            gestures["reaction"] += ok
+            if not ok:
+                out["errors"].append({"kind": "objection_reaction", "quote": o["quote"], "expected": o["reaction"], "found": lvl})
         for g, val in (("acknowledge", bool(hit.get("acknowledge"))), ("isolate", bool(hit.get("isolate"))),
                        ("explore", _explored(hit)), ("gesture_match", hit.get("gesture_match") in ("yes", True))):
-            if g in o:
+            if g in o and o[g] is not None:                    # null: the gesture does not apply to this nature
                 gestures["gestures_out_of"] += 1
                 ok = bool(o[g]) == val
                 gestures["gestures"] += ok
@@ -212,9 +220,11 @@ def objections(ref: dict, rec: dict) -> dict:
     out["found"] = _pair(found, len(exp))
     out["nature"] = _pair(gestures["nature"], gestures["nature_out_of"])
     out["gestures"] = _pair(gestures["gestures"], gestures["gestures_out_of"])
+    out["reaction"] = _pair(gestures["reaction"], gestures["reaction_out_of"])
     if (ref.get("complete") or {}).get("objections"):
         extra = [e for e in eps if e.get("id") not in used]
         out["extra"] = len(extra)
+        out["extra_n"] = _pair(len(extra), len(eps))
         out["errors"] += [{"kind": "objection_extra", "quote": (e.get("resistance") or {}).get("quote")} for e in extra]
     return out
 
@@ -264,7 +274,8 @@ def total(measures: list[dict]) -> dict:
             ("spin", "questions_to_review"), ("spin", "letters"), ("spin", "registers"), ("spin", "atoms_found"), ("spin", "atom_types"),
             ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("gap", "blocker_state"),
             ("gap", "stopping_question"), ("pitch", "verdict"),
-            ("objections", "found"), ("objections", "nature"), ("objections", "gestures")]
+            ("objections", "found"), ("objections", "nature"), ("objections", "gestures"), ("objections", "reaction"),
+            ("spin", "questions_extra_n"), ("objections", "extra_n")]
     out = {}
     for a, b in keys:
         r = sum((m.get(a) or {}).get(b, [0, 0])[0] for m in measures)
