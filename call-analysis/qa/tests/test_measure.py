@@ -198,4 +198,5 @@ def test_the_cost_of_the_live_analyses_is_added_up_and_capped():
     c = costs(ms, 0.08)
     assert (c["analyses"], c["avg_usd"], c["max_usd"], c["exceeded"]) == (2, 0.08, 0.11, False)
     assert costs(ms, 0.07)["exceeded"] is True
+    assert costs([{"usd": 0.09}, {"usd": 0.0}], 0.08)["exceeded"] is True                 # an excluded call costs nothing
     assert costs([{"usd": None}], 0.08) == {"analyses": 0, "avg_usd": None, "max_usd": None, "max_cost": 0.08, "exceeded": False}
