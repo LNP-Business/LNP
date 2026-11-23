@@ -247,9 +247,22 @@ def test_a_paraphrased_cost_is_not_a_component():
     a = copy.deepcopy(sc.ANSWERS)
     c = a["lite.s2_gap"]["passages"][0]["clauses"][3]
     c["key_expression"] = "barely see my kids in the evening"                       # in the source, not in the sales words
+    c["sales_quote"] = "your family pays for it"                                    # and no statement's words either
     rec, _ = run(a)
     g = rec["results"]["GAP"]
     assert g["verdict"] == "absent" and g["details"]["absence_reason"] == "cost_missing"   # GB-22, X11
+
+
+def test_gb22b_the_code_finds_the_key_expression_when_the_model_cites_the_wrong_words():
+    """GAP-1.5 (2026-11-23): the sales repeats the prospect's words, the model cites others; the code reads the cost
+    statements said before and finds the run the sales repeats."""
+    a = copy.deepcopy(sc.ANSWERS)
+    c = a["lite.s2_gap"]["passages"][0]["clauses"][3]
+    c["key_expression"] = "barely see my kids in the evening"
+    rec, _ = run(a)
+    g = rec["results"]["GAP"]
+    cost = g["details"]["restitution"]["components"]["COST"]
+    assert g["verdict"] == "present" and cost["match"] == "verbatim" and cost["key_expression"] == "I miss dinner three nights a week"
 
 
 # ------------------------------------------------------------------ the record the screen reads

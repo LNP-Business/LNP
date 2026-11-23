@@ -1,5 +1,6 @@
-"""Competence 2 · Gap formalisation (methodology v1.3, rules version GAP-1.4: A and B selected on the figures the
-code lists, GB-28 and GB-29 of 2026-11-20).
+"""Competence 2 · Gap formalisation (methodology v1.3, rules version GAP-1.5: A and B selected on the figures the
+code lists, GB-28 and GB-29 of 2026-11-20; the key expression of a restated component found by the code, GB-22b of
+2026-11-23).
 
 The model extracts and quotes; the code decides and scores (Part C, C2).
 
@@ -37,7 +38,7 @@ from ..core.text import (GENERIC, STOP, _contains, approval_only, canon, clean_t
                          norm_number, quote_ok, sentences)
 
 NAME = "GAP"
-RULES_VERSION = "GAP-1.4"
+RULES_VERSION = "GAP-1.5"
 
 # ------------------------------------------------------------------------------------------- constants
 WEIGHTS = {"G1": 10, "G2": 10, "G3": 10, "G4": 20, "G5": 25, "G6": 25}   # §5.2, proposals "to validate"
@@ -275,6 +276,7 @@ class Clause:
     object: Optional[str] = None
     as_holding_back: bool = False
     explicit_quote: bool = False
+    source_by_code: bool = False           # GB-22b: the key expression was found by the code in a statement of the component
 
     def to_dict(self) -> dict:
         return dict(self.__dict__)
@@ -826,8 +828,74 @@ def _source_text(ctx: CallContext, src: str) -> tuple[Optional[str], str]:
     return t.text, ""
 
 
+KEY_MAX_WORDS = 8                          # GB-22b: longest key expression the code tries in a statement
+
+
+def _statements_cached(ctx: CallContext) -> dict[str, list[Statement]]:
+    """The statements of the discovery window, computed once per call (GB-22b reads them for every clause)."""
+    cache = getattr(ctx, "_gap_statements", None)
+    if cache is None:
+        cache = statements_with_figures(ctx, window_end(ctx))
+        try:
+            ctx._gap_statements = cache
+        except AttributeError:
+            pass
+    return cache
+
+
+def key_from_statements(ctx: CallContext, component: str, sales_quote: str, before: str) -> Optional[tuple[str, str]]:
+    """GB-22b (GAP-1.5, 2026-11-23): the code's own search for the key expression of a restated clause. The model names
+    the component and the sales clause; the code reads every prospect statement of that component said before the
+    restitution (the model's atoms, and the figures, target clauses, costs and blockers the code lists, GB-28b, GB-7b,
+    GB-30b; never a prompted one) and keeps the longest run of its words that passes GB-22 (a), (b) and (d) in the sales
+    clause; on a tie, the most recent statement. The source is a statement of the component, so the expression carries
+    it (c). Returns (source turn, key expression), or None."""
+    best, best_rank = None, None
+    for st in _statements_cached(ctx).get(component) or []:
+        if not st.turn or not st.quote or not ctx.before(st.turn, before):
+            continue
+        src, err = _source_text(ctx, st.turn)
+        if src is None:
+            continue
+        words = st.quote.split()
+        for n in range(min(len(words), KEY_MAX_WORDS), 0, -1):
+            if best_rank and n < best_rank[0]:
+                break
+            for i in range(0, len(words) - n + 1):
+                cand = " ".join(words[i:i + n]).strip(" ,.;:!?«»\"")
+                if not cand or not key_expression_ok(cand, src, sales_quote)[0]:
+                    continue
+                if first_said_by_sales(ctx, cand, st.turn):
+                    continue
+                content = sum(1 for w in clean_tokens(cand) if w not in STOP and w not in GENERIC and len(w) >= 4)
+                if not content and not any(norm_number(w) for w in clean_tokens(cand)):
+                    continue                                   # a weak word alone (« do », « vie ») never carries the component
+                rank = (n, content, ctx.n(st.turn))
+                if best_rank is None or rank > best_rank:
+                    best, best_rank = (st.turn, cand), rank
+            if best_rank and best_rank[0] == n:
+                break
+    return best
+
+
 def classify_clause(ctx: CallContext, raw: dict, span: Span, cut: Optional[tuple[str, int]]) -> Clause:
-    """GB-3 / GB-22 decision of one clause (code). Only a verbatim clause is a component."""
+    """GB-3 / GB-22 decision of one clause (code). Only a verbatim clause is a component. When the model's source or key
+    expression fails, the code looks for the key expression itself in the statements of the component (GB-22b)."""
+    c = _classify_clause(ctx, raw, span, cut)
+    if c.match in ("untraced", "paraphrased") and c.reason in ("no_source", "source_not_earlier", "not_in_source",
+                                                                "not_in_restitution", "generic", "empty", "unknown_source",
+                                                                "source_not_prospect") \
+            and c.component in COMPONENTS and c.sales_quote:
+        found = key_from_statements(ctx, c.component, c.sales_quote, span.start)
+        if found:
+            again = _classify_clause(ctx, dict(raw, source_turn=found[0], key_expression=found[1]), span, cut)
+            if again.match == "verbatim":
+                again.source_by_code = True
+                return again
+    return c
+
+
+def _classify_clause(ctx: CallContext, raw: dict, span: Span, cut: Optional[tuple[str, int]]) -> Clause:
     c = Clause(raw.get("component", ""), raw.get("sales_quote", ""), raw.get("sales_turn", ""),
                raw.get("source_turn"), raw.get("key_expression"),
                as_holding_back=bool(raw.get("as_holding_back")))
@@ -904,6 +972,7 @@ def decide_restitution(ctx: CallContext, span: Span, ans: Optional[dict], status
     r.new_topic_question = ans.get("new_topic_question_quote") if ans.get("ends_with_new_topic_question") else None
     r.is_restitution = len(r.components) >= 2                              # GB-4, X2
     return r
+
 
 
 # ------------------------------------------------------------------------------------------- 4. validation

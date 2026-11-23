@@ -27,7 +27,7 @@ and what the screen reads. The per-competence output contracts are defined in ea
 
 ```
 {
-  "competence": "GAP", "rules_version": "GAP-1.4",
+  "competence": "GAP", "rules_version": "GAP-1.5",
   "status": "scored" | "not_applicable" | "excluded" | "to_review",
   "verdict": "present" | "absent" | "compliant" | "non_compliant" | null,
   "reasons": [...],                 // absence / non-compliance / not-applicable reasons, main reason first

@@ -151,3 +151,12 @@ read as gate 0); 185 of the 444 missed effects belonged to a missed question. Si
 listed question goes to the two readings of the gates whatever S1 said; a question no reading decides is counted in
 `questions_to_review` and left out of the letters. The report keeps each analysis's drop counters (`drops`, numbers
 only) and the failed analyses (`failed`, kind of error only).
+
+## The key expression found by the code (2026-11-23, GAP-1.5, GB-22b)
+
+In the live measure, the gap's absence reason was right 6 times out of 15: on the same restitution, the model cited a
+different source and different words in each analysis, and only some passed the verbatim rule. The code now finds the key
+expression itself in the prospect's statements of the component the model names. Replay of the 27 stored analyses: absence
+reason 10/15 → 11/15, verdict 18/20, elements 93/95, blocker state 24/25, unchanged. Live gain to measure: the variance
+was in the model's choice of words, which the replay holds fixed.
+
