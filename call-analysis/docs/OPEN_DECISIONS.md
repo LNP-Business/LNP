@@ -250,7 +250,7 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   applies the method as written, without any access to the engine's answers: phases, every question of the discovery
   (letter, register), the gap, the pitch, every resistance after the price (nature, gestures, reaction), the five
   qualification gates. Every quote is an exact passage of the transcript (checked by `validate`). Private, never in git
-  (bucket `callqa-fixtures`: `qa/reference.tar.gz`, `qa/cases.tar.gz`). 257 questions, 31 resistances, 35 gates.
+  (bucket `callqa-fixtures`: `qa/reference.tar.gz`, `qa/cases.tar.gz`). 182 questions, 31 resistances, 35 gates.
 - **Limits, stated.** One reading per call, by a model of the same family as the engine's: a shared blind spot is
   possible, and a person's reading of two calls would calibrate it. The readers marked 44 of 149 letters « debatable »:
   the engine is right on 86 % of the sure ones and on half of the debatable ones.
