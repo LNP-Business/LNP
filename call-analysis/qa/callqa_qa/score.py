@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any, Optional
 
-from .reference import ANCHORS, COMPETENCES, accepted, same_words
+from .reference import ANCHORS, COMPETENCES, accepted, norm, same_words
 
 Pair = list  # [right, out_of]
 
@@ -43,7 +43,27 @@ def match_questions(ref: dict, rec: dict) -> list[tuple[dict, Optional[dict]]]:
         if hit:
             used.add(hit.get("id"))
         out.append((q, hit))
+    # second pass (2026-11-23): an expected question whose words are in a turn where the analysis read another priority
+    # question (SEG-1) is found there: the letter is then compared on what the analysis chose to read in that turn
+    where = _turn_of(rec)
+    for i, (q, hit) in enumerate(out):
+        if hit is None:
+            tid = where(q["quote"])
+            alt = next((s for s in sols if s.get("id") not in used and tid and s.get("turn") == tid), None)
+            if alt:
+                used.add(alt.get("id"))
+                out[i] = (q, alt)
     return out
+
+
+def _turn_of(rec: dict):
+    """quote → the id of the record's turn that holds its words (None if no turn does)."""
+    turns = [(t["id"], norm(t.get("text") or "")) for t in rec.get("turns") or []]
+
+    def find(quote: str):
+        q = norm(quote or "")
+        return next((tid for tid, text in turns if q and q in text), None)
+    return find
 
 
 def spin(ref: dict, rec: dict) -> dict:
@@ -96,11 +116,33 @@ def phases(ref: dict, rec: dict) -> dict:
         if k not in exp:
             continue
         tid = got.get(k)
-        ok = (tid is None) if exp[k] is None else bool(tid) and same_words(exp[k], text.get(tid, ""), 0.8)
+        # an anchor may list several accepted turns (two defensible readings of the rule), null among them
+        ok = any((tid is None) if x is None else bool(tid) and same_words(x, text.get(tid, ""), 0.8)
+                 for x in (exp[k] if isinstance(exp[k], list) else [exp[k]]))
+        if not ok and k == "discovery_start" and tid and exp[k]:
+            ok = _same_perimeter_start(ref, rec, tid)
         right += ok
         if not ok:
             errs.append({"kind": f"phase:{k}", "expected": exp[k], "found": text.get(tid) if tid else None})
     return {"anchors": _pair(right, sum(1 for k in ANCHORS if k in exp)), "errors": errs}
+
+
+def _same_perimeter_start(ref: dict, rec: dict, tid: str) -> bool:
+    """The discovery start is a border, right when it bounds the same questions (2026-11-23): no expected S, P, I or N
+    question lies before the analysis' start, and the analysis reads no S, P, I or N question before the first expected
+    question. The turns between two such starts hold only warm-up and OUT questions."""
+    order = {t["id"]: i for i, t in enumerate(rec.get("turns") or [])}
+    where = _turn_of(rec)
+    qs = ref.get("questions") or []
+    if not qs or tid not in order:
+        return False
+    coded = [order.get(where(q["quote"])) for q in qs if not (accepted(q.get("letter")) <= {"OUT"})]
+    coded = [i for i in coded if i is not None]
+    first = min((order.get(where(q["quote"])) for q in qs if where(q["quote"]) in order), default=None)
+    if not coded or first is None or min(coded) < order[tid]:
+        return False
+    sols = ((rec.get("results") or {}).get("SPIN") or {}).get("details", {}).get("solicitations") or []
+    return not any(s.get("in_perimeter") and _letter(s) != "OUT" and order.get(s.get("turn"), 10 ** 9) < first for s in sols)
 
 
 def gap(ref: dict, rec: dict) -> dict:
@@ -186,10 +228,16 @@ def objections(ref: dict, rec: dict) -> dict:
     used, out = set(), {"errors": []}
     gestures = Counter()
     found = 0
+    order = {t["id"]: i for i, t in enumerate(rec.get("turns") or [])}
+    where = _turn_of(rec)
     for o in exp:
         hit = next((e for e in eps if e.get("id") not in used and any(
             same_words(o["quote"], x.get("quote") or "", 0.5) for x in (e.get("quotes") or [e.get("resistance") or {}]))),
             None)
+        if not hit:                               # the same resistance read on another sentence, two turns around at most
+            at = order.get(where(o["quote"]))
+            hit = next((e for e in eps if e.get("id") not in used and at is not None and any(
+                abs(order.get(x.get("turn"), 10 ** 9) - at) <= 2 for x in (e.get("quotes") or [e.get("resistance") or {}]))), None)
         if not hit:
             out["errors"].append({"kind": "objection_missed", "quote": o["quote"]})
             continue
