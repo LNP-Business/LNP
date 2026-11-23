@@ -58,7 +58,7 @@ stored analysis), so that the questions of one turn are read as one (SEG-1). `li
 it measures a change of a prompt or a model, and with `--repeat` the reproducibility. Measured 0.04 to 0.175 USD per
 analysis on 2026-11-21 (0.104 on average). Since 2026-11-23 each live analysis carries its cost (`usd`, from the gateway's
 token usage and `callqa_lite.cost`, the prices of `crm_ca_config.tiers`' models): the `COST` line prints the number of
-analyses, the average and the maximum, and the run fails (exit 1, `cost.exceeded` in the report) when the average is above
+analyses that asked the model something (a call excluded before any step costs nothing and is left out), the average and the maximum, and the run fails (exit 1, `cost.exceeded` in the report) when the average is above
 `--max-cost` (0.08 USD). A replay carries no cost. The printed lines hold numbers only; the quotes go to `--out` only.
 
 ## Baseline (2026-11-20)
@@ -151,3 +151,13 @@ read as gate 0); 185 of the 444 missed effects belonged to a missed question. Si
 listed question goes to the two readings of the gates whatever S1 said; a question no reading decides is counted in
 `questions_to_review` and left out of the letters. The report keeps each analysis's drop counters (`drops`, numbers
 only) and the failed analyses (`failed`, kind of error only).
+
+## First live measure of the cost (2026-11-23, run 45146451376)
+
+Answers by ids (PR 78), 6 calls × 5 analyses. One call is excluded before any model step (recording under 20 minutes): its
+5 analyses cost nothing and are left out of the average since this change. Over the 25 analyses that ran: **0.0685 USD on
+average** (0.104 on 2026-11-21 before answers by ids), 0.0378 to 0.1077 USD; per call, average of 5: 0.042, 0.056, 0.062,
+0.090, 0.094 (the longest call was 0.175 before). Gap elements 92/95, blocker state 23/25, stopping question 15/15; the absence
+reason of the gap varies from one analysis to the next (6/15, S2 reading). The reference set holds the gap only: letters,
+registers and their reproducibility are not measured until the questions are read into it.
+
