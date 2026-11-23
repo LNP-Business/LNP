@@ -276,8 +276,10 @@ def total(measures: list[dict]) -> dict:
 
 def costs(measures: list[dict], max_cost: Optional[float] = None) -> dict:
     """The cost of the analyses that carry one (`usd`, live mode): their number, the average and the maximum in USD,
-    and whether the average is above `max_cost` (the measure then fails). Replay analyses carry no cost."""
-    usd = [m["usd"] for m in measures if isinstance(m.get("usd"), (int, float))]
+    and whether the average is above `max_cost` (the measure then fails). Replay analyses carry no cost, and an analysis
+    that asked the model nothing (a call excluded before any step, e.g. a cut recording) is left out: counted at 0 USD it
+    would lower the average of the analyses that ran."""
+    usd = [m["usd"] for m in measures if isinstance(m.get("usd"), (int, float)) and m["usd"] > 0]
     avg = round(sum(usd) / len(usd), 6) if usd else None
     return {"analyses": len(usd), "avg_usd": avg, "max_usd": round(max(usd), 6) if usd else None,
             "max_cost": max_cost, "exceeded": bool(usd and max_cost is not None and avg > max_cost)}
