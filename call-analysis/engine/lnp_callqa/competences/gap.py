@@ -355,6 +355,13 @@ def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict
     n = 0
     for f in figs:
         n += 1
+        if not f.prompted and f.value is not None and f.unit:
+            # 2026-11-23: whatever its kind, a figure the model also holds gives its unit to the model's atom when that
+            # unit names no dimension (the model read « 2 000, ça me suffit » with the unit « ça »: A found no dimension)
+            for comp in ("A", "B"):
+                for tw in st[comp]:
+                    if tw.turn == f.turn and tw.quantified and tw.value == f.value and (not tw.unit or unit_dim(tw.unit) is None):
+                        tw.unit = f.unit
         if f.prompted or f.kind not in ("present", "target"):
             continue
         comp = "A" if f.kind == "present" else "B"
@@ -446,10 +453,17 @@ def select_b(inside: list[Statement], outside: list[Statement],
     `outside_N`), the model's atoms and the code's clauses alike."""
     def last(xs):
         return xs[-1] if xs else None
+
+    def best(xs):
+        # 2026-11-23 (reference reading): the target of the gap is the result the prospect wants, an income before a
+        # number of students before a time (« 3 000 euros » before « 20-21 heures » of lessons a week); the most recent
+        # on that dimension
+        top = min(DIM_RANK.get(unit_dim(b.unit), 9) for b in xs)
+        return [b for b in xs if DIM_RANK.get(unit_dim(b.unit), 9) == top][-1]
     for xs, rule in (([b for b in inside if b.quantified and b.unit], "quantified_N"),
                      ([b for b in outside if b.quantified and b.unit], "quantified_outside_N")):
         if xs:
-            return last(xs), rule
+            return best(xs), rule
     b = last(ordered if ordered is not None else inside + outside)        # `ordered`: both lists in transcript order
     if b is None:
         return None, "no_B"

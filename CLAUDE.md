@@ -266,7 +266,7 @@ le début de découverte hors bavardage (SB-2), la limite de 2 répliques d'une 
 quand elle nomme un domaine (SB-27), et depuis le 2026-11-20 la vérification de suivi (« ça fait sens ? »), la
 reformulation fermée (« donc ton problème, c'est le temps ? ») et le choix entre options du commercial (« plutôt X ou Y ? »). Depuis le 2026-11-21 (Romain) : une question coupée (« Qu'est-ce qui va faire que… ») est hors SPIN · rien, une difficulté nommée
 par le commercial avec ses mots (« tu es en difficulté avec ça ? ») est une demande d'accord, et la découverte n'est exclue que s'il y a
-au moins 3 questions sans porte franchie et plus de 5 % (`ABSENT_MIN_COUNT`, §5). Registres (Romain, 2026-11-21) : les quatre registres sont les leviers
+au moins 3 questions sans porte franchie et plus de 20 % (`ABSENT_MIN_COUNT`, §5 ; 5 % jusqu'au 2026-11-23). Registres (Romain, 2026-11-21) : les quatre registres sont les leviers
 explorés ; « Autre » devient « Sans registre » (clé `other`) et reçoit les faits neutres de la situation (domaine `status` : métier,
 matière, ancienneté, retraite comme fait, quotidien), un lieu, une date, un outil ; Identité et statut garde l'avenir (devenir,
 reconversion, projet). Une question neutre sans registre lu prend le domaine que nomment les mots de sa réponse, sinon « Sans

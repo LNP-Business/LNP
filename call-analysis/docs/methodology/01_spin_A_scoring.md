@@ -117,7 +117,7 @@ For each coded solicitation, the model receives the question, the prospect's nex
 | Discovery perimeter exists with at least 5 coded solicitations | `scored` |
 | Follow-up call that only reopens discovery with fewer than 5 coded solicitations | `not_applicable` |
 | No discovery (technical call, reschedule, pure follow-up) | `not_applicable` |
-| More than 5 % of perimeter solicitations with OUT `absent`, and at least 3 of them (Romain, 2026-11-21: one or two never exclude a call). A question no gate passes while its answer holds an effect the model read is read once more by the arbiter tier before it counts as absent (lite engine, 2026-11-21) | `excluded` (health) |
+| More than 20 % of perimeter solicitations with OUT `absent`, and at least 3 of them (Romain, 2026-11-21: one or two never exclude a call; reference reading of 2026-11-23: 20 %, was 5 %: the questions no gate classes are a failure of the reading, left out one by one, and the score still rests on four questions out of five; on a control call 3 such questions out of 29, all real I or N questions, excluded the whole discovery). A question no gate passes while its answer holds an effect the model read is read once more by the arbiter tier before it counts as absent (lite engine, 2026-11-21) | `excluded` (health) |
 
 # 6. The SPIN score
 

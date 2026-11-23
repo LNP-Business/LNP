@@ -37,7 +37,8 @@ from ..core.text import approval_only, norm, norm_number, quote_ok
 # Every value below that the methodology marks "to validate" stays a configurable constant.
 WEIGHTS = {"D1": 15, "D2": 20, "D3": 30, "D4": 20, "D5": 15}     # §6, weights to validate (§11)
 MIN_CODED = 5                     # §5: minimum coded solicitations for `scored` (to validate, §11)
-ABSENT_MAX_SHARE = 0.05           # §5 health: > 5 % OUT `absent` -> excluded (C7 health threshold)
+ABSENT_MAX_SHARE = 0.20           # §5 health: > 20 % OUT `absent` -> excluded (reference reading of 2026-11-23: was 5 %;
+                                  # a discovery of 29 questions was excluded for 3 the reading could not class)
 ABSENT_MIN_COUNT = 3              # §5 (Romain, 2026-11-21): and at least 3 such questions; one or two never exclude a call
 COUNT_VOLUNTEERED = True          # §11 proposal: volunteered atoms count for D1..D4 (never for D5, SB-8)
 BACKCHANNEL_MAX_WORDS = 5         # SB-5: sales backchannel of 5 words or fewer does not end an answer span
