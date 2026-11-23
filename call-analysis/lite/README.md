@@ -88,6 +88,12 @@ combination: the engine's functions, each gesture reading checked by the engine 
 
 Never asked of the model: a score, a level, a verdict, the phase order, whether a component is verbatim.
 
+## Not a sales call; the gap step read twice (2026-11-23)
+
+S0 also answers `enrolled_client` (the person has already joined the offer, with the exact words that show it); the code
+(`kind.py`) excludes the call as `not_sales_call` when the quote is valid and comes before the first price (Part C, C1b).
+S2 is asked twice (`s2_readings`, default 2) and `gap.merge_readings` merges the two answers by code (Part C, C4).
+
 ## The record
 
 The same record as `lnp_callqa.pipeline.result_record` (`docs/OUTPUT_CONTRACT.md`), stored by `crm_ca_store` and

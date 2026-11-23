@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 from lnp_callqa.competences import gap as G
 from lnp_callqa.core.models import CallContext, CompetenceResult, SALES
-from lnp_callqa.core.text import key_expression_ok
+from lnp_callqa.core.text import GENERIC, STOP, clean_tokens, key_expression_ok, norm_number
 
 from .shim import Drops, StepRunner
 from .spin import SpinFacts
@@ -65,9 +65,17 @@ def shared_key_expression(key_expression: str, source_text: str, sales_quote: st
     for n in range(len(ke) - 1, 0, -1):
         for i in range(0, len(ke) - n + 1):
             cand = " ".join(ke[i:i + n])
-            if key_expression_ok(cand, source_text, sales_quote)[0]:
+            if key_expression_ok(cand, source_text, sales_quote)[0] and _carries_words(cand):
                 return cand
     return None
+
+
+def _carries_words(expr: str) -> bool:
+    """A narrowed expression keeps a word that carries meaning (four letters or more, not a stop or generic word) or a
+    number: a possessive alone (« my », « ma ») passes GB-22 (d) on the lists but never carries a component (2026-11-23,
+    as GB-22b)."""
+    toks = clean_tokens(expr)
+    return any((w not in STOP and w not in GENERIC and len(w) >= 4) or norm_number(w) for w in toks)
 
 
 def _clause(c: dict, ctx: Optional[CallContext] = None, drops: Optional[Drops] = None) -> dict:
@@ -155,6 +163,74 @@ class GapAnswers:
             return {"horizon_quote": d["quote"], "horizon_turn": d["turn"], "horizon": d.get("horizon") or d["quote"],
                     "binding": d.get("binding")}
         return None
+
+
+def _clause_passes(ctx: CallContext, c: dict) -> bool:
+    """GB-22 (a), (b), (d) on a raw clause of S2, with the code's narrowing: used to choose between two readings."""
+    ke, src_turn = c.get("key_expression"), c.get("source_turn")
+    if not ke or not src_turn:
+        return False
+    try:
+        src = ctx.turn(src_turn).text
+    except KeyError:
+        return False
+    return key_expression_ok(ke, src, c.get("sales_quote", ""))[0] or bool(shared_key_expression(ke, src, c.get("sales_quote", "")))
+
+
+def merge_readings(ctx: CallContext, a: dict, b: Optional[dict], drops: Optional[Drops] = None) -> dict:
+    """Two readings of S2 (2026-11-23, Part C, C4 for the gap step), merged by the code. A passage of the second reading
+    that shares a sales turn with one of the first is the same passage. In a passage, each component keeps the first
+    reading's clause when its key expression passes GB-22, else the second's when it does, else the first's; a component
+    only one reading names is kept (the model left it out in the other: the cost « dépendante » read once in five). The
+    validation is the first reading's, the second's when the first has none; a disagreement is counted. A passage only
+    the second reading found is not added (it would move the judged restitution, and A and B with it); deadlines of both
+    readings are kept. The engine then decides everything as for one reading."""
+    if not isinstance(b, dict):
+        return a
+    out = {k: v for k, v in a.items() if k not in ("passages", "deadlines")}
+    pa = [dict(p) for p in a.get("passages") or [] if isinstance(p, dict)]
+    pb = [p for p in b.get("passages") or [] if isinstance(p, dict)]
+
+    def turns_of(p: dict) -> set:
+        return set(p.get("turns") or []) | {c.get("sales_turn") for c in p.get("clauses") or [] if isinstance(c, dict)} - {None}
+
+    for q in pb:
+        match = next((p for p in pa if turns_of(p) & turns_of(q)), None)
+        if match is None:                     # a passage only the second reading found is left out: added, it moved the
+            if drops is not None:             # judged restitution, so A and B (measured live, 2026-11-23: elements 97 → 87 %)
+                drops.add(STEP, "readings:passage_only_in_second")
+            continue
+        ca = [c for c in match.get("clauses") or [] if isinstance(c, dict)]
+        cb = [c for c in q.get("clauses") or [] if isinstance(c, dict)]
+        merged = []
+        for comp in G.COMPONENTS:
+            xa = [c for c in ca if c.get("component") == comp]
+            xb = [c for c in cb if c.get("component") == comp]
+            if xa and (any(_clause_passes(ctx, c) for c in xa) or not any(_clause_passes(ctx, c) for c in xb)):
+                merged += xa
+            elif xb:
+                merged += xb
+                if drops is not None:
+                    drops.add(STEP, "readings:component_from_second" if not xa else "readings:clause_from_second")
+        merged += [c for c in ca if c.get("component") not in G.COMPONENTS]
+        match["clauses"] = merged
+        match["turns"] = sorted(turns_of(match) | set(q.get("turns") or []), key=lambda t: ctx.n(t) if t else 0)
+        va, vb = match.get("validation"), q.get("validation")
+        if not (isinstance(va, dict) and va.get("outcome")) and isinstance(vb, dict) and vb.get("outcome"):
+            match["validation"] = vb
+        elif isinstance(va, dict) and isinstance(vb, dict) and va.get("outcome") and vb.get("outcome") \
+                and va.get("outcome") != vb.get("outcome") and drops is not None:
+            drops.add(STEP, "readings:validation_disagree")
+        for k in ("ends_with_new_topic_question", "new_topic_question_quote"):
+            if not match.get(k) and q.get(k):
+                match[k] = q[k]
+    seen, deadlines = set(), []
+    for d in (a.get("deadlines") or []) + (b.get("deadlines") or []):
+        if isinstance(d, dict) and (d.get("turn"), d.get("quote")) not in seen:
+            seen.add((d.get("turn"), d.get("quote")))
+            deadlines.append(d)
+    out["passages"], out["deadlines"] = pa, deadlines
+    return out
 
 
 def run_gap(ctx: CallContext, s2: dict, facts: SpinFacts, drops: Drops) -> CompetenceResult:

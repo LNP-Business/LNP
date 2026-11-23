@@ -115,9 +115,15 @@ HYPOTHESIS = re.compile(r"\b(si\b|if\b|par exemple|for example|imagine)")
 CLOCK_BEFORE = re.compile(r"\b(à|vers|dès|avant|après|jusqu'à|entre|at|around|until)\s*$")
 SKIP_AFTER = re.compile(r"^\s?(%|ans\b|years?\b|yrs\b|minutes?\b|min\b|kilom|km\b|jours?\b|days?\b|fois\b|times\b|"
                         r"pages?\b|" + MONTHS.pattern.strip(r"\b()") + r")", re.I)
+# 2026-11-23 (control calls): a bare number of 100 or more right after the words that place the prospect on a scale
+# (« je suis à 1893 », « un minimum de 2 000 ») is an amount, with no word for money around it
+BARE_POSITION = re.compile(r"\b(je (?:ne )?suis à|j'en suis à|j'étais à|je tourne à|je tourne autour de|je suis autour de|"
+                           r"(?:un |le )?minimum(?: de)?|au moins|je (?:ne )?cherche(?: pas)?|arriver à|atteindre|monter à|"
+                           r"passer à|je vise|i'm at|i am at|at least|a minimum of)\s*(?:environ|à peu près|peut-être|genre|"
+                           r"about|around)?\s*$")
 MONEY_CONTEXT = re.compile(r"\b(net|brut|salaire|revenus?|gagn\w*|chiffre|ca|income|revenue|salary|make|making|earn\w*)\b")
 WISH = re.compile(r"\b(j'aimerais|je voudrais|je veux(?= (?!dire)\S)|je souhaite|je souhaiterais|objectif|mon but|j'ai envie d|"
-                  r"j'ai besoin d|me conviendrait|au moins|i want|i'd like|i would like|my goal|i need|i wish)")
+                  r"j'ai besoin d|me conviendrait|au moins|un minimum de|i want|i'd like|i would like|my goal|i need|i wish)")
 IDIOM = re.compile(r"envie d'en pleurer|envie de pleurer|envie de vomir|envie de tout lâcher|je veux dire\b|"
                    r"ce que je veux dire|if you want|je veux bien\b|besoin de savoir|besoin de comprendre|"
                    r"besoin d'informations?|veux savoir|voudrais savoir|aimerais savoir|i want to know|"
@@ -301,7 +307,8 @@ def prospect_figures(ctx: CallContext, start: Optional[str], end: Optional[str])
             if dim is None:
                 # a bare number is an income when its words say so (« là je suis à 2000 », « 2K a month »)
                 period = next((p for p, rx in _PERIOD if rx.match(after.lstrip()) and p != "hour"), None)
-                if value >= 100 and (MONEY_CONTEXT.search(before) or MONEY_CONTEXT.search(after[:30]) or period):
+                if value >= 100 and (MONEY_CONTEXT.search(before) or MONEY_CONTEXT.search(after[:30]) or period
+                                     or BARE_POSITION.search(before)):
                     dim, unit = MONEY, f"money/{period}" if period else "money"
                 else:
                     continue

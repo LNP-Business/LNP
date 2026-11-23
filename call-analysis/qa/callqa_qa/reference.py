@@ -72,8 +72,9 @@ def load_dir(folder: str | Path) -> list[dict]:
 
 def _quotes(ref: dict) -> Iterable[tuple[str, str]]:
     for k, q in (ref.get("phases") or {}).items():
-        if q:
-            yield f"phases.{k}", q
+        for x in (q if isinstance(q, list) else [q]):        # an anchor may list several accepted turns
+            if x:
+                yield f"phases.{k}", x
     for i, q in enumerate(ref.get("questions") or []):
         yield f"questions[{i}]", q.get("quote", "")
         for j, a in enumerate(q.get("atoms") or []):

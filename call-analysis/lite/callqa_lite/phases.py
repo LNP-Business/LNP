@@ -107,13 +107,31 @@ def _sales_turns_between(ctx: CallContext, a: str, b: str) -> int:
     return sum(1 for t in ctx.turns if t.role == SALES and ctx.n(a) < ctx.n(t.id) <= ctx.n(b))
 
 
+def _description_end(ctx: CallContext, answers: dict[str, dict], tid: str, nq: str) -> str:
+    """PB-17 (« an offer description of any length », reference reading of 2026-11-23): the description that starts at
+    `tid` runs to the last description turn before the return to discovery `nq`, when no screen share and no amount for
+    the offer comes in between (then it is the presentation itself). The 2 sales turns are counted from that end."""
+    last = tid
+    for t, a in answers.items():
+        if not (ctx.n(tid) < ctx.n(t) < ctx.n(nq)):
+            continue
+        if a.get("screen_share") or a.get("price_for_offer") or a.get("decision_request"):
+            return tid
+        if a.get("offer_description") and ctx.n(t) > ctx.n(last):
+            last = t
+    return last
+
+
 def _apply_rules(ctx: CallContext, answers: dict[str, dict], drops: Drops) -> dict[str, str]:
     explained: dict[str, str] = {}
     for tid, a in answers.items():
         if a.get("offer_description") or a.get("screen_share"):
             nq = _sales_quote(ctx, a.get("next_discovery_question"))
-            if nq and ctx.n(nq) > ctx.n(tid) and _sales_turns_between(ctx, tid, nq) <= MENTION_RETURN_SALES_TURNS:
+            end = _description_end(ctx, answers, tid, nq) if nq and ctx.n(nq) > ctx.n(tid) and not a.get("screen_share") else tid
+            if nq and ctx.n(nq) > ctx.n(tid) and _sales_turns_between(ctx, end, nq) <= MENTION_RETURN_SALES_TURNS:
                 a["followed_by_discovery"] = True                          # PB-2: a mention, not the pitch start
+                if end != tid:
+                    drops.add(STEP, "pitch:long_mention", {"turn": tid, "end": end})
             elif nq and ctx.n(nq) > ctx.n(tid):
                 drops.add(STEP, "pitch:discovery_too_far", a.get("next_discovery_question"))   # PB-2 / PB-17: 2 turns
             elif a.get("next_discovery_question"):

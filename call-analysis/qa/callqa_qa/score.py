@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any, Optional
 
-from .reference import ANCHORS, COMPETENCES, accepted, same_words
+from .reference import ANCHORS, COMPETENCES, accepted, norm, same_words
 
 Pair = list  # [right, out_of]
 
@@ -38,12 +38,35 @@ def match_questions(ref: dict, rec: dict) -> list[tuple[dict, Optional[dict]]]:
     solicitation answers one expected question at most, the first one that matches."""
     sols = ((rec.get("results") or {}).get("SPIN") or {}).get("details", {}).get("solicitations") or []
     used, out = set(), []
+    where = _turn_of(rec)
+    # first by the turn (2026-11-23): the expected words are in one turn of the record; the analysis' solicitation of
+    # that turn is the one compared (the same words first, else what it chose to read there, SEG-1). A short question
+    # matched by its words alone met unrelated turns (« c'est quoi le problème aujourd'hui ? »).
     for q in ref.get("questions") or []:
-        hit = next((s for s in sols if s.get("id") not in used and same_words(q["quote"], s.get("quote") or "")), None)
+        tid = where(q["quote"])
+        here = [s for s in sols if s.get("id") not in used and tid and s.get("turn") == tid]
+        hit = next((s for s in here if same_words(q["quote"], s.get("quote") or "")), None) or (here[0] if here else None)
         if hit:
             used.add(hit.get("id"))
-        out.append((q, hit))
-    return out
+        out.append((q, hit, tid))
+    # then by the words, for an expected question whose turn the record does not hold (another voice repair)
+    for i, (q, hit, tid) in enumerate(out):
+        if hit is None and tid is None:
+            alt = next((s for s in sols if s.get("id") not in used and same_words(q["quote"], s.get("quote") or "")), None)
+            if alt:
+                used.add(alt.get("id"))
+                out[i] = (q, alt, tid)
+    return [(q, hit) for q, hit, _ in out]
+
+
+def _turn_of(rec: dict):
+    """quote → the id of the record's turn that holds its words (None if no turn does)."""
+    turns = [(t["id"], norm(t.get("text") or "")) for t in rec.get("turns") or []]
+
+    def find(quote: str):
+        q = norm(quote or "")
+        return next((tid for tid, text in turns if q and q in text), None)
+    return find
 
 
 def spin(ref: dict, rec: dict) -> dict:
@@ -83,6 +106,7 @@ def spin(ref: dict, rec: dict) -> dict:
         matched = {s.get("id") for _, s in pairs if s}
         extra = [s for s in sols if s.get("id") not in matched]
         out["questions_extra"] = len(extra)
+        out["questions_extra_n"] = _pair(len(extra), len(sols))
         out["errors"] += [{"kind": "question_extra", "quote": s.get("quote")} for s in extra]
     return out
 
@@ -95,11 +119,33 @@ def phases(ref: dict, rec: dict) -> dict:
         if k not in exp:
             continue
         tid = got.get(k)
-        ok = (tid is None) if exp[k] is None else bool(tid) and same_words(exp[k], text.get(tid, ""), 0.8)
+        # an anchor may list several accepted turns (two defensible readings of the rule), null among them
+        ok = any((tid is None) if x is None else bool(tid) and same_words(x, text.get(tid, ""), 0.8)
+                 for x in (exp[k] if isinstance(exp[k], list) else [exp[k]]))
+        if not ok and k == "discovery_start" and tid and exp[k]:
+            ok = _same_perimeter_start(ref, rec, tid)
         right += ok
         if not ok:
             errs.append({"kind": f"phase:{k}", "expected": exp[k], "found": text.get(tid) if tid else None})
     return {"anchors": _pair(right, sum(1 for k in ANCHORS if k in exp)), "errors": errs}
+
+
+def _same_perimeter_start(ref: dict, rec: dict, tid: str) -> bool:
+    """The discovery start is a border, right when it bounds the same questions (2026-11-23): no expected S, P, I or N
+    question lies before the analysis' start, and the analysis reads no S, P, I or N question before the first expected
+    question. The turns between two such starts hold only warm-up and OUT questions."""
+    order = {t["id"]: i for i, t in enumerate(rec.get("turns") or [])}
+    where = _turn_of(rec)
+    qs = ref.get("questions") or []
+    if not qs or tid not in order:
+        return False
+    coded = [order.get(where(q["quote"])) for q in qs if not (accepted(q.get("letter")) <= {"OUT"})]
+    coded = [i for i in coded if i is not None]
+    first = min((order.get(where(q["quote"])) for q in qs if where(q["quote"]) in order), default=None)
+    if not coded or first is None or min(coded) < order[tid]:
+        return False
+    sols = ((rec.get("results") or {}).get("SPIN") or {}).get("details", {}).get("solicitations") or []
+    return not any(s.get("in_perimeter") and _letter(s) != "OUT" and order.get(s.get("turn"), 10 ** 9) < first for s in sols)
 
 
 def gap(ref: dict, rec: dict) -> dict:
@@ -185,10 +231,16 @@ def objections(ref: dict, rec: dict) -> dict:
     used, out = set(), {"errors": []}
     gestures = Counter()
     found = 0
+    order = {t["id"]: i for i, t in enumerate(rec.get("turns") or [])}
+    where = _turn_of(rec)
     for o in exp:
         hit = next((e for e in eps if e.get("id") not in used and any(
             same_words(o["quote"], x.get("quote") or "", 0.5) for x in (e.get("quotes") or [e.get("resistance") or {}]))),
             None)
+        if not hit:                               # the same resistance read on another sentence, two turns around at most
+            at = order.get(where(o["quote"]))
+            hit = next((e for e in eps if e.get("id") not in used and at is not None and any(
+                abs(order.get(x.get("turn"), 10 ** 9) - at) <= 2 for x in (e.get("quotes") or [e.get("resistance") or {}]))), None)
         if not hit:
             out["errors"].append({"kind": "objection_missed", "quote": o["quote"]})
             continue
@@ -201,9 +253,16 @@ def objections(ref: dict, rec: dict) -> dict:
             if not ok:
                 out["errors"].append({"kind": "objection_nature", "quote": o["quote"], "expected": o["nature"],
                                       "found": hit.get("nature")})
+        if o.get("reaction"):                                  # the prospect's reaction level (resolved … persisting)
+            gestures["reaction_out_of"] += 1
+            lvl = (hit.get("reaction") or {}).get("level") if isinstance(hit.get("reaction"), dict) else hit.get("reaction")
+            ok = lvl in accepted(o["reaction"])
+            gestures["reaction"] += ok
+            if not ok:
+                out["errors"].append({"kind": "objection_reaction", "quote": o["quote"], "expected": o["reaction"], "found": lvl})
         for g, val in (("acknowledge", bool(hit.get("acknowledge"))), ("isolate", bool(hit.get("isolate"))),
                        ("explore", _explored(hit)), ("gesture_match", hit.get("gesture_match") in ("yes", True))):
-            if g in o:
+            if g in o and o[g] is not None:                    # null: the gesture does not apply to this nature
                 gestures["gestures_out_of"] += 1
                 ok = bool(o[g]) == val
                 gestures["gestures"] += ok
@@ -212,9 +271,11 @@ def objections(ref: dict, rec: dict) -> dict:
     out["found"] = _pair(found, len(exp))
     out["nature"] = _pair(gestures["nature"], gestures["nature_out_of"])
     out["gestures"] = _pair(gestures["gestures"], gestures["gestures_out_of"])
+    out["reaction"] = _pair(gestures["reaction"], gestures["reaction_out_of"])
     if (ref.get("complete") or {}).get("objections"):
         extra = [e for e in eps if e.get("id") not in used]
         out["extra"] = len(extra)
+        out["extra_n"] = _pair(len(extra), len(eps))
         out["errors"] += [{"kind": "objection_extra", "quote": (e.get("resistance") or {}).get("quote")} for e in extra]
     return out
 
@@ -264,7 +325,8 @@ def total(measures: list[dict]) -> dict:
             ("spin", "questions_to_review"), ("spin", "letters"), ("spin", "registers"), ("spin", "atoms_found"), ("spin", "atom_types"),
             ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("gap", "blocker_state"),
             ("gap", "stopping_question"), ("pitch", "verdict"),
-            ("objections", "found"), ("objections", "nature"), ("objections", "gestures")]
+            ("objections", "found"), ("objections", "nature"), ("objections", "gestures"), ("objections", "reaction"),
+            ("spin", "questions_extra_n"), ("objections", "extra_n")]
     out = {}
     for a, b in keys:
         r = sum((m.get(a) or {}).get(b, [0, 0])[0] for m in measures)

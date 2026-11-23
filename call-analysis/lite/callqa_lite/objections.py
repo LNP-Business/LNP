@@ -174,6 +174,13 @@ def bound(ctx: CallContext, m: dict, k: int, next_start: Optional[str], drops: D
     response = [t for t in _first_sales(ctx, res.last, end)]
     while response and O.is_backchannel(response[0]):                  # a backchannel is not the first response
         response.pop(0)
+    if not response and tc_turn:
+        # OB-22 by the code (reference reading of 2026-11-23): the first sales turn after the resistance is the one that
+        # changes the subject: it received and left, in one turn. Read as such, not as « no response »
+        first = next((t for t in _first_sales(ctx, res.last, None) if not O.is_backchannel(t)), None)
+        if first is not None and first.id == tc_turn:
+            response = [first]
+            raw = dict(raw, receive_and_leave=True)
     if raw.get("receive_and_leave") and response:                      # OB-22
         ep.response = [response[0].id]
         ep.topic_change = ep.end_turn = response[0].id
@@ -213,6 +220,36 @@ def _checked(T: O._Tasks, task, ans: Optional[dict], uid: str, ctx: CallContext,
     return ans
 
 
+ELLIPTICAL_EXPLORE = __import__("re").compile(
+    r"^\W*(et |ouais,? |oui,? |ok,? |d'accord,? |alors |du coup )*(pourquoi|comment ça|c'est-à-dire|par rapport à quoi|"
+    r"dans quel sens|en quoi|à quel niveau|c'est quoi (le|ton|votre) (problème|souci|blocage|frein|doute)s?|"
+    r"qu'est-ce qui (te |vous |t')?(bloque|freine|retient|gêne|gene|inquiète|inquiete|fait peur|dérange|pose problème)|"
+    r"why( is that)?|how so|in what way|compared to what|meaning|what do you mean|what's the (problem|issue|concern))\b")
+
+
+def _stems(text: str) -> set:
+    """Content words by their first five letters: « réfléchis » and « réfléchisse » are the same word asked back."""
+    return {w[:5] for w in O.content_words(text, drop_generic=False) if len(w) >= 5}
+
+
+def _opens_on_open_question(text: str, resistance: str) -> Optional[str]:
+    """OB-15 / OB-20: the open question among the first two sentences of a response turn that asks about the resistance
+    itself: it reuses one of its words, or refers back to it by ellipsis (« par rapport à quoi ? », « c'est quoi le
+    problème ? »), with nothing before it that contradicts, minimises or presses (OB-13). Its words, else None."""
+    from lnp_callqa.competences import spin as SPN
+    for sent in (sentences(text) or [text])[:2]:
+        if O.not_acknowledged_by(sent):
+            return None
+        t = sent.strip()
+        if not t.endswith("?") or SPN.solution_load_question(t) or SPN.offer_question(t):
+            continue
+        low = SPN._apostrophe(t.lower())
+        elliptical = len(t.split()) <= 10 and bool(ELLIPTICAL_EXPLORE.search(low))
+        if elliptical or (SPN.OPEN_WORDS.search(low) and _stems(t) & _stems(resistance)):
+            return t
+    return None
+
+
 def judge(ctx: CallContext, ep: O.Episode, raw: dict, res_starts: set[str], drops: Drops) -> None:
     """The engine's _judge, on the S4 readings (each checked by the engine task's validator). A gesture whose quote
     fails the check is not proved: it counts as not done (and is counted in the drops)."""
@@ -239,11 +276,27 @@ def judge(ctx: CallContext, ep: O.Episode, raw: dict, res_starts: set[str], drop
     r = raw.get("reaction")
     res_a = _checked(T, T.resolution(), r, uid, ctx, drops, "reaction") if not ep.latent and ep.reaction else None
     f["ack"] = O.acknowledged(first_sentence, ack_a)
+    # OB-20 by the code (reference reading of 2026-11-23): the response opens on an open question about what was just
+    # said (« Tu réfléchis à quoi, du coup ? », « … par rapport à quoi ? »), with no contradiction before it: the
+    # resistance is received, and explored
+    open_q = _opens_on_open_question(first.text, " ".join(ctx.turn(t).text for t in ep.res.turns))
+    if open_q and not f["ack"]:
+        f["ack"] = True
+        ack_a = dict(ack_a or {}, quote=open_q, elliptical_open_question=True)
+        drops.add(STEP, "acknowledge:open_question_by_code")
     f["ack_ev"] = Evidence((ack_a or {}).get("quote", first_sentence), first.id, SALES) if f["ack"] else None
     answer_ev = O._ev(ctx, {"turn": g.get("answer_turn"), "quote": g.get("answer_quote")}, SALES) \
         if g.get("answer_given") else None
     iso = O.isolation_valid(ctx, ep, iso_a, answer_ev) if nature == "objection" else False
     explored, content = O.exploration(ctx, ep, exp_a, res_starts)
+    if open_q and not explored:
+        nxt = O.next_reaction_turn(ctx, first.id)
+        explored = True
+        content = bool(nxt and nxt.id not in res_starts and not O.approval_only(nxt.text) and len(nxt.text.split()) >= 4)
+        exp_a = {"explore": True, "turn": first.id, "quote": open_q, "open_question": True, "elliptical": True,
+                 "answered_with_content": content, "answer_turn": nxt.id if content else None,
+                 "answer_quote": " ".join(nxt.text.split()[:25]) if content else None}
+        drops.add(STEP, "explore:open_question_by_code")
     f["isolate"], f["explore"], f["explore_content"] = iso, explored, content
     f["iso_ev"] = O._ev(ctx, iso_a, SALES) if iso else None
     f["exp_ev"] = O._ev(ctx, exp_a, SALES) if explored else None
