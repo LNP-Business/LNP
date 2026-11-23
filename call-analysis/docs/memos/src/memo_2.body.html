@@ -1,8 +1,8 @@
-<!-- META {"num": 2, "fichier": "LNP_Memo_2_Ecart.pdf", "kicker": "Mémo 2 sur 4 · Formalisation de l'écart", "titre": "La formalisation de l'écart", "phrase": "Avant toute offre et tout prix, le commercial redit au prospect son écart avec les mots exacts du prospect, et le prospect le valide.", "version": "Mémo 2.0 · 21 novembre 2026", "base": "méthode de la formalisation de l'écart, règles GAP-1.4 (20 et 21 novembre 2026), avec l'annexe A (règles de bornage) et l'annexe B (cas d'étalonnage) ; partie C commune, dont C9 (appels d'un même cycle) ; décisions des 20 et 21 novembre 2026"} -->
+<!-- META {"num": 2, "fichier": "LNP_Memo_2_Ecart.pdf", "kicker": "Mémo 2 sur 4 · Formalisation de l'écart", "titre": "La formalisation de l'écart", "phrase": "Avant toute offre et tout prix, le commercial redit au prospect son écart avec les mots exacts du prospect, et le prospect le valide.", "version": "Mémo 2.1 · 23 novembre 2026", "base": "méthode de la formalisation de l'écart, règles GAP-1.5 (20, 21 et 23 novembre 2026), avec l'annexe A (règles de bornage) et l'annexe B (cas d'étalonnage) ; partie C commune, dont C9 (appels d'un même cycle) ; décisions des 20, 21 et 23 novembre 2026"} -->
 
 <section>
 <h2>1. Ce qui a changé depuis le mémo d'octobre</h2>
-<p>Ce mémo 2.0 remplace le mémo 1.0 du 25 octobre 2026. Le fond de la compétence ne change pas : sans reformulation du
+<p>Ce mémo 2.1 du 23 novembre complète le mémo 2.0 du 21 novembre, qui remplaçait le mémo 1.0 du 25 octobre 2026. Le fond de la compétence ne change pas : sans reformulation du
 problème et de son coût, mot pour mot, validée par le prospect avant l'offre, il n'y a pas d'écart. Ce qui change, c'est la façon
 de choisir les points A et B, de relever les coûts, de lire les appels d'un même cycle et de fermer la fenêtre de l'écart.</p>
 <table class="changes">
@@ -35,7 +35,18 @@ dans 46 % des cas avant, 93 % après.</td></tr>
 <tr><td>21 nov. 2026</td><td><b>La formule est lue avant la reformulation jugée</b> (la dernière qui passe la porte, sinon la dernière avant
 l'offre), et non plus avant la première. Un chiffre où il en est, relevé par le système, compte comme point A quelle que soit la
 question qui l'a fait dire.</td></tr>
+<tr><td>21 nov. 2026</td><td><b>Le blocage a un état.</b> « Ce qui te bloque » peut manquer pour deux raisons : l'analyse ne l'a
+pas trouvé, ou le prospect ne l'a jamais dit parce que le commercial ne l'a pas demandé. Le système lit les questions du blocage du
+commercial et ce que le prospect dit de ce qui l'empêche, et donne un état : nommé à la question du blocage, demandé mais non dit, dit de
+lui-même (à confirmer), jamais demandé. Une douleur dite ailleurs n'est plus le blocage par défaut <small>(GB-30, GB-30b)</small>.</td></tr>
+<tr><td>21 nov. 2026</td><td><b>La reformulation parfaite est écrite par le système avec les phrases du prospect</b>, passées à la
+deuxième personne (« je suis payée 15 euros » devient « tu es payée 15 euros »), jamais avec les mots repris par le commercial. Une case
+non dite donne la question à poser.</td></tr>
 <tr><td>21 nov.</td><td>Mots français mieux lus : les ouvertures de reformulation (« ce que je retiens », « si je t'ai bien compris »), les demandes de validation (« j'ai bien résumé ? », « j'ai oublié quelque chose ? »), le vouvoiement et « 2 k€ » (GB-15, GB-22).</td></tr>
+<tr><td>23 nov. 2026</td><td><b>Les mots repris sont retrouvés par le système.</b> Quand le modèle cite une mauvaise source ou de
+mauvais mots pour une composante reprise, le système cherche lui-même les mots du prospect que le commercial a répétés, dans ce que le
+prospect a dit de cette composante. Sur une même reformulation, le résultat ne dépend plus des mots que le modèle a choisis de citer
+<small>(GB-22b, règles GAP-1.5 : analyses à relancer, C8)</small>. <span class="nouveau">nouveau</span></td></tr>
 </table>
 </section>
 
@@ -121,8 +132,9 @@ première fois dans la reformulation, ou un coût alourdi alors que le prospect 
 chiffrée la plus récente, d'abord dans ses réponses <span class="lettre">N</span>. A est le chiffre où il en est <b>sur la même dimension
 que B</b> (même unité de préférence : euros par mois, élèves, heures par semaine). Jamais le plus gros chiffre de l'appel s'il est
 ailleurs (un ancien salaire, une épargne), jamais un fait sans rapport avec B <small>(GB-28, GB-29)</small>.</div>
-<div class="regle"><b>6. Un seul blocage.</b> P est le blocage qu'il a nommé quand on lui a demandé ce qui l'arrête ; sinon celui sur
-lequel il revient le plus <small>(GB-30)</small>. Les autres blocages ne sont pas perdus : ils deviennent les étapes de sa feuille de
+<div class="regle"><b>6. Un seul blocage, demandé.</b> P est le blocage qu'il a nommé quand on lui a demandé ce qui l'arrête
+(« qu'est-ce qui t'a empêché de… ? »). Sans cette question, ce qu'il a dit de lui-même compte, mais reste à faire confirmer ; s'il n'a rien
+dit, le blocage est « jamais demandé » et la formule est incomplète par le fait du commercial <small>(GB-30)</small>. Les autres blocages ne sont pas perdus : ils deviennent les étapes de sa feuille de
 route dans la présentation. Une feuille de route de 3 étapes demande au moins 3 blocages distincts ; en dessous, l'assistant de
 présentation prévient le commercial <small>(GB-33)</small>.</div>
 <div class="regle"><b>7. S'arrêter et demander sa validation.</b> Terminer la reformulation par une demande de validation (« C'est bien
@@ -230,6 +242,16 @@ existe mais aucune expression commune), <b>sans source</b> (rien chez le prospec
 paraphrases restent affichées pour montrer au commercial les mots exacts que le prospect avait employés. Une marque de citation
 (« comme tu l'as dit », « avec tes mots ») ne prouve rien seule ; avec une expression clé, elle est notée comme un point fort
 <small>(GB-23)</small>.</p>
+<p><span class="nouveau">nouveau</span> Le modèle dit quelle composante le commercial reprend ; les mots exacts, c'est le système qui les
+vérifie. Si les mots que le modèle a cités ne passent pas, le système cherche lui-même, dans tout ce que le prospect a dit <b>de cette
+composante</b> avant la reformulation, la plus longue suite de mots que le commercial a répétée. Jamais un petit mot seul, jamais des
+mots que le commercial avait dits le premier. Le système n'ajoute jamais une composante que le modèle n'a pas repérée : sur un seul mot
+courant (« temps », « mois », « enfants »), il en inventerait <small>(GB-22b)</small>.</p>
+<div class="exemple bon"><div class="titre">Les mots retrouvés par le système</div>
+<p class="dit"><span class="qui">Prospect</span> (plus tôt) « Le souci, c'est qu'il faut se déplacer, et avec les enfants c'est compliqué. »</p>
+<p class="dit"><span class="qui">Commercial</span> « Donc ce qui coince pour toi, c'est de te déplacer, c'est bien ça ? »</p>
+<p class="verdict">Le modèle a cité « c'est compliqué », que le commercial ne répète pas. Le système retrouve « se déplacer » dans le
+blocage dit par le prospect : le problème est repris mot pour mot.</p></div>
 
 <h3>7.3 Étape 1 : la porte d'absence</h3>
 <p>Trois conditions, vérifiées dans cet ordre :</p>
@@ -339,6 +361,10 @@ point ne vient d'éléments recueillis mais jamais formalisés.</p>
 de sa couleur, puis la validation du prospect ; à droite, les composantes dans l'ordre de l'appel (point A, point B, problème, coût, puis la
 validation), chacune avec son état et les mots exacts du prospect, celles qui n'ont pas été reprises en creux à la fin. « Pour un écart
 parfait » dit ce qui manque, les points à gagner d'après G1 à G6 et la reformulation parfaite remplie avec les mots du prospect.</p>
+<p>Le blocage s'affiche avec son état et le conseil qui va avec : « nommé à la question du blocage » ; « demandé, non dit » (relancer) ;
+« dit de lui-même, à confirmer » (le faire confirmer) ; « jamais demandé » (poser la question). La reformulation parfaite est écrite par le
+système : « Aujourd'hui, [A] · tu veux [B] · ce qui te bloque, c'est [P] · et ça te coûte : [coût]. C'est bien ça ? », chaque case remplie
+avec la phrase complète du prospect passée à la deuxième personne ; une case qu'il n'a pas dite donne la question à poser.</p>
 <p>D'autres repères sont affichés pour le suivi des commerciaux, jamais notés : les raisons d'absence sur la période ; ce qui avait été
 recueilli dans un écart absent ; la valeur de l'écart (B − A) et son unité ; la part des échéances contraintes (« mon contrat s'arrête en
 juin ») face aux échéances souhaitées ; le temps entre la dernière question de découverte et la reformulation ; les corrections et leur

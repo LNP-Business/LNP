@@ -1,4 +1,4 @@
-<!-- META {"num": 0, "fichier": "LNP_Memo_0_Regles_communes.pdf", "kicker": "Mémo commun · Règles de l'analyse d'appel", "titre": "Les règles communes de l'analyse d'appel", "phrase": "Le modèle cite, le code décide et note : chaque note repose sur les mots exacts de l'appel, vérifiés, et un appel qu'on ne peut pas lire de façon fiable n'est pas noté.", "version": "Mémo 1.0 · 21 novembre 2026", "base": "méthode de l'analyse d'appel, partie C (le moteur commun aux quatre compétences), avec les décisions de Romain des 20 et 21 novembre 2026"} -->
+<!-- META {"num": 0, "fichier": "LNP_Memo_0_Regles_communes.pdf", "kicker": "Mémo commun · Règles de l'analyse d'appel", "titre": "Les règles communes de l'analyse d'appel", "phrase": "Le modèle cite, le code décide et note : chaque note repose sur les mots exacts de l'appel, vérifiés, et un appel qu'on ne peut pas lire de façon fiable n'est pas noté.", "version": "Mémo 1.1 · 23 novembre 2026", "base": "méthode de l'analyse d'appel, partie C (le moteur commun aux quatre compétences), avec les décisions de Romain des 20, 21 et 23 novembre 2026"} -->
 
 <section>
 <h2>Ce qui a changé</h2>
@@ -32,7 +32,12 @@ prix, donné trop tôt. <span class="nouveau">nouveau</span> <small>(PB-3)</smal
 <tr><td>21 nov.</td><td>Santé de la découverte : elle n'est exclue que s'il y a au moins 3 questions qu'aucune porte ne classe et plus de
 5 % des questions. Une ou deux ne suffisent plus. <span class="nouveau">nouveau</span> <small>(C7)</small></td></tr>
 <tr><td>21 nov.</td><td>Questions incertaines : à l'écran, une question identifiée ou lue sans certitude porte une lettre orange en
-pointillés avec un « ? », et ses raisons sont données. <span class="nouveau">nouveau</span></td></tr>
+pointillés avec un « ? », et ses raisons sont données.</td></tr>
+<tr><td>23 nov.</td><td>Réponses par identifiants : pour une question que le code a lui-même listée, le modèle répond par son numéro, sans
+recopier la question, et n'écrit que ce qui est vrai. Les mots du prospect, eux, sont toujours cités et vérifiés. <span class="nouveau">nouveau</span>
+<small>(C3)</small></td></tr>
+<tr><td>23 nov.</td><td>Le coût de chaque analyse est calculé et gardé ; la mesure de qualité échoue si la moyenne dépasse 0,08 USD. Mesuré le
+23 novembre : 0,068 USD en moyenne, contre 0,104 avant les réponses par identifiants. <span class="nouveau">nouveau</span></td></tr>
 </table>
 </section>
 
@@ -109,6 +114,11 @@ commercial reprend un mot que le prospect avait déjà dit, ce mot reste celui d
 d'erreur ; si elle échoue encore, l'élément est mis « à vérifier » et sort de toutes les notes jusqu'à ce qu'un humain ou l'arbitre
 tranche. Le moteur allégé fait plus simple : une preuve invalide est retirée, et ce qu'elle devait prouver compte comme non dit ou non
 fait (voir les points ouverts).</li>
+<li><b>Ce que le code a écrit lui-même ne se recopie pas.</b> <span class="nouveau">nouveau</span> Quand c'est le code qui a listé
+l'élément et qu'il en a le texte (les questions de la découverte), le modèle répond par son numéro, sans en recopier les mots : il n'y a rien
+à prouver en recopiant ce que le code a écrit. Une citation que le modèle donne quand même est vérifiée par la règle 1. Les règles 1 à 7
+restent entières pour tout ce que le modèle lit dans la transcription : les réponses du prospect, la reformulation, les objections
+<small>(C3, 23 nov.)</small>.</li>
 </ol>
 
 <div class="exemple mauvais"><div class="titre">Ne compte pas comme dit par le prospect</div>
