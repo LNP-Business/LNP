@@ -199,7 +199,8 @@ def test_a_compact_answer_without_quotes_decides_the_letter():
     """The model writes only what is true; the code holds the question (its proof) and reads what is left out as false."""
     rec, client = run([{"id": "Q005", "g5": {"difficulty": True}}, {"id": "Q007"}, {"id": "Q013", "is_solicitation": False}])
     assert sol(rec, "T005")["letter"] == "P" and "gates_by_code" in sol(rec, "T005")["tags"]
-    assert sol(rec, "T007")["letter"] == "OUT" and sol(rec, "T007")["out_reason"] == "absent"   # nothing true: no gate
+    # nothing true for « What's been stopping you from getting more clients? »: the code knows the stopping question, P
+    assert sol(rec, "T007")["letter"] == "P" and "stopping_by_code" in sol(rec, "T007")["tags"]
     assert not any(s["turn"] == "T013" for s in rec["results"]["SPIN"]["details"]["solicitations"])  # not a question
     assert rec["meta"]["steps"]["S1"]["reasons"].get("gates:invalid") is None
     prompt = next(c for c in client.calls if c["task"] == "lite.s1_gates")["prompt"]

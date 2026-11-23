@@ -38,22 +38,25 @@ def match_questions(ref: dict, rec: dict) -> list[tuple[dict, Optional[dict]]]:
     solicitation answers one expected question at most, the first one that matches."""
     sols = ((rec.get("results") or {}).get("SPIN") or {}).get("details", {}).get("solicitations") or []
     used, out = set(), []
+    where = _turn_of(rec)
+    # first by the turn (2026-11-23): the expected words are in one turn of the record; the analysis' solicitation of
+    # that turn is the one compared (the same words first, else what it chose to read there, SEG-1). A short question
+    # matched by its words alone met unrelated turns (« c'est quoi le problème aujourd'hui ? »).
     for q in ref.get("questions") or []:
-        hit = next((s for s in sols if s.get("id") not in used and same_words(q["quote"], s.get("quote") or "")), None)
+        tid = where(q["quote"])
+        here = [s for s in sols if s.get("id") not in used and tid and s.get("turn") == tid]
+        hit = next((s for s in here if same_words(q["quote"], s.get("quote") or "")), None) or (here[0] if here else None)
         if hit:
             used.add(hit.get("id"))
-        out.append((q, hit))
-    # second pass (2026-11-23): an expected question whose words are in a turn where the analysis read another priority
-    # question (SEG-1) is found there: the letter is then compared on what the analysis chose to read in that turn
-    where = _turn_of(rec)
-    for i, (q, hit) in enumerate(out):
-        if hit is None:
-            tid = where(q["quote"])
-            alt = next((s for s in sols if s.get("id") not in used and tid and s.get("turn") == tid), None)
+        out.append((q, hit, tid))
+    # then by the words, for an expected question whose turn the record does not hold (another voice repair)
+    for i, (q, hit, tid) in enumerate(out):
+        if hit is None and tid is None:
+            alt = next((s for s in sols if s.get("id") not in used and same_words(q["quote"], s.get("quote") or "")), None)
             if alt:
                 used.add(alt.get("id"))
-                out[i] = (q, alt)
-    return out
+                out[i] = (q, alt, tid)
+    return [(q, hit) for q, hit, _ in out]
 
 
 def _turn_of(rec: dict):

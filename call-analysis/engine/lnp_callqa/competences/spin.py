@@ -299,7 +299,8 @@ def group_turn(text: str) -> Optional[dict]:
     k = len(qs) - 1
     # SEG-1 (2026-11-21): a question cut before its end, a check-in (« tu vois ce que je veux dire ? »), a tail alone or a
     # closed restatement at the end of the turn is never its priority when an open question comes before it
-    weak = lambda q: cut_question(q) or check_in_question(q) or bool(TAIL_ONLY.match(q.strip())) or closed_restatement(q)
+    weak = lambda q: cut_question(q) or check_in_question(q) or bool(TAIL_ONLY.match(q.strip())) or closed_restatement(q) \
+        or fragment_question(q)
     if weak(qs[k]):
         j = next((i for i in range(k - 1, -1, -1) if not weak(qs[i])), None)
         if j is not None:
@@ -666,7 +667,8 @@ OPEN_WORDS = re.compile(
 CHOICE_LIST = re.compile(
     r"\b(tu préfères|vous préférez|tu préférerais|vous préféreriez|tu dirais plutôt|vous diriez plutôt|c'est plutôt|"
     r"plutôt|would you rather|do you prefer|would you say it's more|is it more)\b[^?]*\b(ou|or)\b[^?]*\?", re.I)
-OPEN_BRANCH = re.compile(r"\b(ou|or) (autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
+OPEN_BRANCH = re.compile(r"\b(ou|or) (?:est-ce qu'il (?:y )?a |il (?:y )?a |c'est |tu as |vous avez )?"
+                         r"(autre chose|pas|quoi|non|something else|anything else|not|what)\b", re.I)
 
 
 # §3 hard rule added 2026-11-21 (Romain): a question cut before its end (the recorder closes it with an ellipsis, « Qu'est-ce
@@ -698,7 +700,32 @@ def check_in_question(text: str) -> bool:
 
 def closed_restatement(text: str) -> bool:
     t = norm(text or "")
-    return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1)))
+    # 2026-11-23: an alternative left open (« donc c'est votre activité principale ou il y a autre chose à côté ? ») asks
+    # for a fact, it is not a restatement to approve
+    return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1))
+                and not OPEN_BRANCH.search(t))
+
+
+# 2026-11-23 (reference reading): a question that asks openly (« qu'est-ce que ça change pour toi ? ») never supplies its
+# own answer, whatever it recalls before (« avec 2 000 euros, … »): it cannot be a closed need-payoff
+OPEN_INTERROGATIVE = re.compile(
+    r"\b(qu'est-ce qu\w*|qu'est ce qu\w*|c'est quoi|en quoi|comment|pourquoi|pour quelles? raisons?|quel(?:le)?s? \w+|"
+    r"what|how|why|which \w+)\b", re.I)
+
+
+def asks_openly(text: str) -> bool:
+    return bool(OPEN_INTERROGATIVE.search(_apostrophe(norm(text or ""))))
+
+
+# SEG-1 (2026-11-23): a last question that is only a fragment hung on the one before (« Pour faire les cours en
+# ligne ? », « Avec tes élèves ? »): a preposition, no subject, no question word
+FRAGMENT = re.compile(r"^\W*(et |ou |donc )?(pour|avec|sur|dans|chez|sans|par|en|à|au|aux|de|du|des|vers|"
+                      r"for|with|on|in|at|about|to)\b", re.I)
+
+
+def fragment_question(q: str) -> bool:
+    t = _apostrophe(norm(q or ""))
+    return bool(len(t.split()) <= 9 and FRAGMENT.search(t) and not NO_SUBJECT.search(t) and not OPEN_WORDS.search(t))
 
 
 # SEG-3 (2026-11-21): an alternative asked in two sentences (« travail salarié qui ne te plaît pas, c'est ça ? Ou qui t'a

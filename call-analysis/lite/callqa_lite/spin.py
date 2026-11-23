@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from lnp_callqa.competences import spin as E
+from lnp_callqa.core.blockers import STOPPING, about_offer
 from lnp_callqa.core.models import (Atom, CallContext, CompetenceResult, Evidence, PROSPECT, SALES, Solicitation,
                                         Turn)
 from lnp_callqa.core.scoring import call_score
@@ -118,7 +119,10 @@ def letter_from_gates(q: dict, sentence: str) -> Optional[dict]:
     low = sentence.strip().lower()
     attrs = {"validation_tail": any(re.search(p, low) for p in E.TAILS), "system": bool(E.SYSTEM_LINE.search(sentence))}
     text = q.get("quote") or sentence
-    d = E.decide_letter(with_proofs(normalize_gates(g), text), attrs, text)
+    g = with_proofs(normalize_gates(g), text)
+    if g["g3"].get("content_supplied") and E.asks_openly(text):      # an open question supplies no answer (2026-11-23)
+        g["g3"] = dict(g["g3"], content_supplied=False)
+    d = E.decide_letter(g, attrs, text)
     if d.invalid_proof:
         return None
     if d.letter in E.LETTERS:
@@ -189,6 +193,11 @@ def decide_letter(q: dict, sentence: str) -> E.LetterDecision:
     if forced:
         cands = forced + ([reason] if letter == E.OUT and reason in E.OUT_PRIORITY else [])
         return E.LetterDecision(E.OUT, 1, min(cands, key=E.OUT_PRIORITY.index), sorted(set(tags)))
+    # gate 5 by the code (2026-11-23, reference reading): the question that asks what stops the prospect (GB-30's list:
+    # « qu'est-ce qui te bloque ? », « pourquoi tu ne l'as jamais fait ? ») is the difficulty itself, P, whatever the
+    # gates read; never when it bears on the offer
+    if letter != "P" and STOPPING.search(norm(sentence)) and not about_offer(sentence) and not q.get("closed_need_payoff"):
+        return E.LetterDecision("P", 5, None, sorted(set(tags + ["stopping_by_code"])))
     return E.LetterDecision(letter, GATE_OF.get(letter, 1), reason, tags)
 
 

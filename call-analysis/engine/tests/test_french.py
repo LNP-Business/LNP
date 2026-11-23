@@ -458,3 +458,28 @@ def test_2026_11_21_an_open_consequence_question_is_never_in_the_same_domain():
     assert S.decide_letter(g, {}, q).letter == "I"
     g["g4"]["named_domain"] = "health"                                   # it names the problem's own domain: not I
     assert S.decide_letter(g, {}, q).letter == "OUT"
+
+
+
+# ------------------------------------------------------------------ reference reading of 2026-11-23 (letters)
+def test_an_alternative_left_open_is_not_a_closed_restatement():
+    from lnp_callqa.competences import spin as sp
+    assert not sp.closed_restatement("Ok, donc ça, c'est ton activité principale ou il y a autre chose à côté ?")
+    assert not sp.closed_restatement("Donc ça, c'est votre activité principale ou il a autre chose à côté ?")   # « y » dropped
+    assert sp.closed_restatement("Donc ton problème, c'est le temps ?")
+
+
+def test_an_open_question_is_never_a_closed_need_payoff():
+    from lnp_callqa.competences import spin as sp
+    assert sp.asks_openly("Avec 2 000 euros, qu'est-ce que ça change pour toi ?")
+    assert sp.asks_openly("Et en quoi c'est important pour toi ?")
+    assert not sp.asks_openly("Donc ton objectif, c'est d'avoir un revenu qui te permette d'en vivre, c'est ça ?")
+    assert not sp.asks_openly("Tu veux arriver à 2 000 euros ?")
+
+
+def test_seg1_a_fragment_hung_on_the_question_before_is_not_the_priority():
+    from lnp_callqa.competences import spin as sp
+    g = sp.group_turn("Pourquoi tu n'as pas encore eu l'occasion de te lancer avant ? Pour faire les cours en ligne ?")
+    assert g["priority"].startswith("Pourquoi tu n'as pas encore")
+    assert sp.fragment_question("Avec tes élèves ?") and not sp.fragment_question("Pour quelle raison tu veux arrêter ?")
+    assert not sp.fragment_question("Sur ton temps libre, tu fais quoi ?")
