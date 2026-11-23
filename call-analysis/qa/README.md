@@ -187,3 +187,31 @@ The gap step read twice (Part C, C4), 6 reference calls × 2 analyses (one call 
 The samples are small: a measure of 5 analyses per call is needed before the two readings are taken as a gain on the
 elements (A and B move when another restitution passes the gate, since they are read before the judged restitution).
 
+## The expert reference and the first full measure (2026-11-23)
+
+Eight sales calls read whole by an expert reader (docs/OPEN_DECISIONS.md, I). The engine's production analyses of the
+same day are replayed against it (the model's answers are fixed: only the code changes between the two columns).
+
+| Measure | Before | After the corrections of the day | Tuning calls | Control calls |
+|---|---|---|---|---|
+| Statuses of the competences | 94 % | 97 % | 95 % | 100 % |
+| Phase anchors | 81 % | 81 % | 85 % | 75 % |
+| Questions found | 82 % | 87 % | 92 % | 81 % |
+| Letters | 78 % | 81 % | 89 % | 70 % |
+| Registers | 66 % | 65 % | 67 % | 62 % |
+| Gap verdict | 100 % | 100 % | 100 % | 100 % |
+| Gap absence reason | 62 % | 62 % | 60 % | 67 % |
+| Gap elements | 69 % | 72 % | 90 % | 42 % |
+| Blocker state | 88 % | 88 % | 100 % | 67 % |
+| Pitch verdict | 100 % | 100 % | 100 % | 100 % |
+| Resistances found | 61 % | 61 % | 54 % | 86 % |
+| Nature of the resistance | 84 % | 84 % | 85 % | 83 % |
+| Gestures (acknowledge, isolate, explore, matching) | 70 % | 78 % | 80 % | 74 % |
+| Prospect's reaction | 47 % | 47 % | 46 % | 50 % |
+| Qualification gates (production, not replayed) | 80 % (28/35) | | | |
+
+The measure itself changed the same day: a stored answer is replayed by its unit id (a voice chunk cut in production
+shifted every later answer; the discovery readings given by id were lost), an expected question or resistance is matched
+by its turn first, a phase anchor may list two turns, the discovery start is right when it bounds the same S, P, I, N
+questions.
+

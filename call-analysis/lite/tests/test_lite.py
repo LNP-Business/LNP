@@ -640,3 +640,25 @@ def test_s2_two_readings_a_passing_clause_wins_and_a_failed_second_reading_chang
     a["lite.s2_gap"] = [sc.S2, "not json", "still not json"]
     rec, _ = run(a)
     assert rec["results"]["GAP"]["verdict"] == "present"                            # the first reading stands
+
+
+# ---------------------------------------------------------------- objections, reference reading of 2026-11-23
+def test_ob20_an_open_question_about_the_resistance_receives_and_explores_it():
+    from callqa_lite.objections import _opens_on_open_question as opens
+    res = "Il faut que je réfléchisse, là."
+    assert opens("Tu réfléchis à quoi, du coup ?", res)                                  # asks the word back
+    assert opens("Tu as des doutes sur tes capacités. Par rapport à quoi ?", "J'ai des doutes en mes capacités.")
+    assert opens("Ouais, c'est quoi le problème ?", "C'est une somme, quand même.")      # refers back by ellipsis
+    assert not opens("Totally fair. What would he want to know?", "I need to talk to my husband first.")   # OB-15
+    assert not opens("Mais tu sais, c'est un investissement. Pourquoi ?", res)           # a contradiction first (OB-13)
+    assert not opens("Combien de temps tu peux y consacrer par semaine ?", res)          # the load of the solution
+
+
+def test_ob22_a_first_turn_that_changes_the_subject_received_and_left():
+    a = copy.deepcopy(sc.ANSWERS)
+    money = next(o for o in a["lite.s4_objections"]["objections"] if o["quotes"][0]["turn"] == "T028")
+    money["topic_change"] = {"turn": "T029", "quote": "Apart from the money, is there anything else stopping you?"}
+    money.pop("receive_and_leave", None)
+    rec, _ = run(a)
+    ep = rec["results"]["OBJECTIONS"]["details"]["episodes"][0]
+    assert ep["response_turns"] == ["T029"] and ep["latent_rule"] == "OB-22" and ep["acknowledge"] is True

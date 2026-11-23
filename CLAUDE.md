@@ -250,7 +250,11 @@ marché » dont les niveaux sont les offres de LNP est le premier prix, une erre
 `disguised_price`). Enregistrement coupé (Romain 2026-11-20) : moins de 20 minutes d'enregistrement → appel non analysé
 (`recording_incomplete`, aucun appel au modèle). Pas un appel de vente (Romain 2026-11-23, C1b) : une séance avec une personne déjà
 inscrite (plateforme, modules, suivi) est exclue (`not_sales_call`, preuve citée, avant le premier prix), sans note ni qualification ;
-l'étape de la reformulation est lue deux fois et fusionnée par le code (C4). Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
+l'étape de la reformulation est lue deux fois et fusionnée par le code (C4). Référence experte (Romain 2026-11-23,
+`call-analysis/docs/OPEN_DECISIONS.md` I) : 8 appels de vente lus en entier (5 de réglage, 3 de contrôle), les cinq objectifs mesurés
+(`call-analysis/qa/README.md`) ; règles tirées de cette lecture : mention de l'offre comptée à la fin de la description (PB-17),
+question du blocage lue P par le code, question ouverte jamais « désir fourni », accueil et exploration par une question ouverte
+sur la résistance (OB-20), point B sur le revenu d'abord. Questions de la découverte (SEG-1, Romain 2026-11-20) : le code les liste, une par réplique du
 commercial ; plusieurs questions d'une même réplique n'en font qu'une, lue sur la dernière, sauf si elle ne fait que relancer la
 précédente (« Pourquoi ? ») ; le modèle lit chaque question listée, puis répond aux portes de la méthode (situation, problème, conséquence,
 désir, hors découverte) pour chacune, par paquets de 25 avec leur contexte, deux fois ; si les deux lectures donnent des lettres

@@ -57,7 +57,8 @@ the prospect's words are still quoted and checked. Cost: `lite/callqa_lite/cost.
 (`crm_ca_config.tiers`; prices are configuration, OPEN_DECISIONS H); the worker stores `usage.usd`, the measure fails
 above 0.08 USD on the average (`qa/qa_run.py --max-cost`). Not a sales call (2026-11-23, C1b, `kind.py`): a session with a
 person already enrolled is `not_sales_call`, nothing scored, no qualification. The gap step is read twice and merged by
-code (C4, `gap.merge_readings`).
+code (C4, `gap.merge_readings`). Expert reference (2026-11-23, OPEN_DECISIONS I): 8 sales calls read whole, 5 tuning and 3
+control, every objective measured (`qa/README.md`); never tune a rule on the control calls.
 
 ## The prospect's figures (GAP-1.4, 2026-11-20)
 The gap formula (A, B) is selected on the model's atoms **and** on the figures the code lists in the prospect's turns
@@ -85,8 +86,8 @@ French form. Tests: `engine/tests/test_french.py`.
 
 ## Commands
 ```
-cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (263 pass; 20 need CALLQA_CORPUS)
+cd engine && pip install pytest && python3 -m pytest -q tests        # must stay green (266 pass; 20 need CALLQA_CORPUS)
 CALLQA_CORPUS=<dir of NNN/transcript_compact.txt> python3 -m pytest -q tests   # run Annex B cases on another corpus
 python3 -m lnp_callqa.pipeline transcript.txt --config call.json  # one call, live model (needs anthropic + key)
-cd lite && python3 -m pytest -q tests                                 # lite engine (93 tests)
+cd lite && python3 -m pytest -q tests                                 # lite engine (95 tests)
 ```

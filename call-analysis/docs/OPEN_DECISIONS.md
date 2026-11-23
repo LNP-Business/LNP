@@ -244,3 +244,25 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   with this gate (a text search for « plateforme », « modules » cannot tell a session from a pitch).
 - **The gap step read twice** (approved the same day): see Part C, C4. Live, 6 reference calls × 2: see `qa/README.md`.
 
+## I. The expert reference (2026-11-23, Romain: « je veux que tu sois toi la référence plutôt qu'un humain »)
+
+- **What it is.** Eight sales calls (5 tuning, 3 control, never used to set a rule) read whole by an expert reader that
+  applies the method as written, without any access to the engine's answers: phases, every question of the discovery
+  (letter, register), the gap, the pitch, every resistance after the price (nature, gestures, reaction), the five
+  qualification gates. Every quote is an exact passage of the transcript (checked by `validate`). Private, never in git
+  (bucket `callqa-fixtures`: `qa/reference.tar.gz`, `qa/cases.tar.gz`). 257 questions, 31 resistances, 35 gates.
+- **Limits, stated.** One reading per call, by a model of the same family as the engine's: a shared blind spot is
+  possible, and a person's reading of two calls would calibrate it. The readers marked 44 of 149 letters « debatable »:
+  the engine is right on 86 % of the sure ones and on half of the debatable ones.
+- **Arbitrated.** Where two expert readings differ (the gap of the tuning calls, read twice), every defensible answer
+  is accepted. Four letters of the tuning calls follow the method's own examples (« tu vois les choses comment
+  aujourd'hui ? » is S, « qu'est-ce que tu as déjà essayé ? » and « tu es à l'aise avec le fait que ça dure ? » are P, a
+  closed question on two facts is S). A pitch start may list two turns when the price comes before any description.
+- **Decided by the reference, to validate (Romain):** the discovery is excluded above 20 % of questions no gate
+  classes (was 5 %); PB-17 counts from the end of the description; B is an income first; the letter rules of §3 above;
+  OB-20 and OB-22 by the code. Memos to update: SPIN, gap, pitch, objections, common rules (C7 health).
+- **Still weak, by the measure** (`qa/README.md`): the resistances found on the tuning calls (54 %: recurrences and a
+  second resistance in the same turn), the prospect's reaction (47 %), the registers (65 %), the gap elements on the
+  control calls (42 %: the selection rules were set on five calls), the absence reason (62 %). These need a change of
+  the prompts, measured live.
+
