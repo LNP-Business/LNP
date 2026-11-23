@@ -92,19 +92,24 @@ REGISTER_LEXICON = {
 REGISTER_LEXICON_FR = {
     "financial": ("argent", "revenu", "gagn", "salaire", "chiffre d'affaire", "euro", "prix", "paye", "paie", "dette",
                   "credit", "loyer", "factur", "financ", "rentab", "benefice", "client", "eleve", "vente", "vendre", "payer",
-                  "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit"),
+                  "budget", "fin de mois", "smic", "rsa", "chomage", "indemnit",
+                  "fins de mois", "tarif"),                                                  # 2026-11-21 (Romain)
     "time_load": ("temps", "heures", "heure ", "semaine", "week-end", "weekend", "emploi du temps", "charge de travail",
                   "charge mentale", "occupe",
                   "famille", "enfant", "fils", "fille", "mari", "femme", "conjoint", "compagnon", "parent", "mere",
-                  "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib"),
+                  "pere", "maman", "papa", "temps plein", "temps partiel", "mi-temps", "horaire", "disponib",
+                  # 2026-11-21 (Romain): the family is already here (« compagnon », « conjoint »)
+                  "planning", "deborde", "compagne", "gosse", "gamin"),
     "identity_status": ("avenir", "futur", "long terme", "devenir", "reve ", "reves", "rever", "vision", "carriere", "statut",
-                        "reconversion", "dans quelques annees", "projet"),
+                        "reconversion", "dans quelques annees", "projet",
+                        "reconverti"),                                                       # 2026-11-21 (Romain)
     "other": ("metier", "retraite", "independan", "a ton compte", "a mon compte", "professeur", "prof ", "profs ",
               "enseign", "matiere", "salarie", "fonctionnaire", "poste ", "parcours", "diplom", "auto-entrepreneur",
               "freelance", "anciennete"),
     "mental_emotional": ("confiance", "croire en", "motiv", "peur", "doute", "ressen", "emotion", "frustr", "fier",
                          "sante", "stress", "angoiss", "anxi", "burn", "epuis", "fatigu", "sommeil", "dormir", "energie",
-                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime"),
+                         "moral", "deprim", "mental", "psycholog", "plaisir", "epanou", "legitime",
+                         "culpabil", "honte", "etat d'esprit"),                                # 2026-11-21 (Romain)
 }
 for _reg, _ws in REGISTER_LEXICON_FR.items():
     REGISTER_LEXICON[_reg] = REGISTER_LEXICON[_reg] + _ws
@@ -122,13 +127,15 @@ ACK = set("yes yeah yep yup ok okay right sure fine exactly totally absolutely d
           "mm-hmm mhm uh-huh cool great perfect awesome nice wow oh gotcha amazing beautiful lovely love "
           # French, accent-folded (LNP, 2026-11-19)
           "oui ouais ouai d'accord daccord exactement exact parfait super top genial nickel voila carrement "
-          "effectivement evidemment absolument ah bon bien tres merci hum mmh hein".split())
+          "effectivement evidemment absolument ah bon bien tres merci hum mmh hein "
+          "ouaip dac clairement totalement waouh excellent incroyable magnifique".split())      # 2026-11-21
 INTERRO = re.compile(r"^(how|what|what's|whats|when|where|why|who|which|whose|do|does|did|are|is|was|were|have|has|"
                      r"had|can|could|would|will|should|shall|may|might|am|isn't|aren't|don't|doesn't|didn't|won't|"
                      r"wouldn't|couldn't)\b"
                      # French (LNP, 2026-11-19): a question word or an inversion at the head of the clause
                      r"|^(?:(?:et|alors|donc|du coup|ok|okay|d'accord|mais|bon|bah)[ ,]+)*"
-                     r"(est-ce|qu'est-ce|que|quoi|comment|combien|pourquoi|quand|où|quel|quelle|quels|quelles|qui|lequel|"
+                     r"(est-ce|qu'est-ce|que(?= \S+-(?:tu|vous|il|elle|on)\b)|quoi|comment|combien|pourquoi|quand|où|quel|quelle|quels|"
+    r"quelles|qui|lequel|"
                      r"laquelle|as-tu|avez-vous|es-tu|êtes-vous|peux-tu|pouvez-vous|veux-tu|voulez-vous|sais-tu|"
                      r"savez-vous|penses-tu|pensez-vous|c'est quoi|ça fait combien|t'as|t'es)\b")
 IMPERATIVE = re.compile(r"^(tell me|walk me through|talk me through|describe|explain|help me understand|share with me|"
@@ -136,7 +143,11 @@ IMPERATIVE = re.compile(r"^(tell me|walk me through|talk me through|describe|exp
                         # French, accent-folded (the hyphen of "dis-moi" becomes a space)
                         r"|(?:(?:et|alors|donc|du coup|ok)\s+)*(dis moi|dites moi|raconte moi|racontez moi|explique moi|"
                         r"expliquez moi|decris|decrivez|parle moi|parlez moi|aide moi a comprendre|"
-                        r"aidez moi a comprendre))")
+                        r"aidez moi a comprendre|"
+                        # 2026-11-21 (Romain): requests only; « développe », « précise », « détaille » are also advice
+                        # (« développe ton réseau ») and stay out
+                        r"(?:dis|dites) m'en\b|(?:raconte|racontez|explique|expliquez)\b|(?:fais|faites) moi comprendre|"
+                        r"(?:donne|donnez) moi une idee|(?:partage|partagez) avec moi))")
 TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"\byeah\?$", r"\bno\?$",
          r"\bis that it\?$", r"\bis that right\?$", r"\bam i right\?$", r"\bdoes that make sense\?$", r"\bfair\?$",
          r"\byou know\?$", r"\bok\?$", r"\bokay\?$",
@@ -144,18 +155,31 @@ TAILS = [r"\bright\?$", r"\bisn't it\?$", r"\bdon't you\?$", r"\bcorrect\?$", r"
          r"\bnon\s*\?$", r"\bhein\s*\?$", r"\bc'est ça\s*\?$", r"\bc'est bien ça\s*\?$", r"\bd'accord\s*\?$",
          r"\bok\s*\?$", r"\bt'es d'accord\s*\?$", r"\bça te parle\s*\?$",
          r"\bça vous parle\s*\?$", r"\bn'est-ce pas\s*\?$", r"\bc'est clair\s*\?$", r"\bc'est bon\s*\?$",
-         r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$"]
-TAIL_ONLY = re.compile(r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
-                       r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|n'est-ce pas|ça te parle|"
-                       r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va|"
-                       # a French tic alone ("Tu vois ?"): never a question of its own (inside a sentence it is not a tail)
-                       r"(et |mais |donc )?(tu vois|vous voyez|tu sais|vous savez|tu comprends|tu me suis))\s*\?$", re.I)
+         r"\bça te va\s*\?$", r"\bça vous va\s*\?$", r"\bon est d'accord\s*\?$", r"\bc'est juste\s*\?$",
+         # 2026-11-21 (Romain); « ça fait sens ? », « tu me suis ? », « tu comprends ? », « tu vois ? » are CHECK_IN
+         r"\bpas vrai\s*\?$", r"\boui\s*\?$", r"\bouais\s*\?$", r"\bexact\s*\?$", r"\bj'ai raison\s*\?$",
+         r"\bje me trompe\s*\?$", r"\bc'est logique\s*\?$", r"\bc'est bien juste\s*\?$"]
+# the transcripts may write the typographic apostrophe (’): the tails read both (2026-11-21)
+TAILS = [p.replace("'", "['’]") for p in TAILS]
+TAIL_ONLY = re.compile((r"^(right|correct|yeah|no|okay|ok|fair|you know|does that make sense|is that right|am i right|"
+                        r"isn't it|non|hein|c'est ça|c'est bien ça|d'accord|n'est-ce pas|ça te parle|"
+                        r"ça vous parle|t'es d'accord|on est d'accord|c'est clair|ça te va|ça vous va|"
+                        # (« Oui ? » alone is left out: after a question it is the sales asking for the answer)
+                        r"pas vrai|exact|j'ai raison|je me trompe|c'est juste|c'est logique|c'est bien juste|"
+                        # a French tic alone ("Tu vois ?"): never a question of its own (inside a sentence it is not a tail)
+                        r"(et |mais |donc )?(tu vois|vous voyez|tu sais|vous savez|tu comprends|tu me suis))\s*\?$")
+                       .replace("'", "['’]"), re.I)
 STOP = set(_fold("""the a an and or but so to of in on at for with that this it its is are was were be been i you he
 she we they me my your our their them there here what how when where why who which do does did have has had not no
 yes just like really very about from as if then than also can could would will should get got go going know think
 mean thing things kind sort lot little bit yeah okay right well one two some any more most much many even still now
-today make made want really actually maybe something anything everything people time""").split()) | \
-    {_fold(w).strip() for w in FR.STOP if _fold(w).strip()}
+today make made want really actually maybe something anything everything people time since during""").split()) | \
+    {_fold(w).strip() for w in FR.STOP if _fold(w).strip()} | \
+    set("depuis pendant fois gens chose choses".split())     # SB-17 (2026-11-21, Romain): « temps » and « personne » stay
+# SEG-1's reading of a question's own words (follows_previous) is left as it was before 2026-11-21: elisions kept whole
+_STOP_SEG1 = STOP - set("depuis pendant fois gens chose choses since during".split())
+# An elided word is read without its elision in SB-17 (« c'est » → « est », « d'élèves » → « eleves »), as in core/text
+_ELISION_FOLDED = re.compile(r"^(?:" + "|".join(re.escape(_fold(e)) for e in FR.ELISIONS) + r")(?=\w)")
 OFFER_WORDS = re.compile(r"\b(program|programme|academy|our (method|course|coaching|mentorship|offer)|the course|"
                          r"enroll|tuition|investment|price|cost|payment plan|"
                          # French (LNP, 2026-11-19)
@@ -170,15 +194,54 @@ def split_sentences(text: str) -> list[str]:
     return [p.strip() for p in re.split(r"(?<=[.?!])\s+(?=[A-ZÀ-ÖØ-Ý0-9\"'«])", t) if p.strip()]
 
 
+def _apostrophe(s: str) -> str:
+    """The typographic apostrophes (’ ‘) read as the straight one, for the patterns read on the raw text (2026-11-21)."""
+    return (s or "").replace("’", "'").replace("‘", "'")
+
+
+# §2 (2026-11-21): the recorder often drops the question mark and the sentence ends: a question word inside the sentence,
+# followed by its subject (« Et toi aujourd'hui comment tu te sens… », « toi, c'est quand la dernière fois où tu… »,
+# « tu voudrais gagner combien par mois », « est ce que c'est vraiment ton envie de te lancer »), is a question too. Not after a verb
+# of saying, knowing or showing (« je vais t'expliquer comment tu vas faire »); « quand » and « où » alone are
+# conjunctions (« quand tu as commencé, … »), only « c'est quand », « t'es où », « il se passe quoi » ask.
+EMBEDDED_Q = re.compile(
+    r"(?:^|[\s,;:])(?P<q>(?:est[- ]ce (?:que|qu')|qu'est[- ]ce (?:que|qui|qu')|qu'est que|c'est quoi|c'est quand|"
+    r"c'est combien)\b"
+    r"|(?:comment|combien|pourquoi|quel|quelle|quels|quelles)\b"
+    r"(?:\s+\S+){0,3}?\s+(?:tu|t'|vous|ça|ca|c'|ton|ta|tes|votre|vos|il|elle|on)\b"
+    r"|(?:tu|vous) (?:\S+ ){0,3}combien\b"
+    r"|(?:il se passe quoi|t'es où|tu es où|vous êtes où|tu en es où|t'en es où)\b)", re.I)
+EMBEDDED_NOT_AFTER = re.compile(
+    r"\b(sais|sait|savoir|savez|montrer|montre|montrerai|expliquer|explique|expliquerai|dire|dis|dit|voir|vois|voit|"
+    r"comprendre|comprends|comprend|ignore|regarder|regarde|apprendre|apprends|découvrir|raconter|parler|"
+    r"c'est pour ça|c'est là|peu importe|n'importe)\W+(\w+\W+){0,1}$", re.I)
+
+
+def embedded_question(s: str) -> Optional[int]:
+    """§2 (2026-11-21): the start (offset in s) of a question asked inside a sentence without a question mark, or None."""
+    for m in EMBEDDED_Q.finditer(s):
+        if EMBEDDED_NOT_AFTER.search(s[:m.start("q")]):
+            continue
+        cut = max(s.rfind(",", 0, m.start("q")), s.rfind(". ", 0, m.start("q")))
+        lead = s[:m.start("q")] if cut < 0 else s[cut + 1:m.start("q")]
+        if len(re.findall(r"\w+", lead)) <= 4:                           # « Et toi aujourd'hui comment… »: kept with it
+            return 0 if cut < 0 else cut + 1 + (len(lead) - len(lead.lstrip()))
+        return m.start("q")
+    return None
+
+
 def question_form(s: str) -> Optional[str]:
-    """§2 Solicitation: final question mark, interrogative form without mark, or imperative of request."""
-    ns = s.strip().lower()
+    """§2 Solicitation: final question mark, interrogative form without mark, or imperative of request; a question asked
+    inside the sentence without a mark (2026-11-21, `embedded_question`)."""
+    ns = _apostrophe(s.strip().lower())
     if ns.endswith("?"):
         return "interrogative"
     if IMPERATIVE.match(_fold(ns).strip()):
         return "imperative"
     if INTERRO.match(ns):
         return "interrogative_no_mark"
+    if embedded_question(_apostrophe(s.strip())) is not None:
+        return "interrogative_embedded"
     return None
 
 
@@ -200,9 +263,18 @@ def turn_questions(text: str) -> list[str]:
     for s in split_sentences(text):
         if TAIL_ONLY.match(s) and merged:
             merged[-1] = merged[-1].rstrip(".!") + ", " + s
+        elif merged and merged[-1].endswith("?") and re.match(r"(ou|or)\s", s, re.I):   # SEG-3: the other branch
+            merged[-1] = merged[-1] + " " + s
         else:
             merged.append(s)
-    return [s for s in merged if question_form(s)]
+    out = []
+    for s in merged:
+        form = question_form(s)
+        if form == "interrogative_embedded":                               # the question, from its clause on (SEG-1)
+            s = s[embedded_question(_apostrophe(s)):].strip()
+        if form:
+            out.append(s)
+    return out
 
 
 def follows_previous(q: str, prev: str) -> bool:
@@ -213,9 +285,9 @@ def follows_previous(q: str, prev: str) -> bool:
         return False
     if TAIL_ONLY.match(q.strip()):
         return True
-    low = q.strip().lower()
+    low = _apostrophe(q.strip().lower())
     rest = FOLLOW_UP.sub("", low, count=1)                       # the follow-up words themselves bring no new object
-    return not (content_words(rest) - content_words(prev))
+    return not (content_words(rest, seg1=True) - content_words(prev, seg1=True))
 
 
 def group_turn(text: str) -> Optional[dict]:
@@ -225,14 +297,36 @@ def group_turn(text: str) -> Optional[dict]:
     if not qs:
         return None
     k = len(qs) - 1
-    while k > 0 and follows_previous(qs[k], qs[k - 1]):
+    # SEG-1 (2026-11-21): a question cut before its end, a check-in (« tu vois ce que je veux dire ? »), a tail alone or a
+    # closed restatement at the end of the turn is never its priority when an open question comes before it
+    weak = lambda q: cut_question(q) or check_in_question(q) or bool(TAIL_ONLY.match(q.strip())) or closed_restatement(q)
+    if weak(qs[k]):
+        j = next((i for i in range(k - 1, -1, -1) if not weak(qs[i])), None)
+        if j is not None:
+            k = j
+    while k > 0 and (follows_previous(qs[k], qs[k - 1]) or re_asks(qs[k], qs[k - 1])):
         k -= 1
     return {"questions": qs, "priority": qs[k], "index": k}
 
 
-def content_words(s: str) -> set[str]:
-    """SB-17: content words (4 letters or more, outside the stop list) and numbers."""
-    out = {w for w in _fold(s).split() if len(w) >= CONTENT_WORD_MIN and w not in STOP}
+def re_asks(q: str, prev: str) -> bool:
+    """SEG-1 (2026-11-21): a shorter question that asks the previous one again with the same question words (« combien
+    de temps tu peux te libérer à côté de ton travail ? Toi, combien de temps environ, par semaine ? »)."""
+    head = lambda x: re.search(r"\b(combien de \w+|comment|pourquoi|qu'est-ce qu\w*|c'est quoi|quel\w* \w+|"
+                               r"how (much|many|long)( \w+)?|what|why)\b", _fold(x))
+    a, b = head(q), head(prev)
+    return bool(a and b and a.group(0) == b.group(0) and len(q.split()) < len(prev.split()))
+
+
+def content_words(s: str, seg1: bool = False) -> set[str]:
+    """SB-17: content words (4 letters or more, outside the stop list) and numbers. A French elided word is read
+    without its elision (2026-11-21): « c'est », « j'ai », « qu'est » are function words, « d'élèves » is « élèves ».
+    seg1: the reading of SEG-1 (follows_previous), unchanged (elisions kept whole, the stop list of 2026-11-20)."""
+    if seg1:
+        words, stop = iter(_fold(s).split()), _STOP_SEG1
+    else:
+        words, stop = (_ELISION_FOLDED.sub("", w) for w in _fold(s).split()), STOP
+    out = {w for w in words if len(w) >= CONTENT_WORD_MIN and w not in stop}
     for tok in re.findall(r"\$?\d[\d,.]*k?", (s or "").lower()):
         n = norm_number(tok)
         if n is not None:
@@ -281,7 +375,7 @@ def inventory(ctx: CallContext) -> list[Unit]:
         pros_words = set().union(*[content_words(x.text) for x in prev_p]) if prev_p else set()
         for r, (k, s) in enumerate(qs, 1):
             ws = [w for w in _fold(s).split() if w]
-            low = s.strip().lower()
+            low = _apostrophe(s.strip().lower())
             attrs = {
                 "form": question_form(s),
                 "validation_tail": any(re.search(p, low) for p in TAILS),                     # SEG-4
@@ -366,7 +460,10 @@ def decide_letter(g: dict, attrs: dict, text: str) -> LetterDecision:
         return LetterDecision("S", 2, None, tags, invalid)
     if gate(g3.get("state_or_value") and g3.get("antecedent") != "problem", g3):
         return LetterDecision("N", 3, None, tags, invalid)
-    if gate(g4.get("consequence") and not g4.get("same_domain") and not g4.get("antecedent_solution"), g4):
+    # gate 4 (2026-11-21): « same domain » compares the domain the question names with the problem's; a question that names
+    # none (`named_domain` open or empty: « qu'est-ce que tu ressens par rapport à ça ? ») cannot stay in the same domain
+    same = g4.get("same_domain") and g4.get("named_domain") not in (None, "", "open")
+    if gate(g4.get("consequence") and not same and not g4.get("antecedent_solution"), g4):
         return LetterDecision("I", 4, None, tags, invalid)
     if gate(g5.get("difficulty") and (not g5.get("sales_named") or g5.get("anchored")), g5):
         return LetterDecision("P", 5, None, tags, invalid)
@@ -514,6 +611,13 @@ SOCIAL_LOGISTIC = re.compile(
     # framing of the call itself (Romain, 2026-11-20, SB-2): what the prospect expects from the call, not from the help
     r"(qu'est-ce que|qu'est ce que|qu') ?(tu attends|t'attends|vous attendez|attends-tu|attendez-vous) "
     r"(de |d')(notre|cet|ce|l'|l’)? ?(appel|échange|rendez-vous|rdv|call|entretien)|"
+    r"(t'attends|tu attends|vous attendez) quoi( \w+)? (de|d') ?(notre|cet|ce|l'|l’)? ?(appel|échange|rendez-vous|rdv|call|entretien)|"
+    r"qu'est que (tu attends|t'attends|vous attendez) (de |d')|"
+    # 2026-11-21: where from, in the oral order; the time to watch the conference; the moment spent with us; the booking
+    r"(tu|vous) (m'appelles|m'appelez|appelles|appelez) d'où|"
+    r"(tu as|t'as|vous avez|as-tu|avez-vous) (eu|pris) le temps de (la |le |les |l')?(regarder|voir|lire|écouter|suivre)|"
+    r"(tu as|t'as|vous avez) passé un (bon|agréable|super) moment|"
+    r"(pris|réservé|booké|bloqué) (ce |le |un |cet )?(rendez-vous|rdv|appel|créneau|call)( \w+)? (suite|après)|"
     r"what do you (expect|want) (from|out of) (this|our|the|today's) call|"
     r"what are you hoping to get out of (this|our|the|today's) call", re.I)
 
@@ -531,7 +635,9 @@ SOLUTION_LOAD = re.compile(
     r"\b(allouer|consacrer|dégager|libérer|accorder)\b[^?]{0,40}(combien|temps|heures)|"
     r"(c'est quoi|quel est|quel serait) (ton |votre |le )?budget|\bton budget\b|\bvotre budget\b|"
     r"combien (tu peux|vous pouvez|tu pourrais|vous pourriez|tu es prête? à|vous êtes prête? à|tu serais prête? à)"
-    r" (investir|mettre|payer|dépenser)", re.I)
+    r" (investir|mettre|payer|dépenser)|"
+    # 2026-11-21: the time free for it (« tu as du temps de dispo là ? »)
+    r"\b(temps|heures?) de dispo(nible|nibilité)?s?\b|\bde la dispo\b|\btes dispos?\b|\bvos dispos?\b", re.I)
 OFFER_QUESTION = re.compile(
     r"about (the|our) (program|programme|mentorship|academy|offer|course|coaching)|"
     r"\bnotre (accompagnement|programme|offre|méthode|formation|coaching)\b|\bl'offre\b|"
@@ -569,7 +675,21 @@ CUT_QUESTION = re.compile(r"(\.\.\.|…)\s*\??\s*$")
 
 
 def cut_question(text: str) -> bool:
-    return bool(CUT_QUESTION.search((text or "").strip()))
+    """§3 (2026-11-21): a question cut before it says what it asks (« Qu'est-ce qui va faire que... »). A question asked
+    whole in a clause before the cut one still asks it."""
+    t = (text or "").strip()
+    if not CUT_QUESTION.search(t):
+        return False
+    body = CUT_QUESTION.sub("", t)
+    heads = list(re.finditer(r"\b(qu'est[- ]ce (que|qui|qu')|est[- ]ce (que|qu')|c'est quoi|comment|combien|pourquoi|quand|"
+                             r"quel\w*|what|why|how|which|where|when)\b", body, re.I))
+    if not heads:
+        return True
+    # the question was asked whole in a clause before the cut one (« tu aimerais avoir combien de revenus, à peu près,
+    # faire combien de chiffres d'affaires grâce au... »)
+    last_comma = body.rfind(",")
+    return not any(h.end() < last_comma and len(re.findall(r"\w+", body[h.end():body.find(",", h.end())])) >= 2
+                   for h in heads)
 
 
 def check_in_question(text: str) -> bool:
@@ -581,8 +701,19 @@ def closed_restatement(text: str) -> bool:
     return bool(t.endswith("?") and RESTATEMENT_OPENER.search(t) and not OPEN_WORDS.search(RESTATEMENT_OPENER.sub("", t, 1)))
 
 
+# SEG-3 (2026-11-21): an alternative asked in two sentences (« travail salarié qui ne te plaît pas, c'est ça ? Ou qui t'a
+# poussé au burn-out ? ») and a bare list of options (« Primaire, collège, lycée ? ») are the sales' list
+CHOICE_ALT = re.compile(r"\?\s+(ou|or)\s", re.I)
+NOUN_LIST = re.compile(r"^[^,?]{1,30}(,\s*[^,?]{1,30}){2,}\s*\?$")
+NO_SUBJECT = re.compile(r"\b(tu|t'|vous|je|j'|il|elle|on|you|i)\b", re.I)
+
+
 def choice_list_question(text: str) -> bool:
     t = norm(text or "")
+    if CHOICE_ALT.search(t) and not OPEN_BRANCH.search(t):
+        return True
+    if NOUN_LIST.match(t.strip()) and not NO_SUBJECT.search(t) and len(t.split()) <= 10:
+        return True
     return bool(CHOICE_LIST.search(t) and not OPEN_BRANCH.search(t))
 
 
@@ -604,16 +735,36 @@ def lexicon_register_named(text: str) -> Optional[tuple[str, str]]:
     return lexicon_register_in(text)
 
 
-def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
-    """SB-30: the one register whose domain words appear in a text, and the word (an exact passage); None when the text
-    names none or several (SB-31 by the code, 2026-11-21, reads the first answer turn of a neutral question with it)."""
-    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", DATING.sub(" ", _fold(text))) + " "
-    hits = {}
+# SB-30 (2026-11-21): phrases whose register word means nothing of the prospect's life (« tu as eu le temps de la
+# regarder ? », « la semaine dernière », « de temps en temps ») are not read, nor the English words that are French words
+# too (« son » is « his » or « sound », « rent » opens « rentrer », « sales » means dirty) in a French text
+LEXICON_IDIOMS = re.compile(
+    r"\b(eu|pris|prendre|prends|prend|avoir|as|ai|a|avez|aurais|auras) le temps de\b|\bde temps en temps\b|"
+    r"\ben meme temps\b|\bla semaine (derniere|prochaine|d'avant|d'apres)\b|\btout a l'heure\b|\ba l'heure\b|"
+    r"\bdans l'heure\b|\b(bonne|bon) (semaine|week-end|weekend)\b")
+LEXICON_FALSE_FRIENDS = ("son", "rent", "sales")
+FRENCH_TEXT = re.compile(r" (je|tu|il|elle|on|nous|vous|le|la|les|des|de|du|et|est|pas|que|qui|ce|ça|ca) ")
+
+
+def lexicon_hits(text: str) -> dict[str, str]:
+    """SB-30: every register whose domain words appear in a text, with the first word found (folded)."""
+    t = " " + re.sub(r"[^a-z0-9$' -]+", " ", LEXICON_IDIOMS.sub(" ", DATING.sub(" ", _fold(text)))) + " "
+    french = bool(FRENCH_TEXT.search(t))
+    hits: dict[str, str] = {}
     for reg, words in REGISTER_LEXICON.items():
         for w in words:
+            if french and w in LEXICON_FALSE_FRIENDS:
+                continue
             m = re.search(r"[ $']" + re.escape(w), t)                      # a word after an elision: « d'élèves »
             if m:
                 hits.setdefault(reg, w.strip())
+    return hits
+
+
+def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
+    """SB-30: the one register whose domain words appear in a text, and the word (an exact passage); None when the text
+    names none or several (SB-31 by the code, 2026-11-21, reads the first answer turn of a neutral question with it)."""
+    hits = lexicon_hits(text)
     if len(hits) != 1:
         return None
     reg, w = next(iter(hits.items()))
@@ -624,6 +775,41 @@ def lexicon_register_in(text: str) -> Optional[tuple[str, str]]:
 
 def social_or_logistic(text: str) -> bool:
     return bool(SOCIAL_LOGISTIC.search(norm(text or "")))
+
+
+# SB-1 (Romain, 2026-11-21): the discovery opens on a register. The four registers are the levers explored; « Sans
+# registre » (`other`: the neutral facts of the situation, job, subject, seniority) does not open it.
+OPENING_REGISTERS = ("financial", "time_load", "identity_status", "mental_emotional")
+OPENING_ATOM_TYPES = ("PAIN", "BLOCKER", "IMPACT", "DESIRE", "VALUE")
+
+
+def question_opens(d: LetterDecision, text: Optional[str], register: Optional[str]) -> bool:
+    """SB-1 (2026-11-21), first way: a discovery question (S, P, I, N; never social, logistic or framing, SB-2) whose
+    register is one of the four."""
+    if text is not None and social_or_logistic(text):
+        return False
+    return d.letter in LETTERS and register in OPENING_REGISTERS
+
+
+def info_opens(atom_type: Optional[str], quote: str) -> bool:
+    """SB-1 (2026-11-21), second way: the prospect gives information that falls in a register: an effect (pain, blocker,
+    impact, desire, value: they bear on money, time, identity or the mind), or a fact of the situation whose words name
+    one of the four registers (« je m'occupe seule de mes enfants » opens, « je suis prof d'anglais » does not)."""
+    if atom_type in OPENING_ATOM_TYPES:
+        return True
+    return atom_type == "SITUATION" and bool(set(lexicon_hits(quote)) & set(OPENING_REGISTERS))
+
+
+def code_opening_info(ctx: CallContext, end: Optional[str]) -> Optional[str]:
+    """SB-1 (2026-11-21), second way, read by the code: the first prospect turn before `end` that states a figure of
+    their situation (money, time, clients: GB-28b, never the offer's price), a cost (GB-7b) or what prevents them
+    (GB-30): each falls in a register. None when there is none."""
+    from ..core.blockers import prospect_blockers
+    from ..core.costs import prospect_costs
+    from ..core.figures import prospect_figures
+    turns = [f.turn for f in prospect_figures(ctx, None, end) if f.kind != "offer"]
+    turns += [c.turn for c in prospect_costs(ctx, None, end)] + [b.turn for b in prospect_blockers(ctx, None, end)]
+    return min(turns, key=ctx.n) if turns else None
 
 
 def is_valid_start(d: LetterDecision, text: Optional[str] = None) -> bool:
@@ -743,22 +929,30 @@ def atoms_task(u: Unit) -> ModelTask:
 
 
 NUM_WORDS = r"(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|" \
-            r"sixty|hundred|thousand|million|dozen)"
+            r"sixty|hundred|thousand|million|dozen|" \
+            r"deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|" \
+            r"quarante|cinquante|soixante|cent|cents|mille|millions?|douzaines?|dizaines?|quinzaines?|vingtaines?|" \
+            r"centaines?)"                                                  # French (2026-11-21, Romain)
+# a duration or a count said with « un » / « une » (« depuis un an », « un mois sans élève »); « un jour » (« un jour, je
+# voudrais… ») is not a duration and stays out, as « a day » would be read in English only with a figure
+_ONE_FR = r"\b(un|une) (an|ans|année|mois|semaine|journée|demi-journée|heure|client|cliente|élève|demi)\b"
 
 
 def has_quantity(quote: str) -> bool:
-    """SB-24 (replaces SB-15): an amount, a count or a duration. A frequency alone ("every month") or a vague
-    quantity ("a lot", "forever", X6) is not enough."""
+    """SB-24 (replaces SB-15): an amount, a count or a duration. A frequency alone ("every month", « tous les mois ») or a
+    vague quantity ("a lot", « beaucoup », "forever", X6) is not enough."""
     q = (quote or "").lower()
     return bool(re.search(r"\d", q) or re.search(rf"\b{NUM_WORDS}\b", q) or
-                re.search(r"\b(a|one) (year|month|week|day|hour|client|half)s?\b", q))
+                re.search(r"\b(a|one) (year|month|week|day|hour|client|half)s?\b", q) or re.search(_ONE_FR, q))
 
 
 def parse_quantity(quote: str) -> tuple[Optional[float], Optional[str]]:
-    m = re.search(r"(\$?\d[\d,.]*\s?(k|grand)?)\s*(a |per |an )?([a-z]+)?", (quote or "").lower())
+    # French (2026-11-21): the thousands space (« 2 000 euros »), an accented unit (« élèves ») or « € », « par mois »
+    m = re.search(r"(\$?\d(?:[\d,.]|\s(?=\d{3}(?!\d)))*\s?(k|grand)?)\s*(a |per |an |par )?([a-zà-öø-ÿœ€]+)?",
+                  (quote or "").lower())
     if not m:
         return None, None
-    n = norm_number(m.group(1).replace(" ", ""))
+    n = norm_number(re.sub(r"\s", "", m.group(1)))
     try:
         return (float(n) if n is not None else None), m.group(4)
     except ValueError:
@@ -845,7 +1039,10 @@ ECHO = re.compile(r"^(and )?(tell me more|how so|what else|meaning|what do you m
                   r"such as|a lot|why|how come|and then|then what|really|for example|go on|say more)\b.{0,25}\?*$"
                   # French (LNP, 2026-11-19)
                   r"|^(et )?(c'est-à-dire|comment ça|dans quel sens|par exemple|quoi d'autre|et après|et ensuite|"
-                  r"à quel point|dis-m'en plus|raconte|pourquoi|comment|vraiment|genre|c'est-à-dire)\b.{0,25}\?*$")
+                  r"à quel point|dis-m'en plus|raconte|pourquoi|comment|vraiment|genre|c'est-à-dire|"
+                  # 2026-11-21 (Romain)
+                  r"dites-m'en plus|racontez|qu'est-ce que (?:tu veux|vous voulez) dire|de quelle (?:façon|manière)|"
+                  r"comme quoi|beaucoup|ah bon|continue|continuez|vas-y|allez-y|développe|développez)\b.{0,25}\?*$")
 
 
 def follows_up(prev_answer: str, question: str, preamble: str = "") -> bool:
@@ -1121,6 +1318,18 @@ def applicability(units: list[Unit], discovery_start: Optional[str]) -> tuple[st
     return "scored", [], health
 
 
+def _opening_register(ctx: CallContext, u: Unit) -> Optional[str]:
+    """SB-1 (2026-11-21) in the reference engine, before the registers are read: the register the question's words name
+    (SB-27), else one of the four named by the words of its first answer turn (SB-35), else None."""
+    named = lexicon_register_named(u.sol.text)
+    if named:
+        return named[0]
+    i = next((k for k, t in enumerate(ctx.turns) if t.id == u.turn.id), None)
+    nxt = next((t for t in ctx.turns[i + 1:] if t.role == PROSPECT), None) if i is not None else None
+    hits = [r for r in lexicon_hits(nxt.text) if r in OPENING_REGISTERS] if nxt else []
+    return hits[0] if hits else None
+
+
 # =============================================================================================== orchestration
 def place_perimeter(ctx: CallContext, units: list[Unit], resolve: Callable[[Unit], None],
                     reopen_end: Callable[[Unit], Optional[str]]) -> dict:
@@ -1130,19 +1339,28 @@ def place_perimeter(ctx: CallContext, units: list[Unit], resolve: Callable[[Unit
     pre = [u for u in units if end is None or ctx.n(u.turn.id) < ctx.n(end)]
     post = [u for u in units if u not in pre]
     start: Optional[Unit] = None
+    # SB-1 (Romain, 2026-11-21): the first question that opens on one of the four registers (here: named by its words,
+    # SB-27; the lite engine also reads the register in the answer), or the first information of the prospect in one of
+    # them (the code's figures, costs and blockers), whichever comes first; what comes before is framing and warm-up
+    info = code_opening_info(ctx, end)
     for u in pre:
         if u.attrs["backchannel"] or u.attrs["system"]:           # SEG-7: never a solicitation (code)
             u.sol.tags.append("not_coded")
             continue
         u.window_end = end
         resolve(u)
-        if start is None and u.decision and is_valid_start(u.decision, u.sol.text):   # SB-1, SB-2
+        if start is None and u.decision and (
+                (info is not None and ctx.n(u.turn.id) > ctx.n(info))
+                or question_opens(u.decision, u.sol.text, _opening_register(ctx, u))):
             start = u
         if start is not None:
             u.in_perimeter = True
         else:
             u.sol.tags.append("pre_perimeter")
-    ctx.phases.discovery_start = start.turn.id if start else None
+    opened = start.turn.id if start else None
+    if info is not None and (opened is None or ctx.n(info) < ctx.n(opened)):
+        opened = info
+    ctx.phases.discovery_start = opened
     # SB-34: after the first pitch start or price nothing is SPIN: not read, not coded, no register
     reopenings: list[dict] = []
     if not REOPENINGS:

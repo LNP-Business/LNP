@@ -174,6 +174,43 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   neutral facts of the situation (domain `status`: trade, subject, seniority, retirement as a fact, daily life), a place,
   a date, a tool. Identity & status keeps the future (who they want to become, a change of path, « projet »). On the 5
   calls: Identity & status back to the real identity questions, the intake facts under « Sans registre ».
+- SPIN SB-1, the discovery start (Romain, third decision of 2026-11-21): « La phase de découverte commence soit par une
+  question qui ouvre sur un registre, soit par le fait que le client donne une information qui rentre dans un des
+  registres ; toutes les questions qui précèdent sont dans la phase de cadrage et de warm up. » The start is the first S,
+  P, I or N question whose register is one of the four, or the first prospect turn with an effect (pain, blocker, impact,
+  desire, value), a fact naming one of the four registers, a figure of their situation, a cost or a blocker, whichever
+  comes first. A demand for agreement, a framing question or a neutral fact (« Sans registre ») no longer opens it. On the
+  5 calls (replay): the start moves later in 4 calls (by 7 to 43 turns: in one call the questions on the prospect's trade
+  and retirement are now warm-up; in another the discovery opens on a budget the prospect states before any question),
+  unchanged in the fifth. SPIN memo to update (§ borders).
+- SPIN, same day, from the quality report: a question asked without a question mark inside the sentence is listed (§2);
+  the priority question of a turn is never a cut question, a check-in, a tail or a closed restatement when an open question
+  comes before it, nor a shorter re-ask (SEG-1); an alternative in two sentences and a bare list of options are one unit,
+  OUT `sales_list` (SEG-3); the time free for the solution is OUT `solution_load`; the framing forms in the oral order
+  (SB-2); phrases like « le temps de la regarder » and French words that are English words (« son ») are not register
+  words (SB-30); a cut question asked whole before the cut is not cut; a question no gate passes whose answer holds an
+  effect is read once more by the arbiter before it counts as absent (§5). Prompts: French examples of consequence
+  questions (gate 4), a prospect's question is not an effect (S1). Tried and withdrawn the same day: telling S4 that
+  wanting to know the price, or not knowing yet, is not a resistance, and that a co-decider needs another person; on the
+  objections step alone (5 calls × 2 readings) it found 20 of 48 expected objections against 25 with the prompt before,
+  with more extras (5 against 2). The doubtful objections it aimed at stay open. Memo to update: SPIN (§2, §3, SEG-1,
+  SEG-3, §5).
+- SPIN, same day, after the first live run of these rules: gate 4's « same domain » holds only when the question names a
+  domain (a model answer « open » and « same domain » together read as an I); SB-21 decided by the code in the lite engine
+  (an action-plan question is N with a future state or value in its answer, else OUT `solution_load`).
+- Still open for Romain (2026-11-21): when the prospect says they earn only a small share of what a lesson costs, is it
+  the problem or the cost of the gap? On one of the 5 calls it decides the gap verdict (present or absent).
+- French words and turns of phrase of the closed PR 65 (2026-11-21, Romain): only their behaviour is taken (identifiers
+  and prompts stay in English). Units of PB-30 / PB-31 read with their accents and « par an »; SB-24 French quantities;
+  SB-17 elisions and stop words; PB-15 French compliments; A1 S1 / S2 / S3 and GB-15 French forms; OB-1 markers (’ and
+  unaccented forms), OB-13 transitions; GB-22 « vous » = « tu », « k€ »; SEG-4 tails; registers and phase cues. Replay on
+  the reference set: TOTAL unchanged. Tests: `engine/tests/test_french.py`. Three points are left **to decide (Romain)**:
+  1. « Mouais », « à peu près », « plus ou moins » as an approval only (C3 rule 5, GB-1)? They are partial agreements
+     that can come before a correction (GB-16); the English list already has "pretty much". Not added.
+  2. « Ça me parle » and « ça donne envie » as plain compliments (PB-15, never adhesion), or as a start of adhesion?
+     Not added: they stay readable as adhesion.
+  3. The offer's duration in the phase cues (S2 phase map): the code has « quatre mois » / « 4 mois »; PR 65 had « six
+     mois ». Not changed until the duration of the offer is confirmed (a business fact).
 
 ## H. 2026-11-23 (approved by Romain: « vas-y » on the next steps of the cost)
 

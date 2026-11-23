@@ -497,20 +497,21 @@ def test_sb27_a_question_without_s1_reading_takes_the_register_its_words_name():
 
 def test_sb31_a_neutral_question_without_register_reading_takes_its_answer_words_else_other():
     a = copy.deepcopy(sc.ANSWERS)
-    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")       # "what made you book this call?"
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T005")       # after the opening (SB-1)
     for k in ("register_domain", "register_basis", "register_turn", "register_quote"):
         q.pop(k, None)
+    q.update(quote="And what happened after that?", answer=None)
     t = sc.context()
-    t.turns[3].text = "My income from design is about 1,500 a month."                # the answer names money
-    q["answer"] = None
+    t.turns[4].text = "And what happened after that?"
+    t.turns[5].text = "My income from design is about 1,500 a month."                # the answer names money
     rec = analyse(t, MockLiteClient(a))
-    s = next(x for x in sols(rec) if x["turn"] == "T003")
-    assert s["register"] == "financial" and s["register_basis"] == "answer" and s["register_reference_turn"] == "T004"
+    s = next(x for x in sols(rec) if x["turn"] == "T005")
+    assert s["register"] == "financial" and s["register_basis"] == "answer" and s["register_reference_turn"] == "T006"
     t = sc.context()
-    t.turns[3].text = "I saw your video and I wanted to talk to you."               # an answer that names no domain
-    q["answer"] = None
+    t.turns[4].text = "And what happened after that?"
+    t.turns[5].text = "I saw your video and I wanted to talk to you."               # an answer that names no domain
     rec = analyse(t, MockLiteClient(a))
-    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    s = next(x for x in sols(rec) if x["turn"] == "T005")
     assert s["register"] == "other" and s["register_status"] == "single_reading"
     assert rec["meta"]["steps"]["S1"]["reasons"]["register:other_by_code"] == 1
 
@@ -518,9 +519,48 @@ def test_sb31_a_neutral_question_without_register_reading_takes_its_answer_words
 def test_2026_11_21_the_work_of_today_has_no_register():
     a = copy.deepcopy(sc.ANSWERS)
     t = sc.context()
-    t.turns[2].text = "Great. So what's your job today, do you teach?"                  # names only the work of today
-    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")
+    t.turns[4].text = "Great. So what's your job today, do you teach?"                  # names only the work of today
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T005")
     q.update(quote="do you teach?", register_domain="money", register_basis="named", register_quote="do you teach")
     rec = analyse(t, MockLiteClient(a))
-    s = next(x for x in sols(rec) if x["turn"] == "T003")
+    s = next(x for x in sols(rec) if x["turn"] == "T005")
     assert s["register"] == "other" and s["register_basis"] == "named" and s["register_domain"] == "status"
+
+
+def _opening(t, a):
+    rec = analyse(t, MockLiteClient(a))
+    return rec["results"]["SPIN"]["details"]["perimeter"], {x["turn"]: x for x in sols(rec)}
+
+
+def test_sb1_2026_11_21_the_discovery_opens_on_a_register():
+    """Romain, 2026-11-21: the discovery opens at the first question that opens on one of the four registers, or at the
+    first information of the prospect in one of them; every question before is framing and warm-up."""
+    a = copy.deepcopy(sc.ANSWERS)
+    per, s = _opening(sc.context(), a)
+    assert per["start"] == "T003" and per["opened_by"] == "question"            # its register is read in its answer
+    # a neutral question first (« Sans registre »): warm-up, the discovery opens on the next one
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T003")
+    for k in ("register_domain", "register_basis", "register_turn", "register_quote"):
+        q.pop(k, None)
+    q.update(quote="what do you teach?", atoms=[], answer=None)
+    t = sc.context()
+    t.turns[2].text = "Great to meet you. So what do you teach?"
+    t.turns[3].text = "I teach Spanish in a high school."
+    per, s = _opening(t, a)
+    assert per["start"] == "T005" and s["T003"]["in_perimeter"] is False and "pre_perimeter" in s["T003"]["tags"]
+    # the prospect gives a figure of their situation in answer to a framing question: the discovery opens there
+    t.turns[3].text = "I teach Spanish, and I only make about 900 a month from it."
+    per, s = _opening(t, a)
+    assert per["start"] == "T004" and per["opened_by"] == "prospect_info" and s["T005"]["in_perimeter"] is True
+    assert s["T003"]["in_perimeter"] is False
+
+
+def test_sb1_2026_11_21_a_framing_question_never_opens_with_an_idiom():
+    from lnp_callqa.competences import spin as E
+    assert E.lexicon_hits("vous avez eu le temps de la regarder un petit peu ?") == {}
+    assert E.lexicon_hits("on s'est vu la semaine dernière") == {}
+    assert "time_load" not in E.lexicon_hits("je fais un peu de bruit, son coupe")    # « son » is French here
+    assert E.lexicon_hits("my son is sick") == {"time_load": "son"}
+    assert E.info_opens("PAIN", "je ne sais plus quoi faire") and not E.info_opens("SITUATION", "je suis prof d'anglais")
+    assert E.info_opens("SITUATION", "je m'occupe seule de mes enfants")

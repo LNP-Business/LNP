@@ -82,37 +82,77 @@ MARKERS: dict[str, list[str]] = {
 }
 # French markers (LNP, 2026-11-19): candidates only, as above
 MARKERS_FR: dict[str, list[str]] = {
+    # « payer » alone and « en plusieurs fois » are left out (2026-11-21): « je peux payer en plusieurs fois ? » asks how
+    # to pay, it does not resist
     "objection_price_money": [r"trop cher", r"\bcher\b", r"beaucoup d'argent", r"pas les moyens", r"pas l'argent",
                               r"pas les fonds", r"mon budget", r"\bcrédit\b", r"financement", r"c'est (quand même )?beaucoup",
-                              r"\bla somme\b", r"\ble montant\b", r"\bl'argent\b", r"en plusieurs fois", r"payer"],
+                              r"\bla somme\b", r"\ble montant\b", r"\bl'argent\b",
+                              r"\b(peux|pourrai|pourrais|arrive|arriverai) pas (à )?(le |la )?payer", r"pas de quoi payer",
+                              # 2026-11-21 (Romain, French forms of the closed PR 65)
+                              r"\bchère?s?\b", r"\bcoûte (trop|cher|beaucoup|une fortune|un bras)",
+                              r"\b(me|nous) (le |l')?permettre", r"pas (le |de |d'|du )?budget", r"hors (de )?(mon )?budget",
+                              r"\bthunes?\b", r"\bfric\b", r"\b(grosse|sacrée|belle|grande) somme\b",
+                              r"\b(ça fait|ça reste|c'était|ça représente) (quand même |un peu |assez |vraiment |trop |très )?"
+                              r"beaucoup\b", r"\b(le|ce) prix\b", r"\b(le|ce) tarif\b", r"\bfinancer\b"],
     "objection_trust_relevance": [r"pas sûr(e)? que (ça|ca) marche", r"j'ai déjà vu", r"arnaque", r"\bconfiance\b",
-                                  r"pas besoin", r"je sais déjà", r"c'est de la vente"],
+                                  r"pas besoin", r"je sais déjà", r"c'est de la vente",
+                                  r"\b(si|que) (ça|ce|cela) (marche|fonctionne|va marcher|va fonctionner)",
+                                  r"\b(programmes?|formations?) comme (ça|celle-ci|celui-ci)", r"\bcertifiante?\b",
+                                  r"\bcertifiée?\b", r"\baccrédit", r"\bqualiopi\b", r"\bpipeau\b", r"\bbaratin",
+                                  r"\bescroc", r"\b(technique|discours) (de vente|de vendeur|commercial)"],
+    # « chargée de cours », « chargé de mission » are jobs, not a lack of time (2026-11-21)
     "objection_time": [r"pas (beaucoup |assez |le )?temps", r"avec mon (travail|boulot)", r"avec les enfants",
-                       r"\bdébordée?\b", r"\bchargée?\b", r"je cours partout"],
+                       r"\bdébordée?s?\b", r"\bchargée?s?\b(?!\s+d(e\b|'))", r"je cours partout",
+                       r"\bmanque (de |le )?temps\b", r"\bsous l'eau\b", r"\bblindée?s?\b",
+                       r"\bplanning (est )?(chargé|plein|blindé)", r"\brespire (pas|plus)\b", r"\b(pas|plus) une minute\b"],
     "objection_co_decider": [r"en parler (à|a|avec) (mon|ma) (mari|femme|conjoint|conjointe|compagnon|compagne|copain|copine)",
                              r"demander (à|a) (mon|ma) (mari|femme|conjoint|conjointe|compagnon|compagne)",
-                             r"on décide (à|a) deux", r"voir avec (mon|ma)", r"en discuter avec"],
+                             r"on décide (à|a) deux", r"voir avec (mon|ma)", r"en discuter avec",
+                             r"\ben (parle|parlerai|parlerais|discute|discuterai) (à|avec)\b", r"\bdemander l'avis",
+                             r"\bconsulter (mon|ma)\b", r"\b(décid\w*|décisions?) (ensemble|à deux)\b", r"\bma moitié\b"],
     "anxiety_capability": [r"j'ai peur", r"\bpeur\b", r"je ne sais pas si (je peux|j'y arriverai|je vais y arriver)",
                            r"pas sûr(e)? de (pouvoir|réussir|y arriver)", r"pas à la hauteur", r"j'abandonne toujours",
-                           r"je vais abandonner"],
+                           r"je vais abandonner",
+                           r"\bflipp(e|es|er|ée?)\b", r"\bangoiss", r"\bje crains\b",
+                           r"\bpas (sûre?|certaine?) (de pouvoir|d'y arriver|de réussir|d'être capable|de tenir)",
+                           r"\bpas (capable|faite? pour (ça|moi))", r"\blâche (toujours|tout le temps|vite)\b"],
     "anxiety_choice": [r"et si (ça|ca) ne marche pas", r"je me suis (déjà )?fait avoir", r"me tromper",
-                       r"comment je (peux )?(sais|savoir)", r"qu'est-ce qui me garantit"],
+                       r"comment je (peux )?(sais|savoir)", r"qu'est-ce qui me garantit",
+                       r"\béchaudée?\b", r"\b(faire|fais|fasse) (une |la |une grosse )?(erreur|bêtise)",
+                       r"\bqu'est-ce qui (me |nous )?prouve", r"\bcomment (vous|tu) (pouvez|peux) (me )?(garantir|être sûre?)"],
     "inertia": [r"pas le bon moment", r"plus tard", r"après les (vacances|fêtes)", r"(ça|ca) me va comme (ça|ca)",
                 r"(je vais |je dois )?réfléchir", r"y réfléchir", r"pas maintenant", r"pas tout de suite",
-                r"l'année prochaine", r"en janvier", r"à la rentrée"],
+                r"l'année prochaine", r"en janvier", r"à la rentrée",
+                r"\by (penser|repenser)\b", r"la nuit porte conseil", r"\bdormir dessus\b", r"\bpas aujourd'hui\b",
+                r"\b(décider|décision) (comme ça|tout de suite|sur le coup)\b", r"\bon verra\b", r"\baprès l'été\b",
+                r"\b(bien|ça va) pour (l'instant|le moment)\b", r"\bme va (bien )?comme je suis\b"],
 }
+# The transcripts may write the typographic apostrophe (’) and drop an accent: each French marker reads both (2026-11-21)
+_ACCENT_CLASS = {"é": "[ée]", "è": "[èe]", "ê": "[êe]", "à": "[àa]", "â": "[âa]", "ç": "[çc]", "î": "[îi]", "ô": "[ôo]",
+                 "û": "[ûu]", "ù": "[ùu]"}
+
+
+def tolerant_fr(pattern: str) -> str:
+    """A French pattern that also reads ’ for ' and the unaccented letters (« debordee », « j’ai peur »)."""
+    pattern = pattern.replace("'", "['’]")
+    return re.sub("[éèêàâçîôûù]", lambda m: _ACCENT_CLASS[m.group()], pattern)
+
+
 for _k, _ps in MARKERS_FR.items():
-    MARKERS[_k] = MARKERS[_k] + _ps
+    MARKERS[_k] = MARKERS[_k] + [tolerant_fr(p) for p in _ps]
 _MARKER_RE = [(k, re.compile(p, re.I)) for k, ps in MARKERS.items() for p in ps]
 
 # OB-13 lexical contradiction markers, checked by code on the first sentence of the first response.
 CONTRADICTION_RE = re.compile(r"(\bbut\b|\bactually\b|^\s*no\b[,.!]?|\bno,|that'?s not true|the thing is|i disagree|"
-                              r"^\s*non\b[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|c'est faux|je ne suis pas d'accord|"
+                              r"^\s*non\b(?!-)[,.!]?|\bnon,|c'est pas vrai|ce n'est pas vrai|c'est faux|je ne suis pas d'accord|"
                               r"pas du tout|au contraire|\bmais (non|si)\b)", re.I)
 # OB-13 in French (Romain, 2026-11-20): « mais », « en fait », « sauf que » are often mere transitions in spoken French.
 # They cancel the acknowledgement only when nothing received the resistance before them in the sentence, or when what
 # follows them contradicts or denies what the prospect said. English "but" and "actually" keep the rule as written.
-TRANSITION_FR = re.compile(r"\b(mais|en fait|sauf que)\b", re.I)
+# 2026-11-21 (Romain): « par contre », « pourtant », « en réalité », « le problème / le truc / le souci, c'est que » are
+# read the same way (a transition, not a contradiction by themselves)
+TRANSITION_FR = re.compile(r"\b(mais|en fait|sauf que|par contre|pourtant|en réalité|"
+                           r"le (?:problème|truc|souci),? c'est que)\b", re.I)
 RECEIVING_FR = re.compile(r"\b(je (te |vous )?comprends|je (t'|vous )?entends|j'entends|c'est (tout à fait |complètement |"
                           r"très )?(normal|légitime|compréhensible|logique|une (très )?bonne question)|ça se comprend|"
                           r"pas de souci|pas de soucis|pas de problème|bien sûr|tout à fait|je vois|merci (de|pour)|"

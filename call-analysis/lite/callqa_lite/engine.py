@@ -229,6 +229,13 @@ def _same_outcome(letter: Optional[tuple]) -> Optional[tuple]:
     return ("OUT", "nothing") if letter and letter[0] == "NOT_SOLICITATION" else letter
 
 
+def _answered_with_effects(q: dict) -> bool:
+    """§5 (2026-11-21): the prospect's answer to the question carries an effect the model read (S1 atoms): a question no
+    gate passes while its answer holds effects is read once more by the arbiter before it counts as absent (an absent
+    question weighs on the exclusion of the discovery, health share)."""
+    return any(isinstance(a, dict) and a.get("type") and a.get("turn") for a in q.get("atoms") or [])
+
+
 def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions: list) -> dict[str, dict]:
     """S1g (2026-11-20, SPIN §3, Part C, C4): the model answers the closed gates of each listed question, in batches
     with their context; the code decides the letter with the engine's decide_letter. Two independent readings (the second
@@ -259,10 +266,13 @@ def run_gates(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, questions
             out[q["id"]] = dict(valid[0], _status="single_reading")
             continue
         letters = {_same_outcome(LS.gate_letter(g, q["quote"])) for g in valid}
-        if len(valid) == passes and len(letters) == 1:
+        absent = letters in ({("OUT", None)}, {("OUT", "absent")})
+        if len(valid) == passes and len(letters) == 1 and not (absent and _answered_with_effects(q)):
             keep = next((g for g in valid if g.get("is_solicitation") is not False), valid[0])   # listed, OUT nothing
             out[q["id"]] = dict(keep, _status="agreed")
         else:
+            if len(letters) == 1:
+                drops.add("S1", "gates:absent_reread", {"turn": q["turn"]})  # §5 (2026-11-21): read once more
             disputed.append((q, got))
     if disputed:
         arb = Steps(steps.client, ctx, tier=cfg.get("arbiter_tier") or "arbiter", effort=steps.effort,

@@ -167,6 +167,33 @@ def test_not_a_question_and_out_nothing_are_one_outcome_no_arbiter():
     assert not any(c["task"] == "lite.s1_gates_arbiter" for c in client.calls)
 
 
+def test_5_2026_11_21_an_absent_question_whose_answer_holds_effects_is_read_again_by_the_arbiter():
+    # two readings: no gate passes for « how does that affect your family? », whose answer holds an IMPACT (S1 atoms)
+    rec, client = run2([gate("Q011")], [gate("Q011")],
+                       arbiter=[gate("Q011", g4={"consequence": True, "quote": "affect your family"})])
+    s = sol(rec, "T011")
+    assert (s["letter"], s["status"]) == ("I", "arbitrated")
+    assert rec["meta"]["steps"]["S1"]["reasons"]["gates:absent_reread"] == 1
+    assert any(c["task"] == "lite.s1_gates_arbiter" and "Q011 · T011" in c["prompt"] for c in client.calls)
+
+
+def test_sb21_2026_11_21_an_action_plan_question_is_n_only_with_a_future_state_in_its_answer():
+    plan = dict(g3={"state_or_value": True, "antecedent": "problem", "action_plan": True, "quote": "affect your family"})
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T011")
+    q["atoms"] = []                                                         # no future state in the answer
+    a["lite.s1_gates"] = {"units": [gate("Q011", **plan)]}
+    rec = analyse(sc.context(), MockLiteClient(a), None)
+    s = sol(rec, "T011")
+    assert (s["letter"], s["out_reason"]) == ("OUT", "solution_load") and "action_plan_by_code" in s["tags"]
+    a = copy.deepcopy(sc.ANSWERS)
+    q = next(x for x in a["lite.s1_discovery"]["questions"] if x["turn"] == "T011")
+    q["atoms"] = [{"type": "DESIRE", "turn": "T012", "quote": "I miss dinner three nights a week"}]
+    a["lite.s1_gates"] = {"units": [gate("Q011", **plan)]}
+    rec = analyse(sc.context(), MockLiteClient(a), None)
+    assert sol(rec, "T011")["letter"] == "N"
+
+
 # ---------------------------------------------------------------- answers by ids (2026-11-23): no recopied quotes
 def test_a_compact_answer_without_quotes_decides_the_letter():
     """The model writes only what is true; the code holds the question (its proof) and reads what is left out as false."""

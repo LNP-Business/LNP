@@ -35,7 +35,9 @@ obtained. A painful context does not colour the question.
   that" is not content; reusing the prospect's word is not content). load_named: it names a load. about_offer: the value
   is about the offer. action_plan: it asks what the prospect would need to do differently / their own plan (SB-21).
 - g4 (I) consequence: a consequence of the problem (cost, time lost, effect on clients, family, morale, beliefs,
-  what happens if nothing changes). problem_domain and named_domain (or "open"): a time or place perimeter is not a
+  what happens if nothing changes), also asked as a yes/no question or as the risk: "ça t'impacte comment ?", "est-ce
+  que ça te coûte quelque chose ?", "c'est quoi le risque ?", "ça te fait quoi ?", "qu'est-ce que ça change pour toi ?",
+  "et ta famille, elle le vit comment ?". problem_domain and named_domain (or "open"): a time or place perimeter is not a
   domain. same_domain: the named domain is the problem's own domain. antecedent_solution: it starts from a solution.
 - g5 (P) difficulty: the difficulty itself (a lack, blocker, fear, failure, dissatisfaction, cause, what was tried), also
   asked as a yes/no question: "qu'est-ce qui te bloque / t'a bloqué / t'empêche / te freine ?", "qu'est-ce qui ne va

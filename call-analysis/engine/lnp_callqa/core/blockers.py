@@ -28,8 +28,11 @@ from .text import norm
 STOPPING = re.compile(
     r"held you back|holding you back|hold you back|stopp(?:ed|ing) you|stops you|getting in the way|standing in the way|"
     r"in your way|why haven'?t you|prevented you|what'?s been in the way|kept you from|keeping you from|"
-    r"qu'est-ce qui (?:t'|te |vous )(?:a |as |avait )?(?:bloqu|empêch|empech|frein|retien|retenu|manqu|coinc|gên|gen)\w*|"
-    r"ce qui (?:te |vous )(?:a |as )?(?:bloqu|empêch|empech|frein|retien|retenu)\w*|"
+    # « t'en empêche », « t'arrête » (2026-11-21, Romain): only after « qu'est-ce qui » / « ce qui »
+    r"qu'est-ce qui (?:t'|te |vous )(?:en )?(?:a |as |avait )?(?:bloqu|empêch|empech|frein|retien|retenu|manqu|coinc|gên|gen|"
+    r"arrêt|arret)\w*|"
+    r"ce qui (?:t'|te |vous )(?:en )?(?:a |as )?(?:bloqu|empêch|empech|frein|retien|retenu|arrêt|arret)\w*|"
+    r"(?:qu'est-ce qui|ce qui) (?:te |vous )?coince|\b(?:tes|vos) freins\b|"
     r"qu'est-ce qui fait que (?:tu|vous) (?:n|ne |n'|ne l'|n'y )?\w*\s?(?:pas|jamais)|"
     r"pourquoi (?:tu|vous|t'as|t'es)\b[^?.!]{0,30}?\b(?:pas|jamais)\b|"
     r"pourquoi (?:tu|vous) (?:ne |n' ?)?(?:le |l'|la |les |y )?(?:fais|faites|as|avez|es|êtes)\b[^?.!]{0,20}?\b(?:pas|jamais|plus)\b|"
