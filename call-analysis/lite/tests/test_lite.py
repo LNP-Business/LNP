@@ -896,3 +896,42 @@ def test_gb7d_a_difficulty_both_readings_call_a_consequence_becomes_a_cost_for_t
     out = run_effects(ctx, Steps(MockLiteClient({"lite.s1_effects": [both, "not json", "still not"]}), ctx), DEFAULTS,
                       Drops())
     assert ctx.atoms[0].type == "PAIN" and out["consequences"] == 0
+
+
+# ---------------------------------------------------------------- 2026-11-24: look-alikes, doubts said again, batches
+def test_ob29_a_look_alike_named_by_its_kind_is_set_aside_by_the_code():
+    d = copy.deepcopy(DETECT)
+    d["resistances"].append({"id": "T040", "kind": "dated_delay", "subjects": ["postponement"],
+                             "quote": "Let me talk to him tonight"})
+    rec, _ = _detect_run(detect=d)
+    assert [e["resistance"]["turn"] for e in rec["results"]["OBJECTIONS"]["details"]["episodes"]] == ["T028", "T036", "T038"]
+    assert rec["meta"]["steps"]["S4"]["reasons"]["detect:not_a_resistance:dated_delay"] == 2
+
+
+def test_ob29_a_doubt_of_the_same_nature_said_while_the_sales_answers_joins_the_episode():
+    """T030 (« it's really just the money ») listed as a new doubt of another subject: the sales has not moved on (its
+    topic change is T035), so it is said again inside the same episode, not a resistance of its own."""
+    d = copy.deepcopy(DETECT)
+    d["resistances"][1].update(subjects=["money_available"], new=True)
+    s4 = _s4_ids()
+    s4["objections"] = [s4["objections"][0], {"id": "R2"}] + s4["objections"][1:]       # R2 = the T030 passage
+    s4["objections"][2]["id"], s4["objections"][3]["id"] = "R3", "R4"
+    rec, _ = _detect_run(detect=d, s4=s4)
+    eps = rec["results"]["OBJECTIONS"]["details"]["episodes"]
+    assert [e["resistance"]["turn"] for e in eps] == ["T028", "T036", "T038"]
+    assert [q["turn"] for q in eps[0]["quotes"]] == ["T028", "T030"]
+    assert eps[2]["recurrence_of"] == "E1"                       # the price again after the husband: still a recurrence
+
+
+def test_ob29_the_responses_are_read_in_batches_and_an_unanswered_one_is_asked_again():
+    s4 = _s4_ids()
+    first = {"objections": s4["objections"][:2], "prevention": s4["prevention"]}
+    again = {"objections": [{"id": "R3", "acknowledge": {"turn": "T039", "quote": "Are you ready to get started today?"}}]}
+    base = dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_detect": DETECT})
+    rec, client = run(dict(base, **{"lite.s4_objections": [first, again]}), objections_batch=2)
+    calls = [c for c in client.calls if c["task"] == "lite.s4_objections"]
+    assert [c["unit"] for c in calls] == ["call", "call:b2"]                  # R3 in the second batch, answered there
+    assert "Leave \"prevention\" empty" in calls[1]["prompt"]
+    rec, client = run(dict(base, **{"lite.s4_objections": [first, {"objections": []}, again]}), objections_batch=2)
+    assert [c["unit"] for c in client.calls if c["task"] == "lite.s4_objections"] == ["call", "call:b2", "call:again"]
+    assert rec["meta"]["steps"]["S4"]["reasons"]["objection:asked_again"] == 1

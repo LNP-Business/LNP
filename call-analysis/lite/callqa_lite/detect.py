@@ -63,6 +63,10 @@ def checked_entries(ctx: CallContext, ans: Optional[dict], listed: set, drops: D
         if tid not in listed:
             drops.add(STEP, "detect:turn_not_listed", {"turn": tid})
             continue
+        kind = e.get("kind") or "doubt"
+        if kind != "doubt":                              # OB-2 (2026-11-24): a look-alike, named, set aside by the code
+            drops.add(STEP, f"detect:not_a_resistance:{kind}", {"turn": tid})
+            continue
         subjects = [s for s in e.get("subjects") or [] if s in O.SUBJECTS]
         if not subjects:
             drops.add(STEP, "detect:no_subject", {"turn": tid})

@@ -98,6 +98,11 @@ def _absorb(ctx: CallContext, tgt: dict, it: dict) -> None:
 
 
 def _theme(m: dict) -> tuple:
+    """The key that tells a repetition from another resistance. For the resistances the code listed reply by reply
+    (OB-29, 2026-11-24), the nature only: while the sales answers it, a doubt of the same nature said again (the money,
+    then the amount, then the budget) is the same episode; the model's topic change ends it."""
+    if (m.get("raw") or {}).get("detect_status"):
+        return (m["nature"],)
     return m["nature"], m["subtype"]
 
 
@@ -138,7 +143,13 @@ def chain(ctx: CallContext, items: list[dict]) -> list[dict]:
         prev = next((m for m in reversed(kept) if _theme(m) == _theme(it)), None)
         if prev is not None:
             end = episode_end(ctx, prev, out)
-            if end is None or pos[it["quotes"][0]["turn"]] < pos[end]:
+            start = pos[it["quotes"][0]["turn"]]
+            # OB-11 first: the very doubt of an episode that already ended (same nature AND theme) is a recurrence,
+            # even said while another doubt of the same nature is being answered
+            ended = next((m for m in kept if (m["nature"], m["subtype"]) == (it["nature"], it["subtype"])
+                          and m is not prev and (lambda e: e is not None and pos[e] <= start)(episode_end(ctx, m, out))),
+                         None)
+            if ended is None and (end is None or start < pos[end]):
                 _absorb(ctx, prev, it)                                  # said again inside the episode: a repetition
                 continue
         kept.append(it)

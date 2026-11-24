@@ -9,8 +9,8 @@ who decides), deadline (a delay with an external verifiable reason)} and nothing
 For each resistance:
   "topic_change": {"turn", "quote"}: the first SALES turn after the first passage that moves to a new subject (a new
   discovery question, a new part of the offer, logistics, the close) without reusing the words of the resistance; omit
-  it if none comes before the next listed resistance or the end of the call (OB-8). A sales turn that comes back to the
-  resistance after a digression is not a topic change.
+  it if none comes before the next listed resistance of ANOTHER kind of doubt, or the end of the call (OB-8). A sales
+  turn that answers the same doubt said again, or comes back to it after a digression, is not a topic change.
   "receive_and_leave": true when the first response turn receives the resistance and moves to a new topic in the same
   turn, without answering or exploring it (OB-22).
   "acknowledge" (A, OB-13, OB-20), about the FIRST SENTENCE of the first response turn: {"turn", "quote",
@@ -39,5 +39,6 @@ Only the JSON: {"objections": [{"id": "R1", "topic_change": {"turn": "T126", "qu
   "answer_quote": "..."}}, {"id": "R2", "exclusion": "information_request"}],
  "prevention": {"decision_maker": {"turn": "T040", "quote": "..."}}}
 
+{prevention_note}
 RESISTANCES
 {items}

@@ -45,6 +45,7 @@ DEFAULTS: dict[str, Any] = {
     "detect_batch": 60,             # S4d: listed prospect turns per call
     "detect_arbiter_batch": 20,
     "effects_passes": 2,            # S1e: each PAIN read again, difficulty or consequence, twice (GB-7d, 2026-11-24)
+    "objections_batch": 8,          # S4 by ids: listed resistances per call (2026-11-24)
     "reaction_passes": 2,           # S4r: the reaction read reply by reply, twice; a disagreement goes to the arbiter (OB-28)
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
@@ -500,9 +501,7 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         entries = run_detection(ctx, steps, cfg, drops, short, anchors(ctx))    # S4d (OB-29): None = no valid reading
         if entries is not None:
             items = group(ctx, entries)
-            s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections_ids"), anchors=anchors(ctx),
-                                                              window=short, items=items_text(items)),
-                           cfg["max_tokens"]["S4"])
+            s4 = read_responses(ctx, steps, cfg, drops, items, short)
             if s4.answer is not None:
                 s4.answer = s4_from_ids(items, s4.answer, drops)
                 meta["objections_detection"] = {"turns_listed": len(entries), "resistances": len(items),
@@ -523,6 +522,42 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         raise LiteModelError(f"{len(failed)} of {len(attempted)} model steps gave no valid JSON: " + ", ".join(failed))
     meta["failed_steps"] = failed
     return _record(ctx, meta, drops)
+
+
+PREVENTION_FIRST = "Read the prevention facts too (they are asked once, in this first batch)."
+PREVENTION_LATER = "Leave \"prevention\" empty: it was read with the first batch."
+
+
+def read_responses(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, items: list, short: str):
+    """S4 by ids (OB-29, 2026-11-24): the sales' response to the listed resistances, `objections_batch` at a time (a
+    long list left some unread); the prevention with the first batch; a resistance no batch answered is asked once more
+    on its own batch (Part C, C3 rule 7). Returns a StepAnswer whose answer merges every batch (None: all failed)."""
+    from .steps import StepAnswer
+    size = max(1, int(cfg.get("objections_batch") or 8))
+    chunks = [items[k:k + size] for k in range(0, len(items), size)] or [[]]
+    merged: dict = {"objections": [], "prevention": {}}
+    ok = False
+
+    def ask(chunk, unit, first):
+        nonlocal ok
+        ans = steps.ask("lite.s4_objections", unit, fill(load("s4_objections_ids"), anchors=anchors(ctx), window=short,
+                                                         items=items_text(chunk),
+                                                         prevention_note=PREVENTION_FIRST if first else PREVENTION_LATER),
+                        cfg["max_tokens"]["S4"])
+        if ans.answer is None:
+            return
+        ok = True
+        merged["objections"] += [o for o in ans.answer.get("objections") or [] if isinstance(o, dict)]
+        if first:
+            merged["prevention"] = ans.answer.get("prevention") or {}
+    for k, chunk in enumerate(chunks):
+        ask(chunk, "call" if k == 0 else f"call:b{k + 1}", k == 0)
+    answered = {o.get("id") for o in merged["objections"] if any(v for x, v in o.items() if x != "id")}
+    missing = [it for it in items if it["id"] not in answered]
+    if missing and ok:
+        drops.add("S4", "objection:asked_again", {"n": len(missing)})
+        ask(missing, "call:again", False)
+    return StepAnswer(merged if ok else None)
 
 
 def _count(xs) -> dict:

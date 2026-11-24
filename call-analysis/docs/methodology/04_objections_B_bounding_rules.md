@@ -145,7 +145,12 @@ its last passage and no sales turn in between moves on (OB-8 (a) by the code: it
 the response so far); otherwise it opens a resistance (the same doubt after the sales moved on is a recurrence, OB-11).
 The model's « already said » flag is not used to group: it is not reliable (a doubt said two turns before marked new). The objections step then reads, by id, the sales' response to each listed resistance (OB-8 to OB-22), and
 may set a listed passage aside as not a resistance (OB-2). When the reply-by-reply reading gives nothing valid, the
-objections step finds the resistances itself, as before.
+objections step finds the resistances itself, as before. Since the measure on two control sets (2026-11-24): the reading also names the look-alikes of
+OB-2 (a plain request for information, a delay with a dated external reason, a conditional acceptance), which the code
+sets aside; among the listed resistances, a doubt of the same nature said again while the sales still answers the first
+(no topic change read by the model in between) is the same episode, unless it is the very doubt (same nature and theme)
+of an episode that already ended: then it is a recurrence (OB-11); the sales' response is read eight resistances at a
+time, and a resistance no batch answered is asked once more.
 
 ## A5. Exclusion rules (summary)
 

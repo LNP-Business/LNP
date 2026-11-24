@@ -320,3 +320,11 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   66 % of the listed resistances are not the expert's; gap elements 40 % (strict 28 %: the cost 1 of 10, the problem 2
   of 10). The next levers, in that order: the gap's elements on a new call (the cost and the problem the perfect
   restitution shows), then the false resistances (a doubt said again, a request for information, a dated delay).
+- **Objections, false resistances (2026-11-24, « vas-y »).** OB-2 look-alikes named and set aside; same-nature doubts
+  joined while the sales answers (the model's topic change), the very doubt of an ended episode staying a recurrence;
+  responses read eight at a time with one more ask. Resistances listed in excess: tuning calls 41-54 % → 31-34 % (two
+  live readings), first control 42 %, second control 69 % (66 % before: no change). On the second control the excess is
+  in two calls: a price range said before the discovery read as the first price (every pain of the discovery then reads
+  as an objection: a phases rule, PB-3), and one money doubt coming back many times read as as many recurrences (23
+  recurrences of 48 episodes; the expert holds 2). Both are next levers, to set on tuning calls only (the second control
+  was looked at by category to explain it: a new control set will be needed to measure them).
