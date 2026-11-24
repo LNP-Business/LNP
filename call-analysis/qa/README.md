@@ -258,3 +258,27 @@ OPEN_DECISIONS K.
 slot), against the expert's accepted quotes; `gap.components` counts an element right when any passage the analysis
 collected matches. With GB-7d (S1e): nine new calls 39 % strict (14/36: A 2, B 5, problem 2, cost 5 of 9), five first
 tuning calls 70 % (14/20), control calls 33 % (4/12, production analyses).
+
+## Second control: ten calls never seen (2026-11-24)
+
+Ten first sales calls never used to set a rule, analysed live with the engine of the day (OB-28, OB-29, GAP-1.6,
+GB-7d), read by the expert reader for the gap and the objections after the price. Nothing is tuned on them.
+
+| Measure | Result |
+|---|---|
+| Statuses | 100 % (10/10) |
+| Gap verdict | 90 % (9/10) |
+| Absence reason | 50 % (5/10) |
+| Gap elements, any collected passage | 40 % (16/40) |
+| Gap elements shown in the perfect restitution (strict) | 28 % (11/40: A 3, B 5, problem 2, cost 1 of 10) |
+| Blocker state | 50 % (5/10); stopping question 100 % (7/7) |
+| Resistances found | 89 % (16/18) |
+| Resistances listed that the expert does not hold | 66 % (31/47) |
+| Nature | 81 % (13/16) |
+| Gestures | 52 % (26/50) |
+| Prospect's reaction | 62 % (10/16) |
+| Cost of an analysis | 0.07 to 0.13 USD |
+
+On a new call, the resistances are found (89 %) and their reaction is better read than before (62 % against 47 %), but
+two of three listed resistances are not the expert's (a doubt said again listed as a new one, a request for information,
+a delay with a date); the gap's elements shown to the sales are right about one time in four.

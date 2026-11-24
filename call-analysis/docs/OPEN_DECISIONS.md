@@ -316,3 +316,7 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   `gap.components` counts an element right when any collected passage matches and overstates what the sales sees
   (control calls: 42 % lenient, 33 % strict; nine new calls: 56 % lenient, 39 % strict; five first tuning calls: 90 %
   lenient, 70 % strict). Measure a change on both. Weakest on new calls, strict: A (2/9) and the problem (2/9).
+- **Second control, ten calls never seen (2026-11-24, `qa/README.md`).** Resistances found 89 %, reaction 62 %, but
+  66 % of the listed resistances are not the expert's; gap elements 40 % (strict 28 %: the cost 1 of 10, the problem 2
+  of 10). The next levers, in that order: the gap's elements on a new call (the cost and the problem the perfect
+  restitution shows), then the false resistances (a doubt said again, a request for information, a dated delay).
