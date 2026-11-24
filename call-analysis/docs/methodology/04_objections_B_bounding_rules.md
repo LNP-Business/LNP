@@ -137,10 +137,13 @@ reserve about going ahead (OB-1, OB-3), and what about (the subjects of OB-3, th
 different doubts is answered twice (OB-4); a doubt already said and said again is marked as such (`new` false). The
 reading is done twice; a turn both readings list is kept, a turn only one lists is read again by the arbiter with its
 context (Part C, C4). The prospect's words of the doubt are checked; a missing or failed quote is replaced by the turn's
-own words (Part C, C3 rule 8: a listed unit is answered by its id). The code groups the turns into resistances: a doubt
-said again (`new` false) of the same theme as the resistance just before joins it; any other turn opens one (the same
-doubt after another resistance is its own resistance: OB-11 then tells a repetition inside the first episode from a
-recurrence). The objections step then reads, by id, the sales' response to each listed resistance (OB-8 to OB-22), and
+own words (Part C, C3 rule 8: a listed unit is answered by its id). The code groups the turns into resistances (the
+expert reading of 2026-11-23: an episode holds every doubt of the same nature the prospect raises while the sales
+answers it): the doubts of one turn make one passage per nature (two natures in one turn are two resistances that share
+the same sales response, OB-4); a passage joins the last resistance of the same nature when it comes within 10 turns of
+its last passage and no sales turn in between moves on (OB-8 (a) by the code: it reuses no word of the resistance or of
+the response so far); otherwise it opens a resistance (the same doubt after the sales moved on is a recurrence, OB-11).
+The model's « already said » flag is not used to group: it is not reliable (a doubt said two turns before marked new). The objections step then reads, by id, the sales' response to each listed resistance (OB-8 to OB-22), and
 may set a listed passage aside as not a resistance (OB-2). When the reply-by-reply reading gives nothing valid, the
 objections step finds the resistances itself, as before.
 

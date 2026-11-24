@@ -209,6 +209,14 @@ def bound(ctx: CallContext, m: dict, k: int, next_start: Optional[str], drops: D
     return ep
 
 
+def _next_passage(ctx: CallContext, objs: list[dict], k: int) -> Optional[dict]:
+    """The first passage of the next resistance that starts AFTER this one's first passage (OB-4, 2026-11-24): two
+    resistances raised in the same turn share the sales' response; the first does not end where the second starts."""
+    pos = O._pos(ctx)
+    here = pos[objs[k - 1]["quotes"][0]["turn"]]
+    return next((m["quotes"][0] for m in objs[k:] if pos[m["quotes"][0]["turn"]] > here), None)
+
+
 def reaction_window(ctx: CallContext, ep: O.Episode, next_start: Optional[str], next_quote: Optional[str]) -> list[str]:
     """OB-28: the prospect turns that can react to this resistance, read one by one: after its last passage and before
     the next resistance (the turn of the next resistance too when it opens with the reaction to this one), whatever the
@@ -232,7 +240,7 @@ def reaction_plan(ctx: CallContext, s4: dict) -> list[dict]:
     for k, m in enumerate(objs, 1):
         if m.get("unread"):
             continue
-        nxt = objs[k]["quotes"][0] if k < len(objs) else None
+        nxt = _next_passage(ctx, objs, k)
         ep = bound(ctx, m, k, nxt["turn"] if nxt else None, drops, nxt["quote"] if nxt else None)
         win = reaction_window(ctx, ep, nxt["turn"] if nxt else None, nxt["quote"] if nxt else None)
         if win:
@@ -431,7 +439,7 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops, reactions: Optional
     objs = unique_objections(ctx, s4, drops)
     eps: list[O.Episode] = []
     for k, m in enumerate(objs, 1):
-        nxt = objs[k]["quotes"][0] if k < len(objs) else None
+        nxt = _next_passage(ctx, objs, k)
         eps.append(bound(ctx, m, k, nxt["turn"] if nxt else None, drops, nxt["quote"] if nxt else None))
     res_starts = {e.res.start for e in eps}
     for ep, m in zip(eps, objs):

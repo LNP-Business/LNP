@@ -29,6 +29,7 @@ from .shim import Drops
 from .steps import Steps, fill, load
 
 STEP = "S4"
+JOIN_MAX_TURNS = 10               # engineering parameter: a passage joins the resistance it follows within 10 turns
 QUOTE_WORDS = 25                  # the turn's own words when the model's quote is missing or fails (C3 rule 8)
 ARBITER_PREFIX = "Each turn below carries its context (the turns just before it)."
 
@@ -161,26 +162,62 @@ def run_detection(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, windo
     return out
 
 
+def _sales_moved_on(ctx: CallContext, after: str, before: str, words: set) -> bool:
+    """OB-8 (a) by the code, between two passages: a sales turn (not a backchannel) that reuses no content word of the
+    resistance or of the sales' response so far. The words of each sales turn that does not move on join the response."""
+    seq, pos = O.seq(ctx), O._pos(ctx)
+    words = set(words)
+    for t in seq[pos[after] + 1: pos[before]]:
+        if t.role != SALES or O.is_backchannel(t):
+            continue
+        if O.topic_change_condition_a(t.text, words):
+            return True
+        words |= O.content_words(t.text)
+    return False
+
+
 def group(ctx: CallContext, entries: list[dict]) -> list[dict]:
-    """Resistances from the entries, in the order of the call: an entry whose doubt was already said (`new` false) and
-    of the same theme as the last resistance listed joins it as one more passage; any other entry opens a resistance
-    (the same doubt after another one is its own resistance, read on its own: a recurrence, OB-11). The objections module's chain then keeps a passage inside the first episode as a repetition and makes a
-    later one a recurrence (OB-11)."""
-    items: list[dict] = []
+    """Resistances from the entries, in the order of the call (OB-29, reference reading of 2026-11-23: an episode holds
+    every doubt of the same nature the prospect raises while the sales answers it).
+    - The entries of one turn are one passage per nature: their subjects together (a mixed passage of two natures is two
+      resistances that share the same response, OB-4).
+    - A passage joins the last resistance of the same nature when the sales has not moved on since its last passage
+      (OB-8 (a) by the code: no sales turn in between reuses none of the words of the resistance and of the response so
+      far); otherwise it opens a resistance (the same doubt after the sales moved on is a recurrence, OB-11).
+    The model's `new` flag is not used to group: it marks a doubt said two turns before as new."""
+    pos = O._pos(ctx)
+    passages: list[dict] = []
     for e in entries:
         denied = {O.SUBJECTS[s][1] for s in e["denied_subjects"]}
-        nt = O.nature_of_subjects([s for s in e["subjects"] if O.SUBJECTS[s][1] not in denied])
+        subj = [s for s in e["subjects"] if O.SUBJECTS[s][1] not in denied]
+        nt = O.nature_of_subjects(subj)
         if nt is None:
             continue
-        prev = items[-1] if items and items[-1]["theme"] == nt else None   # another doubt in between: a recurrence
-        if prev is not None and not e["new"]:
-            if not any(q["turn"] == e["turn"] for q in prev["quotes"]):
-                prev["quotes"].append({"turn": e["turn"], "quote": e["quote"]})
+        same = next((p for p in passages if p["turn"] == e["turn"] and p["nature"] == nt[0]), None)
+        if same:
+            same["subjects"] += [x for x in e["subjects"] if x not in same["subjects"]]
+            same["denied_subjects"] += [x for x in e["denied_subjects"] if x not in same["denied_subjects"]]
             continue
-        items.append({"theme": nt, "subjects": e["subjects"], "denied_subjects": e["denied_subjects"],
-                      "quotes": [{"turn": e["turn"], "quote": e["quote"]}], "status": e["_status"]})
+        passages.append({"turn": e["turn"], "quote": e["quote"], "nature": nt[0], "subjects": list(e["subjects"]),
+                         "denied_subjects": list(e["denied_subjects"]), "status": e["_status"]})
+    items: list[dict] = []
+    for p in sorted(passages, key=lambda p: pos[p["turn"]]):
+        prev = next((it for it in reversed(items) if it["nature"] == p["nature"]), None)
+        if prev is not None and prev["quotes"][-1]["turn"] != p["turn"] and \
+                pos[p["turn"]] - pos[prev["quotes"][-1]["turn"]] <= JOIN_MAX_TURNS and \
+                not _sales_moved_on(ctx, prev["quotes"][-1]["turn"], p["turn"], prev["words"]):
+            prev["quotes"].append({"turn": p["turn"], "quote": p["quote"]})
+            prev["subjects"] += [x for x in p["subjects"] if x not in prev["subjects"]]
+            prev["words"] |= O.content_words(ctx.turn(p["turn"]).text)
+            continue
+        items.append({"nature": p["nature"], "subjects": p["subjects"], "denied_subjects": p["denied_subjects"],
+                      "quotes": [{"turn": p["turn"], "quote": p["quote"]}], "status": p["status"],
+                      "words": O.content_words(ctx.turn(p["turn"]).text)})
     for k, it in enumerate(items, 1):
         it["id"] = f"R{k}"
+        denied = {O.SUBJECTS[s][1] for s in it["denied_subjects"]}
+        it["theme"] = O.nature_of_subjects([s for s in it["subjects"] if O.SUBJECTS[s][1] not in denied])
+        it.pop("words")
     return items
 
 
