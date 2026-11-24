@@ -20,6 +20,7 @@ from lnp_callqa.pipeline import result_record
 
 from .gap import merge_readings, run_gap, statements_text
 from lnp_callqa.competences import objections as O
+from .detect import group, items_text, run_detection, s4_from_ids
 from .objections import checked_reading, reaction_plan, run_objections
 from .phases import apply_phases
 from .kind import STATUS as KIND_STATUS, call_kind
@@ -40,17 +41,22 @@ DEFAULTS: dict[str, Any] = {
     "gates_batch": 25,              # S1g: listed questions per call, each with its context (2026-11-20)
     "gates_passes": 2,              # S1g: two independent readings; a disagreement goes to the arbiter (C4)
     "s2_readings": 2,               # S2: two readings of the gap step, merged by the code (C4, 2026-11-23)
+    "detect_passes": 2,             # S4d: the resistances listed reply by reply, twice; a disagreement to the arbiter (OB-29)
+    "detect_batch": 60,             # S4d: listed prospect turns per call
+    "detect_arbiter_batch": 20,
     "reaction_passes": 2,           # S4r: the reaction read reply by reply, twice; a disagreement goes to the arbiter (OB-28)
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
     "max_tokens": {"SV": 8000, "S0": 12000,      # S0 6000 → 12000 (2026-11-20): an R2 of the reference set was cut twice
                    "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000,
-                   "S4r": 6000, "S4ra": 6000},
+                   "S4r": 6000, "S4ra": 6000, "S4d": 8000, "S4da": 6000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.5", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.2"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
                 "nothing said before the first price is an objection (OB-27).")
+DETECT_PRICE = "every prospect turn after the first price; nothing said before it is a resistance, OB-27"
+DETECT_START = "every prospect turn of this call: the price was given in an earlier call of this sales cycle, C9"
 WINDOW_START = ("The price was already given in an earlier call of this sales cycle: read resistances in EVERY PROSPECT "
                 "turn of this call, from its first turn (OB-27). Leave \"prevention\" empty: it belongs to the earlier call.")
 
@@ -485,9 +491,21 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
                                                      reasons=["no_resistance_no_price"], concordance="single_reading")
     else:
         attempted.append("S4")
-        s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections"), anchors=anchors(ctx),
-                                                          window=WINDOW_START if from_start else WINDOW_PRICE),
-                       cfg["max_tokens"]["S4"])
+        short = DETECT_START if from_start else DETECT_PRICE
+        entries = run_detection(ctx, steps, cfg, drops, short, anchors(ctx))    # S4d (OB-29): None = no valid reading
+        if entries is not None:
+            items = group(ctx, entries)
+            s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections_ids"), anchors=anchors(ctx),
+                                                              window=short, items=items_text(items)),
+                           cfg["max_tokens"]["S4"])
+            if s4.answer is not None:
+                s4.answer = s4_from_ids(items, s4.answer, drops)
+                meta["objections_detection"] = {"turns_listed": len(entries), "resistances": len(items),
+                                                "by_status": _count(e["_status"] for e in entries)}
+        else:
+            s4 = steps.ask("lite.s4_objections", "call", fill(load("s4_objections"), anchors=anchors(ctx),
+                                                              window=WINDOW_START if from_start else WINDOW_PRICE),
+                           cfg["max_tokens"]["S4"])
         if s4.answer is None:
             failed.append("S4")
             ctx.results["OBJECTIONS"] = _to_review("OBJECTIONS")
@@ -500,6 +518,13 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
         raise LiteModelError(f"{len(failed)} of {len(attempted)} model steps gave no valid JSON: " + ", ".join(failed))
     meta["failed_steps"] = failed
     return _record(ctx, meta, drops)
+
+
+def _count(xs) -> dict:
+    out: dict = {}
+    for x in xs:
+        out[x] = out.get(x, 0) + 1
+    return out
 
 
 REACTION_ARBITER_PREFIX = "Each episode below carries its own turns (the resistance, the sales response, the prospect's replies)."

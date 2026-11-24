@@ -25,7 +25,7 @@ def test_job_routes_engine_lite_to_the_lite_engine():
     rec = run_job(c, client, rounds=True, workers=24)
     assert rec["meta"]["engine"] == "lite" and engine_of(c) == "lite" and engine_version(c) == "callqa-lite-1.2"
     assert {x["task"] for x in client.calls} == {"lite.sv_voices", "lite.sv_control", "lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s2_gap", "lite.s3_pitch",
-                                                  "lite.s4_objections", "lite.s4_reactions"}
+                                                  "lite.s4_objections", "lite.s4_reactions", "lite.s4_detect"}
     assert all(x["tier"] == "fast" and x["effort"] == "low" for x in client.calls)
     assert set(rec["results"]) == {"SPIN", "GAP", "PITCH", "OBJECTIONS"} and rec["results"]["GAP"]["verdict"] == "present"
     assert summary(rec).startswith("engine=lite ") and "Alex" not in summary(rec)

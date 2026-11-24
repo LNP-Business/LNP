@@ -300,7 +300,7 @@ def test_record_has_the_contract_fields_the_screen_reads():
 def test_one_call_per_step_with_the_transcript_as_the_same_cached_prefix():
     rec, client = run()
     assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s1_gates",
-                                                 "lite.s2_gap", "lite.s2_gap", "lite.s3_pitch", "lite.s4_objections",
+                                                 "lite.s2_gap", "lite.s2_gap", "lite.s3_pitch", "lite.s4_detect", "lite.s4_detect", "lite.s4_objections",
                                                      "lite.s4_reactions", "lite.s4_reactions"]
     prefixes = {c["prefix"] for c in client.calls}
     assert len(prefixes) == 1 and next(iter(prefixes)).splitlines()[1] == "T001 [SALES] Hi Alex, can you hear me okay?"
@@ -775,3 +775,91 @@ def test_ob28_the_window_runs_to_the_next_resistance_whatever_the_topic_change()
     plan = reaction_plan(ctx, sc.ANSWERS["lite.s4_objections"])
     assert [(u["turn"], u["window"]) for u in plan] == [("T028", ["T030", "T032", "T034"]), ("T036", ["T038"]),
                                                         ("T038", ["T040"])]
+
+
+# ---------------------------------------------------------------- the resistances read reply by reply (OB-29, 2026-11-24)
+DETECT = {"resistances": [
+    {"id": "T028", "subjects": ["price"], "quote": "That's a lot of money for me right now", "new": True},
+    {"id": "T030", "subjects": ["price"], "quote": "it's really just the money", "new": False},
+    {"id": "T036", "subjects": ["co_decider"], "quote": "I need to talk to my husband first", "new": True},
+    {"id": "T038", "subjects": ["price"], "quote": "the money is still a lot", "new": False}]}
+
+
+def _s4_ids():
+    old = {o["quotes"][0]["turn"]: o for o in sc.ANSWERS["lite.s4_objections"]["objections"]}
+    keep = ("topic_change", "acknowledge", "isolate", "explore", "gesture")
+    r1 = {"id": "R1", **{k: old["T028"][k] for k in keep if k in old["T028"]}}
+    r2 = {"id": "R2", **{k: old["T036"][k] for k in keep if k in old["T036"]}}
+    return {"objections": [r1, r2, {"id": "R3"}], "prevention": sc.ANSWERS["lite.s4_objections"]["prevention"]}
+
+
+def _detect_run(detect=None, s4=None, **more):
+    a = dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_detect": detect or DETECT, "lite.s4_objections": s4 or _s4_ids()},
+             **more)
+    return run(a)
+
+
+def test_ob29_the_code_lists_the_turns_and_the_objections_step_reads_the_response_by_id():
+    rec, client = _detect_run()
+    d = rec["results"]["OBJECTIONS"]["details"]
+    eps = d["episodes"]
+    assert [(e["subtype"], e["resistance"]["turn"]) for e in eps] == [("price", "T028"), ("co_decider", "T036"),
+                                                                       ("price", "T038")]
+    assert [q["turn"] for q in eps[0]["quotes"]] == ["T028", "T030"]               # said again: one resistance
+    assert eps[2]["recurrence_of"] == "E1"                                         # after the husband: a recurrence
+    assert eps[0]["acknowledge"] and eps[0]["isolate"] and eps[0]["topic_change"] == "T035"
+    s4 = next(c for c in client.calls if c["task"] == "lite.s4_objections")
+    assert "R1 · objection · price · T028 « That's a lot of money for me right now »" in s4["prompt"]
+    det = [c for c in client.calls if c["task"] == "lite.s4_detect"]
+    assert len(det) == 2 and "T028, T030, T032, T034, T036, T038, T040" in det[0]["prompt"]
+    assert "T040, T038, T036, T034, T032, T030, T028" in det[1]["prompt"]           # the second reading, reversed
+    assert rec["meta"]["objections_detection"] == {"turns_listed": 4, "resistances": 3, "by_status": {"agreed": 4}}
+    assert rec["meta"]["steps"]["S4"]["reasons"].get("objection:response_unread") == 1   # R3: no reading of its own
+
+
+def test_ob29_a_turn_one_reader_lists_goes_to_the_arbiter():
+    extra = copy.deepcopy(DETECT)
+    extra["resistances"].append({"id": "T040", "subjects": ["postponement"], "quote": "Let me talk to him tonight"})
+    arb = {"resistances": []}                                                     # a delay with a date: not one
+    rec, client = _detect_run(detect=[extra, DETECT], **{"lite.s4_detect_arbiter": arb})
+    call = next(c for c in client.calls if c["task"] == "lite.s4_detect_arbiter")
+    assert call["tier"] == "arbiter" and "TURN TO READ: T040" in call["prompt"] and "READER 2: no resistance" in call["prompt"]
+    assert len(rec["results"]["OBJECTIONS"]["details"]["episodes"]) == 3
+    rec, _ = _detect_run(detect=[extra, DETECT], **{"lite.s4_detect_arbiter": "not json"})
+    eps = rec["results"]["OBJECTIONS"]["details"]["episodes"]
+    assert eps[-1]["resistance"]["turn"] == "T040"                                 # the arbiter failed: kept, flagged
+    assert rec["meta"]["objections_detection"]["by_status"] == {"agreed": 4, "to_review": 1}
+
+
+def test_ob29_a_failed_quote_takes_the_turn_s_own_words_and_a_turn_not_listed_is_dropped():
+    bad = copy.deepcopy(DETECT)
+    bad["resistances"][0]["quote"] = "I will never pay that"
+    bad["resistances"].append({"id": "T029", "subjects": ["price"], "quote": "I hear you", "new": True})   # a sales turn
+    rec, _ = _detect_run(detect=bad)
+    ep = rec["results"]["OBJECTIONS"]["details"]["episodes"][0]
+    assert ep["resistance"]["quote"] == "That's a lot of money for me right now."
+    reasons = rec["meta"]["steps"]["S4"]["reasons"]
+    assert reasons["detect:quote_replaced"] == 2 and reasons["detect:turn_not_listed"] == 2
+
+
+def test_ob29_the_objections_step_may_set_a_listed_passage_aside():
+    s4 = _s4_ids()
+    s4["objections"][1] = {"id": "R2", "exclusion": "neutral_fact"}
+    rec, _ = _detect_run(s4=s4)
+    assert [e["subtype"] for e in rec["results"]["OBJECTIONS"]["details"]["episodes"]] == ["price", "price"]
+
+
+def test_ob29_without_a_valid_reading_the_objections_step_finds_them_itself():
+    rec, client = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_detect": "not json"}))
+    assert len(rec["results"]["OBJECTIONS"]["details"]["episodes"]) == 3
+    assert "objections_detection" not in rec["meta"]
+    assert "Do not list resistances of your own" not in next(c for c in client.calls
+                                                               if c["task"] == "lite.s4_objections")["prompt"]
+
+
+def test_ob29_no_resistance_listed_still_reads_the_prevention():
+    rec, client = _detect_run(detect={"resistances": []}, s4={"objections": [],
+                                                             "prevention": sc.ANSWERS["lite.s4_objections"]["prevention"]})
+    o = rec["results"]["OBJECTIONS"]
+    assert o["details"]["episodes"] == [] and o["details"]["prevention_status"] == "scored"
+    assert "(none: no resistance was listed" in next(c for c in client.calls if c["task"] == "lite.s4_objections")["prompt"]

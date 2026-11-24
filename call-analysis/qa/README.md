@@ -59,7 +59,7 @@ it measures a change of a prompt or a model, and with `--repeat` the reproducibi
 analysis on 2026-11-21 (0.104 on average). Since 2026-11-23 each live analysis carries its cost (`usd`, from the gateway's
 token usage and `callqa_lite.cost`, the prices of `crm_ca_config.tiers`' models): the `COST` line prints the number of
 analyses that asked the model something (a call excluded before any step costs nothing and is left out), the average and the maximum, and the run fails (exit 1, `cost.exceeded` in the report) when the average is above
-`--max-cost` (0.08 USD). A replay carries no cost. The printed lines hold numbers only; the quotes go to `--out` only.
+`--max-cost` (0.20 USD since 2026-11-24, Romain; 0.08 before). A replay carries no cost. The printed lines hold numbers only; the quotes go to `--out` only.
 
 ## Baseline (2026-11-20)
 

@@ -34,7 +34,7 @@ def test_after_a_good_gap_and_a_pitch_the_next_call_is_read_on_objections_only()
     assert (res["PITCH"]["status"], res["PITCH"]["reasons"]) == ("not_applicable", ["pitch_made_in_previous_call"])
     assert res["GAP"]["details"]["carried_from"] == "r1"
     tasks = [c["task"] for c in client.calls]
-    assert tasks == ["lite.s0_phases", "lite.s4_objections",                 # no discovery, gap or pitch reading
+    assert tasks == ["lite.s0_phases", "lite.s4_detect", "lite.s4_detect", "lite.s4_objections",                 # no discovery, gap or pitch reading
                      "lite.s4_reactions", "lite.s4_reactions"]            # the reaction, read twice (OB-28)
     s4 = next(c for c in client.calls if c["task"] == "lite.s4_objections")
     assert "price was already given in an earlier call" in s4["prompt"]

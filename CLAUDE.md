@@ -310,7 +310,7 @@ parfaite vient du moteur (`formula.perfect`) : les propositions complètes du pr
 suis payée 15 euros » → « tu es payée 15 euros »), jamais les mots repris par le commercial ; une case non dite dit la question
 à poser ; le coût rattaché au blocage (dit dans sa réponse ou juste après, sinon chiffré, sinon le plus récent). Mesure : état
 du blocage et question du blocage dans la référence (`gap.blocker_state`, `gap.stopping_question`).
-Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
+Moteur allégé (`call-analysis/lite`, plafond 0,20 USD par appel en moyenne depuis le 2026-11-24, Romain ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et
 reconstruit les répliques ; puis une lecture de contrôle de la transcription réparée, Romain 2026-11-20 : plus de 10 % de

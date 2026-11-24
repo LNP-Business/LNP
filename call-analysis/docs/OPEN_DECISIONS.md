@@ -289,4 +289,5 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   67 to 83 %), not 75 %. The rest comes from episodes that do not line up with the reference (detection and bounding of
   the resistances, voice labels in merged turns), not from the reading. Next lever: the resistances detected reply by
   reply (roadmap step 1). Cost of S4r: 0.008 USD per analysis; the full analysis is measured at 0.083 to 0.085 USD,
-  above the 0.08 USD limit: raising the limit (0.09 USD) or a cheaper step elsewhere is Romain's call.
+  above the 0.08 USD limit. **Settled (Romain, 2026-11-24): the limit is 0.20 USD per analysis** (« le plafond peut
+  être à 0.20 USD »), for the resistances read reply by reply (OB-29).

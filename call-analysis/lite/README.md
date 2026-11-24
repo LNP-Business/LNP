@@ -120,7 +120,7 @@ and verbatim, the objections table with A · I · E · M), plus:
 0.10 / 0.50 / 0.01 / 0.125, claude-sonnet-5-5 2 / 10 / 0.10 / 2.50 USD per million tokens, input / output / cache read /
 cache write, provider's list of 2026-11-03, to check before relying on a figure; a model without a price row is priced at
 its tier's default model and flagged `unknown_models`). The quality measure (`qa/qa_run.py --mode live`) prints the average
-and maximum cost of an analysis and fails above `--max-cost` (0.08 USD on the average).
+and maximum cost of an analysis and fails above `--max-cost` (0.20 USD on the average since 2026-11-24, Romain; 0.08 before).
 
 ## Cost of the voice check (SV, 2026-11-19)
 

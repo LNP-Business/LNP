@@ -165,7 +165,7 @@ def main(argv=None) -> int:
     ap.add_argument("--split", choices=["tuning", "control", "all"], default="all")
     ap.add_argument("--effort", default="low")
     ap.add_argument("--workers", type=int, default=1, help="analyses run at the same time (live mode)")
-    ap.add_argument("--max-cost", type=float, default=0.08,
+    ap.add_argument("--max-cost", type=float, default=0.20,
                     help="USD: the measure fails when the average cost of an analysis is above it (live mode)")
     ap.add_argument("--out")
     ap.add_argument("--keep", help="live mode: write each case with the new analysis' answers as its audit, to replay "
