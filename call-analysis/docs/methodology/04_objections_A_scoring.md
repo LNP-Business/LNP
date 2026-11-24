@@ -51,6 +51,9 @@ The rules that find each element in a raw transcript (units, start and end marke
 - **Acknowledged:** the prospect accepts without content ("okay", "I see", "makes sense").
 - **Latent:** no prospect reaction, or the sales changed the subject within 2 turns of the resistance without any reaction (verbatim reference rule). The system counts it as handled, but the prospect never confirmed: it is the one that comes back as "I'll think about it".
 - **Persisting:** the prospect repeats or reinforces the resistance.
+The reaction is read on each prospect turn after the resistance and before the next one, and the last state wins: a
+doubt said again and only followed by an « ok » is persisting; a doubt said again, then lifted in the prospect's own
+words, is resolved (bounding rule OB-28, 2026-11-24).
 
 # Part B · Mechanism and scoring
 

@@ -266,3 +266,73 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   control calls (42 %: the selection rules were set on five calls), the absence reason (62 %). These need a change of
   the prompts, measured live.
 
+
+## J. The reaction read reply by reply (2026-11-24, Romain: « vas-y »)
+
+- **Why.** On the expert reference the reaction was right 9 times out of 19. Six errors came from the objections step
+  leaving the reaction out (it is the last field of a long answer per resistance) and the code reading « no answer » as
+  `acknowledged`; three from the episode closed at the sales' first topic change while the prospect came back to the
+  resistance later (OB-10, OB-22 latent by turn numbers).
+- **What changed (OB-28, `OBJ-1.2`).** A step of its own (S4r, lite engine): the prospect turns after each resistance
+  and before the next one are read one by one, twice, the arbiter on a disagreement; the code decides the level, the
+  last state winning; a latent episode the prospect comes back to with content is not latent. Analyses stored under
+  `OBJ-1.1` are to be relaunched (C8).
+- **Engineering parameter, not a business fact.** At most 12 prospect turns read after a resistance
+  (`REACTION_WINDOW_MAX`).
+- **To validate (Romain).** OB-28 amends OB-22: a resistance received and left in one turn is no longer latent when
+  the prospect comes back to it with content before the next resistance (the expert reading of the reference does so).
+  The reference (full) engine still reads the reaction in one question per episode (`obj.resolution`): the decision
+  function `reaction_from_turns` is in the engine, its wiring there is not done. Memo to update: objections.
+- **OB-17 by the code.** The model marks almost every resolution « first stated by the sales »; the code keeps that flag
+  only when the prospect's words echo the sales' last turn (`echoes_sales`: every content word of the quote is in it).
+- **Measured (`qa/README.md`).** The reaction goes from 47 % to 50 to 56 % over three live readings (control calls 50 % →
+  67 to 83 %), not 75 %. The rest comes from episodes that do not line up with the reference (detection and bounding of
+  the resistances, voice labels in merged turns), not from the reading. Next lever: the resistances detected reply by
+  reply (roadmap step 1). Cost of S4r: 0.008 USD per analysis; the full analysis is measured at 0.083 to 0.085 USD,
+  above the 0.08 USD limit. **Settled (Romain, 2026-11-24): the limit is 0.20 USD per analysis** (« le plafond peut
+  être à 0.20 USD »), for the resistances read reply by reply (OB-29).
+
+## K. The gap elements on new calls (2026-11-24, Romain: « améliore les éléments de l'écart des appels de contrôle »)
+
+- **The control calls stay untouched (C7).** Correcting the rules on their errors would make the measure say nothing
+  about a new call. Instead, twelve new first sales calls were read by the expert reader (gap only, `BRIEF_GAP`):
+  three are not sales calls (one was not caught by C1b: an end-of-programme review followed by an upsell), nine hold a
+  discovery, none a validated restitution.
+- **What the engine did on them before any change: 25 % of the gap elements** (control calls: 42 %). The figures missed
+  bare amounts said in answer to an income question, the cost lexicon found none of the expert's costs and took others'
+  illnesses or a field of work, B took needs for a solution.
+- **Changed (GAP-1.6, GB-28c, GB-29c, GB-7c):** 25 % → 56 % on the twelve new calls, 90 % kept on the five first tuning
+  calls; **the control calls do not move** (42 to 58 % depending on the analysis replayed). Not reached: the 80 % asked.
+- **What limits it, measured:** the model types almost no consequence as IMPACT (it calls them PAIN), so the costs
+  rest on the code's lexicon; several expected elements are in a turn labelled with the wrong speaker; the selection
+  rules of A without a figure. Next lever: the model asked, by id, whether each PAIN it read is the difficulty or what it
+  costs (as for the gates), then a third fresh set of calls to measure without tuning. Analyses stored under GAP-1.5 are
+  to be relaunched (C8). Memo to update: gap.
+- **The reference files** of the twelve calls are private (scratchpad, not in the bucket): adding them to
+  `callqa-fixtures/qa/reference.tar.gz` changes the measure of the workflow; to do on Romain's go.
+- **Decided 2026-11-24 (Romain: « je te laisse décider et arbitrer »).** Kept: GB-7d, each PAIN read again as the
+  difficulty or what it costs (S1e, about 0.003 USD a call): one more cost shown on the nine new calls, nothing lost.
+  Added to the measure: `gap.components_shown`, strict, the element the perfect restitution shows the sales; the older
+  `gap.components` counts an element right when any collected passage matches and overstates what the sales sees
+  (control calls: 42 % lenient, 33 % strict; nine new calls: 56 % lenient, 39 % strict; five first tuning calls: 90 %
+  lenient, 70 % strict). Measure a change on both. Weakest on new calls, strict: A (2/9) and the problem (2/9).
+- **Second control, ten calls never seen (2026-11-24, `qa/README.md`).** Resistances found 89 %, reaction 62 %, but
+  66 % of the listed resistances are not the expert's; gap elements 40 % (strict 28 %: the cost 1 of 10, the problem 2
+  of 10). The next levers, in that order: the gap's elements on a new call (the cost and the problem the perfect
+  restitution shows), then the false resistances (a doubt said again, a request for information, a dated delay).
+- **Objections, false resistances (2026-11-24, « vas-y »).** OB-2 look-alikes named and set aside; same-nature doubts
+  joined while the sales answers (the model's topic change), the very doubt of an ended episode staying a recurrence;
+  responses read eight at a time with one more ask. Resistances listed in excess: tuning calls 41-54 % → 31-34 % (two
+  live readings), first control 42 %, second control 69 % (66 % before: no change). On the second control the excess is
+  in two calls: a price range said before the discovery read as the first price (every pain of the discovery then reads
+  as an objection: a phases rule, PB-3), and one money doubt coming back many times read as as many recurrences (23
+  recurrences of 48 episodes; the expert holds 2). Both are next levers, to set on tuning calls only (the second control
+  was looked at by category to explain it: a new control set will be needed to measure them).
+- **Tried and withdrawn (2026-11-24): every prospect sentence of the discovery labelled A, B, problem or cost by the
+  model (two readings, kept when both agree) and added to the gap's candidates.** On the tuning calls the lenient measure
+  rose (56 % → 64 %) but the element SHOWN fell (36 % → 31 %): the model labels many sentences (20 « problems » and 11
+  « costs » in one call) and the code's choice among them (the cost nearest the blocker, else the most recent) picks
+  another one than the expert. Preferring the confirmed costs changed nothing. Lesson: the bottleneck of the gap on a
+  new call is the choice among candidates, not finding them. Next idea, not built: the model chooses by id, among the
+  code's candidates, the one the method defines (the cost of THIS blocker, the target of THIS prospect), the code
+  checking the quote.

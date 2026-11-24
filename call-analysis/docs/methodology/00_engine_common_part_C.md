@@ -60,6 +60,15 @@ The engine follows one rule: **the model extracts and quotes, the code decides a
   component only one reading names is kept (the model leaves a component out of a restitution about once in five); a
   passage only the second reading found is not added (it moved the judged restitution, and A and B with it). No vote,
   no arbiter: the engine then decides as for one reading. About 0.005 USD more per call.
+- **The reaction read twice (lite engine, 2026-11-24, OB-28).** The prospect's reaction to each resistance is read reply
+  by reply (step S4r), twice, the second reading with the episodes in reverse order. The code decides a level from each
+  reading; the same level is `agreed`; otherwise the arbiter tier reads the disputed episodes, their turns in its prompt
+  (`arbitrated`); a failed arbiter leaves the first valid reading (`to_review` tag on the episode). An episode with no
+  valid reading keeps the reaction read by the objections step (S4).
+- **The resistances read twice (lite engine, 2026-11-24, OB-29).** The prospect turns after the first price are read one
+  by one, twice (step S4d), the second reading in reverse order: a turn both readings list as a resistance is kept
+  (`agreed`); a turn only one lists goes to the arbiter tier with its context (`arbitrated`, or dropped when the arbiter
+  says it holds none); a failed arbiter keeps the reader's entry (`to_review`).
 - **Cost option.** When volume makes three passes too expensive, one pass is allowed in production **only** if the reproducibility protocol (C7) has shown at least 95 % item-level concordance on the current rules version, and three passes continue to run on a random 10 % sample of calls every week. Any week where that sample falls below 95 % restores three passes on every call.
 
 ## C5. Time windows and aggregation

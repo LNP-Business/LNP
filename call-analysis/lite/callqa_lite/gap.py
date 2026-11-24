@@ -1,4 +1,4 @@
-"""S2 → Gap result (GAP-1.5), computed by the reference engine's GapCompetence on the lite answers.
+"""S2 → Gap result (GAP-1.6), computed by the reference engine's GapCompetence on the lite answers.
 
 The engine's closed questions are answered from the S2 step (passages, clauses, validations, deadlines) and from the S1
 facts (stopping questions, kinds of figures): gap.restitution (the clauses of the passage whose sales turns are in the

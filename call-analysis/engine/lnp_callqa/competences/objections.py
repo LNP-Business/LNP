@@ -571,6 +571,89 @@ def resolution_level(ctx: CallContext, ep: Episode, r: Optional[dict]) -> tuple[
     return "acknowledged", ev, prompted                                  # agreement_only / other
 
 
+# ----------------------------------------------------------------------------------------------- OB-28 (2026-11-24)
+# The reaction read reply by reply: the model says, for each prospect turn after the resistance and before the next
+# one, what the turn does with THIS resistance; the code decides the level from these answers, in their order.
+REACTION_TURN_KINDS = ("holds", "no_longer_holds", "commits", "moves_forward", "agrees", "asks", "other")
+REACTION_QUOTED = ("holds", "no_longer_holds", "commits", "moves_forward")   # a prospect quote is required
+REACTION_WINDOW_MAX = 12      # engineering parameter: prospect turns read after a resistance (not a business fact)
+
+
+def check_reaction_turn(ctx: CallContext, tid: str, a: dict) -> Optional[str]:
+    """C3 checks of one turn's answer: a known kind; for a kind that carries the prospect's words, an exact passage of
+    that prospect turn. A commitment's specific element that fails the check is dropped (the commitment stays)."""
+    if not isinstance(a, dict) or a.get("kind") not in REACTION_TURN_KINDS:
+        return "bad_kind"
+    if a["kind"] in REACTION_QUOTED:
+        e = _prospect_side_ok(ctx, Evidence(a.get("quote") or "", tid), [tid], min_words=1)
+        if e:
+            return e
+    if a["kind"] == "commits" and a.get("specific") and \
+            _prospect_side_ok(ctx, Evidence(a["specific"], tid), [tid], min_words=1):
+        a["specific"] = None
+    return None
+
+
+def echoes_sales(ctx: CallContext, tid: str, quote: str) -> bool:
+    """OB-17 by the code (2026-11-24): a resolution is « first stated by the sales » only when the prospect's words add
+    nothing to the sales' last turn before them: every content word of the quote (by its first five letters, so that
+    « lève » and « levé » match) is in that turn. « Mais très bien, le doute est levé » after an answer on the fees
+    is the prospect's own resolution; « oui, en quatre fois ça me va » after « en quatre fois, ça te va ? » echoes it."""
+    seq_, pos = seq(ctx), _pos(ctx)
+    prev = next((t for t in reversed(seq_[:pos[tid]]) if t.role == SALES), None)
+    stems = lambda x: {w[:5] for w in content_words(x, drop_generic=False)}
+    own = stems(quote)
+    return prev is not None and bool(own) and own <= stems(prev.text)
+
+
+def reaction_from_turns(ctx: CallContext, turns: dict[str, dict]) -> tuple[str, Optional[Evidence], bool]:
+    """OB-28. `turns`: {turn id: checked answer}. Read in the order of the call, the last state wins:
+    - a turn that repeats, explains or reinforces the resistance (`holds`) with no settling turn after it: persisting
+      (an « ok » after it settles nothing: it stays persisting);
+    - a settling turn after the last `holds`: resolved when the prospect says in their own words that it no longer
+      holds, moves forward on their own, or commits to the sales' proposal with a specific element of their own (OB-17,
+      OB-23); acknowledged when that content was first stated by the sales and only approved, when the commitment has
+      no specific element, or when the turn is an approval only (X3, C3 rule 5);
+    - otherwise a plain agreement on the sales' answer: acknowledged;
+    - no turn about the resistance at all: latent (§2: no prospect reaction).
+    Returns (level, evidence, prompted)."""
+    pos = _pos(ctx)
+    marks = []                                   # (position, level, evidence, prompted)
+    for tid in sorted((t for t in turns if t in pos), key=pos.get):
+        a, text = turns[tid], ctx.turn(tid).text
+        k = a.get("kind")
+        ev = Evidence(a.get("quote") or "", tid, ctx.turn(tid).role) if k in REACTION_QUOTED else None
+        if k == "holds":
+            marks.append((pos[tid], "holds", ev, False))
+        elif k in ("no_longer_holds", "moves_forward"):
+            prompted = k == "no_longer_holds" and bool(a.get("prompted")) and echoes_sales(ctx, tid, a.get("quote") or "")
+            strong = not prompted and not approval_only(text)
+            marks.append((pos[tid], "resolved" if strong else "acknowledged", ev, prompted))
+        elif k == "commits":
+            strong = bool(a.get("specific")) and not approval_only(text)
+            marks.append((pos[tid], "resolved" if strong else "acknowledged", ev, False))
+        elif k == "agrees":
+            marks.append((pos[tid], "agrees", None, bool(a.get("prompted"))))
+    holds = [m for m in marks if m[1] == "holds"]
+    after = [m for m in marks if not holds or m[0] > holds[-1][0]]
+    settle = [m for m in after if m[1] in ("resolved", "acknowledged")]
+    if holds and not settle:
+        return "persisting", holds[-1][2], False
+    if settle:
+        best = next((m for m in reversed(settle) if m[1] == "resolved"), settle[-1])
+        return best[1], best[2], best[3]
+    if any(m[1] == "agrees" for m in marks):
+        return "acknowledged", None, any(m[3] for m in marks if m[1] == "agrees")
+    return "latent", None, False
+
+
+def reaction_overrides_latent(level: str, ev: Optional[Evidence]) -> bool:
+    """OB-28: an episode latent by OB-10 or OB-22 stops being latent when the prospect comes back to the resistance
+    with content before the next one (repeats it, or settles it in their own words): they did react. A bare « ok »
+    or a question on something else changes nothing."""
+    return level in ("persisting", "resolved") or (level == "acknowledged" and ev is not None)
+
+
 H4_LEVEL = {"resolved": 2, "acknowledged": 1, "latent": 0, "persisting": 0}
 
 

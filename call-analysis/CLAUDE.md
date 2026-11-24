@@ -55,9 +55,16 @@ the code checks every quote and reuses the engine's decision code (Gap and Pitch
 Answers by ids (2026-11-23): a question the code listed is answered by its id, without a recopied quote (Part C, C3 rule 8);
 the prospect's words are still quoted and checked. Cost: `lite/callqa_lite/cost.py` prices each tier at its model
 (`crm_ca_config.tiers`; prices are configuration, OPEN_DECISIONS H); the worker stores `usage.usd`, the measure fails
-above 0.08 USD on the average (`qa/qa_run.py --max-cost`). Not a sales call (2026-11-23, C1b, `kind.py`): a session with a
+above 0.20 USD on the average (`qa/qa_run.py --max-cost`; Romain 2026-11-24, 0.08 before). Not a sales call (2026-11-23, C1b, `kind.py`): a session with a
 person already enrolled is `not_sales_call`, nothing scored, no qualification. The gap step is read twice and merged by
-code (C4, `gap.merge_readings`). Expert reference (2026-11-23, OPEN_DECISIONS I): 8 sales calls read whole, 5 tuning and 3
+code (C4, `gap.merge_readings`). The reaction to each resistance is read reply by reply (2026-11-24, OB-28, step S4r): the prospect
+turns after the resistance and before the next one, each read on what it does with THIS resistance, twice, the arbiter
+on a disagreement; the code decides the level, the last state winning (`objections.reaction_from_turns`). The resistances
+themselves are read reply by reply too (2026-11-24, OB-29, step S4d, `lite/callqa_lite/detect.py`): the code lists the
+prospect turns after the price, the model answers by id which hold a doubt, twice, the arbiter on a disagreement; the
+objections step then reads the sales' response to each listed resistance by id. Each PAIN of the discovery is read again by id (2026-11-24,
+GB-7d, step S1e): the difficulty itself or what it costs; a consequence both readings agree on is a cost for the gap
+only. The measure has a strict gap score, the element the perfect restitution shows (`gap.components_shown`). Expert reference (2026-11-23, OPEN_DECISIONS I): 8 sales calls read whole, 5 tuning and 3
 control, every objective measured (`qa/README.md`); never tune a rule on the control calls.
 
 ## The prospect's figures (GAP-1.4, 2026-11-20)

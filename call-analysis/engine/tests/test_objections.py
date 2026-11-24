@@ -578,3 +578,47 @@ def test_annexB_case24_call050_persisting():
     e = ep_by_turn(res, "T219")[0]
     assert "T221" in e["reaction_turns"] and e["reaction"]["level"] == "persisting" and lvl(e, "H4") == 0
     assert e["explore"] == {"asked": True, "answered_with_content": False} and lvl(e, "H3") == 1
+
+
+# ----------------------------------------------------------------------------------------------- OB-28 (2026-11-24)
+def _reaction_ctx():
+    return synth([(SALES, "C'est 3 000 euros, ou quatre fois 750."),
+                  (PROSPECT, "C'est beaucoup pour moi en ce moment."),
+                  (SALES, "Je comprends. Par rapport à quoi ?"),
+                  (PROSPECT, "Par rapport à ce que je gagne, c'est deux mois de salaire."),
+                  (SALES, "En quatre fois, tu paies 750 par mois."),
+                  (PROSPECT, "D'accord."),
+                  (SALES, "Et en quatre fois, ça te va ?"),
+                  (PROSPECT, "Ok, à 750 par mois je peux le faire, on part là-dessus. En quatre fois, ça me va.")],
+                 first_price="T001")
+
+
+def test_ob28_the_code_decides_the_level_from_the_turns_in_their_order():
+    ctx = _reaction_ctx()
+    holds = {"kind": "holds", "quote": "c'est deux mois de salaire"}
+    commits = {"kind": "commits", "quote": "à 750 par mois je peux le faire", "specific": "750 par mois"}
+    assert O.reaction_from_turns(ctx, {"T004": holds, "T008": commits})[0] == "resolved"
+    assert O.reaction_from_turns(ctx, {"T004": holds, "T006": {"kind": "agrees"}})[0] == "persisting"
+    assert O.reaction_from_turns(ctx, {"T006": {"kind": "agrees"}})[0] == "acknowledged"
+    assert O.reaction_from_turns(ctx, {"T004": {"kind": "other"}, "T006": {"kind": "asks"}})[0] == "latent"
+    no_detail = dict(commits, specific=None)
+    assert O.reaction_from_turns(ctx, {"T008": no_detail})[0] == "acknowledged"               # OB-23: no element
+    lvl, ev, prompted = O.reaction_from_turns(ctx, {"T008": {"kind": "no_longer_holds", "prompted": True,
+                                                            "quote": "en quatre fois, ça me va"}})
+    assert (lvl, prompted) == ("acknowledged", True)                     # OB-17: the sales' words of T007, echoed
+    lvl, ev, prompted = O.reaction_from_turns(ctx, {"T008": {"kind": "no_longer_holds", "prompted": True,
+                                                            "quote": "je peux le faire"}})
+    assert (lvl, prompted) == ("resolved", False)                        # her own words: not « first stated by the sales »
+    assert O.reaction_from_turns(ctx, {"T006": {"kind": "no_longer_holds", "quote": "D'accord"}})[0] == \
+        "acknowledged"                                                                        # X3: approval only
+
+
+def test_ob28_each_answer_is_checked_and_only_a_reaction_with_content_lifts_a_latent():
+    ctx = _reaction_ctx()
+    assert O.check_reaction_turn(ctx, "T004", {"kind": "holds", "quote": "trois mois de salaire"}) == "not_a_substring"
+    assert O.check_reaction_turn(ctx, "T004", {"kind": "maybe"}) == "bad_kind"
+    a = {"kind": "commits", "quote": "je peux le faire", "specific": "cinq fois"}
+    assert O.check_reaction_turn(ctx, "T008", a) is None and a["specific"] is None             # the element fails
+    assert O.check_reaction_turn(ctx, "T005", {"kind": "holds", "quote": "tu paies 750"}) == "wrong_speaker"
+    assert O.reaction_overrides_latent("persisting", Evidence("x", "T004"))
+    assert not O.reaction_overrides_latent("acknowledged", None)

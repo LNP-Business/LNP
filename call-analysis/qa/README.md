@@ -59,7 +59,7 @@ it measures a change of a prompt or a model, and with `--repeat` the reproducibi
 analysis on 2026-11-21 (0.104 on average). Since 2026-11-23 each live analysis carries its cost (`usd`, from the gateway's
 token usage and `callqa_lite.cost`, the prices of `crm_ca_config.tiers`' models): the `COST` line prints the number of
 analyses that asked the model something (a call excluded before any step costs nothing and is left out), the average and the maximum, and the run fails (exit 1, `cost.exceeded` in the report) when the average is above
-`--max-cost` (0.08 USD). A replay carries no cost. The printed lines hold numbers only; the quotes go to `--out` only.
+`--max-cost` (0.20 USD since 2026-11-24, Romain; 0.08 before). A replay carries no cost. The printed lines hold numbers only; the quotes go to `--out` only.
 
 ## Baseline (2026-11-20)
 
@@ -215,3 +215,89 @@ shifted every later answer; the discovery readings given by id were lost), an ex
 by its turn first, a phase anchor may list two turns, the discovery start is right when it bounds the same S, P, I, N
 questions.
 
+
+## The reaction read reply by reply (2026-11-24, OB-28)
+
+The reaction to each resistance is read by a step of its own (S4r), the prospect turns one by one, twice, the arbiter on
+a disagreement; the code decides the level (`reaction_from_turns`) and checks that a resolution « first stated by the
+sales » echoes the sales' words (`echoes_sales`). Measured on the expert reference, three readings of the step (two full
+live runs, then the step alone live on the kept analyses of the second, `qa_run.py --keep`):
+
+| Measure | Before (replay of production) | Live run 1 | Live run 2 | S4r alone, live |
+|---|---|---|---|---|
+| Prospect's reaction, all | 47 % (9/19) | 56 % (10/18) | 56 % (10/18, with `echoes_sales`) | 50 % (9/18) |
+| Tuning calls | 46 % (6/13) | 42 % (5/12) | | |
+| Control calls | 50 % (3/6) | 83 % (5/6) | 67 % (4/6) | |
+| Cost of the step | | | | 0.008 USD per analysis (the arbiter, Sonnet, ≈ 0.01 USD when called: 2 calls of 8) |
+
+What is left is mostly not the reading: the episodes the engine bounds do not line up with the reference's (the
+resistance found two turns away, two resistances in one turn, a voice label wrong inside a merged turn, a new anxiety
+the objections step did not list and that the reaction reads as the same doubt said again, a recurrence chained as a
+repetition). The resistances found stay at 58 to 61 %: the next lever is the detection of the resistances reply by reply
+(OPEN_DECISIONS J). The full live analysis costs 0.083 to 0.085 USD on average (limit 0.08 USD): the measured share of S4r
+is 0.008 USD; the rest of the rise over the 0.068 USD of 2026-11-23 is the variance of the other steps (the output of the
+thinking), to be measured over more runs. The reaction window length (4 to 12 prospect turns) changes nothing on the
+tuning calls.
+
+## The gap on twelve new calls (2026-11-24, GAP-1.6)
+
+Twelve new first sales calls read by the expert reader for the gap only (three are not sales calls), used as tuning
+calls; the three control calls of the reference stay untouched (C7). Replays of stored analyses:
+
+| Gap elements | Before (GAP-1.5) | After (GAP-1.6) |
+|---|---|---|
+| Twelve new calls (9 with a discovery, 36 elements) | 25 % (9/36) | 56 % (20/36) |
+| Five first tuning calls | 90 % (18/20) | 90 % (18/20) |
+| Control calls, production analyses | 42 % (5/12) | 42 % (5/12) |
+| Control calls, live analyses of 2026-11-24 | 58 % (7/12) | 58 % (7/12) |
+
+The rules found on the new calls do not reach the control calls' errors: 80 % is not reached. What limits it is in
+OPEN_DECISIONS K.
+
+**Strict measure (2026-11-24).** `gap.components_shown` counts the element the perfect restitution shows the sales (its
+slot), against the expert's accepted quotes; `gap.components` counts an element right when any passage the analysis
+collected matches. With GB-7d (S1e): nine new calls 39 % strict (14/36: A 2, B 5, problem 2, cost 5 of 9), five first
+tuning calls 70 % (14/20), control calls 33 % (4/12, production analyses).
+
+## Second control: ten calls never seen (2026-11-24)
+
+Ten first sales calls never used to set a rule, analysed live with the engine of the day (OB-28, OB-29, GAP-1.6,
+GB-7d), read by the expert reader for the gap and the objections after the price. Nothing is tuned on them.
+
+| Measure | Result |
+|---|---|
+| Statuses | 100 % (10/10) |
+| Gap verdict | 90 % (9/10) |
+| Absence reason | 50 % (5/10) |
+| Gap elements, any collected passage | 40 % (16/40) |
+| Gap elements shown in the perfect restitution (strict) | 28 % (11/40: A 3, B 5, problem 2, cost 1 of 10) |
+| Blocker state | 50 % (5/10); stopping question 100 % (7/7) |
+| Resistances found | 89 % (16/18) |
+| Resistances listed that the expert does not hold | 66 % (31/47) |
+| Nature | 81 % (13/16) |
+| Gestures | 52 % (26/50) |
+| Prospect's reaction | 62 % (10/16) |
+| Cost of an analysis | 0.07 to 0.13 USD |
+
+On a new call, the resistances are found (89 %) and their reaction is better read than before (62 % against 47 %), but
+two of three listed resistances are not the expert's (a doubt said again listed as a new one, a request for information,
+a delay with a date); the gap's elements shown to the sales are right about one time in four.
+
+**Before / after on the same ten calls (2026-11-24).** The engine of PR 82 (`reference-experte`) analysed the second
+control live as well; same expert reading, same measure code:
+
+| Measure | Engine of PR 82 | Engine of this branch |
+|---|---|---|
+| Statuses | 90 % | 100 % |
+| Gap verdict | 90 % | 90 % |
+| Absence reason | 70 % | 50 % |
+| Gap elements (any / shown) | 35 % / 20 % | 40 % / 28 % |
+| Blocker state · stopping question | 50 % · 86 % | 50 % · 100 % |
+| Resistances found | 83 % | 83 % |
+| Resistances in excess | 52 % | 69 % |
+| Nature · gestures · reaction | 93 % · 49 % · 40 % | 87 % · 55 % · 53 % |
+| Cost of an analysis | 0.084 USD | ≈ 0.10 USD |
+
+One live run each: a difference of one element is noise. What holds: the reaction (+13 points), the gap elements shown
+(+8), the gestures (+6) gain; the resistances in excess are worse (+17: the misplaced first price and the recurrences
+counted at each return, OPEN_DECISIONS J).

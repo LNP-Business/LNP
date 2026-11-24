@@ -104,6 +104,10 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | GB-7b | The costs listed by the code (lexicon per cost domain, v1.4) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-28 | Selecting A (v1.4: on B's dimension, never an unrelated fact) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-28b | The figures listed by the code (present, target, past, expense, offer) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-28c | Figures and A, twelve new tuning calls (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-29c | B is never a need for a solution (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-7c | The prospect's own costs (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-7d | The difficulty or what it costs, read again (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-29 | Selecting B (v1.4: in figures first, N answers first, else the most recent target) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-30 | The blocker and its state (v1.4: named when asked, asked not answered, said unasked, not asked) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-30b | The blockers listed by the code (first-person clauses, v1.4) | `methodology/02_gap_B_bounding_rules.md` |
@@ -184,6 +188,8 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | OB-25 | External reason that also limits time | `methodology/04_objections_B_bounding_rules.md` |
 | OB-26 | Attribution | `methodology/04_objections_B_bounding_rules.md` |
 | OB-27 | Scope: after the first price only | `methodology/04_objections_B_bounding_rules.md` |
+| OB-28 | The reaction, read reply by reply (2026-11-24) | `methodology/04_objections_B_bounding_rules.md` |
+| OB-29 | The resistances, read reply by reply (2026-11-24) | `methodology/04_objections_B_bounding_rules.md` |
 
 ## Exclusion rules
 Each bounding file ends with an exclusion table ("Never counts as…", X1, X2, …) and a table of minimal pairs (two passages that differ by one element and change the verdict). Minimal pairs are implemented as unit tests in `engine/tests/`.

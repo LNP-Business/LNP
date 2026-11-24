@@ -74,6 +74,9 @@ most steps fail, the job stops (`ModelErrors`, not retried).
 | S2 `lite.s2_gap` | every playback passage up to the first price: its sales turns, each restated clause (component, sales quote, source turn, key expression), a new-topic question at the end, the validation read on the prospect turn right after; the deadlines attached to a target | runs the engine's `GapCompetence` unchanged: its closed questions (`gap.restitution`, `gap.validation`, `gap.a_current`, `gap.stopping`, `gap.horizon`) are answered from S2 and S1 and checked by the engine validators; the verbatim rule GB-22, the formula, the gate, G1 to G6 are the engine's code. A passage the model found and the code inventory missed is added as a candidate (signal `S5_lite`) |
 | S3 `lite.s3_pitch` | in one answer, the engine's pitch questions: category of the validated P, steps 1 to 4, roadmap, claims, outcome promises, adhesion | runs the engine's `PitchCompetence` unchanged (list answers cut into its chunks); compliance gate (PB-37 pitch after the yes, PB-35 claims, PB-36 promises), K1 to K7 are the engine's code. Whether the pitch comes after the gap is decided by code from the Gap validation turn, never asked |
 | S4 `lite.s4_objections` | each different resistance once, its subjects and every quote; for the first passage: topic change, acknowledge, isolate, explore, matching gesture, reaction; the prevention facts | see below |
+| S1e `lite.s1_effects` (2026-11-24, GB-7d) | each PAIN atom of the discovery, by id: the difficulty itself or what it costs (and its domain); twice | a PAIN both readings call a consequence becomes an IMPACT for the gap's cost only (`reread_as_cost`; the SPIN score keeps the first typing) |
+| S4d `lite.s4_detect` (2026-11-24, OB-29) | for each prospect turn after the first price (the code's list, by ids, 60 a call): does it hold a doubt or a reserve, its subjects, the prospect's words, whether the doubt was already said; twice, the arbiter tier (`lite.s4_detect_arbiter`) on a turn only one reading lists. S4 then gets the code's list of resistances (`s4_objections_ids`) and reads the sales' response to each by id | the resistances (`detect.group`), each quote checked (a failed one: the turn's own words) |
+| S4r `lite.s4_reactions` (2026-11-24, OB-28) | for each prospect turn after a resistance and before the next one (at most 12): what it does with THIS resistance (holds, no longer holds, commits with a specific element, moves forward, agrees, asks, other) and the prospect's words; twice, the arbiter tier (`lite.s4_reactions_arbiter`) on the episodes whose two readings lead to different levels | the level, the last state winning (`reaction_from_turns`); a latent episode the prospect comes back to |
 
 S4 in code (`objections.py`): a quote must be an exact passage of a PROSPECT or co-decider turn **after the first
 price** (before it: dropped and counted); the nature comes from the subjects with the OB-3 boundary tests
@@ -84,7 +87,10 @@ episode, linked to the first (`recurrence_of`), which takes H5 = 0. A recurrence
 episode: response = the sales turns from its first passage to the topic change (the model's, checked: a SALES turn
 before the next objection), reaction = the prospect turns after the first response (including the next resistance's
 turn when it opens with the reaction). Acknowledge, isolate, explore, gesture, resolution, latency, items H1 to H5, prevention R1 to R3, the 70/30
-combination: the engine's functions, each gesture reading checked by the engine task's validator.
+combination: the engine's functions, each gesture reading checked by the engine task's validator. The reaction level comes from S4r when it gave a valid
+reading of the episode (each turn's quote checked on that turn; a turn outside the list or with a failed quote is
+dropped and counted, `reaction:*`), else from S4's own reaction field (`details.lite.reactions` gives the status of
+each read episode: `agreed`, `arbitrated`, `single_reading`, `to_review`).
 
 Never asked of the model: a score, a level, a verdict, the phase order, whether a component is verbatim.
 
@@ -101,7 +107,7 @@ read by `app/crm/call_analysis_view.js` (checked in a browser with a lite record
 register with the letter chips and the question + answer panel, the gap panel and its four checks, the pitch staircase
 and verbatim, the objections table with A · I · E · M), plus:
 
-- `meta`: `{"engine": "lite", "version": "callqa-lite-1.1", "tier", "effort", "failed_steps", "voices" (SV: lines, relabelled, split, doubtful, control, residual, share_residual, turns before and after), "steps": {SV, SV2, S0..S4:
+- `meta`: `{"engine": "lite", "version": "callqa-lite-1.2", "tier", "effort", "failed_steps", "voices" (SV: lines, relabelled, split, doubtful, control, residual, share_residual, turns before and after), "steps": {SV, SV2, S0..S4:
   {"dropped": n, "reasons": {...}}}}`; 035 keeps `meta.engine`, `meta.engine_version` and `meta.engine_steps` in
   `crm_ca_records.meta`;
 - `concordance: "single_reading"` on every competence; SPIN `solicitations[].status = "single_reading"`, each with its
@@ -116,7 +122,7 @@ and verbatim, the objections table with A · I · E · M), plus:
 0.10 / 0.50 / 0.01 / 0.125, claude-sonnet-5-5 2 / 10 / 0.10 / 2.50 USD per million tokens, input / output / cache read /
 cache write, provider's list of 2026-11-03, to check before relying on a figure; a model without a price row is priced at
 its tier's default model and flagged `unknown_models`). The quality measure (`qa/qa_run.py --mode live`) prints the average
-and maximum cost of an analysis and fails above `--max-cost` (0.08 USD on the average).
+and maximum cost of an analysis and fails above `--max-cost` (0.20 USD on the average since 2026-11-24, Romain; 0.08 before).
 
 ## Cost of the voice check (SV, 2026-11-19)
 

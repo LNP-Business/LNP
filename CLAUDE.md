@@ -250,7 +250,12 @@ marché » dont les niveaux sont les offres de LNP est le premier prix, une erre
 `disguised_price`). Enregistrement coupé (Romain 2026-11-20) : moins de 20 minutes d'enregistrement → appel non analysé
 (`recording_incomplete`, aucun appel au modèle). Pas un appel de vente (Romain 2026-11-23, C1b) : une séance avec une personne déjà
 inscrite (plateforme, modules, suivi) est exclue (`not_sales_call`, preuve citée, avant le premier prix), sans note ni qualification ;
-l'étape de la reformulation est lue deux fois et fusionnée par le code (C4). Référence experte (Romain 2026-11-23,
+l'étape de la reformulation est lue deux fois et fusionnée par le code (C4). Réaction du prospect à une objection (Romain 2026-11-24, OB-28) : lue réplique par
+réplique jusqu'à la résistance suivante, deux fois, l'arbitre sur un désaccord ; le code décide le niveau, le dernier état
+l'emporte (une redite suivie d'un « ok » reste persistante) ; une objection laissée à laquelle le prospect revient n'est
+plus latente. Les résistances elles-mêmes sont repérées réplique par réplique (Romain 2026-11-24, OB-29) : le code
+liste les répliques du prospect après le prix, le modèle dit par identifiant lesquelles expriment un doute, deux fois,
+l'arbitre sur un désaccord ; l'étape des objections lit ensuite la réponse du commercial à chacune. Référence experte (Romain 2026-11-23,
 `call-analysis/docs/OPEN_DECISIONS.md` I) : 8 appels de vente lus en entier (5 de réglage, 3 de contrôle), les cinq objectifs mesurés
 (`call-analysis/qa/README.md`) ; règles tirées de cette lecture : mention de l'offre comptée à la fin de la description (PB-17),
 question du blocage lue P par le code, question ouverte jamais « désir fourni », accueil et exploration par une question ouverte
@@ -307,7 +312,7 @@ parfaite vient du moteur (`formula.perfect`) : les propositions complètes du pr
 suis payée 15 euros » → « tu es payée 15 euros »), jamais les mots repris par le commercial ; une case non dite dit la question
 à poser ; le coût rattaché au blocage (dit dans sa réponse ou juste après, sinon chiffré, sinon le plus récent). Mesure : état
 du blocage et question du blocage dans la référence (`gap.blocker_state`, `gap.stopping_question`).
-Moteur allégé (`call-analysis/lite`, objectif ≤ 0,10 USD par appel ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
+Moteur allégé (`call-analysis/lite`, plafond 0,20 USD par appel en moyenne depuis le 2026-11-24, Romain ; mesuré 0,02 à 0,03 USD, environ 0,04 à 0,05 USD avec
 la vérification des voix) : d'abord la vérification des voix (étape SV, `voices.py`, toujours active, 2026-11-19 : le modèle
 lit les phrases de Fathom et liste celles attribuées à la mauvaise personne, le code vérifie chaque correction et
 reconstruit les répliques ; puis une lecture de contrôle de la transcription réparée, Romain 2026-11-20 : plus de 10 % de
