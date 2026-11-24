@@ -238,3 +238,18 @@ repetition). The resistances found stay at 58 to 61 %: the next lever is the det
 is 0.008 USD; the rest of the rise over the 0.068 USD of 2026-11-23 is the variance of the other steps (the output of the
 thinking), to be measured over more runs. The reaction window length (4 to 12 prospect turns) changes nothing on the
 tuning calls.
+
+## The gap on twelve new calls (2026-11-24, GAP-1.6)
+
+Twelve new first sales calls read by the expert reader for the gap only (three are not sales calls), used as tuning
+calls; the three control calls of the reference stay untouched (C7). Replays of stored analyses:
+
+| Gap elements | Before (GAP-1.5) | After (GAP-1.6) |
+|---|---|---|
+| Twelve new calls (9 with a discovery, 36 elements) | 25 % (9/36) | 56 % (20/36) |
+| Five first tuning calls | 90 % (18/20) | 90 % (18/20) |
+| Control calls, production analyses | 42 % (5/12) | 42 % (5/12) |
+| Control calls, live analyses of 2026-11-24 | 58 % (7/12) | 58 % (7/12) |
+
+The rules found on the new calls do not reach the control calls' errors: 80 % is not reached. What limits it is in
+OPEN_DECISIONS K.

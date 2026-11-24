@@ -52,7 +52,7 @@ DEFAULTS: dict[str, Any] = {
                    "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000,
                    "S4r": 6000, "S4ra": 6000, "S4d": 8000, "S4da": 6000},
 }
-RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.5", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.2"}
+RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.6", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.2"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
                 "nothing said before the first price is an objection (OB-27).")
 DETECT_PRICE = "every prospect turn after the first price; nothing said before it is a resistance, OB-27"

@@ -291,3 +291,22 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   reply (roadmap step 1). Cost of S4r: 0.008 USD per analysis; the full analysis is measured at 0.083 to 0.085 USD,
   above the 0.08 USD limit. **Settled (Romain, 2026-11-24): the limit is 0.20 USD per analysis** (« le plafond peut
   être à 0.20 USD »), for the resistances read reply by reply (OB-29).
+
+## K. The gap elements on new calls (2026-11-24, Romain: « améliore les éléments de l'écart des appels de contrôle »)
+
+- **The control calls stay untouched (C7).** Correcting the rules on their errors would make the measure say nothing
+  about a new call. Instead, twelve new first sales calls were read by the expert reader (gap only, `BRIEF_GAP`):
+  three are not sales calls (one was not caught by C1b: an end-of-programme review followed by an upsell), nine hold a
+  discovery, none a validated restitution.
+- **What the engine did on them before any change: 25 % of the gap elements** (control calls: 42 %). The figures missed
+  bare amounts said in answer to an income question, the cost lexicon found none of the expert's costs and took others'
+  illnesses or a field of work, B took needs for a solution.
+- **Changed (GAP-1.6, GB-28c, GB-29c, GB-7c):** 25 % → 56 % on the twelve new calls, 90 % kept on the five first tuning
+  calls; **the control calls do not move** (42 to 58 % depending on the analysis replayed). Not reached: the 80 % asked.
+- **What limits it, measured:** the model types almost no consequence as IMPACT (it calls them PAIN), so the costs
+  rest on the code's lexicon; several expected elements are in a turn labelled with the wrong speaker; the selection
+  rules of A without a figure. Next lever: the model asked, by id, whether each PAIN it read is the difficulty or what it
+  costs (as for the gates), then a third fresh set of calls to measure without tuning. Analyses stored under GAP-1.5 are
+  to be relaunched (C8). Memo to update: gap.
+- **The reference files** of the twelve calls are private (scratchpad, not in the bucket): adding them to
+  `callqa-fixtures/qa/reference.tar.gz` changes the measure of the workflow; to do on Romain's go.

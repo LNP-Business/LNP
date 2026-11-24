@@ -64,3 +64,24 @@ def test_the_code_costs_join_the_gap_statements_after_the_model_s():
     assert any(o == "cost" and "on profite moins des enfants" in q for o, q in quotes)
     assert all(s.atom_type == "IMPACT" and s.letter == "I" for s in st["COST"])
     assert [c.domain for c in st["_costs"]] == ["health", "family", "family"]
+
+
+# ------------------------------------------------------------------ 2026-11-24: 12 new tuning calls (GB-7c)
+def test_a_cost_is_the_prospect_s_own_not_a_relative_s_illness_nor_a_field_of_work():
+    assert not costs("Je ne peux pas, mon frère est malade et il a tout plaqué.")
+    assert not costs("Elle doit s'occuper d'un proche parent gravement malade.")
+    assert not costs("Mon métier, c'est justement de travailler sur le stress des autres.")
+    assert not costs("Je ne suis pas quelqu'un de stressé, franchement.")
+    assert costs("Je suis épuisée, je dors mal depuis des mois.")
+
+
+def test_common_ways_of_saying_what_the_problem_costs():
+    for text, domain in (("Je perdais mon temps à faire des choses ou revoir des choses.", "time"),
+                         ("J'ai la tête sous l'eau en ce moment.", "time"),
+                         ("Je me suis retrouvé dans une situation financière compliquée.", "money"),
+                         ("Et du coup, ça précarise beaucoup mon activité.", "money"),
+                         ("C'est anxiogène, cette situation, pour moi.", "health"),
+                         ("J'ai l'impression d'avancer à pas de fourmis.", "self_belief")):
+        got = costs(text)
+        assert got and got[0].domain == domain, text
+    assert not costs("J'ai découvert les nouveaux profs la semaine dernière.")              # not an overdraft

@@ -101,11 +101,13 @@ PRESENT = re.compile(r"\b(là je suis|je (?:ne )?suis à|j'en suis à|je (?:ne )
                      r"i'm working|where i'm at)\b")
 TARGET = re.compile(r"\b(j'aimerais|je voudrais|je veux(?= (?!dire)\S)|je souhaite|je souhaiterais|objectif|mon but|minimum|au moins|"
                     r"au minimum|me conviendrait|me permettrait|pour vivre|pour en vivre|idéalement|idealement|"
-                    r"j'ai besoin d|j'ai envie d|viser|atteindre|arriver à|passer à|plus que|i want|i'd like|"
+                    r"j'ai besoin d|j'ai envie d|viser|je vise|l'optimal|l'idéal|l'ideal|je serai(?:s)? bien|pour être tranquille|"
+                    r"il me faudrait|faudrait|atteindre|arriver à|passer à|plus que|i want|i'd like|"
                     r"i would like|my goal|ideally|at least|i need to|get to|reach)")
 PAST = re.compile(r"\b(avant|à l'époque|a l'epoque|il y a \d+ ans|je gagnais|j'avais|j'étais|j'etais|je faisais|"
                   r"used to|i was making|i was at|i made|back then|last year)\b")
 EXPENSE = re.compile(r"\b(je (?:la |le |les |l')?pay(?:e|ais|ait|é|ée)|j'ai payé|je dépense|je dépensais|ça (?:me )?coûte|"
+                     r"j'ai investi|investi|j'ai dépensé|dépensé|"
                      r"coûtait|loyer|i pay|i paid|i spend|it costs? me)\b")
 OFFER = re.compile(r"\b(formation|offre|accompagnement|programme|coaching|mentorat|starter|hybride|pack|tarif|prix|"
                    r"cher|budget|rembours\w*|mensualis\w*|financ\w*|investissement|paiement|program|mentorship|academy|"
@@ -119,12 +121,13 @@ SKIP_AFTER = re.compile(r"^\s?(%|ans\b|years?\b|yrs\b|minutes?\b|min\b|kilom|km\
 # (« je suis à 1893 », « un minimum de 2 000 ») is an amount, with no word for money around it
 BARE_POSITION = re.compile(r"\b(je (?:ne )?suis à|j'en suis à|j'étais à|je tourne à|je tourne autour de|je suis autour de|"
                            r"(?:un |le )?minimum(?: de)?|au moins|je (?:ne )?cherche(?: pas)?|arriver à|atteindre|monter à|"
-                           r"passer à|je vise|i'm at|i am at|at least|a minimum of)\s*(?:environ|à peu près|peut-être|genre|"
+                           r"passer à|je vise|viser(?: les)?|i'm at|i am at|at least|a minimum of)\s*(?:environ|à peu près|peut-être|genre|"
                            r"about|around)?\s*$")
 MONEY_CONTEXT = re.compile(r"\b(net|brut|salaire|revenus?|gagn\w*|chiffre|ca|income|revenue|salary|make|making|earn\w*)\b")
 WISH = re.compile(r"\b(j'aimerais|je voudrais|je veux(?= (?!dire)\S)|je souhaite|je souhaiterais|objectif|mon but|j'ai envie d|"
+                  r"je vise|l'optimal|l'idéal|je serai(?:s)? bien|il me faudrait|"
                   r"j'ai besoin d|me conviendrait|au moins|un minimum de|i want|i'd like|i would like|my goal|i need|i wish)")
-IDIOM = re.compile(r"envie d'en pleurer|envie de pleurer|envie de vomir|envie de tout lâcher|je veux dire\b|"
+IDIOM = re.compile(r"envie d'en pleurer|envie de pleurer|envie de vomir|envie de tout lâcher|je veux dire\b|envie de dire\b|"
                    r"ce que je veux dire|if you want|je veux bien\b|besoin de savoir|besoin de comprendre|"
                    r"besoin d'informations?|veux savoir|voudrais savoir|aimerais savoir|i want to know|"
                    r"i need to know")   # feelings, tics and requests for information, not a target
@@ -271,6 +274,42 @@ def _prompted(ctx: CallContext, turn: Turn, value: Optional[float]) -> bool:
     return False
 
 
+# « 2,100, ça serait l'optimal »: a bare amount the prospect calls their ideal is the income they target
+ZERO_INCOME = re.compile(r"\b(?:sans (?:aucun )?revenus?|aucun revenu|zéro revenu|je ne gagne rien|je gagne zéro|"
+                         r"no income|i (?:don't|do not) earn anything|i make nothing)\b", re.I)
+TARGET_AFTER = re.compile(r"^\W*(?:ça|ca|ce|c') ?(?:serait|sera|est) (?:l'optimal|l'idéal|l'ideal|parfait|top|bien|mon objectif)")
+TARGET_VERB_BEFORE = re.compile(r"\b(?:arriver|passer|monter|aller jusqu'|get) ?à?\s*$")
+PAST_QUESTION = re.compile(r"\b(se passait|c'était|ça faisait|tu gagnais|vous gagniez|tu faisais|vous faisiez|tu avais|"
+                           r"vous aviez|à l'époque|l'année dernière|l'an dernier|how was it|did you make|were you making)\b")
+INCOME_QUESTION = re.compile(r"\b(gagn\w*|revenus?|salaire|chiffre d'affaires|rémunér\w*|euros?|net|brut|"
+                             r"earn\w*|income|salary|revenue|make a month)\b")
+
+
+def _prev_sales(ctx: CallContext, turn: Turn) -> Optional[Turn]:
+    seq = [t for t in ctx.turns if not t.attribution_doubtful]
+    i = next((k for k, t in enumerate(seq) if t.id == turn.id), None)
+    if i is None:
+        return None
+    return next((t for t in reversed(seq[max(0, i - 3):i]) if t.role != PROSPECT), None)
+
+
+def _asked_in_past(ctx: CallContext, turn: Turn) -> bool:
+    """2026-11-24: the sales' question just before is about the past (« Comment ça se passait ? »)."""
+    prev = _prev_sales(ctx, turn)
+    return prev is not None and bool(PAST_QUESTION.search(norm(prev.text)))
+
+
+def _asked_income(ctx: CallContext, turn: Turn) -> bool:
+    """2026-11-24 (12 new tuning calls): a bare amount answers a question on income (« tu voudrais gagner combien ? »
+    → « 2,100, ça serait l'optimal »): the last sales turn before it, within three turns, asks about money."""
+    seq = [t for t in ctx.turns if not t.attribution_doubtful]
+    i = next((k for k, t in enumerate(seq) if t.id == turn.id), None)
+    if i is None:
+        return False
+    prev = next((t for t in reversed(seq[max(0, i - 3):i]) if t.role != PROSPECT), None)
+    return prev is not None and bool(INCOME_QUESTION.search(norm(prev.text)))
+
+
 def prospect_figures(ctx: CallContext, start: Optional[str], end: Optional[str]) -> list[Figure]:
     """Every figure with a unit of the gap in the prospect's turns of [start, end), in transcript order, plus the
     targets without a figure (`value` None, kind `target`). Ages, dates, durations in months or years, percentages
@@ -292,7 +331,8 @@ def prospect_figures(ctx: CallContext, start: Optional[str], end: Optional[str])
             if SKIP_AFTER.match(text[m_end:m_end + 14]):
                 continue
             head = text[max(0, m.start() - 12):m.start()]
-            if CLOCK_BEFORE.search(norm(head) + " ") and TIME == _unit_after(text, m_end)[0]:
+            if CLOCK_BEFORE.search(norm(head) + " ") and TIME == _unit_after(text, m_end)[0] \
+                    and not TARGET_VERB_BEFORE.search(norm(text[max(0, m.start() - 24):m.start()]) + " "):
                 continue
             dim, unit, uend = _unit_after(text, m_end, dollar_before="$" in m.group(0))
             i = next((k for k, (s, e, _) in enumerate(tokens) if s <= m.start() < e), None)
@@ -308,12 +348,16 @@ def prospect_figures(ctx: CallContext, start: Optional[str], end: Optional[str])
                 # a bare number is an income when its words say so (« là je suis à 2000 », « 2K a month »)
                 period = next((p for p, rx in _PERIOD if rx.match(after.lstrip()) and p != "hour"), None)
                 if value >= 100 and (MONEY_CONTEXT.search(before) or MONEY_CONTEXT.search(after[:30]) or period
-                                     or BARE_POSITION.search(before)):
+                                     or BARE_POSITION.search(before) or _asked_income(ctx, turn)
+                                     or TARGET_AFTER.match(after)):
                     dim, unit = MONEY, f"money/{period}" if period else "money"
                 else:
                     continue
             near = norm(text[tokens[max(lo, i - 6)][0]:tokens[i][0]]) if i > lo else ""
             kind, marker = _kind(before, after, near)
+            if kind not in ("target", "past", "expense", "offer") and not PRESENT.search(norm(text)) \
+                    and _asked_in_past(ctx, turn):
+                kind = "past"                       # « Comment ça se passait ? » → « 400-500 par mois »
             # the quote: from the marker (when it opens the clause) to the unit words, or figure to a later marker
             q_lo, q_hi = tokens[i][0], tokens[j][1]
             if marker:
@@ -336,6 +380,13 @@ def prospect_figures(ctx: CallContext, start: Optional[str], end: Optional[str])
                 continue
             seen_spans.append((q_lo, q_hi))
             out.append(Figure(turn.id, quote, value, unit, dim, kind, _prompted(ctx, turn, value), marker))
+        # 2026-11-24: « je suis sans revenu », « je ne gagne rien »: a present income of zero, on the money dimension
+        for zm in ZERO_INCOME.finditer(text):
+            if any(f.turn == turn.id and f.value == 0 for f in out) or NEGATION.search(norm(text[max(0, zm.start() - 12):zm.start()])):
+                continue
+            lo_z = text.rfind(" ", 0, max(0, zm.start() - 20)) + 1
+            quote = text[lo_z:zm.end()].strip(" ,;:.!?")
+            out.append(Figure(turn.id, quote, 0.0, "money", MONEY, "present", _prompted(ctx, turn, 0.0), None))
         # targets without a figure: a clause opened by a wish, up to the end of its sentence (no digits in it)
         for lo, hi in _sentences(tokens):
             clauses = _clauses(text, tokens, lo, hi)

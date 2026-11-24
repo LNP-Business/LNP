@@ -104,6 +104,9 @@ Read in this order for each competence: `0N_<x>_A_scoring.md` (definitions, item
 | GB-7b | The costs listed by the code (lexicon per cost domain, v1.4) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-28 | Selecting A (v1.4: on B's dimension, never an unrelated fact) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-28b | The figures listed by the code (present, target, past, expense, offer) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-28c | Figures and A, twelve new tuning calls (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-29c | B is never a need for a solution (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
+| GB-7c | The prospect's own costs (2026-11-24) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-29 | Selecting B (v1.4: in figures first, N answers first, else the most recent target) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-30 | The blocker and its state (v1.4: named when asked, asked not answered, said unasked, not asked) | `methodology/02_gap_B_bounding_rules.md` |
 | GB-30b | The blockers listed by the code (first-person clauses, v1.4) | `methodology/02_gap_B_bounding_rules.md` |

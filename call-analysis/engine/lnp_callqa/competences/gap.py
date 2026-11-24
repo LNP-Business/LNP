@@ -32,13 +32,14 @@ from ..core.runner import ModelTask, Runner
 from ..core.scoring import call_score, item
 from ..core.blockers import BLOCKER as BLOCKER_WORDS, about_offer, prospect_blockers, stopping_questions as code_stopping_questions
 from ..core.costs import prospect_costs
+from ..core import figures as FG
 from ..core.restate import perfect_formula
 from ..core.figures import dimension as unit_dim, prospect_figures, units_match
 from ..core.text import (GENERIC, STOP, _contains, approval_only, canon, clean_tokens, key_expression_ok, norm,
                          norm_number, quote_ok, sentences)
 
 NAME = "GAP"
-RULES_VERSION = "GAP-1.5"
+RULES_VERSION = "GAP-1.6"
 
 # ------------------------------------------------------------------------------------------- constants
 WEIGHTS = {"G1": 10, "G2": 10, "G3": 10, "G4": 20, "G5": 25, "G6": 25}   # §5.2, proposals "to validate"
@@ -362,6 +363,12 @@ def statements_with_figures(ctx: CallContext, end: Optional[str] = None) -> dict
                 for tw in st[comp]:
                     if tw.turn == f.turn and tw.quantified and tw.value == f.value and (not tw.unit or unit_dim(tw.unit) is None):
                         tw.unit = f.unit
+        if not f.prompted and f.value is not None and f.kind in ("past", "expense", "offer"):
+            # 2026-11-24: the model holds the very figure the code reads as past, an expense or an offer
+            # (« Comment ça se passait ? » → « 400-500 par mois »): it is not where the prospect is now
+            for tw in st["A"]:
+                if tw.turn == f.turn and tw.quantified and tw.value == f.value:
+                    tw.kind = f.kind
         if f.prompted or f.kind not in ("present", "target"):
             continue
         comp = "A" if f.kind == "present" else "B"
@@ -446,6 +453,11 @@ def _figure_first(A: list[Statement]) -> Optional[Statement]:
     return [a for a in q if DIM_RANK.get(unit_dim(a.unit), 9) == best][-1]
 
 
+SOLUTION_NEED = re.compile(r"\b(accompagn\w*|formation|programme|coaching|coach|mentor\w*|méthode|methode|"
+                           r"structur\w*|un cadre|voici comment|savoir comment|comment faire|qu'on m'aide|"
+                           r"(?:être|etre) (?:aidée?|guidée?|accompagnée?)|support|guidance|someone to help)\b")
+
+
 def select_b(inside: list[Statement], outside: list[Statement],
              ordered: Optional[list[Statement]] = None) -> tuple[Optional[Statement], str]:
     """GB-29 (2026-11-20): the most recent target in figures, in an N answer first (`quantified_N`), else anywhere in
@@ -453,6 +465,12 @@ def select_b(inside: list[Statement], outside: list[Statement],
     `outside_N`), the model's atoms and the code's clauses alike."""
     def last(xs):
         return xs[-1] if xs else None
+    # 2026-11-24 (12 new tuning calls): B is where the prospect wants to be, never what he needs from a solution
+    # (« j'ai besoin d'un accompagnement assez forcé », « besoin d'avoir une méthode »): that is the offer's job
+    inside = [b for b in inside if not SOLUTION_NEED.search(norm(b.quote))]
+    outside = [b for b in outside if not SOLUTION_NEED.search(norm(b.quote))]
+    if ordered is not None:
+        ordered = [b for b in ordered if not SOLUTION_NEED.search(norm(b.quote))]
 
     def best(xs):
         # 2026-11-23 (reference reading): the target of the gap is the result the prospect wants, an income before a
@@ -479,6 +497,10 @@ def select_a_b(ctx: CallContext, A: list[Statement], B: list[Statement],
     else none; without B, A is the current figure (money first) or none."""
     def last(xs):
         return xs[-1] if xs else None
+    # 2026-11-24 (12 new tuning calls): A is where the prospect is NOW. A past figure, an expense (« j'ai investi
+    # 6000€ » in a training) or the price of an offer never is, whichever reading (the model's or the code's) holds it
+    A = [a for a in A if a.kind not in ("past", "expense", "offer")
+         and not (a.quantified and FG.EXPENSE.search(norm(a.quote)))]
     sel_b, b_rule = select_b(B, B_out or [], sorted(B + (B_out or []), key=lambda b: _pos(ctx, b.turn, b.quote)))
     Aq = [a for a in A if a.quantified and a.unit]
     if sel_b is None:

@@ -21,14 +21,18 @@ from .text import STOP, clean_tokens, norm
 # French first, then the English twin of each family (the English tests behave as before: nothing matched them).
 LEXICON: dict[str, re.Pattern] = {
     "money": re.compile(r"difficult\w+ financi\w+|galère\w* financi\w*|problèmes? d'argent|problèmes? financi\w+|"
-                        r"dettes?\b|découvert\b|je n'arrive pas à payer|fins? de mois difficile\w*|"
+                        r"dettes?\b|(?:à|un|en|mon) découvert\b|je n'arrive pas à payer|situation financière (?:compliquée|difficile|tendue)|"
+                        r"pertes? de (?:salaire|revenus?)|ça précaris\w*|précarité|(?:obligée? de|je dois) me limiter|"
+                        r"fin de droits?|fins? de mois difficile\w*|"
                         r"dépendante? (?:financièrement )?de|l'aide de (?:ma|mes|mon) (?:mère|parents|père|famille)|"
                         r"argent perdu|perte d'argent|je perds de l'argent|"
                         r"financial (?:trouble|difficult\w+|stress)|in debt|can't pay|i'm broke|depend(?:ent|ing)? on my"),
     "time": re.compile(r"plus (?:le )?temps pour|pas (?:le |de )?temps pour|je n'ai (?:plus|pas) (?:le |de )?temps|"
                        r"mes (?:soirées|week-ends|weekends|dimanches) (?:y passent|sont pris|sacrifi\w+)|"
                        r"je cours (?:partout|à droite et à gauche|à droite à gauche)|journées? à rallonge|"
-                       r"je passe des journées|no time for|my evenings|my weekends"),
+                       r"je passe des journées|je perd(?:s|ais|ais) (?:mon|du|beaucoup de|un temps)|perte de temps|temps perdu|"
+                       r"heures? (?:que je perdais|perdues?)|ça (?:me )?monopolise|monopolisée?|la tête sous l'eau|"
+                       r"no time for|my evenings|my weekends"),
     "clients": re.compile(r"je perds (?:des|mes) (?:élèves|clients|étudiants)|j'ai perdu (?:des|mes|deux|trois) (?:élèves|clients)|"
                           r"losing (?:clients|students)|lost (?:clients|students)"),
     "family": re.compile(r"profite moins (?:de|des|de mes) enfants|on profite moins|moins (?:de temps|du temps) (?:avec|pour) (?:mes|les) enfants|"
@@ -37,15 +41,26 @@ LEXICON: dict[str, re.Pattern] = {
                          r"(?:don't|barely|hardly) see my (?:kids|children|family)|my (?:kids|children) (?:suffer|pay for it)"),
     "health": re.compile(r"\bfatigu\w*|épuis\w+|crevée?s?\b|\bstress\w*|burn-?out|craquage|je dors mal|insomnies?|"
                          r"\bmalade\b|envie d'en pleurer|envie de pleurer|je pleure|déprim\w+|dépression|angoiss\w+|"
+                         r"anxiogène|ça me rend (?:très )?triste|c'est (?:vraiment |très |trop )?dur\b|"
                          r"exhaust\w+|\btired\b|stressed|burnt? out|i cry|anxious|depress\w+"),
     "self_belief": re.compile(r"je me sens (?:vraiment |un peu |très )?(?:nulle?|exploitée?|inutile|mal|dévaloris\w+|incapable|"
                               r"coupable|seule?|perdue?|bloquée?)|me sentir (?:exploitée?|nulle?|inutile)|"
                               r"(?:plus|pas) (?:de )?confiance en moi|je doute de moi|j'ai honte|je culpabilise|"
-                              r"ça me pèse|ça me ronge|ça me mine|ça me bouffe|découragée?|démotivée?|"
+                              r"ça me pèse|ça me ronge|ça me mine|ça me bouffe|découragée?|démotivée?|ça me manque|"
+                              r"je ne me sens (?:pas|plus) (?:comme|à la hauteur|légitime|capable)|je stagne|je tourne en rond|"
+                              r"(?:j'avance|avancer) à pas de fourmis?|je n'avance pas|"
                               r"i feel (?:like a fraud|worthless|useless|stuck|guilty|exploited)|no confidence|"
                               r"doubt myself|ashamed|it eats (?:at )?me"),
 }
 NEGATION = re.compile(r"\b(?:pas|jamais|plus|not|never|n't|no)\s*$")
+NEGATION_NEAR = re.compile(r"\b(?:pas|jamais|not|never|n't)\b(?:\s+\S+){1,3}\s*$")   # « je ne suis pas quelqu'un de stressé »
+# 2026-11-24 (12 new tuning calls): the cost is the prospect's own. A health word about someone else (« mon frère est
+# malade », « un proche parent gravement malade ») or a health word used as the name of a field (« le stress des autres »,
+# « formée en stress ») is not a cost of the prospect
+THIRD_PARTY = re.compile(r"\b(?:mon|ma|mes|son|sa|ses|leur|leurs|un|une) (?:\S+ )?(?:frère|frere|sœur|soeur|mère|mere|père|pere|"
+                         r"mari|femme|conjoint\w*|enfants?|fils|fille|parents?|proches?|copine|copain|amie?s?|collègues?)\b|"
+                         r"\b(?:il|elle|ils|elles) (?:est|sont|était|étaient|a|ont)\b")
+FIELD = re.compile(r"(?:sur|en|du|gestion du|spécialisée? en|formée? en) stress\b|stress (?:des autres|psychosocial\w*)")
 HYPOTHESIS = re.compile(r"\b(?:si|if)(?:\s+\S+){0,3}\s*$")        # « si je me donne pas les moyens »: a hypothesis
 # a clause whose subject is the sales (« tu sais te valoriser »), not « je t'en parle »
 SECOND_PERSON = re.compile(r"^\s*(?:tu|vous|you)\b|\b(?:tu|vous) (?:es|as|sais|vois|vas|dis|dites|êtes|avez|allez|fais|"
@@ -121,7 +136,10 @@ def prospect_costs(ctx: CallContext, start, end) -> list[Cost]:
                     around = " ".join(nwords[max(0, nb - 8): nb + n_marker + 8])
                     before = " ".join(nwords[max(0, nb - 8): nb])
                     if SECOND_PERSON.search(around) or REPORTED.search(before) or NEGATION.search(before + " ") \
-                            or HYPOTHESIS.search(before):
+                            or HYPOTHESIS.search(before) or NEGATION_NEAR.search(before + " ") \
+                            or (domain == "health" and THIRD_PARTY.search(" ".join(nwords[max(0, nb - 6): nb]))):
+                        continue
+                    if domain == "health" and FIELD.search(around):                # « le stress des autres »: a field
                         continue
                     lo, hi = max(0, nb - WORDS_BEFORE), min(len(words), nb + n_marker + WORDS_AFTER)
                     subj = [i for i in range(lo, nb) if re.match(r"^(?:je|j'|j'ai|on|ça|c'est|il)$", nwords[i].split("'")[0] + ("'" if "'" in nwords[i] else ""))]

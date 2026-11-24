@@ -225,3 +225,37 @@ def test_the_code_s_present_figure_is_not_sent_to_the_past_check():
     assert "gap.a_current" not in asked
     assert d["selected_A"]["quote"].endswith("1000€ en net de CA") and d["selected_A"]["unit"] == "EUR"
     assert d["selected_B"]["quote"].startswith("j'aimerais bien tenir ça dans la distance")
+
+
+# ------------------------------------------------------------------ 2026-11-24: 12 new tuning calls (GB-28c, GB-29c)
+def test_a_bare_amount_after_an_income_question_or_called_ideal_is_a_money_target():
+    f = one("Donc, 2,100, ça serait l'optimal.", "target", before="Je monte à minimum 1,500.")
+    assert (f.value, F.dimension(f.unit)) == (2100.0, "money")
+    f = one("Je dirais 3 000, à peu près.", before="Et tu voudrais gagner combien par mois ?")
+    assert (f.value, F.dimension(f.unit)) == (3000.0, "money")
+    assert not figs("Je dirais 3 000, à peu près.", before="Tu as combien d'abonnés ?")        # no income asked
+    f = one("Moi, je vise le double, l'idée c'est de viser les 5 000 pour être tranquille.", "target")
+    assert f.value == 5000.0
+
+
+def test_a_target_in_hours_is_not_a_clock_time_and_an_answer_to_a_past_question_is_past():
+    f = one("On pourrait arriver à 15-16 heures dans la semaine.", "target")
+    assert (f.value, F.dimension(f.unit)) == (15.0, "time")
+    assert one("400-500 par mois, à peu près.", before="Et ça faisait combien, comment ça se passait ?").kind == "past"
+    assert one("Je suis à 400-500 par mois.", before="Comment ça se passait ?").kind == "present"   # its own tense
+
+
+def test_no_income_is_a_present_figure_of_zero_and_envie_de_dire_is_no_wish():
+    f = one("Là, je suis sans revenu depuis quelques temps maintenant.", "present")
+    assert (f.value, F.dimension(f.unit)) == (0.0, "money")
+    assert not [x for x in figs("J'ai envie de dire que je le gère de mon côté, en fait.") if x.kind == "target"]
+
+
+def test_a_is_never_an_expense_and_b_is_never_a_need_for_a_solution():
+    ctx = ctx_of([("S", "Où en es-tu ?"), ("P", "J'ai investi 6000€ dans une formation."), ("S", "Et tu veux quoi ?"),
+                  ("P", "J'ai besoin d'un accompagnement assez proche. Je voudrais en vivre.")])
+    spent = statement("A", "A1", "J'ai investi 6000€", "T002", "S", quantified=True, value=6000.0, unit="EUR")
+    need = statement("B", "B1", "J'ai besoin d'un accompagnement assez proche", "T004", "N")
+    live = statement("B", "B2", "Je voudrais en vivre", "T004", "N")
+    sa, sb, _ = g.select_a_b(ctx, [spent], [need, live])
+    assert sa is None and sb is live

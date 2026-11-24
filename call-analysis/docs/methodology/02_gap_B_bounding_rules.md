@@ -133,6 +133,26 @@ These rules select, from the prospect's quotes, the A, B and P that the restitut
 
 **GB-28b, GB-29 · Reference reading of 2026-11-23.** A number of 100 or more with no unit, right after the words that place the prospect on a scale (« je suis à 1893 », « un minimum de 2 000 », « au moins », « je vise »), is an amount. A figure the model also holds gives its unit to the model's atom when the model's unit names no dimension, whatever the kind of the figure. Among the quantified targets, B is an income before a number of students before a time (« 3 000 euros » before « 20-21 heures » of lessons a week), the most recent on that dimension: the target of the gap is the result the prospect wants.
 
+**GB-28c, GB-29c, GB-7c · Twelve new tuning calls** (version 1.6, 2026-11-24; Romain: « améliore les éléments de l'écart des
+appels de contrôle »). The control calls stay untouched (C7): twelve new first sales calls were read by the expert reader
+(gap only; three are not sales calls) and the rules corrected on them. The figures (GB-28c): a number of 100 or more
+with no unit is an amount when the sales turn just before asks about money (« tu voudrais gagner combien ? », a salary, an
+income, euros) or when the prospect calls it their ideal (« 2,100, ça serait l'optimal »); « je vise », « viser les »,
+« l'optimal », « l'idéal », « je serai bien », « pour être tranquille », « il me faudrait » mark a target; « arriver à 15-16
+heures » is a target in hours, not a clock time; a figure with no tense of its own that answers a question in the past
+(« Comment ça se passait ? » → « 400-500 par mois ») is `past`, and the model's atom holding the same figure takes that kind;
+« je suis sans revenu », « je ne gagne rien » are a present income of zero; « j'ai envie de dire » is a tic, not a wish;
+« j'ai investi 6000€ » is an expense. A (GB-28c): never a past figure, an expense or an offer, whoever read it. B (GB-29c):
+never a need for a solution (« j'ai besoin d'un accompagnement assez forcé », « besoin d'avoir une méthode »): that is
+what the offer answers, not where the prospect wants to be. The costs (GB-7c): an illness of someone else (« mon frère est
+malade », « un proche parent gravement malade ») or a health word naming a field of work (« le stress des autres »,
+« formée en stress ») is not the prospect's cost; a negation a few words before (« je ne suis pas quelqu'un de stressé »)
+removes it; « découvert » counts only as an overdraft (« à découvert »); common ways of saying a cost join the lexicon
+(« je perdais mon temps », « la tête sous l'eau », « ça monopolise », « situation financière compliquée », « perte de
+salaire », « ça précarise », « anxiogène », « c'est vraiment dur », « ça me manque », « je stagne », « avancer à pas de
+fourmis »). Measured (`qa/README.md`): gap elements on the twelve new calls 25 % → 56 %; the five first tuning calls stay
+at 90 %; the control calls do not move (42 to 58 % depending on the analysis replayed).
+
 **GB-30 · The blocker and its state** (version 1.4, 2026-11-21). « Ce qui te bloque » can be wrong for two reasons that must be told apart: the analysis missed what the prospect said, or the prospect never said it because the sales never asked. So the code first decides the **state** of the blocker, over the whole discovery window (a question asked after an early restitution counts), from two things it reads itself: the sales' **stopping questions** (« qu'est-ce qui t'a empêché… », « qu'est-ce qui t'a bloqué jusqu'ici ? », « pourquoi tu ne l'as jamais fait ? », « qu'est-ce qui te manque pour que ça marche ? »; the list is the code's, tolerant to the « n' » the recorder drops; the model is asked only about the P questions the list did not match) with their answer turns, and the prospect's **blocker statements**: the model's PAIN and BLOCKER atoms, whatever the letter of the question they answer, and the blocker clauses the code lists (GB-30b).
 
 | State | When | Selected P | Shown as |
