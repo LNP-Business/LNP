@@ -153,6 +153,13 @@ salaire », « ça précarise », « anxiogène », « c'est vraiment dur », «
 fourmis »). Measured (`qa/README.md`): gap elements on the twelve new calls 25 % → 56 %; the five first tuning calls stay
 at 90 %; the control calls do not move (42 to 58 % depending on the analysis replayed).
 
+**GB-7d · The difficulty or what it costs** (version 1.6, 2026-11-24). The model types almost no consequence as an IMPACT
+atom: it calls « je perdais trois heures », « une situation anxiogène » or « je ne me sens plus musicien » a PAIN, and the
+cost then rests on the lexicon of GB-7b alone. After the discovery is scored (its items keep the model's first typing),
+each PAIN atom is read again by its id with one closed question, the difficulty itself or what it costs the prospect in
+another part of their life (money, time, family, health, self-belief, clients), twice (Part C, C4); when both readings
+say it is a consequence, it becomes a cost of that domain for the gap, and only a cost: never A, never the problem.
+
 **GB-30 · The blocker and its state** (version 1.4, 2026-11-21). « Ce qui te bloque » can be wrong for two reasons that must be told apart: the analysis missed what the prospect said, or the prospect never said it because the sales never asked. So the code first decides the **state** of the blocker, over the whole discovery window (a question asked after an early restitution counts), from two things it reads itself: the sales' **stopping questions** (« qu'est-ce qui t'a empêché… », « qu'est-ce qui t'a bloqué jusqu'ici ? », « pourquoi tu ne l'as jamais fait ? », « qu'est-ce qui te manque pour que ça marche ? »; the list is the code's, tolerant to the « n' » the recorder drops; the model is asked only about the P questions the list did not match) with their answer turns, and the prospect's **blocker statements**: the model's PAIN and BLOCKER atoms, whatever the letter of the question they answer, and the blocker clauses the code lists (GB-30b).
 
 | State | When | Selected P | Shown as |

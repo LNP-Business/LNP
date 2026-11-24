@@ -310,3 +310,9 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   to be relaunched (C8). Memo to update: gap.
 - **The reference files** of the twelve calls are private (scratchpad, not in the bucket): adding them to
   `callqa-fixtures/qa/reference.tar.gz` changes the measure of the workflow; to do on Romain's go.
+- **Decided 2026-11-24 (Romain: « je te laisse décider et arbitrer »).** Kept: GB-7d, each PAIN read again as the
+  difficulty or what it costs (S1e, about 0.003 USD a call): one more cost shown on the nine new calls, nothing lost.
+  Added to the measure: `gap.components_shown`, strict, the element the perfect restitution shows the sales; the older
+  `gap.components` counts an element right when any collected passage matches and overstates what the sales sees
+  (control calls: 42 % lenient, 33 % strict; nine new calls: 56 % lenient, 39 % strict; five first tuning calls: 90 %
+  lenient, 70 % strict). Measure a change on both. Weakest on new calls, strict: A (2/9) and the problem (2/9).

@@ -253,3 +253,8 @@ calls; the three control calls of the reference stay untouched (C7). Replays of 
 
 The rules found on the new calls do not reach the control calls' errors: 80 % is not reached. What limits it is in
 OPEN_DECISIONS K.
+
+**Strict measure (2026-11-24).** `gap.components_shown` counts the element the perfect restitution shows the sales (its
+slot), against the expert's accepted quotes; `gap.components` counts an element right when any passage the analysis
+collected matches. With GB-7d (S1e): nine new calls 39 % strict (14/36: A 2, B 5, problem 2, cost 5 of 9), five first
+tuning calls 70 % (14/20), control calls 33 % (4/12, production analyses).

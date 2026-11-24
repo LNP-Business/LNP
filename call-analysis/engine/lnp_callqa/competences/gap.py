@@ -329,6 +329,8 @@ def statements_from_atoms(ctx: CallContext, end: Optional[str] = None) -> dict[s
         for comp, types in COMP_TYPES.items():
             if a.type not in types:
                 continue
+            if comp != "COST" and getattr(a, "reread_as_cost", False):
+                continue                # GB-7d: a difficulty read again as what it costs is a cost, never A or P
             if comp == "COST" and (a.domain or "").lower() not in COST_DOMAINS and a.domain is not None:
                 continue
             out[comp].append(Statement(comp, a.id, ev.quote, ev.turn, a.letter, a.solicitation_id, a.object,

@@ -863,3 +863,36 @@ def test_ob29_no_resistance_listed_still_reads_the_prevention():
     o = rec["results"]["OBJECTIONS"]
     assert o["details"]["episodes"] == [] and o["details"]["prevention_status"] == "scored"
     assert "(none: no resistance was listed" in next(c for c in client.calls if c["task"] == "lite.s4_objections")["prompt"]
+
+
+# ---------------------------------------------------------------- the difficulty or what it costs (GB-7d, 2026-11-24)
+def test_gb7d_a_difficulty_both_readings_call_a_consequence_becomes_a_cost_for_the_gap_only():
+    from callqa_lite.engine import DEFAULTS, run_effects
+    from callqa_lite.shim import Drops
+    from callqa_lite.steps import Steps
+    from lnp_callqa.competences import gap as G
+    from lnp_callqa.core.models import Atom, Evidence
+
+    def ctx_with_pains():
+        ctx = sc.context()
+        ctx.atoms = [Atom("A1", "PAIN", Evidence("I'm exhausted from working nights", "T010", "PROSPECT")),
+                     Atom("A2", "PAIN", Evidence("I don't know where clients will come from", "T008", "PROSPECT"))]
+        return ctx
+    both = {"units": [{"id": "E1", "role": "consequence", "domain": "health"}, {"id": "E2", "role": "difficulty"}]}
+    ctx = ctx_with_pains()
+    out = run_effects(ctx, Steps(MockLiteClient({"lite.s1_effects": both}), ctx), DEFAULTS, Drops())
+    assert out == {"read": 2, "consequences": 1}
+    a1, a2 = ctx.atoms
+    assert (a1.type, a1.domain, a1.reread_as_cost) == ("IMPACT", "health", True) and a2.type == "PAIN"
+    st = G.statements_from_atoms(ctx)
+    assert [s.quote for s in st["COST"]] == ["I'm exhausted from working nights"]
+    assert not [s for s in st["A"] if s.quote.startswith("I'm exhausted")]               # never A, never P
+    assert not [s for s in st["PROBLEM"] if s.quote.startswith("I'm exhausted")]
+    one = {"units": [{"id": "E1", "role": "difficulty"}]}                                   # the readings disagree
+    ctx = ctx_with_pains()
+    run_effects(ctx, Steps(MockLiteClient({"lite.s1_effects": [both, one]}), ctx), DEFAULTS, Drops())
+    assert ctx.atoms[0].type == "PAIN"
+    ctx = ctx_with_pains()                                                                   # a reading failed: unchanged
+    out = run_effects(ctx, Steps(MockLiteClient({"lite.s1_effects": [both, "not json", "still not"]}), ctx), DEFAULTS,
+                      Drops())
+    assert ctx.atoms[0].type == "PAIN" and out["consequences"] == 0

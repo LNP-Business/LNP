@@ -62,7 +62,9 @@ turns after the resistance and before the next one, each read on what it does wi
 on a disagreement; the code decides the level, the last state winning (`objections.reaction_from_turns`). The resistances
 themselves are read reply by reply too (2026-11-24, OB-29, step S4d, `lite/callqa_lite/detect.py`): the code lists the
 prospect turns after the price, the model answers by id which hold a doubt, twice, the arbiter on a disagreement; the
-objections step then reads the sales' response to each listed resistance by id. Expert reference (2026-11-23, OPEN_DECISIONS I): 8 sales calls read whole, 5 tuning and 3
+objections step then reads the sales' response to each listed resistance by id. Each PAIN of the discovery is read again by id (2026-11-24,
+GB-7d, step S1e): the difficulty itself or what it costs; a consequence both readings agree on is a cost for the gap
+only. The measure has a strict gap score, the element the perfect restitution shows (`gap.components_shown`). Expert reference (2026-11-23, OPEN_DECISIONS I): 8 sales calls read whole, 5 tuning and 3
 control, every objective measured (`qa/README.md`); never tune a rule on the control calls.
 
 ## The prospect's figures (GAP-1.4, 2026-11-20)

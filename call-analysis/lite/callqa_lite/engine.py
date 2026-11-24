@@ -44,13 +44,14 @@ DEFAULTS: dict[str, Any] = {
     "detect_passes": 2,             # S4d: the resistances listed reply by reply, twice; a disagreement to the arbiter (OB-29)
     "detect_batch": 60,             # S4d: listed prospect turns per call
     "detect_arbiter_batch": 20,
+    "effects_passes": 2,            # S1e: each PAIN read again, difficulty or consequence, twice (GB-7d, 2026-11-24)
     "reaction_passes": 2,           # S4r: the reaction read reply by reply, twice; a disagreement goes to the arbiter (OB-28)
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
     "max_tokens": {"SV": 8000, "S0": 12000,      # S0 6000 → 12000 (2026-11-20): an R2 of the reference set was cut twice
                    "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000,
-                   "S4r": 6000, "S4ra": 6000, "S4d": 8000, "S4da": 6000},
+                   "S4r": 6000, "S4ra": 6000, "S4d": 8000, "S4da": 6000, "S1e": 6000},
 }
 RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.6", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.2"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
@@ -443,6 +444,10 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             return res
         ctx.results["SPIN"] = _safe(ctx, "SPIN", spin)
 
+    # S1e · the difficulty or what it costs (GB-7d): after the SPIN score, for the gap only
+    if not skip and "engine_error" not in ctx.results["SPIN"].reasons:
+        meta["effects"] = run_effects(ctx, steps, cfg, drops)
+
     # S2 · gap (needs the discovery facts)
     if skip:
         pass
@@ -525,6 +530,48 @@ def _count(xs) -> dict:
     for x in xs:
         out[x] = out.get(x, 0) + 1
     return out
+
+
+EFFECT_DOMAINS = ("money", "time", "family", "health", "self_belief", "clients")
+
+
+def run_effects(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops) -> dict:
+    """S1e (GB-7d, 2026-11-24). The model types almost no consequence as IMPACT: it calls « je perdais trois heures »,
+    « une situation anxiogène » or « je ne me sens plus musicien » PAIN, so the gap's cost rested on the code's lexicon
+    alone. Each PAIN atom of the discovery is read again by id, twice (the second reading in reverse order): when both
+    readings say it is what the difficulty costs, the atom becomes an IMPACT of that domain. Runs after the SPIN score
+    (which keeps the model's first typing): only the gap's components read it. One valid reading only: unchanged (a
+    consequence needs both readings, Part C, C4)."""
+    pains = [a for a in ctx.atoms if a.type == "PAIN" and a.evidence and not a.prompted_by_sales]
+    if not pains:
+        return {"read": 0, "consequences": 0}
+    passes = max(1, int(cfg.get("effects_passes") or 1))
+    ids = {f"E{k}": a for k, a in enumerate(pains, 1)}
+    readings = []
+    for p in range(passes):
+        order = list(ids.items()) if p % 2 == 0 else list(reversed(ids.items()))
+        text = "\n".join(f'{i} · {a.evidence.turn} « {a.evidence.quote} »' for i, a in order)
+        ans = steps.ask("lite.s1_effects", "effects" + (f":p{p + 1}" if p else ""), fill(load("s1_effects"), units=text),
+                        cfg["max_tokens"]["S1e"])
+        if ans.answer is None:
+            drops.add("S1", "effects:reading_failed")
+            continue
+        got = {}
+        for u in ans.answer.get("units") or []:
+            if isinstance(u, dict) and u.get("id") in ids and u.get("role") in ("difficulty", "consequence", "other"):
+                got[u["id"]] = u
+        readings.append(got)
+    if len(readings) < passes:
+        return {"read": len(pains), "consequences": 0, "reason": "a reading failed"}
+    n = 0
+    for i, a in ids.items():
+        rs = [r.get(i) for r in readings]
+        if all(r and r["role"] == "consequence" for r in rs):
+            dom = next((r.get("domain") for r in rs if r.get("domain") in EFFECT_DOMAINS), None)
+            a.type, a.domain = "IMPACT", dom or a.domain
+            a.reread_as_cost = True             # the gap reads it as a cost only (never A, never P)
+            n += 1
+    return {"read": len(pains), "consequences": n}
 
 
 REACTION_ARBITER_PREFIX = "Each episode below carries its own turns (the resistance, the sales response, the prospect's replies)."

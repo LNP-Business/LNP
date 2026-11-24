@@ -188,6 +188,14 @@ def gap(ref: dict, rec: dict) -> dict:
             if not ok:
                 out["errors"].append({"kind": f"gap_component:{k}", "expected": q, "found": got[:3] or None})
         out["components"] = _pair(right, len(comps))
+        # 2026-11-24: strict, the element the perfect restitution SHOWS the sales (its slot), not any element collected
+        slots = ((det.get("formula") or {}).get("perfect") or {}).get("slots") or {}
+        shown = 0
+        for k, q in comps.items():
+            got = (slots.get({"PROBLEM": "P"}.get(k, k)) or {}).get("quote")
+            shown += any((not got) if x is None else bool(got) and same_words(x, got, 0.5)
+                         for x in (q if isinstance(q, list) else [q]))
+        out["components_shown"] = _pair(shown, len(comps))
     return out
 
 
@@ -323,7 +331,7 @@ def total(measures: list[dict]) -> dict:
     """The measures of several calls added up, as shares."""
     keys = [("status", "status"), ("status", "score"), ("phases", "anchors"), ("spin", "questions_found"),
             ("spin", "questions_to_review"), ("spin", "letters"), ("spin", "registers"), ("spin", "atoms_found"), ("spin", "atom_types"),
-            ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("gap", "blocker_state"),
+            ("gap", "verdict"), ("gap", "absence_reason"), ("gap", "components"), ("gap", "components_shown"), ("gap", "blocker_state"),
             ("gap", "stopping_question"), ("pitch", "verdict"),
             ("objections", "found"), ("objections", "nature"), ("objections", "gestures"), ("objections", "reaction"),
             ("spin", "questions_extra_n"), ("objections", "extra_n")]
