@@ -130,6 +130,20 @@ being latent when the prospect comes back to the resistance with content before 
 turn with their words): they reacted after all; a bare « ok » changes nothing. The reading is done twice; when the two
 readings lead to different levels, the arbiter reads the episode's turns again (Part C, C4).
 
+**OB-29 · The resistances, read reply by reply.** (Romain, 2026-11-24: « go pour le 1 ».) The code lists every PROSPECT
+(or co-decider) turn of the window (after the first price, OB-27; the whole call once the price was given in an earlier
+call of the cycle, C9). For each listed turn, one closed question: does the prospect express, in this turn, a doubt or a
+reserve about going ahead (OB-1, OB-3), and what about (the subjects of OB-3, the denied ones of OB-24)? A turn with two
+different doubts is answered twice (OB-4); a doubt already said and said again is marked as such (`new` false). The
+reading is done twice; a turn both readings list is kept, a turn only one lists is read again by the arbiter with its
+context (Part C, C4). The prospect's words of the doubt are checked; a missing or failed quote is replaced by the turn's
+own words (Part C, C3 rule 8: a listed unit is answered by its id). The code groups the turns into resistances: a doubt
+said again (`new` false) of the same theme as the resistance just before joins it; any other turn opens one (the same
+doubt after another resistance is its own resistance: OB-11 then tells a repetition inside the first episode from a
+recurrence). The objections step then reads, by id, the sales' response to each listed resistance (OB-8 to OB-22), and
+may set a listed passage aside as not a resistance (OB-2). When the reply-by-reply reading gives nothing valid, the
+objections step finds the resistances itself, as before.
+
 ## A5. Exclusion rules (summary)
 
 | # | Never counts as… | Case |

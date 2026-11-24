@@ -253,7 +253,9 @@ inscrite (plateforme, modules, suivi) est exclue (`not_sales_call`, preuve cité
 l'étape de la reformulation est lue deux fois et fusionnée par le code (C4). Réaction du prospect à une objection (Romain 2026-11-24, OB-28) : lue réplique par
 réplique jusqu'à la résistance suivante, deux fois, l'arbitre sur un désaccord ; le code décide le niveau, le dernier état
 l'emporte (une redite suivie d'un « ok » reste persistante) ; une objection laissée à laquelle le prospect revient n'est
-plus latente. Référence experte (Romain 2026-11-23,
+plus latente. Les résistances elles-mêmes sont repérées réplique par réplique (Romain 2026-11-24, OB-29) : le code
+liste les répliques du prospect après le prix, le modèle dit par identifiant lesquelles expriment un doute, deux fois,
+l'arbitre sur un désaccord ; l'étape des objections lit ensuite la réponse du commercial à chacune. Référence experte (Romain 2026-11-23,
 `call-analysis/docs/OPEN_DECISIONS.md` I) : 8 appels de vente lus en entier (5 de réglage, 3 de contrôle), les cinq objectifs mesurés
 (`call-analysis/qa/README.md`) ; règles tirées de cette lecture : mention de l'offre comptée à la fin de la description (PB-17),
 question du blocage lue P par le code, question ouverte jamais « désir fourni », accueil et exploration par une question ouverte
