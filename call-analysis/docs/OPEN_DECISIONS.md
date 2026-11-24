@@ -328,3 +328,11 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   as an objection: a phases rule, PB-3), and one money doubt coming back many times read as as many recurrences (23
   recurrences of 48 episodes; the expert holds 2). Both are next levers, to set on tuning calls only (the second control
   was looked at by category to explain it: a new control set will be needed to measure them).
+- **Tried and withdrawn (2026-11-24): every prospect sentence of the discovery labelled A, B, problem or cost by the
+  model (two readings, kept when both agree) and added to the gap's candidates.** On the tuning calls the lenient measure
+  rose (56 % → 64 %) but the element SHOWN fell (36 % → 31 %): the model labels many sentences (20 « problems » and 11
+  « costs » in one call) and the code's choice among them (the cost nearest the blocker, else the most recent) picks
+  another one than the expert. Preferring the confirmed costs changed nothing. Lesson: the bottleneck of the gap on a
+  new call is the choice among candidates, not finding them. Next idea, not built: the model chooses by id, among the
+  code's candidates, the one the method defines (the cost of THIS blocker, the target of THIS prospect), the code
+  checking the quote.
