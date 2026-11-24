@@ -589,7 +589,8 @@ def _reaction_ctx():
                   (SALES, "En quatre fois, tu paies 750 par mois."),
                   (PROSPECT, "D'accord."),
                   (SALES, "Et en quatre fois, ça te va ?"),
-                  (PROSPECT, "Ok, à 750 par mois je peux le faire, on part là-dessus.")], first_price="T001")
+                  (PROSPECT, "Ok, à 750 par mois je peux le faire, on part là-dessus. En quatre fois, ça me va.")],
+                 first_price="T001")
 
 
 def test_ob28_the_code_decides_the_level_from_the_turns_in_their_order():
@@ -603,8 +604,11 @@ def test_ob28_the_code_decides_the_level_from_the_turns_in_their_order():
     no_detail = dict(commits, specific=None)
     assert O.reaction_from_turns(ctx, {"T008": no_detail})[0] == "acknowledged"               # OB-23: no element
     lvl, ev, prompted = O.reaction_from_turns(ctx, {"T008": {"kind": "no_longer_holds", "prompted": True,
+                                                            "quote": "en quatre fois, ça me va"}})
+    assert (lvl, prompted) == ("acknowledged", True)                     # OB-17: the sales' words of T007, echoed
+    lvl, ev, prompted = O.reaction_from_turns(ctx, {"T008": {"kind": "no_longer_holds", "prompted": True,
                                                             "quote": "je peux le faire"}})
-    assert (lvl, prompted) == ("acknowledged", True)                                          # OB-17
+    assert (lvl, prompted) == ("resolved", False)                        # her own words: not « first stated by the sales »
     assert O.reaction_from_turns(ctx, {"T006": {"kind": "no_longer_holds", "quote": "D'accord"}})[0] == \
         "acknowledged"                                                                        # X3: approval only
 

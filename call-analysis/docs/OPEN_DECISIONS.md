@@ -283,3 +283,10 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   the prospect comes back to it with content before the next resistance (the expert reading of the reference does so).
   The reference (full) engine still reads the reaction in one question per episode (`obj.resolution`): the decision
   function `reaction_from_turns` is in the engine, its wiring there is not done. Memo to update: objections.
+- **OB-17 by the code.** The model marks almost every resolution « first stated by the sales »; the code keeps that flag
+  only when the prospect's words echo the sales' last turn (`echoes_sales`: every content word of the quote is in it).
+- **Measured (`qa/README.md`).** The reaction goes from 47 % to 50 to 56 % over three live readings (control calls 50 % →
+  67 to 83 %), not 75 %. The rest comes from episodes that do not line up with the reference (detection and bounding of
+  the resistances, voice labels in merged turns), not from the reading. Next lever: the resistances detected reply by
+  reply (roadmap step 1). Cost of S4r: 0.008 USD per analysis; the full analysis is measured at 0.083 to 0.085 USD,
+  above the 0.08 USD limit: raising the limit (0.09 USD) or a cheaper step elsewhere is Romain's call.

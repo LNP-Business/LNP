@@ -122,7 +122,9 @@ each turn, one closed question: what does this turn do with THIS resistance?
 The code decides the level, in the order of the call, the last state winning: a `holds` with no settling turn after
 it → **persisting** (an « ok » after it settles nothing); a settling turn after the last `holds` → **resolved** when it
 is `no_longer_holds`, `moves_forward` or `commits` with its specific element, in the prospect's words, not first stated
-by the sales and not an approval only; otherwise **acknowledged** (OB-17, X3); no settling turn and at least one
+by the sales and not an approval only; otherwise **acknowledged** (OB-17, X3: a resolution counts as first stated by
+the sales only when the prospect's words echo the sales' last turn, every content word of the quote being in it,
+checked by the code); no settling turn and at least one
 `agrees` → **acknowledged**; no turn about the resistance → **latent**. An episode latent by OB-10 or OB-22 stops
 being latent when the prospect comes back to the resistance with content before the next one (`holds`, or a settling
 turn with their words): they reacted after all; a bare « ok » changes nothing. The reading is done twice; when the two

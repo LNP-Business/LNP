@@ -712,9 +712,13 @@ def test_ob28_no_reply_about_the_resistance_is_latent_and_a_plain_ok_is_acknowle
     rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=ok)}))
     assert _ep(rec, "T028")["reaction"]["level"] == "acknowledged"
     prompted = HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "no_longer_holds", "prompted": True,
-                                          "quote": "at 1,050 a month I can make that work"}]
+                                          "quote": "at 1,050 a month"}]
     rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=prompted)}))
-    assert _ep(rec, "T028")["reaction"]["level"] == "acknowledged"                   # OB-17: first said by the sales
+    assert _ep(rec, "T028")["reaction"]["level"] == "acknowledged"          # OB-17: the sales' words of T033, echoed
+    own = HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "no_longer_holds", "prompted": True,
+                                     "quote": "at 1,050 a month I can make that work"}]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=own)}))
+    assert _ep(rec, "T028")["reaction"]["level"] == "resolved"              # her own words: the model's flag is not enough
 
 
 def test_ob28_an_invented_quote_or_a_turn_outside_the_window_is_dropped():

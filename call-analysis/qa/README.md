@@ -215,3 +215,26 @@ shifted every later answer; the discovery readings given by id were lost), an ex
 by its turn first, a phase anchor may list two turns, the discovery start is right when it bounds the same S, P, I, N
 questions.
 
+
+## The reaction read reply by reply (2026-11-24, OB-28)
+
+The reaction to each resistance is read by a step of its own (S4r), the prospect turns one by one, twice, the arbiter on
+a disagreement; the code decides the level (`reaction_from_turns`) and checks that a resolution « first stated by the
+sales » echoes the sales' words (`echoes_sales`). Measured on the expert reference, three readings of the step (two full
+live runs, then the step alone live on the kept analyses of the second, `qa_run.py --keep`):
+
+| Measure | Before (replay of production) | Live run 1 | Live run 2 | S4r alone, live |
+|---|---|---|---|---|
+| Prospect's reaction, all | 47 % (9/19) | 56 % (10/18) | 56 % (10/18, with `echoes_sales`) | 50 % (9/18) |
+| Tuning calls | 46 % (6/13) | 42 % (5/12) | | |
+| Control calls | 50 % (3/6) | 83 % (5/6) | 67 % (4/6) | |
+| Cost of the step | | | | 0.008 USD per analysis (the arbiter, Sonnet, ≈ 0.01 USD when called: 2 calls of 8) |
+
+What is left is mostly not the reading: the episodes the engine bounds do not line up with the reference's (the
+resistance found two turns away, two resistances in one turn, a voice label wrong inside a merged turn, a new anxiety
+the objections step did not list and that the reaction reads as the same doubt said again, a recurrence chained as a
+repetition). The resistances found stay at 58 to 61 %: the next lever is the detection of the resistances reply by reply
+(OPEN_DECISIONS J). The full live analysis costs 0.083 to 0.085 USD on average (limit 0.08 USD): the measured share of S4r
+is 0.008 USD; the rest of the rise over the 0.068 USD of 2026-11-23 is the variance of the other steps (the output of the
+thinking), to be measured over more runs. The reaction window length (4 to 12 prospect turns) changes nothing on the
+tuning calls.

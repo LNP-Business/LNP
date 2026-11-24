@@ -594,6 +594,18 @@ def check_reaction_turn(ctx: CallContext, tid: str, a: dict) -> Optional[str]:
     return None
 
 
+def echoes_sales(ctx: CallContext, tid: str, quote: str) -> bool:
+    """OB-17 by the code (2026-11-24): a resolution is « first stated by the sales » only when the prospect's words add
+    nothing to the sales' last turn before them: every content word of the quote (by its first five letters, so that
+    « lève » and « levé » match) is in that turn. « Mais très bien, le doute est levé » after an answer on the fees
+    is the prospect's own resolution; « oui, en quatre fois ça me va » after « en quatre fois, ça te va ? » echoes it."""
+    seq_, pos = seq(ctx), _pos(ctx)
+    prev = next((t for t in reversed(seq_[:pos[tid]]) if t.role == SALES), None)
+    stems = lambda x: {w[:5] for w in content_words(x, drop_generic=False)}
+    own = stems(quote)
+    return prev is not None and bool(own) and own <= stems(prev.text)
+
+
 def reaction_from_turns(ctx: CallContext, turns: dict[str, dict]) -> tuple[str, Optional[Evidence], bool]:
     """OB-28. `turns`: {turn id: checked answer}. Read in the order of the call, the last state wins:
     - a turn that repeats, explains or reinforces the resistance (`holds`) with no settling turn after it: persisting
@@ -614,7 +626,7 @@ def reaction_from_turns(ctx: CallContext, turns: dict[str, dict]) -> tuple[str, 
         if k == "holds":
             marks.append((pos[tid], "holds", ev, False))
         elif k in ("no_longer_holds", "moves_forward"):
-            prompted = k == "no_longer_holds" and bool(a.get("prompted"))
+            prompted = k == "no_longer_holds" and bool(a.get("prompted")) and echoes_sales(ctx, tid, a.get("quote") or "")
             strong = not prompted and not approval_only(text)
             marks.append((pos[tid], "resolved" if strong else "acknowledged", ev, prompted))
         elif k == "commits":
