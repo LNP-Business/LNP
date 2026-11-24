@@ -1,4 +1,4 @@
-"""S4 → Objections result (OBJ-1.1, lite reading): unique objections raised after the first price, A · I · E · M.
+"""S4 → Objections result (OBJ-1.2, lite reading): unique objections raised after the first price, A · I · E · M.
 
 Romain (2026-11-03): only the resistances raised after the first price count (OB-27; before: after the pitch start).
 Romain (2026-11-20): an objection that comes back after the sales moved on is a recurrence and opens a new episode linked
@@ -12,6 +12,8 @@ to the first (OB-11, the method); said again before the sales moved on, it stays
 - bounds one episode per objection: response = sales turns from the first passage to the topic change (the model's,
   checked: a SALES turn before the next objection), reaction = prospect turns after the first response; a quote of
   the same objection inside the reaction is a repetition (persisting); a recurrence gives H5 = 0 to the earlier episode;
+- OB-28 (2026-11-24): the reaction is read reply by reply (S4r, `reaction_plan`, `checked_reading`, `engine.run_reactions`)
+  on the prospect turns up to the next resistance; the level comes from `reaction_from_turns`, the last state winning;
 - judges A · I · E · M, resolution, latency and prevention with the reference engine's functions (acknowledged,
   isolation_valid, exploration, h1_level, h3_level, resolution_level, is_latent, episode_items, prevention_items).
 """
@@ -207,6 +209,61 @@ def bound(ctx: CallContext, m: dict, k: int, next_start: Optional[str], drops: D
     return ep
 
 
+def reaction_window(ctx: CallContext, ep: O.Episode, next_start: Optional[str], next_quote: Optional[str]) -> list[str]:
+    """OB-28: the prospect turns that can react to this resistance, read one by one: after its last passage and before
+    the next resistance (the turn of the next resistance too when it opens with the reaction to this one), whatever the
+    sales' topic change; at most REACTION_WINDOW_MAX turns. Nothing to read without a sales response."""
+    if not ep.response:
+        return []
+    seq, pos = O.seq(ctx), O._pos(ctx)
+    hi = pos[next_start] if next_start else len(seq)
+    if next_start and next_quote and norm(ctx.turn(next_start).text).find(norm(next_quote)) > 0:
+        hi += 1
+    out = [t.id for t in seq[pos[ep.res.last] + 1: hi] if t.role != SALES and t.id not in ep.res.turns]
+    return out[:O.REACTION_WINDOW_MAX]
+
+
+def reaction_plan(ctx: CallContext, s4: dict) -> list[dict]:
+    """The episodes whose reaction is read reply by reply (OB-28), bounded exactly as `run_objections` bounds them (the
+    same code on the same S4 answer): key, resistance, the prospect turns to read."""
+    drops = Drops()
+    objs = unique_objections(ctx, s4, drops)
+    out = []
+    for k, m in enumerate(objs, 1):
+        if m.get("unread"):
+            continue
+        nxt = objs[k]["quotes"][0] if k < len(objs) else None
+        ep = bound(ctx, m, k, nxt["turn"] if nxt else None, drops, nxt["quote"] if nxt else None)
+        win = reaction_window(ctx, ep, nxt["turn"] if nxt else None, nxt["quote"] if nxt else None)
+        if win:
+            out.append({"key": ep.key, "turn": ep.res.start, "quote": ep.res.quote, "nature": ep.res.nature,
+                        "subtype": ep.res.subtype, "window": win,
+                        "last": max([ep.res.last] + win, key=lambda t: O._pos(ctx)[t])})
+    return out
+
+
+def checked_reading(ctx: CallContext, unit: dict, got: Any, drops: Drops) -> Optional[dict[str, dict]]:
+    """One reader's answers for one episode, each turn checked (C3); a turn outside the window or that fails its check
+    is dropped (read as saying nothing about the resistance). None when the reader gave nothing for the episode."""
+    if not isinstance(got, list):
+        return None
+    out: dict[str, dict] = {}
+    for a in got:
+        if not isinstance(a, dict):
+            continue
+        tid = a.get("turn")
+        if tid not in unit["window"]:
+            drops.add(STEP, "reaction:turn_outside_window", {"turn": tid})
+            continue
+        a = dict(a)
+        e = O.check_reaction_turn(ctx, tid, a)
+        if e:
+            drops.add(STEP, f"reaction:{e}", {"turn": tid})
+            continue
+        out[tid] = a
+    return out or None                     # every turn is answered, « other » included: nothing valid = no reading
+
+
 def _checked(T: O._Tasks, task, ans: Optional[dict], uid: str, ctx: CallContext, drops: Drops, name: str) -> Optional[dict]:
     if not isinstance(ans, dict):
         return None
@@ -250,7 +307,8 @@ def _opens_on_open_question(text: str, resistance: str) -> Optional[str]:
     return None
 
 
-def judge(ctx: CallContext, ep: O.Episode, raw: dict, res_starts: set[str], drops: Drops) -> None:
+def judge(ctx: CallContext, ep: O.Episode, raw: dict, res_starts: set[str], drops: Drops,
+          reaction: Optional[dict] = None, quotes: Optional[list[dict]] = None) -> None:
     """The engine's _judge, on the S4 readings (each checked by the engine task's validator). A gesture whose quote
     fails the check is not proved: it counts as not done (and is counted in the drops)."""
     T = O._Tasks()
@@ -315,6 +373,18 @@ def judge(ctx: CallContext, ep: O.Episode, raw: dict, res_starts: set[str], drop
     f["mismatch"] = nature != "objection" and bool(g.get("offer_argument")) and f["h1"] == 0
     f["answer_ev"] = answer_ev
     lvl, rev, prompted = O.resolution_level(ctx, ep, res_a)
+    if reaction is not None:                                           # OB-28: read reply by reply, decided by code
+        turns = dict(reaction.get("turns") or {})
+        for q in quotes or []:                                         # a repetition of this objection still holds it
+            if q["turn"] in ep.repeats and (turns.get(q["turn"]) or {}).get("kind") in (None, "agrees", "asks", "other"):
+                turns[q["turn"]] = {"kind": "holds", "quote": q["quote"]}
+        lvl2, rev2, prompted2 = O.reaction_from_turns(ctx, turns)
+        if ep.latent and O.reaction_overrides_latent(lvl2, rev2):
+            ep.tags.append(f"reacted_after_{ep.latent_rule}")          # the prospect came back to it: not latent
+            ep.latent, ep.latent_rule = False, None
+        if not ep.latent:
+            lvl, rev, prompted = lvl2, rev2, prompted2
+        ep.tags.append(f"reaction_{reaction.get('_status') or 'read'}")
     f["reaction_level"], f["reaction_ev"], f["prompted"] = lvl, rev, prompted
     if res_a and res_a.get("reaction_kind") == "other":
         ep.tags.append("uncovered_reaction")
@@ -352,8 +422,10 @@ def _link_same_call(ctx: CallContext, eps: list[O.Episode]) -> None:
                     f.tags.append("recurs_later")
 
 
-def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult:
-    out = CompetenceResult("OBJECTIONS", "OBJ-1.1")
+def run_objections(ctx: CallContext, s4: dict, drops: Drops, reactions: Optional[dict] = None) -> CompetenceResult:
+    """`reactions`: {episode key: {"turns": {turn id: answer}, "_status"}}, the reaction read reply by reply (OB-28,
+    `engine.run_reactions`); an episode without one keeps the S4 reading of its reaction."""
+    out = CompetenceResult("OBJECTIONS", "OBJ-1.2")
     if not ctx.offer_reference:
         out.flags.append("offer_reference_missing")
     objs = unique_objections(ctx, s4, drops)
@@ -368,7 +440,7 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult
             ep.tags.append("recurrence_unread")
             drops.add(STEP, "recurrence:unread")
             continue
-        judge(ctx, ep, m["raw"], res_starts, drops)
+        judge(ctx, ep, m["raw"], res_starts, drops, (reactions or {}).get(ep.key), m["quotes"])
     _link_same_call(ctx, eps)
     previous = [dict(e, call_id=p.get("call_id")) for p in ctx.prior_inputs
                 if p.get("kind") == "objections_episodes" for e in p.get("episodes", [])]
@@ -418,6 +490,7 @@ def run_objections(ctx: CallContext, s4: dict, drops: Drops) -> CompetenceResult
         "recurs_from_previous_call": recurring_prev,
         "diagnostics": O.diagnostics(ctx, eps, prevention),
         "unit_status": {"single_reading": len(eps)},
-        "lite": {"scope": "after_first_price", "unique": True, "dropped": drops.counts.get(STEP, {})},
+        "lite": {"scope": "after_first_price", "unique": True, "dropped": drops.counts.get(STEP, {}),
+                 "reactions": {k: v.get("_status") for k, v in (reactions or {}).items()}},
     }
     return out

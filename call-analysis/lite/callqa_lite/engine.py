@@ -19,7 +19,8 @@ from lnp_callqa.core.models import CallContext, CompetenceResult
 from lnp_callqa.pipeline import result_record
 
 from .gap import merge_readings, run_gap, statements_text
-from .objections import run_objections
+from lnp_callqa.competences import objections as O
+from .objections import checked_reading, reaction_plan, run_objections
 from .phases import apply_phases
 from .kind import STATUS as KIND_STATUS, call_kind
 from .pitch import context_text, run_pitch
@@ -39,13 +40,15 @@ DEFAULTS: dict[str, Any] = {
     "gates_batch": 25,              # S1g: listed questions per call, each with its context (2026-11-20)
     "gates_passes": 2,              # S1g: two independent readings; a disagreement goes to the arbiter (C4)
     "s2_readings": 2,               # S2: two readings of the gap step, merged by the code (C4, 2026-11-23)
+    "reaction_passes": 2,           # S4r: the reaction read reply by reply, twice; a disagreement goes to the arbiter (OB-28)
     "arbiter_tier": "arbiter",      # crm_ca_config.tiers.arbiter
     "sv_chunk_lines": 150,          # SV: who says each line, checked and repaired before S0 (always on, Romain 2026-11-19)
     "sv_min_chunk_lines": 40,
     "max_tokens": {"SV": 8000, "S0": 12000,      # S0 6000 → 12000 (2026-11-20): an R2 of the reference set was cut twice
-                   "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000},
+                   "S1": 16000, "S1g": 12000, "S1a": 8000, "S2": 16000, "S3": 10000, "S4": 10000,
+                   "S4r": 6000, "S4ra": 6000},
 }
-RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.5", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.1"}
+RULES = {"SPIN": "SPIN-1.3", "GAP": "GAP-1.5", "PITCH": "PITCH-2.0", "OBJECTIONS": "OBJ-1.2"}
 WINDOW_PRICE = ("Read resistances ONLY in PROSPECT turns after the first price (anchor above) to the end of the call: "
                 "nothing said before the first price is an objection (OB-27).")
 WINDOW_START = ("The price was already given in an earlier call of this sales cycle: read resistances in EVERY PROSPECT "
@@ -489,12 +492,110 @@ def analyse(ctx: CallContext, client: Any, config: Optional[dict] = None) -> dic
             failed.append("S4")
             ctx.results["OBJECTIONS"] = _to_review("OBJECTIONS")
         else:
-            ctx.results["OBJECTIONS"] = _safe(ctx, "OBJECTIONS", lambda: run_objections(ctx, s4.answer, drops))
+            reactions = run_reactions(ctx, steps, cfg, drops, s4.answer)
+            ctx.results["OBJECTIONS"] = _safe(ctx, "OBJECTIONS",
+                                              lambda: run_objections(ctx, s4.answer, drops, reactions))
 
     if len(failed) * 2 > len(attempted):
         raise LiteModelError(f"{len(failed)} of {len(attempted)} model steps gave no valid JSON: " + ", ".join(failed))
     meta["failed_steps"] = failed
     return _record(ctx, meta, drops)
+
+
+REACTION_ARBITER_PREFIX = "Each episode below carries its own turns (the resistance, the sales response, the prospect's replies)."
+
+
+def reaction_units_text(ctx: CallContext, units: list[dict], with_turns: bool = False) -> str:
+    """S4r units: the resistance and the prospect turns to read (ids of the cached transcript); for the arbiter, the
+    turns of the episode themselves, from the resistance to the last turn read."""
+    pos = O._pos(ctx)
+    out = []
+    for i, u in enumerate(units, 1):
+        lines = [f'E{i} · resistance at {u["turn"]} ({u["nature"]} · {u["subtype"]}): « {u["quote"]} »',
+                 f'   prospect turns to read: {", ".join(u["window"])}']
+        if with_turns:
+            span = O.seq(ctx)[pos[u["turn"]]: pos[u["last"]] + 1]
+            lines.append(ctx.render(span))
+        out.append("\n".join(lines))
+    return "\n\n".join(out)
+
+
+def _read_reactions(steps: Steps, unit_id: str, prompt: str, max_tokens: int, units: list[dict], drops: Drops,
+                    task: str = "lite.s4_reactions") -> dict[str, dict]:
+    """One reading: {episode key: checked turns}. The model answers episodes by their position E1, E2… in `units`."""
+    ans = steps.ask(task, unit_id, prompt, max_tokens)
+    if ans.answer is None:
+        drops.add("S4", "reaction:reading_failed")
+        return {}
+    out = {}
+    for e in ans.answer.get("episodes") or []:
+        if not isinstance(e, dict) or not str(e.get("id") or "").startswith("E"):
+            continue
+        try:
+            u = units[int(str(e["id"])[1:]) - 1]
+        except (ValueError, IndexError):
+            continue
+        got = checked_reading(steps.ctx, u, e.get("turns"), drops)
+        if got is not None:
+            out[u["key"]] = got
+    return out
+
+
+def _reaction_summary(turns: Optional[dict]) -> str:
+    if not turns:
+        return "no valid answer"
+    return "; ".join(f'{t} {a.get("kind")}' + (" (first stated by the sales)" if a.get("prompted") else "") +
+                     (f' « {a.get("quote")} »' if a.get("quote") else "") for t, a in turns.items())
+
+
+def run_reactions(ctx: CallContext, steps: Steps, cfg: dict, drops: Drops, s4: dict) -> dict[str, dict]:
+    """S4r (OB-28, 2026-11-24): the prospect's reaction to each resistance, read reply by reply. The code lists the
+    prospect turns after the resistance and before the next one; the model says what each turn does with THIS
+    resistance (holds, no longer holds, commits, moves forward, agrees, asks, other), with the prospect's words; the
+    code checks every quote and decides the level (`O.reaction_from_turns`). Two readings, the second with the episodes
+    in reverse order; the same level = `agreed`; otherwise the arbiter tier reads the disputed episodes, their turns in
+    its prompt (`arbitrated`); a failed arbiter leaves the first valid reading (`to_review` tag). One valid reading only:
+    `single_reading`. Returns {episode key: {"turns", "_status"}}; an episode without a valid reading keeps S4's."""
+    units = reaction_plan(ctx, s4)
+    if not units:
+        return {}
+    passes = max(1, int(cfg.get("reaction_passes") or 1))
+    readings: list[dict[str, dict]] = []
+    for p in range(passes):
+        order = units if p % 2 == 0 else list(reversed(units))
+        readings.append(_read_reactions(steps, "reactions" + (f":p{p + 1}" if p else ""),
+                                        fill(load("s4_reactions"), units=reaction_units_text(ctx, order)),
+                                        cfg["max_tokens"]["S4r"], order, drops))
+    out: dict[str, dict] = {}
+    disputed = []
+    for u in units:
+        got = [r.get(u["key"]) for r in readings]
+        valid = [g for g in got if g]
+        if not valid:
+            continue
+        levels = {O.reaction_from_turns(ctx, g)[0] for g in valid}
+        if len(valid) == 1:
+            out[u["key"]] = {"turns": valid[0], "_status": "single_reading"}
+        elif len(levels) == 1:
+            out[u["key"]] = {"turns": valid[0], "_status": "agreed"}
+        else:
+            disputed.append((u, got))
+    if disputed:
+        arb = Steps(steps.client, ctx, tier=cfg.get("arbiter_tier") or "arbiter", effort=steps.effort,
+                    prefix=REACTION_ARBITER_PREFIX)
+        chunk = [u for u, _ in disputed]
+        text = reaction_units_text(ctx, chunk, with_turns=True).split("\n\n")
+        text = "\n\n".join(b + "\n" + "\n".join(f"READER {i + 1}: {_reaction_summary(g)}" for i, g in enumerate(got))
+                             for b, (u, got) in zip(text, disputed))
+        res = _read_reactions(arb, "reactions:arbiter", load("s4_reactions_arbiter") + fill(load("s4_reactions"), units=text),
+                              cfg["max_tokens"]["S4ra"], chunk, drops, task="lite.s4_reactions_arbiter")
+        for u, got in disputed:
+            if u["key"] in res:
+                out[u["key"]] = {"turns": res[u["key"]], "_status": "arbitrated"}
+            else:
+                drops.add("S4", "reaction:arbiter_failed", {"turn": u["turn"]})
+                out[u["key"]] = {"turns": next(g for g in got if g), "_status": "to_review"}
+    return out
 
 
 def _gap_rules(ctx: CallContext, questions: Optional[list], drops: Drops, meta: dict) -> None:

@@ -270,7 +270,7 @@ def test_record_has_the_contract_fields_the_screen_reads():
     rec, _ = run()
     assert {"call_id", "sales_id", "start_utc", "timezone", "status", "flags", "turns", "phases", "results", "audit",
             "meta"} <= set(rec)
-    assert rec["meta"]["engine"] == "lite" and rec["meta"]["version"] == "callqa-lite-1.1"
+    assert rec["meta"]["engine"] == "lite" and rec["meta"]["version"] == "callqa-lite-1.2"
     assert {"id", "ts", "role", "speaker", "text", "repaired", "attribution_doubtful"} == set(rec["turns"][0])
     for c in ("SPIN", "GAP", "PITCH", "OBJECTIONS"):
         assert {"competence", "rules_version", "status", "verdict", "reasons", "score", "items", "flags", "details",
@@ -300,7 +300,8 @@ def test_record_has_the_contract_fields_the_screen_reads():
 def test_one_call_per_step_with_the_transcript_as_the_same_cached_prefix():
     rec, client = run()
     assert [c["task"] for c in client.calls] == ["lite.s0_phases", "lite.s1_discovery", "lite.s1_gates", "lite.s1_gates",
-                                                 "lite.s2_gap", "lite.s2_gap", "lite.s3_pitch", "lite.s4_objections"]
+                                                 "lite.s2_gap", "lite.s2_gap", "lite.s3_pitch", "lite.s4_objections",
+                                                     "lite.s4_reactions", "lite.s4_reactions"]
     prefixes = {c["prefix"] for c in client.calls}
     assert len(prefixes) == 1 and next(iter(prefixes)).splitlines()[1] == "T001 [SALES] Hi Alex, can you hear me okay?"
     assert "pitch start T019" in client.calls[4]["prompt"] and "[T014] \"I want to make 6,000" in client.calls[4]["prompt"]
@@ -662,3 +663,111 @@ def test_ob22_a_first_turn_that_changes_the_subject_received_and_left():
     rec, _ = run(a)
     ep = rec["results"]["OBJECTIONS"]["details"]["episodes"][0]
     assert ep["response_turns"] == ["T029"] and ep["latent_rule"] == "OB-22" and ep["acknowledge"] is True
+
+
+# ---------------------------------------------------------------- the reaction read reply by reply (OB-28, 2026-11-24)
+# Episodes after the first price: E·T028 (price, prospect turns T030, T032, T034), E·T036 (co-decider: T038, whose
+# turn opens on the reaction before the money comes back), E·T038 (the money again: T040). The second reading has the
+# episodes in reverse order, so its ids are reversed (E1 = T038).
+def _reactions(price=None, co=None, again=None):
+    first = [x for x in (("E1", price), ("E2", co), ("E3", again)) if x[1] is not None]
+    second = [x for x in (("E3", price), ("E2", co), ("E1", again)) if x[1] is not None]
+    return [{"episodes": [{"id": i, "turns": t} for i, t in first]},
+            {"episodes": [{"id": i, "turns": t} for i, t in second]}]
+
+
+HOLDS_THEN_COMMITS = [{"turn": "T030", "kind": "holds", "quote": "it's really just the money"},
+                      {"turn": "T032", "kind": "holds", "quote": "it's almost four months of income"},
+                      {"turn": "T034", "kind": "commits", "quote": "at 1,050 a month I can make that work",
+                       "specific": "1,050 a month"}]
+
+
+def _ep(rec, turn):
+    return next(e for e in rec["results"]["OBJECTIONS"]["details"]["episodes"] if e["resistance"]["turn"] == turn)
+
+
+def test_ob28_the_last_state_wins_a_commitment_after_the_doubt_is_resolved():
+    a = dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=HOLDS_THEN_COMMITS)})
+    rec, client = run(a)
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "resolved" and ep["reaction"]["turn"] == "T034"
+    assert "reaction_agreed" in ep["tags"]
+    assert rec["results"]["OBJECTIONS"]["details"]["lite"]["reactions"] == {"T028.objection": "agreed"}
+    assert "lite.s4_reactions_arbiter" not in [c["task"] for c in client.calls]
+    assert rec["results"]["OBJECTIONS"]["rules_version"] == "OBJ-1.2"
+
+
+def test_ob28_an_ok_after_the_doubt_said_again_settles_nothing():
+    turns = HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "agrees"}]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=turns)}))
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "persisting" and ep["reaction"]["turn"] == "T032"
+
+
+def test_ob28_no_reply_about_the_resistance_is_latent_and_a_plain_ok_is_acknowledged():
+    other = [{"turn": t, "kind": "other"} for t in ("T030", "T032", "T034")]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=other)}))
+    assert _ep(rec, "T028")["reaction"]["level"] == "latent"
+    ok = other[:2] + [{"turn": "T034", "kind": "agrees"}]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=ok)}))
+    assert _ep(rec, "T028")["reaction"]["level"] == "acknowledged"
+    prompted = HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "no_longer_holds", "prompted": True,
+                                          "quote": "at 1,050 a month I can make that work"}]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=prompted)}))
+    assert _ep(rec, "T028")["reaction"]["level"] == "acknowledged"                   # OB-17: first said by the sales
+
+
+def test_ob28_an_invented_quote_or_a_turn_outside_the_window_is_dropped():
+    bad = [{"turn": "T030", "kind": "holds", "quote": "I will never pay that"},          # never said
+           {"turn": "T029", "kind": "holds", "quote": "Apart from the money"},          # a sales turn, not listed
+           {"turn": "T034", "kind": "agrees"}]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": _reactions(price=bad)}))
+    assert _ep(rec, "T028")["reaction"]["level"] == "acknowledged"
+    reasons = rec["meta"]["steps"]["S4"]["reasons"]
+    assert reasons["reaction:not_a_substring"] == 2 and reasons["reaction:turn_outside_window"] == 2
+
+
+def test_ob28_two_readings_that_disagree_go_to_the_arbiter():
+    one = _reactions(price=HOLDS_THEN_COMMITS)[0]
+    two = _reactions(price=HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "agrees"}])[1]
+    arb = {"episodes": [{"id": "E1", "turns": HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "agrees"}]}]}
+    rec, client = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": [one, two],
+                                                         "lite.s4_reactions_arbiter": arb}))
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "persisting" and "reaction_arbitrated" in ep["tags"]
+    call = next(c for c in client.calls if c["task"] == "lite.s4_reactions_arbiter")
+    assert call["tier"] == "arbiter" and "READER 1" in call["prompt"] and "four months of income" in call["prompt"]
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": [one, two],
+                                                    "lite.s4_reactions_arbiter": "not json"}))
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "resolved" and "reaction_to_review" in ep["tags"]   # the first valid reading
+
+
+def test_ob28_without_a_valid_reading_the_s4_reaction_stands():
+    rec, _ = run(dict(copy.deepcopy(sc.ANSWERS), **{"lite.s4_reactions": "not json"}))
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "resolved" and not any(t.startswith("reaction_") for t in ep["tags"])
+
+
+def test_ob28_a_received_and_left_resistance_the_prospect_comes_back_to_is_not_latent():
+    a = copy.deepcopy(sc.ANSWERS)
+    money = next(o for o in a["lite.s4_objections"]["objections"] if o["quotes"][0]["turn"] == "T028")
+    money["topic_change"] = {"turn": "T029", "quote": "Apart from the money, is there anything else stopping you?"}
+    money.pop("receive_and_leave", None)
+    a["lite.s4_reactions"] = _reactions(price=HOLDS_THEN_COMMITS[:2] + [{"turn": "T034", "kind": "other"}])
+    rec, _ = run(a)
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "persisting" and ep["latent_rule"] is None and "reacted_after_OB-22" in ep["tags"]
+    a["lite.s4_reactions"] = _reactions(price=[{"turn": t, "kind": "agrees"} for t in ("T030", "T032", "T034")])
+    rec, _ = run(a)
+    ep = _ep(rec, "T028")
+    assert ep["reaction"]["level"] == "latent" and ep["latent_rule"] == "OB-22"       # a bare « ok »: still latent
+
+
+def test_ob28_the_window_runs_to_the_next_resistance_whatever_the_topic_change():
+    from callqa_lite.objections import reaction_plan
+    ctx = sc.context()
+    ctx.phases.first_price = "T027"
+    plan = reaction_plan(ctx, sc.ANSWERS["lite.s4_objections"])
+    assert [(u["turn"], u["window"]) for u in plan] == [("T028", ["T030", "T032", "T034"]), ("T036", ["T038"]),
+                                                        ("T038", ["T040"])]

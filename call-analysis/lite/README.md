@@ -74,6 +74,7 @@ most steps fail, the job stops (`ModelErrors`, not retried).
 | S2 `lite.s2_gap` | every playback passage up to the first price: its sales turns, each restated clause (component, sales quote, source turn, key expression), a new-topic question at the end, the validation read on the prospect turn right after; the deadlines attached to a target | runs the engine's `GapCompetence` unchanged: its closed questions (`gap.restitution`, `gap.validation`, `gap.a_current`, `gap.stopping`, `gap.horizon`) are answered from S2 and S1 and checked by the engine validators; the verbatim rule GB-22, the formula, the gate, G1 to G6 are the engine's code. A passage the model found and the code inventory missed is added as a candidate (signal `S5_lite`) |
 | S3 `lite.s3_pitch` | in one answer, the engine's pitch questions: category of the validated P, steps 1 to 4, roadmap, claims, outcome promises, adhesion | runs the engine's `PitchCompetence` unchanged (list answers cut into its chunks); compliance gate (PB-37 pitch after the yes, PB-35 claims, PB-36 promises), K1 to K7 are the engine's code. Whether the pitch comes after the gap is decided by code from the Gap validation turn, never asked |
 | S4 `lite.s4_objections` | each different resistance once, its subjects and every quote; for the first passage: topic change, acknowledge, isolate, explore, matching gesture, reaction; the prevention facts | see below |
+| S4r `lite.s4_reactions` (2026-11-24, OB-28) | for each prospect turn after a resistance and before the next one (at most 12): what it does with THIS resistance (holds, no longer holds, commits with a specific element, moves forward, agrees, asks, other) and the prospect's words; twice, the arbiter tier (`lite.s4_reactions_arbiter`) on the episodes whose two readings lead to different levels | the level, the last state winning (`reaction_from_turns`); a latent episode the prospect comes back to |
 
 S4 in code (`objections.py`): a quote must be an exact passage of a PROSPECT or co-decider turn **after the first
 price** (before it: dropped and counted); the nature comes from the subjects with the OB-3 boundary tests
@@ -84,7 +85,10 @@ episode, linked to the first (`recurrence_of`), which takes H5 = 0. A recurrence
 episode: response = the sales turns from its first passage to the topic change (the model's, checked: a SALES turn
 before the next objection), reaction = the prospect turns after the first response (including the next resistance's
 turn when it opens with the reaction). Acknowledge, isolate, explore, gesture, resolution, latency, items H1 to H5, prevention R1 to R3, the 70/30
-combination: the engine's functions, each gesture reading checked by the engine task's validator.
+combination: the engine's functions, each gesture reading checked by the engine task's validator. The reaction level comes from S4r when it gave a valid
+reading of the episode (each turn's quote checked on that turn; a turn outside the list or with a failed quote is
+dropped and counted, `reaction:*`), else from S4's own reaction field (`details.lite.reactions` gives the status of
+each read episode: `agreed`, `arbitrated`, `single_reading`, `to_review`).
 
 Never asked of the model: a score, a level, a verdict, the phase order, whether a component is verbatim.
 
@@ -101,7 +105,7 @@ read by `app/crm/call_analysis_view.js` (checked in a browser with a lite record
 register with the letter chips and the question + answer panel, the gap panel and its four checks, the pitch staircase
 and verbatim, the objections table with A · I · E · M), plus:
 
-- `meta`: `{"engine": "lite", "version": "callqa-lite-1.1", "tier", "effort", "failed_steps", "voices" (SV: lines, relabelled, split, doubtful, control, residual, share_residual, turns before and after), "steps": {SV, SV2, S0..S4:
+- `meta`: `{"engine": "lite", "version": "callqa-lite-1.2", "tier", "effort", "failed_steps", "voices" (SV: lines, relabelled, split, doubtful, control, residual, share_residual, turns before and after), "steps": {SV, SV2, S0..S4:
   {"dropped": n, "reasons": {...}}}}`; 035 keeps `meta.engine`, `meta.engine_version` and `meta.engine_steps` in
   `crm_ca_records.meta`;
 - `concordance: "single_reading"` on every competence; SPIN `solicitations[].status = "single_reading"`, each with its

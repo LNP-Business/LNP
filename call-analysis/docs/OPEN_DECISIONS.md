@@ -266,3 +266,20 @@ keeps the rule "the model quotes, the code decides" and the engine's decision co
   control calls (42 %: the selection rules were set on five calls), the absence reason (62 %). These need a change of
   the prompts, measured live.
 
+
+## J. The reaction read reply by reply (2026-11-24, Romain: « vas-y »)
+
+- **Why.** On the expert reference the reaction was right 9 times out of 19. Six errors came from the objections step
+  leaving the reaction out (it is the last field of a long answer per resistance) and the code reading « no answer » as
+  `acknowledged`; three from the episode closed at the sales' first topic change while the prospect came back to the
+  resistance later (OB-10, OB-22 latent by turn numbers).
+- **What changed (OB-28, `OBJ-1.2`).** A step of its own (S4r, lite engine): the prospect turns after each resistance
+  and before the next one are read one by one, twice, the arbiter on a disagreement; the code decides the level, the
+  last state winning; a latent episode the prospect comes back to with content is not latent. Analyses stored under
+  `OBJ-1.1` are to be relaunched (C8).
+- **Engineering parameter, not a business fact.** At most 12 prospect turns read after a resistance
+  (`REACTION_WINDOW_MAX`).
+- **To validate (Romain).** OB-28 amends OB-22: a resistance received and left in one turn is no longer latent when
+  the prospect comes back to it with content before the next resistance (the expert reading of the reference does so).
+  The reference (full) engine still reads the reaction in one question per episode (`obj.resolution`): the decision
+  function `reaction_from_turns` is in the engine, its wiring there is not done. Memo to update: objections.

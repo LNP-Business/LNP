@@ -43,7 +43,7 @@ French markers (2026-11-19, completed 2026-11-21, Romain): « trop cher », « p
 
 **OB-8 · Topic change.** The first sales turn that (a) contains no content word of the resistance or of the response so far, and (b) introduces a new subject: a new discovery question, a new offer segment, logistics, or the close. Continuation markers ("so", "and", "also", "the other thing about that") with a reused word are not a topic change. The end of the call ends any open episode.
 
-**OB-9 · Reaction.** The prospect turns between the first sales response and the topic change. If the prospect raises a new resistance inside the episode, the current episode ends and a new one starts.
+**OB-9 · Reaction.** The prospect turns between the first sales response and the topic change. If the prospect raises a new resistance inside the episode, the current episode ends and a new one starts. Since 2026-11-24 the reaction is read reply by reply up to the next resistance, whatever the topic change (OB-28).
 
 **OB-10 · Latent.** An episode is latent when the topic changes within 2 turns of the resistance (the resistance turn, at most one sales turn, then the topic change) and the prospect has made no reaction of 6 words or more. Computed by code from turn numbers.
 
@@ -75,6 +75,7 @@ French markers (2026-11-19, completed 2026-11-21, Romain): « trop cher », « p
 - **acknowledged:** agreement without content ("okay", "I see", "makes sense");
 - **persisting:** repeats or reinforces the resistance;
 - **latent:** OB-10.
+How the level is decided from the prospect's turns, in their order: OB-28.
 A "resolution" whose content was first stated by the sales and only approved ("so the payment plan solves it for you, right?" → "yeah") is **acknowledged**, not resolved.
 
 ## A4. Detecting prevention facts
@@ -104,6 +105,28 @@ co-decider) turn that comes after the first price (Pitch anchor PB-3 / PB-18). N
 an objection, an anxiety or an inertia: it is neither nominated, nor bounded, nor scored, even if it matches an OB-1
 marker. A call with no price has no episode (handling `not_applicable`). Prevention (A4, OB-18, OB-19) is unchanged: it
 still reads the facts stated before the first price, because those are not objections.
+
+**OB-28 · The reaction, read reply by reply.** (Romain, 2026-11-24; expert reference: the reaction was right 9 times out
+of 19, because the reaction was read in one question about the whole episode, often left unanswered and then counted
+`acknowledged` by default, and because the episode was closed at the sales' first topic change.) The reaction (OB-9,
+OB-17) is read on **each PROSPECT turn after the resistance and before the next resistance** (the turn of the next
+resistance too when it opens with the reaction to this one), whatever the sales' topic change, at most 12 turns. For
+each turn, one closed question: what does this turn do with THIS resistance?
+- `holds`: repeats, explains or reinforces it (an answer to the exploration that describes the doubt is `holds`);
+- `no_longer_holds`: says in their own words that it no longer holds, or restates it as answered;
+- `commits`: commits to the sales' proposed answer with a specific element of their own (OB-23);
+- `moves_forward`: moves forward on their own initiative (asks how to start, for the payment link, proposes a date);
+- `agrees`: accepts the sales' answer to this resistance without content of their own;
+- `asks`: a question on the answer or the offer, with no acceptance and no refusal;
+- `other`: about something else (an « ok » to the sales' new subject is `other`).
+The code decides the level, in the order of the call, the last state winning: a `holds` with no settling turn after
+it → **persisting** (an « ok » after it settles nothing); a settling turn after the last `holds` → **resolved** when it
+is `no_longer_holds`, `moves_forward` or `commits` with its specific element, in the prospect's words, not first stated
+by the sales and not an approval only; otherwise **acknowledged** (OB-17, X3); no settling turn and at least one
+`agrees` → **acknowledged**; no turn about the resistance → **latent**. An episode latent by OB-10 or OB-22 stops
+being latent when the prospect comes back to the resistance with content before the next one (`holds`, or a settling
+turn with their words): they reacted after all; a bare « ok » changes nothing. The reading is done twice; when the two
+readings lead to different levels, the arbiter reads the episode's turns again (Part C, C4).
 
 ## A5. Exclusion rules (summary)
 
