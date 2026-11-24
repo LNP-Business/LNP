@@ -168,8 +168,11 @@ def main(argv=None) -> int:
     ap.add_argument("--max-cost", type=float, default=0.08,
                     help="USD: the measure fails when the average cost of an analysis is above it (live mode)")
     ap.add_argument("--out")
+    ap.add_argument("--keep", help="live mode: write each case with the new analysis' answers as its audit, to replay "
+                                   "them later (a private directory: the case holds the transcript; never in git)")
     a = ap.parse_args(argv)
     measures, repro, problems, failed = [], {}, {}, []
+    todo = []
     for rp in sorted(Path(a.refs).glob("*.json")):
         ref = load(rp)
         if a.split != "all" and ref.get("split") != a.split:
@@ -184,13 +187,23 @@ def main(argv=None) -> int:
             problems[ref.get("slug")] = errs
             print(f"{ref.get('slug')}: reference file invalid ({len(errs)} errors), not measured", flush=True)
             continue
-        n = max(1, a.repeat if a.mode == "live" else 1)
-        if a.workers > 1 and n > 1:
-            from concurrent.futures import ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=min(a.workers, n)) as pool:
-                runs = list(pool.map(lambda _: safe_analyse(case, a.mode, a.effort), range(n)))
-        else:
-            runs = [safe_analyse(case, a.mode, a.effort) for _ in range(n)]
+        todo.append((ref, case))
+    n = max(1, a.repeat if a.mode == "live" else 1)
+    jobs = [(i, k) for i in range(len(todo)) for k in range(n)]
+    if a.workers > 1 and len(jobs) > 1:                         # every analysis of every call, a.workers at a time
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=a.workers) as pool:
+            done = list(pool.map(lambda j: safe_analyse(todo[j[0]][1], a.mode, a.effort), jobs))
+    else:
+        done = [safe_analyse(todo[i][1], a.mode, a.effort) for i, _ in jobs]
+    for i, (ref, case) in enumerate(todo):
+        runs = [r for (j, _), r in zip(jobs, done) if j == i]
+        if a.keep and a.mode == "live" and runs and "qa_failed" not in runs[0]:
+            Path(a.keep).mkdir(parents=True, exist_ok=True)
+            kept = dict(case, audit=[e for e in runs[0].get("audit") or [] if isinstance(e, dict)],
+                        qa_usage=runs[0].get("qa_usage"), qa_usd=runs[0].get("qa_usd"))
+            (Path(a.keep) / f"{ref.get('slug')}.json").write_text(json.dumps(kept, ensure_ascii=False, default=str),
+                                                                  encoding="utf-8")
         recs = [r for r in runs if "qa_failed" not in r]
         for r in runs:
             if "qa_failed" in r:
