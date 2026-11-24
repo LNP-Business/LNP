@@ -282,3 +282,22 @@ GB-7d), read by the expert reader for the gap and the objections after the price
 On a new call, the resistances are found (89 %) and their reaction is better read than before (62 % against 47 %), but
 two of three listed resistances are not the expert's (a doubt said again listed as a new one, a request for information,
 a delay with a date); the gap's elements shown to the sales are right about one time in four.
+
+**Before / after on the same ten calls (2026-11-24).** The engine of PR 82 (`reference-experte`) analysed the second
+control live as well; same expert reading, same measure code:
+
+| Measure | Engine of PR 82 | Engine of this branch |
+|---|---|---|
+| Statuses | 90 % | 100 % |
+| Gap verdict | 90 % | 90 % |
+| Absence reason | 70 % | 50 % |
+| Gap elements (any / shown) | 35 % / 20 % | 40 % / 28 % |
+| Blocker state · stopping question | 50 % · 86 % | 50 % · 100 % |
+| Resistances found | 83 % | 83 % |
+| Resistances in excess | 52 % | 69 % |
+| Nature · gestures · reaction | 93 % · 49 % · 40 % | 87 % · 55 % · 53 % |
+| Cost of an analysis | 0.084 USD | ≈ 0.10 USD |
+
+One live run each: a difference of one element is noise. What holds: the reaction (+13 points), the gap elements shown
+(+8), the gestures (+6) gain; the resistances in excess are worse (+17: the misplaced first price and the recurrences
+counted at each return, OPEN_DECISIONS J).
