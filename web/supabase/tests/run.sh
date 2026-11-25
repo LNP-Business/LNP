@@ -198,4 +198,9 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_board_rounds_test.sql | tail
 # 063 : un administrateur corrige la lettre d'une question de la découverte ; chaque correction est gardée (C8)
 run 063_crm_ca_corrections.sql
 run 063_crm_ca_corrections.sql
+
+# 064 : Entraînement › Reformulation de l'écart, ses résultats (module « ecart », sur 10)
+run 064_crm_training_ecart.sql
+run 064_crm_training_ecart.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/training_ecart_test.sql | tail -1
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -At -f tests/ca_corrections_test.sql | tail -1

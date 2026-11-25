@@ -97,6 +97,14 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
 - Entraînement (groupe de la barre latérale, écrans écrits par `gen_training.py`, applications de `app/training/` injectées
   par `build.py`) :
   - Découverte : `entrainement.html`, ses cas `coup_lnp.json` et `lettre_lnp.json` ; test `training_test.js`.
+  - Reformulation de l'écart (Romain, 2026-11-25) : six appels inventés (`ecart_cas.json`), lus une seule fois et une réplique après
+    l'autre (pas de retour en arrière, la place gardée au rechargement, des notes à côté), puis la reformulation écrite sans l'appel
+    et corrigée par le code avec la méthode de l'écart (`call-analysis/docs/methodology/02_gap_*` : A sur la dimension de B, la cible
+    la plus récente, un seul blocage, celui de la question du blocage, le coût qui va avec, mot pour mot après passage au « tu »,
+    puis « C'est bien ça ? » ; sans le problème et son coût repris, écart absent et 0) ; note sur 10, les pièges (mots du
+    commercial, chiffre calculé, offre citée), la reformulation parfaite. Écran `reformulation.html`, mis dans `app/lnp.html` par
+    `python3 app/gen_reformulation.py` (idempotent) ; accès `reformulation` (`web/api/_screens.js`) ; résultats module `ecart`
+    (migration 064 ; `app/gen_resultats_ecart.py` pour Mes résultats) ; test `reformulation_test.js`.
   - Maîtrise de l'offre (« Académie sales LNP ») : `academie.html` et ses 100 cas `academie_contenu.json` ; pas de correction
     par Claude (Romain, 2026-11-08) : la réponse est validée puis auto-corrigée avec la grille et le corrigé ; progression
     `crm_academy_progress` ; test `academie_test.js`.
@@ -202,7 +210,7 @@ Fichiers intermédiaires figés (entrées du build, non régénérés par `build
   (premier administrateur, actif seulement tant que `BOOTSTRAP_TOKEN` existe).
 - Version de la page : `web/build_web.py` inscrit un identifiant de build dans `index.html` (`LNP_BUILD`) et dans
   `web/public/version.json` ; `lnp-web.js` recharge une page restée en cache d'un navigateur (une fois, puis bandeau « Recharger »).
-- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salescycle`, `entrainement`, `academie`, `simulateur`, `crm`,
+- Accès par écran (Paramètres › Accès, administrateurs) : clés `salescockpit`, `salescycle`, `entrainement`, `reformulation`, `academie`, `simulateur`, `crm`,
   `settings`, `claude` (`web/api/_screens.js`), stockées dans `app_metadata.screens` de chaque compte ; `resultats` suit les
   entraînements ouverts, `suivi` (Suivi des commerciaux) et `access` sont réservés aux administrateurs (`web/api/me.js`).
 - **Connecteur Claude** (`web/api/mcp.js`, OAuth `web/api/oauth.js`, doc `docs/crm/17-claude-connector.md`) : 10 outils de lecture

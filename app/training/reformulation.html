@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reformulation de l'écart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+/* LNP · Entraînement › Reformulation de l'écart (Romain 2026-11-25). Un appel inventé, lu une seule fois, une réplique après
+   l'autre ; puis la reformulation de l'écart, corrigée par le code avec la méthode de l'écart (call-analysis, 02_gap :
+   A · B · ce qui bloque · ce que ça coûte, avec les mots exacts du prospect, puis la demande de validation).
+   Un seul écran : rien ne défile sur ordinateur, seuls les panneaux défilent en eux-mêmes. */
+:root{--ink:#0C1330;--ink2:#2A3352;--mut:#5A6478;--line:#D6DEF0;--soft:#EEF3FC;--bg:#F7F8FB;--card:#FFFFFF;--brand:#1E2A5E;--vif:#2B6CF5;
+  --ok:#137A4F;--oks:#E2F4EB;--mid:#9A4A05;--mids:#FDF0DC;--ko:#B42318;--kos:#FCE5E2;
+  --cA:#1D4ED8;--cAs:#DCE8FD;--cB:#6D28D9;--cBs:#EDE4FD;--cP:#B42318;--cPs:#FCE3E0;--cC:#9A4A05;--cCs:#FDEBD3;--cV:#137A4F;--cVs:#DDF2E7;
+  --sans:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);overflow:hidden;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;cursor:pointer}button:disabled{cursor:default;opacity:.45}
+:focus-visible{outline:2px solid var(--vif);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.bar{flex:none;display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--card);border-bottom:1px solid var(--line);min-height:52px}
+.brand{line-height:1.1;white-space:nowrap}.brand b{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--brand)}.brand span{font-size:13px;font-weight:600;color:var(--ink2)}
+.clab{font-size:12px;font-weight:600;color:var(--mut)}.cases{display:flex;gap:4px;min-width:0}
+.cb{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:4px 10px;min-width:34px;justify-content:center;font-weight:600;font-size:12.5px;min-height:30px;display:flex;align-items:center;gap:5px}
+.cb[aria-current=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.cb .sc{font-weight:500;font-size:11px;opacity:.8}
+.steps{display:flex;gap:4px;margin:0 0 0 auto;padding:0;list-style:none;font-size:12px;flex:none}
+.st{padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--mut);font-weight:600}
+.st.on{background:var(--brand);color:#fff}.st.done{background:var(--oks);color:var(--ok)}
+.sync{font-size:11px;color:var(--mut);max-width:230px;line-height:1.25;text-align:right;flex:none}
+.main{flex:1;min-height:0;display:grid;gap:10px;padding:10px 12px 12px}
+.main.two{grid-template-columns:62fr 38fr}.main.three{grid-template-columns:31fr 37fr 32fr}
+.pane{min-height:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column}
+.ph{flex:none;padding:12px 16px 8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.ph h2{margin:0;font-size:15px;font-weight:600}.ph .k{margin-left:auto;font-size:12px;color:var(--mut)}
+.pb{flex:1;min-height:0;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.pf{flex:none;padding:10px 16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 16px;font-weight:600;font-size:14px;min-height:40px}
+.btn.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.big{font-size:15px;padding:10px 22px;min-height:46px}
+.hint{font-size:12px;color:var(--mut)}
+.lead{font-size:14px;color:var(--ink2);margin:0}
+.ctx{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink2)}
+.ctx b{color:var(--brand)}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink2)}
+.warn{background:#FFF8E6;border:1px solid #F0D58C;border-radius:10px;padding:10px 12px;font-size:13px;color:#5C4300}
+/* lecture : une réplique à la fois */
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:14px;padding:10px 6%}
+.count{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--mut);font-weight:600}
+.pbar{flex:1;height:6px;border-radius:4px;background:var(--soft);overflow:hidden}.pbar i{display:block;height:100%;background:var(--brand);transition:width .2s}
+.turn{border-radius:16px;padding:18px 22px;font-size:19px;line-height:1.55;max-height:100%;overflow:auto;animation:in .18s ease-out}
+.turn .who{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.turn.S{background:var(--brand);color:#fff;margin-left:12%}.turn.S .who{color:#AFC3F5}
+.turn.P{background:#fff;border:1px solid var(--line);margin-right:12%;box-shadow:0 2px 10px rgba(30,42,94,.06)}.turn.P .who{color:var(--vif)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.turn{animation:none}}
+textarea{width:100%;resize:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;line-height:1.5;color:var(--ink);background:#fff}
+textarea:focus{outline:2px solid var(--vif);border-color:var(--vif)}
+.notes{flex:1;min-height:120px}
+.write{flex:1;min-height:160px;font-size:15.5px}
+.formula{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}
+.slot{border-radius:8px;padding:4px 9px;font-weight:600}
+.slot.A{background:var(--cAs);color:var(--cA)}.slot.B{background:var(--cBs);color:var(--cB)}.slot.P{background:var(--cPs);color:var(--cP)}.slot.C{background:var(--cCs);color:var(--cC)}.slot.V{background:var(--cVs);color:var(--cV)}
+.wc{font-size:12px;color:var(--mut);margin-left:auto}
+/* correction */
+.score{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.score .n{font-size:40px;font-weight:700;color:var(--brand);line-height:1}
+.score .m{font-size:16px;color:var(--mut);font-weight:600}
+.verdict{border-radius:10px;padding:8px 12px;font-weight:600;font-size:13.5px}
+.verdict.ok{background:var(--oks);color:var(--ok)}.verdict.ko{background:var(--kos);color:var(--ko)}
+.mine{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14.5px;line-height:1.6;white-space:pre-wrap}
+mark{border-radius:4px;padding:0 2px;color:inherit}
+mark.A{background:var(--cAs);box-shadow:inset 0 -2px 0 var(--cA)}mark.B{background:var(--cBs);box-shadow:inset 0 -2px 0 var(--cB)}
+mark.P{background:var(--cPs);box-shadow:inset 0 -2px 0 var(--cP)}mark.C{background:var(--cCs);box-shadow:inset 0 -2px 0 var(--cC)}
+mark.V{background:var(--cVs);box-shadow:inset 0 -2px 0 var(--cV)}mark.X{background:#EDEFF4;box-shadow:inset 0 -2px 0 #8A93A8;text-decoration:line-through;text-decoration-color:#8A93A8}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--mut)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.row .t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+.row .t .tag{margin-left:auto}
+.tag{font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.tag.ok{background:var(--oks);color:var(--ok)}.tag.mid{background:var(--mids);color:var(--mid)}.tag.ko{background:var(--kos);color:var(--ko)}
+.pts{font-size:12px;color:var(--mut);font-weight:600;white-space:nowrap}
+.said{font-size:13.5px;color:var(--ink2)}.said q{font-weight:600;color:var(--ink);quotes:'« ' ' »'}
+.why{font-size:12.5px;color:var(--mut)}
+.dot{width:12px;height:12px;border-radius:4px;flex:none}
+.dot.A{background:var(--cA)}.dot.B{background:var(--cB)}.dot.P{background:var(--cP)}.dot.C{background:var(--cC)}.dot.V{background:var(--cV)}
+.faults{margin:0;padding-left:18px;font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:4px}
+.faults li.ko{color:var(--ko)}
+.perfect{border-left:4px solid var(--brand);background:var(--soft);border-radius:0 10px 10px 0;padding:10px 12px;font-size:15px;line-height:1.6}
+.tabs{display:flex;gap:4px}
+.tabs button{border:0;background:transparent;padding:6px 10px;font-weight:600;font-size:13px;color:var(--mut);border-bottom:2px solid transparent}
+.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand)}
+.tr{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:8px;font-size:13px;padding:5px 0;border-bottom:1px solid #EEF1F7}
+.tr .w{font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);padding-top:2px}
+.tr.S .w{color:var(--brand)}.tr.P .w{color:var(--vif)}
+.h2{font-size:13px;font-weight:700;color:var(--brand);margin:4px 0 0;text-transform:uppercase;letter-spacing:.06em}
+.empty{color:var(--mut);font-size:13px}
+.modal{position:fixed;inset:0;background:rgba(12,19,48,.45);display:flex;align-items:center;justify-content:center;z-index:20}
+.dlg{background:#fff;border-radius:14px;padding:20px 22px;width:440px;max-width:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.dlg h2{margin:0 0 6px;font-size:18px}.dlg p{margin:0 0 16px;color:var(--ink2);font-size:14px}.dlg .acts{display:flex;justify-content:flex-end;gap:8px}
+@media (max-width:980px){body{overflow:auto}.main.two,.main.three{grid-template-columns:1fr}.pane{min-height:320px}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><b>ENTRAÎNEMENT</b><span>Reformulation de l'écart</span></div>
+  <span class="clab" aria-hidden="true">Appel</span><nav class="cases" id="cases" aria-label="Les appels"></nav>
+  <ol class="steps" id="steps" aria-label="Étapes"><li class="st">1 · Lire</li><li class="st">2 · Reformuler</li><li class="st">3 · Correction</li></ol>
+  <div class="sync" id="sync" aria-live="polite"></div>
+</header>
+<main class="main two" id="main"></main>
+<script>/*@RESULTS@*/</script>
+<script>window.LNP_ECART_CAS = /*@CAS@*/null;</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = window.LNP_ECART_CAS || { cas: [] };
+  var CAS = DATA.cas;
+  var R = window.LNP_RESULTS || { mark: function () { return 0; }, since: function () { return 0; }, add: function () {}, onChange: function () {} };
+  var KEY = "lnp-ecart-v1";
+  var COMP = { A: "Point A · où il en est", B: "Point B · où il veut aller", P: "Ce qui le bloque", C: "Ce que ça lui coûte", V: "Demande de validation" };
+  var PTS = { A: 1.5, B: 1.5, P: 3, C: 3, V: 1 };
+  var $ = function (s) { return document.querySelector(s); };
+  var main = $("#main");
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function num1(x) { return (Math.round(x * 2) / 2).toLocaleString("fr-FR"); }
+
+  // ---------------------------------------------------------------- what is kept on this device (the attempt in progress)
+  var S = load();
+  function load() {
+    var s = null; try { s = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    s = s && typeof s === "object" ? s : {};
+    s.best = s.best || {}; s.cur = s.cur || null;
+    return s;
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function caseOf(id) { return CAS.filter(function (c) { return c.id === id; })[0] || CAS[0]; }
+  function start(id) {
+    S.cur = { id: id, phase: "intro", i: 0, notes: "", text: "", res: null, mark: null };
+    save(); render();
+  }
+
+  // ---------------------------------------------------------------- the words, as the code compares them (GB-22)
+  // folded (no accents, ’ = '), elisions apart, the person shifted (je / tu / vous, me / te, mon / ton / votre…), « ne »
+  // left out, a final « s » left out (plural, « tu gagnes »), the thousands joined (« 1 500 » = « 1500 »), € = euro
+  var PERSON = { je: "p", tu: "p", vous: "p", "j'": "p", "t'": "p", "m'": "p", me: "pr", te: "pr", moi: "moi", toi: "moi",
+    mon: "pos", ton: "pos", votre: "pos", ma: "pos", ta: "pos", mes: "poss", tes: "poss", vos: "poss",
+    suis: "etre", es: "etre", etes: "etre", ai: "avoir", as: "avoir", avez: "avoir" };
+  function fold(s) { return String(s || "").replace(/[’‘`]/g, "'").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+  function tokens(text) {
+    var t = fold(text), out = [], re = /[a-z0-9]+'|[a-z0-9]+|€/g, m;
+    while ((m = re.exec(t))) out.push({ w: m[0], s: m.index, e: m.index + m[0].length });
+    var merged = [];                                                   // « 1 500 », « 1.500 » → 1500
+    out.forEach(function (x) {
+      var p = merged[merged.length - 1];
+      if (p && /^\d+$/.test(p.w) && /^\d{3}$/.test(x.w) && /^[   .]$/.test(t.slice(p.e, x.s))) { p.w += x.w; p.e = x.e; return; }
+      merged.push(x);
+    });
+    var res = [];
+    merged.forEach(function (x) {
+      var w = x.w;
+      if (w === "ne" || w === "n'") return;
+      if (w === "€" || w === "euros") w = "euro";
+      if (PERSON[w]) w = PERSON[w];
+      else if (/'$/.test(w)) w = w.slice(0, -1);
+      else if (w.length >= 4 && /s$/.test(w) && !/^\d/.test(w)) w = w.slice(0, -1);
+      res.push({ w: w, s: x.s, e: x.e });
+    });
+    return res;
+  }
+  function findAll(tt, key) {                                          // every place where the key's words follow each other
+    var k = tokens(key).map(function (x) { return x.w; }), hits = [];
+    if (!k.length) return hits;
+    for (var i = 0; i + k.length <= tt.length; i++) {
+      var ok = true;
+      for (var j = 0; j < k.length; j++) if (tt[i + j].w !== k[j]) { ok = false; break; }
+      if (ok) hits.push({ s: tt[i].s, e: tt[i + k.length - 1].e });
+    }
+    return hits;
+  }
+  function firstHit(tt, keys) {
+    var best = null;
+    (keys || []).forEach(function (k) { findAll(tt, k).forEach(function (h) { if (!best || h.s < best.s) best = h; }); });
+    return best;
+  }
+  var STOP = "avec dans pour mais plus tout tous toute toutes cette comme aussi alors donc encore deja vraiment chaque leur leurs elle elles nous etre avoir fait faire sont etait ete moin tres bien".split(" ");
+  function content(text) { return tokens(text).map(function (x) { return x.w; }).filter(function (w) { return w.length >= 4 && STOP.indexOf(w) < 0 && !/^(p|pr|pos|poss|moi)$/.test(w); }); }
+  function overlap(a, b) {                                             // share of b's content words found in a
+    var A = content(a), B = content(b); if (!B.length) return 0;
+    return B.filter(function (w) { return A.indexOf(w) >= 0; }).length / B.length;
+  }
+  function numbers(text) { return tokens(text).map(function (x) { return x.w; }).filter(function (w) { return /^\d+$/.test(w); }); }
+  var VALID = ["c'est bien ca", "c'est ca", "c'est juste", "c'est correct", "j'ai bien compris", "je t'ai bien compris", "je t'ai bien comprise",
+    "j'ai bien resume", "je resume bien", "c'est bien resume", "je me trompe", "on est d'accord", "on est bien d'accord", "tu es d'accord",
+    "tu confirmes", "tu valides", "ca te parle", "ca te correspond", "ca te semble juste", "ai-je bien compris", "c'est bien ce que tu vis",
+    "j'ai oublie quelque chose", "est-ce que c'est ca"];
+  var OFFER = /\b(accompagnement|formation|programme|offre|coaching|notre|nos|lnp|nouveaux profs|academie|on va t'aider|on peut t'aider|je vais te montrer|je te montre)\b/;
+
+  // ---------------------------------------------------------------- the correction (02_gap, A: §2.1, §5, G5; B: GB-22, GB-28 to GB-31)
+  function correct(c, text) {
+    var tt = tokens(text), out = { comps: {}, faults: [], advice: [], marks: [] };
+    function mark(h, cls) { if (h) out.marks.push({ s: h.s, e: h.e, c: cls }); }
+    function trapsOf(type) { return c.pieges.filter(function (t) { return t.type === type; }); }
+    function salesFor(k) { return c.pieges.filter(function (t) { return t.type === "commercial" && t.comp === k; }); }
+    var said = [];
+    c.tours.forEach(function (t) { if (t[0] === "P") said = said.concat(numbers(t[1])); });
+    var notSaid = numbers(text).filter(function (n) { return said.indexOf(n) < 0; });
+    ["A", "B", "P", "C"].forEach(function (k) {
+      var comp = c[k], h = firstHit(tt, comp.cles), r = { k: k, pts: 0, max: PTS[k], said: comp.src[1], why: comp.pourquoi };
+      if (!h && k === "P") {                                           // the same blocker, said with other words of the same answer
+        c.autres_blocages.filter(function (b) { return b.meme; }).forEach(function (b) { h = h || firstHit(tt, b.cles); });
+      }
+      if (h) { r.st = "ok"; r.pts = PTS[k]; r.label = "Ses mots, repris"; mark(h, k); r.at = h.s; }
+      else {
+        var other = null, alt = k === "P" ? c.autres_blocages.filter(function (b) { return !b.meme; }) : k === "C" ? c.autres_couts : [];
+        alt.forEach(function (b) { var x = firstHit(tt, b.cles); if (x && !other) other = { h: x, b: b }; });
+        var trap = null; trapsOf(k).forEach(function (t) { var x = firstHit(tt, t.cles); if (x && !trap) trap = { h: x, t: t }; });
+        var sales = null; salesFor(k).forEach(function (t) { var x = firstHit(tt, t.cles); if (x && !sales) sales = { h: x, t: t }; });
+        if (other) {
+          r.st = "mid"; r.pts = k === "C" ? 2 : 1.5; r.at = other.h.s; mark(other.h, k);
+          r.label = k === "C" ? "Un autre coût, avec ses mots" : "Un autre blocage, avec ses mots";
+          r.note = "Tu as repris « " + other.b.mots + " ». " + (k === "C" ? "C'est bien un coût qu'il a dit, mais pas celui rattaché à son blocage." : "C'est un blocage qu'il a dit, mais pas sa réponse à la question du blocage.");
+        } else if (sales) {
+          r.st = "ko"; r.label = "Les mots du commercial"; mark(sales.h, "X"); r.note = sales.t.pourquoi;
+        } else if (trap) {
+          r.st = "ko"; r.label = k === "B" ? "Pas la bonne cible" : "Pas le bon chiffre"; mark(trap.h, "X"); r.note = trap.t.pourquoi;
+        } else if ((k === "A" || k === "B") && notSaid.length && overlap(text, comp.src[1]) >= 0.3) {
+          r.st = "ko"; r.label = "Pas son chiffre"; r.note = "Le chiffre que tu donnes n'est pas celui qu'il a dit : reprends son chiffre, avec son unité.";
+        } else if (overlap(text, comp.src[1]) >= 0.5) {
+          r.st = "ko"; r.label = "Reformulé avec tes mots"; r.note = "L'idée y est, mais pas ses mots exacts : une reformulation ne compte que si elle reprend les mots du prospect (règle du mot pour mot).";
+        } else { r.st = "ko"; r.label = "Absent"; }
+      }
+      out.comps[k] = r;
+    });
+    // GB-31: one single blocker
+    var P = out.comps.P;
+    if (P.st === "ok") {
+      var twice = c.autres_blocages.filter(function (b) { return !b.meme && firstHit(tt, b.cles); })[0];
+      if (twice) {
+        P.pts = 1.5; P.st = "mid"; P.label = "Plusieurs blocages"; mark(firstHit(tt, twice.cles), "P");
+        P.note = "Tu as aussi repris « " + twice.mots + " ». La reformulation ne garde qu'un seul blocage, celui qu'il a nommé à la question du blocage ; les autres serviront à sa feuille de route.";
+      }
+    }
+    // the validation request, at the end
+    var last = fold(text).replace(/\s+$/, ""), lastSentence = last.split(/[.!]\s+/).pop();
+    var V = { k: "V", pts: 0, max: PTS.V, why: "La reformulation se termine par une question qui demande au prospect de valider : « C'est bien ça ? »." };
+    if (/\?\s*$/.test(last) && VALID.some(function (v) { return lastSentence.indexOf(v) >= 0; })) {
+      V.st = "ok"; V.pts = 1; V.label = "Demandée";
+      var i = last.lastIndexOf(VALID.filter(function (v) { return lastSentence.indexOf(v) >= 0; })[0]);
+      var q = last.lastIndexOf("?"); if (i >= 0) mark({ s: i, e: q + 1 }, "V");
+    } else if (/\?\s*$/.test(last)) { V.st = "mid"; V.label = "Question à revoir"; V.note = "Ta dernière question ne demande pas clairement de valider : termine par « C'est bien ça ? »."; }
+    else { V.st = "ko"; V.label = "Absente"; V.note = "Sans question finale, le prospect ne valide pas : l'écart n'existe que validé par lui."; }
+    out.comps.V = V;
+    // penalties: the offer (the restitution comes before the pitch), a figure he never said
+    var pen = 0, fl = fold(text);
+    if (OFFER.test(fl)) { pen += 1; out.faults.push({ ko: true, t: "Tu parles de l'offre : la reformulation vient avant la présentation, elle ne parle que de lui (−1)." }); }
+    var wrong = notSaid;
+    if (wrong.length) {
+      pen += Math.min(1, 0.5 * wrong.length);
+      out.faults.push({ ko: true, t: "Chiffre" + (wrong.length > 1 ? "s" : "") + " que le prospect n'a pas dit" + (wrong.length > 1 ? "s" : "") + " : " + wrong.join(", ") + ". Un chiffre arrondi, converti ou calculé est le tien, pas le sien (−" + num1(Math.min(1, 0.5 * wrong.length)) + ")." });
+    }
+    // the order of the formula: advice only
+    var at = ["A", "B", "P", "C"].map(function (k) { return out.comps[k].at; });
+    if (at.every(function (x) { return x != null; }) && !(at[0] < at[1] && at[1] < at[2] && at[2] < at[3]))
+      out.advice.push("L'ordre de la formule aide le prospect à suivre : où il en est, où il veut aller, ce qui le bloque, ce que ça lui coûte.");
+    if (!/\btu\b|\bt'/.test(fl) && /\bvous\b/.test(fl)) out.advice.push("Tu vouvoies : la reformulation reprend le tutoiement de l'appel.");
+    // the absence gate (§5.1): the problem and its cost, both with his words
+    out.present = (out.comps.P.st !== "ko") && (out.comps.C.st !== "ko");
+    var sum = 0; ["A", "B", "P", "C", "V"].forEach(function (k) { sum += out.comps[k].pts; });
+    out.raw = Math.max(0, sum - pen);
+    out.score = out.present ? Math.round(out.raw * 2) / 2 : 0;
+    out.pen = pen;
+    return out;
+  }
+
+  function highlight(text, marks) {
+    var ms = marks.slice().sort(function (a, b) { return a.s - b.s || b.e - a.e; }), out = "", at = 0;
+    ms.forEach(function (m) { if (m.s < at) return; out += esc(text.slice(at, m.s)) + '<mark class="' + m.c + '">' + esc(text.slice(m.s, m.e)) + "</mark>"; at = m.e; });
+    return out + esc(text.slice(at));
+  }
+
+  // ---------------------------------------------------------------- the screen
+  function bar() {
+    var cur = S.cur;
+    $("#cases").innerHTML = CAS.map(function (c, n) {
+      var b = S.best[c.id], on = cur && cur.id === c.id;
+      return '<button type="button" class="cb" data-case="' + c.id + '" aria-current="' + !!on + '" title="' + esc(c.titre) + '" aria-label="Appel ' + (n + 1) + " · " + esc(c.titre) + '">' + (n + 1) +
+        (b != null ? ' <span class="sc">' + num1(b) + "/10</span>" : "") + "</button>";
+    }).join("");
+    var ph = cur ? cur.phase : "intro", idx = { intro: 0, lire: 0, ecrire: 1, correction: 2 }[ph];
+    [].forEach.call(document.querySelectorAll("#steps .st"), function (li, i) {
+      li.className = "st" + (i === idx && ph !== "intro" ? " on" : i < idx ? " done" : "");
+      li.setAttribute("aria-current", i === idx && ph !== "intro" ? "step" : "false");
+    });
+  }
+  function render() {
+    if (!S.cur) { S.cur = { id: CAS[0].id, phase: "intro", i: 0, notes: "", text: "", res: null }; }
+    var c = caseOf(S.cur.id), ph = S.cur.phase;
+    bar();
+    if (ph === "intro") renderIntro(c);
+    else if (ph === "lire") renderRead(c);
+    else if (ph === "ecrire") renderWrite(c);
+    else renderCorrection(c);
+  }
+  function ctxCard(c) { return '<div class="ctx"><b>' + esc(c.prospect) + "</b> · " + esc(c.contexte) + "</div>"; }
+  function formulaHTML() {
+    return '<div class="formula" aria-label="La formule de l\'écart"><span class="slot A">Tu es à [A]</span><span class="slot B">tu veux atteindre [B]</span>' +
+      '<span class="slot P">ce qui te bloque, c\'est [P]</span><span class="slot C">et ça te coûte [coût]</span><span class="slot V">C\'est bien ça ?</span></div>';
+  }
+  function notesPane(c, readonlyText) {
+    return '<section class="pane" aria-labelledby="h-notes"><div class="ph"><h2 id="h-notes">Tes notes</h2><span class="k">comme pendant un appel</span></div>' +
+      '<div class="pb">' + ctxCard(c) + (readonlyText ? '<p class="hint">' + readonlyText + "</p>" : "") +
+      '<label class="sr" for="notes">Tes notes</label><textarea id="notes" class="notes" placeholder="Note ses mots exacts : ses chiffres, ce qui le bloque, ce que ça lui coûte…">' + esc(S.cur.notes) + "</textarea></div></section>";
+  }
+  function bindNotes() {
+    var n = $("#notes"); if (!n) return;
+    n.addEventListener("input", function () { S.cur.notes = n.value; save(); });
+  }
+  function renderIntro(c) {
+    main.className = "main two";
+    var b = S.best[c.id];
+    main.innerHTML = '<section class="pane" aria-labelledby="h-intro"><div class="ph"><h2 id="h-intro">' + esc(c.titre) + '</h2><span class="k">' + c.tours.length + " répliques</span></div>" +
+      '<div class="pb">' + ctxCard(c) +
+      '<p class="lead">Tu vas lire la découverte d\'un appel, puis reformuler l\'écart du prospect comme tu le dirais à la fin de la découverte, juste avant de présenter l\'offre.</p>' +
+      '<ol class="rules"><li>L\'appel se lit <strong>une seule fois</strong>, <strong>une réplique après l\'autre</strong> : la réplique suivante remplace la précédente, sans retour en arrière.</li>' +
+      "<li>Prends des notes à droite, comme pendant un vrai appel : ses mots exacts comptent.</li>" +
+      "<li>À la fin, l'appel disparaît : tu écris ta reformulation avec tes notes.</li>" +
+      "<li>La correction suit la méthode de l'écart : où il en est (A), où il veut aller (B), ce qui le bloque, ce que ça lui coûte, avec ses mots, puis la demande de validation.</li></ol>" +
+      (b != null ? '<p class="hint">Ta meilleure note sur cet appel : ' + num1(b) + " / 10.</p>" : "") +
+      '</div><div class="pf"><button type="button" class="btn p big" id="go">Commencer la lecture</button><span class="hint">Espace ou Entrée pour passer à la réplique suivante.</span></div></section>' +
+      notesPane(c);
+    bindNotes();
+    $("#go").addEventListener("click", function () { S.cur.phase = "lire"; S.cur.i = 0; S.cur.mark = R.mark(); save(); render(); });
+    $("#go").focus();
+  }
+  function renderRead(c) {
+    main.className = "main two";
+    var i = S.cur.i, t = c.tours[i], n = c.tours.length, lastOne = i >= n - 1;
+    main.innerHTML = '<section class="pane" aria-labelledby="h-read"><div class="ph"><h2 id="h-read">L\'appel</h2><span class="k">Lecture unique</span></div>' +
+      '<div class="stage"><div class="count"><span>Réplique ' + (i + 1) + " sur " + n + '</span><span class="pbar" aria-hidden="true"><i style="width:' + Math.round(100 * (i + 1) / n) + '%"></i></span></div>' +
+      '<div class="turn ' + t[0] + '" aria-live="polite"><div class="who">' + (t[0] === "S" ? "Commercial" : esc(c.prospect)) + "</div>" + esc(t[1]) + "</div></div>" +
+      '<div class="pf"><button type="button" class="btn p big" id="next">' + (lastOne ? "J'ai fini : je reformule" : "Réplique suivante") + '</button><span class="hint">Pas de retour en arrière.</span></div></section>' +
+      notesPane(c);
+    bindNotes();
+    $("#next").addEventListener("click", next);
+    $("#next").focus();
+  }
+  function next() {
+    var c = caseOf(S.cur.id);
+    if (S.cur.phase !== "lire") return;
+    if (S.cur.i >= c.tours.length - 1) S.cur.phase = "ecrire"; else S.cur.i++;
+    save(); render();
+  }
+  function renderWrite(c) {
+    main.className = "main two";
+    main.innerHTML = '<section class="pane" aria-labelledby="h-write"><div class="ph"><h2 id="h-write">Ta reformulation</h2><span class="k">comme tu la dirais à ' + esc(c.prospect) + "</span></div>" +
+      '<div class="pb"><p class="lead">L\'appel est terminé pour toi : écris l\'écart de ' + esc(c.prospect) + ", avec ses mots, puis demande-lui de valider.</p>" + formulaHTML() +
+      '<label class="sr" for="mine">Ta reformulation</label><textarea id="mine" class="write" placeholder="Aujourd\'hui, tu…">' + esc(S.cur.text) + "</textarea></div>" +
+      '<div class="pf"><button type="button" class="btn p big" id="check">Corriger</button><span class="wc" id="wc"></span></div></section>' +
+      notesPane(c, "La transcription n'est plus visible. Tes notes restent.");
+    bindNotes();
+    var m = $("#mine"), wc = $("#wc"), go = $("#check");
+    function upd() { var n = (m.value.match(/\S+/g) || []).length; wc.textContent = n + " mot" + (n > 1 ? "s" : ""); go.disabled = n < 8; S.cur.text = m.value; save(); }
+    m.addEventListener("input", upd); upd(); m.focus();
+    go.addEventListener("click", function () {
+      var res = correct(c, m.value);
+      S.cur.res = { score: res.score, present: res.present };
+      S.cur.phase = "correction";
+      if (S.best[c.id] == null || res.score > S.best[c.id]) S.best[c.id] = res.score;
+      save();
+      var st = {}; ["A", "B", "P", "C", "V"].forEach(function (k) { st[k] = res.comps[k].st; });
+      try {
+        R.add({ module: "ecart", case_id: c.id, score: res.score, max: 10, mode: "regles", duration_s: R.since(S.cur.mark || 0),
+          details: { titre: c.titre, present: res.present, composantes: st, penalite: res.pen, texte: m.value.slice(0, 2000) } });
+      } catch (e) {}
+      render();
+    });
+  }
+  function renderCorrection(c) {
+    main.className = "main three";
+    var res = correct(c, S.cur.text), tab = S.cur.tab || "parfaite";
+    var rows = ["A", "B", "P", "C", "V"].map(function (k) {
+      var r = res.comps[k], cls = r.st === "ok" ? "ok" : r.st === "mid" ? "mid" : "ko";
+      return '<div class="row"><div class="t"><span class="dot ' + k + '" aria-hidden="true"></span>' + COMP[k] + '<span class="tag ' + cls + '">' + esc(r.label) + '</span><span class="pts">' + num1(r.pts) + " / " + num1(r.max) + "</span></div>" +
+        (r.said ? '<div class="said">Ses mots : <q>' + esc(r.said) + "</q></div>" : "") +
+        (r.note ? '<div class="why">' + esc(r.note) + "</div>" : "") +
+        '<div class="why">' + esc(r.why) + "</div></div>";
+    }).join("");
+    var faults = res.faults.map(function (f) { return '<li class="ko">' + esc(f.t) + "</li>"; }).concat(res.advice.map(function (a) { return "<li>" + esc(a) + "</li>"; })).join("");
+    var verdict = res.present
+      ? '<div class="verdict ok">Écart présent : le problème et son coût sont repris avec ses mots.</div>'
+      : '<div class="verdict ko">Écart absent : sans le problème <em>et</em> son coût repris avec ses mots, la reformulation ne crée pas l\'écart (note 0).</div>';
+    var legend = '<div class="legend"><span><i style="background:var(--cA)"></i>A</span><span><i style="background:var(--cB)"></i>B</span><span><i style="background:var(--cP)"></i>Blocage</span><span><i style="background:var(--cC)"></i>Coût</span><span><i style="background:var(--cV)"></i>Validation</span><span><i style="background:#8A93A8"></i>Mauvais choix</span></div>';
+    var call = c.tours.map(function (t, i) {
+      var txt = esc(t[1]);
+      ["A", "B", "P", "C"].forEach(function (k) { if (c[k].src[0] === i) txt = txt.replace(esc(c[k].src[1]), '<mark class="' + k + '">' + esc(c[k].src[1]) + "</mark>"); });
+      return '<div class="tr ' + t[0] + '"><span class="w">' + (t[0] === "S" ? "Commercial" : esc(c.prospect)) + "</span><span>" + txt + "</span></div>";
+    }).join("");
+    var nextCase = CAS[(CAS.indexOf(c) + 1) % CAS.length];
+    main.innerHTML =
+      '<section class="pane" aria-labelledby="h-res"><div class="ph"><h2 id="h-res">Ta note</h2></div><div class="pb">' +
+      '<div class="score"><span class="n">' + num1(res.score) + '</span><span class="m">/ 10</span></div>' + verdict +
+      '<div class="h2">Ta reformulation</div><div class="mine">' + highlight(S.cur.text, res.marks) + "</div>" + legend +
+      (faults ? '<div class="h2">À corriger</div><ul class="faults">' + faults + "</ul>" : "") +
+      '</div><div class="pf"><button type="button" class="btn" id="again">Refaire cet appel</button><button type="button" class="btn p" id="nextc">Appel suivant</button></div></section>' +
+      '<section class="pane" aria-labelledby="h-grid"><div class="ph"><h2 id="h-grid">La correction</h2><span class="k">méthode de l\'écart</span></div><div class="pb">' + rows + "</div></section>" +
+      '<section class="pane" aria-labelledby="h-ref"><div class="ph"><div class="tabs" role="tablist"><button type="button" role="tab" id="t-parfaite" aria-selected="' + (tab === "parfaite") + '">La reformulation parfaite</button>' +
+      '<button type="button" role="tab" id="t-appel" aria-selected="' + (tab === "appel") + '">Relire l\'appel</button></div></div><div class="pb" id="h-ref" role="tabpanel">' +
+      (tab === "parfaite"
+        ? '<div class="perfect">' + esc(c.parfaite) + '</div><p class="hint">Chaque morceau est fait de ses mots, passés au « tu ». Un seul blocage, celui qu\'il a nommé quand on le lui a demandé ; le coût qui va avec ; A et B dans la même unité.</p>' + formulaHTML()
+        : '<p class="hint">Maintenant que la correction est faite, tu peux relire l\'appel. Ses mots à reprendre sont surlignés.</p>' + call) +
+      "</div></section>";
+    $("#again").addEventListener("click", function () { start(c.id); });
+    $("#nextc").addEventListener("click", function () { start(nextCase.id); });
+    $("#t-parfaite").addEventListener("click", function () { S.cur.tab = "parfaite"; save(); render(); });
+    $("#t-appel").addEventListener("click", function () { S.cur.tab = "appel"; save(); render(); });
+  }
+
+  // a window to confirm, never the browser's (CLAUDE.md: what is lost is confirmed in a window)
+  function ask(title, text, okLabel) {
+    return new Promise(function (done) {
+      var back = document.activeElement, d = document.createElement("div");
+      d.className = "modal";
+      d.innerHTML = '<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-t"><h2 id="dlg-t">' + esc(title) + "</h2><p>" + esc(text) + "</p>" +
+        '<div class="acts"><button type="button" class="btn" data-a="0">Annuler</button><button type="button" class="btn p" data-a="1">' + esc(okLabel) + "</button></div></div>";
+      document.body.appendChild(d);
+      function close(v) { d.remove(); document.removeEventListener("keydown", key, true); try { back && back.focus(); } catch (e) {} done(v); }
+      function key(e) {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(false); }
+        if (e.key === "Tab") { var b = d.querySelectorAll("button"), f = b[0], l = b[b.length - 1];
+          if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); } else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); } }
+      }
+      d.addEventListener("click", function (e) { var b = e.target.closest("[data-a]"); if (b) close(b.getAttribute("data-a") === "1"); else if (e.target === d) close(false); });
+      document.addEventListener("keydown", key, true);
+      d.querySelector('[data-a="0"]').focus();
+    });
+  }
+  $("#cases").addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-case]"); if (!b) return;
+    var id = b.getAttribute("data-case");
+    if (S.cur && S.cur.id === id) return;
+    if (S.cur && (S.cur.phase === "lire" || S.cur.phase === "ecrire")) {
+      ask("Quitter cet appel ?", "Ta lecture et ta reformulation en cours seront perdues : l'appel se relira depuis le début.", "Quitter l'appel").then(function (ok) { if (ok) start(id); });
+      return;
+    }
+    start(id);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (!S.cur || S.cur.phase !== "lire") return;
+    if (e.target && /TEXTAREA|INPUT/.test(e.target.tagName)) return;
+    if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); next(); }
+  });
+  R.onChange(function (t) { var s = $("#sync"); if (s) s.textContent = t; });
+  window.LNP_ECART = { correct: correct, tokens: tokens, cas: CAS };   // read by the test (app/training/reformulation_test.js)
+  render();
+})();
+</script>
+</body>
+</html>

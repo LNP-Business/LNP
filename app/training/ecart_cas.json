@@ -1,0 +1,1103 @@
+{
+ "version": "2026-11-25",
+ "note": "Appels inventés (aucun vrai appel, aucun vrai nom). Chaque cas s'arrête juste avant la reformulation de l'écart. Les clés sont les mots exacts du prospect (règle du mot pour mot, GB-22) ; le code les compare au texte du commercial après passage à la deuxième personne.",
+ "cas": [
+  {
+   "id": "E1",
+   "titre": "Claire, prof d'anglais",
+   "prospect": "Claire",
+   "contexte": "Professeure d'anglais en collège, cours particuliers le soir. Premier appel (R1).",
+   "tours": [
+    [
+     "S",
+     "Bonjour Claire, merci d'être là. Tu m'entends bien ?"
+    ],
+    [
+     "P",
+     "Oui, très bien, bonjour."
+    ],
+    [
+     "S",
+     "Super. Tu as eu le temps de regarder le live de mardi ?"
+    ],
+    [
+     "P",
+     "Oui, je l'ai regardé en entier, ça m'a beaucoup parlé."
+    ],
+    [
+     "S",
+     "Top. Alors raconte-moi, tu fais quoi aujourd'hui ?"
+    ],
+    [
+     "P",
+     "Je suis prof d'anglais dans un collège depuis 12 ans, et à côté je donne des cours particuliers le soir, chez les élèves."
+    ],
+    [
+     "S",
+     "Et ces cours particuliers, ça représente combien par mois pour toi ?"
+    ],
+    [
+     "P",
+     "En ce moment je fais à peu près 600 euros par mois avec les cours, en plus de mon salaire."
+    ],
+    [
+     "S",
+     "D'accord. Et tu as combien d'élèves en ce moment ?"
+    ],
+    [
+     "P",
+     "J'en ai 7, tous dans mon quartier."
+    ],
+    [
+     "S",
+     "Ok. Et qu'est-ce qui ne va pas aujourd'hui dans cette organisation ?"
+    ],
+    [
+     "P",
+     "Je passe mes soirées sur la route entre deux élèves, je rentre à 21 heures, je suis vidée."
+    ],
+    [
+     "S",
+     "Je comprends. Et ça a quel impact sur le reste de ta vie ?"
+    ],
+    [
+     "P",
+     "Je ne vois presque plus mes enfants le soir, c'est mon mari qui fait les devoirs avec eux. Ça, ça me pèse vraiment."
+    ],
+    [
+     "S",
+     "Et où tu voudrais en être dans un an, avec ces cours ?"
+    ],
+    [
+     "P",
+     "Idéalement, je voudrais faire 1 500 euros par mois avec les cours, et les donner en ligne depuis chez moi."
+    ],
+    [
+     "S",
+     "Pourquoi c'est important pour toi ?"
+    ],
+    [
+     "P",
+     "Parce que je pourrais enfin réduire mes heures au collège et souffler un peu."
+    ],
+    [
+     "S",
+     "Qu'est-ce qui t'a empêchée jusqu'ici de passer en ligne ?"
+    ],
+    [
+     "P",
+     "Honnêtement, je ne sais pas comment trouver des élèves en dehors de mon quartier. Tous mes élèves viennent du bouche-à-oreille."
+    ],
+    [
+     "S",
+     "Donc en gros, c'est un problème de visibilité."
+    ],
+    [
+     "P",
+     "Oui, on peut dire ça."
+    ],
+    [
+     "S",
+     "Et si rien ne change d'ici l'année prochaine ?"
+    ],
+    [
+     "P",
+     "Je vais continuer à courir partout le soir et à rater les soirées avec mes enfants."
+    ],
+    [
+     "S",
+     "Ok, Claire. Je vais te résumer ce que j'ai compris, et tu me dis si c'est juste."
+    ]
+   ],
+   "A": {
+    "cles": [
+     "600 euros par mois",
+     "600 euros"
+    ],
+    "src": [
+     7,
+     "je fais à peu près 600 euros par mois avec les cours"
+    ],
+    "pourquoi": "B porte sur ce que les cours lui rapportent chaque mois : A est le chiffre actuel sur cette dimension, ses 600 euros par mois. Ni ses 12 ans d'ancienneté ni ses 7 élèves."
+   },
+   "B": {
+    "cles": [
+     "1 500 euros par mois",
+     "1 500 euros"
+    ],
+    "src": [
+     15,
+     "je voudrais faire 1 500 euros par mois avec les cours"
+    ],
+    "pourquoi": "Sa cible chiffrée, dans la même unité que A (euros par mois avec les cours), dite en réponse à la question sur l'avenir."
+   },
+   "P": {
+    "cles": [
+     "sais pas comment trouver des élèves",
+     "trouver des élèves en dehors de mon quartier"
+    ],
+    "src": [
+     19,
+     "je ne sais pas comment trouver des élèves en dehors de mon quartier"
+    ],
+    "pourquoi": "C'est sa réponse à la question du blocage (« Qu'est-ce qui t'a empêchée jusqu'ici… ? ») : un seul blocage, avec ses mots."
+   },
+   "C": {
+    "cles": [
+     "vois presque plus mes enfants",
+     "presque plus mes enfants le soir"
+    ],
+    "src": [
+     13,
+     "Je ne vois presque plus mes enfants le soir"
+    ],
+    "pourquoi": "Ce que la situation lui coûte, dans un domaine concret (sa famille), avec ses mots. « Ça me pèse vraiment » le confirme."
+   },
+   "autres_couts": [
+    {
+     "cles": [
+      "rater les soirées avec mes enfants"
+     ],
+     "mots": "rater les soirées avec mes enfants"
+    },
+    {
+     "cles": [
+      "je suis vidée"
+     ],
+     "mots": "je suis vidée"
+    }
+   ],
+   "autres_blocages": [
+    {
+     "cles": [
+      "passe mes soirées sur la route"
+     ],
+     "mots": "Je passe mes soirées sur la route entre deux élèves"
+    }
+   ],
+   "pieges": [
+    {
+     "type": "A",
+     "cles": [
+      "12 ans"
+     ],
+     "mots": "depuis 12 ans",
+     "pourquoi": "Son ancienneté n'est pas sur la dimension de B (ce que lui rapportent les cours)."
+    },
+    {
+     "type": "A",
+     "cles": [
+      "7 élèves",
+      "j'en ai 7"
+     ],
+     "mots": "J'en ai 7",
+     "pourquoi": "Le nombre d'élèves n'est pas l'unité de B : sa cible est en euros par mois."
+    },
+    {
+     "type": "commercial",
+     "cles": [
+      "visibilité"
+     ],
+     "mots": "un problème de visibilité",
+     "pourquoi": "« Visibilité » est le mot du commercial, pas le sien : elle a dit « je ne sais pas comment trouver des élèves en dehors de mon quartier ».",
+     "comp": "P"
+    }
+   ],
+   "parfaite": "Aujourd'hui, tu fais à peu près 600 euros par mois avec les cours, tu voudrais faire 1 500 euros par mois avec les cours, ce qui te bloque, c'est que tu ne sais pas comment trouver des élèves en dehors de ton quartier, et ça te coûte : tu ne vois presque plus tes enfants le soir. C'est bien ça ?"
+  },
+  {
+   "id": "E2",
+   "titre": "Julien, prof de maths",
+   "prospect": "Julien",
+   "contexte": "Professeur de maths indépendant, cours à domicile et en ligne. Premier appel (R1).",
+   "tours": [
+    [
+     "S",
+     "Salut Julien, comment ça va ?"
+    ],
+    [
+     "P",
+     "Ça va bien, merci. Un peu fatigué, j'enchaîne les cours en ce moment."
+    ],
+    [
+     "S",
+     "Je vois. On se tutoie ?"
+    ],
+    [
+     "P",
+     "Oui, sans problème."
+    ],
+    [
+     "S",
+     "Alors dis-moi, tu en es où aujourd'hui avec tes cours ?"
+    ],
+    [
+     "P",
+     "Je suis prof de maths à mon compte depuis trois ans. Je fais du lycée surtout, quelques étudiants en prépa."
+    ],
+    [
+     "S",
+     "Et ça te rapporte combien, à peu près ?"
+    ],
+    [
+     "P",
+     "Je tourne autour de 1 800 euros par mois. Je facture 25 euros de l'heure, comme tout le monde dans ma ville."
+    ],
+    [
+     "S",
+     "25 euros de l'heure. Et tu travailles combien d'heures par semaine ?"
+    ],
+    [
+     "P",
+     "Entre 30 et 35 heures de cours, sans compter les trajets et la préparation."
+    ],
+    [
+     "S",
+     "Qu'est-ce qui te dérange le plus dans cette situation ?"
+    ],
+    [
+     "P",
+     "Je travaille énormément pour un revenu qui ne bouge pas. Et puis je ne suis pas à l'aise avec les réseaux sociaux, je n'y poste jamais rien."
+    ],
+    [
+     "S",
+     "Ça a quelles conséquences pour toi, concrètement ?"
+    ],
+    [
+     "P",
+     "Je n'ai plus de temps pour ma compagne, on ne part jamais le week-end parce que j'ai des cours le samedi. Elle commence à m'en vouloir."
+    ],
+    [
+     "S",
+     "Et qu'est-ce que tu voudrais à la place ?"
+    ],
+    [
+     "P",
+     "Gagner mieux ma vie, déjà."
+    ],
+    [
+     "S",
+     "Concrètement, ça voudrait dire quoi, gagner mieux ta vie ?"
+    ],
+    [
+     "P",
+     "Passer à 40 euros de l'heure. Avec le même nombre d'heures, ça changerait tout."
+    ],
+    [
+     "S",
+     "Et pourquoi tu ne l'as pas déjà fait ?"
+    ],
+    [
+     "P",
+     "J'ai peur de perdre mes élèves si j'augmente mes tarifs. Ils me disent tous que je suis déjà cher."
+    ],
+    [
+     "S",
+     "D'accord, donc c'est un sujet de positionnement prix."
+    ],
+    [
+     "P",
+     "Oui, voilà."
+    ],
+    [
+     "S",
+     "Super. Je vais reprendre tout ce que tu m'as dit."
+    ]
+   ],
+   "A": {
+    "cles": [
+     "25 euros de l'heure",
+     "25 euros"
+    ],
+    "src": [
+     7,
+     "Je facture 25 euros de l'heure"
+    ],
+    "pourquoi": "B est un tarif horaire (40 euros de l'heure) : A est son tarif actuel, 25 euros de l'heure. Ses 1 800 euros par mois ne sont pas sur la dimension de B."
+   },
+   "B": {
+    "cles": [
+     "40 euros de l'heure",
+     "40 euros"
+    ],
+    "src": [
+     17,
+     "Passer à 40 euros de l'heure"
+    ],
+    "pourquoi": "Sa cible chiffrée la plus récente. « Gagner mieux ma vie » est une cible sans chiffre : quand il en donne une chiffrée ensuite, c'est elle qu'on reprend."
+   },
+   "P": {
+    "cles": [
+     "peur de perdre mes élèves",
+     "perdre mes élèves si j'augmente mes tarifs"
+    ],
+    "src": [
+     19,
+     "J'ai peur de perdre mes élèves si j'augmente mes tarifs"
+    ],
+    "pourquoi": "C'est sa réponse à la question du blocage (« pourquoi tu ne l'as pas déjà fait ? »). Le malaise avec les réseaux sociaux est un autre blocage, dit ailleurs : un seul blocage dans la reformulation."
+   },
+   "C": {
+    "cles": [
+     "plus de temps pour ma compagne",
+     "on ne part jamais le week-end"
+    ],
+    "src": [
+     13,
+     "Je n'ai plus de temps pour ma compagne"
+    ],
+    "pourquoi": "Ce que la situation lui coûte dans sa vie de couple, avec ses mots."
+   },
+   "autres_couts": [
+    {
+     "cles": [
+      "elle commence à m'en vouloir"
+     ],
+     "mots": "Elle commence à m'en vouloir"
+    },
+    {
+     "cles": [
+      "revenu qui ne bouge pas"
+     ],
+     "mots": "un revenu qui ne bouge pas"
+    }
+   ],
+   "autres_blocages": [
+    {
+     "cles": [
+      "pas à l'aise avec les réseaux sociaux",
+      "réseaux sociaux"
+     ],
+     "mots": "je ne suis pas à l'aise avec les réseaux sociaux"
+    }
+   ],
+   "pieges": [
+    {
+     "type": "A",
+     "cles": [
+      "1 800 euros"
+     ],
+     "mots": "1 800 euros par mois",
+     "pourquoi": "Son revenu mensuel n'est pas sur la dimension de B, qui est un tarif horaire."
+    },
+    {
+     "type": "A",
+     "cles": [
+      "35 heures",
+      "30 et 35 heures"
+     ],
+     "mots": "Entre 30 et 35 heures de cours",
+     "pourquoi": "Ses heures de travail ne sont pas l'unité de B."
+    },
+    {
+     "type": "B",
+     "cles": [
+      "gagner mieux ma vie"
+     ],
+     "mots": "Gagner mieux ma vie",
+     "pourquoi": "Une cible sans chiffre : sa cible chiffrée, dite juste après, est « 40 euros de l'heure »."
+    },
+    {
+     "type": "commercial",
+     "cles": [
+      "positionnement prix",
+      "positionnement"
+     ],
+     "mots": "un sujet de positionnement prix",
+     "pourquoi": "« Positionnement prix » est le mot du commercial : il a dit « j'ai peur de perdre mes élèves si j'augmente mes tarifs ».",
+     "comp": "P"
+    }
+   ],
+   "parfaite": "Aujourd'hui, tu factures 25 euros de l'heure, tu veux passer à 40 euros de l'heure, ce qui te bloque, c'est que tu as peur de perdre tes élèves si tu augmentes tes tarifs, et ça te coûte : tu n'as plus de temps pour ta compagne. C'est bien ça ?"
+  },
+  {
+   "id": "E3",
+   "titre": "Nadia, prof de piano",
+   "prospect": "Nadia",
+   "contexte": "Professeure de piano, vacataire dans une école de musique, quelques élèves en ligne. Premier appel (R1).",
+   "tours": [
+    [
+     "S",
+     "Bonjour Nadia ! On a bien 45 minutes ensemble ?"
+    ],
+    [
+     "P",
+     "Oui, c'est bon pour moi."
+    ],
+    [
+     "S",
+     "Parfait. Présente-toi en quelques mots."
+    ],
+    [
+     "P",
+     "Je suis prof de piano. Je suis vacataire dans une école de musique, 8 heures par semaine, et j'ai quelques élèves en ligne."
+    ],
+    [
+     "S",
+     "Combien d'élèves en ligne aujourd'hui ?"
+    ],
+    [
+     "P",
+     "J'ai 4 élèves en ligne, des adultes surtout."
+    ],
+    [
+     "S",
+     "Et qu'est-ce qui t'a donné envie de prendre ce rendez-vous ?"
+    ],
+    [
+     "P",
+     "L'école réduit mes heures l'an prochain. Il me manque environ 400 euros chaque mois pour payer le loyer, et ça m'angoisse."
+    ],
+    [
+     "S",
+     "Je comprends. Et ça se passe comment au quotidien, avec cette angoisse ?"
+    ],
+    [
+     "P",
+     "Je dors mal, je fais mes comptes tous les soirs. Je n'ose plus rien dépenser."
+    ],
+    [
+     "S",
+     "Où tu voudrais en être d'ici l'été ?"
+    ],
+    [
+     "P",
+     "J'aimerais avoir 15 élèves en ligne d'ici l'été, pour ne plus dépendre de l'école."
+    ],
+    [
+     "S",
+     "Donc il te faudrait 11 élèves de plus."
+    ],
+    [
+     "P",
+     "Oui, c'est ça."
+    ],
+    [
+     "S",
+     "Et qu'est-ce qui t'empêche d'y arriver aujourd'hui ?"
+    ],
+    [
+     "P",
+     "Je ne sais pas faire un cours de piano en visio qui donne envie de rester. Mes élèves en ligne arrêtent au bout de deux mois."
+    ],
+    [
+     "S",
+     "Et en dehors de ça, il y a autre chose ?"
+    ],
+    [
+     "P",
+     "Je n'ai pas de site, rien. Mais le vrai problème, c'est que mes élèves arrêtent."
+    ],
+    [
+     "S",
+     "Ok. Je vais te dire ce que j'ai retenu."
+    ]
+   ],
+   "A": {
+    "cles": [
+     "4 élèves en ligne",
+     "4 élèves"
+    ],
+    "src": [
+     5,
+     "J'ai 4 élèves en ligne"
+    ],
+    "pourquoi": "B est un nombre d'élèves en ligne : A est son nombre actuel, 4 élèves en ligne. Ses 8 heures de vacation ne sont pas sur cette dimension."
+   },
+   "B": {
+    "cles": [
+     "15 élèves en ligne",
+     "15 élèves"
+    ],
+    "src": [
+     11,
+     "J'aimerais avoir 15 élèves en ligne d'ici l'été"
+    ],
+    "pourquoi": "Sa cible chiffrée, dans la même unité que A, avec son horizon (« d'ici l'été »)."
+   },
+   "P": {
+    "cles": [
+     "sais pas faire un cours de piano en visio",
+     "cours de piano en visio qui donne envie de rester"
+    ],
+    "src": [
+     15,
+     "Je ne sais pas faire un cours de piano en visio qui donne envie de rester"
+    ],
+    "pourquoi": "Sa réponse à la question du blocage, qu'elle confirme ensuite (« le vrai problème, c'est que mes élèves arrêtent »). L'absence de site est un autre blocage."
+   },
+   "C": {
+    "cles": [
+     "manque environ 400 euros chaque mois",
+     "400 euros chaque mois pour payer le loyer"
+    ],
+    "src": [
+     7,
+     "Il me manque environ 400 euros chaque mois pour payer le loyer"
+    ],
+    "pourquoi": "Un coût chiffré par la prospecte elle-même : le meilleur coût possible (G4 au niveau 2)."
+   },
+   "autres_couts": [
+    {
+     "cles": [
+      "je dors mal"
+     ],
+     "mots": "Je dors mal"
+    },
+    {
+     "cles": [
+      "ça m'angoisse"
+     ],
+     "mots": "ça m'angoisse"
+    },
+    {
+     "cles": [
+      "fais mes comptes tous les soirs"
+     ],
+     "mots": "je fais mes comptes tous les soirs"
+    }
+   ],
+   "autres_blocages": [
+    {
+     "cles": [
+      "pas de site"
+     ],
+     "mots": "Je n'ai pas de site"
+    },
+    {
+     "cles": [
+      "mes élèves arrêtent",
+      "arrêtent au bout de deux mois"
+     ],
+     "mots": "Mes élèves en ligne arrêtent au bout de deux mois",
+     "meme": true
+    }
+   ],
+   "pieges": [
+    {
+     "type": "A",
+     "cles": [
+      "8 heures"
+     ],
+     "mots": "8 heures par semaine",
+     "pourquoi": "Ses heures de vacation ne sont pas l'unité de B (des élèves en ligne)."
+    },
+    {
+     "type": "commercial",
+     "cles": [
+      "11 élèves",
+      "11 élèves de plus"
+     ],
+     "mots": "11 élèves de plus",
+     "pourquoi": "« 11 élèves de plus » est un calcul du commercial : un chiffre compte seulement si le prospect l'a dit.",
+     "comp": "B"
+    }
+   ],
+   "parfaite": "Aujourd'hui, tu as 4 élèves en ligne, tu aimerais avoir 15 élèves en ligne d'ici l'été, ce qui te bloque, c'est que tu ne sais pas faire un cours de piano en visio qui donne envie de rester, et ça te coûte : il te manque environ 400 euros chaque mois pour payer le loyer. C'est bien ça ?"
+  },
+  {
+   "id": "E4",
+   "titre": "Sophie, professeure des écoles",
+   "prospect": "Sophie",
+   "contexte": "Professeure des écoles, soutien scolaire le mercredi et le samedi. Premier appel (R1).",
+   "tours": [
+    [
+     "S",
+     "Bonjour Sophie, tu me vois bien ?"
+    ],
+    [
+     "P",
+     "Oui, et je vous entends bien aussi."
+    ],
+    [
+     "S",
+     "Super. Tu es d'où, toi ?"
+    ],
+    [
+     "P",
+     "De Nantes."
+    ],
+    [
+     "S",
+     "Belle ville. Alors, parle-moi de toi."
+    ],
+    [
+     "P",
+     "Je suis professeure des écoles, j'ai 28 élèves en CM1. Et je fais du soutien scolaire le mercredi et le samedi."
+    ],
+    [
+     "S",
+     "Le soutien, ça te rapporte combien ?"
+    ],
+    [
+     "P",
+     "À peu près 300 euros par mois, pas plus."
+    ],
+    [
+     "S",
+     "Et comment ça se passe financièrement, de manière générale ?"
+    ],
+    [
+     "P",
+     "C'est serré. Je suis à découvert tous les mois à partir du 20, et je n'en parle à personne."
+    ],
+    [
+     "S",
+     "Ça te fait quoi, ça ?"
+    ],
+    [
+     "P",
+     "J'ai honte, franchement. À mon âge, avec mon métier, je trouve ça humiliant."
+    ],
+    [
+     "S",
+     "Et avec le soutien, tu voudrais arriver à combien ?"
+    ],
+    [
+     "P",
+     "1 000 euros par mois d'ici la rentrée, ça me sortirait la tête de l'eau."
+    ],
+    [
+     "S",
+     "Qu'est-ce qui t'a empêchée d'y arriver jusqu'ici ?"
+    ],
+    [
+     "P",
+     "Je n'ai pas de méthode pour structurer mes séances, j'improvise à chaque fois et les parents ne voient pas de progrès."
+    ],
+    [
+     "S",
+     "D'accord."
+    ],
+    [
+     "P",
+     "Et puis je manque de confiance en moi pour demander plus cher."
+    ],
+    [
+     "S",
+     "Je vois. Merci Sophie, je te fais un petit résumé."
+    ]
+   ],
+   "A": {
+    "cles": [
+     "300 euros par mois",
+     "300 euros"
+    ],
+    "src": [
+     7,
+     "À peu près 300 euros par mois"
+    ],
+    "pourquoi": "B porte sur ce que le soutien lui rapporte par mois : A est ce qu'il rapporte aujourd'hui, 300 euros par mois. Ses 28 élèves de CM1 n'ont rien à voir avec B."
+   },
+   "B": {
+    "cles": [
+     "1 000 euros par mois",
+     "1 000 euros"
+    ],
+    "src": [
+     13,
+     "1 000 euros par mois d'ici la rentrée"
+    ],
+    "pourquoi": "Sa cible chiffrée, même unité que A, avec son horizon (« d'ici la rentrée »)."
+   },
+   "P": {
+    "cles": [
+     "pas de méthode pour structurer mes séances",
+     "méthode pour structurer mes séances"
+    ],
+    "src": [
+     15,
+     "Je n'ai pas de méthode pour structurer mes séances"
+    ],
+    "pourquoi": "Sa réponse à la question du blocage. Le manque de confiance vient après, de lui-même : c'est un autre blocage, gardé pour la feuille de route, pas dans la reformulation."
+   },
+   "C": {
+    "cles": [
+     "à découvert tous les mois",
+     "découvert tous les mois à partir du 20"
+    ],
+    "src": [
+     9,
+     "Je suis à découvert tous les mois à partir du 20"
+    ],
+    "pourquoi": "Ce que la situation lui coûte en argent, avec ses mots."
+   },
+   "autres_couts": [
+    {
+     "cles": [
+      "j'ai honte"
+     ],
+     "mots": "J'ai honte"
+    },
+    {
+     "cles": [
+      "je trouve ça humiliant"
+     ],
+     "mots": "je trouve ça humiliant"
+    }
+   ],
+   "autres_blocages": [
+    {
+     "cles": [
+      "manque de confiance en moi"
+     ],
+     "mots": "je manque de confiance en moi pour demander plus cher"
+    },
+    {
+     "cles": [
+      "j'improvise à chaque fois"
+     ],
+     "mots": "j'improvise à chaque fois",
+     "meme": true
+    }
+   ],
+   "pieges": [
+    {
+     "type": "A",
+     "cles": [
+      "28 élèves"
+     ],
+     "mots": "28 élèves en CM1",
+     "pourquoi": "Sa classe n'est pas sur la dimension de B (ce que lui rapporte le soutien)."
+    }
+   ],
+   "parfaite": "Aujourd'hui, le soutien te rapporte à peu près 300 euros par mois, tu veux arriver à 1 000 euros par mois d'ici la rentrée, ce qui te bloque, c'est que tu n'as pas de méthode pour structurer tes séances, et ça te coûte : tu es à découvert tous les mois à partir du 20. C'est bien ça ?"
+  },
+  {
+   "id": "E5",
+   "titre": "Karim, prof de physique-chimie",
+   "prospect": "Karim",
+   "contexte": "Professeur de physique-chimie en lycée, veut vivre de ses cours en ligne. Premier appel (R1).",
+   "tours": [
+    [
+     "S",
+     "Bonjour Karim, merci pour ton temps. Tu attends quoi de notre appel ?"
+    ],
+    [
+     "P",
+     "Savoir si votre méthode peut marcher pour moi, tout simplement."
+    ],
+    [
+     "S",
+     "Très bien. Tu fais quoi aujourd'hui ?"
+    ],
+    [
+     "P",
+     "Je suis prof de physique-chimie en lycée depuis 15 ans. Je gagne 2 100 euros net par mois."
+    ],
+    [
+     "S",
+     "Et qu'est-ce qui te pousse à vouloir changer ?"
+    ],
+    [
+     "P",
+     "Je n'en peux plus de l'Éducation nationale. Je dors mal depuis la rentrée, j'ai l'impression de perdre mes meilleures années."
+    ],
+    [
+     "S",
+     "Tu voudrais arriver où ?"
+    ],
+    [
+     "P",
+     "Au moins 2 500 euros, pour commencer."
+    ],
+    [
+     "S",
+     "Et à terme ?"
+    ],
+    [
+     "P",
+     "En fait, 3 000 euros net par mois d'ici deux ans, c'est ça mon vrai objectif. En vivant uniquement de mes cours en ligne."
+    ],
+    [
+     "S",
+     "Qu'est-ce qui t'a empêché de te lancer jusqu'ici ?"
+    ],
+    [
+     "P",
+     "Je n'ai jamais vendu quoi que ce soit. Je ne sais pas me vendre, j'ai l'impression de déranger les gens."
+    ],
+    [
+     "S",
+     "Donc il y a un blocage sur la vente."
+    ],
+    [
+     "P",
+     "Oui."
+    ],
+    [
+     "S",
+     "Et si dans deux ans tu es toujours au lycée ?"
+    ],
+    [
+     "P",
+     "Je crois que je craquerai. Ma femme me dit déjà que je ne suis plus le même."
+    ],
+    [
+     "S",
+     "Ok Karim. Laisse-moi te résumer tout ça."
+    ]
+   ],
+   "A": {
+    "cles": [
+     "2 100 euros net par mois",
+     "2 100 euros"
+    ],
+    "src": [
+     3,
+     "Je gagne 2 100 euros net par mois"
+    ],
+    "pourquoi": "B est un revenu net mensuel : A est son revenu net actuel, 2 100 euros net par mois. Ses 15 ans d'ancienneté ne sont pas sur cette dimension."
+   },
+   "B": {
+    "cles": [
+     "3 000 euros net par mois",
+     "3 000 euros"
+    ],
+    "src": [
+     9,
+     "3 000 euros net par mois d'ici deux ans"
+    ],
+    "pourquoi": "La cible chiffrée la plus récente : il corrige lui-même les « 2 500 euros pour commencer » par son « vrai objectif »."
+   },
+   "P": {
+    "cles": [
+     "sais pas me vendre",
+     "jamais vendu quoi que ce soit"
+    ],
+    "src": [
+     11,
+     "Je ne sais pas me vendre"
+    ],
+    "pourquoi": "Sa réponse à la question du blocage, avec ses mots."
+   },
+   "C": {
+    "cles": [
+     "dors mal depuis la rentrée",
+     "perdre mes meilleures années"
+    ],
+    "src": [
+     5,
+     "Je dors mal depuis la rentrée"
+    ],
+    "pourquoi": "Ce que la situation lui coûte (santé, estime de soi), avec ses mots."
+   },
+   "autres_couts": [
+    {
+     "cles": [
+      "je craquerai"
+     ],
+     "mots": "je craquerai"
+    },
+    {
+     "cles": [
+      "plus le même"
+     ],
+     "mots": "je ne suis plus le même"
+    }
+   ],
+   "autres_blocages": [
+    {
+     "cles": [
+      "impression de déranger les gens"
+     ],
+     "mots": "j'ai l'impression de déranger les gens",
+     "meme": true
+    }
+   ],
+   "pieges": [
+    {
+     "type": "A",
+     "cles": [
+      "15 ans"
+     ],
+     "mots": "depuis 15 ans",
+     "pourquoi": "Son ancienneté n'est pas sur la dimension de B (un revenu)."
+    },
+    {
+     "type": "B",
+     "cles": [
+      "2 500 euros"
+     ],
+     "mots": "Au moins 2 500 euros, pour commencer",
+     "pourquoi": "Une première cible, qu'il corrige ensuite : la cible retenue est la plus récente, « 3 000 euros net par mois d'ici deux ans »."
+    },
+    {
+     "type": "commercial",
+     "cles": [
+      "blocage sur la vente"
+     ],
+     "mots": "un blocage sur la vente",
+     "pourquoi": "Ce sont les mots du commercial ; Karim a dit « je ne sais pas me vendre ».",
+     "comp": "P"
+    }
+   ],
+   "parfaite": "Aujourd'hui, tu gagnes 2 100 euros net par mois, tu veux 3 000 euros net par mois d'ici deux ans, ce qui te bloque, c'est que tu ne sais pas te vendre, et ça te coûte : tu dors mal depuis la rentrée. C'est bien ça ?"
+  },
+  {
+   "id": "E6",
+   "titre": "Hélène, prof de français langue étrangère",
+   "prospect": "Hélène",
+   "contexte": "Professeure de français langue étrangère, déjà en ligne, trop d'heures. Premier appel (R1).",
+   "tours": [
+    [
+     "S",
+     "Bonjour Hélène, ça va ?"
+    ],
+    [
+     "P",
+     "Oui, ça va, un peu pressée mais ça va."
+    ],
+    [
+     "S",
+     "On va être efficaces alors. Tu fais quoi aujourd'hui ?"
+    ],
+    [
+     "P",
+     "Je donne des cours de français à des étrangers, uniquement en ligne, depuis six ans."
+    ],
+    [
+     "S",
+     "Et ça marche ?"
+    ],
+    [
+     "P",
+     "Oui, j'ai beaucoup d'élèves. Je gagne 2 400 euros par mois, mais je travaille 50 heures par semaine."
+    ],
+    [
+     "S",
+     "50 heures. Et c'est quoi qui coince ?"
+    ],
+    [
+     "P",
+     "Je fais tout en cours individuels, je n'ai aucun cours collectif. Chaque heure, c'est un seul élève."
+    ],
+    [
+     "S",
+     "Tu voudrais quoi, idéalement ?"
+    ],
+    [
+     "P",
+     "Travailler 30 heures par semaine, en gagnant pareil."
+    ],
+    [
+     "S",
+     "Et ça, ça te coûte quoi aujourd'hui, de travailler autant ?"
+    ],
+    [
+     "P",
+     "Je n'ai pas pris de vacances depuis deux ans. Mes amis ne m'appellent même plus pour sortir."
+    ],
+    [
+     "S",
+     "Pourquoi tu n'as pas déjà mis en place des cours collectifs ?"
+    ],
+    [
+     "P",
+     "J'ai peur que mes élèves ne veuillent pas payer pour un cours à plusieurs."
+    ],
+    [
+     "S",
+     "D'accord, donc on parle d'un problème de modèle économique."
+    ],
+    [
+     "P",
+     "Si vous voulez."
+    ],
+    [
+     "S",
+     "Je te résume ce que j'ai compris."
+    ]
+   ],
+   "A": {
+    "cles": [
+     "50 heures par semaine",
+     "50 heures"
+    ],
+    "src": [
+     5,
+     "je travaille 50 heures par semaine"
+    ],
+    "pourquoi": "B porte sur ses heures de travail (30 heures par semaine) : A est son nombre d'heures actuel. Ses 2 400 euros par mois ne sont pas sur la dimension de B."
+   },
+   "B": {
+    "cles": [
+     "30 heures par semaine",
+     "30 heures"
+    ],
+    "src": [
+     9,
+     "Travailler 30 heures par semaine, en gagnant pareil"
+    ],
+    "pourquoi": "Sa cible chiffrée, dans la même unité que A."
+   },
+   "P": {
+    "cles": [
+     "peur que mes élèves ne veuillent pas payer",
+     "payer pour un cours à plusieurs"
+    ],
+    "src": [
+     13,
+     "J'ai peur que mes élèves ne veuillent pas payer pour un cours à plusieurs"
+    ],
+    "pourquoi": "Sa réponse à la question du blocage (« Pourquoi tu n'as pas déjà… ? »). Le « tout en cours individuels » décrit sa situation et ce qui coince, mais ce qui l'empêche d'en sortir, c'est cette peur."
+   },
+   "C": {
+    "cles": [
+     "pas pris de vacances depuis deux ans",
+     "pris de vacances depuis deux ans"
+    ],
+    "src": [
+     11,
+     "Je n'ai pas pris de vacances depuis deux ans"
+    ],
+    "pourquoi": "Ce que la situation lui coûte, avec une durée qu'elle a dite elle-même."
+   },
+   "autres_couts": [
+    {
+     "cles": [
+      "ne m'appellent même plus"
+     ],
+     "mots": "Mes amis ne m'appellent même plus pour sortir"
+    }
+   ],
+   "autres_blocages": [
+    {
+     "cles": [
+      "aucun cours collectif",
+      "tout en cours individuels"
+     ],
+     "mots": "Je fais tout en cours individuels, je n'ai aucun cours collectif"
+    }
+   ],
+   "pieges": [
+    {
+     "type": "A",
+     "cles": [
+      "2 400 euros"
+     ],
+     "mots": "2 400 euros par mois",
+     "pourquoi": "Son revenu n'est pas la dimension de B : sa cible est un nombre d'heures (« en gagnant pareil »)."
+    },
+    {
+     "type": "A",
+     "cles": [
+      "six ans"
+     ],
+     "mots": "depuis six ans",
+     "pourquoi": "Son ancienneté n'a rien à voir avec B."
+    },
+    {
+     "type": "commercial",
+     "cles": [
+      "modèle économique"
+     ],
+     "mots": "un problème de modèle économique",
+     "pourquoi": "« Modèle économique » est le mot du commercial, et elle ne l'a pas fait sien (« Si vous voulez »).",
+     "comp": "P"
+    }
+   ],
+   "parfaite": "Aujourd'hui, tu travailles 50 heures par semaine, tu veux travailler 30 heures par semaine en gagnant pareil, ce qui te bloque, c'est que tu as peur que tes élèves ne veuillent pas payer pour un cours à plusieurs, et ça te coûte : tu n'as pas pris de vacances depuis deux ans. C'est bien ça ?"
+  }
+ ]
+}
