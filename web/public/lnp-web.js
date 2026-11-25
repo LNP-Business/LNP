@@ -234,7 +234,7 @@
 
   // ---------------- screens each person may open (Settings › Access) ----------------
   var AREAS = [
-    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salescycle", "Cycle de vente"], ["crm", "Leads"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["academie", "Maîtrise de l’offre"], ["simulateur", "Simulateur"]], "Entraînement"]] },    { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes et notifications"]], "Paramètres"]] },
+    { key: "ss", name: "Ventes", home: "salescockpit", groups: [["Sales System", [["salescockpit", "Cockpit commercial"], ["salescycle", "Cycle de vente"], ["crm", "Leads"]], "Ventes"], ["Training", [["entrainement", "Découverte"], ["reformulation", "Reformulation de l’écart"], ["academie", "Maîtrise de l’offre"], ["simulateur", "Simulateur"]], "Entraînement"]] },    { key: "settings", name: "Paramètres", home: "settings", groups: [["Settings", [["settings", "Alertes et notifications"]], "Paramètres"]] },
     // not a screen: the LNP connector in Claude (docs/crm/17-claude-connector.md); admins only by default
     { key: "claude", name: "Claude", nav: false, groups: [["Claude", [["claude", "Connecteur Claude"]]]] }
   ];

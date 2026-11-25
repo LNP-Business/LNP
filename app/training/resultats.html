@@ -90,7 +90,7 @@ table.team{font-size:12.5px}table.team th{white-space:normal;vertical-align:bott
   var CAT = /*@CATALOGUE@*/{ a: {}, c: {}, l: {} };
   var P = (function () { try { return window.parent !== window && window.parent.claude && window.parent.claude.web ? window.parent : null; } catch (e) { return null; } })();
   var TEAM = MODE === "equipe";
-  var MOD = { coup: "Le coup suivant", lettre: "La lettre imposée", academie: "Maîtrise de l’offre" };
+  var MOD = { coup: "Le coup suivant", lettre: "La lettre imposée", academie: "Maîtrise de l’offre", ecart: "Reformulation de l’écart" };
   var MODE_TXT = { regles: "Règles et jugement", auto: "Auto-évaluation", claude: "Claude" };
   var GESTE = { L1: "L1 Situation", L2: "L2 Problème", L3: "L3 Impact", L4: "L4 Vision" };
   var KEYP = "lnp-resultats-periode-" + MODE;
@@ -115,6 +115,7 @@ table.team{font-size:12.5px}table.team th{white-space:normal;vertical-align:bott
   function pct(x) { return x == null ? "–" : n(x) + " %"; }
   function perTxt() { return S.days ? "sur " + S.days + " jours" : "depuis le début"; }
   function caseTxt(r) {
+    if (r.module === "ecart") return (r.details && r.details.titre) || "Appel " + r.case_id;
     if (r.module === "academie") return r.case_id + (CAT.a[r.case_id] ? " · " + CAT.a[r.case_id] : "");
     if (r.module === "coup") return "Cas " + r.case_id + (CAT.c[r.case_id] ? " · attendu " + (GESTE[CAT.c[r.case_id]] || CAT.c[r.case_id]) : "");
     return "Cas " + r.case_id + (CAT.l[r.case_id] ? " · " + CAT.l[r.case_id] : "");
@@ -194,7 +195,7 @@ table.team{font-size:12.5px}table.team th{white-space:normal;vertical-align:bott
   function modulesCard(per) {
     var m = per.modules || {};
     return '<section class="card"><h2>Par entraînement</h2><p class="q">' + esc(perTxt().charAt(0).toUpperCase() + perTxt().slice(1)) + ".</p><table><thead><tr><th>Entraînement</th><th class=\"n\">Exercices</th><th class=\"n\">Réussite</th><th class=\"n\">Temps</th></tr></thead><tbody>" +
-      ["coup", "lettre", "academie"].map(function (k) { var x = m[k] || {}; return "<tr><td>" + MOD[k] + '</td><td class="n">' + n(x.n) + '</td><td class="n">' + (x.n ? pct(x.ok) : "–") + '</td><td class="n">' + (x.n ? dur(x.time_s) : "–") + "</td></tr>"; }).join("") +
+      ["coup", "lettre", "academie", "ecart"].map(function (k) { var x = m[k] || {}; return "<tr><td>" + MOD[k] + '</td><td class="n">' + n(x.n) + '</td><td class="n">' + (x.n ? pct(x.ok) : "–") + '</td><td class="n">' + (x.n ? dur(x.time_s) : "–") + "</td></tr>"; }).join("") +
       "</tbody></table><p class=\"q\" style=\"margin:10px 0 0\">Réussite : la note moyenne rapportée au maximum (un coup juste, trois questions valides, 10 sur 10).</p></section>";
   }
   function activityCard(id) {
@@ -223,6 +224,10 @@ table.team{font-size:12.5px}table.team th{white-space:normal;vertical-align:bott
       (d.liens || []).forEach(function (l, k) {
         out.push("<div>I" + (k + 1) + " · " + (l.valide ? "valide" : "refusée") + " : " + (l.question ? "« " + esc(l.question) + " »" : "pas de question") + (l.fautes && l.fautes.length ? " · règles en faute : " + esc(l.fautes.join(", ")) : "") + "</div>");
       });
+    } else if (r.module === "ecart") {
+      var EL = { A: "Point A", B: "Point B", P: "Blocage", C: "Coût", V: "Validation" }, ST = { ok: "ses mots", mid: "en partie", ko: "manqué" };
+      out.push("<div>" + (d.present ? "Écart présent" : "Écart absent") + " · " + Object.keys(EL).map(function (k) { return EL[k] + " : " + (ST[(d.composantes || {})[k]] || "–"); }).join(" · ") + (d.penalite ? " · pénalité −" + num1(d.penalite) : "") + "</div>");
+      if (d.texte) out.push("<div>Reformulation : « " + esc(d.texte) + " »</div>");
     } else {
       out.push("<div>Format " + esc(d.format || "") + " · points par critère : " + esc((d.criteres || []).map(num1).join(" · ")) + (d.eliminatoire ? " · formulation éliminatoire" : "") + "</div>");
       if (d.reponse) out.push("<div>Réponse : « " + esc(d.reponse) + " »</div>");
@@ -238,6 +243,7 @@ table.team{font-size:12.5px}table.team th{white-space:normal;vertical-align:bott
     ["coup", "Le coup suivant", function (p) { return m(p, "coup").n || 0; }],
     ["lettre", "La lettre imposée", function (p) { return m(p, "lettre").n || 0; }],
     ["academie", "Maîtrise de l’offre", function (p) { return (p.academie || {}).validated || 0; }],
+    ["ecart", "Reformulation de l’écart", function (p) { return m(p, "ecart").n || 0; }],
     ["n", "Exercices", function (p) { return (p.period || {}).n || 0; }],
     ["time", "Temps", function (p) { return (p.period || {}).time_s || 0; }],
     ["last", "Dernier entraînement", function (p) { return (p.total || {}).last_at || ""; }],

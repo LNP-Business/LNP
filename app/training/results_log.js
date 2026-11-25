@@ -39,11 +39,13 @@ window.LNP_RESULTS = (function () {
     busy = true;
     connect().then(function (c) {
       // a row queued by another account on this device waits for that account
-      var i = -1; Q.some(function (x, k) { if (!x.uid || x.uid === uid) { i = k; return true; } return false; });
+      // a row the account refused (a new training before its migration, 23514) waits an hour and lets the others pass
+      var i = -1, now = Date.now(); Q.some(function (x, k) { if ((!x.uid || x.uid === uid) && !(x.wait > now)) { i = k; return true; } return false; });
       if (i < 0) { busy = false; tell(text()); return; }
       var x = Q[i], row = { cid: x.cid, module: x.module, case_id: x.case_id, score: x.score, max: x.max, mode: x.mode, duration_s: x.duration_s, details: x.details || {} };
       return Promise.resolve(c.from("crm_training_results").insert(row)).then(function (r) {
         var err = r && r.error;
+        if (err && err.code === "23514") { x.wait = Date.now() + 3600000; keep(); busy = false; later(); if (Q.some(function (y) { return !(y.wait > Date.now()); })) flush(); return; }
         if (err && err.code !== "23505") throw err;          // 23505: already on the account
         Q.splice(i, 1); keep(); busy = false;
         try { P.dispatchEvent(new CustomEvent("lnp-training-result")); } catch (e) {}
