@@ -14,7 +14,8 @@ Chaque ligne se vérifie par une commande ou un écran. Les valeurs attendues so
       ```
       (`sha256sum app/lnp.html web/public/index.html`). `./build.sh --verify` ne s'applique pas : `app/EXPECTED.sha256` décrit
       l'ancienne référence (chapitre 06).
-- [ ] Aucune clé dans le dépôt : `git grep -nE "sbp_|sb_secret_|eyJhbGci|sk-ant-"` ne trouve rien.
+- [ ] Aucune clé dans le dépôt : `git grep -nE "sbp_[0-9a-f]{20}|sb_secret_[A-Za-z0-9_-]{20}|eyJhbGciOi[A-Za-z0-9_-]{20}|sk-ant-[A-Za-z0-9_-]{20}"`
+      ne trouve rien (les préfixes seuls, cités dans la documentation, ne comptent pas).
 
 ## La base (Supabase)
 
