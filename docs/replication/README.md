@@ -23,7 +23,8 @@ Mis à jour le 27 novembre 2026, sur `main` (la version en production).
 Ordre de lecture conseillé : 01, puis 07 pour installer en ouvrant 02 à 06 et 09 au besoin, puis 10 pour vérifier.
 
 Pour remettre le code à un collègue : un accès au dépôt (ou un transfert), ou une copie autonome avec tout l'historique
-(`git bundle create lnp.bundle --all`, puis chez lui `git clone lnp.bundle LNP`). Les secrets ne se transmettent jamais avec le
+(`git bundle create lnp.bundle main dossier-replication`, puis chez lui `git clone -b main lnp.bundle LNP` ; tant que ce dossier
+n'est pas fusionné, il se lit sur la branche `origin/dossier-replication` de la copie). Les secrets ne se transmettent jamais avec le
 code : chaque installation crée les siens (chapitres 07 et 08).
 
 Documents voisins à garder en tête :

@@ -17,7 +17,7 @@ Trois règles :
 1. Recevoir le code (au choix) :
    - un accès au dépôt `LNP-Business/LNP` (ou un transfert, ou un fork dans l'organisation du collègue) ;
    - une copie autonome : `git clone --mirror` (tout l'historique et toutes les branches), ou le paquet Git remis avec ce dossier
-     (`git clone lnp.bundle LNP`).
+     (`git clone -b main lnp.bundle LNP`).
 2. Se placer sur `main` : c'est la version en production (commit `edcc610` au relevé du chapitre 08). Les branches non fusionnées
    (PR `#81`, `#82`, `#83`, analyse d'appel) ne tournent pas en production.
 3. Créer le dépôt de la nouvelle installation (privé conseillé) et y pousser `main` :
