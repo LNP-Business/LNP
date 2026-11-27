@@ -1,56 +1,104 @@
 # 08 · Configuration actuelle de LNP
 
-Relevé en direct le 3 novembre 2026 (API de gestion Supabase, API Vercel, dépôt GitHub). Aucune valeur secrète : seulement des noms,
-des réglages publics et des compteurs. À utiliser comme état attendu d'une réplication.
+Relevé en direct le 27 novembre 2026 (API de gestion Supabase, API Vercel, dépôt GitHub), en lecture seule. Aucune valeur
+secrète : seulement des noms, des réglages publics et des compteurs. C'est l'**état attendu d'une réplication à 100 %** : le
+chapitre 10 en tire la liste de contrôle.
+
+## Ce qui tourne en production
+
+| Élément | Version en production |
+|---|---|
+| Page et API (Vercel) | branche `main`, commit `edcc610` (« Merge pull request #80 »), déploiement automatique à chaque push sur `main` |
+| Fonctions Edge (Supabase) | déployées par le workflow `crm-functions.yml` à chaque push sur `main` (ou une branche `crm-*`) qui touche `supabase/**` |
+| Analyse d'appel (worker) | `call-analysis.yml` sur `main`, toutes les heures à la minute 7 |
+| Base de données | les 63 fichiers `web/supabase/001_init.sql` … `063_crm_ca_corrections.sql` (il n'y a pas de `002`) |
+
+Les branches non fusionnées ne tournent pas : à la date du relevé, les PR `#81`, `#82` et `#83` (analyse d'appel) attendent leur
+fusion. Une réplication à l'identique part de `main`.
 
 ## GitHub
 
 | Élément | Valeur |
 |---|---|
-| Dépôt | `LNP-Business/LNP` (public), branche par défaut `main` |
-| Secrets Actions | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_SERVICE_ROLE_KEY` (= la clé secret `sb_secret_…` du projet, depuis le 3 novembre) |
-| Variable Actions | `SUPABASE_URL` = `https://lludbqyosuzgwvvphmqc.supabase.co` |
-| Workflows | `crm-functions.yml`, `call-analysis.yml` (chapitre 06) |
+| Dépôt | `LNP-Business/LNP`, branche par défaut `main` |
+| Secrets Actions (lus dans les workflows) | `SUPABASE_ACCESS_TOKEN` (jeton personnel de l'API de gestion Supabase), `SUPABASE_PROJECT_REF`, `SUPABASE_SERVICE_ROLE_KEY` (la clé secrète du projet) |
+| Variable Actions | `SUPABASE_URL` = `https://<réf du projet>.supabase.co` |
+| Workflows | `crm-functions.yml` (tests SQL et des fonctions, déploiement des fonctions Edge), `call-analysis.yml` (tests du moteur, worker toutes les heures, mesure à la demande), `qualification.yml` (tests et lancement à la demande de la qualification) |
 
 ## Supabase
 
 | Élément | Valeur |
 |---|---|
-| Organisation | pas encore celle de LNP (à transférer dans une organisation LNP ; tous les autres comptes sont ceux de LNP) |
-| Projet | `LNP`, réf. `lludbqyosuzgwvvphmqc`, région `eu-central-1`, Postgres 17 |
-| Migrations tracées | 33 : `001_init` puis `003_crm_core` … `034_lnp_fr_labels` |
-| Tables (`public`) | 41, toutes avec RLS |
-| Fonctions (`public`) | 131 |
+| Projet | `LNP`, région `eu-central-1`, Postgres 17.11 |
+| Historique des migrations | 61 entrées : `001_init` puis `003_crm_core` … `063_crm_ca_corrections`. **Deux écarts avec le dépôt**, sans effet sur le schéma : `056_crm_regle_absence` a été appliquée sans entrée dans l'historique (ses fonctions `crm_apply_no_show_rule` et `crm_close_before` existent bien en base) ; `061` est tracée sous le nom `crm_simulateur_realisme_061` |
+| Schéma `public` | 53 tables, toutes avec RLS ; 176 fonctions ; 1 vue ; 11 déclencheurs |
 | Extensions | `citext`, `pg_cron`, `pg_net`, `pg_stat_statements`, `pgcrypto`, `plpgsql`, `supabase_vault`, `uuid-ossp` |
-| Stockage | `callqa-fixtures` (privé, créé le 2026-11-20 : `qa/reference.tar.gz` et `qa/cases.tar.gz`, le jeu de référence de la mesure de l'analyse d'appel, `call-analysis/qa` ; données personnelles, jamais dans Git) ; `library` est créé au premier dépôt de fichier |
-| Fonctions Edge | `iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`, `process-inbox`, `crm-import`, `sla-tick`, `callqa-llm` (toutes `verify_jwt = false`) ; `whatsapp-in` remplace `sendblue-in` (Sendblue abandonné le 9 novembre 2026, il n'a jamais envoyé de données) et se met en service avec la migration `052_crm_whatsapp`, pas encore appliquée |
-| Secrets des fonctions | seulement ceux créés par Supabase (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PUBLISHABLE_KEYS`, `SUPABASE_SECRET_KEYS`, `SUPABASE_DB_URL`, `SUPABASE_JWKS`) ; les secrets des outils (iClosed, Fathom, WhatsApp, Close, Anthropic, Slack) restent à ajouter |
+| Temps réel (`supabase_realtime`) | `crm_sla_alerts`, `docs` |
+| Stockage | `callqa-fixtures` (privé) : le jeu de référence de la mesure de l'analyse d'appel (`qa/reference.tar.gz`, `qa/cases.tar.gz`) et ses rapports. **Données personnelles : ne se copie pas dans une réplication**, il se reconstitue (chapitre 09) |
+| Comptes | 11 comptes de connexion, 22 lignes dans `crm_sales_team` |
 
-### Tâches planifiées (`cron.job`)
+### Fonctions Edge (toutes `verify_jwt = false`, chacune vérifie son propre jeton)
 
-| Tâche | Fréquence | Rôle |
+| Fonction | Version déployée | Rôle |
 |---|---|---|
-| `crm-process-inbox` | chaque minute | traite les webhooks reçus en attente |
-| `crm-fathom-hourly` | à la minute 23 de chaque heure | importe les enregistrements Fathom des deux derniers jours |
-| `crm-no-show-hourly` | à la minute 35 de chaque heure | règle d'absence (inactive tant que `no_show_rule.enabled` = false) |
-| `crm-sla-tick` | toutes les 5 minutes | alertes SLA vers Slack |
+| `iclosed-in` | 11 | reçoit les webhooks d'iClosed (rendez-vous) |
+| `fathom-in` | 11 | reçoit les webhooks de Fathom |
+| `whatsapp-in` | 4 | reçoit les messages WhatsApp Business (API officielle) |
+| `whop-in` | 11 | reçoit les paiements Whop |
+| `lead-in` | 3 | reçoit les leads des funnels |
+| `process-inbox` | 19 | transforme chaque minute les requêtes reçues en prospects, cycles, appels, événements |
+| `crm-import` | 24 | imports d'iClosed, Fathom et Close (historique et chaque heure) |
+| `sla-tick` | 23 | ouvre, fait monter et ferme les alertes du CRM toutes les 5 minutes (copie Slack facultative) |
+| `callqa-llm` | 10 | passerelle vers le modèle pour le worker d'analyse d'appel |
+| `simulateur` | 10 | le Simulateur d'appel de vente (conversation, voix, analyse de fin d'appel) |
 
-### Réglages (`crm_settings`)
+### Secrets des fonctions (noms seulement)
 
-| Clé | Valeur |
+| Secret | Présent en production | Lu par |
+|---|---|---|
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `SUPABASE_DB_URL`, `SUPABASE_JWKS`, `SUPABASE_PUBLISHABLE_KEYS`, `SUPABASE_SECRET_KEYS` | oui (créés par Supabase) | toutes |
+| `ANTHROPIC_API_KEY` | oui | `callqa-llm`, `simulateur` |
+| `FATHOM_API_KEY` | oui | `crm-import` |
+| `ICLOSED_API_KEY` | oui | `crm-import` |
+| `ICLOSED_INBOUND_TOKEN` | oui | `iclosed-in` |
+| `WHATSAPP_APP_SECRET`, `WHATSAPP_INBOUND_TOKEN` | **non** | `whatsapp-in` (messages WhatsApp pas encore branchés) |
+| `FUNNEL_INBOUND_TOKEN` | **non** | `lead-in` |
+| `ELEVENLABS_API_KEY` | non (facultatif) | `simulateur` : sans lui, la voix du prospect est celle du navigateur |
+| `SLACK_SALES_CYCLE_WEBHOOK_URL` | non (facultatif) | `sla-tick` : copie Slack des alertes, éteinte par défaut |
+| `CLOSE_API_KEY`, `CRM_REPORT_TOKEN` | non | `crm-import` (import d'historique Close, rapport) |
+| `SENDBLUE_INBOUND_TOKEN` | oui, **obsolète** | plus aucune fonction (Sendblue abandonné le 9 novembre 2026) : à supprimer |
+
+### Tâches planifiées (`cron.job`, 11 tâches actives)
+
+| Tâche | Fréquence | Ce qu'elle lance |
+|---|---|---|
+| `crm-process-inbox` | chaque minute | `process-inbox` |
+| `crm-sla-tick` | toutes les 5 minutes | `sla-tick` |
+| `crm-setting-tick` | toutes les 10 minutes | `crm_setting_tick()` (suivi du setter, webinaire) |
+| `crm-simulateur-balayer` | toutes les 10 minutes | `simulateur/balayer` (relance les analyses en attente) |
+| `crm-iclosed-contacts-hourly` | minute 3 de chaque heure | `crm-import` (contacts iClosed) |
+| `crm-iclosed-calls-hourly` | minute 15 | `crm-import` (appels iClosed) |
+| `crm-assign-owners-hourly` | minute 20 | `crm_assign_owners_from_hosts(false)` |
+| `crm-fathom-hourly` | minute 23 | `crm-import` (enregistrements Fathom) |
+| `crm-no-show-hourly` | minute 35 | `crm_no_show_tick()` |
+| `crm-iclosed-deals-hourly` | minute 41 | `crm-import` (ventes iClosed) |
+| `crm-refusal-daily` | 3 h 17 chaque jour | `crm_refusal_tick()` (disqualifié 6 mois après un refus) |
+
+Les tâches qui appellent une fonction Edge lisent son adresse dans `crm_settings.functions_url`.
+
+### Réglages (`crm_settings`, clés présentes)
+
+`alert_rule_defaults`, `analysis_model`, `default_owner`, `fathom_close_minutes`, `fathom_match_minutes`, `functions_url`,
+`internal_domains`, `no_show_rule`, `nurture_sending_enabled`, `nurture_templates`, `offer_catalogue`, `setting`,
+`show_pending_hours`, `sla_alerts`, `sla_rules`, `team_email_domains`, `whop_plans`. Leur sens et leurs valeurs par défaut :
+chapitre 03 ; les valeurs propres à LNP (domaines internes, catalogue d'offres) se recopient à la main après la réplication.
+
+### Analyse d'appel (`crm_ca_config`)
+
+| Réglage | Valeur |
 |---|---|
-| `alert_rule_defaults` | règles c1 à c18 (noms en français, sévérité, seuil, destinataires) |
-| `analysis_model` | `"claude-sonnet-5-5"` |
-| `default_owner` | `"sales"` |
-| `fathom_close_minutes` | `15` |
-| `fathom_match_minutes` | `90` |
-| `functions_url` | `"https://lludbqyosuzgwvvphmqc.supabase.co/functions/v1"` |
-| `no_show_rule` | `{"since": null, "enabled": false, "grace_hours": 3, "min_minutes": 30}` |
-| `nurture_sending_enabled` | `false` |
-| `nurture_templates` | `[]` |
-| `sla_alerts` | `link` = `https://lnp-sales.vercel.app/#crm`, canal `#sales-cycle`, fuseau `America/New_York`, `max_age_hours` 6 |
-| `team_email_domains` | `[]` |
-| `whop_plans` | `{}` |
+| `engine` | `lite` (moteur allégé) |
+| `tiers` | `fast` = `claude-haiku-5-5`, `strong` = `claude-haiku-5-5`, `arbiter` = `claude-sonnet-5-5` |
 
 ### Authentification
 
@@ -58,7 +106,8 @@ des réglages publics et des compteurs. À utiliser comme état attendu d'une r�
 |---|---|
 | Site URL | `https://lnp-sales.vercel.app` |
 | Redirect URLs | `https://lnp-sales.vercel.app/**` |
-| Connexion | e-mail et mot de passe (inscription libre non utilisée : les comptes sont créés par invitation) |
+| Connexion | e-mail et mot de passe ; confirmation de l'e-mail exigée ; envoi par le service d'e-mails de Supabase (pas de SMTP propre) |
+| Inscription libre | **ouverte** côté Supabase (`disable_signup = false`), alors que les comptes se créent par invitation : à fermer (Authentication › Sign In / Providers › « Allow new users to sign up ») |
 | Mot de passe | 6 caractères minimum côté Supabase, 8 exigés par l'écran |
 | Durée du jeton | 3 600 s |
 
@@ -67,23 +116,16 @@ des réglages publics et des compteurs. À utiliser comme état attendu d'une r�
 | Élément | Valeur |
 |---|---|
 | Projet | `lnp`, relié à `LNP-Business/LNP`, branche de production `main` |
-| Root Directory | `web` ; Framework Preset : Other ; build : aucun (`web/vercel.json`, sortie `public`) |
+| Root Directory | `web` ; pas de framework, pas de commande de build (`web/vercel.json`, sortie `public`) |
 | Domaine | `lnp-sales.vercel.app` |
-| Variables | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_URL` (production, aperçu, développement), `SUPABASE_SERVICE_ROLE_KEY` (sensible ; production et aperçu) ; `BOOTSTRAP_TOKEN` supprimé après la création du premier administrateur |
-| Fonction configurée | `api/mcp.js` (`web/vercel.json`) |
-| Réécritures | `/.well-known/oauth-protected-resource`, `/.well-known/oauth-authorization-server`, `/api/oauth/register`, `/api/oauth/authorize`, `/api/oauth/token` |
+| Variables | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_URL` (production, aperçu, développement) ; `SUPABASE_SERVICE_ROLE_KEY` (production et aperçu) ; `BOOTSTRAP_TOKEN` absent (supprimé après la création du premier administrateur) |
 
-## Équipe
+## Constats à corriger ou à surveiller
 
-Un compte : l'administrateur créé le 3 novembre 2026. `crm_sales_team` est vide (commerciaux à ajouter). Aucune donnée CRM.
-
-## Constats vérifiés en direct (points à corriger ou à surveiller)
-
-| Constat | Vérification | Conséquence |
+| Constat | Conséquence | Correctif |
 |---|---|---|
-| Realtime : seule la table `docs` est dans la publication `supabase_realtime` | `pg_publication_tables` | le CRM s'abonne aussi à `crm_cycles`, `crm_events`, `crm_alerts`, mais ces tables ne sont pas publiées : les écrans du CRM ne se mettent pas à jour seuls (il faut recharger). Correctif : `alter publication supabase_realtime add table crm_cycles, crm_events, crm_alerts;` |
-| `crm_members.id` → `members` en `on delete restrict` | `pg_constraint` (`confdeltype = r`) | depuis `011`, chaque membre a sa ligne `crm_members` : retirer une personne depuis Paramètres › Compte risque d'être refusé par la base. À tester, puis corriger (supprimer la ligne `crm_members` d'abord, ou passer la clé en `on delete cascade`) |
-| Fonctions du worker d'analyse | `has_function_privilege('service_role', …)` | `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail` sont bien exécutables par `service_role` (droits par défaut de Supabase) ; le worker a déjà appelé `crm_ca_claim` avec succès |
-| `crm_alerts` n'est jamais rempli | recherche dans le code (chapitres 02 et 03) | « Encaissements à risque » ne montre que les prochaines étapes en retard ; la vue Alertes du CRM reste vide. Les alertes commerciales actives sont les SLA (`sla_rules.js`, Slack) |
-| Paramètres › Alertes ne règle que des alertes de l'ancien système d'exploitation (tâches, objectifs, décisions) | chapitre 02 | sans effet dans LNP tant que ces données n'existent pas |
-| `whop-in` stocke les paiements sans les traiter | chapitre 04 | les encaissements se saisissent à la main dans la fenêtre d'encaissement |
+| Inscription libre ouverte | n'importe qui peut créer un compte de connexion (il n'a aucun écran sans accès donné par un administrateur, mais le compte existe) | fermer l'inscription dans Supabase |
+| `SENDBLUE_INBOUND_TOKEN` encore présent | aucun | supprimer le secret |
+| WhatsApp et les leads des funnels non branchés en production | les messages et les leads des funnels n'arrivent pas | créer `WHATSAPP_APP_SECRET`, `WHATSAPP_INBOUND_TOKEN`, `FUNNEL_INBOUND_TOKEN` et brancher les webhooks (chapitre 04) |
+| `056` absente de l'historique des migrations, `061` sous un autre nom | aucune sur le schéma ; une réplication qui applique les fichiers dans l'ordre obtient le même schéma | aucun (à savoir avant de comparer les historiques) |
+| Temps réel limité à `crm_sla_alerts` et `docs` | les autres tables du CRM ne se mettent pas à jour seules à l'écran | décider s'il faut publier `crm_cycles` et `crm_events` |

@@ -1,25 +1,34 @@
 # Dossier de réplication de LNP
 
-Ce dossier décrit **tout ce qui compose l'application LNP** (Les Nouveaux Profs · Ventes), pour la reconstruire dans un autre
-projet, pour une autre entreprise ou une autre marque. Il se lit avec le dépôt `LNP-Business/LNP` : le code est la référence,
-ce dossier l'explique et dit dans quel ordre tout installer. Il ne contient aucune clé ni aucune donnée personnelle.
+Ce dossier décrit **tout ce qui compose l'application LNP** (Les Nouveaux Profs · Ventes), pour la reproduire à l'identique dans
+une nouvelle installation : le code (ce dépôt), la base, les fonctions, le site, les tâches planifiées, les réglages, les
+intégrations et l'analyse d'appel. Il se lit avec le dépôt : le code est la référence, ce dossier l'explique, dit dans quel ordre
+tout installer et comment vérifier que la copie est identique. Il ne contient aucune clé ni aucune donnée personnelle.
+
+Mis à jour le 27 novembre 2026, sur `main` (la version en production).
 
 | Chapitre | Contenu |
 |---|---|
-| [01 · Vue d'ensemble](01-vue-d-ensemble.md) | ce que fait l'application, son architecture, les services et comptes utilisés, l'arborescence du dépôt |
+| [01 · Vue d'ensemble](01-vue-d-ensemble.md) | ce que fait l'application, son architecture, les services et comptes, l'arborescence du dépôt |
 | [02 · Écrans et fonctionnalités](02-ecrans-et-fonctionnalites.md) | chaque écran, chaque bloc, chaque chiffre et sa formule, chaque action, les rôles |
-| [03 · Base de données](03-base-de-donnees.md) | tout le schéma Supabase : tables, vues, fonctions, déclencheurs, droits (RLS), tâches planifiées, réglages, règles métier |
-| [04 · Intégrations et fonctions](04-integrations-et-fonctions.md) | les fonctions Edge, iClosed, Fathom, WhatsApp Business, Whop, Close, Slack, l'analyse d'appel |
+| [03 · Base de données](03-base-de-donnees.md) | tout le schéma Supabase : migrations, tables, fonctions, déclencheurs, RLS, tâches planifiées, réglages |
+| [04 · Intégrations et fonctions](04-integrations-et-fonctions.md) | les 10 fonctions Edge, iClosed, Fathom, WhatsApp Business, funnels, Whop, Close, Slack |
 | [05 · Édition web et connecteur](05-edition-web-et-connecteur.md) | Vercel, l'API, la connexion et l'équipe, l'accès par écran, le connecteur Claude (MCP + OAuth) |
-| [06 · Build, design, langue et tests](06-build-design-tests.md) | la construction de la page, `edition.json` (marque, couleurs, polices, logo), le français, les tests et la CI |
-| [07 · Procédure de réplication](07-procedure-de-replication.md) | pas à pas, du dépôt vide au site en ligne, avec la liste de contrôle finale |
-| [08 · Configuration actuelle de LNP](08-configuration-actuelle.md) | l'état relevé en direct le 3 novembre 2026 (Supabase, Vercel, GitHub), sans aucune valeur secrète |
+| [06 · Build, design, langue et tests](06-build-design-tests.md) | la page (`app/lnp.html` fait foi), l'édition web, la marque, le français, les tests, la CI |
+| [07 · Procédure de réplication](07-procedure-de-replication.md) | pas à pas, du dépôt au site en ligne |
+| [08 · Configuration actuelle](08-configuration-actuelle.md) | l'état de la production relevé le 27 novembre 2026, sans valeur secrète |
+| [09 · Analyse d'appel](09-analyse-d-appel.md) | le moteur, le worker, les modèles, la mesure, la qualification |
+| [10 · Liste de contrôle](10-liste-de-controle.md) | comment prouver que la réplique est identique (empreintes, compteurs, écrans, tests) |
 
-Ordre de lecture conseillé : 01, puis 07 pour installer, en ouvrant 02 à 06 au besoin.
+Ordre de lecture conseillé : 01, puis 07 pour installer en ouvrant 02 à 06 et 09 au besoin, puis 10 pour vérifier.
+
+Pour remettre le code à un collègue : un accès au dépôt (ou un transfert), ou une copie autonome avec tout l'historique
+(`git bundle create lnp.bundle --all`, puis chez lui `git clone lnp.bundle LNP`). Les secrets ne se transmettent jamais avec le
+code : chaque installation crée les siens (chapitres 07 et 08).
 
 Documents voisins à garder en tête :
 - `CLAUDE.md` : les consignes de travail du dépôt (règles, où changer quoi, vérifications).
 - `LNP.md` : la marque et l'installation résumées.
 - `docs/lnp/GLOSSAIRE.md` : le vocabulaire français de l'application.
-- `docs/crm/` : la spécification détaillée du CRM (décisions, modèle de données, intégrations, écrans), écrite au fil du projet.
-- `call-analysis/` : le moteur d'analyse d'appel, sa méthodologie et ses propres règles (`call-analysis/CLAUDE.md`).
+- `docs/crm/` : la spécification détaillée du CRM, écrite au fil du projet.
+- `call-analysis/CLAUDE.md` : les règles du moteur d'analyse d'appel.

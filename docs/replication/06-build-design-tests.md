@@ -2,39 +2,44 @@
 
 ## Construire la page
 
-Prérequis : Python 3.10+ (bibliothèque standard seulement), Node 18+ (Node 22 en CI). Aucune dépendance npm n'est nécessaire pour
-la page ; `web/` a ses propres dépendances pour les tests et l'API (`npm ci` dans `web/`).
+### La règle actuelle : `app/lnp.html` fait foi
 
-```bash
-./build.sh            # construit la page
-./build.sh --verify   # puis compare app/lnp.html à app/EXPECTED.sha256
-```
+Depuis le 10 novembre 2026, l'interface (passes de design phases 1 à 3, C1 à C13, D1 à D10, écran Cycle de vente, Leads, analyse
+d'appel, Entraînement, Simulateur) a été faite **directement dans la page construite `app/lnp.html`**. Elle n'est pas encore
+reportée dans les générateurs (`app/gen_*.py`, `gabarits/`, `uploads/crm_source.html`, modules). Tant que ce report n'est pas
+fait (`CLAUDE.md`) :
 
-`build.sh` enchaîne trois étapes, toutes idempotentes (relancer tout le script après chaque modification) :
+- **ne pas lancer `./build.sh`** : il régénère `app/lnp.html` depuis les générateurs et effacerait l'interface actuelle ;
+- un changement d'écran se fait dans `app/lnp.html`, puis :
+  ```bash
+  python3 web/build_web.py     # écrit web/public/index.html, web/public/docs/lnp-docs.<empreinte>.js, web/public/version.json
+  node web/kb/build_kb.mjs     # écrit web/api/_kb.json (les modes d'emploi lus par le connecteur Claude)
+  ```
+- le Simulateur se met dans `app/lnp.html` par `python3 app/gen_simulateur.py` (idempotent) à partir de
+  `app/training/simulateur.html` ;
+- `app/EXPECTED.sha256` décrit l'ancienne référence : `./build.sh --verify` ne s'applique pas. L'empreinte à vérifier est celle du
+  chapitre 10.
 
-| Étape | Script | Produit |
-|---|---|---|
-| 1 · Écrans | `app/harmonize.py` | le cadre des Paramètres (`Settings.dc.html` depuis `Settings.pre-hz.dc.html`) et la barre d'onglets du CRM (`crm_doc.html`) |
-| | `app/gen_access.py` | `Account.dc.html` et `Access.dc.html` (cadres remplis par `web/public/lnp-web.js`) |
-| | `app/gen_salescockpit.py` | `SalesCockpit.dc.html` (cadre du module `LNP_SALES`) et son « Mode d'emploi » |
-| | `app/gen_salesday.py` | `SalesDay.dc.html` (cadre du module `LNP_SALESDAY`) et son « Mode d'emploi » |
-| | `app/nav.py` | la barre latérale de chaque écran (groupes, entrées, logo, nom) |
-| 2 · Assemblage | `app/build.py` | `app/lnp.html` : gabarits des écrans gardés par `edition.json`, `store.js`, `crm/data.js`, CRM (`crm_doc.html`), module Cockpit (`sales_v2.json`), module Ma journée (`salesday_module.js`), puis application de la marque (`recolor`, `fonts`, `logo`) |
-| 3 · Édition web | `web/build_web.py` | `web/public/index.html` (la page + `<script src="/lnp-web.js">`, `lang="fr"`) |
-| | `web/kb/build_kb.mjs` | `web/api/_kb.json` (modes d'emploi et place dans la barre latérale des 6 écrans, lus par le connecteur Claude) |
+Prérequis : Python 3.10+ (bibliothèque standard seulement), Node 18+ (Node 22 en CI). La page n'a aucune dépendance npm ; `web/` a
+les siennes pour l'API et les tests (`npm ci` dans `web/`).
 
-Les écrans sont des gabarits « Design canvas » (`<x-dc>` + une classe `Component extends DCLogic`) : `build.py` extrait le corps et le
-script de chaque gabarit et les monte dans une coquille commune (navigation, fenêtre « Mode d'emploi », confirmations, maintien du
-focus pendant la saisie). Les modules (Cockpit, Ma journée, CRM) sont montés dans un Shadow DOM par `mountModule`.
+### Ce que fait `web/build_web.py`
 
-### Fichiers figés (régénérés à la main, pas par `build.sh`)
+| Sortie | Contenu |
+|---|---|
+| `web/public/index.html` | la page `app/lnp.html`, `lang="fr"`, `<script src="/lnp-web.js">` (connexion, équipe, accès, données réelles), l'identifiant de build `window.LNP_BUILD` |
+| `web/public/docs/lnp-docs.<empreinte>.js` | les documents des écrans en cadre (CRM, Cycle de vente, Découverte, Maîtrise de l'offre, Résultats, Suivi), sortis de la page, chargés seulement après la connexion et gardés en cache (`vercel.json`) ; l'ancien fichier est supprimé |
+| `web/public/version.json` | `{"build": "<id>"}` : `lnp-web.js` recharge une page restée en cache dans un navigateur (une fois, puis bandeau « Recharger ») |
 
-| Fichier | Source | Commande |
-|---|---|---|
-| `app/sales_v2.json` | `proposal/sales-cockpit-v2.html` + retouches de `app/gen_sales_v2.py` | `python3 app/gen_sales_v2.py` |
-| `app/crm_doc.html` | `uploads/crm_source.html`, `docs/crm/reference/sales-cycle-v6.html`, `app/crm/*.js`, `supabase/functions/_shared/sla_rules.js`, retouches de `app/gen_crm.py` (vérifiées par des assertions) | `python3 app/gen_crm.py` |
+### La chaîne de construction d'origine (pour mémoire)
 
-Ne jamais modifier à la main un fichier généré (`*.dc.html` sans `.pre-hz`, `lnp.html`, `web/public/index.html`, `_kb.json`).
+`build.sh` enchaîne : 1. les écrans (`app/harmonize.py`, `gen_access.py`, `gen_salescockpit.py`, `gen_salesday.py`,
+`gen_alertes.py`, `gen_training.py`, `nav.py`, qui écrivent `gabarits/*.dc.html`) ; 2. l'assemblage (`app/build.py` : gabarits,
+`store.js`, `crm/data.js`, le CRM `crm_doc.html`, le module du Cockpit `sales_v2.json`, le module de Ma journée
+`salesday_module.js`, puis la marque d'`edition.json`) ; 3. l'édition web (`web/build_web.py`, `web/kb/build_kb.mjs`). Fichiers
+figés, régénérés à la main : `app/sales_v2.json` (`python3 app/gen_sales_v2.py`), `app/crm_doc.html` (`python3 app/gen_crm.py`).
+Cette chaîne redeviendra la référence quand l'interface y aura été reportée ; d'ici là, elle sert seulement à comprendre d'où
+viennent les morceaux de `app/lnp.html`.
 
 ## La marque : `edition.json`
 
@@ -91,25 +96,20 @@ quel) et à la page de connexion OAuth (`web/api/oauth.js`).
 | Domaine | Commande | Contenu |
 |---|---|---|
 | Données du CRM | `node app/crm/data.test.js` | `window.LNP_CRM` (lectures, écritures, libellés français) |
-| Cycle de vente | `node app/crm/sales_cycle_accept.js $PWD/app/lnp.html <dossier>` | 17 contrôles d'acceptation dans Playwright |
-| Cycle de vente (direct) | `node app/crm/sales_cycle_live.js …` | comportement avec des données simulées |
 | Transcriptions | `node app/crm/transcript_parse.test.js` | lecture des formats collés, intervenants |
-| SQL | `web/supabase/tests/run.sh` (Postgres 16 local, `PGHOST`, `PGUSER`) | 20 suites, sur des bases jetables, avec `supabase_stub.sql` |
-| Fonctions Edge | `deno test --allow-env --allow-read supabase/tests` | ingestion, mappers, import, pipeline, SLA, `callqa-llm` |
-| Connecteur et API | `cd web && npm ci && npm test` | OAuth, outils MCP, accès, sur un Supabase en mémoire |
-| Moteur d'analyse | `cd call-analysis/engine && python3 -m pytest -q tests` | méthodologie (cas de l'annexe B si les transcriptions sont disponibles) |
-| Worker d'analyse | `cd call-analysis/worker && python3 -m pytest -q tests` | file, préchargement, budget |
-| Écrans | Playwright sur `app/lnp.html` | chaque écran sans erreur et sans texte anglais (voir `CLAUDE.md`) |
+| Écrans | `node <test> $PWD/app/lnp.html <dossier>` (Playwright, Chromium) | Cycle de vente (`app/crm/sales_cycle_accept.js`, `app/cycle_day_test.js`, `app/crm/cycle_fiche_live.js`), étapes et fiche (`app/crm/etapes_live.js`), setter (`app/crm/setting_live.js`), analyse d'appel (`app/crm/fiche_analyse_live.js`, `app/crm/analyse_decouverte_test.js`), alertes (`app/alertes_test.js`), Cockpit (`app/sales_exec_test.js`), Entraînement (`app/training/training_test.js`, `academie_test.js`, `results_test.js`) ; Simulateur sur `app/training/simulateur.html` (`simulateur_test.js`) |
+| SQL | `web/supabase/tests/run.sh` (Postgres 16 local, `PGHOST`, `PGUSER`) | 46 fichiers `*_test.sql`, chacun sur une base jetable avec `supabase_stub.sql` |
+| Fonctions Edge | `deno test --allow-env --allow-read supabase/tests` | 12 fichiers : ingestion, mappers, import, pipeline, SLA, `callqa-llm`, Simulateur (état, grille, offres, réalisme, routes, variantes) |
+| Connecteur et API | `cd web && npm ci && npm test` | OAuth, outils MCP, accès, sur un Supabase en mémoire (`web/tests/`) |
+| Analyse d'appel | `python3 -m pytest -q tests` dans `call-analysis/engine`, `lite`, `worker`, `qa` | chapitre 09 |
+| Vérification à la main | ouvrir chaque écran | sans erreur dans la console et sans texte anglais (chapitre 10) |
 
 ## Intégration continue (`.github/workflows/`)
 
 | Workflow | Déclencheurs | Tâches |
 |---|---|---|
-| `crm-functions.yml` | push sur `main` ou `crm-*`, PR touchant `supabase/`, `web/supabase/`, `app/crm/`, `web/api/`, `web/tests/`, `web/package*.json` ; manuel | `test` (Deno), `sql` (Postgres 16 + `data.test.js`), `connector` (`npm test`), `deploy` (depuis `main`, si `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF` existent : `supabase functions deploy <f> --remote=… --no-verify-jwt --yes`) |
-| `call-analysis.yml` | push et PR touchant `call-analysis/` ; toutes les heures (`7 * * * *`) ; manuel (effort `low` ou `default`) | `test` (moteur et worker ; télécharge les transcriptions de test depuis le stockage `callqa-fixtures` si la clé existe), `worker` (analyse les appels en file, budget 120 min) |
-
-Point connu : le bucket `callqa-fixtures` n'existe pas dans le projet LNP, donc la tâche `test` de `call-analysis.yml` échoue au
-téléchargement quand la clé est définie. Il faut soit créer ce bucket avec un corpus de transcriptions autorisé, soit faire sauter
-le téléchargement quand le fichier est absent.
+| `crm-functions.yml` | push sur `main` ou `crm-*`, PR, touchant `supabase/`, `web/supabase/`, `app/crm/`, `web/api/`, `web/tests/`, `web/package*.json` ; manuel | tests Deno, tests SQL (Postgres 16) et `data.test.js`, tests du connecteur, puis déploiement des fonctions Edge depuis `main` (`supabase functions deploy <f> --no-verify-jwt`, avec `SUPABASE_ACCESS_TOKEN` et `SUPABASE_PROJECT_REF`) |
+| `call-analysis.yml` | push et PR touchant `call-analysis/` ; toutes les heures à la minute 7 ; manuel (tâche `worker` ou `measure`, effort) | tests du moteur, du moteur allégé, du worker et de la mesure ; le worker qui analyse les appels en file ; la mesure sur le jeu de référence privé `callqa-fixtures` (chapitre 09) |
+| `qualification.yml` | push et PR touchant `call-analysis/qualification/` ; manuel | tests de la qualification ; lancement à la demande |
 
 Vercel déploie la page à chaque push sur `main` (projet relié au dépôt, dossier racine `web/`).
