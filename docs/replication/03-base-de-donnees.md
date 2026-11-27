@@ -1271,24 +1271,202 @@ Codes d'autorisation à usage unique (60 s), stockés hachés.
 | `expires_at` | `timestamptz` | oui | | index `mcp_oauth_codes_expires` |
 | `created_at` | `timestamptz` | oui | `now()` | |
 
+### 7.13 Entraînement
+
+#### `crm_academy_progress` (049)
+
+L'état de travail de Maîtrise de l'offre (« Académie sales LNP », 100 cas), une ligne par personne, pour le retrouver d'un appareil à
+l'autre. Écrite en direct par `app/training/academie.html` (insertion et mise à jour de sa ligne).
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `user_id` | `uuid` | oui | `auth.uid()` | PK ; FK `auth.users(id)` `on delete cascade` |
+| `exos` | `jsonb` | oui | `'{}'` | `{"A12": {best, last, tries, mode, answer, answer2, feedback, at}, …}` |
+| `updated_at` | `timestamptz` | oui | `now()` | |
+
+#### `crm_academy_corrections` (049)
+
+Prévue pour compter les corrections par Claude (« web/api/academie.js », dit l'en-tête de 049) et limiter les corrections d'affilée.
+**Aucun code ne l'écrit** : `web/api/academie.js` n'existe pas et la correction par Claude a été retirée (Romain, 8 novembre 2026 :
+la réponse est validée puis auto-corrigée). RLS sans politique.
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `bigint` | oui | identité | PK |
+| `user_id` | `uuid` | oui | | FK `auth.users(id)` `on delete cascade` ; index `academy_corrections_user (user_id, created_at desc)` |
+| `case_id` | `text` | oui | | |
+| `usage` | `jsonb` | non | | jetons |
+| `created_at` | `timestamptz` | oui | `now()` | |
+
+#### `crm_training_results` (049)
+
+Un exercice terminé, gardé pour toujours (ajout seulement). Écrite par `app/training/results_log.js` (Découverte : « Le coup
+suivant », « La lettre imposée » ; Maîtrise de l'offre) ; lue par « Mes résultats » et « Suivi des commerciaux »
+(`app/training/resultats.html` via `crm_training_dashboard`). **Pas de FK vers `auth.users`** : retirer quelqu'un de l'équipe
+n'efface jamais ce qu'il a fait. Déclencheurs : `crm_training_results_stamp` (l'heure du serveur, jamais celle de la page),
+`crm_training_results_keep` et `crm_training_results_keep_all` (§10).
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `bigint` | oui | identité | PK |
+| `user_id` | `uuid` | oui | `auth.uid()` | unique (`user_id`, `cid`) ; index `training_results_user (user_id, module, created_at desc)` |
+| `cid` | `text` | oui | | `check (length(cid) between 8 and 64)` : identifiant écrit par la page, un résultat envoyé deux fois n'est gardé qu'une fois |
+| `module` | `text` | oui | | `check (module in ('coup', 'lettre', 'academie'))` |
+| `case_id` | `text` | oui | | `check (length(case_id) between 1 and 12)` |
+| `score` | `numeric(4,1)` | oui | | `check (score >= 0 and score <= max and score * 2 = round(score * 2))` (demi-points) |
+| `max` | `numeric(4,1)` | oui | | `check (max = case module when 'coup' then 1 when 'lettre' then 3 else 10 end)` |
+| `mode` | `text` | oui | | `check (mode in ('regles', 'auto', 'claude'))` et `check ((module = 'academie') = (mode in ('auto', 'claude')))` |
+| `duration_s` | `int` | oui | `0` | `check (duration_s between 0 and 3600)` : temps actif |
+| `details` | `jsonb` | oui | `'{}'` | `check (jsonb_typeof(details) = 'object' and pg_column_size(details) < 32000)` : les réponses |
+| `created_at` | `timestamptz` | oui | `now()` | reposé par le déclencheur |
+
+### 7.14 Simulateur
+
+Sept tables (057) écrites seulement par la fonction Edge `simulateur` (clé de service ; moteur dans
+`supabase/functions/_shared/simulateur/`) ; le navigateur les lit par la RLS (§6.5) et l'historique par `crm_sim_history`.
+
+#### `crm_sim_offers` (057, 058)
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `uuid` | oui | `gen_random_uuid()` | PK |
+| `name` | `text` | oui | | `check (length(name) between 1 and 200)` |
+| `description`, `price`, `sector` | `text` | non | | |
+| `data` | `jsonb` | oui | `'{}'` | `check (jsonb_typeof(data) = 'object')` : modules de l'offre lus par le prospect (`identity`, `value_proposition`… et `offer_identity`, `offer_details`, `tools_taught`) |
+| `sources` | `jsonb` | oui | `'[]'` | |
+| `fingerprint` | `text` | non | | empreinte des sources ; index unique partiel `crm_sim_offers_fingerprint (fingerprint) where fingerprint is not null and not archived` |
+| `status` | `text` | oui | `'ready'` | `check (status in ('extracting', 'generating', 'ready', 'failed'))` |
+| `error` | `text` | non | | |
+| `archived` | `boolean` | oui | `false` | |
+| `created_by` | `uuid` | non | | |
+| `created_at`, `updated_at` | `timestamptz` | oui | `now()` | |
+
+058 y insère l'offre de LNP « Accompagnement Les Nouveaux Profs » (prix « 3 000 € », secteur `coaching`, écrite d'après
+`app/training/academie_contenu.json`, `on conflict do nothing`) ; aucun prospect : un administrateur les génère depuis l'écran.
+
+#### `crm_sim_personas` (057)
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `text` | oui | | PK ; `check (id ~ '^[a-z0-9_-]{3,80}$')` |
+| `offer_id` | `uuid` | non | | FK `crm_sim_offers(id)` `on delete cascade` ; index `crm_sim_personas_offer (offer_id, position)` |
+| `first_name` | `text` | oui | | |
+| `age` | `int` | non | | |
+| `city`, `profession`, `situation` | `text` | non | | |
+| `difficulty` | `text` | oui | `'moyen'` | `check (difficulty in ('moyen', 'difficile', 'expert'))` |
+| `consciousness_level` | `int` | non | | `check (consciousness_level between 1 and 5)` |
+| `pcm_type` | `text` | non | | `check (pcm_type in ('travaillomane', 'empathique', 'promoteur', 'perseverant'))` |
+| `voice_id` | `text` | non | | voix ElevenLabs |
+| `full_persona_data` | `jsonb` | oui | `'{}'` | `check (jsonb_typeof(...) = 'object')` : identité, douleurs, objections, style, briefing |
+| `position` | `int` | oui | `0` | |
+| `active` | `boolean` | oui | `true` | |
+| `created_at`, `updated_at` | `timestamptz` | oui | `now()` | |
+
+#### `crm_sim_simulations` (057)
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `bigint` | oui | identité | PK |
+| `user_id` | `uuid` | oui | | index `crm_sim_simulations_user (user_id, started_at desc)`, index partiel `crm_sim_simulations_active (user_id) where status = 'active'` |
+| `status` | `text` | oui | `'active'` | `check (status in ('active', 'completed', 'cancelled'))` |
+| `started_at` | `timestamptz` | oui | `now()` | |
+| `ended_at` | `timestamptz` | non | | |
+| `duration_seconds` | `int` | non | | |
+| `prospect_name` | `text` | oui | | |
+| `prospect_profile` | `text` | oui | `''` | |
+| `persona_id` | `text` | non | | FK `crm_sim_personas(id)` `on delete set null` |
+| `offer_id` | `uuid` | non | | FK `crm_sim_offers(id)` `on delete set null` |
+| `difficulty` | `text` | oui | `'moyen'` | `check (difficulty in ('moyen', 'difficile', 'expert'))` |
+| `simulation_mode` | `text` | oui | `'full'` | `check (simulation_mode in ('full', 'diagnostic', 'objections'))` |
+| `call_structure` | `text` | oui | `'lnp'` | |
+| `persona_data` | `jsonb` | non | | dont `variante` (humeur, contexte, objection de plus, loquacité : `variantes.ts`) |
+| `simulation_state` | `jsonb` | non | | état du moteur (confiance, conscience, résistance) |
+| `use_modular_prompt` | `boolean` | oui | `true` | |
+| `version_referentiel` | `text` | non | | |
+| `voice` | `boolean` | oui | `false` | démarrée à la voix |
+| `usage` | `jsonb` | oui | `'{}'` | jetons consommés ; `usage.realisme` = mesure de réalisme (061, `realisme.ts`) |
+| `created_at` | `timestamptz` | oui | `now()` | |
+
+#### `crm_sim_messages` (057)
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `bigint` | oui | identité | PK |
+| `simulation_id` | `bigint` | oui | | FK `crm_sim_simulations(id)` `on delete cascade` ; index `crm_sim_messages_sim (simulation_id, id)` |
+| `role` | `text` | oui | | `check (role in ('commercial', 'prospect'))` |
+| `content` | `text` | oui | | |
+| `created_at` | `timestamptz` | oui | `clock_timestamp()` | |
+
+#### `crm_sim_feedback` (057)
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `uuid` | oui | `gen_random_uuid()` | PK |
+| `simulation_id` | `bigint` | oui | | unique ; FK `crm_sim_simulations(id)` `on delete cascade` |
+| `user_id` | `uuid` | oui | | |
+| `user_email` | `text` | non | | |
+| `rating` | `int` | oui | | `check (rating between 1 and 5)` |
+| `comment` | `text` | non | | `check (comment is null or length(comment) <= 2000)` |
+| `created_at` | `timestamptz` | oui | `now()` | |
+
+#### `crm_sim_analyses` (057)
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `uuid` | oui | `gen_random_uuid()` | PK |
+| `simulation_id` | `bigint` | oui | | FK `crm_sim_simulations(id)` `on delete cascade` ; index unique `crm_sim_analyses_sim` (une analyse par simulation) |
+| `user_id` | `uuid` | oui | | |
+| `status` | `text` | oui | | `check (status in ('processing', 'deferred', 'completed', 'failed', 'rejected'))` ; index `crm_sim_analyses_status (status, created_at)` |
+| `reason` | `text` | non | | |
+| `type_appel` | `text` | non | | |
+| `transcript` | `text` | non | | |
+| `result` | `jsonb` | non | | dont `score_total` (sur 100) et `niveau` |
+| `raw` | `jsonb` | non | | |
+| `aar` | `jsonb` | non | | retour d'expérience |
+| `miroir` | `jsonb` | non | | |
+| `cost` | `jsonb` | oui | `'{}'` | |
+| `attempts` | `int` | oui | `0` | |
+| `created_at`, `updated_at` | `timestamptz` | oui | `now()` | |
+| `completed_at` | `timestamptz` | non | | |
+
+#### `crm_sim_config` (057)
+
+Une seule ligne (`id = 1`, insérée par 057).
+
+| Colonne | Type | N | Défaut | Contraintes |
+|---|---|---|---|---|
+| `id` | `int` | oui | `1` | PK ; `check (id = 1)` |
+| `claude_model` | `text` | oui | `'claude-sonnet-5-5'` | `check (claude_model in ('claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-5-5'))` : modèle du prospect |
+| `voice_mode_enabled` | `boolean` | oui | `true` | |
+| `eleven_labs_model_id` | `text` | oui | `'eleven_flash_v2_5'` | |
+| `eleven_labs_stability` | `numeric(3,2)` | oui | `0.20` | entre 0 et 1 |
+| `eleven_labs_style` | `numeric(3,2)` | oui | `0.20` | entre 0 et 1 |
+| `eleven_labs_speed` | `numeric(3,2)` | oui | `1.20` | entre 0,7 et 1,2 |
+| `silence_timeout_ms` | `int` | oui | `800` | entre 300 et 5 000 |
+| `daily_analysis_limit` | `int` | oui | `10` | entre 0 et 1 000 : au-delà, l'analyse est `deferred` et repart avec `crm-simulateur-balayer` |
+| `updated_at` | `timestamptz` | oui | `now()` | |
+| `updated_by` | `uuid` | non | | |
+
 ---
 
 ## 8. Vue
 
-### `crm_people_without_cycle` (009, redéfinie par 010)
+### `crm_people_without_cycle` (009, redéfinie par 010 et 054)
 
-`with (security_invoker = true)` : la RLS de `crm_people` s'applique (administrateurs, responsables commerciaux et lecteurs voient
-tout le monde ; un commercial `sales` ne voit personne, faute de cycle à posséder). Droits : `revoke all from anon`,
-`grant select to authenticated`. Lue par le CRM (`app/crm/data.js`) pour le statut « Sans rendez-vous ».
+`with (security_invoker = true)` : la RLS de `crm_people` s'applique (depuis 048 un administrateur voit tout le monde ; depuis 054
+un setter voit les personnes qu'il suit ; un commercial, un responsable commercial ou un lecteur ne voit personne ici, faute de
+cycle à posséder). Droits : `revoke all from anon`, `grant select to authenticated`. Lue par le CRM (`app/crm/data.js`) pour
+les prospects « Sans rendez-vous » et leur suivi setter (écran Prospects, `app/crm/setting_ui.js`).
 
-Une ligne par personne non fusionnée (`merged_into is null`) sans aucun cycle. Colonnes (définition finale, 010) :
+Une ligne par personne non fusionnée (`merged_into is null`) sans aucun cycle. Colonnes (définition finale, 054) :
 
 | Colonne | Valeur |
 |---|---|
 | `id`, `full_name`, `primary_email`, `primary_phone`, `created_at` | de `crm_people` |
 | `iclosed_status` | `data->>'status_label'` du dernier événement `imported` dont `source_id` commence par `import:import:iclosed:` |
 | `last_event_at` | `max(occurred_at)` des événements de la personne |
-| `first_seen_at` | de `crm_people` (ajoutée en dernière colonne par 010) |
+| `first_seen_at` | de `crm_people` (ajoutée par 010) |
+| `setter_id`, `lead_source`, `quiz`, `setting_status`, `setting_since`, `setting_last_action`, `setting_last_at`, `setting_due_at`, `setting_attempts` | de `crm_people` (ajoutées en fin par 054) |
 
 ---
 
@@ -1309,17 +1487,17 @@ par `call-analysis/worker/run.py`.
 |---|---|---|---|---|---|
 | `my_role() → text` | sql stable definer | défaut (aucun `revoke`) | Rôle d'application de l'appelant. | Politiques de `members`, `docs` ; `crm_admin_set_member`, `crm_merge_alert_defaults`. | 001 |
 | `touch_doc() → trigger` | plpgsql invoker | — | Pose `updated_at = now()`, `updated_by = auth.uid()`. | Déclencheur `docs_touch`. | 001 |
-| `crm_role()`, `crm_sees_all()`, `crm_owns_cycle(uuid)`, `crm_sees_person(uuid)` | sql stable definer | auth | §6.2. | Politiques RLS ; nombreuses fonctions. | 003 |
-| `crm_require(member_role[], uuid default null) → crm_members` | plpgsql stable definer | interne (service) | Contrôle d'accès, §6.2. | Toutes les RPC d'écriture. | 004 (copie 034) |
+| `crm_role()`, `crm_sees_all()`, `crm_owns_cycle(uuid)`, `crm_sees_person(uuid)` | sql stable definer | auth | §6.2. | Politiques RLS ; nombreuses fonctions. | `crm_role` 003 ; `crm_sees_all` 048 ; `crm_owns_cycle`, `crm_sees_person` 054 |
+| `crm_require(member_role[], uuid default null) → crm_members` | plpgsql stable definer | interne (service) | Contrôle d'accès, §6.2. | Toutes les RPC d'écriture. | 054 (setter) ; versions 004, 034 |
 | `crm_audit(uuid, text, text, text, jsonb, jsonb) → void` | sql definer | interne (service) | Insère une ligne dans `crm_audit_log`. | RPC d'écriture. | 004 |
 
 ### 9.2 Écritures du navigateur (004 et suivants)
 
 | Fonction | Droits | Contrôle | Ce qu'elle fait et écrit | Appelants | Définition finale |
 |---|---|---|---|---|---|
-| `crm_admin_set_member(p_email, p_member_key, p_full_name, p_role member_role, p_lead_key default null, p_iclosed_email default null, p_fathom_email default null, p_whatsapp_number default null, p_active default true) → uuid` | auth, service | administrateur d'application ou du CRM | Retrouve le compte dans `members` par e-mail (erreur s'il n'existe pas : « invitez d'abord la personne »), résout le responsable par sa clé (erreur s'il est inconnu ou s'il s'agit de la personne elle-même), insère ou met à jour `crm_members`, audit `set_member`. | Aucun dans le code (éditeur SQL). | 004 (copie 034) |
-| `crm_declare_outcome(p_call uuid, p jsonb) → uuid` | auth, service | `crm_require(['admin','sales_lead'], cycle)` | Voir §12.5. Écrit `crm_call_outcomes` (remplace l'issue courante), `crm_calls.status`, les événements `outcome_<présence>` et `outcome_<décision>`, la vente si « oui », l'audit, puis recalcule le cycle. | `data.js` `declareOutcome` (fiche prospect du CRM, Ma journée `app/salesday_module.js`) ; connecteur `web/api/_write.js` (outil « issue d'un appel »). | 027 (copie 034) |
-| `crm_add_note(p_cycle uuid, p_text text) → bigint` | auth, service | idem | Refuse une note vide ; événement `note` (`content` = texte, `source_id` `crm:note:<uuid>`) ; audit `add_note`. Renvoie l'id de l'événement. | `data.js` `addNote` (CRM, Ma journée) ; `web/api/_write.js` (outil « note sur un prospect »). | 004 (copie 034) |
+| `crm_admin_set_member(p_email, p_member_key, p_full_name, p_role member_role, p_lead_key default null, p_iclosed_email default null, p_fathom_email default null, p_whatsapp_number default null, p_active default true) → uuid` | auth, service | administrateur d'application ou du CRM | Retrouve le compte dans `members` par e-mail (erreur s'il n'existe pas : « invitez d'abord la personne »), résout le responsable par sa clé (erreur s'il est inconnu ou s'il s'agit de la personne elle-même), insère ou met à jour `crm_members`, audit `set_member`. | Aucun dans le code (éditeur SQL). | 052 (supprimée puis recréée) ; versions 004, 034 |
+| `crm_declare_outcome(p_call uuid, p jsonb) → uuid` | auth, service | `crm_require(['admin','sales_lead'], cycle)` | Voir §12.5. Écrit `crm_call_outcomes` (remplace l'issue courante), `crm_calls.status`, les événements `outcome_<présence>` et `outcome_<décision>`, la vente si « oui », l'audit, puis recalcule le cycle. | `data.js` `declareOutcome` (fiche du lead et formulaire d'issue `app/crm/outcome_ui.js`, Pipeline, Cycle de vente) ; connecteur `web/api/_write.js` (outil « issue d'un appel »). | 027 (copie 034) |
+| `crm_add_note(p_cycle uuid, p_text text) → bigint` | auth, service | idem | Refuse une note vide ; événement `note` (`content` = texte, `source_id` `crm:note:<uuid>`) ; audit `add_note`. Renvoie l'id de l'événement. | `data.js` `addNote` (CRM, Cycle de vente) ; `web/api/_write.js` (outil « note sur un prospect »). | 004 (copie 034) |
 | `crm_reassign_cycle(p_cycle uuid, p_member uuid) → void` | auth, service | `crm_require(['admin','sales_lead'])` | Le nouveau commercial doit être actif et pas `viewer` ; change `owner_id` du cycle et des alertes ouvertes (`owner_id`, `owner_key`) ; audit. | `data.js` `reassignCycle` (CRM, `gen_crm.py`). | 004 (copie 034) |
 | `crm_cancel_auto_close(p_cycle uuid) → timestamptz` | auth, service | `crm_require([...], cycle)` | Renvoie maintenant + `max(params.snooze_days)` des règles `auto_close` (7 par défaut) et l'écrit **seulement dans l'audit** (`suppressed_until`). Rien ne le relit. | Exposée par `data.js`, aucun écran. | 004 (copie 034) |
 | `crm_set_nurture(p_person uuid, p jsonb) → uuid` | auth, service | `crm_require([...], cycle)` | `p.action` = `enter` (refusé si déjà en maturation, sans cycle d'origine, ou si la personne a refusé les messages ; crée `crm_nurture_tracks` + événement `nurture_entered`), `leave` (statut `removed`, `ended_at`), `set_return` (`return_date`). Cycle = `p.cycle_id` ou le dernier ouvert. Audit `nurture_<action>`. | Exposée par `data.js`, aucun écran. | 004 (copie 034) |
@@ -1334,7 +1512,7 @@ par `call-analysis/worker/run.py`.
 | `crm_delete_payment(p_payment uuid) → void` | auth | idem (cycle du paiement) | Seulement un paiement `source = 'manual'` ; supprime le paiement et son événement `payment:<id>`, recalcule, audit. La confirmation est demandée dans le navigateur. | `cash_ui.js` (`deletePayment`). | 022 (copie 034) |
 | `crm_set_payment_plan(p_cycle uuid, p_amount numeric, p_currency text, p_schedule jsonb) → uuid` | auth | idem | §12.10. | `cash_ui.js` (`setPlan`). | 024 (copie 034) |
 | `crm_add_refund(p_payment uuid, p_amount numeric default null, p_refunded_at timestamptz default null, p_note text default null) → numeric` | auth | idem | §12.11. Renvoie le total remboursé du paiement. | `cash_ui.js` (`addRefund`). | 026 (copie 034) |
-| `crm_get_pref(p_key text) → jsonb` | auth | ses lignes | Valeur de la clé pour `auth.uid()`. | `gen_crm.py` (`crm.pipeline.cols`), `salesday_module.js` (`salesday.<date>`) via `data.js`. | 031 |
+| `crm_get_pref(p_key text) → jsonb` | auth | ses lignes | Valeur de la clé pour `auth.uid()`. | Pipeline (`crm.pipeline.cols`), Cycle de vente (`salesday.<jour>`, `LNP_SB_DOC` de `app/lnp.html`) via `data.js`. | 031 |
 | `crm_set_pref(p_key text, p_value jsonb) → jsonb` | auth | connecté | Refuse sans connexion et au-delà de 20 000 octets ; `null` supprime la clé ; sinon insère ou met à jour ; supprime les clés `salesday.%` de la personne vieilles de plus de 30 jours. | Idem. | 031 (copie 034) |
 
 ### 9.3 Chaîne des événements (rôle de service)
@@ -1354,7 +1532,7 @@ par `call-analysis/worker/run.py`.
 | `crm_add_identities(p_person uuid, p_identity jsonb, p_source event_source) → void` | service | Ajoute les mêmes types d'identifiants (`on conflict do nothing`). | Idem. | 005 |
 | `crm_owner_for(p_host_email text) → uuid` | service | Membre actif dont `iclosed_email` ou `email` est l'hôte ; sinon le membre actif dont `member_key` = `crm_settings.default_owner` ; sinon `null`. | `crm_apply_items`, `crm_import_calls`, `crm_apply_recording_item`. | 005 |
 | `crm_open_cycle(p_person uuid, p_at timestamptz, p_owner uuid) → uuid` | service | §12.2. | `crm_apply_items`, `crm_apply_recording_item`. | 005 |
-| `crm_recompute_cycle(p_cycle uuid) → void` | service | Le projecteur (§11.5). | Presque toutes les fonctions d'écriture. | 030 (copie 034) ; versions 005, 025, 026 |
+| `crm_recompute_cycle(p_cycle uuid) → void` | service | Le projecteur (§11.5). | Presque toutes les fonctions d'écriture. | 055 ; versions 005, 025, 026, 030, 034 (copie), 045 |
 | `crm_recompute_all() → int` | auth, service | Recalcule tous les cycles ; réservé à un administrateur du CRM ou à un appel sans jeton. | Aucun dans le code. | 005 (copie 034) |
 
 ### 9.4 Imports et rattrapages
@@ -1364,11 +1542,11 @@ par `call-analysis/worker/run.py`.
 | `crm_import_people(p_run uuid, p_source event_source, p_items jsonb, p_dry boolean) → jsonb` | service | §12.15. Compteurs `{created, matched, conflicts, skipped, statuses}`. | `import_run.ts` (`crm-import ?source=close` / `iclosed`). | 007 |
 | `crm_import_save(p_run uuid, p_cursor jsonb, p_stats jsonb, p_status text, p_error text default null) → void` | service | Met à jour le curseur, les compteurs, le statut et `finished_at` d'un `crm_import_runs`. `sql`. | `import_run.ts`. | 007 |
 | `crm_import_iclosed_disqualified(p_dry boolean default true) → jsonb` | service | §12.15. `{created, already_had_a_cycle, dry}`. | Aucun (manuel). | 008 |
-| `crm_import_calls(p_items jsonb, p_dry boolean) → jsonb` | service | §12.15. | `import_run.ts` (`?source=iclosed_calls`). | 009 |
+| `crm_import_calls(p_items jsonb, p_dry boolean) → jsonb` | service | §12.15. | `import_run.ts` (`?source=iclosed_calls`, tâche `crm-iclosed-calls-hourly`). | 059 ; version 009 |
 | `crm_import_messages(p_items jsonb, p_dry boolean) → jsonb` | service | Lot de messages déjà lus ; `{items, new, known, new_people, no_cycle, conflicts}`. | Aucun dans le code depuis le retrait de l'import Sendblue (tests SQL seulement ; l'historique WhatsApp arrive par webhook). | 052 |
 | `crm_import_recordings(p_items jsonb, p_dry boolean, p_queue boolean default false) → jsonb` | service | Historique Fathom par lots de 10 ; compte par statut et par règle (`rule_<règle>`), `queued`, `speakers_unmapped`. `p_queue` (tâche horaire) met en file les analyses R1/R2 ; un import d'historique non. | `import_run.ts` (`?source=fathom`, tâche `crm-fathom-hourly` avec `queue=1`). | 025 |
 | `crm_reclassify_imported(p_dry boolean default true) → jsonb` | service | §12.16. Renvoie les mouvements `"ancien → nouveau": n`. | Aucun (manuel). | 013 |
-| `crm_assign_owners_from_hosts(p_dry boolean, p_member uuid default null) → jsonb` | interne | §12.4. | Déclencheur `crm_members_take_leads` ; 015 à l'application. | 015 |
+| `crm_assign_owners_from_hosts(p_dry boolean, p_member uuid default null) → jsonb` | interne | §12.4. | Déclencheur `crm_members_take_leads` ; 015 à l'application ; pg_cron `crm-assign-owners-hourly` (043). | 015 |
 | `crm_mark_won_calls_held(p_dry boolean) → jsonb` | interne | §12.17. | 018 à l'application. | 018 |
 | `crm_member_from_team(p_user uuid) → void` | interne | §6.1 et §12.3. | Déclencheur `members_to_crm` ; 011 à l'application. | 011 |
 
@@ -1376,9 +1554,13 @@ par `call-analysis/worker/run.py`.
 
 | Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
 |---|---|---|---|---|
-| `crm_sales_cockpit() → jsonb` | auth | §12.19. `plpgsql stable definer` ; refuse un compte sans rôle CRM ; limite aux cycles visibles. | `data.js` `salesCockpit`, module du Cockpit commercial (`app/gen_sales_v2.py`). | 019 (copie 034) ; versions 016 (invoker), 017, 018 |
-| `crm_sales_cockpit_window(p_from timestamptz, p_to timestamptz, p_ids uuid[], p_people_all boolean, p_owner uuid default null, p_all boolean default true) → jsonb` | interne | Les chiffres d'une fenêtre (§12.19). `sql stable definer`. | `crm_sales_cockpit`. | 033 ; versions 016 (autre signature, supprimée par 017), 017, 032 |
-| `crm_call_is_reschedule(p_call uuid) → boolean` | défaut (aucun `revoke`) | Vrai si le dernier `call_canceled` de l'appel a un motif (`data.cancel_reason` ou `data.reason`) qui correspond à `resched|new time|better time|correspond|organi[sz]ing a new|moving accordingly` (insensible à la casse), ou si l'appel a un `call_rescheduled`. | Fenêtre du cockpit. | 032 |
+| `crm_sales_cockpit() → jsonb` | auth | §12.19. `plpgsql stable definer` ; refuse un compte sans rôle CRM ; limite aux cycles visibles. | `data.js` `salesCockpit`, module du Cockpit commercial (`app/gen_sales_v2.py`). | 060 ; versions 016 (invoker), 017, 018, 019, 034 (copie), 036, 039, 040 |
+| `crm_sales_cockpit_window(p_from timestamptz, p_to timestamptz, p_ids uuid[], p_people_all boolean, p_owner uuid default null, p_all boolean default true) → jsonb` | interne | Les chiffres d'une fenêtre (§12.19). `sql stable definer`. | `crm_sales_cockpit`, `crm_training_person`. | 041 ; versions 016 (autre signature, supprimée par 017), 017, 032, 033, 036, 038, 039 |
+| `crm_call_is_reschedule(p_call uuid) → boolean` | défaut (aucun `revoke`) | Vrai si le dernier `call_canceled` de l'appel a un motif (`data.cancel_reason` ou `data.reason`) qui correspond à `resched|new time|better time|correspond|organi[sz]ing a new|moving accordingly` (insensible à la casse), ou si l'appel a un `call_rescheduled`. | Plus aucune (la fenêtre de 038 à 041 ne la lit plus). | 032 |
+| `crm_person_internal(p_person uuid) → boolean` | retirée à `public`, `anon` | §6.2 : fiche de test de l'équipe (`internal_domains`). `sql stable definer`. | Fenêtre du cockpit, `crm_sales_execution`, `crm_training_person`, `crm_qualif_candidates`. | 039 |
+| `crm_show_pending_hours() → int` | retirée à `public`, `anon` | `crm_settings.show_pending_hours`, 48 à défaut. | Fenêtre du cockpit. | 039 |
+| `crm_sales_execution(p_days int default 90, p_owner uuid default null) → jsonb` | auth | Onglets Exécution, Qualité, Impact (§12.21). Refuse un compte sans rôle CRM ; `p_days` ramené entre 7 et 365 ; cycles visibles (administrateur : tous ; sinon les siens), d'un commercial si `p_owner`, sans les fiches de test. Renvoie `{days, from, at, rules, sources}` ‖ la fenêtre. | `data.js` (`salesExecution`), `app/sales_exec_module.js`. | 060 ; version 050 |
+| `crm_sales_exec_window(p_from timestamptz, p_ids uuid[]) → jsonb` | interne | Les chiffres de l'Exécution sur une période (§12.21). `sql stable definer`. | `crm_sales_execution`. | 060 ; version 050 |
 
 ### 9.6 Fathom, numéros d'appel, absences
 
@@ -1393,7 +1575,7 @@ par `call-analysis/worker/run.py`.
 | `crm_no_show_setting(p_key text) → text` | défaut | `crm_settings.no_show_rule ->> p_key`. | Règle d'absence. | 030 |
 | `crm_call_complete(k crm_calls) → boolean` | défaut | Appel « complet » (§12.8). | Numérotation, règle d'absence, cockpit. | 030 |
 | `crm_call_has_ambiguous_recording(p_call uuid) → boolean` | défaut | Un enregistrement encore `ambiguous`, d'au moins `min_minutes`, qui cite la personne de l'appel parmi ses candidats et démarre à ±`fathom_match_minutes` du début prévu. | Règle d'absence, 032 à l'application. | 032 |
-| `crm_apply_no_show_rule(p_dry boolean default true, p_cycle uuid default null) → jsonb` | service | §12.8. `{dry, since, no_show_r1, missed_r2_plus, cycles}` ou `{error}` si `since` n'est pas fixé. | `crm_no_show_tick` ; manuel. | 032 ; version 030 |
+| `crm_apply_no_show_rule(p_dry boolean default true, p_cycle uuid default null) → jsonb` | service | §12.8. `{dry, since, no_show_r1, missed_r2_plus, cycles}` ou `{error}` si `since` n'est pas fixé. | `crm_no_show_tick` ; manuel. | 056 ; versions 030, 032 |
 | `crm_no_show_tick() → jsonb` | interne | Lance `crm_apply_no_show_rule(false)` seulement si `no_show_rule.enabled`. | pg_cron `crm-no-show-hourly`. | 030 |
 | `crm_calls_recorded_trigger() → trigger` | — | §12.8 (un enregistrement complet tardif l'emporte). | Déclencheur `crm_calls_recorded`. | 030 |
 
@@ -1403,30 +1585,109 @@ par `call-analysis/worker/run.py`.
 |---|---|---|---|---|
 | `crm_ca_can_read(p_call uuid) → boolean` | auth | §6.2. | Politiques `crm_ca_*`, `crm_ca_latest`, `crm_ca_record`. | 020 |
 | `crm_ca_call_info(p_call uuid) → jsonb` | interne | Place de l'appel parmi les appels de vente du cycle : `{call_id, cycle_id, start_utc, event_name, sales_round, eligible, reason, sales_id, sales_name, timezone, person}` (§12.18). | `crm_ca_add_transcript`, `crm_ca_claim`, `crm_ca_store`, `crm_apply_recording_item`. | 025 (copie 034) ; version 020 |
-| `crm_ca_add_transcript(p_call uuid, p_raw text, p_speaker_map jsonb, p_source text default 'upload') → jsonb` | auth | Administrateur ou propriétaire du cycle ; appel éligible ; transcription ≥ 200 caractères ; carte avec au moins un `SALES` et un `PROSPECT`, valeurs dans `SALES`/`PROSPECT`/`OTHER`. Écrit les colonnes de transcription, passe les travaux en file à `failed` (« remplacée par une nouvelle transcription »), crée un travail, événement `transcript_added`. Renvoie `{job, status: 'queued'}`. | `app/crm/call_analysis.js` (`caAddTranscript`). | 020 (copie 034) |
+| `crm_ca_add_transcript(p_call uuid, p_raw text, p_speaker_map jsonb, p_source text default 'upload') → jsonb` | auth | Administrateur ou `crm_owns_cycle` (propriétaire du cycle, ou setter de sa personne depuis 054) ; appel éligible ; transcription ≥ 200 caractères ; carte avec au moins un `SALES` et un `PROSPECT`, valeurs dans `SALES`/`PROSPECT`/`OTHER`. Écrit les colonnes de transcription, passe les travaux en file à `failed` (« remplacée par une nouvelle transcription »), crée un travail, événement `transcript_added`. Renvoie `{job, status: 'queued'}`. | `app/crm/call_analysis.js` (`caAddTranscript`). | 020 (copie 034) |
 | `crm_ca_retry(p_call uuid) → jsonb` | auth | Mêmes droits ; exige une transcription ; ne crée rien si un travail est déjà `queued`/`running` (`{status: 'already queued'}`). | `call_analysis.js` (`caRetry`). | 020 (copie 034) |
-| `crm_ca_claim(p_worker text) → jsonb` | interne* | Prend le plus ancien travail `queued` (avec `not_before` passé) ou `running` depuis plus de 2 h (`for update skip locked`), le passe `running`, +1 tentative, renvoie `{job, attempt, call (crm_ca_call_info), transcript, speaker_map, config {tiers, passes}, offer_reference, case_library, prior}` (`prior` = résultats des appels de vente analysés plus tôt dans le cycle). `null` s'il n'y a rien. | `call-analysis/worker/run.py`. | 020 |
-| `crm_ca_store(p_job uuid, p_record jsonb, p_usage jsonb, p_engine text) → jsonb` | interne* | Travail `running` obligatoire ; écrit `crm_ca_records` (meta = infos de l'appel + `engine`, `rules`, `duration` = horodatage du dernier tour), `crm_ca_turns`, `crm_ca_results`, `crm_ca_audit` ; travail `done` ; événement `analysis_ready` (`data.scores`). Une note enregistrée n'est jamais modifiée : une nouvelle analyse fait une nouvelle fiche. | `run.py`. | 020 |
+| `crm_ca_claim(p_worker text) → jsonb` | interne* | Prend le plus ancien travail `queued` (avec `not_before` passé) ou `running` depuis plus de 2 h (`for update skip locked`), le passe `running`, +1 tentative, renvoie `{job, attempt, call (crm_ca_call_info), transcript, speaker_map, config {tiers, passes, engine}, offer_reference, case_library, prior}` (`prior` = résultats des appels de vente analysés plus tôt dans le cycle ; `engine` = `crm_ca_config.engine`, 035). `null` s'il n'y a rien. | `call-analysis/worker/run.py` (`callqa_worker/job.py`). | 035 ; version 020 |
+| `crm_ca_store(p_job uuid, p_record jsonb, p_usage jsonb, p_engine text) → jsonb` | interne* | Travail `running` obligatoire ; écrit `crm_ca_records` (meta = infos de l'appel + `engine`, `rules`, `duration` = horodatage du dernier tour ; 035 : `engine` du moteur allégé, `engine_version`, `engine_steps`), `crm_ca_turns`, `crm_ca_results`, `crm_ca_audit` ; travail `done` ; événement `analysis_ready` (`data.scores`). Une note enregistrée n'est jamais modifiée : une nouvelle analyse fait une nouvelle fiche. | `run.py`. | 035 ; version 020 |
 | `crm_ca_fail(p_job uuid, p_error text, p_final boolean default false) → jsonb` | interne* | Retente (statut `queued`, `not_before` + 10 min) tant que la tentative < 3 et que l'erreur n'est pas finale ; sinon `failed`. | `run.py`. | 020 |
 | `crm_ca_latest(p_calls uuid[]) → jsonb` | auth | Dernier travail de chaque appel lisible, avec notes de la dernière fiche et `provisional`. | Aucun dans le code. | 020 |
-| `crm_ca_record(p_job uuid) → jsonb` | auth | Une fiche complète (tours, résultats) si lisible. | `call_analysis.js` / `call_analysis_view.js` (`caRecord`) ; connecteur `web/api/_crm.js`. | 020 |
-| `crm_ca_board() → jsonb` | auth | Un élément par appel R1/R2 passé et analysable des cycles visibles (administrateur : tous ; sinon ses cycles) : `{call_id, cycle_id, round, start, transcript, job, status, error, queued_at, started_at, done_job, scores}`. | `data.js` `caBoard` (Pipeline, Prospects, Cycle de vente via `gen_crm.py` ; `call_analysis.js`). | 021 |
+| `crm_ca_record(p_job uuid) → jsonb` | auth | Une fiche complète si lisible : `{job, call_id, status, flags, phases, meta, provisional, created_at, turns, results, qualification (046 : celle faite avec ce travail, sinon la plus récente de l'appel : status, result, verification, versions), corrections (063 : unit_id, field, engine_value, value, note, created_at, author ; la plus récente d'abord), can_correct (063 : administrateur)}`. | `call_analysis.js` / `call_analysis_view.js` (`caRecord`), vue embarquée `LNP_CAV` de `app/lnp.html` ; connecteur `web/api/_crm.js`. | 063 ; versions 020, 046 |
+| `crm_ca_board() → jsonb` | auth | Un élément par appel R1/R2 passé et analysable des cycles visibles (administrateur : tous ; sinon ses cycles) : `{call_id, cycle_id, round, start, transcript, job, status, error, queued_at, started_at, done_job, scores, qualification {status, solution_aware}}` ; depuis 062, le tour est celui de `crm_ca_call_info` (§12.18 : dans un cycle enregistré par Fathom, seuls les appels enregistrés, numérotés par leur rang ; sinon les appels de vente non annulés comptés dans l'ordre), et non plus le compte des appels non annulés (absences comprises). | `data.js` `caBoard` (Leads, fiche du lead ligne « Appels », Cycle de vente ; `call_analysis.js`). | 062 ; versions 021, 046 |
+
+| `crm_ca_correct(p_job uuid, p_unit text, p_value text, p_note text default null) → jsonb` | auth | Administrateur seulement (`42501` « Action non autorisée ») ; `p_value` dans `S`, `P`, `I`, `N`, `OUT` (`22023` « Lettre inconnue : S, P, I, N ou hors découverte ») ; analyse inconnue ou question absente de `details.solicitations` du résultat `SPIN` → `P0002`. Insère une ligne `crm_ca_corrections` (`engine_value` = lettre du moteur, `OUT` à défaut) et la renvoie. La note n'est pas recalculée. | `data.js` (panneau « Corriger la lettre » de l'analyse). | 063 |
+| `crm_qualif_config() → jsonb` | service | `{tiers}` de `crm_ca_config`. | `call-analysis/qualification/run.py`. | 042 |
+| `crm_qualif_candidates(p_limit int default 30, p_again boolean default false, p_prompt_version text default 'lnp-sql-v2.1-2026-11-05') → jsonb` | service | Le dernier R1 de chaque cycle (passé, non annulé, enregistré d'abord, sans fiche de test), du plus récent au plus ancien, `p_limit` entre 1 et 200 : `{call_id, cycle_id, at, date_appel (Paris), recorded_by, transcript (si enregistré), saisie {outcome, no_sale_reason} (du dernier call_booked)}` ; sans `p_again`, un appel déjà qualifié avec cette version de consigne est sauté. | `run.py` de la qualification (rattrapage manuel). | 046 ; version 042 |
+| `crm_qualif_context(p_call uuid) → jsonb` | service | `{call_id, cycle_id, round, date_appel, recorded_by, saisie}` d'un appel. | `call-analysis/worker/callqa_worker/qualif.py`. | 046 |
+| `crm_qualif_store(p_call uuid, p_status text, p_result jsonb, p_readings jsonb, p_verification jsonb, p_usage jsonb, p_prompt_version text, p_rules_version text, p_job uuid default null) → bigint` | service | Insère une qualification (cycle de l'appel, `job_id`). | `qualif.py`, `run.py`. | 046 (l'ancienne signature à 8 arguments de 042 est supprimée) |
 
 \* `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail` sont retirées à `public`, `anon` et `authenticated` **sans** `grant` explicite au
 rôle de service : le worker, qui appelle avec la clé du rôle de service, compte sur les privilèges par défaut de Supabase
-(voir §16).
+(voir §16). 035 recrée `crm_ca_claim` et `crm_ca_store` et refait ce `revoke`, toujours sans `grant`.
 
 ### 9.8 SLA et connecteur Claude
 
 | Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
 |---|---|---|---|---|
-| `crm_sla_snapshot(p_days int default 60) → jsonb` | service | §12.20. | `sla-tick`. | 028 |
+| `crm_sla_snapshot(p_days int default 60) → jsonb` | service | §12.20 ; sans les événements `setter_action`, `lead_in` (054) ni `iclosed_deal` (059). | `sla-tick`. | 059 ; versions 028, 054 |
 | `crm_sla_claim(p_items jsonb) → jsonb` | service | Insère les clés pas encore postées dans `crm_sla_notices` et renvoie exactement celles-là. | `sla-tick`. | 028 |
-| `crm_sla_settings() → jsonb` | service | `crm_settings.sla_alerts`. | `sla-tick`. | 028 |
+| `crm_sla_settings() → jsonb` | service | `crm_settings.sla_alerts` ‖ `{sla_rules: crm_settings.sla_rules}` (044). | `sla-tick`. | 044 ; version 028 |
 | `crm_mcp_call(p_tool text, p_input jsonb) → bigint` | auth | Refuse sans rôle CRM (`42501`) ; refuse le 61e appel de la minute (`P0M60`) ; écrit l'audit `mcp:<outil>` (40 caractères max) avec `after = {input}` ; renvoie l'id. | `web/api/mcp.js` (jeton de la personne). | 014 (copie 034) |
 | `crm_mcp_done(p_id bigint, p_rows int, p_ms int, p_error text) → void` | auth | Ajoute `rows`, `ms`, `error` (200 caractères) à la ligne d'audit de l'appelant. | `web/api/mcp.js`. | 014 |
+| `crm_save_sla_rules(p_value jsonb) → jsonb` | auth | Vérifie la forme : objet ; `sources` = booléens de `messages`, `whop`, `analysis` seulement ; `rules` = clés `^(SH|DE|CA|CO|CL|DO)-[0-9]{1,2}$`, chacune avec seulement `on`, `app`, `slack` (booléens) et `warn`, `late`, `crit` (nombres de 0 à 8 760 heures) ; sinon `22023` « Réglages des SLA : … ». Puis `crm_update_config('crm_settings', 'sla_rules', …)` (droits et audit de 004). Renvoie la valeur enregistrée. **Les règles `SE-n` du setter sont refusées par ce motif** (§16). | Paramètres › Alertes (`gabarits/Settings.pre-hz.dc.html`, `saveSla` dans `app/lnp.html`). | 044 |
 
-### 9.9 Fonctions de déclencheur restantes
+### 9.9 Pipeline : fermer, rouvrir, déplacer (045, 047)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_close_cycle(p_cycle uuid, p_decision text, p_reason text, p_note text default null) → void` | auth | `crm_require(['admin','sales_lead'], cycle)`. Cycle en cours seulement (« Ce prospect est déjà clos ») ; décision `no` ou `disqualified` ; motif actif de la liste, de la nature de la décision (« Un motif de la liste est obligatoire », « Le motif … ne correspond pas à la décision … »). Écrit `cycle_lost` ou `cycle_disqualified` (source `manual`, acteur `sales`, `content` = note, `data.reason`, `source_id` `manual:close:<cycle>:<uuid>`), audit `close_cycle`, recalcule. Pour un lead sans appel à déclarer. | `data.js`, `app/crm/outcome_ui.js` (Pipeline). | 045 |
+| `crm_reopen_cycle(p_cycle uuid) → void` | auth | Même contrôle. Refuse un cycle en cours et un cycle gagné (« Une vente payée ne se rouvre pas ») ; écrit `cycle_reopened` (source `manual`, `data.from`, `manual:reopen:<cycle>:<uuid>`), audit `reopen_cycle`, recalcule. | Idem. | 045 |
+| `crm_stage_data_types() → text[]` | défaut | `sql immutable` : les types d'événements qui disent où en est un lead d'après ses appels (`call_booked`, `call_rescheduled`, `call_canceled`, `call_missed`, `call_recorded`, `outcome_held`, `outcome_no_show`, `outcome_yes`, `outcome_follow_up`, `outcome_no`, `outcome_disqualified`, `cycle_reopened`, `cycle_won`, `cycle_lost`, `cycle_disqualified`, `payment_succeeded`). | `crm_move_cycle`. | 047 |
+| `crm_move_cycle(p_cycle uuid, p_to text) → jsonb` | auth | §12.23. Écrit `stage_moved` (source `manual`, `data.to`), audit `move_cycle`. Renvoie `{cycle, to}`. Ne recalcule pas le cycle (le tableau lit l'événement). | `data.js`, `outcome_ui.js`. | 047 |
+
+### 9.10 Ventes iClosed et échéanciers (037, 041, 059)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_import_deals(p_items jsonb, p_dry boolean default false) → jsonb` | service | §12.22 : un événement `iclosed_deal` pour information par vente iClosed (plus de vente ni de paiement depuis 059). Renvoie `{deals, matched, unmatched, new, updated, info_only: true, dry}`. | `supabase/functions/_shared/importers/iclosed.ts` via `import_run.ts` (`crm-import ?source=iclosed_deals`, tâche `crm-iclosed-deals-hourly`). | 059 ; versions 037, 041 |
+| `crm_plan_for_amount(p_amount numeric) → jsonb` | interne | Le plan d'un montant d'après `offer_catalogue` (§12.22). `sql stable definer`. | `crm_apply_auto_plans`. | 041 |
+| `crm_auto_schedule(p_plan jsonb, p_start date) → jsonb` | défaut | `sql immutable` (invoker) : l'échéancier d'un plan, une échéance par mois à partir de `p_start` ; un acompte (`to_check`) = l'acompte puis le reste un mois plus tard. | `crm_apply_auto_plans`. | 041 |
+| `crm_apply_auto_plans() → int` | interne | Pour chaque vente iClosed (`iclosed_deal_ids` non nul) dont `plan_source` n'est pas `manual` : `amount_sold` = total du plan, `plan_source = 'auto'`, `plan_match`, `payment_plan` (« N échéances », « Acompte » ou « Payé en une fois »), `schedule` à partir du jour du oui (Paris). Pose `lnp.auto_plan = on` pour que le déclencheur ne la prenne pas pour une saisie. Renvoie le nombre de ventes. | 041 à l'application ; `crm_import_deals` de 041 (plus depuis 059). | 041 |
+| `crm_deal_collected(p_deal uuid, p_at timestamptz) → numeric` | interne | Encaissé à une date : plan `auto` → échéances dues (Paris) ; sinon paiements reçus nets des remboursements. | Fenêtre du cockpit. | 041 |
+| `crm_deals_plan_source() → trigger` | — | Un changement de `schedule`, `amount_sold` ou `payment_plan` hors `crm_apply_auto_plans` pose `plan_source = 'manual'`. | Déclencheur `crm_deals_plan_source`. | 041 |
+
+### 9.11 Alertes du CRM (053, 054)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_sync_sla_alerts(p_items jsonb) → jsonb` | service | §12.25. `{opened, updated, done, closed}`. | `supabase/functions/sla-tick/index.ts`. | 054 ; version 053 |
+| `crm_sla_alerts_open(p_owner uuid default null) → jsonb` | auth | Refuse sans rôle CRM. `{sees_all, alerts: [{id, cycle_id, person_id, person, owner_id, owner, sla, kind, level, name, detail, target, started_at, crossed_at, opened_at}] (critiques, puis en retard, puis bientôt dues, par passage), closed_today}` : un administrateur voit toutes les alertes ouvertes (ou celles de `p_owner`), les autres celles dont ils sont `owner_id`, jamais `tech` ; `closed_today` compte les fermetures depuis minuit, heure de Paris. | `data.js`, `app/alerts_module.js` (écran Alertes, pastille, bandeau). | 053 |
+| `crm_setting_snapshot() → jsonb` | service | Les leads au statut setter ouvert (§12.24) : `{id, person, setter_id, status, since, due_at, last_at, attempts, source, cycle_id}`. | `sla-tick` (alertes SE). | 054 |
+
+### 9.12 Setter et entrée des leads (054, 059)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_sets_person(p uuid) → boolean` | défaut | §6.2. | `crm_owns_cycle`, `crm_sees_person`, `read_cycles`. | 054 |
+| `crm_setting_open_at(t timestamptz) → timestamptz` | défaut | La prochaine heure couverte par le setter à partir de `t` (plages `setting.coverage`, heure de Paris, lundi = 1) ; `t` sans plage. | `crm_setting_due`. | 054 |
+| `crm_setting_end_of_day(t timestamptz) → timestamptz` | défaut | 21 h (Paris) le jour de `t` ; après 19 h, 21 h le lendemain. `sql stable` invoker. | `crm_setting_due`. | 054 |
+| `crm_setting_due(p_person uuid, p_status text, p_since timestamptz, p_attempts int) → timestamptz` | défaut | Échéance de l'action d'un statut (§12.24). | `crm_setting_move`, `crm_setting_on_call`. | 059 ; version 054 |
+| `crm_setting_move(p_person uuid, p_to text, p_action text, p_label text, p_note text, p_actor uuid, p_attempts int default null, p_at timestamptz default now()) → void` | interne | Change le statut setter (verrou sur la personne), remet les tentatives à 0 en entrant dans `a_contacter`, `qualification`, `rdv_a_confirmer`, `rdv_pose`, recalcule `setting_due_at`, écrit `setter_action` (acteur `sales` ou `system`, `data {action, label, from, to, attempts}`, sur le cycle en cours). | Les fonctions du setter, le déclencheur. | 054 |
+| `crm_setter_action(p_person uuid, p_action text, p_note text default null) → jsonb` | auth | §12.24 ; refuse une action inconnue ou qui ne s'applique pas au statut (`22023`) ; un lead sans setter prend celui qui agit s'il est setter. Renvoie `{status, due_at, attempts}`. | `data.js`, `app/crm/setting_ui.js` (écran Prospects, fiche « Prise de RDV · setter »). | 054 |
+| `crm_set_setter(p_person uuid, p_member uuid) → void` | auth | Administrateur ; `null` retire le setter. | `data.js`. | 054 |
+| `crm_pick_setter() → uuid` | défaut | `setting.default_setter` s'il est un setter actif, sinon le setter actif qui a le moins de leads ouverts (puis le plus ancien). | `crm_lead_item`, `crm_setting_tick`. | 054 |
+| `crm_lead_item(it jsonb, p_actor uuid default null) → uuid` | interne | Un lead (§12.24). Renvoie la personne. Plusieurs personnes → `P0M02`. | `crm_apply_leads`, `crm_create_lead`. | 059 ; version 054 |
+| `crm_apply_leads(p_inbox bigint, p_items jsonb) → text` | service | Les leads d'une ligne brute `funnel`, une transaction ; conflit → non rattaché ; statut final de la ligne. | `supabase/functions/_shared/worker.ts` (`process-inbox`, source `funnel` ; requêtes reçues par `lead-in`). | 054 |
+| `crm_create_lead(p_name text, p_email text, p_phone text, p_source text default 'manuel') → uuid` | auth | « + Nouveau prospect » : membre actif `admin`, `setter` ou `sales` ; e-mail ou téléphone obligatoire ; téléphone nettoyé (`00` → `+`, `0` → `+33`) ; `crm_lead_item` avec `source_id` `manuel:<uuid>`. | `data.js`, `setting_ui.js`. | 054 |
+| `crm_setting_on_call() → trigger` | — | iClosed fait avancer le statut (§12.24). | Déclencheur `crm_setting_on_call`. | 059 ; version 054 |
+| `crm_setting_tick(p_now timestamptz default now()) → jsonb` | service | Leads webinaire en attente (§12.24) : `{to_setter, replied}`. | pg_cron `crm-setting-tick`. | 059 |
+| `crm_set_member_role(p_member uuid, p_role text) → text` | service | `sales` ou `setter`, seulement pour un membre `sales`, `setter` ou `viewer` (`P0002` « Fonction inchangée : la personne est administratrice ou n'a pas de fiche dans le CRM »). | `web/api/team.js`. | 054 |
+
+### 9.13 Tâches de maintenance (055, 056)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_refusal_tick(p_now timestamptz default now()) → int` | interne | §12.26. Renvoie le nombre de cycles passés en disqualifié. | pg_cron `crm-refusal-daily`. | 055 |
+| `crm_close_before(p_before timestamptz, p_dry boolean default true) → jsonb` | service | §12.27. `{dry, before, lost, long_term_follow_up}`. | 056 à l'application (une fois). | 056 |
+
+### 9.14 Entraînement (049)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_training_person(p_user uuid, p_from timestamptz) → jsonb` | interne | Les chiffres d'une personne (§12.28) : `{score, parts {coup, lettre, academie}, academie {validated, tried}, period {n, time_s, modules, last_at}, total {n, time_s, first_at, last_at}, sales {calls, r1_held, won, signed, collected, cash}}`. | `crm_training_dashboard`. | 049 |
+| `crm_training_dashboard(p_days int default 30) → jsonb` | auth | Refuse sans rôle CRM. `p_days` 0 ou `null` = depuis le début (au plus 3 650 jours). Un administrateur reçoit chaque membre actif `sales`, `sales_lead` ou `admin` et toute personne qui s'est entraînée ; les autres, leur seule ligne. `{generated_at, days, admin, people: [{id, name ('Ancien membre' sans fiche), role, active, me} ‖ crm_training_person]}`. | `app/training/resultats.html` (« Mes résultats », « Suivi des commerciaux »). | 049 |
+| `crm_training_results_stamp() → trigger` | — | `new.created_at := now()`. | Déclencheur `crm_training_results_stamp`. | 049 |
+| `crm_training_results_keep() → trigger` | — | Lève `42501` « Les résultats d'entraînement ne peuvent être ni modifiés ni effacés. » | Déclencheurs `crm_training_results_keep`, `crm_training_results_keep_all`. | 049 |
+
+### 9.15 Simulateur (057, 061)
+
+| Fonction | Droits | Ce qu'elle fait | Appelants | Définition finale |
+|---|---|---|---|---|
+| `crm_sim_history(p_user uuid default null, p_limit int default 200) → jsonb` | auth | Une ligne par simulation visible (la sienne, ou toutes pour un administrateur ; une personne avec `p_user`), la plus récente d'abord, 1 à 1 000 : `{id, user_id, name, status, started_at, ended_at, duration_seconds, prospect_name, persona_id, offer_id, offer_name, mode, difficulty, voice, version_referentiel, messages (nombre), analysis {id, status, reason, score (result.score_total), niveau}, rating, realisme (usage.realisme), variante (persona_data.variante)}`. | `app/training/simulateur.html`. | 061 ; version 057 |
+
+Le reste du Simulateur (offres, prospects, conversation, analyse) est écrit par la fonction Edge `simulateur` directement dans les
+tables, avec la clé de service.
+
+### 9.16 Fonctions de déclencheur restantes
 
 | Fonction | Fichier | Rôle |
 |---|---|---|
@@ -1446,8 +1707,13 @@ rôle de service : le worker, qui appelle avec la clé du rôle de service, comp
 | `crm_members_take_leads` | `crm_members` | `after insert or update of email, iclosed_email, active`, par ligne | `crm_members_take_their_leads()` | 015 |
 | `crm_calls_rank` | `crm_calls` | `after insert or update of scheduled_start, recording_start, recorded_by, transcript_raw, cycle_id`, par ligne, `when (pg_trigger_depth() < 1)` | `crm_calls_rank_trigger()` | 029 (025 sans `transcript_raw`) |
 | `crm_calls_recorded` | `crm_calls` | `after update of recorded_by, recording_end, transcript_raw`, par ligne | `crm_calls_recorded_trigger()` | 030 |
+| `crm_deals_plan_source` | `crm_deals` | `before update`, par ligne | `crm_deals_plan_source()` | 041 |
+| `crm_training_results_stamp` | `crm_training_results` | `before insert`, par ligne | `crm_training_results_stamp()` | 049 |
+| `crm_training_results_keep` | `crm_training_results` | `before update or delete`, par ligne | `crm_training_results_keep()` | 049 |
+| `crm_training_results_keep_all` | `crm_training_results` | `before truncate`, par instruction | `crm_training_results_keep()` | 049 |
+| `crm_setting_on_call` | `crm_calls` | `after insert or update of status, scheduled_start`, par ligne | `crm_setting_on_call()` | 054 (fonction : 059) |
 
-La condition `pg_trigger_depth() < 1` empêche la renumérotation de se relancer elle-même (les `update crm_calls set rank` faits par
+Onze déclencheurs, comme en production. La condition `pg_trigger_depth() < 1` empêche la renumérotation de se relancer elle-même (les `update crm_calls set rank` faits par
 `crm_rank_calls` ne touchent pas les colonnes surveillées, et un déclencheur imbriqué ne repart pas).
 
 ---
@@ -1459,13 +1725,14 @@ La condition `pg_trigger_depth() < 1` empêche la renumérotation de se relancer
 ```
 fournisseur ──HTTP──▶ Edge Function *-in ──insert──▶ crm_webhook_log (status received, auth_ok)
                                                             │
-pg_cron chaque minute (si des lignes iclosed / whatsapp / fathom attendent) ──▶ process-inbox
+pg_cron chaque minute (si des lignes iclosed / whatsapp / fathom / funnel attendent) ──▶ process-inbox
                                                             │
              crm_inbox_pending ──▶ mapper de la source (TS) ──▶ éléments canoniques
                                                             │
      auth_ok faux → crm_inbox_mark(rejected) · rien à faire → ignored · exception → failed (+1 tentative)
                                                             │
-   crm_apply_items (iclosed) · crm_apply_messages (whatsapp) · crm_apply_recordings (fathom) · crm_apply_contact (contact_updated)
+   crm_apply_items (iclosed) · crm_apply_messages (whatsapp) · crm_apply_recordings (fathom) · crm_apply_leads (funnel)
+                                 · crm_apply_contact (type contact_updated, quelle que soit la source)
                                                             │
          personne (identités) → cycle (crm_open_cycle) → appel → crm_events (on conflict do nothing)
                                                             │
@@ -1475,7 +1742,7 @@ pg_cron chaque minute (si des lignes iclosed / whatsapp / fathom attendent) ─�
 ```
 
 - **File** (`crm_inbox_pending`, 005) : lignes des sources demandées (les sources qui ont un mapper : `iclosed`, `whatsapp`,
-  `fathom` ; `worker.ts`), avec moins de 8 tentatives, au statut `received`, ou `failed` après un délai de 2^(tentatives − 1)
+  `fathom`, `funnel` ; `MAPPERS` et `APPLY` de `supabase/functions/_shared/worker.ts`), avec moins de 8 tentatives, au statut `received`, ou `failed` après un délai de 2^(tentatives − 1)
   minutes compté depuis `coalesce(processed_at, received_at)` (1, 2, 4… minutes) ; triées par `id`, 50 par défaut.
 - Les lignes `whop` restent `received` (pas de mapper ; phase 5).
 - Chaque fonction `crm_apply_*` traite tous les éléments d'une ligne brute dans **une transaction**, recalcule chaque cycle touché
@@ -1511,20 +1778,24 @@ Types traités : `call_booked`, `call_rescheduled`, `call_canceled` (les autres 
 
 | Type | Écrit par | `source` | `actor` / `channel` | Effet sur le projecteur |
 |---|---|---|---|---|
-| `call_booked` | `crm_apply_items` ; `crm_import_calls` | iclosed / import | élément (défaut prospect) / booking | entre dans l'étape `show` |
+| `call_booked` | `crm_apply_items` ; `crm_import_calls` | iclosed / import | élément (défaut prospect) ; import : prospect / booking | entre dans l'étape `show` |
 | `call_rescheduled` | `crm_apply_items` | iclosed | idem | — |
 | `call_canceled` | `crm_apply_items` ; `crm_import_calls` | iclosed / import | élément ; import : system / booking | — |
 | `call_recorded` | `crm_apply_recording_item` | fathom | sales / video | — |
 | `call_missed` | `crm_apply_no_show_rule` | rules | system / crm | — (le statut d'appel `missed` donne la prochaine action) |
-| `outcome_held`, `outcome_no_show` | `crm_declare_outcome` ; `crm_import_calls` ; `crm_mark_won_calls_held` (held) ; `crm_apply_no_show_rule` (no_show) | crm / import / crm / rules | sales ou system / crm | `outcome_held` entre dans l'étape `decision` |
+| `stage_moved` | `crm_move_cycle` (047) | manual | sales / crm (`member_id`) | aucun sur le projecteur ; lu par le tableau du Pipeline jusqu'à un événement plus récent de `crm_stage_data_types()` |
+| `outcome_held`, `outcome_no_show` | `crm_declare_outcome` ; `crm_import_calls` (jusqu'à 059 seulement) ; `crm_mark_won_calls_held` (held) ; `crm_apply_no_show_rule` (no_show) | crm / import / crm / rules | sales ou system / crm | `outcome_held` entre dans l'étape `decision` |
 | `outcome_yes`, `outcome_no`, `outcome_follow_up`, `outcome_disqualified` | `crm_declare_outcome` | crm | sales / crm | `outcome_yes` entre dans l'étape `cash` ; le statut se lit dans `crm_call_outcomes` |
 | `note` | `crm_add_note` | crm | sales / crm | compte comme relance dans le cockpit |
-| `nurture_entered` | `crm_set_nurture` | crm | sales / crm | — |
-| `nurture_reactivated`, `cycle_reopened` | `crm_open_cycle` | crm | system / crm | `cycle_reopened` remet le cycle en cours |
-| `cycle_won`, `cycle_lost`, `cycle_disqualified` | projecteur ; `crm_import_iclosed_disqualified`, `crm_import_calls`, `crm_reclassify_imported` | crm / import | system / crm | ceux de source `import` ferment le cycle (règle 4 du §11.5) ; un `cycle_lost` de source `rules` aussi (règle 5) |
+| `nurture_entered` | `crm_set_nurture` ; `crm_close_before` (056) | crm | sales ou system / crm | — |
+| `nurture_reactivated`, `cycle_reopened` | `crm_open_cycle` ; `crm_reopen_cycle` (045, `cycle_reopened`, source `manual`) | crm / manual | system ou sales / crm | `cycle_reopened` remet le cycle en cours |
+| `cycle_won`, `cycle_lost`, `cycle_disqualified` | projecteur ; `crm_import_iclosed_disqualified`, `crm_import_calls` (jusqu'à 059), `crm_reclassify_imported` ; `crm_close_cycle` (045) ; `crm_close_before` (056, `cycle_lost`) ; `crm_refusal_tick` (055, `cycle_disqualified`) | crm / import / manual / rules | system / crm ; sales / crm pour `manual` | ceux de source `import` ferment le cycle (règle 4 du §11.5) ; `manual` et `rules` aussi (règles 5 et 6) |
 | `imported` | `crm_import_people` | import | system / crm | sur la personne, sans cycle |
 | `message_in`, `message_out`, `opt_out` (`phone_call_in`, `phone_call_out` acceptés mais plus reçus) | `crm_apply_message_item` | whatsapp (celle de l'élément) | élément / élément (`whatsapp` ; `member_id` = le membre dont c'est le numéro) | compteurs de tentatives et derniers contacts |
-| `payment_succeeded` | `crm_add_payment` | crm | sales / payment | le premier gagne le cycle |
+| `payment_succeeded` | `crm_add_payment` ; `crm_import_deals` de 037 / 041 (source `iclosed`, plus écrit depuis 059) | crm / iclosed | sales / payment | le premier gagne le cycle |
+| `iclosed_deal` | `crm_import_deals` (059) | iclosed | system / crm (`content` = « iClosed (pour information) : vente de … € … ») | aucun ; exclu de l'instantané des SLA |
+| `lead_in` | `crm_lead_item` (054, 059) | funnel | prospect / crm | aucun ; exclu de l'instantané des SLA |
+| `setter_action` | `crm_setting_move` (054) | crm | sales ou system / crm | aucun ; exclu de l'instantané des SLA ; `data.action = 'appel_sans_reponse'` sert aux échéances des relances |
 | `payment_refunded` | `crm_add_refund` | crm | sales / payment | date de la perte « Remboursé » |
 | `transcript_added` | `crm_ca_add_transcript` | crm | sales / analysis | — |
 | `analysis_ready` | `crm_ca_store` | crm | system / analysis | — |
@@ -1548,9 +1819,16 @@ Types traités : `call_booked`, `call_rescheduled`, `call_canceled` (les autres 
 | `transcript:<travail>` | `crm_ca_add_transcript` |
 | `analysis:<travail>` | `crm_ca_store` |
 | `noshow:<appel>` (source `rules`) | `crm_apply_no_show_rule` |
+| `manual:close:<cycle>:<uuid>`, `manual:reopen:<cycle>:<uuid>`, `manual:move:<cycle>:<uuid>` (source `manual`) | `crm_close_cycle`, `crm_reopen_cycle`, `crm_move_cycle` |
+| `deal:<id de la vente iClosed>` (source `iclosed`) | `crm_import_deals` de 037 / 041 |
+| `deal-info:<id de la vente iClosed>` (source `iclosed`) | `crm_import_deals` (059) |
+| `setting:<personne>:<action>:<epoch>` | `crm_setting_move` |
+| celui de l'élément, sinon `funnel:<personne>:<epoch>` ; `manuel:<uuid>` pour un lead saisi à la main (source `funnel`) | `crm_lead_item` |
+| `rules:refus_6_mois:<cycle>` (source `rules`) | `crm_refusal_tick` |
+| `lost_before:<cycle>` (source `rules`) et `crm:crm_nurture_tracks:<id>:entered` | `crm_close_before` |
 | celui de l'élément (`whatsapp:<wamid>` pour un message, `whatsapp:optout:<wamid>` pour un STOP ; celui du mapper pour iClosed et Fathom) | `crm_apply_items`, `crm_apply_message_item`, `crm_apply_recording_item` |
 
-### 11.5 Le projecteur `crm_recompute_cycle` (définition finale : 030, recopiée par 034)
+### 11.5 Le projecteur `crm_recompute_cycle` (définition finale : 055)
 
 Il verrouille le cycle (`for update`) et reconstruit tout ce qui est dérivé.
 
@@ -1570,8 +1848,14 @@ atteinte dans l'ordre des positions** (pas la plus récente dans le temps), et `
    paiement laisse le cycle **en cours** (étape `cash`).
 4. **Fermeture importée** : s'il n'y a **aucune** issue courante et qu'un `cycle_won`/`cycle_lost`/`cycle_disqualified` de source
    `import` est postérieur à la dernière réouverture → le statut du plus récent de ces événements, avec son `data.reason`.
-5. **Perte par règle** : le plus récent `cycle_lost` de source `rules`, s'il est postérieur à la dernière réouverture → `lost`.
+5. **Fermeture par règle ou à la main** (045) : le plus récent de ces événements — un `cycle_lost` de source `rules` (056 :
+   `crm_close_before`), ou un `cycle_lost` / `cycle_disqualified` de source `manual` (045 : `crm_close_cycle`) postérieur à l'issue
+   courante s'il y en a une — s'il est postérieur à la dernière réouverture → `lost` (ou `disqualified` pour un
+   `cycle_disqualified`), motif `data.reason`, fermé à sa date.
 6. Sinon **en cours** (`active`), sans motif ni date de fermeture.
+7. **Refus de plus de 6 mois** (055) : si le statut trouvé est `lost` et qu'un `cycle_disqualified` de source `rules`
+   (`crm_refusal_tick`) date de la fermeture ou d'après, et d'après la dernière réouverture → `disqualified`, motif
+   `refus_6_mois`, fermé à sa date (il le reste ensuite, comme tout disqualifié).
 
 Si le statut change et n'est pas `active`, un événement `cycle_<statut>` est écrit (source `crm`, `data.reason`,
 `on conflict do nothing`).
@@ -1592,7 +1876,8 @@ Si le statut change et n'est pas `active`, un événement `cycle_<statut>` est �
 `disqualified`), `projected_at = now()`.
 
 Historique des versions : 005 (première), 025 (FL-6 : un appel enregistré sans issue demande son issue ; dernier appel trié par
-rang puis enregistrement), 026 (règle du remboursement), 030 (prochaine action après un appel manqué).
+rang puis enregistrement), 026 (règle du remboursement), 030 (prochaine action après un appel manqué), 034 (copie de 030),
+045 (fermetures à la main), 055 (refus de plus de 6 mois). La prochaine action et les compteurs n'ont pas changé depuis 030.
 
 ---
 
@@ -1631,6 +1916,9 @@ une ligne `crm_members` à chaque membre (clé = partie locale de l'e-mail rédu
   n'est jamais changé. Relancé automatiquement pour un membre quand il est ajouté ou que son `email`, `iclosed_email` ou `active`
   change (déclencheur), de sorte qu'inviter un commercial lui donne ses prospects. Renvoie `{cycles, calls, by_member,
   still_unassigned, still_unassigned_live}`.
+- Toutes les heures (043, tâche `crm-assign-owners-hourly`, minute 20) : le même rattrapage pour tous les membres, pour qu'un cycle
+  ouvert sans propriétaire (réservation sur le calendrier d'un ancien commercial ou de personne) prenne le commercial dont le
+  calendrier iClosed porte maintenant sa dernière réservation. Le compte d'un commercial existe dès l'invitation, confirmée ou non.
 
 ### 12.5 Déclarer une issue (`crm_declare_outcome`, 027)
 
@@ -1692,23 +1980,33 @@ Pour chaque enregistrement (`crm_apply_recording_item`) :
 - La ligne de `crm_fathom_recordings` est insérée ou mise à jour à chaque passage (une `rule` déjà connue est gardée si la nouvelle
   est vide).
 
-### 12.8 Règle d'absence (030, 032, 033)
+### 12.8 Règle d'absence (030, 032, 033, 056)
 
-- **Appel complet** (`crm_call_complete`) : un enregistrement Fathom (`recorded_by`, début et fin) d'au moins
+Romain, 11 novembre 2026 : « La règle d'absence, c'est de ne pas venir au R2 » ; l'appel de setting (15 minutes, par le setter)
+n'est jamais une réservation iClosed, donc jamais une ligne `crm_calls` : la règle lit les réservations iClosed (le R2 du cycle de
+vente et les suivantes, numérotées R1, R2… dans la base).
+
+- **Appel complet** (`crm_call_complete`, 030) : un enregistrement Fathom (`recorded_by`, début et fin) d'au moins
   `no_show_rule.min_minutes` minutes (**30** depuis 033 ; 7 en 030 ; 7 si le réglage manque), **ou** une transcription ajoutée à la
-  main (`transcript_raw` non vide et `transcript_source` différent de `fathom`).
-- **Règle** (`crm_apply_no_show_rule`) : pour chaque cycle non gagné ayant un appel depuis `no_show_rule.since`, appels parcourus
-  dans l'ordre de numérotation. Un appel complet marque « déjà vu ». Un appel est jugé s'il n'est ni `canceled` ni `missed`, ni
-  déjà `no_show` en phase R1, qu'il a un début ≥ `since`, que `grace_hours` (3) sont passées après sa fin, qu'il n'a pas d'issue
-  déclarée et (032) qu'**aucun enregistrement encore ambigu** ne peut être le sien (`crm_call_has_ambiguous_recording`). Alors :
-  - aucun appel complet avant lui (phase R1) → statut `no_show` + événement `outcome_no_show` (source `rules`) ;
-  - un appel complet avant lui (R2, R3…) → statut `missed` + événement `call_missed` ; le prospect reste dans son tour et la
-    prochaine action devient « Replanifier l'appel ».
+  main (`transcript_raw` non vide et `transcript_source` différent de `fathom`). Un enregistrement de 30 minutes ou plus rend l'appel
+  honoré tout de suite (025) et l'issue reste à déclarer par le commercial.
+- **Règle** (`crm_apply_no_show_rule`, définition finale 056) : pour chaque cycle non gagné ayant un appel depuis
+  `no_show_rule.since`, appels parcourus dans l'ordre de numérotation. Un appel complet marque « déjà vu ». Depuis 056, un appel
+  n'est jugé que si **personne n'a donné sa présence** : statut encore `scheduled` ou `outcome_pending` (iClosed n'a rien dit),
+  **aucun enregistrement** (ni `recorded_by` ni `recording_start` : un enregistrement court est laissé au commercial), début
+  ≥ `since`, `grace_hours` (3) passées après sa fin, aucune issue courante déclarée, et (032) aucun enregistrement encore ambigu
+  qui puisse être le sien (`crm_call_has_ambiguous_recording`). Alors :
+  - aucun appel complet avant lui (première réservation du cycle) → statut `no_show` + événement `outcome_no_show` (source
+    `rules`, `data {rule: 'no_fathom_recording', min_minutes}`) ;
+  - un appel complet avant lui → statut `missed` + événement `call_missed` ; le prospect reste dans son tour et la prochaine action
+    devient « Replanifier l'appel ».
   - Les cycles touchés sont recalculés. Sans `since`, la fonction renvoie une erreur et ne fait rien.
-- **Lancement** : toutes les heures à la minute 35 (`crm_no_show_tick`), seulement si `no_show_rule.enabled` (faux par défaut).
+- **Lancement** : toutes les heures à la minute 35 (`crm_no_show_tick`), seulement si `no_show_rule.enabled`. **056 l'allume**
+  (`since` = `2026-10-27T00:00:00+01:00`, `min_minutes` 30, `grace_hours` 3, `enabled` vrai), y compris sur une base neuve.
 - **Un enregistrement complet tardif l'emporte** (déclencheur `crm_calls_recorded`) : un appel `no_show` ou `missed` qui devient
   complet sans issue déclarée repasse `held`, l'événement `noshow:<appel>` est supprimé et le cycle recalculé.
 - 032 a remis en `scheduled` les absences posées par la règle sur un appel qu'un enregistrement ambigu peut couvrir.
+- Pas encore : l'absence de réponse aux messages WhatsApp (WhatsApp n'est pas branché, en-tête de 056).
 
 ### 12.9 Encaissement saisi à la main (022)
 
@@ -1759,22 +2057,26 @@ identifiant. Aucun événement n'est écrit.
 ancien. C'est la date « Créé » du CRM et la base du compte de « prospects » du cockpit (`created_at` n'est que le jour d'écriture : les
 imports ont écrit 1 501 lignes le 2026-10-24).
 
-### 12.15 Imports (007, 008, 009)
+### 12.15 Imports (007, 008, 009, 059)
 
 - **`crm_import_people`** : une personne par contact, retrouvée par n'importe quel identifiant (e-mails, téléphones,
   `close_contact_id`, `iclosed_contact_id`) ; aucun identifiant → `skipped` ; plusieurs personnes → `conflicts` ; sinon création ou
   complément du nom. Le statut et les opportunités du contact sont gardés dans un événement `imported` sur la personne (mis à jour
   à chaque import). Aucun cycle n'est créé (il faudrait d'abord la table de correspondance `close_status_map`, jamais créée).
+  Lancé toutes les heures pour iClosed (`crm-iclosed-contacts-hourly`, 039).
 - **`crm_import_iclosed_disqualified`** : chaque personne importée d'iClosed au statut `DISQUALIFIED` et **sans cycle** reçoit un
   cycle fermé `disqualified` (motif `dq_off_target`, ouvert et fermé à la date de l'import) avec un `cycle_disqualified` de source
-  `import`.
-- **`crm_import_calls`** : par personne, ses appels iClosed triés (statuts traduits par l'Edge Function ; `REJECTED` =
-  disqualifié selon Romain 2026-10-24). Cycle = celui qui contient déjà l'un de ces appels, sinon le dernier de la personne, sinon un
-  nouveau ouvert au premier rendez-vous (propriétaire d'après l'hôte du premier appel) ; `opened_at` est ramené au plus ancien. Chaque
-  appel inconnu devient un appel avec ses vraies dates et son statut, un `call_booked`, puis `call_canceled` ou
-  `outcome_held` / `outcome_no_show`. Une fermeture (`close`) n'est écrite que si le cycle n'a pas déjà de fermeture importée et n'a
-  aucun appel à venir ; le statut du cycle est alors posé directement (pour que le projecteur n'en ajoute pas une seconde). Les
-  personnes sans aucun appel n'ont pas de cycle (vue `crm_people_without_cycle`).
+  `import`. Manuel ; contraire à la règle de 059 (le statut iClosed est ignoré) : ne plus le lancer.
+- **`crm_import_calls`** (définition finale 059, lancé toutes les heures par `crm-iclosed-calls-hourly`, 039) : par personne
+  (e-mails, téléphones E.164, `iclosed_contact_id` ; aucun identifiant ou aucun appel → `skipped` ; plusieurs personnes →
+  `conflicts`), ses appels iClosed. Cycle = celui qui contient déjà l'un de ces appels, sinon le dernier de la personne, sinon un
+  nouveau ouvert au premier rendez-vous (propriétaire d'après l'hôte du premier appel) ; `opened_at` est ramené au plus ancien.
+  Chaque appel inconnu devient un appel avec ses vraies dates, au statut `canceled` s'il est annulé et **`scheduled` sinon**, un
+  `call_booked` (acteur `prospect`, `data` avec `start`, `end`, `host_email`), plus un `call_canceled` s'il est annulé. **Depuis
+  059, iClosed ne donne plus ni présence ni issue (`outcome_held` / `outcome_no_show`), et ne ferme plus aucun cycle** : la
+  fonction se contente de recalculer le cycle. Un appel déjà connu est laissé tel quel (`calls_known`). Les personnes sans aucun
+  appel n'ont pas de cycle (vue `crm_people_without_cycle`). Avant 059 (009) : statut traduit, `outcome_*`, fermeture importée
+  `import:close:<cycle>` quand aucun appel n'était à venir.
 
 ### 12.16 Reclassement des cycles importés (013)
 
@@ -1797,7 +2099,7 @@ Dans chaque cycle gagné, tout appel passé encore `scheduled` devient `held` av
 Aucune issue n'est déclarée (un « oui » sans paiement rouvrirait le cycle). La fonction vérifie que le nombre de cycles gagnés n'a
 pas changé, sinon elle annule tout.
 
-### 12.18 Quels appels sont analysés (020, 025)
+### 12.18 Quels appels sont analysés (020, 025, 062)
 
 `crm_ca_call_info` (définition finale 025) :
 - cycle **avec** au moins un enregistrement Fathom de commercial : seuls les appels enregistrés sont des appels de vente, leur tour
@@ -1809,11 +2111,13 @@ pas changé, sinon elle annule tout.
   appels de vente R1 et R2 sont analysés ».
 - Commercial = propriétaire du cycle, sinon partie locale de l'enregistreur ou de l'hôte ; nom = membre, sinon `crm_sales_team`,
   sinon partie locale avec majuscule ; fuseau = celui du propriétaire, sinon `crm_ca_config.default_timezone`.
+- `crm_ca_board` (062) liste et numérote les appels de la fiche d'un lead avec exactement la même règle (avant 062, il comptait tous
+  les appels non annulés, absences comprises : un R1 honoré après deux absences devenait « R3 » et son analyse était cachée).
 
-### 12.19 Chiffres du Cockpit commercial (016 → 019, 032, 033)
+### 12.19 Chiffres du Cockpit commercial (016 → 019, 032, 033, 036 → 041, 060)
 
-`crm_sales_cockpit()` (019) décide une fois ce que l'appelant voit (tous les cycles si `crm_sees_all()`, sinon les siens) puis
-renvoie :
+`crm_sales_cockpit()` (définition finale 060) décide une fois ce que l'appelant voit (tous les cycles si `crm_sees_all()`, c'est-à-dire
+un administrateur, sinon les siens) puis renvoie :
 
 ```
 { generated_at, periods: {"7": {now, base}, "30": {…}, "56": {…}}, team: {"7": [{id, name, figures}], …},
@@ -1822,65 +2126,251 @@ renvoie :
 ```
 
 - **Périodes** : 7, 30 et 56 jours avant maintenant ; `base` = la même durée juste avant (référence).
-- **Équipe** : les cycles visibles regroupés par commercial = clé du propriétaire, sinon partie locale de l'hôte du dernier
-  `call_booked` ; **seuls les commerciaux de `crm_sales_team` ont une ligne** (les cycles des autres comptent dans les totaux).
+- **Équipe** (036, 039, 040) : les cycles visibles regroupés par commercial. Le commercial d'un cycle = clé de son propriétaire,
+  sinon (040) la partie locale de l'enregistreur Fathom de son dernier appel enregistré jusqu'au jour de sa clôture (heure de Paris :
+  un appel d'accueil après la vente n'est pas la vente), sinon la partie locale de l'hôte du dernier `call_booked`. Seules les clés
+  d'une ligne **active** de `crm_sales_team` ont une ligne, groupées par `name` (une personne à plusieurs adresses = une ligne) ; une
+  ligne n'apparaît que si le commercial a eu une activité dans la période (réservation, appel honoré, absent ou sans issue, vente,
+  montant signé ou encaissé). Les cycles des autres comptent dans les totaux.
 - **Panier moyen 180 j** (`aov_180`) : moyenne des montants signés > 0 des ventes dont le « oui » date de moins de 180 jours.
 - **Pipeline pondéré** : pour chaque cycle en cours visible, (montant de sa vente s'il est > 0, sinon `aov_180`) × taux de
   conversion observé de son étape = part de gagnés parmi les cycles fermés depuis 180 jours dont l'étape courante est à cette
   position ou au-delà.
-- **Encaissements à risque** (`alerts`, 60 au plus, triés par valeur puis date) : les alertes ouvertes visibles de `crm_alerts`, puis
-  les cycles en cours dont `next_move.due_at` est passé et qui n'ont pas d'alerte ouverte (titre = libellé de la prochaine action
-  + « · en retard », objet = nom · libellé de l'étape) ; valeur = montant ou `aov_180` × max(taux de l'étape, 0,05).
+- **Encaissements à risque** (`alerts`, 60 au plus, triés par valeur puis date) : les alertes ouvertes visibles de `crm_alerts`
+  (table jamais remplie, §7.9), puis les cycles en cours dont `next_move.due_at` est passé et qui n'ont pas d'alerte ouverte (titre =
+  libellé de la prochaine action + « · en retard », objet = nom · libellé de l'étape) ; valeur = montant ou `aov_180` × max(taux de
+  l'étape, 0,05). `crm_sla_alerts` n'y est pas lue.
 - `has_payments`, `has_deals` : ce que le CRM ne peut pas encore mesurer.
 
-**Fenêtre** `crm_sales_cockpit_window` (définition finale 033), sur `[p_from, p_to)` et les cycles donnés :
+**Fenêtre** `crm_sales_cockpit_window` (définition finale 041), sur `[p_from, p_to)` et les cycles donnés, **sans les fiches de
+test** (`crm_person_internal`, 039) :
 
 | Clé | Calcul |
 |---|---|
-| `leads` | personnes non fusionnées dont `first_seen_at` est dans la fenêtre (toutes si l'appelant voit tout et que la fenêtre porte sur tous les cycles ; sinon seulement celles des cycles donnés) |
-| `booked` | événements `call_booked` des cycles dans la fenêtre |
-| `held`, `no_show` | appels `held` / `no_show` dont le début est dans la fenêtre |
+| `leads` | personnes non fusionnées, hors fiches de test, dont `first_seen_at` est dans la fenêtre (toutes si l'appelant voit tout et que la fenêtre porte sur tous les cycles ; sinon seulement celles des cycles donnés) |
+| `booked` | (036) personnes de la fenêtre (`first_seen_at`) qui ont réservé au moins un appel, à n'importe quelle date : « RDV pris » ne dépasse jamais « Prospects » |
+| `held` | (039) = `shown_leads` : les prospects présents à leur R1 |
+| `no_show` | appels `no_show` dont le début est dans la fenêtre |
 | `no_outcome` | appels de la fenêtre encore `scheduled` alors que leur début est passé |
-| `shown_leads` | cycles ayant un appel passé dans la fenêtre et qui sont gagnés (033) ou ont eu au moins un appel complet déjà commencé |
-| `pending_leads` | parmi les autres : un appel à venir, ou dernier appel annulé pour être reporté (`crm_call_is_reschedule`) |
-| `no_show_leads` | les autres (ni présents ni en attente) — le taux de présence se compte en prospects depuis 032 |
+| `shown_leads`, `no_show_leads`, `pending_leads` | (038, 039) sur les cycles qui ont un **R1** (`rank = 1`) dû dans la fenêtre (début passé ; un cycle dont tous les R1 sont annulés est écarté) : présent = cycle gagné, ou un R1 `held` ou complet (`crm_call_complete`) ; en attente = aucun R1 `no_show` et chaque R1 annulé ou encore `scheduled` depuis moins de `show_pending_hours` (48) ; absent = les autres |
 | `won` | cycles gagnés dont `closed_at` est dans la fenêtre |
 | `signed`, `deals` | somme des montants signés et nombre de ventes avec montant > 0 dont `yes_at` est dans la fenêtre |
-| `received`, `refunded`, `cash` | somme des paiements et des remboursements dont `paid_at` est dans la fenêtre ; `cash = received − refunded` |
-| `follow_total`, `follow_done` | appels honorés de la fenêtre ; ceux suivis dans les 24 h après leur fin par un `message_out` d'un commercial, une `note` ou un `outcome_*` |
+| `collected`, `remaining` | (041) ce que ces ventes ont rapporté à ce jour (`crm_deal_collected` : échéances dues pour un plan `auto`, paiements nets sinon) ; `remaining = signed − collected` |
+| `received`, `refunded`, `cash` | (041) échéances dues dans la fenêtre (et déjà passées) des plans `auto`, plus les paiements reçus dans la fenêtre des autres ventes ; remboursements de ces paiements ; `cash = received − refunded` |
+| `follow_total`, `follow_done` | (039) premiers R1 honorés de la fenêtre ; ceux suivis dans les 24 h après leur fin par un `message_out` d'un commercial, une `note` ou un `outcome_*` |
 | `days_per_stage` | médiane (en jours, une décimale) des durées des passages d'étape sortis dans la fenêtre |
 
 Les ratios (taux de présence, de conversion, revenu par appel, part payée à la signature…) sont calculés par l'écran à partir de ces
 comptes ; leurs définitions sont rappelées en tête de `016_crm_sales_cockpit.sql`.
 
-### 12.20 SLA du cycle de vente (028)
+### 12.20 SLA du cycle de vente (028, 044, 053, 054, 059)
 
 Toutes les 5 minutes, `sla-tick` lit `crm_sla_snapshot(60)` : les cycles **en cours** dont le dernier événement (ou l'ouverture) date
 de moins de 60 jours, avec `id`, `opened_at`, `person` (nom), `owner`, `owner_key`, leurs événements des 60 derniers jours (`type`,
-`at`, `actor`, `channel`, `call_id`, `source` — jamais le texte d'un message) et leurs appels (`id`, `rank`, `status`, `start`,
-`end`). Les règles elles-mêmes sont dans `supabase/functions/_shared/sla_rules.js` (même fichier que l'écran Cycle de vente).
-`sla-tick` n'envoie que les dépassements « en retard » ou « critiques » franchis après `sla_alerts.since` et depuis moins de
-`max_age_hours`, réclame leurs clés par `crm_sla_claim` (seules celles qui n'existaient pas reviennent) et poste exactement celles-là
-dans Slack.
+`at`, `actor`, `channel`, `call_id`, `source` — jamais le texte d'un message ; sans `setter_action`, `lead_in` ni `iclosed_deal`) et
+leurs appels (`id`, `rank`, `status`, `start`, `end`). Il lit aussi `crm_setting_snapshot()` (leads suivis par un setter, alertes
+SE) et `crm_sla_settings()` (`sla_alerts` + `sla_rules`). Les règles elles-mêmes sont dans
+`supabase/functions/_shared/sla_rules.js` (même fichier que l'écran Cycle de vente et le catalogue de Paramètres › Alertes ; 52
+règles : SH ×12, DE ×9, CA ×7, CO ×5, CL ×4, DO ×5, SE ×10). Avec ces dépassements, `sla-tick` :
+1. ouvre, fait monter et ferme les alertes du CRM par `crm_sync_sla_alerts` (§12.25) ;
+2. copie dans Slack, seulement pour les règles marquées `slack` (éteint par défaut) et si `SLACK_SALES_CYCLE_WEBHOOK_URL` existe, les
+   dépassements « en retard » ou « critiques » franchis après `sla_alerts.since` et depuis moins de `max_age_hours`, après les avoir
+   réclamés par `crm_sla_claim` (seules les clés qui n'existaient pas reviennent, `crm_sla_notices`).
+
+Réglages (`crm_settings.sla_rules`, 044) : `{sources: {messages, whop, analysis}, rules: {"SH-2": {on, warn, late, crit, app, slack},
+…}}`. Une source débranchée (toutes le sont par défaut : le 5 novembre 2026, aucun message WhatsApp, aucun lien Whop, aucune analyse
+automatique n'arrivait, et chaque lead était « Critique ») éteint les règles qui en ont besoin.
+
+### 12.21 Cockpit commercial › Exécution, Qualité, Impact (050, 060)
+
+`crm_sales_execution(p_days, p_owner)` (définition finale 060) rend, sur les cycles visibles (hors fiches de test) et la période
+`now() − p_days` :
+- `rules` : `won` = premier paiement dans les 14 jours après la fin du premier appel tenu ; `qualified` = qualification LNP (la plus
+  récente du cycle dans `crm_lead_qualifications` : `SQL GAGNÉ`, `SQL OUVERT`, `SQL PERDU` = qualifié, `NON SQL` = non qualifié ;
+  sinon « non disqualifié ») ; `indicative_below` = 20 (l'écran marque « indicatif » un taux sur moins de 20 prospects) ;
+- `sources` (060) : `crm_settings.sla_rules.sources` (sans messages, l'écran dit « non mesuré » au lieu de 0 %) ;
+- `cohort` : `{held, qualified, qual_read, matured, won14}` ; la cohorte « appels tenus » est **le premier appel tenu du cycle**,
+  gardé s'il tombe dans la période (060 ; avant, le premier tenu de la période, souvent un R2 ou un appel d'après-vente) ; un
+  paiement compte s'il suit cet appel ; « mûr » = fin d'appel il y a plus de 14 jours ;
+- `delays` : une ligne par délai `{id, label, rule, target, unit, n, met, median, impact {met_n, met_won, miss_n, miss_won}}` :
+  `speed_to_lead` (SH-2, 5 min après la première réservation), `r1_within_48h` (SH-3, 48 h), `noshow_contact` (SH-8, 15 min),
+  `noshow_rebook` (SH-9, 24 h), `outcome_declared` (SH-11, 15 min), `recap_60` (DE-1, 60 min), `call_after_r1` (bonne pratique,
+  72 h), `decision_72` (DE-9, 72 h), `yes_to_payment` (CA-2, 24 h), `handover_2h` (CA-6, 2 h), `reply_15` (CO-1, 15 min, réponse
+  dans la plage 8 h – 22 h heure de Paris) ; un contact commercial = `message_out`, `email_out` ou `phone_call_out` d'acteur `sales` ;
+- `reactivation` : absences (`no_show`) et échecs de vente (appel tenu, qualifié, sans paiement en 14 jours) : contactés, reprogrammés,
+  réactivés, gagnés ensuite ;
+- `interactions` : contacts après l'appel par tranche, appel téléphonique ou non, réponse du prospect, délai de réponse, avec le
+  nombre de ventes ;
+- `quality` : appels tenus, issues déclarées, enregistrés ; moyennes de la dernière analyse (`SPIN`, `OBJECTIONS`, écart présent,
+  pitch conforme) ; `references_missing` (aucune offre ou aucun cas actif dans `crm_ca_offer` / `crm_ca_cases`) ; portes `metier`,
+  `financement`, `decision_timing` (`OUVERTE`, `FERMÉE`, autre) ; verdicts ; motifs de perte et de disqualification de la période.
+Impact = corrélation, jamais preuve (en-tête de 050).
+
+### 12.22 Ventes iClosed : de la vente au montant pour information (037, 041, 059)
+
+- **037 → 041** (3 et 4 novembre 2026) : chaque vente iClosed (`GET /v1/deals`) devenait la vente du cycle (`crm_deals`, une par
+  cycle, `iclosed_deal_ids`), un paiement `source = 'iclosed'` (`method` `won` ou `deposit`) et un `payment_succeeded`
+  (`deal:<id>`), donc un cycle gagné ; 041 déduisait le prix de l'offre et ses échéances du montant saisi (`crm_plan_for_amount`) :
+  le total d'un plan de `offer_catalogue`, sinon une échéance d'un plan à plusieurs échéances (la première payée), sinon un acompte
+  sur l'offre par défaut (`to_check`, total = max(montant, 3 000 €)). Un montant saisi à la main n'était jamais écrasé
+  (`manual_deal_kept`) ; un plan modifié à la main devient `plan_source = 'manual'` (déclencheur).
+- **Depuis 059** (Romain, 11 novembre 2026 : « C'est le status du CRM LNP qui est source de vérité ») : `crm_import_deals` n'écrit
+  plus qu'un événement `iclosed_deal` par vente (`deal-info:<id>`, `content` « iClosed (pour information) : vente | acompte de N € ·
+  produit · le statut et les paiements se gèrent dans le CRM », `data {amount, kind, product, iclosed_deal_id}`) sur le cycle de
+  l'appel iClosed (`eventCallId`), sinon le dernier cycle de la personne (`iclosed_contact_id`) ; sans cycle → `unmatched`. Rien
+  n'arrête ni ne démarre une alerte (exclu de l'instantané). Les paiements viennent de Whop ou de la fenêtre d'encaissement.
+- `crm_apply_auto_plans`, `crm_deal_collected`, `crm_plan_for_amount` restent : ils servent aux ventes iClosed déjà importées
+  (`plan_source = 'auto'`) et à l'encaissé du cockpit.
+
+### 12.23 Déplacer un lead dans le Pipeline (045, 047)
+
+Un déplacement qui est une issue passe par `crm_declare_outcome`. Les autres :
+- **Clore** (`crm_close_cycle`) un lead sans appel à déclarer : perdu ou disqualifié avec un motif de la liste ; une issue déclarée
+  ensuite, ou une réouverture, l'emporte (règle 5 du §11.5).
+- **Rouvrir** (`crm_reopen_cycle`) un lead perdu ou disqualifié ; jamais un lead gagné.
+- **Déplacer** (`crm_move_cycle`, colonnes `r1`, `r2`, `r3`, `longfu` ; sinon « Colonne non déplaçable à la main ») un lead en cours
+  (sinon « Ce prospect est clos : rouvrez-le d'abord »). Le tour courant = max(rang du dernier appel non annulé, dernier
+  `stage_moved` vers `rN` encore valable — postérieur au dernier événement de `crm_stage_data_types()`), plafonné à 3. Refus : revenir
+  à un tour déjà atteint (« Ce prospect est déjà en R… : il ne revient pas en R… »), sauter un tour (« Un prospect passe par chaque
+  tour »), passer au tour suivant avec une issue à déclarer, un appel à venir, ou un tour courant non honoré. `longfu` (Relance
+  longue) n'a pas de contrôle. Le déplacement est gardé comme `stage_moved` ; le tableau le montre jusqu'à ce que des données plus
+  récentes sur les appels disent où est le lead.
+
+### 12.24 Le suivi du setter (054, 059)
+
+Statuts (`crm_people.setting_status`) : ouverts `a_contacter`, `relance`, `qualification`, `rdv_a_confirmer`,
+`appel_confirmation`, `rdv_pose`, `rdv_confirme`, `reconfirmation`, `a_replanifier`, `absent_rattrapage` ; en attente (059)
+`webinaire_absent`, `absent_attente` ; terminés `transmis`, `injoignable`, `non_qualifie`.
+
+**Échéance de l'action** (`crm_setting_due`, définition finale 059 ; plages de `setting.coverage`, heure de Paris) :
+
+| Statut | Échéance |
+|---|---|
+| `a_contacter` | première heure couverte + 5 min |
+| `relance` | depuis le premier appel sans réponse : tentative 1 → +2 h ; 2 → max(+3 h, 21 h − 2 h) ; 3 → J+1 17 h ; 4 → J+2 17 h ; au-delà → J+4 17 h, ramené à une heure couverte ; quiz abandonné : +24 h |
+| `qualification`, `a_replanifier` | fin de journée (21 h ; le lendemain après 19 h) |
+| `rdv_a_confirmer` | +1 h |
+| `appel_confirmation` | l'échéance déjà posée, sinon +1 h |
+| `rdv_pose` | max(+1 h, RDV − 24 h) ; rien sans RDV à venir |
+| `reconfirmation` | min(+4 h, RDV − 2 h) |
+| `absent_rattrapage` | +15 min |
+| `webinaire_absent` / `absent_attente` | +48 h / +24 h |
+| autres | aucune |
+
+**Actions du setter** (`crm_setter_action`) : `appel_sans_reponse` (+1 tentative ; `a_contacter` / `relance` → `relance`, ou
+`injoignable` à `setting.max_attempts` = 6, `abandon_attempts` = 2 pour un quiz abandonné), `msg_relance`, `msg_confirmation`
+(`rdv_a_confirmer` → `appel_confirmation`), `joint` (→ `qualification`), `rdv_pose` (→ `rdv_pose`), `non_qualifie`, `ok_recu` et
+`confirmation_faite` (→ `rdv_confirme`), `rappel_j1`, `sans_ok_j1` (→ `reconfirmation`), `rappel_h2`, `annule` (→ `a_replanifier`),
+`injoignable`, `relancer` (`injoignable` / `non_qualifie` → `a_contacter`, tentatives à 0), `note`. Chaque action est un
+`setter_action` dans le fil du prospect.
+
+**iClosed fait avancer le statut seul** (déclencheur `crm_setting_on_call`, R1 seulement, jamais un appel de plus de 2 jours) : R1
+réservé → `rdv_a_confirmer` (ou `rdv_pose` si le setter a posé le RDV dans les 3 h, ou déjà `rdv_pose` / `rdv_confirme`) ; absent →
+`absent_rattrapage` ; tenu → `transmis` (« RDV tenu · au commercial », depuis 059 seulement pour un lead qui a un statut setter) ; annulé sans autre RDV → `a_replanifier` ; déplacé →
+`rdv_a_confirmer`. Un lead webinaire (059) qui réserve seul va directement au commercial (statut effacé) ; absent à son RDV de vente,
+il attend une réponse 24 h (`absent_attente`).
+
+**Entrée d'un lead** (`crm_lead_item`, définition finale 059 ; élément `{source_id, occurred_at, identity {email, phone, name},
+data {source, booked, attended, answers}}`) : personne retrouvée par ses identifiants (plusieurs → `P0M02`, non rattaché), sinon
+créée (identités de source `funnel`) ; `lead_source` et `quiz` gardés ; setter = celui qui saisit s'il est setter, sinon
+`crm_pick_setter()` (pas de setter pour un lead webinaire tant qu'il ne passe pas au setter) ; événement `lead_in` « Lead reçu :
+quiz complété | opt-in VSL | quiz abandonné | webinaire… | saisi à la main » (une livraison rejouée ne fait rien). Un lead sans statut
+(ou injoignable, non qualifié, webinaire absent) devient `a_contacter`, sauf : avec RDV (il va au commercial) ; webinaire absent →
+`webinaire_absent` (attente d'une réponse 48 h). `crm_setting_tick` (toutes les 10 min) : une réponse du prospect (`message_in`)
+efface le statut d'attente ; sinon, le délai passé, `webinaire_absent` → `a_contacter`, `absent_attente` → `absent_rattrapage`, avec
+un setter.
+
+### 12.25 Le centre d'alertes (053, 054)
+
+`crm_sync_sla_alerts(p_items)` reçoit **tous** les dépassements ouverts à cet instant (`{key, cycle_id, person_id, owner_id, sla,
+kind, level, name, detail, target, started_at, crossed_at}`) :
+- une alerte ouverte de même clé change de niveau, de propriétaire ou de cycle → mise à jour ; une clé nouvelle → nouvelle alerte
+  (une alerte sans personne est sautée) ; `owner_id` donné par l'élément (le setter pour une alerte SE), sinon le propriétaire du
+  cycle ;
+- une alerte ouverte absente de la liste → fermée `done` (le SLA s'est arrêté : l'action est faite) ;
+- une alerte d'un cycle qui n'est plus en cours → fermée `closed`.
+Un commercial voit les alertes dont il est `owner_id` (jamais les techniques), un administrateur toutes. Les alertes se traitent
+dans Cycle de vente › « Agir maintenant ».
+
+### 12.26 Relance après refus, puis disqualifié après 6 mois (055)
+
+Un refus d'achat clôt le cycle en `lost` (« Clos » dans Cycle de vente, branche « Relance après refus »). Chaque jour à 3 h 17 UTC,
+`crm_refusal_tick` passe en `disqualified` (événement `cycle_disqualified`, source `rules`, motif `refus_6_mois`, `data.after_days`)
+chaque cycle perdu depuis plus de `crm_rules.nurture_cadence.params.archive_after_days` (182) jours, dont le motif n'est ni
+`refunded` ni `unreachable`, qui a eu un appel `held` avant sa clôture (un « non » après un appel tenu) et dont la personne n'a pas
+ouvert de cycle plus récent. Puis recalcul : le projecteur garde le disqualifié (règle 7 du §11.5) sauf réouverture plus récente.
+
+### 12.27 Leads ouverts avant le 27 octobre 2026 (056)
+
+`crm_close_before(p_before, p_dry)`, lancée une fois par 056 avec `2026-10-27T00:00:00+01:00` : chaque cycle en cours ouvert avant
+cette date, sans réservation non annulée depuis et sans paiement `paid`, reçoit un `cycle_lost` (source `rules`, `data {reason:
+'timing', rule: 'open_before', before}`, `lost_before:<cycle>`) et, si la personne n'est ni en maturation ni désinscrite, un suivi
+long terme `standard` (motif `timing`) avec `nurture_entered`, comme un « non » avec « Mettre en suivi long terme ». Les gagnés ne
+sont pas touchés. Sur une base vide, rien.
+
+### 12.28 Score d'entraînement (049)
+
+Sur 100, moyenne de trois parts sur 100 (un entraînement jamais fait compte 0) : « Le coup suivant » = coups justes parmi les 50
+derniers, sur 50 ; « La lettre imposée » = questions valides parmi les 20 derniers cas, sur 60 ; Maîtrise de l'offre = la meilleure
+note de chacun des 100 cas, additionnées, sur 1 000 (un cas est « validé » à 8 sur 10 ou plus). La période compte les exercices, le
+temps et le taux de réussite par module ; les ventes de la période (`sales`) viennent de la fenêtre du cockpit sur les cycles dont
+la personne est propriétaire (`calls` = appels honorés ou complets).
+
+### 12.29 Simulateur (057, 058, 061)
+
+Toutes les règles du Simulateur (prospect, état, analyse sur 100, variantes, réalisme) sont dans le code TypeScript
+(`supabase/functions/_shared/simulateur/`, chapitre des intégrations). La base garde : l'offre et ses prospects, chaque simulation et
+ses répliques, la note de la personne (une par simulation), l'analyse de fin d'appel (une par simulation ; au-delà de
+`crm_sim_config.daily_analysis_limit` par jour elle est `deferred`, et `crm-simulateur-balayer` la relance toutes les 10 minutes dans
+la limite du plafond, et clôt en échec celles bloquées depuis 30 minutes), la mesure de réalisme (`usage.realisme`) et la variante
+du jour (`persona_data.variante`), rendues par `crm_sim_history` (061).
+
+### 12.30 Qualification du lead (042, 046)
+
+Chaque R1 analysé est qualifié par le worker de l'analyse d'appel (règles de `call-analysis/qualification` : le modèle extrait les
+faits en deux lectures, le code applique la règle des portes et décide) et gardé dans `crm_lead_qualifications` avec son travail
+d'analyse. La qualification courante d'un appel est la plus récente ; dans la fiche d'analyse, celle faite avec ce travail l'emporte.
+Rien ici ne met une analyse en file.
+
+### 12.31 Corriger une lettre de l'analyse (063)
+
+Un administrateur choisit la lettre d'une question de la découverte (`S`, `P`, `I`, `N` ou hors découverte) dans le panneau de la
+question ; `crm_ca_correct` garde la correction (lettre du moteur, lettre choisie, raison, auteur, date). L'écran montre la lettre
+corrigée en pointillés et celle du moteur en infobulle ; la note n'est pas recalculée (C8).
+
+### 12.32 Le CRM, seule source de vérité des statuts (059)
+
+D'iClosed, la base garde : le lead (nom, e-mail, téléphone : `crm_apply_items`, `crm_apply_contact`, `crm_import_people`), la date et
+l'heure de chaque RDV, ses déplacements et annulations (`crm_apply_items`, `crm_import_calls`), le montant d'une vente pour
+information (`crm_import_deals`). Elle ignore : honoré, absent, gagné, perdu, disqualifié, et les paiements iClosed. L'historique
+déjà importé reste tel quel. Une présence vient de Fathom (§12.7), d'une issue déclarée, ou de la règle d'absence (§12.8).
 
 ---
 
 ## 13. Réglages `crm_settings`
 
+Dix-sept clés, les mêmes qu'en production (relevé du 27 novembre 2026). Seize sont posées par les migrations (`on conflict do
+nothing` : une valeur déjà là n'est pas écrasée, sauf mention) ; `functions_url` se pose à la main.
+
 | Clé | Posée par | Valeur par défaut | Sens | Lue par |
 |---|---|---|---|---|
-| `alert_rule_defaults` | 003 | Tableau des règles c1 à c18 : `{id, name, severity, threshold, to}` (noms français ; seuils : c1 `after_minutes` 0, c2 `hours` 2, c3 `silence_hours` 48, c4 `hours` 2, c5/c6 étapes, c7 `hours` 48, c13 `silence_days` 30 / `attempts_below` 4, c14 `notice_hours` 24, c16 `after_hours` 2, c17 `iclosed_hours` 6 / `whatsapp_hours` 6 / `fathom_missed_calls` 2) | Définitions par défaut des alertes du CRM | `crm_merge_alert_defaults`, `web/api/_os.js` |
-| `team_email_domains` | 003 | `["lesnouveauxprofs.fr"]` | Domaines internes (invités internes / externes) | Aucun code |
+| `alert_rule_defaults` | 003 | Tableau des règles c1 à c18 : `{id, name, severity, threshold, to}` (noms français ; seuils : c1 `after_minutes` 0, c2 `hours` 2, c3 `silence_hours` 48, c4 `hours` 2, c5/c6 étapes, c7 `hours` 48, c13 `silence_days` 30 / `attempts_below` 4, c14 `notice_hours` 24, c16 `after_hours` 2, c17 `iclosed_hours` 6 / `whatsapp_hours` 6 / `fathom_missed_calls` 2) | Définitions par défaut de l'ancien catalogue d'alertes du CRM | `crm_merge_alert_defaults` seulement |
+| `team_email_domains` | 003 | `["lesnouveauxprofs.fr"]` | Domaines internes (invités internes / externes) | Aucun code (`internal_domains` sert à sa place) |
 | `default_owner` | 003 | `"sales"` | Clé du membre propriétaire quand l'hôte iClosed est inconnu | `crm_owner_for` |
 | `whop_plans` | 003 | `{}` | Produit → identifiant de plan Whop | Aucun code |
 | `analysis_model` | 003 | `"claude-sonnet-5-5"` | Modèle d'analyse (ancien) | Aucun code (le moteur lit `crm_ca_config.tiers`) |
 | `nurture_sending_enabled` | 003 | `false` | Envoi des messages de maturation (attend l'accord juridique) | Aucun code |
 | `nurture_templates` | 003 | `[]` | Modèles de messages de maturation | Aucun code |
-| `functions_url` | à la main (006) | — | Adresse de base des Edge Functions, par exemple `https://<ref>.supabase.co/functions/v1` | Tâches pg_cron |
+| `functions_url` | à la main (§3) | — | Adresse de base des Edge Functions, par exemple `https://<ref>.supabase.co/functions/v1` | Les 7 tâches pg_cron qui passent par HTTP (§14) |
 | `fathom_match_minutes` | 025 | `90` | Fenêtre FL-2 (b) et FL-4 autour du début de l'enregistrement | `crm_fathom_person`, `crm_apply_recording_item`, `crm_call_has_ambiguous_recording` |
-| `sla_alerts` | 028 | `{since: <moment de la migration>, channel: "#sales-cycle", max_age_hours: 6, window_tz: "America/New_York"}` | SLA vers Slack : rien d'antérieur à `since` ni de plus vieux que `max_age_hours` n'est posté ; fuseau des fenêtres | `crm_sla_settings` → `sla-tick` |
-| `no_show_rule` | 030, 033 | `{enabled: false, min_minutes: 30 (7 avant 033), grace_hours: 3, since: null}` | Règle d'absence (§12.8) | `crm_no_show_setting` |
+| `sla_alerts` | 028, 051 | `{since: <moment de la migration>, channel: "#sales-cycle", max_age_hours: 6, window_tz: "Europe/Paris"}` (`is_proposal = true`) | Copie Slack : rien d'antérieur à `since` ni de plus vieux que `max_age_hours` n'est posté ; fuseau des plages (8 h – 22 h du commercial, heures d'envoi). 028 écrit déjà `Europe/Paris` ; 051 corrige une base qui avait `America/New_York` | `crm_sla_settings` → `sla-tick` |
+| `no_show_rule` | 030, 033, 056 | 030 : `{enabled: false, min_minutes: 7, grace_hours: 3, since: null}` ; 033 : `min_minutes` 30 ; **056 (écrase à chaque passage)** : `since: "2026-10-27T00:00:00+01:00"`, `min_minutes: 30`, `grace_hours: 3`, `enabled: true` | Règle d'absence (§12.8) | `crm_no_show_setting`, `crm_no_show_tick`, `crm_call_complete`, `crm_apply_no_show_rule` |
 | `fathom_close_minutes` | 032 | `15` | Écart maximal pour `booking_closest` / `booking_declared` | `crm_fathom_person` |
+| `internal_domains` | 039 | `["lesnouveauxprofs.fr"]` | Les e-mails de ces domaines sont des fiches de test de l'équipe : jamais comptées | `crm_person_internal` |
+| `show_pending_hours` | 039 | `48` | Un R1 sans issue reste « en attente » ce nombre d'heures avant de compter comme absent (cockpit) | `crm_show_pending_hours` |
+| `offer_catalogue` | 041 | `{observed, default: {offer: "Accompagnement 4 mois", total: 3000}, plans: [...]}` : Accompagnement 4 mois 3 000 € en une fois, 2 × 1 600 € (3 200), 3 × 1 100 € (3 300), 4 × 850 € (3 400) ; Starter Solo 1 490 € ou 4 × 397 € (1 588) ; Mentorat 5 490 € ; anciennes offres LNP 2100 (4 × 525 €) et Cours particuliers 2.0 (1 497 €), `older: true` | Les offres de LNP et leurs plans, pour reconnaître le prix d'une vente saisie dans iClosed. À modifier quand un prix change | `crm_plan_for_amount` |
+| `sla_rules` | 044 | `{sources: {messages: false, whop: false, analysis: false}, rules: {}}` (`is_proposal = false`) | Réglages des SLA de Paramètres › Alertes : sources branchées, par règle `on`, `warn`, `late`, `crit` (heures ; DE-8 : appels), `app`, `slack` | `crm_sla_settings` (`sla-tick`), `crm_sales_execution` (`sources`), l'écran Cycle de vente (`app/crm/data.js`), `web/api/_os.js`, écrit par `crm_save_sla_rules` |
+| `setting` | 054 | `{coverage: {"1"…"5": [["12:00","13:30"],["17:00","20:00"]], "6": [["09:00","12:00"]]}, max_attempts: 6, abandon_attempts: 2, default_setter: null}` (`is_proposal = true` ; dimanche sans plage) | Heures de couverture du setter (heure de Paris, lundi = 1), tentatives avant « injoignable » (quiz abandonné : `abandon_attempts`), setter par défaut | `crm_setting_open_at`, `crm_setter_action`, `crm_pick_setter` |
 
 `close_status_map` est cité par 007 comme futur réglage mais n'est jamais créé ni lu.
 
@@ -1888,18 +2378,29 @@ dans Slack.
 
 ## 14. Tâches planifiées (pg_cron)
 
-Toutes définies dans `006_crm_cron.sql` (supprimées puis recréées à chaque exécution). Les trois premières passent par `pg_net`
-et ne partent que si `crm_settings.functions_url` existe ; elles appellent l'Edge Function sans jeton (les fonctions ont
-`verify_jwt = false` ; `process-inbox` ne prend aucune entrée).
+Onze tâches, les mêmes qu'en production (`cron.job`, relevé du 27 novembre 2026). Chaque fichier supprime la tâche de même nom
+puis la recrée ; les tâches HTTP passent par `pg_net`, ne partent que si `crm_settings.functions_url` existe et appellent la
+fonction Edge sans jeton (les fonctions ont `verify_jwt = false`, chacune vérifie son entrée ; ces points d'entrée ne prennent rien
+en entrée).
 
-| Nom | Planning | Action | Condition / délai |
-|---|---|---|---|
-| `crm-process-inbox` | `* * * * *` (chaque minute) | `POST <functions_url>/process-inbox`, corps `{}` | seulement s'il existe une ligne `iclosed`, `whatsapp` ou `fathom` au statut `received` ou `failed` avec moins de 8 tentatives ; délai 30 s |
-| `crm-fathom-hourly` | `23 * * * *` (minute 23) | `POST <functions_url>/crm-import?source=fathom&queue=1` | enregistrements des deux derniers jours, analyses R1/R2 mises en file ; un import déjà en cours fait sauter l'heure ; demande `FATHOM_API_KEY` ; délai 120 s |
-| `crm-sla-tick` | `*/5 * * * *` (toutes les 5 min) | `POST <functions_url>/sla-tick` | délai 60 s |
-| `crm-no-show-hourly` | `35 * * * *` (minute 35, après l'import Fathom) | `select public.crm_no_show_tick()` en SQL direct | ne fait rien tant que `no_show_rule.enabled` est faux |
+| Nom | Planning (UTC) | Action | Condition / délai | Fichier final |
+|---|---|---|---|---|
+| `crm-process-inbox` | `* * * * *` (chaque minute) | `POST <functions_url>/process-inbox`, corps `{}` | seulement s'il existe une ligne `iclosed`, `whatsapp`, `fathom` ou `funnel` au statut `received` ou `failed` avec moins de 8 tentatives ; délai 30 s | 054 (006 : `sendblue` ; 052 : `whatsapp`) |
+| `crm-sla-tick` | `*/5 * * * *` | `POST <functions_url>/sla-tick` | délai 60 s | 006 |
+| `crm-setting-tick` | `*/10 * * * *` | `select public.crm_setting_tick()` en SQL direct | leads webinaire en attente (§12.24) | 059 |
+| `crm-simulateur-balayer` | `*/10 * * * *` | `POST <functions_url>/simulateur/balayer` | seulement s'il existe une analyse `deferred` ou `processing` ; délai 60 s | 057 |
+| `crm-iclosed-contacts-hourly` | `3 * * * *` | `POST <functions_url>/crm-import?source=iclosed` | contacts iClosed ; délai 150 s | 039 |
+| `crm-iclosed-calls-hourly` | `15 * * * *` | `POST <functions_url>/crm-import?source=iclosed_calls` | appels iClosed (dates seulement depuis 059) ; délai 150 s | 039 |
+| `crm-assign-owners-hourly` | `20 * * * *` | `select public.crm_assign_owners_from_hosts(false)` en SQL direct | §12.4 | 043 |
+| `crm-fathom-hourly` | `23 * * * *` | `POST <functions_url>/crm-import?source=fathom&queue=1` | enregistrements des deux derniers jours, analyses R1/R2 mises en file ; un import déjà en cours fait sauter l'heure ; demande `FATHOM_API_KEY` ; délai 120 s | 006 |
+| `crm-no-show-hourly` | `35 * * * *` (après l'import Fathom) | `select public.crm_no_show_tick()` en SQL direct | ne fait rien tant que `no_show_rule.enabled` est faux (056 l'allume) | 006 |
+| `crm-iclosed-deals-hourly` | `41 * * * *` | `POST <functions_url>/crm-import?source=iclosed_deals` | ventes iClosed (pour information depuis 059) ; délai 120 s | 037 |
+| `crm-refusal-daily` | `17 3 * * *` (3 h 17 UTC) | `select public.crm_refusal_tick()` en SQL direct | §12.26 | 055 |
 
-L'ancienne tâche `crm-fathom-nightly` est supprimée par 006 si elle existe.
+L'ancienne tâche `crm-fathom-nightly` est supprimée par 006 si elle existe. 006 installe `pg_net` et `pg_cron` et planifie sans
+condition (c'est pourquoi les tests ne l'appliquent jamais) ; les autres fichiers ne planifient que si `pg_cron` est là : 037,
+039, 043, 055 et 059 testent l'extension (`pg_extension where extname = 'pg_cron'`), 052, 054 et 057 le schéma `cron`. En local
+(tests), aucune tâche n'est donc planifiée.
 
 ---
 
@@ -1911,27 +2412,36 @@ L'ancienne tâche `crm-fathom-nightly` est supprimée par 006 si elle existe.
 PGHOST=/tmp PGPORT=5432 PGUSER=postgres web/supabase/tests/run.sh
 ```
 
-Il faut `psql` et un Postgres local dont l'utilisateur peut créer des bases et des rôles (aucun projet Supabase n'est touché). Le
-script crée une base jetable `lnp_crm_test_<pid>`, la supprime à la sortie, et s'arrête à la première erreur (`ON_ERROR_STOP`,
-message d'erreur affiché). Chaque suite affiche une dernière ligne « … SQL checks: all passed ».
+Il faut `psql` et un Postgres local dont l'utilisateur peut créer des bases et des rôles (aucun projet Supabase n'est touché ; la CI,
+`.github/workflows/crm-functions.yml`, tâche `sql`, utilise `postgres:16` puis lance aussi `node app/crm/data.test.js`). Le script
+crée une base jetable `lnp_crm_test_<pid>`, la supprime à la sortie, et s'arrête à la première erreur (`ON_ERROR_STOP`, message
+d'erreur affiché). Chaque suite affiche une dernière ligne de réussite (« … SQL checks: all passed », ou « … ok » pour
+`iclosed_deals_test`, `simulateur_test` et `simulateur_offre_lnp_test`).
 
-Déroulé :
+Déroulé (`web/supabase/tests/run.sh`) :
 1. `tests/supabase_stub.sql` (rôles `anon`, `authenticated`, `service_role` ; schéma `auth`, `auth.users`, `auth.uid()` lu dans le
    réglage `request.jwt.claim.sub` que les tests changent ; privilèges par défaut sur les tables et séquences ; publication
    `supabase_realtime`), `001_init.sql`, puis une simulation de la phase 0 (`event_source`, `inbox_status`, `crm_webhook_log` créés
    avant 003), `003`, `004` deux fois, `005`, `004` encore → **`crm_phase1_test.sql`**.
 2. Base neuve : stub, 001, 003, 004, 005 → **`crm_phase2_test.sql`**.
-3. Base neuve : stub, 001, 003, 004, 005, puis **007 à 034, chacun deux fois** → les 18 autres suites.
+3. Base neuve : stub, 001, 003, 004, 005, puis **007 à 046, chacun deux fois**, **062 une fois** (le tableau de 046 remplacé, pour
+   les suites d'analyse), **047 à 058, chacun deux fois** → 19 suites (`crm_import_test` à `lnp_fr_labels_test`, dans l'ordre du
+   tableau ci-dessous).
+4. Puisque `lnp_fr_labels_test` rejoue 034, le script rejoue **036, 039, 040, 041 et 045** pour remettre les définitions
+   ultérieures → 18 suites (`ca_engine_choice_test` à `regle_absence_test`).
+5. **059 et 061** deux fois → `simulateur_test`, `simulateur_offre_lnp_test`, `source_de_verite_test` ; **060** deux fois →
+   `cockpit_corrections_test` ; **062** deux fois → `ca_board_rounds_test` ; **063** deux fois → `ca_corrections_test`.
 
-`006_crm_cron.sql` n'est jamais appliqué par les tests (pas de `pg_cron` ni de `pg_net` en local).
+`006_crm_cron.sql` n'est jamais appliqué par les tests (pas de `pg_cron` ni de `pg_net` en local), ni aucun bloc `cron.schedule`
+des fichiers suivants. 45 suites en tout (`web/supabase/tests/*_test.sql`).
 
 ### 15.2 Ce que vérifie chaque suite
 
 | Suite | Vérifie |
 |---|---|
-| `crm_phase1_test.sql` | Qui voit quoi (un commercial ne voit que son cycle, son prospect, son appel ; responsables et administrateurs voient tout ; un compte sans rôle ne voit rien ; lecture anonyme refusée ; journal brut illisible ; insertion directe refusée ; aide interne non appelable) ; qui écrit (un membre ne se fait pas administrateur, e-mail inconnu refusé, issue sur le cycle d'un autre refusée, « non » sans motif refusé, motif de disqualification refusé pour un « non », configuration refusée à un commercial, fusion de deux cycles en cours refusée) ; règles c1–c18 ajoutées à `config/alerts`, rien au second passage, refus pour un membre. |
+| `crm_phase1_test.sql` | Qui voit quoi (un commercial ne voit que son cycle, son prospect, son appel ; responsables et administrateurs voient tout — écrit avant 048 ; un compte sans rôle ne voit rien ; lecture anonyme refusée ; journal brut illisible ; insertion directe refusée ; aide interne non appelable) ; qui écrit (un membre ne se fait pas administrateur, e-mail inconnu refusé, issue sur le cycle d'un autre refusée, « non » sans motif refusé, motif de disqualification refusé pour un « non », configuration refusée à un commercial, fusion de deux cycles en cours refusée) ; règles c1–c18 ajoutées à `config/alerts`, rien au second passage, refus pour un membre. Tourne sur 003 à 005 seulement. |
 | `crm_phase2_test.sql` | `crm_apply_items` et projecteur : premier rendez-vous (personne et 3 identités, cycle à l'étape Présence, propriétaire d'après l'hôte, appel R1, événement) ; même livraison rejouée sans effet ; un report puis une mise à jour plus ancienne arrivée en retard qui n'écrase pas l'heure récente ; annulation puis nouveau rendez-vous de la même personne trouvée par téléphone (même cycle) ; annulation d'un appel inconnu et identifiants désignant deux personnes → deux éléments non rattachés ; issue « non » → perdu, nouveau rendez-vous sous 30 jours → même cycle rouvert ; après 30 jours → nouveau cycle, hôte inconnu → propriétaire par défaut ; un commercial lit ses cycles ; fonctions du worker non appelables par le navigateur ; file : une ligne en échec revient après son délai, 8 tentatives au plus. |
-| `crm_import_test.sql` | 007 à 013 : essai à blanc sans écriture, création, pas de doublon au second passage ni d'une seconde source, conflit compté, run enregistré ; cycle disqualifié de 008 ; cycles et appels de 009 (ouvert au premier rendez-vous, une seule fermeture, un appel à venir garde le cycle en cours) ; vue « Sans rendez-vous » ; `first_seen_at` (un événement plus ancien le recule, pas un plus récent) ; 011 (écrans effacés, administrateur = administrateur du CRM, lecteur reste lecteur, tout le monde voit le CRM) ; messages 012 ; reclassement 013. |
+| `crm_import_test.sql` | 007 à 013 : essai à blanc sans écriture, création, pas de doublon au second passage ni d'une seconde source, conflit compté, run enregistré ; cycle disqualifié de 008 ; cycles et appels de 009 (ouvert au premier rendez-vous, une seule fermeture, un appel à venir garde le cycle en cours) ; vue « Sans rendez-vous » ; `first_seen_at` (un événement plus ancien le recule, pas un plus récent) ; 011 (écrans effacés, administrateur = administrateur du CRM, lecteur reste lecteur) ; messages 012 ; reclassement 013. Tourne avant 059 (`crm_import_calls` de 009). |
 | `mcp_test.sql` | Ligne d'audit par appel d'outil (`mcp:whoami/3/42`), 61e appel refusé, compte sans rôle refusé, tables OAuth fermées à `authenticated` et `anon`. |
 | `owners_test.sql` | Sans membre, rien n'est attribué ; le commercial invité possède le cycle et héberge l'appel ; un propriétaire posé est gardé. |
 | `cockpit_test.sql` | Structure (`periods.7.now`), rendez-vous compté, relance sous 24 h comptée, 8 points hebdomadaires, alertes et pipeline, fenêtre fermée au navigateur, `crm_mark_won_calls_held` (appel honoré, cycle toujours gagné). |
@@ -1943,66 +2453,127 @@ Déroulé :
 | `refunds_test.sql` | Payé = gagné ; droits ; dépassement refusé ; remboursement partiel garde gagné ; tout remboursé = perdu « refunded » daté au dernier remboursement ; un autre paiement encore payé garde gagné ; événements et audit ; payé de nouveau = gagné. |
 | `yes_keeps_deal_test.sql` | Un « oui » sans montant garde la vente ; un « oui » avec montant la met à jour. |
 | `sla_alerts_test.sql` | Instantané d'un cycle en cours sans texte de message, première réclamation puis jamais deux fois, réglages, fonction fermée au navigateur. |
+| `refus_six_mois_test.sql` | 055 : un refus (perdu après un appel tenu) sans nouveau RDV depuis 6 mois passe en disqualifié et le reste ; les autres perdus (récent, injoignable, remboursé, revenu avec un nouveau cycle) ne bougent pas. |
 | `call_ranks_test.sql` | Un nouveau numéro seulement après un appel avec enregistrement ou transcription. |
-| `no_show_rule_test.sql` | Enregistrement de moins de 7 minutes sans numéro (le test force `min_minutes`), essai à blanc, appels avant `since` intacts, R1 sans enregistrement complet = absent, R1 complet reste honoré, R2 manqué ≠ absent, prochaine action après un R2 manqué, absences comptées en R1 seulement, second passage sans changement, enregistrement tardif l'emporte et l'événement de la règle disparaît, cycle gagné laissé tranquille. |
+| `no_show_rule_test.sql` | 030 et 056 : enregistrement de moins de 7 minutes sans numéro (le test force `min_minutes`), essai à blanc, appels avant `since` intacts, R1 sans enregistrement complet = absent, R1 complet reste honoré, R2 manqué ≠ absent, prochaine action après un R2 manqué, absences comptées en R1 seulement, second passage sans changement, enregistrement tardif l'emporte et l'événement de la règle disparaît, cycle gagné laissé tranquille ; 056 : seul un appel sans enregistrement ni présence donnée est jugé, un enregistrement court est laissé au commercial. |
 | `member_prefs_test.sql` | Chacun garde ses réglages ; un autre ne les voit pas. |
 | `fathom_closest_test.sql` | Parmi des rendez-vous rapprochés, le plus proche l'emporte (`booking_closest`) ; une égalité reste ambiguë et ne crée pas de fausse absence ; comptes de prospects du cockpit (présent, absent, en attente). Sa dernière ligne affichée est « cockpit lead counts SQL checks: all passed ». |
 | `noshow_audit_test.sql` | Une égalité va au prospect dont l'appel a été déclaré honoré (`booking_declared`) ; un prospect gagné compte comme présent. |
 | `lnp_fr_labels_test.sql` | Une base aux libellés anglais reçoit les libellés français (étape, motifs, description de règle, nom d'alerte, prochaine action, échéancier, raison d'élément non rattaché) ; un libellé modifié à la main reste ; le canal Slack reste ; les fonctions sont recréées et appelables ; un second passage ne change rien. |
+| `ca_engine_choice_test.sql` | 035 : `crm_ca_config.engine` (`full` par défaut, ou `lite`) arrive au worker dans la prise ; le `meta.engine` d'une fiche du moteur allégé est gardé. |
+| `iclosed_deals_test.sql` | 037 : une vente iClosed devient la vente et les paiements du cycle ; rejouée = même résultat (tourne avant 059). |
+| `cockpit_held_r1_test.sql` | 038 : seul le premier R1 honoré d'un prospect compte comme honoré. |
+| `cockpit_audit_test.sql` | 039 : R1 en attente 48 h, fiches de test exclues, anciens commerciaux sans ligne d'équipe. |
+| `cockpit_rep_test.sql` | 040 : un appel réservé sur un calendrier partagé appartient à celui qui l'a enregistré dans Fathom. |
+| `cockpit_collected_test.sql` | 041 : prix de l'offre d'après le montant iClosed, échéances, encaissé à ce jour. |
+| `lead_qualification_test.sql` | 042 : candidats (dernier R1 de chaque lead, fiches de test exclues) et stockage. |
+| `sla_settings_test.sql` | 044 : sources débranchées par défaut ; réglages enregistrés par un administrateur et audités, lus par `sla-tick` ; seuil négatif, règle ou source inconnue refusés ; un lecteur ne peut pas enregistrer ; `crm_sla_settings` fermée au navigateur. |
+| `pipeline_moves_test.sql` | 045 : un lead sans appel clos à la main depuis le Pipeline, rouvert ; une issue déclarée ensuite l'emporte ; droits. |
+| `qualif_in_analysis_test.sql` | 046 : la qualification d'un R1 est gardée avec son travail d'analyse, lue avec l'analyse et montrée au tableau ; les fonctions du worker restent fermées au navigateur. |
+| `stage_moves_test.sql` | 047 : un déplacement sans rien à déclarer est gardé ; jamais vers un tour déjà atteint, jamais un tour sauté, jamais au-delà d'un appel à venir, d'une issue à déclarer ou d'une absence. |
+| `access_scope_test.sql` | 048 : un administrateur voit tous les leads ; un commercial, un responsable commercial et un lecteur seulement ceux dont ils possèdent le cycle (appels, événements, paiements, personnes compris), dans les tables et dans le Cockpit. |
+| `training_test.sql` | 049 : progression de Maîtrise de l'offre (sa ligne ; le formateur lit tout) ; résultats en ajout seulement (ni modification, ni effacement, ni `truncate`), ses lignes, jamais une note « claude » depuis le navigateur ; tableau des résultats (sa ligne ; un administrateur voit tout le monde). |
+| `sales_execution_test.sql` | 050 : un administrateur voit tout, un commercial ses cycles ; un prospect tenu, qualifié, payé dans les 14 jours compte comme vente ; les portes de la qualification sont comptées. |
 | `whatsapp_test.sql` | 052 : numéro WhatsApp normalisé (`+33 6 12 34 56 78`, `0033…`), invalide ou pris deux fois refusé, effacé ; message d'un numéro inconnu → nouveau prospect avec le nom de son profil ; statut seul puis écho de l'application → un seul événement, acteur `sales`, membre rattaché, contenu et statut à jour ; envoyé par l'API seulement → reste `auto` ; STOP retenu ; ligne brute traitée. |
+| `alertes_test.sql` | 053 : une alerte s'ouvre, monte de niveau, se ferme seule ; un commercial ne voit que les alertes de ses cycles (jamais les techniques), un administrateur voit tout. |
+| `setting_test.sql` | 054 : un lead entre (quiz, VSL, quiz abandonné, saisi à la main), le setter le fait avancer par ses actions, iClosed le fait avancer seul (RDV réservé, absent, tenu, annulé) ; le setter ne voit que ses leads et reçoit leurs alertes SE. |
+| `regle_absence_test.sql` | 056 : absent seulement sans enregistrement ni présence donnée ; les leads encore ouverts d'avant une date deviennent perdus, en suivi long terme. |
+| `simulateur_test.sql` | 057 : chacun lit ses simulations (un administrateur toutes), l'équipe lit les offres et les prospects actifs, personne n'écrit depuis le navigateur ; l'historique ne montre que ce que la personne peut voir. |
+| `simulateur_offre_lnp_test.sql` | 058 : l'offre LNP est là une seule fois (rejouée deux fois), prête, avec les champs lus par le prospect, sans prospect. |
+| `source_de_verite_test.sql` | 059 : iClosed ne donne que le lead, la date des RDV et un montant pour information ; le statut est celui du CRM ; webinaire : au setter seulement si présent sans RDV, ou absent sans réponse (48 h au webinaire, 24 h au RDV). |
+| `cockpit_corrections_test.sql` | 060 : la cohorte « appels tenus » d'Exécution, Qualité, Impact est le premier appel tenu du cycle ; un appel tenu plus tard (après-vente) ne fait pas entrer dans la période un prospect déjà payé ; les sources branchées sont rendues. |
+| `ca_board_rounds_test.sql` | 062 : deux absences puis un R1 honoré, enregistré et analysé apparaît en R1 avec son analyse (`crm_ca_board` numérote comme `crm_ca_call_info`). |
+| `ca_corrections_test.sql` | 063 : un administrateur corrige la lettre d'une question (lettre du moteur gardée, `OUT` pour hors découverte), chaque correction est rendue par la fiche, la plus récente d'abord ; la note ne change pas (C8) ; un commercial lit les corrections mais ne corrige pas (`can_correct` faux) ; lettre ou question inconnue refusée ; aucun droit d'insertion directe. |
 
-Autres tests qui touchent la base : `deno test --allow-env --allow-read supabase/tests` (fonctions, dont `pipeline.test.ts` et
-`fathom.test.ts` qui appellent `crm_apply_items`, `crm_apply_contact`, `crm_apply_recordings`), `node app/crm/data.test.js`
-(couche de données du navigateur), `cd web && npm test` (connecteur Claude, avec `web/tests/fake_supabase.js`).
+Autres tests qui touchent la base : `deno test --allow-env --allow-read supabase/tests` (fonctions, dont `pipeline.test.ts`,
+`fathom.test.ts` et `sla.test.ts`, qui simulent les appels aux fonctions SQL ; les `simulateur_*.test.ts` du moteur du Simulateur),
+`node app/crm/data.test.js` (couche de données du navigateur), `cd web && npm test` (connecteur Claude, avec
+`web/tests/fake_supabase.js`).
 
 ---
 
 ## 16. Écarts avec `docs/crm/` et points d'attention
 
-Le code fait foi. Écarts relevés avec la spécification `docs/crm/` :
+Le code fait foi. Écarts relevés avec la spécification `docs/crm/` et les commentaires :
 
 - **`002_q4_okrs.sql`** est encore cité par `docs/crm/01-architecture.md` et par l'en-tête de `003_crm_core.sql`, mais le fichier
-  n'existe plus ; rien dans 003 à 034 n'en dépend.
+  n'existe plus ; rien dans 003 à 063 n'en dépend.
 - **Le projecteur est en SQL** (`crm_recompute_cycle`), pas dans `_shared/projector.ts` comme l'annonce `docs/crm/01-architecture.md`.
-  Les Edge Functions `rules-tick`, `nurture-tick`, `reconcile`, `sendblue-send` (Sendblue abandonné le 9 novembre 2026), `whop-checkout`, `claude-analyze` décrites là
-  n'existent pas dans `supabase/functions/` (présentes : `iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`, `process-inbox`,
-  `crm-import`, `sla-tick`, `callqa-llm`).
+  Les Edge Functions `rules-tick`, `nurture-tick`, `reconcile`, `sendblue-send` (Sendblue abandonné le 9 novembre 2026),
+  `whop-checkout`, `claude-analyze` décrites là n'existent pas dans `supabase/functions/` (présentes : `iclosed-in`, `fathom-in`,
+  `whatsapp-in`, `whop-in`, `lead-in`, `process-inbox`, `crm-import`, `sla-tick`, `callqa-llm`, `simulateur`).
 - En conséquence, **`crm_alerts`, `crm_outbound_messages`, `crm_reconciliation_runs` et `crm_agent_runs` ne reçoivent aucune
-  ligne** ; les règles `crm_rules` autres que `next_move.reopen_days` et `snooze_days` ne sont lues par aucun code ; aucun
-  `cycle_lost` de source `rules` n'est écrit (la règle 5 du projecteur attend un moteur de règles absent).
+  ligne** : les alertes du CRM sont dans `crm_sla_alerts` (053), mais le Cockpit commercial (`crm_sales_cockpit`, « encaissements à
+  risque ») et l'abonnement temps réel de `app/crm/data.js` (`subscribe`) lisent encore `crm_alerts`. Les règles `crm_rules` autres
+  que `next_move.reopen_days`, `snooze_days` et `nurture_cadence.archive_after_days` (055) ne sont lues par aucun code. Un
+  `cycle_lost` de source `rules` n'est écrit que par `crm_close_before` (056, une fois).
+- **`docs/crm/02-data-model.md`** ne décrit aucune des tables ajoutées depuis le 3 novembre 2026 (`crm_sla_alerts`,
+  `crm_lead_qualifications`, `crm_training_results`, `crm_academy_*`, `crm_sim_*`, `crm_ca_corrections`) ni les colonnes du setter ;
+  elles sont décrites par leurs propres documents (`docs/crm/18-sales-cycle-slas.md`, `19-setting.md`, `20-simulateur.md`) et ici.
 - **Types d'événements** : le code écrit `payment_refunded` (la spécification dit `refund`), et aussi `call_missed`,
-  `transcript_added`, `imported`, absents de la liste de `docs/crm/02-data-model.md` ; `analysis_ready` a l'acteur `system` et la
-  source `crm` (spécification : `auto` / `claude`). `message_status`, `payment_failed`, `checkout_created`, `auto_close_notice`,
-  `nurture_message`, `nurture_archived`… ne sont écrits par aucune fonction SQL.
+  `transcript_added`, `imported`, `stage_moved`, `setter_action`, `lead_in`, `iclosed_deal`, absents de la liste de
+  `docs/crm/02-data-model.md` ; `analysis_ready` a l'acteur `system` et la source `crm` (spécification : `auto` / `claude`).
+  `message_status`, `payment_failed`, `checkout_created`, `auto_close_notice`, `nurture_message`, `nurture_archived`… ne sont écrits
+  par aucune fonction SQL.
 - **Analyse d'appel** : le moteur écrit `crm_ca_*` (020) ; la table `crm_call_analyses` de 003 n'est plus écrite, seule la fiche
   prospect du CRM la lit encore.
+- **`crm_academy_corrections`** : l'en-tête de 049 dit qu'elle est écrite par `web/api/academie.js` et que seul ce fichier écrit un
+  résultat `mode = 'claude'` ; ce fichier n'existe pas (la correction par Claude a été retirée le 8 novembre 2026). La table reste vide
+  et aucun résultat `claude` ne peut être écrit (la politique d'insertion le refuse au navigateur).
+- **`crm_save_sla_rules` refuse les règles du setter** : son motif de clé est `^(SH|DE|CA|CO|CL|DO)-[0-9]{1,2}$` (044), alors que le
+  catalogue (`supabase/functions/_shared/sla_rules.js`) a aussi SE-1 à SE-10 et que Paramètres › Alertes les liste (`web/api/_os.js` :
+  « the setter's included »). Enregistrer un réglage d'une règle SE depuis l'écran lèverait « Réglages des SLA : règle inconnue
+  (SE-n) » (non testé par `sla_settings_test.sql`, ni vérifié dans le navigateur).
+- **`crm_import_iclosed_disqualified` et `crm_reclassify_imported`** (008, 013) lisent encore le statut iClosed, contraire à la règle
+  de 059 ; ils ne sont lancés par rien (rattrapages manuels) : ne plus les lancer.
+- **`CLAUDE.md`** dit qu'iClosed ne donne jamais un paiement : c'est vrai depuis 059, mais les paiements `iclosed` et leurs
+  `payment_succeeded` importés par 037 / 041 restent en production (§2).
 
 Points d'attention pour une réplique :
 
-- **Temps réel du CRM** : `app/crm/data.js` s'abonne à `crm_cycles`, `crm_events`, `crm_alerts`, mais seule `docs` est ajoutée à
-  `supabase_realtime` par les migrations. Impossible de savoir d'ici si la base en ligne a été complétée à la main.
+- **Historique des migrations** : 056 sans entrée, 061 sous le nom `crm_simulateur_realisme_061` (§2).
+- **Nombre de fonctions** : les fichiers créent 129 fonctions nommées (aucune surcharge ne reste : les anciennes signatures de
+  `crm_sales_cockpit_window`, `crm_import_recordings`, `crm_qualif_store` et `crm_admin_set_member` sont supprimées) ; le relevé de
+  production compte 176 fonctions dans `public`. La différence ne se lit pas dans le dépôt (probablement les fonctions d'une
+  extension installée dans `public`, comme `citext`, que 003 crée sans schéma) : à comparer sur le projet cible plutôt que de la
+  reproduire.
+- **Temps réel** : `docs` et `crm_sla_alerts` seulement (001, 053), comme en production ; `app/crm/data.js` s'abonne aussi à
+  `crm_cycles`, `crm_events`, `crm_alerts`, qui ne sont pas publiées (les écrans se rechargent autrement).
 - **Retirer un membre** : `crm_members.id` référence `members(user_id)` `on delete restrict`, alors que `members` est supprimé en
   cascade avec `auth.users`. Depuis 011 tout membre a une ligne `crm_members` : la suppression d'un compte par `/api/team`
   (`auth.admin.deleteUser`) devrait donc être refusée par cette contrainte tant que la ligne `crm_members` existe (non testé ici).
-- **Changement de rôle** : modifier `members.role` ne change pas `crm_members.role` (§6.1).
+  `crm_training_results` n'a volontairement aucune FK (les résultats restent) ; `crm_academy_progress` et
+  `crm_academy_corrections` sont effacées en cascade avec le compte.
+- **Changement de rôle** : modifier `members.role` ne change pas `crm_members.role` (§6.1) ; la fonction commercial / setter passe par
+  `crm_set_member_role`.
+- **Le setter et l'analyse d'appel** : `crm_owns_cycle` (054) laisse un setter ajouter une transcription ou relancer une analyse sur
+  le cycle d'un lead qu'il suit, mais `crm_ca_can_read` (propriétaire seulement) l'empêche de lire l'analyse et `crm_ca_board` ne
+  liste que les cycles dont il est propriétaire.
 - **Privilèges par défaut des fonctions** : sur Supabase, les privilèges par défaut du schéma `public` accordent en général
   `EXECUTE` sur chaque nouvelle fonction à `anon`, `authenticated` et `service_role` (le stub de test ne le reproduit pas). Les
   fonctions sans `revoke` explicite (`my_role`, `crm_norm_name`, `crm_no_show_setting`, `crm_call_complete`,
-  `crm_call_has_ambiguous_recording`, `crm_call_is_reschedule`, les fonctions de déclencheur) restent donc appelables ; elles ne font
-  que lire. À l'inverse, `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail` n'ont pas de `grant` explicite au rôle de service et en
-  dépendent. À vérifier sur le projet cible.
+  `crm_call_has_ambiguous_recording`, `crm_call_is_reschedule`, `crm_stage_data_types`, `crm_auto_schedule`, `crm_sets_person`,
+  `crm_setting_open_at`, `crm_setting_end_of_day`, `crm_setting_due`, `crm_pick_setter`, les fonctions de déclencheur) restent donc
+  appelables ; elles ne font que lire ou calculer. À l'inverse, `crm_ca_claim`, `crm_ca_store`, `crm_ca_fail`, `crm_refusal_tick`,
+  `crm_training_person`, `crm_lead_item`, `crm_setting_move`, `crm_sales_exec_window`, `crm_plan_for_amount`,
+  `crm_apply_auto_plans`, `crm_deal_collected` sont retirées à tous sans `grant` au rôle de service : celles qu'un client de service
+  appelle directement (`crm_ca_claim`, `crm_ca_store`, `crm_ca_fail` par le worker) dépendent des privilèges par défaut ; les autres
+  ne sont appelées que par d'autres fonctions ou par pg_cron (propriétaire). À vérifier sur le projet cible.
 - **RPC exposées mais inutilisées par les écrans** : `crm_cancel_auto_close`, `crm_set_nurture`, `crm_resolve_unmatched`,
   `crm_dismiss_unmatched`, `crm_merge_people`, `crm_update_config`, `crm_create_checkout`, `crm_set_deal` (dans `data.js`, aucun
   appelant), `crm_ca_latest`, `crm_recompute_all`, `crm_admin_set_member`, `crm_merge_alert_defaults` (aucun appelant).
 - **Valeurs d'énumération jamais écrites** : `cycle_origin.reopened`, `call_status.outcome_pending`, `nurture_status.archived` /
-  `opted_out`, la plupart d'`outbound_status`.
-- **`crm_settings.team_email_domains`** contient encore une valeur d'avant LNP et n'est lue par aucun code.
-- **Réglages à poser à la main** : `functions_url` (sans lui, ni la file, ni Fathom, ni les SLA ne tournent) ; `no_show_rule.since`
-  et `enabled` (la règle d'absence est éteinte par défaut).
+  `opted_out`, la plupart d'`outbound_status`, `event_source.sendblue` et `claude`.
+- **`crm_settings.team_email_domains`** n'est lue par aucun code (c'est `internal_domains`, 039, qui sert).
+- **`crm_ca_config.default_timezone`** vaut encore `Asia/Dubai`, comme `crm_members.timezone` par défaut (003) : seuls les appels
+  sans propriétaire en dépendent ; aucune migration ne les passe à `Europe/Paris`.
+- **Réglages à poser à la main** : `functions_url` (sans lui, ni la file, ni Fathom, ni les imports iClosed, ni les SLA, ni le
+  balayage du Simulateur ne tournent) ; `crm_ca_config.engine` et `tiers` pour retrouver la production ; les sources de `sla_rules`.
 
 ### Ce qui n'a pas pu être déterminé depuis le dépôt
 
-- L'état réel de la base en ligne (publication temps réel, privilèges par défaut, tâches pg_cron effectivement planifiées, valeurs
-  actuelles de `crm_settings`, lignes de `crm_sales_team`).
-- Le format exact des éléments produits par les mappers TypeScript (`supabase/functions/_shared/mappers/`) au-delà de ce que les
-  fonctions SQL lisent : voir le chapitre des intégrations.
+- L'état réel de la base en ligne au-delà du relevé de `08-configuration-actuelle.md` (privilèges par défaut des fonctions, valeurs
+  actuelles de `sla_rules`, `setting`, `offer_catalogue`, lignes de `crm_sales_team`), et l'origine des 47 fonctions de plus.
+- Si Paramètres › Alertes envoie vraiment un réglage SE à `crm_save_sla_rules` (refus attendu d'après le code, non essayé).
+- Le format exact des éléments produits par les mappers TypeScript (`supabase/functions/_shared/mappers/`, dont `funnel.ts`) au-delà
+  de ce que les fonctions SQL lisent : voir le chapitre des intégrations.
