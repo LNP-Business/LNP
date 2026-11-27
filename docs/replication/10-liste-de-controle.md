@@ -43,8 +43,8 @@ select engine, tiers from crm_ca_config;              -- lite ; haiku, haiku, so
       attendus.
 - [ ] Les 11 tâches planifiées ont les mêmes noms et fréquences que le chapitre 08, et `cron.job_run_details` montre des
       exécutions réussies (celles qui appellent une fonction ont besoin de `crm_settings.functions_url`).
-- [ ] L'historique des migrations a une entrée par fichier `web/supabase/0*.sql` (63 ; la production en a 61, chapitre 08).
-- [ ] Les tests SQL passent sur un Postgres local : `web/supabase/tests/run.sh` (46 fichiers `*_test.sql`).
+- [ ] L'historique des migrations a une entrée par fichier `web/supabase/0*.sql` (62 ; la production en a 61 : la 056 y est appliquée sans entrée, chapitre 08).
+- [ ] Les tests SQL passent sur un Postgres local : `web/supabase/tests/run.sh` (45 fichiers `*_test.sql`).
 
 ## Les fonctions Edge
 

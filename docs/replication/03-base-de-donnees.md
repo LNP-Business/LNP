@@ -80,9 +80,10 @@ Appliquer dans l'ordre des numéros. Toutes sont ré-exécutables (« Safe to ru
 `crm_webhook_log`, créés en phase 0 par un ancien `003a`, sont protégés). Les tests (§15) appliquent 004 et 007 à 063 deux fois de
 suite. Rejouer un fichier remet toutefois ce qu'il pose : 039 et 040 repassent leurs anciens commerciaux à `active = false`, 056
 réécrit `no_show_rule` (`since`, `min_minutes`, `grace_hours`, `enabled = true`) et relance `crm_close_before`, 041 relance
-`crm_apply_auto_plans()`. **Ne jamais rejouer 034 seule sur une base à jour** : elle recrée les versions de 004 à 031 de
-`crm_require` (sans le setter), `crm_sales_cockpit` (019), `crm_recompute_cycle` (030), `crm_apply_messages` (034) ; il faut
-ensuite rejouer 036, 039, 040, 041, 045, 052, 054, 055 et 060 (c'est ce que fait en partie `tests/run.sh`).
+`crm_apply_auto_plans()`. **Ne jamais rejouer 034 seule sur une base à jour** : elle recrée des versions antérieures de
+`crm_require` (004, sans le setter), `crm_sales_cockpit` (019), `crm_recompute_cycle` (030) et `crm_apply_messages` (sa propre
+version) ; il faut ensuite rejouer 052, 054, 055 et 060, qui portent leurs définitions finales (`tests/run.sh`, qui rejoue 034 dans
+`lnp_fr_labels_test`, rejoue de même 036, 039, 040, 041 et 045 avant d'appliquer 059 à 063).
 
 Toutes les migrations sont appliquées en production (relevé du 27 novembre 2026, `08-configuration-actuelle.md`), avec deux écarts
 dans l'historique des migrations de Supabase (`supabase_migrations.schema_migrations`), sans effet sur le schéma :
@@ -209,9 +210,10 @@ vide ne les aura pas.
    ```
 7. Valeurs propres à LNP à vérifier ou recopier depuis la production : `internal_domains` et `offer_catalogue` (039, 041 :
    les fichiers posent les valeurs de LNP du 4 novembre 2026), `setting.default_setter` (054 : `null`), `sla_rules`.
-8. Imports d'historique éventuels par l'Edge Function `crm-import` (chapitre des intégrations), puis, selon les données, les
-   rattrapages manuels `crm_import_iclosed_disqualified(false)`, `crm_reclassify_imported(false)`,
-   `crm_mark_won_calls_held(false)` (toutes acceptent d'abord un essai à blanc `true`).
+8. Imports d'historique éventuels par l'Edge Function `crm-import` (chapitre des intégrations ; les tâches horaires de §14 font
+   ensuite le reste). Les anciens rattrapages manuels (essai à blanc `true` d'abord) : `crm_import_iclosed_disqualified` et
+   `crm_reclassify_imported` lisent les statuts iClosed, que le CRM ignore depuis 059 : ne pas les lancer sur une nouvelle base
+   (§16) ; `crm_mark_won_calls_held` (appels passés des cycles gagnés marqués honorés) ne sert qu'à un historique importé.
 9. Règle d'absence : **056 l'allume** avec la date de départ de LNP (`since` = 27 octobre 2026). Pour une autre date de départ :
    ```sql
    update crm_settings set value = value || jsonb_build_object('since', '<date ISO>', 'enabled', true) where key = 'no_show_rule';
@@ -1506,7 +1508,7 @@ par `call-analysis/worker/run.py`.
 | `crm_merge_people(p_keep uuid, p_merge uuid) → void` | auth, service | idem | Refusé si les deux ont un cycle en cours, ou sont tous deux en maturation. Déplace identités (doublons supprimés), cycles, événements, maturations, messages sortants, alertes ; `merged_into` ; garde le refus de messages le plus ancien. | Exposée, aucun écran. | 004 (copie 034) |
 | `crm_update_config(p_table text, p_key text, p_value jsonb) → void` | auth, service | idem | `crm_settings` (valeur entière), `crm_rules` (`enabled`, `params` ; règle inconnue refusée), `crm_stage_definitions` et `crm_reason_codes` (création possible, colonnes données). `is_proposal = false`. Audit `update_config`. Ne recalcule pas les cycles. | Exposée, aucun écran. | 004 (copie 034) |
 | `crm_create_checkout(p_cycle uuid) → text` | auth, service | idem | Bouchon : lève `0A000` « Les liens de paiement arrivent en phase 5 (Whop) ». | Exposée, aucun écran. | 004 (copie 034) |
-| `crm_merge_alert_defaults() → int` | auth, service | administrateur d'application, ou appel sans `auth.uid()` | Ajoute à `docs` `config/alerts` chaque règle c1–c18 absente : `alerts.cN = {on: true, sev: Initcap(severity), who: [propriétaire, responsable, romain] en 0/1, ch: [1,0,0], crm: true}` et `values["cN.<param>"]` pour chaque seuil numérique absent. Ne touche ni a1–a18 ni une règle c déjà modifiée. Renvoie le nombre de règles ajoutées. | Aucun dans le code ; `web/api/_os.js` lit `crm_settings.alert_rule_defaults` « comme 004 les enregistrerait ». | 004 (copie 034) |
+| `crm_merge_alert_defaults() → int` | auth, service | administrateur d'application, ou appel sans `auth.uid()` | Ajoute à `docs` `config/alerts` chaque règle c1–c18 absente : `alerts.cN = {on: true, sev: Initcap(severity), who: [propriétaire, responsable, romain] en 0/1, ch: [1,0,0], crm: true}` et `values["cN.<param>"]` pour chaque seuil numérique absent. Ne touche ni a1–a18 ni une règle c déjà modifiée. Renvoie le nombre de règles ajoutées. | Aucun dans le code (`web/api/_os.js` lit aujourd'hui `crm_settings.sla_rules`, plus `alert_rule_defaults`). | 004 (copie 034) |
 | `crm_set_deal(p_cycle uuid, p_amount numeric, p_currency text default 'EUR') → uuid` | auth | `crm_require([...], cycle)` | Montant signé ≥ 0 ; insère ou met à jour la vente (devise en majuscules, `yes_at` gardé) ; audit `set_deal`. | Exposée (`data.js` `setDeal`), aucun écran. | 022 (copie 034) |
 | `crm_add_payment(p_cycle uuid, p_amount numeric, p_paid_at timestamptz, p_method text, p_note text default null) → uuid` | auth | idem | §12.9. | Fenêtre d'encaissement (`app/crm/cash_ui.js` → `data.js` `addPayment`). | 022 (copie 034) |
 | `crm_delete_payment(p_payment uuid) → void` | auth | idem (cycle du paiement) | Seulement un paiement `source = 'manual'` ; supprime le paiement et son événement `payment:<id>`, recalcule, audit. La confirmation est demandée dans le navigateur. | `cash_ui.js` (`deletePayment`). | 022 (copie 034) |
@@ -1556,7 +1558,7 @@ par `call-analysis/worker/run.py`.
 |---|---|---|---|---|
 | `crm_sales_cockpit() → jsonb` | auth | §12.19. `plpgsql stable definer` ; refuse un compte sans rôle CRM ; limite aux cycles visibles. | `data.js` `salesCockpit`, module du Cockpit commercial (`app/gen_sales_v2.py`). | 060 ; versions 016 (invoker), 017, 018, 019, 034 (copie), 036, 039, 040 |
 | `crm_sales_cockpit_window(p_from timestamptz, p_to timestamptz, p_ids uuid[], p_people_all boolean, p_owner uuid default null, p_all boolean default true) → jsonb` | interne | Les chiffres d'une fenêtre (§12.19). `sql stable definer`. | `crm_sales_cockpit`, `crm_training_person`. | 041 ; versions 016 (autre signature, supprimée par 017), 017, 032, 033, 036, 038, 039 |
-| `crm_call_is_reschedule(p_call uuid) → boolean` | défaut (aucun `revoke`) | Vrai si le dernier `call_canceled` de l'appel a un motif (`data.cancel_reason` ou `data.reason`) qui correspond à `resched|new time|better time|correspond|organi[sz]ing a new|moving accordingly` (insensible à la casse), ou si l'appel a un `call_rescheduled`. | Plus aucune (la fenêtre de 038 à 041 ne la lit plus). | 032 |
+| `crm_call_is_reschedule(p_call uuid) → boolean` | défaut (aucun `revoke`) | Vrai si le dernier `call_canceled` de l'appel a un motif (`data.cancel_reason` ou `data.reason`) qui correspond à `resched\|new time\|better time\|correspond\|organi[sz]ing a new\|moving accordingly` (insensible à la casse), ou si l'appel a un `call_rescheduled`. | Plus aucune (la fenêtre de 038 à 041 ne la lit plus). | 032 |
 | `crm_person_internal(p_person uuid) → boolean` | retirée à `public`, `anon` | §6.2 : fiche de test de l'équipe (`internal_domains`). `sql stable definer`. | Fenêtre du cockpit, `crm_sales_execution`, `crm_training_person`, `crm_qualif_candidates`. | 039 |
 | `crm_show_pending_hours() → int` | retirée à `public`, `anon` | `crm_settings.show_pending_hours`, 48 à défaut. | Fenêtre du cockpit. | 039 |
 | `crm_sales_execution(p_days int default 90, p_owner uuid default null) → jsonb` | auth | Onglets Exécution, Qualité, Impact (§12.21). Refuse un compte sans rôle CRM ; `p_days` ramené entre 7 et 365 ; cycles visibles (administrateur : tous ; sinon les siens), d'un commercial si `p_owner`, sans les fiches de test. Renvoie `{days, from, at, rules, sources}` ‖ la fenêtre. | `data.js` (`salesExecution`), `app/sales_exec_module.js`. | 060 ; version 050 |
@@ -1613,7 +1615,7 @@ rôle de service : le worker, qui appelle avec la clé du rôle de service, comp
 | `crm_sla_settings() → jsonb` | service | `crm_settings.sla_alerts` ‖ `{sla_rules: crm_settings.sla_rules}` (044). | `sla-tick`. | 044 ; version 028 |
 | `crm_mcp_call(p_tool text, p_input jsonb) → bigint` | auth | Refuse sans rôle CRM (`42501`) ; refuse le 61e appel de la minute (`P0M60`) ; écrit l'audit `mcp:<outil>` (40 caractères max) avec `after = {input}` ; renvoie l'id. | `web/api/mcp.js` (jeton de la personne). | 014 (copie 034) |
 | `crm_mcp_done(p_id bigint, p_rows int, p_ms int, p_error text) → void` | auth | Ajoute `rows`, `ms`, `error` (200 caractères) à la ligne d'audit de l'appelant. | `web/api/mcp.js`. | 014 |
-| `crm_save_sla_rules(p_value jsonb) → jsonb` | auth | Vérifie la forme : objet ; `sources` = booléens de `messages`, `whop`, `analysis` seulement ; `rules` = clés `^(SH|DE|CA|CO|CL|DO)-[0-9]{1,2}$`, chacune avec seulement `on`, `app`, `slack` (booléens) et `warn`, `late`, `crit` (nombres de 0 à 8 760 heures) ; sinon `22023` « Réglages des SLA : … ». Puis `crm_update_config('crm_settings', 'sla_rules', …)` (droits et audit de 004). Renvoie la valeur enregistrée. **Les règles `SE-n` du setter sont refusées par ce motif** (§16). | Paramètres › Alertes (`gabarits/Settings.pre-hz.dc.html`, `saveSla` dans `app/lnp.html`). | 044 |
+| `crm_save_sla_rules(p_value jsonb) → jsonb` | auth | Vérifie la forme : objet ; `sources` = booléens de `messages`, `whop`, `analysis` seulement ; `rules` = clés `^(SH\|DE\|CA\|CO\|CL\|DO)-[0-9]{1,2}$`, chacune avec seulement `on`, `app`, `slack` (booléens) et `warn`, `late`, `crit` (nombres de 0 à 8 760 heures) ; sinon `22023` « Réglages des SLA : … ». Puis `crm_update_config('crm_settings', 'sla_rules', …)` (droits et audit de 004). Renvoie la valeur enregistrée. **Les règles `SE-n` du setter sont refusées par ce motif** (§16). | Paramètres › Alertes (`gabarits/Settings.pre-hz.dc.html`, `saveSla` dans `app/lnp.html`). | 044 |
 
 ### 9.9 Pipeline : fermer, rouvrir, déplacer (045, 047)
 
@@ -1907,7 +1909,11 @@ Décision de Romain du 2026-10-25 : chaque écran et le CRM sont ouverts à tout
 une ligne `crm_members` à chaque membre (clé = partie locale de l'e-mail réduite à `[a-z0-9]`, suffixée 2, 3… en cas de doublon,
 `member` si vide ; nom = partie locale avec majuscule ; rôle selon §6.1).
 
-### 12.4 Propriétaires d'après les hôtes (005, 015)
+Depuis, deux décisions ont restreint ce qui se voit : 048 (5 novembre 2026, seul un administrateur voit tous les prospects, §6.1)
+et l'accès par écran de Paramètres › Accès (`app_metadata.screens`, `web/api/_screens.js`, chapitre de l'édition web). Ce qui
+reste de 011 : chaque membre de l'application a une ligne `crm_members`.
+
+### 12.4 Propriétaires d'après les hôtes (005, 015, 043)
 
 - En direct : le propriétaire d'un nouveau cycle est le membre dont l'e-mail ou l'e-mail iClosed est l'hôte iClosed, sinon le membre
   `default_owner` (`"sales"`), sinon personne.
@@ -2435,6 +2441,11 @@ Déroulé (`web/supabase/tests/run.sh`) :
 `006_crm_cron.sql` n'est jamais appliqué par les tests (pas de `pg_cron` ni de `pg_net` en local), ni aucun bloc `cron.schedule`
 des fichiers suivants. 45 suites en tout (`web/supabase/tests/*_test.sql`).
 
+Limite à connaître : `lnp_fr_labels_test` rejoue 034 (`\ir ../034_lnp_fr_labels.sql`, deux fois) et le script ne rejoue ensuite
+que 036, 039, 040, 041 et 045. Les suites des étapes 4 et 5 tournent donc avec `crm_require` de 034 (sans la règle du setter de 054),
+`crm_recompute_cycle` de 045 (sans la règle des 6 mois de 055) et `crm_apply_messages` de 034 ; aucune base de test ne porte
+exactement le schéma final de toutes les fonctions à la fois.
+
 ### 15.2 Ce que vérifie chaque suite
 
 | Suite | Vérifie |
@@ -2538,7 +2549,7 @@ Points d'attention pour une réplique :
   extension installée dans `public`, comme `citext`, que 003 crée sans schéma) : à comparer sur le projet cible plutôt que de la
   reproduire.
 - **Temps réel** : `docs` et `crm_sla_alerts` seulement (001, 053), comme en production ; `app/crm/data.js` s'abonne aussi à
-  `crm_cycles`, `crm_events`, `crm_alerts`, qui ne sont pas publiées (les écrans se rechargent autrement).
+  `crm_cycles`, `crm_events`, `crm_alerts`, qui ne sont pas publiées : ces abonnements ne reçoivent rien.
 - **Retirer un membre** : `crm_members.id` référence `members(user_id)` `on delete restrict`, alors que `members` est supprimé en
   cascade avec `auth.users`. Depuis 011 tout membre a une ligne `crm_members` : la suppression d'un compte par `/api/team`
   (`auth.admin.deleteUser`) devrait donc être refusée par cette contrainte tant que la ligne `crm_members` existe (non testé ici).

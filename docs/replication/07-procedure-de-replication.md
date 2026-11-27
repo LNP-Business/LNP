@@ -36,7 +36,7 @@ fonctions), Postgres 16 en local (tests SQL), Playwright avec Chromium (tests d'
 ## 2. Supabase : le projet et la base
 
 1. Créer un projet Supabase (région `eu-central-1` comme la production, Postgres 17). Noter la réf. du projet.
-2. Appliquer **dans l'ordre** les 63 fichiers `web/supabase/001_init.sql`, `003_crm_core.sql` … `063_crm_ca_corrections.sql`
+2. Appliquer **dans l'ordre** les 62 fichiers `web/supabase/001_init.sql`, `003_crm_core.sql` … `063_crm_ca_corrections.sql`
    (il n'y a pas de `002`). Méthode conseillée, qui trace chaque migration dans l'historique :
    ```bash
    for f in web/supabase/0*.sql; do

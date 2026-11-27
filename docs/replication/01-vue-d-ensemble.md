@@ -88,7 +88,7 @@ Tous au nom de l'entreprise de l'installation, jamais le compte d'une autre entr
 | `gabarits/` | gabarits des écrans d'origine (`*.dc.html`, `*.pre-hz.dc.html`, en-tête `Shell.base.html`) |
 | `uploads/crm_source.html` | source d'origine du CRM |
 | `proposal/sales-cockpit-v2.html` | source d'origine du Cockpit commercial |
-| `web/` | édition web : `public/` (page, `lnp-web.js`, `docs/`, `version.json`), `api/` (routes, `_screens.js`, `_kb.json`), `kb/` (base de connaissances du connecteur), `supabase/` (les 63 migrations SQL et `tests/`), `tests/` (connecteur), `build_web.py`, `vercel.json`, `package.json` |
+| `web/` | édition web : `public/` (page, `lnp-web.js`, `docs/`, `version.json`), `api/` (routes, `_screens.js`, `_kb.json`), `kb/` (base de connaissances du connecteur), `supabase/` (les 62 migrations SQL et `tests/`), `tests/` (connecteur), `build_web.py`, `vercel.json`, `package.json` |
 | `supabase/` | `functions/` (10 fonctions Edge et `_shared/` : SLA, Simulateur, mappers), `tests/` (Deno), `config.toml` |
 | `call-analysis/` | analyse d'appel : moteur de référence (`engine/`), moteur allégé (`lite/`), worker (`worker/`), mesure (`qa/`), qualification (`qualification/`), méthodologie et contrats (`docs/`) (chapitre 09) |
 | `.github/workflows/` | `crm-functions.yml`, `call-analysis.yml`, `qualification.yml` |

@@ -11,7 +11,7 @@ chapitre 10 en tire la liste de contrôle.
 | Page et API (Vercel) | branche `main`, commit `edcc610` (« Merge pull request #80 »), déploiement automatique à chaque push sur `main` |
 | Fonctions Edge (Supabase) | déployées par le workflow `crm-functions.yml` à chaque push sur `main` (ou une branche `crm-*`) qui touche `supabase/**` |
 | Analyse d'appel (worker) | `call-analysis.yml` sur `main`, toutes les heures à la minute 7 |
-| Base de données | les 63 fichiers `web/supabase/001_init.sql` … `063_crm_ca_corrections.sql` (il n'y a pas de `002`) |
+| Base de données | les 62 fichiers `web/supabase/001_init.sql` … `063_crm_ca_corrections.sql` (il n'y a pas de `002`) |
 
 Les branches non fusionnées ne tournent pas : à la date du relevé, les PR `#81`, `#82` et `#83` (analyse d'appel) attendent leur
 fusion. Une réplication à l'identique part de `main`.

@@ -98,7 +98,7 @@ quel) et à la page de connexion OAuth (`web/api/oauth.js`).
 | Données du CRM | `node app/crm/data.test.js` | `window.LNP_CRM` (lectures, écritures, libellés français) |
 | Transcriptions | `node app/crm/transcript_parse.test.js` | lecture des formats collés, intervenants |
 | Écrans | `node <test> $PWD/app/lnp.html <dossier>` (Playwright, Chromium) | Cycle de vente (`app/crm/sales_cycle_accept.js`, `app/cycle_day_test.js`, `app/crm/cycle_fiche_live.js`), étapes et fiche (`app/crm/etapes_live.js`), setter (`app/crm/setting_live.js`), analyse d'appel (`app/crm/fiche_analyse_live.js`, `app/crm/analyse_decouverte_test.js`), alertes (`app/alertes_test.js`), Cockpit (`app/sales_exec_test.js`), Entraînement (`app/training/training_test.js`, `academie_test.js`, `results_test.js`) ; Simulateur sur `app/training/simulateur.html` (`simulateur_test.js`) |
-| SQL | `web/supabase/tests/run.sh` (Postgres 16 local, `PGHOST`, `PGUSER`) | 46 fichiers `*_test.sql`, chacun sur une base jetable avec `supabase_stub.sql` |
+| SQL | `web/supabase/tests/run.sh` (Postgres 16 local, `PGHOST`, `PGUSER`) | 45 fichiers `*_test.sql`, chacun sur une base jetable avec `supabase_stub.sql` |
 | Fonctions Edge | `deno test --allow-env --allow-read supabase/tests` | 12 fichiers : ingestion, mappers, import, pipeline, SLA, `callqa-llm`, Simulateur (état, grille, offres, réalisme, routes, variantes) |
 | Connecteur et API | `cd web && npm ci && npm test` | OAuth, outils MCP, accès, sur un Supabase en mémoire (`web/tests/`) |
 | Analyse d'appel | `python3 -m pytest -q tests` dans `call-analysis/engine`, `lite`, `worker`, `qa` | chapitre 09 |
