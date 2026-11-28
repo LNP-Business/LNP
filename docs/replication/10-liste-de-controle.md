@@ -3,6 +3,9 @@
 Chaque ligne se vérifie par une commande ou un écran. Les valeurs attendues sont celles de la production au 27 novembre 2026
 (chapitre 08). Une réplique est « à 100 % » quand toutes les cases sont cochées.
 
+Les contrôles du code, de la base, des fonctions et du site se lancent d'un coup, en lecture seule :
+`docs/replication/scripts/05-verifier.sh <réf> <adresse du site>`. Restent à la main les écrans et les tests.
+
 ## Le code
 
 - [ ] La branche déployée est `main`, au même commit que la production (`git rev-parse --short HEAD` → `edcc610` au relevé ;
@@ -25,7 +28,7 @@ Requêtes à lancer dans l'éditeur SQL de la réplique :
 select (select count(*) from pg_tables where schemaname = 'public')                          as tables,      -- 53
        (select count(*) from pg_tables where schemaname = 'public' and rowsecurity)          as avec_rls,    -- 53
        (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-         where n.nspname = 'public')                                                         as fonctions,   -- 176
+         where n.nspname = 'public')                                                         as fonctions,   -- 176 (212 si pgcrypto est dans public)
        (select count(*) from pg_views where schemaname = 'public')                           as vues,        -- 1
        (select count(*) from pg_trigger t join pg_class c on c.oid = t.tgrelid
          join pg_namespace n on n.oid = c.relnamespace

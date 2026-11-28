@@ -12,6 +12,27 @@ Trois règles :
   transcriptions et le jeu de référence de l'analyse d'appel restent dans la base et le stockage d'origine (§ 9 pour une reprise
   de données, si elle est décidée).
 
+## 0. La voie rapide : les scripts et Claude Code
+
+Les étapes ci-dessous sont outillées dans `docs/replication/scripts/` (aucune clé dans les scripts : ils demandent les secrets au
+clavier, sans les afficher ni les écrire) :
+
+| Script | Étapes | Ce qu'il fait |
+|---|---|---|
+| `01-pousser-le-code.sh <lnp.bundle> <organisation/dépôt>` | § 1 | clone le paquet, pousse toutes les branches dans le nouveau dépôt, affiche les empreintes |
+| `02-base-de-donnees.sh <réf> <site>` | § 2.2 à 2.4 | applique les 62 migrations dans l'ordre (tracées dans l'historique), charge `configuration/production.sql`, affiche les compteurs |
+| `03-secrets.sh <organisation/dépôt> <réf>` | § 3.1, 3.4 | secrets et variable GitHub (CLI `gh`), secrets des fonctions Edge (API Supabase) |
+| `04-fonctions-auth-stockage.sh <organisation/dépôt> <réf> <site>` | § 2.5, 2.7, 3.2, 7.1 | lance le workflow de déploiement des 10 fonctions, règle l'authentification (inscription fermée), crée le seau `callqa-fixtures`, active les workflows |
+| `05-verifier.sh <réf> <site>` | chapitre 10 | 25 contrôles en lecture seule : empreintes, schéma, tâches, réglages, fonctions, secrets, site |
+
+Restent à la main : Vercel (§ 4), le premier administrateur (§ 5), les webhooks des outils (§ 6), les écrans (chapitre 10).
+Pour se faire guider de bout en bout, coller dans Claude Code, ouvert sur le nouveau dépôt, le prompt de
+`docs/replication/PROMPT-CLAUDE-CODE.md`.
+
+Le schéma a été vérifié ainsi le 28 novembre 2026 : les 62 fichiers appliqués dans l'ordre sur une base vierge donnent exactement
+le schéma de la production (53 tables, 575 colonnes, 52 politiques RLS, 176 fonctions au code identique, 11 déclencheurs, 1 vue,
+11 tâches planifiées aux mêmes horaires), puis `configuration/production.sql` redonne exactement ses réglages.
+
 ## 1. Le code
 
 1. Recevoir le code (au choix) :
@@ -47,15 +68,15 @@ fonctions), Postgres 16 en local (tests SQL), Playwright avec Chromium (tests d'
        || { echo "échec : $n"; break; }
    done
    ```
-   (ou l'éditeur SQL, fichier par fichier, dans le même ordre). Une migration qui échoue arrête la boucle : corriger, puis reprendre
-   à partir d'elle.
-3. Réglages à adapter avant ou juste après les migrations (chapitre 03, § 13) :
-   - `crm_sales_team` : les commerciaux et setters (clé `rep` = la partie avant `@` de leur e-mail d'hôte iClosed) ;
-   - `crm_settings` : `team_email_domains`, `internal_domains`, `default_owner`, `offer_catalogue`, `setting`, `sla_alerts`
-     (dont `link`), destinataires de `alert_rule_defaults` ; recopier les valeurs de la production si la réplique doit se
-     comporter à l'identique (elles ne sont pas dans le dépôt quand elles ont été changées depuis l'écran) ;
-   - `crm_ca_config` : `engine = 'lite'`, `tiers` = `{"fast": "claude-haiku-5-5", "strong": "claude-haiku-5-5", "arbiter":
-     "claude-sonnet-5-5"}` (valeurs de la production).
+   (ou l'éditeur SQL, fichier par fichier, dans le même ordre ; ou le script 02). Une migration qui échoue arrête la boucle :
+   corriger, puis reprendre à partir d'elle.
+3. Charger la configuration de la production : `docs/replication/configuration/production.sql`, après avoir remplacé `__REF__`
+   (réf. du projet) et `__SITE__` (adresse du site) ; le script 02 le fait. Il redonne les 17 clés de `crm_settings` (dont
+   `functions_url` et `sla_alerts.link`, propres à l'installation), `crm_ca_config` (moteur `lite`, niveaux `claude-haiku-5-5`,
+   `claude-haiku-5-5`, `claude-sonnet-5-5`), `crm_sim_config`, l'offre du Simulateur et ses 6 prospects fictifs. Ce fichier ne
+   contient ni clé ni e-mail ni donnée de prospect. Reste à saisir l'équipe : `crm_sales_team` (une ligne par commercial et
+   setter : `rep` = la partie avant `@` de son e-mail d'hôte iClosed, `name`, `active`) ; les règles d'alerte de la production
+   envoient aussi à la clé `romain` (`alert_rule_defaults`), à remplacer par l'administrateur de la nouvelle installation si besoin.
 4. Contrôles (chapitre 10) : 53 tables, RLS partout, 176 fonctions, 11 déclencheurs, 1 vue, les 8 extensions, 11 tâches
    `cron.job` actives.
 5. Authentification (Authentication › URL Configuration) : `Site URL` = l'adresse du site, `Redirect URLs` = `https://<site>/**`.
@@ -73,7 +94,7 @@ fonctions), Postgres 16 en local (tests SQL), Playwright avec Chromium (tests d'
 2. GitHub › Actions › « CRM functions » › Run workflow sur `main` : les tests passent puis les 10 fonctions sont déployées
    (`supabase functions deploy <f> --no-verify-jwt`). Contrôle : `iclosed-in`, `fathom-in`, `whatsapp-in`, `whop-in`,
    `lead-in`, `process-inbox`, `crm-import`, `sla-tick`, `callqa-llm`, `simulateur` (chapitre 04).
-3. Activer les tâches planifiées qui appellent des fonctions :
+3. Activer les tâches planifiées qui appellent des fonctions (déjà fait par `configuration/production.sql`) :
    ```sql
    insert into crm_settings (key, value, is_proposal)
    values ('functions_url', '"https://<réf>.supabase.co/functions/v1"', false)
@@ -94,7 +115,7 @@ fonctions), Postgres 16 en local (tests SQL), Playwright avec Chromium (tests d'
 3. Variables : `SUPABASE_URL`, `SUPABASE_ANON_KEY` (production, aperçu, développement), `SUPABASE_SERVICE_ROLE_KEY` (sensible ;
    production et aperçu), `SITE_URL` (l'adresse du site), et temporairement `BOOTSTRAP_TOKEN` (longue chaîne aléatoire). Deploy.
 4. Domaine : Settings › Domains (adresse `<nom>.vercel.app` ou domaine acheté). Reporter l'adresse dans Supabase (§ 2.5) et dans
-   `crm_settings.sla_alerts.link` :
+   `crm_settings.sla_alerts.link` (déjà fait par `configuration/production.sql` si l'adresse était connue) :
    ```sql
    update crm_settings set value = value || '{"link": "https://<site>/#crm"}'::jsonb where key = 'sla_alerts';
    ```

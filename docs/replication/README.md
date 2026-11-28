@@ -5,7 +5,7 @@ une nouvelle installation : le code (ce dépôt), la base, les fonctions, le sit
 intégrations et l'analyse d'appel. Il se lit avec le dépôt : le code est la référence, ce dossier l'explique, dit dans quel ordre
 tout installer et comment vérifier que la copie est identique. Il ne contient aucune clé ni aucune donnée personnelle.
 
-Mis à jour le 27 novembre 2026, sur `main` (la version en production).
+Mis à jour le 28 novembre 2026, sur `main` (la version en production).
 
 | Chapitre | Contenu |
 |---|---|
@@ -19,8 +19,16 @@ Mis à jour le 27 novembre 2026, sur `main` (la version en production).
 | [08 · Configuration actuelle](08-configuration-actuelle.md) | l'état de la production relevé le 27 novembre 2026, sans valeur secrète |
 | [09 · Analyse d'appel](09-analyse-d-appel.md) | le moteur, le worker, les modèles, la mesure, la qualification |
 | [10 · Liste de contrôle](10-liste-de-controle.md) | comment prouver que la réplique est identique (empreintes, compteurs, écrans, tests) |
+| [11 · Prompts](11-prompts.md) | chaque prompt envoyé à un modèle : fichier, étape, modèle, entrée, sortie, tests |
 
-Ordre de lecture conseillé : 01, puis 07 pour installer en ouvrant 02 à 06 et 09 au besoin, puis 10 pour vérifier.
+| Outil | Contenu |
+|---|---|
+| [`configuration/production.sql`](configuration/production.sql) | la configuration de la production qui n'est pas dans les migrations (réglages, modèles, offre et prospects fictifs du Simulateur), sans clé ni donnée personnelle |
+| [`scripts/`](scripts/) | `01` pousser le code, `02` base et configuration, `03` secrets, `04` fonctions, authentification et stockage, `05` vérification (chapitre 07, § 0) |
+| [`PROMPT-CLAUDE-CODE.md`](PROMPT-CLAUDE-CODE.md) | le prompt à coller dans Claude Code pour se faire guider de bout en bout |
+
+Ordre de lecture conseillé : 01, puis 07 pour installer (§ 0 : les scripts et le prompt de Claude Code) en ouvrant 02 à 06, 09 et
+11 au besoin, puis 10 pour vérifier.
 
 Pour remettre le code à un collègue : un accès au dépôt (ou un transfert), ou une copie autonome avec tout l'historique
 (`git bundle create lnp.bundle main dossier-replication`, puis chez lui `git clone -b main lnp.bundle LNP` ; tant que ce dossier
