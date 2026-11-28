@@ -18,4 +18,7 @@ echo
 echo "Code poussé sur https://github.com/$DEST (branches : $(git branch --format='%(refname:short)' | tr '\n' ' '))"
 echo "Empreintes à comparer au chapitre 10 :"
 sha256sum app/lnp.html web/public/index.html
-echo "Copie de travail : $DIR"
+# Le dossier de réplication (chapitres, scripts, configuration) est sur dossier-replication = main + docs/replication :
+# le code de l'application y est identique à celui de main, les scripts suivants se lancent depuis cette branche.
+git checkout -q dossier-replication
+echo "Copie de travail : $DIR (branche dossier-replication ; lancer les scripts 02 à 05 depuis ce dossier)"

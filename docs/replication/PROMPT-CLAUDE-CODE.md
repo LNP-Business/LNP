@@ -1,7 +1,9 @@
 # Prompt à donner à Claude Code pour faire la réplication
 
 Ce fichier contient le texte à coller dans Claude Code (terminal, application de bureau ou claude.ai/code), ouvert sur le
-**nouveau dépôt** une fois le code poussé (`docs/replication/scripts/01-pousser-le-code.sh`). Claude Code suit alors le
+**nouveau dépôt**, sur la branche `dossier-replication`, une fois le code poussé (`docs/replication/scripts/01-pousser-le-code.sh`).
+Cette branche est `main` (la version en production) plus le dossier `docs/replication/` : le code de l'application y est
+identique, et c'est `main` qui est déployé. Claude Code suit alors le
 dossier pas à pas, lance les scripts, vérifie chaque étape et s'arrête pour toute action qui demande une personne.
 
 Remplacer les quatre valeurs entre chevrons avant de coller. Aucune clé ne se met dans ce prompt : les scripts demandent les
@@ -35,7 +37,7 @@ Règles, à respecter du début à la fin :
 8. Ne crée ni ne modifie aucun fichier du dépôt, sauf si je te le demande. Ne pousse rien sans me le demander.
 
 Déroulé (chapitre 07) :
-A. Vérifie le code : branche main, empreintes de app/lnp.html et web/public/index.html (chapitre 10), recherche de clés.
+A. Vérifie le code : main et dossier-replication ne diffèrent que par docs/replication (git diff --stat main), empreintes de app/lnp.html et web/public/index.html (chapitre 10), recherche de clés.
    Lance les tests qui ne demandent aucun compte : node app/crm/data.test.js ; cd web && npm ci && npm test ; les tests Python de
    call-analysis (engine, lite, worker, qa) ; deno test --allow-env --allow-read supabase/tests si Deno est installé ;
    web/supabase/tests/run.sh si un Postgres 16 local est disponible. Résume les résultats.
